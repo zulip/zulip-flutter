@@ -37,6 +37,10 @@ const nearResult = eg.nearGetMessagesResult;
 const olderResult = eg.olderGetMessagesResult;
 const newerResult = eg.newerGetMessagesResult;
 
+/// The expected effect on a [MessageListView] when messages are moved
+/// within a narrow and muting may change their visibility.
+enum VisibilityEffect { unaffected, reprocessed, removed, refetched }
+
 void main() {
   // Arrange for errors caught within the Flutter framework to be printed
   // unconditionally, rather than throttled as they normally are in an app.
@@ -1554,33 +1558,133 @@ void main() {
       checkHasMessages(messages ?? []);
     }
 
-    group('in combined feed narrow', () {
-      const narrow = CombinedFeedNarrow();
-      final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
-      final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
+    group('muting interactions on move', () {
+      /// Test that a message move (topic 'orig' → 'new' on [stream])
+      /// has the given [expected] effect on a [MessageListView] with
+      /// the given [narrow].
+      ///
+      /// The concrete muting state — [channelMuted], [origTopicPolicy],
+      /// [newTopicPolicy] — determines visibility differently depending
+      /// on the narrow type (see [MessageListView._messageVisible]), so
+      /// the same muting configuration can produce different effects in
+      /// different narrows.
+      void testMoveWithMuting({
+        required Narrow narrow,
+        required bool channelMuted,
+        required UserTopicVisibilityPolicy origTopicPolicy,
+        required UserTopicVisibilityPolicy newTopicPolicy,
+        required VisibilityEffect expected,
+      }) {
+        final channelDesc = channelMuted ? 'channel muted' : 'channel not muted';
+        final desc = '${narrow.runtimeType}, $channelDesc, '
+          '${origTopicPolicy.name} → ${newTopicPolicy.name}';
+        test(desc, () => awaitFakeAsync((async) async {
+          final flags = switch (narrow) {
+            MentionsNarrow()        => <MessageFlag>[.mentioned],
+            StarredMessagesNarrow() => <MessageFlag>[.starred],
+            _                       => <MessageFlag>[],
+          };
+          final notMovedMessages = List.generate(5, (i) =>
+            eg.streamMessage(stream: stream, topic: 'notMoved', flags: flags));
+          final movedMessages = List.generate(5, (i) =>
+            eg.streamMessage(stream: stream, topic: 'orig', flags: flags));
 
-      test('internal move between channels', () async {
-        await prepareNarrow(narrow, initialMessages);
+          await prepare(narrow: narrow,
+            starredMessages: narrow is StarredMessagesNarrow
+              ? (notMovedMessages + movedMessages).map((m) => m.id).toList()
+              : null);
+          await store.addStream(stream);
+          await store.addSubscription(
+            eg.subscription(stream, isMuted: channelMuted));
+          if (channelMuted) {
+            // Keep notMovedMessages visible despite channel muting.
+            await store.setUserTopic(stream, 'notMoved',
+              UserTopicVisibilityPolicy.unmuted);
+          }
+          if (origTopicPolicy != .none) {
+            await store.setUserTopic(stream, 'orig', origTopicPolicy);
+          }
+          if (newTopicPolicy != .none) {
+            await store.setUserTopic(stream, 'new', newTopicPolicy);
+          }
 
-        await store.handleEvent(eg.updateMessageEventMoveFrom(
-          origMessages: initialMessages,
-          newTopic: initialMessages[0].topic,
-          newStreamId: otherStream.streamId,
-        ));
-        checkHasMessages(initialMessages);
-        checkNotified(count: 2);
-      });
+          // The fetch includes all messages; _messageVisible filters by muting.
+          await prepareMessages(foundOldest: false,
+            messages: notMovedMessages + movedMessages);
 
-      test('internal move between topics', () async {
-        await prepareNarrow(narrow, initialMessages + movedMessages);
+          final postMoveMessages = <StreamMessage>[];
+          if (expected == .refetched) {
+            // The refetch returns messages at their post-move location.
+            postMoveMessages.addAll(movedMessages.map((m) => eg.streamMessage(
+              id: m.id, stream: stream, topic: 'new', flags: flags)));
+            connection.prepare(
+              delay: const Duration(seconds: 2),
+              json: newestResult(foundOldest: false,
+                messages: notMovedMessages + postMoveMessages).toJson());
+          }
 
-        await store.handleEvent(eg.updateMessageEventMoveFrom(
-          origMessages: movedMessages,
-          newTopicStr: 'new',
-        ));
-        checkHasMessages(initialMessages + movedMessages);
-        checkNotified(count: 2);
-      });
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: movedMessages, newTopicStr: 'new'));
+
+          switch (expected) {
+            case .unaffected:
+              checkHasMessages(notMovedMessages);
+              checkNotNotified();
+            case .reprocessed:
+              checkHasMessages(notMovedMessages + movedMessages);
+              checkNotified(count: 2);
+            case .removed:
+              checkHasMessages(notMovedMessages);
+              checkNotifiedOnce();
+            case .refetched:
+              check(model).fetched.isFalse();
+              checkHasMessages([]);
+              checkNotifiedOnce();
+              async.elapse(const Duration(seconds: 2));
+              checkHasMessages(notMovedMessages + postMoveMessages);
+              checkNotifiedOnce();
+          }
+        }));
+      }
+
+      final combinedFeed = const CombinedFeedNarrow();
+      final channel = ChannelNarrow(stream.streamId);
+      final mentions = const MentionsNarrow();
+      final starred = const StarredMessagesNarrow();
+
+      // Channel not muted: CombinedFeedNarrow and ChannelNarrow agree;
+      // MentionsNarrow and StarredMessagesNarrow always do internalMove
+      // because they don't exclude channel messages by muting.
+      for (final narrow in [combinedFeed, channel]) {
+        testMoveWithMuting(narrow: narrow, channelMuted: false,
+          origTopicPolicy: .none,  newTopicPolicy: .none,  expected: .reprocessed);
+        testMoveWithMuting(narrow: narrow, channelMuted: false,
+          origTopicPolicy: .none,  newTopicPolicy: .muted, expected: .removed);
+        testMoveWithMuting(narrow: narrow, channelMuted: false,
+          origTopicPolicy: .muted, newTopicPolicy: .none,  expected: .refetched);
+        testMoveWithMuting(narrow: narrow, channelMuted: false,
+          origTopicPolicy: .muted, newTopicPolicy: .muted, expected: .unaffected);
+      }
+      for (final narrow in [mentions, starred]) {
+        testMoveWithMuting(narrow: narrow, channelMuted: false,
+          origTopicPolicy: .none,  newTopicPolicy: .muted, expected: .reprocessed);
+        testMoveWithMuting(narrow: narrow, channelMuted: false,
+          origTopicPolicy: .muted, newTopicPolicy: .none,  expected: .reprocessed);
+      }
+
+      // Channel muted: CombinedFeedNarrow and ChannelNarrow diverge.
+      // With policy `none`, topics are invisible in CombinedFeedNarrow
+      // (because the channel is muted) but visible in ChannelNarrow
+      // (which doesn't consider channel muting).
+      testMoveWithMuting(narrow: combinedFeed, channelMuted: true,
+        origTopicPolicy: .none,  newTopicPolicy: .muted, expected: .unaffected);
+      testMoveWithMuting(narrow: combinedFeed, channelMuted: true,
+        origTopicPolicy: .muted, newTopicPolicy: .none,  expected: .unaffected);
+
+      testMoveWithMuting(narrow: channel, channelMuted: true,
+        origTopicPolicy: .none,  newTopicPolicy: .muted, expected: .removed);
+      testMoveWithMuting(narrow: channel, channelMuted: true,
+        origTopicPolicy: .muted, newTopicPolicy: .none,  expected: .refetched);
     });
 
     group('in channel narrow', () {
@@ -1588,17 +1692,6 @@ void main() {
       final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
       final otherChannelMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: otherStream, topic: 'topic'));
-
-      test('channel -> channel: internal move', () async {
-        await prepareNarrow(narrow, initialMessages + movedMessages);
-
-        await store.handleEvent(eg.updateMessageEventMoveFrom(
-          origMessages: movedMessages,
-          newTopicStr: 'new',
-        ));
-        checkHasMessages(initialMessages + movedMessages);
-        checkNotified(count: 2);
-      });
 
       group('old channel -> channel:', () {
         test('new topic not muted - refetch', () => awaitFakeAsync((async) async {
