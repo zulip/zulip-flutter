@@ -1687,7 +1687,7 @@ void main() {
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
           newStreamId: 20));
-        checkNotified(count: 2);
+        checkNotifiedOnce();
         check(store).messages.values.every(((message) =>
           message.isA<StreamMessage>()
             ..editState.equals(MessageEditState.moved)
@@ -1700,7 +1700,7 @@ void main() {
           origMessages: origMessages,
           newStreamId: 20,
           newContent: 'new content'));
-        checkNotified(count: 2);
+        checkNotifiedOnce();
         check(store).messages[origMessages[0].id].editState.equals(MessageEditState.edited);
         check(store).messages[origMessages[1].id].editState.equals(MessageEditState.moved);
       });
