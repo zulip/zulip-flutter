@@ -233,8 +233,7 @@ void main() {
       ...baseBaseJson,
       'type': 'remove',
 
-      'zulip_message_ids': '123,234',
-      'zulip_message_id': '123',
+      'message_ids': [123, 234],
     };
 
     final preE2eeJson = <String, String>{
@@ -259,12 +258,11 @@ void main() {
 
     test('toJson round-trips', () {
       check(parse(baseJson).toJson())
-        .deepEquals({ ...baseJson }..remove('zulip_message_id'));
+        .deepEquals(baseJson);
     });
 
     test('ignored fields missing have no effect', () {
       final baseline = parse(baseJson);
-      check(parse({ ...baseJson }..remove('zulip_message_id'))).jsonEquals(baseline);
       check(parse({ ...preE2eeJson }..remove('server'))).jsonEquals(baseline);
       check(parse({ ...preE2eeJson }..remove('realm_id'))).jsonEquals(baseline);
     });
@@ -300,7 +298,7 @@ void main() {
            "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': '/examplecorp' }));
 
       for (final badIntList in ["abc,34", "12,abc", "12,", ""]) {
-        test("${n++}", () => checkParseFails({ ...baseJson, 'zulip_message_ids': badIntList }));
+        test("${n++}", () => checkParseFails({ ...baseJson, 'message_ids': badIntList }));
       }
     });
   });

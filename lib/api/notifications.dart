@@ -234,8 +234,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   // and just sending the first ID there redundantly, since 2019.
   // See zulip-mobile@4acd07376.
 
-  @JsonKey(name: 'zulip_message_ids')
-  @_IntListConverter()
+  @JsonKey(readValue: _readMessageIds)
   final List<int> messageIds;
   // final String? zulipMessageId; // obsolete; ignore
 
@@ -244,6 +243,11 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
     required super.userId,
     required this.messageIds,
   });
+
+  static Object? _readMessageIds(Map<dynamic, dynamic> json, String key) {
+    return json['message_ids']
+      ?? const _IntListConverter().fromJson(json['zulip_message_ids'] as String); // TODO(server-12)
+  }
 
   factory RemoveFcmMessage.fromJson(Map<String, dynamic> json) {
     assert((json['type'] ?? json['event']) == 'remove'); // TODO(server-12)
