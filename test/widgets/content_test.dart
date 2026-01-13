@@ -19,6 +19,7 @@ import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../api/fake_api.dart';
@@ -820,6 +821,55 @@ void main() {
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
     //    expectedWght: 800, // [etc.]
+
+    Future<List<Route<dynamic>>> prepareForTapTest(WidgetTester tester, String html) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      await prepareContent(tester, plainContent(html),
+        navObservers: [testNavObserver],
+        wrapWithPerAccountStoreWidget: true);
+      // `tester.pumpWidget` in prepareContent introduces an initial route;
+      // remove it so consumers only have newly pushed routes.
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.removeLast();
+      return pushedRoutes;
+    }
+
+    group('mention tap interactions', () {
+      testWidgets('tapping on user mention navigates to profile page', (tester) async {
+        final pushedRoutes = await prepareForTapTest(tester,
+          ContentExample.userMentionPlain.html);
+
+        await tester.tap(find.text('@Greg Price'));
+        check(pushedRoutes).single.isA<WidgetRoute>()
+          .page.isA<ProfilePage>().userId.equals(2187);
+      });
+
+      testWidgets('tapping on group mention does not navigate', (tester) async {
+        final pushedRoutes = await prepareForTapTest(tester,
+          ContentExample.groupMentionPlain.html);
+
+        await tester.tap(find.text('@test-empty'));
+        check(pushedRoutes).isEmpty();
+      });
+
+      testWidgets('tapping on wildcard mention does not navigate', (tester) async {
+        final pushedRoutes = await prepareForTapTest(tester,
+          '<p><span class="user-mention channel-wildcard-mention" data-user-id="*">@all</span></p>');
+
+        await tester.tap(find.text('@all'));
+        check(pushedRoutes).isEmpty();
+      });
+
+      testWidgets('tapping on topic mention does not navigate', (tester) async {
+        final pushedRoutes = await prepareForTapTest(tester,
+          '<p><span class="topic-mention">@topic</span></p>');
+
+        await tester.tap(find.text('@topic'));
+        check(pushedRoutes).isEmpty();
+      });
+    });
   });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {

@@ -1129,15 +1129,7 @@ class _ZulipInlineContentParser {
       return null;
     }
 
-    // Extract user ID for individual user mentions.
-    // - Individual user mentions have data-user-id="<numeric_id>"
-    // - Wildcard mentions have data-user-id="*"
-    // - Group mentions have data-user-group-id instead
-    // - Topic mentions don't have a user ID attribute
-    final userIdStr = element.attributes['data-user-id'];
-    final int? userId = (userIdStr != null && userIdStr != '*')
-      ? int.tryParse(userIdStr)
-      : null;
+    final int? userId = int.tryParse(element.attributes['data-user-id'] ?? '');
 
     // TODO assert UserMentionNode can't contain LinkNode;
     //   either a debug-mode check, or perhaps we can make expectations much
