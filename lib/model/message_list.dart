@@ -1237,11 +1237,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return;
 
       case CombinedFeedNarrow():
+        switch(store.messageMoveWillAffectIfTopicVisible(messageMove)) {
+          case .unmutedToMuted:   _messagesMovedFromMessageList(messageIds);
+          case .mutedToUnmuted:   _messagesMovedIntoMessageList();
+          case .unmutedToUnmuted: _messagesMovedInternally(messageIds);
+          case .mutedToMuted:     return;
+        }
+
       case MentionsNarrow():
       case StarredMessagesNarrow():
         // The messages didn't enter or leave this narrow.
-        // TODO(#1255): … except they may have become muted or not.
-        //   We'll handle that at the same time as we handle muting itself changing.
         // Recipient headers, and downstream of those, may change, though.
         _messagesMovedInternally(messageIds);
 
@@ -1255,7 +1260,15 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case ChannelNarrow(:final streamId):
         switch ((origStreamId == streamId, newStreamId == streamId)) {
           case (false, false): return;
-          case (true,  true ): _messagesMovedInternally(messageIds);
+
+          case (true,  true ):
+            switch(store.messageMoveWillAffectIfTopicVisibleInChannel(messageMove)) {
+              case .unmutedToMuted:   _messagesMovedFromMessageList(messageIds);
+              case .mutedToUnmuted:   _messagesMovedIntoMessageList();
+              case .unmutedToUnmuted: _messagesMovedInternally(messageIds);
+              case .mutedToMuted:     return;
+            }
+
           case (false, true ):
             switch (store.messageMoveWillAffectIfTopicVisibleInChannel(messageMove)) {
               case .unmutedToMuted:
