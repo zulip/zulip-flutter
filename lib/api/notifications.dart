@@ -159,7 +159,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
         result['pm_users'] = const _IntListConverter().toJson(allRecipientIds);
       case FcmMessageChannelRecipient():
         result['stream_id'] = const _IntConverter().toJson(recipient.channelId);
-        if (recipient.streamName != null) result['stream'] = recipient.streamName;
+        if (recipient.channelName != null) result['stream'] = recipient.channelName;
         result['topic'] = recipient.topic;
     }
     result['realm_uri'] = realmUrl.toString(); // TODO(server-9): deprecated in FL 257
@@ -187,15 +187,15 @@ class FcmMessageChannelRecipient extends FcmMessageRecipient {
   @_IntConverter()
   final int channelId;
 
-  // Current servers (as of 2025) always send the stream name.  But
+  // Current servers (as of 2025) always send the channel name.  But
   // future servers might not, once clients get the name from local data.
   // So might as well be ready.
   @JsonKey(name: 'stream')
-  final String? streamName;
+  final String? channelName;
 
   final TopicName topic;
 
-  FcmMessageChannelRecipient({required this.channelId, required this.streamName, required this.topic});
+  FcmMessageChannelRecipient({required this.channelId, required this.channelName, required this.topic});
 
   factory FcmMessageChannelRecipient.fromJson(Map<String, dynamic> json) =>
     _$FcmMessageChannelRecipientFromJson(json);

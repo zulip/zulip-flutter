@@ -48,7 +48,7 @@ FcmMessageChannelRecipient _$FcmMessageChannelRecipientFromJson(
   Map<String, dynamic> json,
 ) => FcmMessageChannelRecipient(
   channelId: const _IntConverter().fromJson(json['stream_id'] as String),
-  streamName: json['stream'] as String?,
+  channelName: json['stream'] as String?,
   topic: TopicName.fromJson(json['topic'] as String),
 );
 

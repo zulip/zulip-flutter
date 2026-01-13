@@ -270,8 +270,8 @@ class NotificationDisplayManager {
     // group-DM threads (pending #794) get titled with the latest sender, rather than
     // the first.
     messagingStyle.conversationTitle = switch (data.recipient) {
-      FcmMessageChannelRecipient(:var streamName?, :var topic) =>
-        '#$streamName > ${topic.displayName}',
+      FcmMessageChannelRecipient(:var channelName?, :var topic) =>
+        '#$channelName > ${topic.displayName}',
       FcmMessageChannelRecipient(:var topic) =>
         '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
       FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>

@@ -81,7 +81,7 @@ void main() {
         ..messageId.equals(12345)
         ..recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..channelId.equals(42)
-          ..streamName.equals(streamJson['stream']!)
+          ..channelName.equals(streamJson['stream']!)
           ..topic.jsonEquals(streamJson['topic']!))
         ..content.equals(streamJson['content']!)
         ..time.equals(1546300800);
@@ -99,7 +99,7 @@ void main() {
       check(parse({ ...streamJson }..remove('stream')))
         .recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..channelId.equals(42)
-          ..streamName.isNull());
+          ..channelName.isNull());
     });
 
     test('toJson round-trips', () {
@@ -279,7 +279,7 @@ extension MessageFcmMessageChecks on Subject<MessageFcmMessage> {
 
 extension FcmMessageChannelRecipientChecks on Subject<FcmMessageChannelRecipient> {
   Subject<int> get channelId => has((x) => x.channelId, 'channelId');
-  Subject<String?> get streamName => has((x) => x.streamName, 'streamName');
+  Subject<String?> get channelName => has((x) => x.channelName, 'channelName');
   Subject<TopicName> get topic => has((x) => x.topic, 'topic');
 }
 
