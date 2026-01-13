@@ -677,8 +677,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   ///
   /// See also [_allMessagesVisible].
   // When updating this, check [_allMessagesVisible], [_canAffectVisibility],
-  // and [_mutedUsersEventCanAffectVisibility] to see whether they need to be
-  // updated too.
+  // [_mutedUsersEventCanAffectVisibility], and [messagesMoved] to see whether
+  // they need to be updated too.
   // Also check the unread-count methods in [Unreads] to make sure they count
   // exactly the unread messages for which this would return true.
   bool _messageVisible(MessageBase message) {
@@ -1237,11 +1237,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return;
 
       case CombinedFeedNarrow():
+        final wasVisible = store.isTopicVisible(origStreamId, origTopic);
+        final isVisible = store.isTopicVisible(newStreamId, newTopic);
+        switch((wasVisible, isVisible)) {
+          case (false, false): return;
+          case (true,  true ): _messagesMovedInternally(messageIds);
+          case (false, true ): _messagesMovedIntoMessageList();
+          case (true,  false): _messagesMovedFromMessageList(messageIds);
+        }
+
       case MentionsNarrow():
       case StarredMessagesNarrow():
-        // The messages didn't enter or leave this narrow.
-        // TODO(#1255): … except they may have become muted or not.
-        //   We'll handle that at the same time as we handle muting itself changing.
+        // The messages didn't enter or leave this message list.
+        // (They may have been (un)muted, but we don't exclude channel messages
+        // in these narrows on the basis of muting. See _messageVisible.)
         // Recipient headers, and downstream of those, may change, though.
         _messagesMovedInternally(messageIds);
 
@@ -1250,21 +1259,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // the topic alone, and topics change. Punt on trying to add/remove
         // messages, though, because we aren't equipped to evaluate the match
         // without asking the server.
+        // (Messages may have been (un)muted, but we don't exclude channel
+        // messages in this narrow on the basis of muting. See _messageVisible.)
         _messagesMovedInternally(messageIds);
 
       case ChannelNarrow(:final streamId):
-        switch ((origStreamId == streamId, newStreamId == streamId)) {
+        final wasInChannelAndVisible = origStreamId == streamId
+          && store.isTopicVisibleInChannel(origStreamId, origTopic);
+        final isInChannelAndVisible = newStreamId == streamId
+          && store.isTopicVisibleInChannel(newStreamId, newTopic);
+        switch ((wasInChannelAndVisible, isInChannelAndVisible)) {
           case (false, false): return;
           case (true,  true ): _messagesMovedInternally(messageIds);
-          case (false, true ):
-            if (store.isTopicVisibleInChannel(newStreamId, newTopic)) {
-              _messagesMovedIntoMessageList();
-            }
-
-          case (true,  false):
-            if (store.isTopicVisibleInChannel(origStreamId, origTopic)) {
-              _messagesMovedFromMessageList(messageIds);
-            }
+          case (false, true ): _messagesMovedIntoMessageList();
+          case (true,  false): _messagesMovedFromMessageList(messageIds);
         }
 
       case TopicNarrow(:final streamId, :final topic):

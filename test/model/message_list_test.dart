@@ -1560,16 +1560,72 @@ void main() {
       final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
 
-      test('internal move between channels', () async {
-        await prepareNarrow(narrow, initialMessages);
+      group('between channels: ', () {
+        test('unmutedToUnmuted - internal move', () async {
+          await prepareNarrow(narrow, initialMessages);
 
-        await store.handleEvent(eg.updateMessageEventMoveFrom(
-          origMessages: initialMessages,
-          newTopic: initialMessages[0].topic,
-          newStreamId: otherStream.streamId,
-        ));
-        checkHasMessages(initialMessages);
-        checkNotified(count: 2);
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: initialMessages,
+            newTopic: initialMessages[0].topic,
+            newStreamId: otherStream.streamId,
+          ));
+          checkHasMessages(initialMessages);
+          checkNotified(count: 2);
+        });
+
+        test('unmutedToMuted - remove moved messages', () async {
+          await prepareNarrow(narrow, initialMessages + movedMessages);
+          await store.setUserTopic(otherStream, 'new', UserTopicVisibilityPolicy.muted);
+
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: movedMessages,
+            newTopicStr: 'new',
+            newStreamId: otherStream.streamId,
+          ));
+          checkHasMessages(initialMessages);
+          checkNotifiedOnce();
+        });
+
+        test('mutedToUnmuted - refetch', () => awaitFakeAsync((async) async {
+          await prepareNarrow(narrow, initialMessages);
+          await store.setUserTopic(otherStream, 'orig topic', UserTopicVisibilityPolicy.muted);
+
+          connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+            foundOldest: false,
+            messages: initialMessages + movedMessages,
+          ).toJson());
+          await store.handleEvent(eg.updateMessageEventMoveTo(
+            origTopicStr: 'orig topic',
+            origStreamId: otherStream.streamId,
+            newMessages: movedMessages,
+          ));
+          check(model).fetched.isFalse();
+          checkHasMessages([]);
+          checkNotifiedOnce();
+
+          async.elapse(const Duration(seconds: 2));
+          checkHasMessages(initialMessages + movedMessages);
+          checkNotifiedOnce();
+        }));
+
+        test('mutedToMuted - unaffected', () async {
+          final thirdStream = eg.stream();
+          await prepareNarrow(narrow, initialMessages);
+          await store.addStream(thirdStream);
+          await store.addSubscription(eg.subscription(thirdStream));
+          await store.setUserTopic(otherStream, 'topic', UserTopicVisibilityPolicy.muted);
+          await store.setUserTopic(thirdStream, 'new', UserTopicVisibilityPolicy.muted);
+
+          final otherChannelMovedMessages = List.generate(5, (i) =>
+            eg.streamMessage(stream: otherStream, topic: 'topic'));
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: otherChannelMovedMessages,
+            newTopicStr: 'new',
+            newStreamId: thirdStream.streamId,
+          ));
+          checkHasMessages(initialMessages);
+          checkNotNotified();
+        });
       });
 
       test('internal move between topics', () async {
@@ -1582,6 +1638,9 @@ void main() {
         checkHasMessages(initialMessages + movedMessages);
         checkNotified(count: 2);
       });
+
+      // "between topics" tests about messages being moved to/from muted
+      // states are similar to the ones in "between channels:" group above.
     });
 
     group('in channel narrow', () {
@@ -1590,15 +1649,65 @@ void main() {
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
       final otherChannelMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: otherStream, topic: 'topic'));
 
-      test('channel -> channel: internal move', () async {
-        await prepareNarrow(narrow, initialMessages + movedMessages);
+      group('channel -> channel:', () {
+        test('unmutedToUnmuted - internal move', () async {
+          await prepareNarrow(narrow, initialMessages + movedMessages);
 
-        await store.handleEvent(eg.updateMessageEventMoveFrom(
-          origMessages: movedMessages,
-          newTopicStr: 'new',
-        ));
-        checkHasMessages(initialMessages + movedMessages);
-        checkNotified(count: 2);
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: movedMessages,
+            newTopicStr: 'new',
+          ));
+          checkHasMessages(initialMessages + movedMessages);
+          checkNotified(count: 2);
+        });
+
+        test('unmutedToMuted - remove moved messages', () async {
+          await prepareNarrow(narrow, initialMessages + movedMessages);
+          await store.setUserTopic(stream, 'new', UserTopicVisibilityPolicy.muted);
+
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: movedMessages,
+            newTopicStr: 'new',
+          ));
+          checkHasMessages(initialMessages);
+          checkNotifiedOnce();
+        });
+
+        test('mutedToUnmuted - refetch', () => awaitFakeAsync((async) async {
+          await prepareNarrow(narrow, initialMessages);
+          await store.setUserTopic(stream, 'orig topic', UserTopicVisibilityPolicy.muted);
+
+          connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+            foundOldest: false,
+            messages: initialMessages + movedMessages,
+          ).toJson());
+          await store.handleEvent(eg.updateMessageEventMoveTo(
+            origTopicStr: 'orig topic',
+            newMessages: movedMessages,
+          ));
+          check(model).fetched.isFalse();
+          checkHasMessages([]);
+          checkNotifiedOnce();
+
+          async.elapse(const Duration(seconds: 2));
+          checkHasMessages(initialMessages + movedMessages);
+          checkNotifiedOnce();
+        }));
+
+        test('mutedToMuted - unaffected', () async {
+          await prepareNarrow(narrow, initialMessages);
+          await store.setUserTopic(stream, 'topic', UserTopicVisibilityPolicy.muted);
+          await store.setUserTopic(stream, 'new', UserTopicVisibilityPolicy.muted);
+
+          final otherTopicMovedMessages = List.generate(5, (i) =>
+            eg.streamMessage(stream: stream, topic: 'topic'));
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: otherTopicMovedMessages,
+            newTopicStr: 'new',
+          ));
+          checkHasMessages(initialMessages);
+          checkNotNotified();
+        });
       });
 
       group('old channel -> channel:', () {
