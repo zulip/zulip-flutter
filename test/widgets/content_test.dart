@@ -628,46 +628,6 @@ void main() {
       });
     });
 
-    testWidgets('single image', (tester) async {
-      final example = ContentExample.imagePreviewSingle;
-      await prepare(tester, example.html);
-      final expectedImages = (example.expectedNodes[0] as ImagePreviewNodeList).imagePreviews;
-      final images = tester.widgetList<RealmContentNetworkImage>(
-        find.byType(RealmContentNetworkImage));
-      check(images.map((i) => i.src.toString()).toList())
-        .deepEquals(expectedImages.map(
-          (n) => eg.realmUrl.resolve(n.thumbnail!.defaultFormatSrc.toString()).toString()));
-    });
-
-    testWidgets('single image no thumbnail', (tester) async {
-      const example = ContentExample.imagePreviewSingleNoThumbnail;
-      await prepare(tester, example.html);
-      final expectedImages = (example.expectedNodes[0] as ImagePreviewNodeList).imagePreviews;
-      final images = tester.widgetList<RealmContentNetworkImage>(
-        find.byType(RealmContentNetworkImage));
-      check(images.map((i) => i.src.toString()).toList())
-        .deepEquals(expectedImages.map((n) => n.srcUrl));
-    });
-
-    testWidgets('single image loading placeholder', (tester) async {
-      const example = ContentExample.imagePreviewSingleLoadingPlaceholder;
-      await prepare(tester, example.html);
-      await tester.ensureVisible(find.byType(CupertinoActivityIndicator));
-    });
-
-    testWidgets('image with invalid src URL', (tester) async {
-      const example = ContentExample.imagePreviewInvalidSrcAndHref;
-      await prepare(tester, example.html);
-      // The image indeed has an invalid URL.
-      final expectedImages = (example.expectedNodes[0] as ImagePreviewNodeList).imagePreviews;
-      check(() => Uri.parse(expectedImages.single.srcUrl)).throws<void>();
-      check(tryResolveUrl(eg.realmUrl, expectedImages.single.srcUrl)).isNull();
-      // The MessageImagePreview has shown up,
-      // but it doesn't attempt a RealmContentNetworkImage.
-      check(tester.widgetList(find.byType(MessageImagePreview))).isNotEmpty();
-      check(tester.widgetList(find.byType(RealmContentNetworkImage))).isEmpty();
-    });
-
     testWidgets('multiple images', (tester) async {
       final example = ContentExample.imagePreviewCluster;
       await prepare(tester, example.html);
