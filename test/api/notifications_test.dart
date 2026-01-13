@@ -47,7 +47,7 @@ void main() {
       "sender_full_name": "A Sender",
 
       "time": "1546300800",
-      "zulip_message_id": "12345",
+      "message_id": 12345,
 
       "content": "This is a message",
     };
@@ -219,9 +219,9 @@ void main() {
 
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_id')));
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_full_name')));
-      test("${n++}", () => checkParseFails({ ...dmJson }..remove('zulip_message_id')));
-      test("${n++}", () => checkParseFails({ ...dmJson, 'zulip_message_id': '12,34' }));
-      test("${n++}", () => checkParseFails({ ...dmJson, 'zulip_message_id': 'abc' }));
+      test("${n++}", () => checkParseFails({ ...dmJson }..remove('message_id')));
+      test("${n++}", () => checkParseFails({ ...dmJson, 'message_id': '12,34' }));
+      test("${n++}", () => checkParseFails({ ...dmJson, 'message_id': 'abc' }));
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('content')));
       test("${n++}", () => checkParseFails({ ...dmJson }..remove('time')));
       test("${n++}", () => checkParseFails({ ...dmJson, 'time': '12:34' }));

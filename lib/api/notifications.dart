@@ -106,8 +106,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   @JsonKey(includeToJson: false, readValue: _readWhole)
   final FcmMessageRecipient recipient;
 
-  @JsonKey(name: 'zulip_message_id')
-  @_IntConverter()
+  @JsonKey(readValue: _readMessageId)
   final int messageId;
   @_IntConverter()
   final int time; // in Unix seconds UTC, like [Message.timestamp]
@@ -118,8 +117,6 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   /// for use in notifications.  For details, see `get_mobile_push_content` in
   /// zulip/zulip:zerver/lib/push_notifications.py .
   final String content;
-
-  static Object? _readWhole(Map<dynamic, dynamic> json, String key) => json;
 
   MessageFcmMessage({
     required super.realmUrl,
@@ -132,6 +129,13 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
     required this.content,
     required this.time,
   });
+
+  static Object? _readMessageId(Map<dynamic, dynamic> json, String key) {
+    return json['message_id']
+      ?? const _IntConverter().fromJson(json['zulip_message_id'] as String); // TODO(server-12)
+  }
+
+  static Object? _readWhole(Map<dynamic, dynamic> json, String key) => json;
 
   factory MessageFcmMessage.fromJson(Map<String, dynamic> json) {
     assert((json['type'] ?? json['event']) == 'message'); // TODO(server-12)

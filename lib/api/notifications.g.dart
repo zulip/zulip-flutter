@@ -20,9 +20,8 @@ MessageFcmMessage _$MessageFcmMessageFromJson(Map<String, dynamic> json) =>
       recipient: FcmMessageRecipient.fromJson(
         MessageFcmMessage._readWhole(json, 'recipient') as Map<String, dynamic>,
       ),
-      messageId: const _IntConverter().fromJson(
-        json['zulip_message_id'] as String,
-      ),
+      messageId: (MessageFcmMessage._readMessageId(json, 'message_id') as num)
+          .toInt(),
       content: json['content'] as String,
       time: const _IntConverter().fromJson(json['time'] as String),
     );
@@ -35,7 +34,7 @@ Map<String, dynamic> _$MessageFcmMessageToJson(MessageFcmMessage instance) =>
       'sender_id': const _IntConverter().toJson(instance.senderId),
       'sender_avatar_url': instance.senderAvatarUrl.toString(),
       'sender_full_name': instance.senderFullName,
-      'zulip_message_id': const _IntConverter().toJson(instance.messageId),
+      'message_id': instance.messageId,
       'time': const _IntConverter().toJson(instance.time),
       'content': instance.content,
     };
