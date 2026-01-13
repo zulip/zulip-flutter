@@ -151,7 +151,6 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
         if (recipient.channelName != null) result['stream'] = recipient.channelName;
         result['topic'] = recipient.topic;
     }
-    result['realm_uri'] = realmUrl.toString(); // TODO(server-9): deprecated in FL 257
     return result;
   }
 }
@@ -247,11 +246,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final result = _$RemoveFcmMessageToJson(this);
-    result['realm_uri'] = realmUrl.toString(); // TODO(server-9): deprecated in FL 257
-    return result;
-  }
+  Map<String, dynamic> toJson() => _$RemoveFcmMessageToJson(this);
 }
 
 class _IntListConverter extends JsonConverter<List<int>, String> {

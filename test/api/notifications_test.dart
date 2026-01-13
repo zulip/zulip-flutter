@@ -7,7 +7,6 @@ import '../stdlib_checks.dart';
 
 void main() {
   final baseBaseJson = <String, Object?>{ // TODO(#1764) finish updating these test fixtures
-    "realm_uri": "https://zulip.example.com/",  // TODO(server-9)
     "realm_url": "https://zulip.example.com/",
     "user_id": "234",
   };
@@ -115,7 +114,7 @@ void main() {
     test("fields get parsed right in happy path", () {
       check(parse(streamJson))
         ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
-        ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
+        ..realmUrl.equals(Uri.parse(baseJsonPreE2ee['realm_uri'] as String)) // TODO(server-9)
         ..userId.equals(234)
         ..senderId.equals(123)
         ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url'] as String))
@@ -258,7 +257,7 @@ void main() {
     test('fields get parsed right in happy path', () {
       check(parse(baseJson))
         ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
-        ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
+        ..realmUrl.equals(Uri.parse(preE2eeJson['realm_uri'] as String)) // TODO(server-9)
         ..userId.equals(234)
         ..messageIds.deepEquals([123, 234]);
     });
