@@ -71,7 +71,7 @@ void main() {
     final streamJson = {
       ...baseJson,
       "recipient_type": "channel",
-      "stream_id": "42",
+      "channel_id": 42,
       "stream": "denmark",
       "topic": "play",
     };
@@ -146,7 +146,7 @@ void main() {
       void checkRoundTrip(Map<String, Object?> json) {
         check(parse(json).toJson())
           .deepEquals({ ...json }
-            ..remove('recipient_type') // Redundant with stream_id.
+            ..remove('recipient_type') // Redundant with channel_id / stream_id.
           );
       }
 
@@ -204,8 +204,9 @@ void main() {
       test(skip: true, // Dart's Uri.parse is lax in what it accepts.
            "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': '/examplecorp' }));
 
-      test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': '12,34' }));
-      test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': 'abc' }));
+      test("${n++}", () => checkParseFails({ ...streamJson, 'channel_id': 'abc' }));
+      test("${n++}", () => checkParseFails({ ...streamJsonPreE2ee, 'stream_id': 'abc' }));
+      test("${n++}", () => checkParseFails({ ...streamJsonPreE2ee, 'stream_id': '12,34' }));
       test("${n++}", () => checkParseFails({ ...streamJson }..remove('topic')));
       test("${n++}", () => checkParseFails({ ...groupDmJson, 'pm_users': 'abc,34' }));
       test("${n++}", () => checkParseFails({ ...groupDmJson, 'pm_users': '12,abc' }));

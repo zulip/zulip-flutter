@@ -152,7 +152,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
       case FcmMessageDmRecipient(:var allRecipientIds):
         result['pm_users'] = const _IntListConverter().toJson(allRecipientIds);
       case FcmMessageChannelRecipient():
-        result['stream_id'] = const _IntConverter().toJson(recipient.channelId);
+        result['channel_id'] = recipient.channelId;
         if (recipient.channelName != null) result['stream'] = recipient.channelName;
         result['topic'] = recipient.topic;
     }
@@ -166,8 +166,8 @@ sealed class FcmMessageRecipient {
 
   factory FcmMessageRecipient.fromJson(Map<String, dynamic> json) {
     // There's also a `recipient_type` field, but we don't really need it.
-    // The presence or absence of `stream_id` is just as informative.
-    return json.containsKey('stream_id')
+    // The presence or absence of `channel_id`/`stream_id` is just as informative.
+    return (json.containsKey('channel_id') || json.containsKey('stream_id')) // TODO(server-12)
       ? FcmMessageChannelRecipient.fromJson(json)
       : FcmMessageDmRecipient.fromJson(json);
   }
@@ -176,8 +176,7 @@ sealed class FcmMessageRecipient {
 /// An [FcmMessageRecipient] for a Zulip message to a stream.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 class FcmMessageChannelRecipient extends FcmMessageRecipient {
-  @JsonKey(name: 'stream_id')
-  @_IntConverter()
+  @JsonKey(readValue: _readChannelId)
   final int channelId;
 
   // Current servers (as of 2025) always send the channel name.  But
@@ -189,6 +188,11 @@ class FcmMessageChannelRecipient extends FcmMessageRecipient {
   final TopicName topic;
 
   FcmMessageChannelRecipient({required this.channelId, required this.channelName, required this.topic});
+
+  static Object? _readChannelId(Map<dynamic, dynamic> json, String key) {
+    return json['channel_id']
+      ?? const _IntConverter().fromJson(json['stream_id'] as String); // TODO(server-12)
+  }
 
   factory FcmMessageChannelRecipient.fromJson(Map<String, dynamic> json) =>
     _$FcmMessageChannelRecipientFromJson(json);
