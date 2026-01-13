@@ -764,6 +764,10 @@ class ContentExample {
     'single image preview no dimensions',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1893590
     "[image.jpg](/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg)",
+    // The `data-original-dimensions` attribute is absent on the `img`.
+    // From the API changelog, that should mean this message was
+    // processed before FL 276:
+    //   https://zulip.com/api/changelog#changes-in-zulip-90
     '<div class="message_inline_image">'
       '<a href="/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg" title="image.jpg">'
         '<img src="/user_uploads/thumbnail/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg/840x560.webp"/></a></div>', [
@@ -779,7 +783,11 @@ class ContentExample {
 
   static const imagePreviewSingleNoThumbnail = ContentExample(
     'single image preview no thumbnail',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Chris/near/2351443
     "https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3",
+    // Servers as of 2026-01 still produce this (see linked message).
+    // Old messages before the thumbnailing feature probably match this form,
+    // but I haven't gone back to check.
     '<div class="message_inline_image">'
       '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">'
         '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"></a></div>', [
@@ -792,8 +800,32 @@ class ContentExample {
 
   static const imagePreviewSingleLoadingPlaceholder = ContentExample(
     'single image preview loading placeholder',
-    // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1893590
+    // HTML constructed from the API doc in 2026-01: https://zulip.com/api/message-formatting
+    // because I didn't manage to produce real content in this form.
+    // (I uploaded an image, sent the message,
+    // and the message in the message event was already in the non-loading form.)
+    null,
+    '<div class="message_inline_image">'
+      '<a href="/user_uploads/path/to/example.png" title="example.png">'
+        '<img class="image-loading-placeholder" '
+          'data-original-dimensions="1920x1080" '
+          'data-original-content-type="image/png" '
+          'src="/static/images/loading/loader-black.svg"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(srcUrl: '/user_uploads/path/to/example.png',
+        thumbnail: null, loading: true,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
+  static const imagePreviewSingleLoadingPlaceholderNoDimensions = ContentExample(
+    'single image preview loading placeholder, no dimensions',
     "[image.jpg](/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg)",
+    // The `data-original-dimensions` attribute is absent on the `img`.
+    // From the API changelog, that should mean this message was
+    // processed before FL 278:
+    //   https://zulip.com/api/changelog#changes-in-zulip-92
+    // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1893590
     '<div class="message_inline_image">'
       '<a href="/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg" title="image.jpg">'
         '<img class="image-loading-placeholder" src="/static/images/loading/loader-black.svg"></a></div>', [
@@ -848,8 +880,49 @@ class ContentExample {
     ]),
   ]);
 
-  static const imagePreviewInvalidUrl = ContentExample(
-    'single image preview with invalid URL',
+  static const imagePreviewInvalidSrc = ContentExample(
+    'single image preview with invalid src (but valid href)',
+    null, // hypothetical, to test for a risk of crashing
+    '<div class="message_inline_image">'
+      '<a href="/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg">'
+        '<img src="::not a URL::"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(srcUrl: '::not a URL::',
+        thumbnail: null, loading: false,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
+  static const imagePreviewInvalidHref1 = ContentExample(
+    'single image preview with invalid href, but valid external src',
+    null, // hypothetical, to test for a risk of crashing
+    '<div class="message_inline_image">'
+      '<a href="::not a URL::">'
+        '<img src="/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(srcUrl: '/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067',
+        thumbnail: null, loading: false,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
+  static final imagePreviewInvalidHref2 = ContentExample(
+    'single image preview with invalid href, but valid thumbnail src',
+    null, // hypothetical, to test for a risk of crashing
+    '<div class="message_inline_image">'
+      '<a href="::not a URL::">'
+        '<img src="/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(srcUrl: '::not a URL::',
+        thumbnail: ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp')),
+        loading: false,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
+  static const imagePreviewInvalidSrcAndHref = ContentExample(
+    'single image preview with invalid src and href',
     null, // hypothetical, to test for a risk of crashing
     '<div class="message_inline_image">'
       '<a href="::not a URL::">'
@@ -1887,10 +1960,14 @@ void main() async {
   testParseExample(ContentExample.imagePreviewSingleNoDimensions);
   testParseExample(ContentExample.imagePreviewSingleNoThumbnail);
   testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholder);
+  testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholderNoDimensions);
   testParseExample(ContentExample.imagePreviewSingleExternal1);
   testParseExample(ContentExample.imagePreviewSingleExternal2);
   testParseExample(ContentExample.imagePreviewSingleExternal3);
-  testParseExample(ContentExample.imagePreviewInvalidUrl);
+  testParseExample(ContentExample.imagePreviewInvalidSrc);
+  testParseExample(ContentExample.imagePreviewInvalidHref1);
+  testParseExample(ContentExample.imagePreviewInvalidHref2);
+  testParseExample(ContentExample.imagePreviewInvalidSrcAndHref);
   testParseExample(ContentExample.imagePreviewCluster);
   testParseExample(ContentExample.imagePreviewClusterNoThumbnails);
   testParseExample(ContentExample.imagePreviewClusterThenContent);
