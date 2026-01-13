@@ -114,8 +114,9 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   @JsonKey(includeToJson: false, readValue: _readWhole)
   final FcmMessageRecipient recipient;
 
+  @JsonKey(name: 'zulip_message_id')
   @_IntConverter()
-  final int zulipMessageId;
+  final int messageId;
   @_IntConverter()
   final int time; // in Unix seconds UTC, like [Message.timestamp]
 
@@ -137,7 +138,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
     required this.senderAvatarUrl,
     required this.senderFullName,
     required this.recipient,
-    required this.zulipMessageId,
+    required this.messageId,
     required this.content,
     required this.time,
   });
@@ -235,12 +236,13 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   @JsonKey(includeToJson: true, name: 'event')
   String get type => 'remove';
 
-  // Servers have sent zulipMessageIds, obsoleting the singular zulipMessageId
+  // Servers have sent zulip_message_ids, obsoleting the singular zulip_message_id
   // and just sending the first ID there redundantly, since 2019.
   // See zulip-mobile@4acd07376.
 
+  @JsonKey(name: 'zulip_message_ids')
   @_IntListConverter()
-  final List<int> zulipMessageIds;
+  final List<int> messageIds;
   // final String? zulipMessageId; // obsolete; ignore
 
   RemoveFcmMessage({
@@ -248,7 +250,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
     required super.realmId,
     required super.realmUrl,
     required super.userId,
-    required this.zulipMessageIds,
+    required this.messageIds,
   });
 
   factory RemoveFcmMessage.fromJson(Map<String, dynamic> json) {

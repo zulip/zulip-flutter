@@ -22,7 +22,7 @@ MessageFcmMessage _$MessageFcmMessageFromJson(Map<String, dynamic> json) =>
       recipient: FcmMessageRecipient.fromJson(
         MessageFcmMessage._readWhole(json, 'recipient') as Map<String, dynamic>,
       ),
-      zulipMessageId: const _IntConverter().fromJson(
+      messageId: const _IntConverter().fromJson(
         json['zulip_message_id'] as String,
       ),
       content: json['content'] as String,
@@ -39,7 +39,7 @@ Map<String, dynamic> _$MessageFcmMessageToJson(MessageFcmMessage instance) =>
       'sender_id': const _IntConverter().toJson(instance.senderId),
       'sender_avatar_url': instance.senderAvatarUrl.toString(),
       'sender_full_name': instance.senderFullName,
-      'zulip_message_id': const _IntConverter().toJson(instance.zulipMessageId),
+      'zulip_message_id': const _IntConverter().toJson(instance.messageId),
       'time': const _IntConverter().toJson(instance.time),
       'content': instance.content,
     };
@@ -60,7 +60,7 @@ RemoveFcmMessage _$RemoveFcmMessageFromJson(Map<String, dynamic> json) =>
         FcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
       ),
       userId: const _IntConverter().fromJson(json['user_id'] as String),
-      zulipMessageIds: const _IntListConverter().fromJson(
+      messageIds: const _IntListConverter().fromJson(
         json['zulip_message_ids'] as String,
       ),
     );
@@ -73,6 +73,6 @@ Map<String, dynamic> _$RemoveFcmMessageToJson(RemoveFcmMessage instance) =>
       'user_id': const _IntConverter().toJson(instance.userId),
       'event': instance.type,
       'zulip_message_ids': const _IntListConverter().toJson(
-        instance.zulipMessageIds,
+        instance.messageIds,
       ),
     };

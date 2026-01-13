@@ -78,7 +78,7 @@ void main() {
         ..senderId.equals(123)
         ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url']!))
         ..senderFullName.equals(streamJson['sender_full_name']!)
-        ..zulipMessageId.equals(12345)
+        ..messageId.equals(12345)
         ..recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..streamId.equals(42)
           ..streamName.equals(streamJson['stream']!)
@@ -207,7 +207,7 @@ void main() {
         ..realmUrl.equals(Uri.parse(baseJson['realm_url']!))
         ..realmUrl.equals(Uri.parse(baseJson['realm_uri']!)) // TODO(server-9)
         ..userId.equals(234)
-        ..zulipMessageIds.deepEquals([123, 234]);
+        ..messageIds.deepEquals([123, 234]);
     });
 
     test('toJson round-trips', () {
@@ -272,7 +272,7 @@ extension MessageFcmMessageChecks on Subject<MessageFcmMessage> {
   Subject<Uri> get senderAvatarUrl => has((x) => x.senderAvatarUrl, 'senderAvatarUrl');
   Subject<String> get senderFullName => has((x) => x.senderFullName, 'senderFullName');
   Subject<FcmMessageRecipient> get recipient => has((x) => x.recipient, 'recipient');
-  Subject<int> get zulipMessageId => has((x) => x.zulipMessageId, 'zulipMessageId');
+  Subject<int> get messageId => has((x) => x.messageId, 'messageId');
   Subject<int> get time => has((x) => x.time, 'time');
   Subject<String> get content => has((x) => x.content, 'content');
 }
@@ -288,5 +288,5 @@ extension FcmMessageDmRecipientChecks on Subject<FcmMessageDmRecipient> {
 }
 
 extension RemoveFcmMessageChecks on Subject<RemoveFcmMessage> {
-  Subject<List<int>> get zulipMessageIds => has((x) => x.zulipMessageIds, 'zulipMessageIds');
+  Subject<List<int>> get messageIds => has((x) => x.messageIds, 'messageIds');
 }

@@ -404,7 +404,7 @@ void main() {
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.which((it) => it.isNotNull()
               ..deepEquals(<String, String>{
-                NotificationDisplayManager.kExtraLastZulipMessageId: data.zulipMessageId.toString(),
+                NotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
               }))
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.isNull()
@@ -478,7 +478,7 @@ void main() {
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.deepEquals(<String, String>{
-            NotificationDisplayManager.kExtraLastZulipMessageId: data.zulipMessageId.toString(),
+            NotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
           }))
         ..tag.equals(expectedTag);
     }
