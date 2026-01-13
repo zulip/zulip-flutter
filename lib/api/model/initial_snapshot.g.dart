@@ -121,6 +121,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
   realmMessageContentEditLimitSeconds:
       (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
   realmEnableReadReceipts: json['realm_enable_read_receipts'] as bool,
+  realmModerationRequestChannelId:
+      (json['realm_moderation_request_channel_id'] as num?)?.toInt(),
   realmIconUrl: Uri.parse(json['realm_icon_url'] as String),
   realmPresenceDisabled: json['realm_presence_disabled'] as bool,
   realmDefaultExternalAccounts:
@@ -137,8 +139,6 @@ InitialSnapshot _$InitialSnapshotFromJson(
           .toList() ??
       [],
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
-  realmModerationRequestChannelId:
-      (json['realm_moderation_request_channel_id'] as num?)?.toInt(),
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -214,14 +214,14 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_message_content_edit_limit_seconds':
       instance.realmMessageContentEditLimitSeconds,
   'realm_enable_read_receipts': instance.realmEnableReadReceipts,
+  'realm_moderation_request_channel_id':
+      instance.realmModerationRequestChannelId,
   'realm_icon_url': instance.realmIconUrl.toString(),
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
   'server_thumbnail_formats': instance.serverThumbnailFormats,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
-  'realm_moderation_request_channel_id':
-      instance.realmModerationRequestChannelId,
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,
