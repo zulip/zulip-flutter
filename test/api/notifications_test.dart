@@ -6,7 +6,7 @@ import 'package:zulip/api/notifications.dart';
 import '../stdlib_checks.dart';
 
 void main() {
-  final baseBaseJson = {
+  final baseBaseJson = <String, Object?>{ // TODO(#1764) finish updating these test fixtures
     "server": "zulip.example.cloud",
     "realm_id": "4",
     "realm_uri": "https://zulip.example.com/",  // TODO(server-9)
@@ -14,7 +14,18 @@ void main() {
     "user_id": "234",
   };
 
-  void checkParseFails(Map<String, String> data) {
+  // Before E2EE notifications, the data comes directly as FCM payloads,
+  // which we treat as "JSON" for convenience but are really string-string maps.
+  // TODO(server-12) cut all these pre-E2EE forms (including in negative tests)
+  final baseBaseJsonPreE2ee = <String, String>{
+    "server": "zulip.example.cloud",
+    "realm_id": "4",
+    "realm_uri": "https://zulip.example.com/",  // TODO(server-9)
+    "realm_url": "https://zulip.example.com/",
+    "user_id": "234",
+  };
+
+  void checkParseFails(Map<String, Object?> data) {
     check(() => FcmMessage.fromJson(data)).throws<void>();
   }
 
@@ -45,7 +56,31 @@ void main() {
       "content_truncated": "This is a m…",
     };
 
+    final baseJsonPreE2ee = <String, String>{
+      ...baseBaseJsonPreE2ee,
+      "event": "message",
+
+      "sender_id": "123",
+      "sender_email": "sender@example.com",
+      "sender_avatar_url": "https://zulip.example.com/avatar/123.jpeg",
+      "sender_full_name": "A Sender",
+
+      "time": "1546300800",
+      "zulip_message_id": "12345",
+
+      "content": "This is a message",
+      "content_truncated": "This is a m…",
+    };
+
     final streamJson = {
+      ...baseJson,
+      "recipient_type": "stream",
+      "stream_id": "42",
+      "stream": "denmark",
+      "topic": "play",
+    };
+
+    final streamJsonPreE2ee = {
       ...baseJson,
       "recipient_type": "stream",
       "stream_id": "42",
@@ -59,8 +94,19 @@ void main() {
       "pm_users": "123,234,345",
     };
 
+    final groupDmJsonPreE2ee = {
+      ...baseJson,
+      "recipient_type": "private",
+      "pm_users": "123,234,345",
+    };
+
     final dmJson = {
       ...baseJson,
+      "recipient_type": "private",
+    };
+
+    final dmJsonPreE2ee = <String, String>{
+      ...baseJsonPreE2ee,
       "recipient_type": "private",
     };
 
@@ -70,20 +116,20 @@ void main() {
 
     test("fields get parsed right in happy path", () {
       check(parse(streamJson))
-        ..server.equals(baseJson['server']!)
+        ..server.equals(baseJson['server'] as String)
         ..realmId.equals(4)
-        ..realmUrl.equals(Uri.parse(baseJson['realm_url']!))
-        ..realmUrl.equals(Uri.parse(baseJson['realm_uri']!)) // TODO(server-9)
+        ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
+        ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
         ..userId.equals(234)
         ..senderId.equals(123)
-        ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url']!))
-        ..senderFullName.equals(streamJson['sender_full_name']!)
+        ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url'] as String))
+        ..senderFullName.equals(streamJson['sender_full_name'] as String)
         ..messageId.equals(12345)
         ..recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..channelId.equals(42)
-          ..channelName.equals(streamJson['stream']!)
+          ..channelName.equals(streamJson['stream'] as String)
           ..topic.jsonEquals(streamJson['topic']!))
-        ..content.equals(streamJson['content']!)
+        ..content.equals(streamJson['content'] as String)
         ..time.equals(1546300800);
 
       check(parse(groupDmJson))
@@ -103,7 +149,7 @@ void main() {
     });
 
     test('toJson round-trips', () {
-      void checkRoundTrip(Map<String, String> json) {
+      void checkRoundTrip(Map<String, Object?> json) {
         check(parse(json).toJson())
           .deepEquals({ ...json }
             ..remove('recipient_type') // Redundant with stream_id.
@@ -140,13 +186,20 @@ void main() {
       checkInert({ 'awesome_feature': 'enabled' });
     });
 
+    test('pre-E2EE forms accepted too', () {
+      check(parse(streamJsonPreE2ee)).jsonEquals(parse(streamJson));
+      check(parse(groupDmJsonPreE2ee)).jsonEquals(parse(groupDmJson));
+      check(parse(dmJsonPreE2ee)).jsonEquals(parse(dmJson));
+    });
+
     test('uses deprecated fields when newer fields are missing', () {
       final baseline = parse(dmJson);
 
       // FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
       final jsonSansRealm =
-        { ...dmJson }..remove('realm_url')..remove('realm_uri');
-      check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' })).jsonEquals(baseline);
+        { ...dmJsonPreE2ee }..remove('realm_url')..remove('realm_uri');
+      check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' }))
+        .jsonEquals(baseline);
     });
 
     group("parse failures on malformed 'message'", () {
@@ -196,16 +249,24 @@ void main() {
       'zulip_message_id': '123',
     };
 
+    final preE2eeJson = <String, String>{
+      ...baseBaseJsonPreE2ee,
+      'event': 'remove',
+
+      'zulip_message_ids': '123,234',
+      'zulip_message_id': '123',
+    };
+
     RemoveFcmMessage parse(Map<String, dynamic> json) {
       return FcmMessage.fromJson(json) as RemoveFcmMessage;
     }
 
     test('fields get parsed right in happy path', () {
       check(parse(baseJson))
-        ..server.equals(baseJson['server']!)
+        ..server.equals(baseJson['server'] as String)
         ..realmId.equals(4)
-        ..realmUrl.equals(Uri.parse(baseJson['realm_url']!))
-        ..realmUrl.equals(Uri.parse(baseJson['realm_uri']!)) // TODO(server-9)
+        ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
+        ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
         ..userId.equals(234)
         ..messageIds.deepEquals([123, 234]);
     });
@@ -225,13 +286,18 @@ void main() {
       check(parse({ ...baseJson, 'awesome_feature': 'enabled' })).jsonEquals(baseline);
     });
 
+    test('pre-E2EE forms accepted too', () {
+      check(parse(preE2eeJson)).jsonEquals(parse(baseJson));
+    });
+
     test('uses deprecated fields when newer fields are missing', () {
       final baseline = parse(baseJson);
 
       // FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
       final jsonSansRealm =
-        { ...baseJson }..remove('realm_url')..remove('realm_uri');
-      check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' })).jsonEquals(baseline);
+        { ...preE2eeJson }..remove('realm_url')..remove('realm_uri');
+      check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' }))
+        .jsonEquals(baseline);
     });
 
     group('parse failures on malformed data', () {
