@@ -644,6 +644,26 @@ class MessageImagePreview extends StatelessWidget {
       animationMode: ImageAnimationMode.animateConditionally);
     final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
 
+    final child = switch ((node.loading, lightboxDisplayUrl)) {
+      (true, null) => const CupertinoActivityIndicator(),
+      (true, Uri()) => LightboxHero(
+        messageImageContext: context,
+        src: lightboxDisplayUrl!,
+        child: const CupertinoActivityIndicator()),
+
+      // TODO(#265) use an error-case placeholder
+      // TODO(log)
+      (false, null) => null,
+
+      (false, Uri()) => LightboxHero(
+        messageImageContext: context,
+        src: lightboxDisplayUrl!,
+        child: RealmContentNetworkImage(
+          // TODO(#265) use an error-case placeholder for `errorBuilder`
+          filterQuality: FilterQuality.medium,
+          resolvedThumbnailUrl ?? lightboxDisplayUrl)),
+    };
+
     return MessageMediaContainer(
       onTap: lightboxDisplayUrl == null ? null : () { // TODO(log)
         Navigator.of(context).push(getImageLightboxRoute(
@@ -655,25 +675,7 @@ class MessageImagePreview extends StatelessWidget {
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
-      child: switch ((node.loading, lightboxDisplayUrl)) {
-        (true, null) => const CupertinoActivityIndicator(),
-        (true, Uri()) => LightboxHero(
-          messageImageContext: context,
-          src: lightboxDisplayUrl!,
-          child: const CupertinoActivityIndicator()),
-
-        // TODO(#265) use an error-case placeholder
-        // TODO(log)
-        (false, null) => null,
-
-        (false, Uri()) => LightboxHero(
-          messageImageContext: context,
-          src: lightboxDisplayUrl!,
-          child: RealmContentNetworkImage(
-            // TODO(#265) use an error-case placeholder for `errorBuilder`
-            filterQuality: FilterQuality.medium,
-            resolvedThumbnailUrl ?? lightboxDisplayUrl)),
-      });
+      child: child);
   }
 }
 
