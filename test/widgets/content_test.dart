@@ -423,10 +423,7 @@ void main() {
           find.descendant(of: findImagePreview, matching: find.byType(LightboxHero))
         ).singleOrNull;
 
-        if (!expectLoadingIndicator && expectUrlInLightbox != null) {
-          // TODO when the implementation decides to open the lightbox,
-          //   because it has a URL to load there, it should always create
-          //   a LightboxHero, even if node.loading is true. (We'll fix soon.)
+        if (expectUrlInLightbox != null) {
           check(lightboxHeroInPreview).isNotNull().src.equals(expectUrlInLightbox);
         } else {
           check(lightboxHeroInPreview).isNull();
