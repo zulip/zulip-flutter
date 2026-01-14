@@ -842,6 +842,29 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
       'Zlyhalo označenie správ za prečítané';
 
   @override
+  String get markAllAsReadConfirmationDialogTitle => 'Mark messages as read?';
+
+  @override
+  String markAllAsReadConfirmationDialogMessage(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count+ messages will be marked as read. Messages in multiple conversations may be affected.',
+      one:
+          '$count+ messages will be marked as read. Messages in multiple conversations may be affected.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get markAllAsReadConfirmationDialogMessageNoCount =>
+      'Messages in multiple conversations may be affected.';
+
+  @override
+  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
+
+  @override
   String get today => 'Dnes';
 
   @override
