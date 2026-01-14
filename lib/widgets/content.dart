@@ -636,16 +636,14 @@ class MessageImagePreview extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
-    final srcUrl = node.srcUrl;
-    final thumbnailLocator = node.thumbnail;
-    final resolvedThumbnailUrl = thumbnailLocator?.resolve(context,
+    final resolvedThumbnailUrl = node.thumbnail?.resolve(context,
       width: MessageMediaContainer.width,
       height: MessageMediaContainer.height,
       animationMode: ImageAnimationMode.animateConditionally);
 
     final urlInPreview = node.thumbnail != null
       ? resolvedThumbnailUrl
-      : store.tryResolveUrl(srcUrl);
+      : store.tryResolveUrl(node.srcUrl);
     final child = switch ((node.loading, urlInPreview)) {
       (true, _) => const CupertinoActivityIndicator(),
 
@@ -659,7 +657,7 @@ class MessageImagePreview extends StatelessWidget {
         urlInPreview!),
     };
 
-    final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
+    final lightboxDisplayUrl = store.tryResolveUrl(node.srcUrl);
     if (lightboxDisplayUrl == null) {
       // TODO(log)
       return MessageMediaContainer(onTap: null, child: child);
