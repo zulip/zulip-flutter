@@ -136,6 +136,37 @@ void main() {
       check(find.byIcon(ZulipIcons.check_circle_checked)).findsNothing();
     });
 
+    testWidgets('shows (you) label for self user in new DM list', (tester) async { 
+      final self = eg.user(fullName: 'Self User',email: 'self@example.com'); 
+      final other = eg.user(fullName: 'Other User',email: 'other@example.com'); 
+      await setupSheet(tester, selfUser: self, users: [self, other]); 
+      // Self user's name is shown 
+      check(findText(includePlaceholders: false, 'Self User')).findsOne(); 
+      // "(you)" label is shown for self 
+      final youTextFinder = find.byWidgetPredicate(
+        (w) => w is Text && (w.data?.contains('(you)') ?? false)); 
+      check(youTextFinder).findsOne(); 
+      // Other user does NOT get "(you)" 
+      check(findText(includePlaceholders: false, 'Other User')).findsOne(); 
+    });
+
+    testWidgets('does not show (you) label for non-self users', (tester) async {
+       final self = eg.user(fullName: 'Self User',email: 'self@example.com'); 
+       final other = eg.user(fullName: 'Other User',email: 'other@example.com'); 
+       await setupSheet(tester, selfUser: self, users: [other]); 
+       await tester.pump(); 
+       // Other user's name is shown 
+       check(findText(includePlaceholders: false, 'Other User')).findsOne(); 
+       // "(you)" must not appear at all 
+       final otherRow = find.ancestor(
+        of: findText(includePlaceholders: false, 'Other User'),
+         matching: find.byType(Row));
+       final youInOtherRow = find.descendant(
+        of: otherRow, matching: find.byWidgetPredicate(
+        (w) => w is Text && (w.data?.contains('(you)') ?? false)));
+       check(youInOtherRow).findsNothing();
+    });
+
     testWidgets('shows filtered users based on search', (tester) async {
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'Alice');
