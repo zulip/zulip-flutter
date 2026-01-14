@@ -635,7 +635,6 @@ class MessageImagePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = InheritedMessage.of(context);
 
-    // TODO image hover animation
     final srcUrl = node.srcUrl;
     final thumbnailLocator = node.thumbnail;
     final store = PerAccountStoreWidget.of(context);
