@@ -633,37 +633,37 @@ class MessageImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
     final srcUrl = node.srcUrl;
     final thumbnailLocator = node.thumbnail;
-    final store = PerAccountStoreWidget.of(context);
-    final resolvedSrcUrl = store.tryResolveUrl(srcUrl);
     final resolvedThumbnailUrl = thumbnailLocator?.resolve(context,
       width: MessageMediaContainer.width,
       height: MessageMediaContainer.height,
       animationMode: ImageAnimationMode.animateConditionally);
+    final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
 
     // TODO if src fails to parse, show an explicit "broken image"
 
     return MessageMediaContainer(
-      onTap: resolvedSrcUrl == null ? null : () { // TODO(log)
+      onTap: lightboxDisplayUrl == null ? null : () { // TODO(log)
         Navigator.of(context).push(getImageLightboxRoute(
           context: context,
           message: message,
           messageImageContext: context,
-          src: resolvedSrcUrl,
+          src: lightboxDisplayUrl,
           thumbnailUrl: resolvedThumbnailUrl,
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
       child: node.loading
         ? const CupertinoActivityIndicator()
-        : resolvedSrcUrl == null ? null : LightboxHero(
+        : lightboxDisplayUrl == null ? null : LightboxHero(
             messageImageContext: context,
-            src: resolvedSrcUrl,
+            src: lightboxDisplayUrl,
             child: RealmContentNetworkImage(
-              resolvedThumbnailUrl ?? resolvedSrcUrl,
+              resolvedThumbnailUrl ?? lightboxDisplayUrl,
               filterQuality: FilterQuality.medium)));
   }
 }
