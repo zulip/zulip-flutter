@@ -657,14 +657,16 @@ class MessageImagePreview extends StatelessWidget {
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
-      child: node.loading
-        ? const CupertinoActivityIndicator()
-        : lightboxDisplayUrl == null ? null : LightboxHero(
-            messageImageContext: context,
-            src: lightboxDisplayUrl,
-            child: RealmContentNetworkImage(
-              resolvedThumbnailUrl ?? lightboxDisplayUrl,
-              filterQuality: FilterQuality.medium)));
+      child: switch ((node.loading, lightboxDisplayUrl)) {
+        (true, _) => const CupertinoActivityIndicator(),
+        (false, null) => null,
+        (false, Uri()) => LightboxHero(
+          messageImageContext: context,
+          src: lightboxDisplayUrl!,
+          child: RealmContentNetworkImage(
+            resolvedThumbnailUrl ?? lightboxDisplayUrl,
+            filterQuality: FilterQuality.medium)),
+      });
   }
 }
 
