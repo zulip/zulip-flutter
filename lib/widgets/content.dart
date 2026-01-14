@@ -642,11 +642,10 @@ class MessageImagePreview extends StatelessWidget {
       width: MessageMediaContainer.width,
       height: MessageMediaContainer.height,
       animationMode: ImageAnimationMode.animateConditionally);
-    final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
 
     final urlInPreview = node.thumbnail != null
       ? resolvedThumbnailUrl
-      : lightboxDisplayUrl;
+      : store.tryResolveUrl(srcUrl);
     final child = switch ((node.loading, urlInPreview)) {
       (true, _) => const CupertinoActivityIndicator(),
 
@@ -660,6 +659,7 @@ class MessageImagePreview extends StatelessWidget {
         urlInPreview!),
     };
 
+    final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
     if (lightboxDisplayUrl == null) {
       // TODO(log)
       return MessageMediaContainer(onTap: null, child: child);
