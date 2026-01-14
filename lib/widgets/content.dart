@@ -644,7 +644,10 @@ class MessageImagePreview extends StatelessWidget {
       animationMode: ImageAnimationMode.animateConditionally);
     final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
 
-    final child = switch ((node.loading, lightboxDisplayUrl)) {
+    final urlInPreview = node.thumbnail != null
+      ? resolvedThumbnailUrl
+      : lightboxDisplayUrl;
+    final child = switch ((node.loading, urlInPreview)) {
       (true, _) => const CupertinoActivityIndicator(),
 
       // TODO(#265) use an error-case placeholder
@@ -654,12 +657,7 @@ class MessageImagePreview extends StatelessWidget {
       (false, Uri()) => RealmContentNetworkImage(
         // TODO(#265) use an error-case placeholder for `errorBuilder`
         filterQuality: FilterQuality.medium,
-        thumbnailLocator != null
-          // resolvedThumbnailUrl is non-null exactly when thumbnailLocator is
-          // non-null; [ImageThumbnailLocatorExtension.resolve] returns Uri,
-          // not Uri?.
-          ? resolvedThumbnailUrl!
-          : lightboxDisplayUrl!),
+        urlInPreview!),
     };
 
     if (lightboxDisplayUrl == null) {

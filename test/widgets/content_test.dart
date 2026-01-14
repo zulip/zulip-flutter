@@ -605,7 +605,7 @@ void main() {
           rawHref: rawHref,
           rawSrc: rawSrc,
           expectLoadingIndicator: false,
-          expectUrlInPreview: null,
+          expectUrlInPreview: url(rawSrc),
           expectThumbnailUrlInLightbox: null,
           expectUrlInLightbox: null,
           example: ContentExample.imagePreviewInvalidHref2);
