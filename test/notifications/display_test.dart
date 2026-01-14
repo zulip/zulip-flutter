@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:checks/checks.dart';
@@ -14,6 +16,7 @@ import 'package:zulip/host/android_notifications.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/push_key.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
 import 'package:zulip/notifications/open.dart';
@@ -28,12 +31,54 @@ import '../model/store_checks.dart';
 import '../test_images.dart';
 import '../api/notifications_test.dart';
 
+Future<Uint8List> _encryptNotification(Uint8List pushKey, Uint8List plaintext) async {
+  // Compare [PushKeyStore.decryptNotification].
+  final keyBytes = PushKeyStore.secretboxKeyFromPushKey(pushKey);
+
+  final sodium = await testBinding.sodiumInit();
+  final key = sodium.secureCopy(keyBytes);
+
+  const nonceLength = 24;
+  final rand = Random.secure();
+  final nonce = Uint8List(nonceLength)
+    ..setRange(0, nonceLength, Iterable.generate(nonceLength, (_) =>
+        rand.nextInt(1 << 8)));
+
+  final ciphertext = sodium.crypto.secretBox.easy(
+    key: key, message: plaintext, nonce: nonce);
+  return Uint8List.fromList([...nonce, ...ciphertext]);
+}
+
 /// Encode an FCM message payload into the form Firebase would supply it in.
 ///
 /// The result is suitable for passing to a method like
 /// `testBinding.firebaseMessaging.onMessage`.
-Future<RemoteMessage> encodeFcmMessage(FcmMessage data) async {
-  return RemoteMessage(data: data.toJson());
+///
+/// If [encrypted] is true, then produce an E2EE notification,
+/// encrypted to the latest push key found on the account
+/// that the payload is addressed to.
+/// Otherwise, produce a legacy non-E2EE notification.
+// TODO(server-12): cut the `encrypted: false` case
+Future<RemoteMessage> encodeFcmMessage(FcmMessageWithIdentity data, {
+  bool encrypted = true,
+}) async {
+  final Map<String, dynamic> payload;
+  if (!encrypted) {
+    payload = data.toJson();
+  } else {
+    final account = testBinding.globalStore.accounts.where((account) =>
+      account.realmUrl.origin == data.realmUrl.origin
+      && account.userId == data.userId).single;
+    final pushKey = testBinding.globalStore.pushKeys.perAccount(account.id)
+      .latestPushKey!;
+    final encrypted = await _encryptNotification(pushKey.pushKey,
+      utf8.encode(jsonEncode(data)));
+    payload = {
+      'push_key_id': pushKey.pushKeyId.toString(),
+      'encrypted_data': base64Encode(encrypted),
+    };
+  }
+  return RemoteMessage(data: payload);
 }
 
 MessageFcmMessage messageFcmMessage(
@@ -467,6 +512,7 @@ void main() {
       FakeAsync async,
       MessageFcmMessage data, {
       Account? account,
+      bool encrypted = true,
       required String expectedTitle,
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
@@ -476,7 +522,7 @@ void main() {
       // the logic in `NotificationService` that listens for these FCM messages.
 
       testBinding.firebaseMessaging.onMessage.add(
-        await encodeFcmMessage(data));
+        await encodeFcmMessage(data, encrypted: encrypted));
       async.flushMicrotasks();
       checkNotification(data,
         account: account,
@@ -487,7 +533,7 @@ void main() {
       testBinding.androidNotificationHost.clearActiveNotifications();
 
       testBinding.firebaseMessaging.onBackgroundMessage.add(
-        await encodeFcmMessage(data));
+        await encodeFcmMessage(data, encrypted: encrypted));
       async.flushMicrotasks();
       checkNotification(data,
         account: account,
@@ -497,9 +543,11 @@ void main() {
         expectedTagComponent: expectedTagComponent);
     }
 
-    Future<void> receiveFcmMessage(FakeAsync async, FcmMessage data) async {
+    Future<void> receiveFcmMessage(FakeAsync async, FcmMessageWithIdentity data, {
+      bool encrypted = true,
+    }) async {
       testBinding.firebaseMessaging.onMessage.add(
-        await encodeFcmMessage(data));
+        await encodeFcmMessage(data, encrypted: encrypted));
       async.flushMicrotasks();
     }
 
@@ -530,6 +578,18 @@ void main() {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > ${message.topic}',
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
+    })));
+
+    test('stream message, legacy plaintext', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+      await addAccount(eg.selfAccount);
+      final stream = eg.stream();
+      final message = eg.streamMessage(stream: stream);
+      await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
+        encrypted: false,
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
@@ -950,6 +1010,26 @@ void main() {
       ]);
       testBinding.firebaseMessaging.onBackgroundMessage.add(
         await encodeFcmMessage(removeFcmMessage([message])));
+      async.flushMicrotasks();
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('remove: smoke; legacy plaintext', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+      await addAccount(eg.selfAccount);
+      final message = eg.streamMessage();
+      final data = messageFcmMessage(message);
+      final expectedGroupKey = '${data.realmUrl}|${data.userId}';
+
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      await receiveFcmMessage(async, data, encrypted: false);
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
+        conditionSummaryActiveNotif(expectedGroupKey),
+      ]);
+      testBinding.firebaseMessaging.onMessage.add(
+        await encodeFcmMessage(removeFcmMessage([message]), encrypted: false));
       async.flushMicrotasks();
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));

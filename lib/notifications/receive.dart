@@ -8,6 +8,7 @@ import '../api/route/notifications.dart';
 import '../firebase_options.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/push_key.dart';
 import 'display.dart';
 import 'open.dart';
 
@@ -205,7 +206,46 @@ class NotificationService {
   }
 
   static void _onRemoteMessage(FirebaseRemoteMessage message) async {
-    final data = FcmMessage.fromJson(message.data);
+    final origData = message.data;
+
+    EncryptedFcmMessage? parsed;
+    try {
+      parsed = EncryptedFcmMessage.fromJson(origData);
+    } catch (_) {
+      // Presumably a non-E2EE notification.  // TODO(server-12)
+      await _onPlaintextRemoteMessage(origData);
+      return;
+    }
+
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final pushKey = globalStore.pushKeys.getPushKeyById(parsed.pushKeyId);
+    if (pushKey == null) {
+      // Not a key we have; nothing we can do with this notification-message.
+      // This can happen if it's addressed to an account that's been logged out.
+      // TODO(#1764) try to unregister on logout (though this will still sometimes happen)
+      return;
+    }
+    final account = globalStore.getAccount(pushKey.accountId)!;
+
+    final plaintext = await PushKeyStore.decryptNotification(
+      pushKey.pushKey, parsed.encryptedData);
+    final rawData = jsonUtf8Decoder.convert(plaintext) as Map<String, dynamic>;
+    final data = FcmMessage.fromJson(rawData);
+    switch (data) {
+      case FcmMessageWithIdentity(): break;
+      case UnexpectedFcmMessage(): return; // TODO(log)
+    }
+
+    if (!(account.realmUrl.origin == data.realmUrl.origin
+          && account.userId == data.userId)) {
+      throw Exception("bad notif payload: realm/userId fails to match push key");
+    }
+
+    NotificationDisplayManager.onFcmMessage(data, account);
+  }
+
+  static Future<void> _onPlaintextRemoteMessage(Map<String, dynamic> rawData) async {
+    final data = FcmMessage.fromJson(rawData);
     switch (data) {
       case FcmMessageWithIdentity(): break;
       case UnexpectedFcmMessage(): return; // TODO(log)

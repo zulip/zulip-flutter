@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
+import 'binding.dart';
 import 'database.dart';
 import 'store.dart';
 
@@ -157,5 +158,37 @@ class PushKeyStore {
   /// The tag byte for a libsodium secretbox-based `pushKey` value.
   ///
   /// See API doc: https://zulip.com/api/register-push-device#parameter-push_key
+  @visibleForTesting
   static const pushKeyTagSecretbox = 0x31;
+
+  @visibleForTesting
+  static Uint8List secretboxKeyFromPushKey(Uint8List pushKey) {
+    const keyLengthBytes = 32;
+    if (pushKey.length != 1 + keyLengthBytes) {
+      throw ArgumentError("Bad push key: length ${pushKey.length}");
+    }
+    if (pushKey[0] != pushKeyTagSecretbox) {
+      throw ArgumentError("Bad push key: tag 0x${pushKey[0].toRadixString(16)}");
+    }
+    return Uint8List.sublistView(pushKey, 1);
+  }
+
+  static Future<Uint8List> decryptNotification(Uint8List pushKey, Uint8List cryptotext) async {
+    final keyBytes = secretboxKeyFromPushKey(pushKey);
+
+    // TODO(#1764) document how the nonce and cryptotext are packed; https://chat.zulip.org/#narrow/channel/378-api-design/topic/E2EE.20-.20cryptography/near/2352462
+    const nonceLength = 24;
+    final nonce = Uint8List.sublistView(cryptotext, 0, nonceLength);
+    final actualCryptotext = Uint8List.sublistView(cryptotext, nonceLength);
+
+    // The Sodium docs say to call `WidgetsFlutterBinding.ensureInitialized()`
+    // before `SodiumInit.init()` (and so this `sodiumInit()`).
+    // But empirically things seem to work fine without, including
+    // when the app was in the background or not running.
+    final sodium = await ZulipBinding.instance.sodiumInit();
+
+    final key = sodium.secureCopy(keyBytes);
+    return sodium.crypto.secretBox.openEasy(key: key,
+      cipherText: actualCryptotext, nonce: nonce);
+  }
 }

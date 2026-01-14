@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -432,7 +435,75 @@ class TestZulipBinding extends ZulipBinding {
 }
 
 class FakeSodium extends Fake implements sodium.Sodium {
-  // Fill in libsodium features here as needed.
+  @override
+  sodium.SecureKey secureCopy(Uint8List data) => FakeSodiumSecureKey(data);
+
+  @override
+  sodium.Crypto get crypto => FakeSodiumCrypto();
+}
+
+class FakeSodiumSecureKey extends Fake implements sodium.SecureKey {
+  FakeSodiumSecureKey(this.bytes);
+
+  final Uint8List bytes;
+
+  @override
+  Uint8List extractBytes() => bytes;
+}
+
+class FakeSodiumCrypto extends Fake implements sodium.Crypto {
+  @override
+  sodium.SecretBox get secretBox => FakeSodiumSecretBox();
+}
+
+class FakeSodiumSecretBox extends Fake implements sodium.SecretBox {
+  @override
+  Uint8List openEasy({
+    required Uint8List cipherText,
+    required Uint8List nonce,
+    required sodium.SecureKey key,
+  }) {
+    int offset = 0;
+    Uint8List take(int length) =>
+        Uint8List.sublistView(cipherText, offset, offset += length);
+
+    void checkMatch(List<int> piece, [int? length]) {
+      length ??= piece.length;
+      if (!take(length).equals(piece)) throw Exception('invalid ciphertext');
+    }
+
+    final messageLength = cipherText.length
+      - (_prefix.length + _infix.length + 32 + _suffix.length);
+    if (messageLength < 0) throw Exception('invalid ciphertext');
+
+    checkMatch(_prefix);
+    final result = take(messageLength);
+    checkMatch(_infix);
+    checkMatch(sha256.convert(key.extractBytes()).bytes, 32);
+    checkMatch(_suffix);
+    assert(offset == cipherText.length);
+
+    return result;
+  }
+
+  static final _prefix = utf8.encode('sekrit, don\'t peek: [');
+  static final _infix = utf8.encode(']; signed, [');
+  static final _suffix = utf8.encode(']');
+
+  @override
+  Uint8List easy({ // TODO include nonce too? (and check in open)
+    required Uint8List message,
+    required Uint8List nonce,
+    required sodium.SecureKey key,
+  }) {
+    return Uint8List.fromList([
+      ..._prefix,
+      ...message,
+      ..._infix,
+      ...sha256.convert(key.extractBytes()).bytes,
+      ..._suffix,
+    ]);
+  }
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
