@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
-import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:clock/clock.dart';
 import 'package:http/http.dart' as http;
@@ -927,7 +926,7 @@ void main() {
   group('removeOutboxMessage', () {
     final stream = eg.stream();
 
-    Future<void> prepareFailedOutboxMessages(FakeAsync async, {
+    Future<void> prepareFailedOutboxMessages({
       required int count,
       required ZulipStream stream,
       String topic = 'some topic',
@@ -940,46 +939,43 @@ void main() {
       }
     }
 
-    test('in narrow', () => awaitFakeAsync((async) async {
+    test('in narrow', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream, topic: 'topic')));
-      await prepareFailedOutboxMessages(async,
-        count: 5, stream: stream);
+      await prepareFailedOutboxMessages(count: 5, stream: stream);
       check(model).outboxMessages.length.equals(5);
       checkNotified(count: 5);
 
       store.takeOutboxMessage(store.outboxMessages.keys.first);
       checkNotifiedOnce();
       check(model).outboxMessages.length.equals(4);
-    }));
+    });
 
-    test('not in narrow', () => awaitFakeAsync((async) async {
+    test('not in narrow', () async {
       await prepare(narrow: eg.topicNarrow(stream.streamId, 'topic'), stream: stream);
       await prepareMessages(foundOldest: true, messages:
         List.generate(30, (i) => eg.streamMessage(stream: stream, topic: 'topic')));
-      await prepareFailedOutboxMessages(async,
-        count: 5, stream: stream, topic: 'other topic');
+      await prepareFailedOutboxMessages(count: 5, stream: stream, topic: 'other topic');
       check(model).outboxMessages.isEmpty();
       checkNotNotified();
 
       store.takeOutboxMessage(store.outboxMessages.keys.first);
       check(model).outboxMessages.isEmpty();
       checkNotNotified();
-    }));
+    });
 
-    test('removed outbox message is the only message in narrow', () => awaitFakeAsync((async) async {
+    test('removed outbox message is the only message in narrow', () async {
       await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
       await prepareMessages(foundOldest: true, messages: []);
-      await prepareFailedOutboxMessages(async,
-        count: 1, stream: stream);
+      await prepareFailedOutboxMessages(count: 1, stream: stream);
       check(model).outboxMessages.single;
       checkNotified(count: 1);
 
       store.takeOutboxMessage(store.outboxMessages.keys.first);
       check(model).outboxMessages.isEmpty();
       checkNotifiedOnce();
-    }));
+    });
   });
 
   group('UserTopicEvent', () {
@@ -1193,7 +1189,7 @@ void main() {
         ..topic.equals(eg.t(topic));
     }));
 
-    test('unmute a topic before initial fetch completes -> do nothing', () => awaitFakeAsync((async) async {
+    test('unmute a topic before initial fetch completes -> do nothing', () async {
       await prepare(narrow: const CombinedFeedNarrow());
       await prepareMutes(true);
       final messages = [
@@ -1211,7 +1207,7 @@ void main() {
       await fetchFuture;
       checkNotifiedOnce();
       checkHasMessageIds([1]);
-    }));
+    });
   });
 
   group('MutedUsersEvent', () {
@@ -1336,7 +1332,7 @@ void main() {
       checkHasMessageIds([1, 2]);
     }));
 
-    test('unmute a user before initial fetch completes -> do nothing', () => awaitFakeAsync((async) async {
+    test('unmute a user before initial fetch completes -> do nothing', () async {
       await prepare(narrow: CombinedFeedNarrow(), users: users,
         mutedUserIds: [user1.userId]);
       final messages = <Message>[
@@ -1352,7 +1348,7 @@ void main() {
       await fetchFuture;
       checkNotifiedOnce();
       checkHasMessageIds([1, 2]);
-    }));
+    });
   });
 
   group('DeleteMessageEvent', () {
@@ -1564,7 +1560,7 @@ void main() {
       final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream));
 
-      test('internal move between channels', () => awaitFakeAsync((async) async {
+      test('internal move between channels', () async {
         await prepareNarrow(narrow, initialMessages);
 
         await store.handleEvent(eg.updateMessageEventMoveFrom(
@@ -1574,7 +1570,7 @@ void main() {
         ));
         checkHasMessages(initialMessages);
         checkNotified(count: 2);
-      }));
+      });
 
       test('internal move between topics', () async {
         await prepareNarrow(narrow, initialMessages + movedMessages);
@@ -1828,7 +1824,7 @@ void main() {
       });
 
       group('irrelevant moves', () {
-        test('(channel, old topic) -> (channel, unrelated topic)', () => awaitFakeAsync((async) async {
+        test('(channel, old topic) -> (channel, unrelated topic)', () async {
           await prepareNarrow(narrow, initialMessages);
 
           await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -1838,9 +1834,9 @@ void main() {
           check(model).fetched.isTrue();
           checkHasMessages(initialMessages);
           checkNotNotified();
-        }));
+        });
 
-        test('(old channel, topic) - > (unrelated channel, topic)', () => awaitFakeAsync((async) async {
+        test('(old channel, topic) - > (unrelated channel, topic)', () async {
           await prepareNarrow(narrow, initialMessages);
 
           await store.handleEvent(eg.updateMessageEventMoveTo(
@@ -1850,7 +1846,7 @@ void main() {
           check(model).fetched.isTrue();
           checkHasMessages(initialMessages);
           checkNotNotified();
-        }));
+        });
       });
 
       void handleMoveEvent(PropagateMode propagateMode) => awaitFakeAsync((async) async {
@@ -3002,7 +2998,7 @@ void main() {
     final channelId = 1;
     final topic = 'some topic';
     void doTest({required Narrow narrow, required bool expected}) {
-      test('$narrow: ${expected ? 'yes' : 'no'}', () => awaitFakeAsync((async) async {
+      test('$narrow: ${expected ? 'yes' : 'no'}', () async {
         final sender = eg.user();
         final channel = eg.stream(streamId: channelId);
         final message1 = eg.streamMessage(
@@ -3036,7 +3032,7 @@ void main() {
           if (expected) (it) => it.isA<MessageListRecipientHeaderItem>(),
           (it) => it.isA<MessageListMessageItem>(),
         ]);
-      }));
+      });
     }
 
     doTest(narrow: CombinedFeedNarrow(),                expected: false);
