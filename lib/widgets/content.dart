@@ -656,7 +656,11 @@ class MessageImagePreview extends StatelessWidget {
           originalHeight: node.originalHeight));
       },
       child: switch ((node.loading, lightboxDisplayUrl)) {
-        (true, _) => const CupertinoActivityIndicator(),
+        (true, null) => const CupertinoActivityIndicator(),
+        (true, Uri()) => LightboxHero(
+          messageImageContext: context,
+          src: lightboxDisplayUrl!,
+          child: const CupertinoActivityIndicator()),
 
         // TODO(#265) use an error-case placeholder
         // TODO(log)
