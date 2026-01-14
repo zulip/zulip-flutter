@@ -644,7 +644,7 @@ class MessageImagePreview extends StatelessWidget {
       animationMode: ImageAnimationMode.animateConditionally);
     final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
 
-    Widget? child = switch ((node.loading, lightboxDisplayUrl)) {
+    final child = switch ((node.loading, lightboxDisplayUrl)) {
       (true, _) => const CupertinoActivityIndicator(),
 
       // TODO(#265) use an error-case placeholder
@@ -662,13 +662,6 @@ class MessageImagePreview extends StatelessWidget {
       return MessageMediaContainer(onTap: null, child: child);
     }
 
-    if (child != null) {
-      child = LightboxHero(
-        messageImageContext: context,
-        src: lightboxDisplayUrl,
-        child: child);
-    }
-
     return MessageMediaContainer(
       onTap: () {
         Navigator.of(context).push(getImageLightboxRoute(
@@ -680,7 +673,11 @@ class MessageImagePreview extends StatelessWidget {
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
-      child: child);
+      child: child == null ? null :
+        LightboxHero(
+          messageImageContext: context,
+          src: lightboxDisplayUrl,
+          child: child));
   }
 }
 
