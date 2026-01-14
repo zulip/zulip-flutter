@@ -503,6 +503,96 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+    final scrollTestCodesToNames = {
+      '1f600': ['smile_a_first_item'],
+      '1f601': ['smile_b_second'],
+      '1f602': ['smile_c_third'],
+      '1f603': ['smile_d_fourth'],
+      '1f604': ['smile_e_fifth'],
+      '1f605': ['smile_f_sixth'],
+      '1f606': ['smile_g_seventh'],
+      '1f607': ['smile_h_eighth'],
+      '1f608': ['smile_i_ninth'],
+      '1f609': ['smile_j_tenth'],
+      '1f60a': ['smile_k_eleventh'],
+      '1f60b': ['smile_l_twelfth'],
+      '1f60c': ['smile_m_thirteenth'],
+      '1f60d': ['smile_n_fourteenth'],
+      '1f60e': ['smile_o_fifteenth'],
+      '1f60f': ['smile_p_sixteenth'],
+      '1f610': ['smile_q_seventeenth'],
+      '1f611': ['smile_r_eighteenth'],
+      '1f612': ['smile_s_nineteenth'],
+      '1f613': ['smile_z_last_item'],
+    };
+
+    void checkScrollItemsVisible({required bool first, required bool last}) {
+      check(find.text('smile_a_first_item')).findsExactly(first ? 1 : 0);
+      check(find.text('smile_z_last_item')).findsExactly(last ? 1 : 0);
+    }
+
+    testWidgets('scroll position resets when query changes', (tester) async {
+      // Regression test for https://github.com/zulip/zulip-flutter/issues/1175
+
+      final composeInputFinder = await setupToComposeInput(tester);
+      store.setServerEmojiData(ServerEmojiData(codeToNames: scrollTestCodesToNames));
+
+      Future<void> requeryForAllResultsAndPump() async {
+        await tester.enterText(composeInputFinder, 'hi :');
+        // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hi :s');
+        await tester.enterText(composeInputFinder, 'hi :sm');
+        await tester.pump();
+      }
+
+      await requeryForAllResultsAndPump();
+      checkScrollItemsVisible(first: true, last: false);
+
+      await tester.scrollUntilVisible(find.text('smile_z_last_item'), 50,
+        // There are other scrollables in the widget tree,
+        // like for the content input. Scroll just on the autocomplete one.
+        scrollable: find.ancestor(
+          of: find.byType(EmojiAutocompleteItem).first,
+          matching: find.byType(Scrollable)));
+      await tester.pump();
+      checkScrollItemsVisible(first: false, last: true);
+
+      await requeryForAllResultsAndPump();
+      checkScrollItemsVisible(first: true, last: false); // auto-scroll happened
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('scroll position is retained when text changes but query does not', (tester) async {
+      final composeInputFinder = await setupToComposeInput(tester);
+      store.setServerEmojiData(ServerEmojiData(codeToNames: scrollTestCodesToNames));
+
+      // Start with "hi :sm", getting query "sm".
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hi :');
+      await tester.enterText(composeInputFinder, 'hi :s');
+      await tester.enterText(composeInputFinder, 'hi :sm');
+      await tester.pump();
+      checkScrollItemsVisible(first: true, last: false);
+
+      // Scroll to the bottom of the autocomplete list.
+      await tester.scrollUntilVisible(find.text('smile_z_last_item'), 50,
+        scrollable: find.ancestor(
+          of: find.byType(EmojiAutocompleteItem).first,
+          matching: find.byType(Scrollable)));
+      await tester.pump();
+      checkScrollItemsVisible(first: false, last: true);
+
+      // Change text before the trigger (e.g., "hey :sm"), keeping query "sm"
+      // unchanged. The controller listener fires, but because the
+      // autocomplete query is the same, the scroll position should be retained.
+      await tester.enterText(composeInputFinder, 'hey :sm');
+      await tester.pump();
+      checkScrollItemsVisible(first: false, last: true); // scroll was NOT reset
+
+      debugNetworkImageHttpClientProvider = null;
+    });
   });
 
   group('TopicAutocomplete', () {

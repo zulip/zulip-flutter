@@ -38,6 +38,7 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
 
 class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends State<AutocompleteField<QueryT, ResultT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT>> {
   AutocompleteView<QueryT, ResultT>? _viewModel;
+  final ScrollController _scrollController = ScrollController();
 
   void _initViewModel(QueryT query) {
     _viewModel = widget.initViewModel(context, query)
@@ -46,6 +47,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
 
   void _handleControllerChange() {
     final newQuery = widget.autocompleteIntent()?.query;
+    final oldQuery = _viewModel?.query;
     // First, tear down the old view-model if necessary.
     if (_viewModel != null
         && (newQuery == null
@@ -64,6 +66,9 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
         assert(_viewModel!.acceptsQuery(newQuery));
         _viewModel!.query = newQuery;
       }
+    }
+    if (newQuery != oldQuery && _scrollController.hasClients) {
+      _scrollController.jumpTo(0);
     }
   }
 
@@ -96,6 +101,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   void dispose() {
     widget.controller.removeListener(_handleControllerChange);
     _viewModel?.dispose(); // removes our listener
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -138,6 +144,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 300), // TODO not hard-coded
               child: ListView.builder(
+                controller: _scrollController,
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 itemCount: _resultsToDisplay.length,
@@ -252,7 +259,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
       MentionAutocompleteResult() => MentionAutocompleteItem(
         option: option, narrow: narrow),
       ChannelLinkAutocompleteResult() => _ChannelLinkAutocompleteItem(option: option),
-      EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
+      EmojiAutocompleteResult() => EmojiAutocompleteItem(option: option),
     };
     return InkWell(
       onTap: () {
@@ -397,8 +404,9 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
   }
 }
 
-class _EmojiAutocompleteItem extends StatelessWidget {
-  const _EmojiAutocompleteItem({required this.option});
+@visibleForTesting
+class EmojiAutocompleteItem extends StatelessWidget {
+  const EmojiAutocompleteItem({super.key, required this.option});
 
   final EmojiAutocompleteResult option;
 
