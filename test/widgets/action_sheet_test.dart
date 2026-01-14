@@ -495,10 +495,9 @@ void main() {
         await tester.tap(findButtonForLabel('Mark channel as read'));
         await tester.pump();
         await tester.pump();
-        final unreadCount = store.unreads.countInChannelNarrow(someChannel.streamId);
         final (confirmButton, _) = checkSuggestedActionDialog(tester,
-          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
-          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitleNoCount,
+          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage,
           expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
         await tester.tap(find.byWidget(confirmButton));
         await tester.pumpAndSettle();
@@ -516,10 +515,9 @@ void main() {
         await tester.tap(findButtonForLabel('Mark channel as read'));
         await tester.pump();
         await tester.pump();
-        final unreadCount = store.unreads.countInChannelNarrow(someChannel.streamId);
         final (confirmButton, _) = checkSuggestedActionDialog(tester,
-          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
-          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitleNoCount,
+          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage,
           expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
         await tester.tap(find.byWidget(confirmButton));
         await tester.pumpAndSettle();

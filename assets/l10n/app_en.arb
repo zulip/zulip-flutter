@@ -1017,19 +1017,23 @@
   "@errorMarkAsUnreadFailedTitle": {
     "description": "Error title when mark as unread action failed."
   },
-  "markAllAsReadConfirmationDialogTitle": "Mark messages as read?",
+  "markAllAsReadConfirmationDialogTitle": "{count, plural, =1{Mark {count}+ messages as read?} other{Mark {count}+ messages as read?}}",
   "@markAllAsReadConfirmationDialogTitle": {
-    "description": "Title of the confirmation dialog for marking all messages as read."
-  },
-  "markAllAsReadConfirmationDialogMessage": "{count, plural, =1{{count} message will be marked as read.} other{{count} messages will be marked as read.}}",
-  "@markAllAsReadConfirmationDialogMessage": {
-    "description": "Message in the confirmation dialog for marking all messages as read.",
+    "description": "Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.",
     "placeholders": {
       "count": {
         "type": "int",
-        "description": "Number of messages that will be marked as read"
+        "description": "Minimum number of messages that will be marked as read"
       }
     }
+  },
+  "markAllAsReadConfirmationDialogTitleNoCount": "Mark messages as read?",
+  "@markAllAsReadConfirmationDialogTitleNoCount": {
+    "description": "Title of the confirmation dialog for marking all messages as read."
+  },
+  "markAllAsReadConfirmationDialogMessage": "Messages in multiple conversations may be affected.",
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message in the confirmation dialog for marking all messages as read."
   },
   "markAllAsReadConfirmationDialogConfirmButton": "Mark as read",
   "@markAllAsReadConfirmationDialogConfirmButton": {

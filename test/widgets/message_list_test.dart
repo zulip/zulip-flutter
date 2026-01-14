@@ -1193,8 +1193,8 @@ void main() {
     (Widget, Widget) checkConfirmDialog(WidgetTester tester, int unreadCount) {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       return checkSuggestedActionDialog(tester,
-        expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
-        expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+        expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitleNoCount,
+        expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage,
         expectDestructiveActionButton: false,
         expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
     }

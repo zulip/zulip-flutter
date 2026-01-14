@@ -1505,17 +1505,23 @@ abstract class ZulipLocalizations {
   /// **'Mark as unread failed'**
   String get errorMarkAsUnreadFailedTitle;
 
+  /// Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Mark {count}+ messages as read?} other{Mark {count}+ messages as read?}}'**
+  String markAllAsReadConfirmationDialogTitle(int count);
+
   /// Title of the confirmation dialog for marking all messages as read.
   ///
   /// In en, this message translates to:
   /// **'Mark messages as read?'**
-  String get markAllAsReadConfirmationDialogTitle;
+  String get markAllAsReadConfirmationDialogTitleNoCount;
 
   /// Message in the confirmation dialog for marking all messages as read.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{{count} message will be marked as read.} other{{count} messages will be marked as read.}}'**
-  String markAllAsReadConfirmationDialogMessage(int count);
+  /// **'Messages in multiple conversations may be affected.'**
+  String get markAllAsReadConfirmationDialogMessage;
 
   /// Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read.
   ///

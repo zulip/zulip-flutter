@@ -47,9 +47,18 @@ abstract final class ZulipAction {
     };
     if (shouldShowConfirmationDialog) {
       final unreadCount = store.unreads.countInNarrow(narrow);
+      const minDisplayCount = 10;
+      const displayCountStepSize = 25;
+      final displayCount = switch (unreadCount) {
+        (< minDisplayCount)      => null,
+        (< displayCountStepSize) => unreadCount,
+        _ => unreadCount - (unreadCount % displayCountStepSize),
+      };
       final didConfirm = showSuggestedActionDialog(context: context,
-        title: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
-        message: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+        title: displayCount == null
+          ? zulipLocalizations.markAllAsReadConfirmationDialogTitleNoCount
+          : zulipLocalizations.markAllAsReadConfirmationDialogTitle(displayCount),
+        message: zulipLocalizations.markAllAsReadConfirmationDialogMessage,
         actionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
       if (await didConfirm.result != true) return;
       if (!context.mounted) return;
