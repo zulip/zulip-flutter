@@ -644,25 +644,28 @@ class MessageImagePreview extends StatelessWidget {
       animationMode: ImageAnimationMode.animateConditionally);
     final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
 
-    final child = switch ((node.loading, lightboxDisplayUrl)) {
-      (true, null) => const CupertinoActivityIndicator(),
-      (true, Uri()) => LightboxHero(
-        messageImageContext: context,
-        src: lightboxDisplayUrl!,
-        child: const CupertinoActivityIndicator()),
+    Widget? child = switch ((node.loading, lightboxDisplayUrl)) {
+      (true, _) => const CupertinoActivityIndicator(),
 
       // TODO(#265) use an error-case placeholder
       // TODO(log)
       (false, null) => null,
 
-      (false, Uri()) => LightboxHero(
-        messageImageContext: context,
-        src: lightboxDisplayUrl!,
-        child: RealmContentNetworkImage(
-          // TODO(#265) use an error-case placeholder for `errorBuilder`
-          filterQuality: FilterQuality.medium,
-          resolvedThumbnailUrl ?? lightboxDisplayUrl)),
+      (false, Uri()) => RealmContentNetworkImage(
+        // TODO(#265) use an error-case placeholder for `errorBuilder`
+        filterQuality: FilterQuality.medium,
+        resolvedThumbnailUrl ?? lightboxDisplayUrl!),
     };
+
+    if (lightboxDisplayUrl != null && child != null) {
+      // (The &&'s right side is really redundant with its left side,
+      // because of the switch/case above.
+      // But it's helpful in this sequence of refactors.)
+      child = LightboxHero(
+        messageImageContext: context,
+        src: lightboxDisplayUrl,
+        child: child);
+    }
 
     return MessageMediaContainer(
       onTap: lightboxDisplayUrl == null ? null : () { // TODO(log)
