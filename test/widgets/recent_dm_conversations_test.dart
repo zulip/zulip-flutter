@@ -222,7 +222,7 @@ void main() {
           await setupPage(tester, users: [], dmMessages: [message]);
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, eg.selfUser.fullName);
+          checkTitle(tester, '${eg.selfUser.fullName} (you)');
         });
 
         testWidgets('short name takes one line', (tester) async {
@@ -230,7 +230,7 @@ void main() {
           final selfUser = eg.user(fullName: name);
           await setupPage(tester, selfUser: selfUser, users: [],
             dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
-          checkTitle(tester, name, 1);
+          checkTitle(tester, '$name (you)', 1);
         });
 
         testWidgets('very long name takes two lines (must be ellipsized)', (tester) async {
@@ -238,7 +238,7 @@ void main() {
           final selfUser = eg.user(fullName: name);
           await setupPage(tester, selfUser: selfUser, users: [],
             dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
-          checkTitle(tester, name, 2);
+          checkTitle(tester, '$name (you)', 2);
         });
 
         group('User status', () {
