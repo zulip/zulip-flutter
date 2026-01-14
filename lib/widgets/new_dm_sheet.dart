@@ -395,6 +395,8 @@ class _NewDmUserListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final selfUserId = store.selfUserId ;
+    final labelColor = designVariables.labelMenuButton ;
     return Material(
       clipBehavior: Clip.antiAlias,
       borderRadius: BorderRadius.circular(10),
@@ -422,6 +424,14 @@ class _NewDmUserListItem extends StatelessWidget {
             Expanded(
               child: Text.rich(
                 TextSpan(text: store.userDisplayName(userId), children: [
+                  if (userId == selfUserId) 
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: ExcludeSemantics(
+                        child: Text(
+                          ' (you)',
+                          style: TextStyle(
+                            color: labelColor.withValues(alpha: 0.6))))),
                   UserStatusEmoji.asWidgetSpan(userId: userId, fontSize: 17,
                     textScaler: MediaQuery.textScalerOf(context)),
                 ]),
