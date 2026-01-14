@@ -173,6 +173,7 @@ class RecentDmConversationsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final labelColor = designVariables.labelMenuButton;
 
     final InlineSpan title;
     final Widget avatar;
@@ -180,6 +181,10 @@ class RecentDmConversationsItem extends StatelessWidget {
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
         title = TextSpan(text: store.selfUser.fullName, children: [
+          TextSpan( 
+            text: ' (you)',
+            style: TextStyle(
+              color: labelColor.withValues(alpha: 0.6))),
           UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
             fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
         ]);
@@ -196,7 +201,10 @@ class RecentDmConversationsItem extends StatelessWidget {
           // TODO(i18n): List formatting, like you can do in JavaScript:
           //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
           //   // 'Chris、Greg、Alya'
-          text: narrow.otherRecipientIds.map(store.userDisplayName).join(', '));
+          text: narrow.otherRecipientIds.map((userId) {
+            final name = store.userDisplayName(userId);
+            return userId == store.selfUserId ? '$name (you)' : name;
+          }).join(', '),);
         avatar = ColoredBox(color: designVariables.avatarPlaceholderBg,
           child: Center(
             child: Icon(color: designVariables.avatarPlaceholderIcon,
