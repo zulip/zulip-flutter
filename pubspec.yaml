@@ -59,13 +59,13 @@ dependencies:
   share_plus_platform_interface: ^6.0.0
   sqlite3: ^2.4.0
   sqlite3_flutter_libs: ^0.5.13
+  unorm_dart: ^0.3.1+1
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"
   video_player: ^2.10.0
   wakelock_plus: ^1.2.8
   zulip_plugin:
     path: ./packages/zulip_plugin
-  unorm_dart: ^0.3.1+1
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 dependency_overrides:
