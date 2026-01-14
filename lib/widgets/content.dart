@@ -657,10 +657,12 @@ class MessageImagePreview extends StatelessWidget {
         resolvedThumbnailUrl ?? lightboxDisplayUrl!),
     };
 
-    if (lightboxDisplayUrl != null && child != null) {
-      // (The &&'s right side is really redundant with its left side,
-      // because of the switch/case above.
-      // But it's helpful in this sequence of refactors.)
+    if (lightboxDisplayUrl == null) {
+      // TODO(log)
+      return MessageMediaContainer(onTap: null, child: child);
+    }
+
+    if (child != null) {
       child = LightboxHero(
         messageImageContext: context,
         src: lightboxDisplayUrl,
@@ -668,7 +670,7 @@ class MessageImagePreview extends StatelessWidget {
     }
 
     return MessageMediaContainer(
-      onTap: lightboxDisplayUrl == null ? null : () { // TODO(log)
+      onTap: () {
         Navigator.of(context).push(getImageLightboxRoute(
           context: context,
           message: message,
