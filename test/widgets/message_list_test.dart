@@ -1194,7 +1194,7 @@ void main() {
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       return checkSuggestedActionDialog(tester,
         expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitle,
-        expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage(unreadCount),
+        expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessageNoCount,
         expectDestructiveActionButton: false,
         expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
     }

@@ -1491,11 +1491,17 @@ abstract class ZulipLocalizations {
   /// **'Mark messages as read?'**
   String get markAllAsReadConfirmationDialogTitle;
 
+  /// Message in the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count}+ messages will be marked as read. Messages in multiple conversations may be affected.} other{{count}+ messages will be marked as read. Messages in multiple conversations may be affected.}}'**
+  String markAllAsReadConfirmationDialogMessage(int count);
+
   /// Message in the confirmation dialog for marking all messages as read.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{{count} message will be marked as read.} other{{count} messages will be marked as read.}}'**
-  String markAllAsReadConfirmationDialogMessage(int count);
+  /// **'Messages in multiple conversations may be affected.'**
+  String get markAllAsReadConfirmationDialogMessageNoCount;
 
   /// Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read.
   ///

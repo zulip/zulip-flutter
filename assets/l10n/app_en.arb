@@ -1009,15 +1009,19 @@
   "@markAllAsReadConfirmationDialogTitle": {
     "description": "Title of the confirmation dialog for marking all messages as read."
   },
-  "markAllAsReadConfirmationDialogMessage": "{count, plural, =1{{count} message will be marked as read.} other{{count} messages will be marked as read.}}",
+  "markAllAsReadConfirmationDialogMessage": "{count, plural, =1{{count}+ messages will be marked as read. Messages in multiple conversations may be affected.} other{{count}+ messages will be marked as read. Messages in multiple conversations may be affected.}}",
   "@markAllAsReadConfirmationDialogMessage": {
-    "description": "Message in the confirmation dialog for marking all messages as read.",
+    "description": "Message in the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.",
     "placeholders": {
       "count": {
         "type": "int",
-        "description": "Number of messages that will be marked as read"
+        "description": "Minimum number of messages that will be marked as read"
       }
     }
+  },
+  "markAllAsReadConfirmationDialogMessageNoCount": "Messages in multiple conversations may be affected.",
+  "@markAllAsReadConfirmationDialogMessageNoCount": {
+    "description": "Message in the confirmation dialog for marking all messages as read."
   },
   "markAllAsReadConfirmationDialogConfirmButton": "Mark as read",
   "@markAllAsReadConfirmationDialogConfirmButton": {
