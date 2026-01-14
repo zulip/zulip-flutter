@@ -644,8 +644,6 @@ class MessageImagePreview extends StatelessWidget {
       animationMode: ImageAnimationMode.animateConditionally);
     final lightboxDisplayUrl = store.tryResolveUrl(srcUrl);
 
-    // TODO if src fails to parse, show an explicit "broken image"
-
     return MessageMediaContainer(
       onTap: lightboxDisplayUrl == null ? null : () { // TODO(log)
         Navigator.of(context).push(getImageLightboxRoute(
@@ -659,13 +657,18 @@ class MessageImagePreview extends StatelessWidget {
       },
       child: switch ((node.loading, lightboxDisplayUrl)) {
         (true, _) => const CupertinoActivityIndicator(),
+
+        // TODO(#265) use an error-case placeholder
+        // TODO(log)
         (false, null) => null,
+
         (false, Uri()) => LightboxHero(
           messageImageContext: context,
           src: lightboxDisplayUrl!,
           child: RealmContentNetworkImage(
-            resolvedThumbnailUrl ?? lightboxDisplayUrl,
-            filterQuality: FilterQuality.medium)),
+            // TODO(#265) use an error-case placeholder for `errorBuilder`
+            filterQuality: FilterQuality.medium,
+            resolvedThumbnailUrl ?? lightboxDisplayUrl)),
       });
   }
 }
