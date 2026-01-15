@@ -114,12 +114,12 @@ mixin ChannelStore on UserStore {
   }
 
   /// Whether the given event will change the result of [isTopicVisibleInChannel]
-  /// for its stream and topic, compared to the current state.
-  UserTopicVisibilityEffect willChangeIfTopicVisibleInStream(UserTopicEvent event) {
-    final streamId = event.streamId;
+  /// for its channel and topic, compared to the current state.
+  UserTopicVisibilityEffect willChangeIfTopicVisibleInChannel(UserTopicEvent event) {
+    final channelId = event.streamId;
     final topic = event.topicName;
     return UserTopicVisibilityEffect._fromBeforeAfter(
-      _isTopicVisibleInChannel(topicVisibilityPolicy(streamId, topic)),
+      _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic)),
       _isTopicVisibleInChannel(event.visibilityPolicy));
   }
 
@@ -151,13 +151,13 @@ mixin ChannelStore on UserStore {
   }
 
   /// Whether the given event will change the result of [isTopicVisible]
-  /// for its stream and topic, compared to the current state.
+  /// for its channel and topic, compared to the current state.
   UserTopicVisibilityEffect willChangeIfTopicVisible(UserTopicEvent event) {
-    final streamId = event.streamId;
+    final channelId = event.streamId;
     final topic = event.topicName;
     return UserTopicVisibilityEffect._fromBeforeAfter(
-      _isTopicVisible(streamId, topicVisibilityPolicy(streamId, topic)),
-      _isTopicVisible(streamId, event.visibilityPolicy));
+      _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic)),
+      _isTopicVisible(channelId, event.visibilityPolicy));
   }
 
   bool _isTopicVisible(int channelId, UserTopicVisibilityPolicy policy) {
