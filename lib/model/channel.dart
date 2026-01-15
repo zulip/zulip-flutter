@@ -179,6 +179,28 @@ mixin ChannelStore on UserStore {
     }
   }
 
+  /// Whether the given message move will change the result of
+  /// [isTopicVisibleInChannel] for the new channel and topic of its moved
+  /// messages, compared to their original channel and topic.
+  MessageMoveVisibilityEffect messageMoveWillAffectIfTopicVisibleInChannel(UpdateMessageMoveData messageMove) {
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic) = messageMove;
+    return MessageMoveVisibilityEffect._fromBeforeAfter(
+      isTopicVisibleInChannel(origStreamId, origTopic),
+      isTopicVisibleInChannel(newStreamId, newTopic));
+  }
+
+  /// Whether the given message move will change the result of
+  /// [isTopicVisible] for the new channel and topic of its moved messages,
+  /// compared to their original channel and topic.
+  MessageMoveVisibilityEffect messageMoveWillAffectIfTopicVisible(UpdateMessageMoveData messageMove) {
+    final UpdateMessageMoveData(
+      :origStreamId, :newStreamId, :origTopic, :newTopic) = messageMove;
+    return MessageMoveVisibilityEffect._fromBeforeAfter(
+      isTopicVisible(origStreamId, origTopic),
+      isTopicVisible(newStreamId, newTopic));
+  }
+
   bool selfHasContentAccess(ZulipStream channel) {
     // Compare web's stream_data.has_content_access.
     if (channel.isWebPublic) return true;
@@ -268,6 +290,32 @@ enum UserTopicVisibilityEffect {
       (false, true) => UserTopicVisibilityEffect.unmuted,
       (true, false) => UserTopicVisibilityEffect.muted,
       _             => UserTopicVisibilityEffect.none,
+    };
+  }
+}
+
+/// Whether and how a given [UpdateMessageMoveData] will affect the results
+/// that [ChannelStore.isTopicVisible] or [ChannelStore.isTopicVisibleInChannel]
+/// would give for the moved messages.
+enum MessageMoveVisibilityEffect {
+  /// The visibility results of the moved messages will change from true to false.
+  unmutedToMuted,
+
+  /// The visibility results of the moved messages will change from false to true.
+  mutedToUnmuted,
+
+  /// The visibility results of the moved messages will stay as true.
+  unmutedToUnmuted,
+
+  /// The visibility results of the moved messages will stay as false.
+  mutedToMuted;
+
+  factory MessageMoveVisibilityEffect._fromBeforeAfter(bool before, bool after) {
+    return switch ((before, after)) {
+      (true,  false) => .unmutedToMuted,
+      (false,  true) => .mutedToUnmuted,
+      (true,   true) => .unmutedToUnmuted,
+      (false, false) => .mutedToMuted,
     };
   }
 }
