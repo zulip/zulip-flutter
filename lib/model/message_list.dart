@@ -696,7 +696,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         assert(message is MessageBase<StreamConversation>
                && message.conversation.streamId == streamId);
         if (message is! MessageBase<StreamConversation>) return false;
-        return store.isTopicVisibleInStream(streamId, message.conversation.topic);
+        return store.isTopicVisibleInChannel(streamId, message.conversation.topic);
 
       case TopicNarrow():
         assert((narrow as TopicNarrow).containsMessage(message));

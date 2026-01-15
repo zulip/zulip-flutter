@@ -257,28 +257,28 @@ void main() {
       });
     });
 
-    group('isTopicVisible/InStream', () {
-      test('with policy none, stream not muted', () async {
+    group('isTopicVisible/InChannel', () {
+      test('with policy none, channel not muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isTrue();
       });
 
-      test('with policy none, stream muted', () async {
+      test('with policy none, channel muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isFalse();
       });
 
-      test('with policy none, stream unsubscribed', () async {
+      test('with policy none, channel unsubscribed', () async {
         final store = eg.store();
         await store.addStream(stream1);
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isFalse();
       });
 
       test('with policy muted', () async {
@@ -286,12 +286,12 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isFalse();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isFalse();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isFalse();
 
         // Case-insensitive
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('ToPiC'))).isFalse();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('ToPiC'))).isFalse();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('ToPiC'))).isFalse();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('ToPiC'))).isFalse();
       });
 
       test('with policy unmuted', () async {
@@ -299,12 +299,12 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isTrue();
 
         // Case-insensitive
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('tOpIc'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('tOpIc'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('tOpIc'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('tOpIc'))).isTrue();
       });
 
       test('with policy followed', () async {
@@ -312,12 +312,12 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isTrue();
 
         // Case-insensitive
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('TOPIC'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('TOPIC'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('TOPIC'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('TOPIC'))).isTrue();
       });
     });
 
@@ -403,7 +403,7 @@ void main() {
                   eg.subscription(stream1, isMuted: streamMuted));
               }
               await store.handleEvent(mkEvent(oldPolicy));
-              final oldVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'));
+              final oldVisibleInStream = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
               final oldVisible         = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               final event = mkEvent(newPolicy);
@@ -411,7 +411,7 @@ void main() {
               final willChange         = store.willChangeIfTopicVisible(event);
 
               await store.handleEvent(event);
-              final newVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'));
+              final newVisibleInStream = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
               final newVisible         = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               UserTopicVisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {

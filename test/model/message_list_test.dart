@@ -3260,7 +3260,7 @@ void checkInvariants(MessageListView model) {
           check(model.store.isTopicVisible(conversation.streamId, conversation.topic))
             .isTrue();
         case ChannelNarrow():
-          check(model.store.isTopicVisibleInStream(conversation.streamId, conversation.topic))
+          check(model.store.isTopicVisibleInChannel(conversation.streamId, conversation.topic))
             .isTrue();
         case TopicNarrow():
         case DmNarrow():
