@@ -1026,6 +1026,141 @@ class ImageEmojiNode extends EmojiNode {
   }
 }
 
+/// An "inline image" / "Markdown-style image" node,
+/// from the ![alt text](url) syntax.
+///
+/// See `api_docs/message-formatting.md` in the web PR for this feature:
+///   https://github.com/zulip/zulip/pull/36226
+///
+/// This class accommodates forms not expected from servers in 2026-01,
+/// to avoid being a landmine for possible future servers that send such forms.
+/// Notably, in 2026-01, servers are expected to produce this content
+/// just for uploaded images, which means the images' dimensions are available.
+/// UI code should nevertheless do something reasonable when the dimensions
+/// are not available. Discussion:
+///   https://chat.zulip.org/#narrow/channel/378-api-design/topic/HTML.20pattern.20for.20truly.20inline.20images/near/2348085
+// TODO: Link to the merged API doc when it lands.
+class InlineImageNode extends InlineContentNode {
+  const InlineImageNode({
+    super.debugHtmlNode,
+    required this.loading,
+    required this.src,
+    required this.alt,
+    required this.originalSrc,
+    required this.originalWidth,
+    required this.originalHeight,
+  });
+
+  /// Whether the `img` element has the "image-loading-placeholder" classname.
+  ///
+  /// In 2026-01, this represents the server's progress
+  /// in thumbnailing an uploaded image.
+  final bool loading;
+
+  final InlineImageNodeSrc src;
+  final String alt;
+
+  /// The data-original-src attribute, if present.
+  ///
+  /// In 2026-01, this is expected to always be present and refer to
+  /// the original, non-thumbnailed image resource,
+  /// including when [loading] is true.
+  final String? originalSrc;
+
+  /// The width part of data-original-dimensions, if that attribute is present.
+  ///
+  /// In 2026-01, this is expected to always be present.
+  final double? originalWidth;
+
+  /// The height part of data-original-dimensions, if that attribute is present.
+  ///
+  /// In 2026-01, this is expected to always be present.
+  final double? originalHeight;
+
+  @override
+  bool operator ==(Object other) {
+    return other is InlineImageNode
+      && other.loading == loading
+      && other.src == src
+      && other.alt == alt
+      && other.originalSrc == originalSrc
+      && other.originalWidth == originalWidth
+      && other.originalHeight == originalHeight;
+  }
+
+  @override
+  int get hashCode => Object.hash('InlineImageNode',
+    loading,
+    src,
+    alt,
+    originalSrc,
+    originalWidth,
+    originalHeight);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(FlagProperty('loading', value: loading, ifTrue: 'is loading'));
+    properties.add(DiagnosticsProperty<InlineImageNodeSrc>('src', src));
+    properties.add(StringProperty('alt', alt));
+    properties.add(StringProperty('originalSrc', originalSrc));
+    properties.add(DoubleProperty('originalWidth', originalWidth));
+    properties.add(DoubleProperty('originalHeight', originalHeight));
+  }
+}
+
+/// A value of [InlineImageNode.src].
+sealed class InlineImageNodeSrc extends DiagnosticableTree {
+  const InlineImageNodeSrc();
+}
+
+/// A thumbnail URL, starting with [ImageThumbnailLocator.srcPrefix].
+class InlineImageNodeSrcThumbnail extends InlineImageNodeSrc {
+  const InlineImageNodeSrcThumbnail(this.value);
+
+  final ImageThumbnailLocator value;
+
+  @override
+  bool operator ==(Object other) {
+    return other is InlineImageNodeSrcThumbnail && other.value == value;
+  }
+
+  @override
+  int get hashCode => Object.hash('InlineImageNodeSrcThumbnail', value);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<ImageThumbnailLocator>('value', value));
+  }
+}
+
+/// A `src` that does not start with [ImageThumbnailLocator.srcPrefix].
+///
+/// In 2026-01, this is expected to always be a URL referring to an image,
+/// specifically a hard-coded "spinner" image
+/// when thumbnailing of an uploaded image is in progress.
+/// See [InlineImageNode.loading].
+class InlineImageNodeSrcOther extends InlineImageNodeSrc {
+  const InlineImageNodeSrcOther(this.value);
+
+  final String value;
+
+  @override
+  bool operator ==(Object other) {
+    return other is InlineImageNodeSrcOther && other.value == value;
+  }
+
+  @override
+  int get hashCode => Object.hash('InlineImageNodeSrcOther', value);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('value', value));
+  }
+}
+
 class MathInlineNode extends MathNode implements InlineContentNode {
   const MathInlineNode({
     super.debugHtmlNode,
@@ -1057,6 +1192,19 @@ class GlobalTimeNode extends InlineContentNode {
   }
 }
 
+final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
+
+/// Parse an `img`'s `data-original-dimensions` attribute,
+/// which servers encode as "{width}x{height}" (e.g., "300x400").
+({double originalWidth, double originalHeight})? _tryParseOriginalDimensions(String attribute) {
+  final match = _imageDimensionsRegExp.firstMatch(attribute);
+  if (match == null) return null;
+  final width = int.tryParse(match.group(1)!, radix: 10);
+  final height = int.tryParse(match.group(2)!, radix: 10);
+  if (width == null || height == null) return null;
+  return (originalWidth: width.toDouble(), originalHeight: height.toDouble());
+}
+
 //|//////////////////////////////////////////////////////////////
 
 /// Parser for the inline-content subtrees within Zulip content HTML.
@@ -1067,6 +1215,48 @@ class GlobalTimeNode extends InlineContentNode {
 /// instance has been reset to its starting state, and can be re-used for
 /// parsing other subtrees.
 class _ZulipInlineContentParser {
+  InlineContentNode? parseInlineImage(dom.Element imgElement, {required bool loading}) {
+    assert(imgElement.localName == 'img');
+    assert(imgElement.className.contains('inline-image'));
+
+    final src = imgElement.attributes['src'];
+    if (src == null) return null;
+    final animated = imgElement.attributes['data-animated'] == 'true';
+    ImageThumbnailLocator? thumbnailSrc;
+    if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
+      final srcUrl = Uri.tryParse(src);
+      if (srcUrl == null) return null;
+      thumbnailSrc = ImageThumbnailLocator(defaultFormatSrc: srcUrl, animated: animated);
+    }
+
+    final alt = imgElement.attributes['alt'];
+    if (alt == null) return null;
+
+    final originalSrc = imgElement.attributes['data-original-src'];
+
+    double? originalWidth;
+    double? originalHeight;
+    final originalDimensions = imgElement.attributes['data-original-dimensions'];
+    if (originalDimensions != null) {
+      final dimensionsMatch = _imageDimensionsRegExp.firstMatch(originalDimensions);
+      if (dimensionsMatch != null) {
+        originalWidth = int.tryParse(dimensionsMatch.group(1)!, radix: 10)?.toDouble();
+        originalHeight = int.tryParse(dimensionsMatch.group(2)!, radix: 10)?.toDouble();
+      }
+    }
+
+    return InlineImageNode(
+      loading: loading,
+      src: thumbnailSrc != null
+        ? InlineImageNodeSrcThumbnail(thumbnailSrc)
+        : InlineImageNodeSrcOther(src),
+      alt: alt,
+      originalSrc: originalSrc,
+      originalWidth: originalWidth,
+      originalHeight: originalHeight,
+    );
+  }
+
   InlineContentNode? parseInlineMath(dom.Element element) {
     final debugHtmlNode = kDebugMode ? element : null;
     final parsed = parseMath(element, block: false);
@@ -1210,12 +1400,23 @@ class _ZulipInlineContentParser {
       return UnicodeEmojiNode(emojiUnicode: unicode, debugHtmlNode: debugHtmlNode);
     }
 
-    if (localName == 'img' && className == 'emoji') {
-      final alt = element.attributes['alt'];
-      if (alt == null) return unimplemented();
-      final src = element.attributes['src'];
-      if (src == null) return unimplemented();
-      return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+    if (localName == 'img') {
+      if (className == 'emoji') {
+        final alt = element.attributes['alt'];
+        if (alt == null) return unimplemented();
+        final src = element.attributes['src'];
+        if (src == null) return unimplemented();
+        return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+      }
+
+      if (className == 'inline-image') {
+        return parseInlineImage(element, loading: false) ?? unimplemented();
+      } else if (
+        className == 'inline-image image-loading-placeholder'
+        || className == 'image-loading-placeholder inline-image'
+      ) {
+        return parseInlineImage(element, loading: true) ?? unimplemented();
+      }
     }
 
     if (localName == 'time' && className.isEmpty) {
@@ -1407,8 +1608,6 @@ class _ZulipContentParser {
     return CodeBlockNode(spans, debugHtmlNode: debugHtmlNode);
   }
 
-  static final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
-
   BlockContentNode parseImagePreviewNode(dom.Element divElement) {
     final elements = () {
       assert(divElement.localName == 'div'
@@ -1475,20 +1674,12 @@ class _ZulipContentParser {
     double? originalWidth, originalHeight;
     final originalDimensions = imgElement.attributes['data-original-dimensions'];
     if (originalDimensions != null) {
-      // Server encodes this string as "{width}x{height}" (eg. "300x400")
-      final match = _imageDimensionsRegExp.firstMatch(originalDimensions);
-      if (match != null) {
-        final width = int.tryParse(match.group(1)!, radix: 10);
-        final height = int.tryParse(match.group(2)!, radix: 10);
-        if (width != null && height != null) {
-          originalWidth = width.toDouble();
-          originalHeight = height.toDouble();
-        }
-      }
-
-      if (originalWidth == null || originalHeight == null) {
+      final parsed = _tryParseOriginalDimensions(originalDimensions);
+      if (parsed == null) {
         return UnimplementedBlockContentNode(htmlNode: divElement);
       }
+      originalWidth = parsed.originalWidth;
+      originalHeight = parsed.originalHeight;
     }
 
     return ImagePreviewNode(
