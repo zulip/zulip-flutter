@@ -654,7 +654,12 @@ class MessageImagePreview extends StatelessWidget {
       (false, Uri()) => RealmContentNetworkImage(
         // TODO(#265) use an error-case placeholder for `errorBuilder`
         filterQuality: FilterQuality.medium,
-        resolvedThumbnailUrl ?? lightboxDisplayUrl!),
+        thumbnailLocator != null
+          // resolvedThumbnailUrl is non-null exactly when thumbnailLocator is
+          // non-null; [ImageThumbnailLocatorExtension.resolve] returns Uri,
+          // not Uri?.
+          ? resolvedThumbnailUrl!
+          : lightboxDisplayUrl!),
     };
 
     if (lightboxDisplayUrl == null) {
