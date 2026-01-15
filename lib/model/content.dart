@@ -539,8 +539,8 @@ class ImagePreviewNodeList extends BlockContentNode {
 class ImagePreviewNode extends BlockContentNode {
   const ImagePreviewNode({
     super.debugHtmlNode,
-    required this.srcUrl,
-    required this.thumbnail,
+    required this.originalSrc,
+    required this.src,
     required this.loading,
     required this.originalWidth,
     required this.originalHeight,
@@ -550,31 +550,53 @@ class ImagePreviewNode extends BlockContentNode {
   ///
   /// This may be a relative URL string. It also may not work without adding
   /// authentication credentials to the request.
-  final String srcUrl;
-
-  /// The thumbnail URL of the image and whether it has an animated version.
   ///
-  /// This will be null if the server hasn't yet generated a thumbnail,
-  /// or is a version that doesn't offer thumbnails.
-  /// It will also be null when [loading] is true.
-  final ImageThumbnailLocator? thumbnail;
-
-  /// A flag to indicate whether to show the placeholder.
+  /// Clients are expected to use this URL when saving the image to the device.
   ///
-  /// Typically it will be `true` while Server is generating thumbnails.
+  /// For images processed in modern thumbnailing (as of 2026-01),
+  /// this is also meant for viewing the image by itself, in a lightbox
+  /// (but if `data-transcoded-image` is present, it's better to use that [1]).
+  /// The modern-thumbnailing case is recognized when [loading] is true
+  /// or when [src] is an [ImagePreviewNodeSrcThumbnail].
+  /// From discussion:
+  ///   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279483
+  ///
+  /// [1] The "transcoded image" feature is meant to keep the lightbox working
+  ///     when the original image is in an uncommon format, like TIFF.
+  ///     This isn't implemented yet; it's #1268.
+  // TODO(#1268) implement transcoded-image feature; update dartdoc
+  final String originalSrc;
+
+  /// A URL for the image intended to be shown here in Zulip content.
+  ///
+  /// If [loading] is true, this will point to a "spinner" image.
+  /// Clients are invited to show a custom loading indicator instead; we do.
+  ///
+  /// Except for images processed in modern thumbnailing (2026-01),
+  /// this is also meant for viewing the image by itself, in a lightbox.
+  /// For how to recognize that case, see [originalSrc].
+  final ImagePreviewNodeSrc src;
+
+  /// Whether the img has the "image-loading-placeholder" classname.
+  ///
+  /// This is expected to be true (as of 2026-01)
+  /// while an uploaded image is being thumbnailed.
+  ///
+  /// When this is true, [src] will point to a "spinner" image.
+  /// Clients are invited to show a custom loading indicator instead; we do.
   final bool loading;
 
-  /// The width of the canonical image.
+  /// The width part of data-original-dimensions, if that attribute is present.
   final double? originalWidth;
 
-  /// The height of the canonical image.
+  /// The height part of data-original-dimensions, if that attribute is present.
   final double? originalHeight;
 
   @override
   bool operator ==(Object other) {
     return other is ImagePreviewNode
-      && other.srcUrl == srcUrl
-      && other.thumbnail == thumbnail
+      && other.originalSrc == originalSrc
+      && other.src == src
       && other.loading == loading
       && other.originalWidth == originalWidth
       && other.originalHeight == originalHeight;
@@ -582,16 +604,72 @@ class ImagePreviewNode extends BlockContentNode {
 
   @override
   int get hashCode => Object.hash('ImagePreviewNode',
-    srcUrl, thumbnail, loading, originalWidth, originalHeight);
+    originalSrc, src, loading, originalWidth, originalHeight);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(StringProperty('srcUrl', srcUrl));
-    properties.add(DiagnosticsProperty<ImageThumbnailLocator>('thumbnail', thumbnail));
+    properties.add(StringProperty('originalSrc', originalSrc));
+    properties.add(DiagnosticsProperty<ImagePreviewNodeSrc>('src', src));
     properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
     properties.add(DoubleProperty('originalWidth', originalWidth));
     properties.add(DoubleProperty('originalHeight', originalHeight));
+  }
+}
+
+/// A value of [ImagePreviewNode.src].
+sealed class ImagePreviewNodeSrc extends DiagnosticableTree {
+  const ImagePreviewNodeSrc();
+}
+
+/// A thumbnail URL, starting with [ImageThumbnailLocator.srcPrefix].
+class ImagePreviewNodeSrcThumbnail extends ImagePreviewNodeSrc {
+  const ImagePreviewNodeSrcThumbnail(this.value);
+
+  final ImageThumbnailLocator value;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImagePreviewNodeSrcThumbnail && other.value == value;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImagePreviewNodeSrcThumbnail', value);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<ImageThumbnailLocator>('value', value));
+  }
+}
+
+/// A `src` that does not start with [ImageThumbnailLocator.srcPrefix].
+///
+/// This may be a relative URL string. It also may not work without adding
+/// authentication credentials to the request.
+// In 2026-01, this class covers these known cases:
+// - This may be a hard-coded "spinner" image,
+//   when thumbnailing of an uploaded image is in progress.
+// - This may match `href`, e.g. from pre-thumbnailing servers.
+// - This may start with CAMO_URI, a server variable (e.g. on Zulip Cloud
+//   it's "https://uploads.zulipusercontent.net/" in 2025-10).
+class ImagePreviewNodeSrcOther extends ImagePreviewNodeSrc {
+  const ImagePreviewNodeSrcOther(this.value);
+
+  final String value;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImagePreviewNodeSrcOther && other.value == value;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImagePreviewNodeSrcOther', value);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('value', value));
   }
 }
 
@@ -1436,31 +1514,15 @@ class _ZulipContentParser {
     final src = imgElement.attributes['src'];
     if (src == null) return null;
     final loading = imgElement.className == 'image-loading-placeholder';
-
-    final String srcUrl;
-    final ImageThumbnailLocator? thumbnail;
-    if (loading) {
-      // This lets us offer a lightbox showing the full image,
-      // even while the thumbnail is loading.
-      srcUrl = href;
-      thumbnail = null; // (The thumbnail is the thing that's loading.)
-    } else if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
-      final parsedSrc = Uri.tryParse(src);
-      if (parsedSrc == null) return null;
-
+    ImageThumbnailLocator? thumbnailSrc;
+    if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
+      final srcUrl = Uri.tryParse(src);
+      if (srcUrl == null) return null;
       // For why we recognize this as the thumbnail form, see discussion:
       //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
-      srcUrl = href;
-      thumbnail = ImageThumbnailLocator(
-        defaultFormatSrc: parsedSrc,
+      thumbnailSrc = ImageThumbnailLocator(
+        defaultFormatSrc: srcUrl,
         animated: imgElement.attributes['data-animated'] == 'true');
-    } else {
-      // Known cases this handles:
-      // - `src` starts with CAMO_URI, a server variable (e.g. on Zulip Cloud
-      //   it's "https://uploads.zulipusercontent.net/" in 2025-10).
-      // - `src` matches `href`, e.g. from pre-thumbnailing servers.
-      srcUrl = src;
-      thumbnail = null;
     }
 
     double? originalWidth, originalHeight;
@@ -1483,8 +1545,10 @@ class _ZulipContentParser {
     }
 
     return ImagePreviewNode(
-      srcUrl: srcUrl,
-      thumbnail: thumbnail,
+      originalSrc: href,
+      src: thumbnailSrc != null
+        ? ImagePreviewNodeSrcThumbnail(thumbnailSrc)
+        : ImagePreviewNodeSrcOther(src),
       loading: loading,
       originalWidth: originalWidth,
       originalHeight: originalHeight,

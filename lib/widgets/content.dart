@@ -636,15 +636,18 @@ class MessageImagePreview extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
-    final resolvedThumbnailUrl = node.thumbnail?.resolve(context,
-      width: MessageMediaContainer.width,
-      height: MessageMediaContainer.height,
-      animationMode: ImageAnimationMode.animateConditionally);
+    final resolvedSrc = switch (node.src) {
+      ImagePreviewNodeSrcThumbnail(:final value) => value.resolve(context,
+        width: MessageMediaContainer.width,
+        height: MessageMediaContainer.height,
+        animationMode: .animateConditionally),
+      ImagePreviewNodeSrcOther(:final value) => store.tryResolveUrl(value),
+    };
+    final resolvedOriginalSrc = store.tryResolveUrl(node.originalSrc);
 
-    final urlInPreview = node.thumbnail != null
-      ? resolvedThumbnailUrl
-      : store.tryResolveUrl(node.srcUrl);
-    final child = switch ((node.loading, urlInPreview)) {
+    final child = switch ((node.loading, resolvedSrc)) {
+      // resolvedSrc would be a "spinner" image URL.
+      // Use our own progress indicator instead.
       (true, _) => const CupertinoActivityIndicator(),
 
       // TODO(#265) use an error-case placeholder
@@ -654,10 +657,12 @@ class MessageImagePreview extends StatelessWidget {
       (false, Uri()) => RealmContentNetworkImage(
         // TODO(#265) use an error-case placeholder for `errorBuilder`
         filterQuality: FilterQuality.medium,
-        urlInPreview!),
+        resolvedSrc!),
     };
 
-    final lightboxDisplayUrl = store.tryResolveUrl(node.srcUrl);
+    final lightboxDisplayUrl = (node.loading || node.src is ImagePreviewNodeSrcThumbnail)
+      ? resolvedOriginalSrc
+      : resolvedSrc;
     if (lightboxDisplayUrl == null) {
       // TODO(log)
       return MessageMediaContainer(onTap: null, child: child);
@@ -670,7 +675,9 @@ class MessageImagePreview extends StatelessWidget {
           message: message,
           messageImageContext: context,
           src: lightboxDisplayUrl,
-          thumbnailUrl: resolvedThumbnailUrl,
+          thumbnailUrl: (node.src is ImagePreviewNodeSrcThumbnail && !node.loading)
+            ? resolvedSrc
+            : null,
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },

@@ -625,15 +625,24 @@ void main() {
       });
     });
 
+    Uri thumbnailSrc(ImagePreviewNodeSrc src) {
+      final value = (src as ImagePreviewNodeSrcThumbnail).value;
+      return eg.realmUrl.resolve(value.defaultFormatSrc.toString());
+    }
+
+    Uri otherSrc(ImagePreviewNodeSrc src) {
+      final value = (src as ImagePreviewNodeSrcOther).value;
+      return eg.realmUrl.resolve(value);
+    }
+
     testWidgets('multiple images', (tester) async {
       final example = ContentExample.imagePreviewCluster;
       await prepare(tester, example.html);
       final expectedImages = (example.expectedNodes[1] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
-      check(images.map((i) => i.src.toString()).toList())
-        .deepEquals(expectedImages.map(
-          (n) => eg.realmUrl.resolve(n.thumbnail!.defaultFormatSrc.toString()).toString()));
+      check(images.map((i) => i.src).toList())
+        .deepEquals(expectedImages.map((n) => thumbnailSrc(n.src)));
     });
 
     testWidgets('multiple images no thumbnails', (tester) async {
@@ -642,8 +651,8 @@ void main() {
       final expectedImages = (example.expectedNodes[1] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
-      check(images.map((i) => i.src.toString()).toList())
-        .deepEquals(expectedImages.map((n) => n.srcUrl));
+      check(images.map((i) => i.src).toList())
+        .deepEquals(expectedImages.map((n) => otherSrc(n.src)));
     });
 
     testWidgets('content after image cluster', (tester) async {
@@ -652,8 +661,8 @@ void main() {
       final expectedImages = (example.expectedNodes[1] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
-      check(images.map((i) => i.src.toString()).toList())
-        .deepEquals(expectedImages.map((n) => n.srcUrl));
+      check(images.map((i) => i.src).toList())
+        .deepEquals(expectedImages.map((n) => otherSrc(n.src)));
     });
 
     testWidgets('multiple clusters of images', (tester) async {
@@ -663,8 +672,8 @@ void main() {
         + (example.expectedNodes[4] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
-      check(images.map((i) => i.src.toString()).toList())
-        .deepEquals(expectedImages.map((n) => n.srcUrl));
+      check(images.map((i) => i.src).toList())
+        .deepEquals(expectedImages.map((n) => otherSrc(n.src)));
     });
 
     testWidgets('image as immediate child in implicit paragraph', (tester) async {
@@ -674,8 +683,8 @@ void main() {
         .items[0][0] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
-      check(images.map((i) => i.src.toString()).toList())
-        .deepEquals(expectedImages.map((n) => n.srcUrl));
+      check(images.map((i) => i.src).toList())
+        .deepEquals(expectedImages.map((n) => otherSrc(n.src)));
     });
 
     testWidgets('image cluster in implicit paragraph', (tester) async {
@@ -685,8 +694,8 @@ void main() {
         .items[0][1] as ImagePreviewNodeList).imagePreviews;
       final images = tester.widgetList<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
-      check(images.map((i) => i.src.toString()).toList())
-        .deepEquals(expectedImages.map((n) => n.srcUrl));
+      check(images.map((i) => i.src).toList())
+        .deepEquals(expectedImages.map((n) => otherSrc(n.src)));
     });
   });
 
