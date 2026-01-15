@@ -321,7 +321,7 @@ void main() {
       });
     });
 
-    group('willChangeIfTopicVisible/InStream', () {
+    group('willChangeIfTopicVisible/InChannel', () {
       UserTopicEvent mkEvent(UserTopicVisibilityPolicy policy) =>
         eg.userTopicEvent(stream1.streamId, 'topic', policy);
 
@@ -339,18 +339,18 @@ void main() {
 
       void checkChanges(PerAccountStore store,
           UserTopicVisibilityPolicy newPolicy,
-          UserTopicVisibilityEffect expectedInStream,
+          UserTopicVisibilityEffect expectedInChannel,
           UserTopicVisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
-        check(store.willChangeIfTopicVisibleInStream(event)).equals(expectedInStream);
-        check(store.willChangeIfTopicVisible        (event)).equals(expectedOverall);
+        check(store.willChangeIfTopicVisibleInChannel(event)).equals(expectedInChannel);
+        check(store.willChangeIfTopicVisible         (event)).equals(expectedOverall);
 
         final event2 = mkEventDifferentlyCased(newPolicy);
-        check(store.willChangeIfTopicVisibleInStream(event2)).equals(expectedInStream);
-        check(store.willChangeIfTopicVisible        (event2)).equals(expectedOverall);
+        check(store.willChangeIfTopicVisibleInChannel(event2)).equals(expectedInChannel);
+        check(store.willChangeIfTopicVisible         (event2)).equals(expectedOverall);
       }
 
-      test('stream not muted, policy none -> followed, no change', () async {
+      test('channel not muted, policy none -> followed, no change', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
@@ -358,7 +358,7 @@ void main() {
           UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.none);
       });
 
-      test('stream not muted, policy none -> muted, means muted', () async {
+      test('channel not muted, policy none -> muted, means muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
@@ -366,7 +366,7 @@ void main() {
           UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.muted);
       });
 
-      test('stream muted, policy none -> followed, means none/unmuted', () async {
+      test('channel muted, policy none -> followed, means none/unmuted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
@@ -374,7 +374,7 @@ void main() {
           UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.unmuted);
       });
 
-      test('stream muted, policy none -> muted, means muted/none', () async {
+      test('channel muted, policy none -> muted, means muted/none', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
@@ -387,40 +387,40 @@ void main() {
         UserTopicVisibilityPolicy.none,
         UserTopicVisibilityPolicy.unmuted,
       ];
-      for (final streamMuted in [null, false, true]) {
+      for (final channelMuted in [null, false, true]) {
         for (final oldPolicy in policies) {
           for (final newPolicy in policies) {
-            final streamDesc = switch (streamMuted) {
-              false => "stream not muted",
-              true => "stream muted",
-              null => "stream unsubscribed",
+            final channelDesc = switch (channelMuted) {
+              false => "channel not muted",
+              true => "channel muted",
+              null => "channel unsubscribed",
             };
-            test('$streamDesc, topic ${oldPolicy.name} -> ${newPolicy.name}', () async {
+            test('$channelDesc, topic ${oldPolicy.name} -> ${newPolicy.name}', () async {
               final store = eg.store();
               await store.addStream(stream1);
-              if (streamMuted != null) {
+              if (channelMuted != null) {
                 await store.addSubscription(
-                  eg.subscription(stream1, isMuted: streamMuted));
+                  eg.subscription(stream1, isMuted: channelMuted));
               }
               await store.handleEvent(mkEvent(oldPolicy));
-              final oldVisibleInStream = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
-              final oldVisible         = store.isTopicVisible(stream1.streamId, eg.t('topic'));
+              final oldVisibleInChannel = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
+              final oldVisible          = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               final event = mkEvent(newPolicy);
-              final willChangeInStream = store.willChangeIfTopicVisibleInStream(event);
-              final willChange         = store.willChangeIfTopicVisible(event);
+              final willChangeInChannel = store.willChangeIfTopicVisibleInChannel(event);
+              final willChange          = store.willChangeIfTopicVisible(event);
 
               await store.handleEvent(event);
-              final newVisibleInStream = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
-              final newVisible         = store.isTopicVisible(stream1.streamId, eg.t('topic'));
+              final newVisibleInChannel = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
+              final newVisible          = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               UserTopicVisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
                 if (newVisible == oldVisible) return UserTopicVisibilityEffect.none;
                 if (newVisible) return UserTopicVisibilityEffect.unmuted;
                 return UserTopicVisibilityEffect.muted;
               }
-              check(willChangeInStream)
-                .equals(fromOldNew(oldVisibleInStream, newVisibleInStream));
+              check(willChangeInChannel)
+                .equals(fromOldNew(oldVisibleInChannel, newVisibleInChannel));
               check(willChange)
                 .equals(fromOldNew(oldVisible,         newVisible));
             });
