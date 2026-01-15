@@ -636,15 +636,25 @@ class MessageImagePreview extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
-    final resolvedThumbnailUrl = node.thumbnail?.resolve(context,
-      width: MessageMediaContainer.width,
-      height: MessageMediaContainer.height,
-      animationMode: ImageAnimationMode.animateConditionally);
+    final Uri? resolvedSrc;
+    final Uri? resolvedOriginalSrc;
+    if (node.loading) {
+      resolvedSrc = null;
+      resolvedOriginalSrc = store.tryResolveUrl(node.srcUrl);
+    } else if (node.thumbnail != null) {
+      resolvedSrc = node.thumbnail!.resolve(context,
+        width: MessageMediaContainer.width,
+        height: MessageMediaContainer.height,
+        animationMode: ImageAnimationMode.animateConditionally);
+      resolvedOriginalSrc = store.tryResolveUrl(node.srcUrl);
+    } else {
+      resolvedSrc = store.tryResolveUrl(node.srcUrl);
+      resolvedOriginalSrc = null;
+    }
 
-    final urlInPreview = node.thumbnail != null
-      ? resolvedThumbnailUrl
-      : store.tryResolveUrl(node.srcUrl);
-    final child = switch ((node.loading, urlInPreview)) {
+    final child = switch ((node.loading, resolvedSrc)) {
+      // Use our own progress indicator.
+      // (resolvedSrc will actually be null when node.loading is true.)
       (true, _) => const CupertinoActivityIndicator(),
 
       // TODO(#265) use an error-case placeholder
@@ -654,10 +664,12 @@ class MessageImagePreview extends StatelessWidget {
       (false, Uri()) => RealmContentNetworkImage(
         // TODO(#265) use an error-case placeholder for `errorBuilder`
         filterQuality: FilterQuality.medium,
-        urlInPreview!),
+        resolvedSrc!),
     };
 
-    final lightboxDisplayUrl = store.tryResolveUrl(node.srcUrl);
+    final lightboxDisplayUrl = (node.loading || node.thumbnail != null)
+      ? resolvedOriginalSrc
+      : resolvedSrc;
     if (lightboxDisplayUrl == null) {
       // TODO(log)
       return MessageMediaContainer(onTap: null, child: child);
@@ -670,7 +682,9 @@ class MessageImagePreview extends StatelessWidget {
           message: message,
           messageImageContext: context,
           src: lightboxDisplayUrl,
-          thumbnailUrl: resolvedThumbnailUrl,
+          thumbnailUrl: node.thumbnail != null
+            ? resolvedSrc
+            : null,
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
