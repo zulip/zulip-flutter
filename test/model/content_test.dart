@@ -365,8 +365,9 @@ class ContentExample {
             nodes: [TextNode('image')]),
         ]),
         ImagePreviewNodeList([
-          ImagePreviewNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3',
-            thumbnail: null, loading: false,
+          ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3',
+            src: ImagePreviewNodeSrcOther('https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3'),
+            loading: false,
             originalWidth: null, originalHeight: null),
         ]),
       ],
@@ -700,8 +701,8 @@ class ContentExample {
     [
       ImagePreviewNodeList([
         ImagePreviewNode(
-          srcUrl: '/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067',
-          thumbnail: null,
+          originalSrc: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg',
+          src: ImagePreviewNodeSrcOther('/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067'),
           loading: false,
           originalWidth: null,
           originalHeight: null),
@@ -718,8 +719,8 @@ class ContentExample {
       ]),
       ImagePreviewNodeList([
         ImagePreviewNode(
-          srcUrl: '/external_content/58b0ef9a06d7bb24faec2b11df2f57f476e6f6bb/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f7468756d622f372f37312f5a616164706c75697a656e5f76616e5f65656e5f436c656d617469735f746578656e7369735f2532375072696e636573735f4469616e612532372e5f31382d30372d323032335f2532386163746d2e2532395f30322e6a70672f3132383070782d5a616164706c75697a656e5f76616e5f65656e5f436c656d617469735f746578656e7369735f2532375072696e636573735f4469616e612532372e5f31382d30372d323032335f2532386163746d2e2532395f30322e6a7067',
-          thumbnail: null,
+          originalSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg/1280px-Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg',
+          src: ImagePreviewNodeSrcOther('/external_content/58b0ef9a06d7bb24faec2b11df2f57f476e6f6bb/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f7468756d622f372f37312f5a616164706c75697a656e5f76616e5f65656e5f436c656d617469735f746578656e7369735f2532375072696e636573735f4469616e612532372e5f31382d30372d323032335f2532386163746d2e2532395f30322e6a70672f3132383070782d5a616164706c75697a656e5f76616e5f65656e5f436c656d617469735f746578656e7369735f2532375072696e636573735f4469616e612532372e5f31382d30372d323032335f2532386163746d2e2532395f30322e6a7067'),
           loading: false,
           originalWidth: null,
           originalHeight: null),
@@ -734,9 +735,9 @@ class ContentExample {
       '<a href="/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg" title="image.jpg">'
         '<img data-original-dimensions="6000x4000" src="/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp"></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg',
-        thumbnail: ImageThumbnailLocator(animated: false,
-          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp')),
+      ImagePreviewNode(originalSrc: '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg',
+        src: ImagePreviewNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp'))),
         loading: false,
         originalWidth: 6000,
         originalHeight: 4000),
@@ -751,9 +752,9 @@ class ContentExample {
       '<a href="/user_uploads/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif" title="2c8d985d.gif">'
         '<img data-animated="true" data-original-content-type="image/gif" data-original-dimensions="64x64" src="/user_uploads/thumbnail/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif/840x560-anim.webp"></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: '/user_uploads/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif',
-        thumbnail: ImageThumbnailLocator(animated: true,
-          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif/840x560-anim.webp')),
+      ImagePreviewNode(originalSrc: '/user_uploads/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif',
+        src: ImagePreviewNodeSrcThumbnail(ImageThumbnailLocator(animated: true,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/9f/tZ9c5ZmsI_cSDZ6ZdJmW8pt4/2c8d985d.gif/840x560-anim.webp'))),
         loading: false,
         originalWidth: 64,
         originalHeight: 64),
@@ -764,13 +765,17 @@ class ContentExample {
     'single image preview no dimensions',
     // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1893590
     "[image.jpg](/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg)",
+    // The `data-original-dimensions` attribute is absent on the `img`.
+    // From the API changelog, that should mean this message was
+    // processed before FL 276:
+    //   https://zulip.com/api/changelog#changes-in-zulip-90
     '<div class="message_inline_image">'
       '<a href="/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg" title="image.jpg">'
         '<img src="/user_uploads/thumbnail/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg/840x560.webp"/></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg',
-        thumbnail: ImageThumbnailLocator(animated: false,
-          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg/840x560.webp')),
+      ImagePreviewNode(originalSrc: '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg',
+        src: ImagePreviewNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg/840x560.webp'))),
         loading: false,
         originalWidth: null,
         originalHeight: null),
@@ -779,27 +784,58 @@ class ContentExample {
 
   static const imagePreviewSingleNoThumbnail = ContentExample(
     'single image preview no thumbnail',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Chris/near/2351443
     "https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3",
+    // Servers as of 2026-01 still produce this (see linked message).
+    // Old messages before the thumbnailing feature probably match this form,
+    // but I haven't gone back to check.
     '<div class="message_inline_image">'
       '<a href="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3">'
         '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3"></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3',
+        src: ImagePreviewNodeSrcOther('https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
   ]);
 
   static const imagePreviewSingleLoadingPlaceholder = ContentExample(
     'single image preview loading placeholder',
-    // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1893590
+    // HTML constructed from the API doc in 2026-01: https://zulip.com/api/message-formatting
+    // because I didn't manage to produce real content in this form.
+    // (I uploaded an image, sent the message,
+    // and the message in the message event was already in the non-loading form.)
+    null,
+    '<div class="message_inline_image">'
+      '<a href="/user_uploads/path/to/example.png" title="example.png">'
+        '<img class="image-loading-placeholder" '
+          'data-original-dimensions="1920x1080" '
+          'data-original-content-type="image/png" '
+          'src="/static/images/loading/loader-black.svg"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(originalSrc: '/user_uploads/path/to/example.png',
+        src: ImagePreviewNodeSrcOther('/static/images/loading/loader-black.svg'),
+        loading: true,
+        originalWidth: 1920, originalHeight: 1080),
+    ]),
+  ]);
+
+  static const imagePreviewSingleLoadingPlaceholderNoDimensions = ContentExample(
+    'single image preview loading placeholder, no dimensions',
     "[image.jpg](/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg)",
+    // The `data-original-dimensions` attribute is absent on the `img`.
+    // From the API changelog, that should mean this message was
+    // processed before FL 278:
+    //   https://zulip.com/api/changelog#changes-in-zulip-92
+    // https://chat.zulip.org/#narrow/stream/7-test-here/topic/Thumbnails/near/1893590
     '<div class="message_inline_image">'
       '<a href="/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg" title="image.jpg">'
         '<img class="image-loading-placeholder" src="/static/images/loading/loader-black.svg"></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg',
-        thumbnail: null, loading: true,
+      ImagePreviewNode(originalSrc: '/user_uploads/2/c3/wb9FXk8Ej6qIc28aWKcqUogD/image.jpg',
+        src: ImagePreviewNodeSrcOther('/static/images/loading/loader-black.svg'),
+        loading: true,
         originalWidth: null, originalHeight: null),
     ]),
   ]);
@@ -812,8 +848,9 @@ class ContentExample {
       '<a href="https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg">'
       '<img src="/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067"></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: '/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg',
+        src: ImagePreviewNodeSrcOther('/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
   ]);
@@ -827,8 +864,9 @@ class ContentExample {
       '<a href="https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg">'
       '<img src="https://uploads.zulipusercontent.net/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067"></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: 'https://uploads.zulipusercontent.net/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg',
+        src: ImagePreviewNodeSrcOther('https://uploads.zulipusercontent.net/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
   ]);
@@ -842,21 +880,65 @@ class ContentExample {
       '<a href="https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg">'
       '<img src="https://custom.camo-uri.example/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067"></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: 'https://custom.camo-uri.example/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Verregende_bloem_van_een_Helenium_%27El_Dorado%27._22-07-2023._%28d.j.b%29.jpg',
+        src: ImagePreviewNodeSrcOther('https://custom.camo-uri.example/99742b0f992be15283c428dd42f3b9f5db138d69/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
   ]);
 
-  static const imagePreviewInvalidUrl = ContentExample(
-    'single image preview with invalid URL',
+  static const imagePreviewInvalidSrc = ContentExample(
+    'single image preview with invalid src (but valid href)',
+    null, // hypothetical, to test for a risk of crashing
+    '<div class="message_inline_image">'
+      '<a href="/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg">'
+        '<img src="::not a URL::"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(originalSrc: '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg',
+        src: ImagePreviewNodeSrcOther('::not a URL::'), loading: false,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
+  static const imagePreviewInvalidHref1 = ContentExample(
+    'single image preview with invalid href, but valid external src',
+    null, // hypothetical, to test for a risk of crashing
+    '<div class="message_inline_image">'
+      '<a href="::not a URL::">'
+        '<img src="/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(originalSrc: '::not a URL::',
+        src: ImagePreviewNodeSrcOther('/external_content/de28eb3abf4b7786de4545023dc42d434a2ea0c2/68747470733a2f2f75706c6f61642e77696b696d656469612e6f72672f77696b6970656469612f636f6d6d6f6e732f372f37382f566572726567656e64655f626c6f656d5f76616e5f65656e5f48656c656e69756d5f253237456c5f446f7261646f2532372e5f32322d30372d323032332e5f253238642e6a2e622532392e6a7067'),
+        loading: false,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
+  static final imagePreviewInvalidHref2 = ContentExample(
+    'single image preview with invalid href, but valid thumbnail src',
+    null, // hypothetical, to test for a risk of crashing
+    '<div class="message_inline_image">'
+      '<a href="::not a URL::">'
+        '<img src="/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp"></a></div>', [
+    ImagePreviewNodeList([
+      ImagePreviewNode(originalSrc: '::not a URL::',
+        src: ImagePreviewNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp'))),
+        loading: false,
+        originalWidth: null, originalHeight: null),
+    ]),
+  ]);
+
+  static const imagePreviewInvalidSrcAndHref = ContentExample(
+    'single image preview with invalid src and href',
     null, // hypothetical, to test for a risk of crashing
     '<div class="message_inline_image">'
       '<a href="::not a URL::">'
         '<img src="::not a URL::"></a></div>', [
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: '::not a URL::',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: '::not a URL::',
+        src: ImagePreviewNodeSrcOther('::not a URL::'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
   ]);
@@ -881,15 +963,15 @@ class ContentExample {
       LinkNode(url: '/user_uploads/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg', nodes: [TextNode('image2.jpg')]),
     ]),
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: '/user_uploads/2/9b/WkDt2Qsy79iwf3sM9EMp9fYL/image.jpg',
-        thumbnail: ImageThumbnailLocator(animated: false,
-          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/9b/WkDt2Qsy79iwf3sM9EMp9fYL/image.jpg/840x560.webp')),
+      ImagePreviewNode(originalSrc: '/user_uploads/2/9b/WkDt2Qsy79iwf3sM9EMp9fYL/image.jpg',
+        src: ImagePreviewNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/9b/WkDt2Qsy79iwf3sM9EMp9fYL/image.jpg/840x560.webp'))),
         loading: false,
         originalWidth: null,
         originalHeight: null),
-      ImagePreviewNode(srcUrl: '/user_uploads/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg',
-        thumbnail: ImageThumbnailLocator(animated: false,
-          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg/840x560.webp')),
+      ImagePreviewNode(originalSrc: '/user_uploads/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg',
+        src: ImagePreviewNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/70/pVeI52TwFUEoFE2qT_u9AMCO/image2.jpg/840x560.webp'))),
         loading: false,
         originalWidth: null,
         originalHeight: null),
@@ -915,11 +997,13 @@ class ContentExample {
       LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=4', nodes: [TextNode('https://chat.zulip.org/user_avatars/2/realm/icon.png?version=4')]),
     ]),
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: 'https://uploads.zulipusercontent.net/f535ba07f95b99a83aa48e44fd62bbb6c6cf6615/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d33',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=3',
+        src: ImagePreviewNodeSrcOther('https://uploads.zulipusercontent.net/f535ba07f95b99a83aa48e44fd62bbb6c6cf6615/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d33'),
+        loading: false,
         originalWidth: null, originalHeight: null),
-      ImagePreviewNode(srcUrl: 'https://uploads.zulipusercontent.net/8f63bc2632a0e41be3f457d86c077e61b4a03e7e/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d34',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=4',
+        src: ImagePreviewNodeSrcOther('https://uploads.zulipusercontent.net/8f63bc2632a0e41be3f457d86c077e61b4a03e7e/68747470733a2f2f636861742e7a756c69702e6f72672f757365725f617661746172732f322f7265616c6d2f69636f6e2e706e673f76657273696f6e3d34'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
   ]);
@@ -944,11 +1028,13 @@ class ContentExample {
       LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2', nodes: [TextNode('icon.png')]),
     ]),
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
+        src: ImagePreviewNodeSrcOther('https://chat.zulip.org/user_avatars/2/realm/icon.png'),
+        loading: false,
         originalWidth: null, originalHeight: null),
-      ImagePreviewNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2',
+        src: ImagePreviewNodeSrcOther('https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
     ParagraphNode(links: null, nodes: [
@@ -984,11 +1070,13 @@ class ContentExample {
       LinkNode(url: 'https://en.wikipedia.org/static/images/icons/wikipedia.png?v=1', nodes: [TextNode('https://en.wikipedia.org/static/images/icons/wikipedia.png?v=1')]),
     ]),
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: 'https://uploads.zulipusercontent.net/34b2695ca83af76204b0b25a8f2019ee35ec38fa/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e67',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://en.wikipedia.org/static/images/icons/wikipedia.png',
+        src: ImagePreviewNodeSrcOther('https://uploads.zulipusercontent.net/34b2695ca83af76204b0b25a8f2019ee35ec38fa/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e67'),
+        loading: false,
         originalWidth: null, originalHeight: null),
-      ImagePreviewNode(srcUrl: 'https://uploads.zulipusercontent.net/d200fb112aaccbff9df767373a201fa59601f362/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d31',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://en.wikipedia.org/static/images/icons/wikipedia.png?v=1',
+        src: ImagePreviewNodeSrcOther('https://uploads.zulipusercontent.net/d200fb112aaccbff9df767373a201fa59601f362/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d31'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
     ParagraphNode(links: null, nodes: [
@@ -1001,11 +1089,13 @@ class ContentExample {
       LinkNode(url: 'https://en.wikipedia.org/static/images/icons/wikipedia.png?v=3', nodes: [TextNode('https://en.wikipedia.org/static/images/icons/wikipedia.png?v=3')]),
     ]),
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: 'https://uploads.zulipusercontent.net/c4db87e81348dac94eacaa966b46d968b34029cc/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d32',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://en.wikipedia.org/static/images/icons/wikipedia.png?v=2',
+        src: ImagePreviewNodeSrcOther('https://uploads.zulipusercontent.net/c4db87e81348dac94eacaa966b46d968b34029cc/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d32'),
+        loading: false,
         originalWidth: null, originalHeight: null),
-      ImagePreviewNode(srcUrl: 'https://uploads.zulipusercontent.net/51b70540cf6a5b3c8a0b919c893b8abddd447e88/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d33',
-        thumbnail: null, loading: false,
+      ImagePreviewNode(originalSrc: 'https://en.wikipedia.org/static/images/icons/wikipedia.png?v=3',
+        src: ImagePreviewNodeSrcOther('https://uploads.zulipusercontent.net/51b70540cf6a5b3c8a0b919c893b8abddd447e88/68747470733a2f2f656e2e77696b6970656469612e6f72672f7374617469632f696d616765732f69636f6e732f77696b6970656469612e706e673f763d33'),
+        loading: false,
         originalWidth: null, originalHeight: null),
     ]),
   ]);
@@ -1020,8 +1110,9 @@ class ContentExample {
             '<img src="https://chat.zulip.org/user_avatars/2/realm/icon.png"></a></div></li>\n</ul>', [
     UnorderedListNode([[
       ImagePreviewNodeList([
-        ImagePreviewNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
-          thumbnail: null, loading: false,
+        ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
+          src: ImagePreviewNodeSrcOther('https://chat.zulip.org/user_avatars/2/realm/icon.png'),
+          loading: false,
           originalWidth: null, originalHeight: null),
       ]),
     ]]),
@@ -1047,11 +1138,13 @@ class ContentExample {
         LinkNode(url: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2', nodes: [TextNode('icon.png')]),
       ]),
       ImagePreviewNodeList([
-        ImagePreviewNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
-          thumbnail: null, loading: false,
+        ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
+          src: ImagePreviewNodeSrcOther('https://chat.zulip.org/user_avatars/2/realm/icon.png'),
+          loading: false,
           originalWidth: null, originalHeight: null),
-        ImagePreviewNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2',
-          thumbnail: null, loading: false,
+        ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2',
+          src: ImagePreviewNodeSrcOther('https://chat.zulip.org/user_avatars/2/realm/icon.png?version=2'),
+          loading: false,
           originalWidth: null, originalHeight: null),
       ]),
     ]]),
@@ -1075,8 +1168,9 @@ class ContentExample {
         TextNode(' '),
       ]),
       const ImagePreviewNodeList([
-        ImagePreviewNode(srcUrl: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
-          thumbnail: null, loading: false,
+        ImagePreviewNode(originalSrc: 'https://chat.zulip.org/user_avatars/2/realm/icon.png',
+          src: ImagePreviewNodeSrcOther('https://chat.zulip.org/user_avatars/2/realm/icon.png'),
+          loading: false,
           originalWidth: null, originalHeight: null),
       ]),
       blockUnimplemented('more text'),
@@ -1441,9 +1535,9 @@ class ContentExample {
       ], isHeader: false),
     ]),
     ImagePreviewNodeList([
-      ImagePreviewNode(srcUrl: '/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg',
-        thumbnail: ImageThumbnailLocator(animated: false,
-          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg/840x560.webp')),
+      ImagePreviewNode(originalSrc: '/user_uploads/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg',
+        src: ImagePreviewNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/6f/KS3vNT9c2tbMfMBkSbQF_Jlj/image2.jpg/840x560.webp'))),
         loading: false,
         originalWidth: 2760,
         originalHeight: 4912),
@@ -1874,9 +1968,9 @@ void main() async {
         '<img data-original-dimensions="6000x4000" src="/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp?x=y#abc"></a></div>',
     [
       ImagePreviewNodeList([
-        ImagePreviewNode(srcUrl: '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg',
-          thumbnail: ImageThumbnailLocator(animated: false,
-            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp?x=y#abc')),
+        ImagePreviewNode(originalSrc: '/user_uploads/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg',
+          src: ImagePreviewNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/ce/nvoNL2LaZOciwGZ-FYagddtK/image.jpg/840x560.webp?x=y#abc'))),
           loading: false,
           originalWidth: 6000,
           originalHeight: 4000),
@@ -1887,10 +1981,14 @@ void main() async {
   testParseExample(ContentExample.imagePreviewSingleNoDimensions);
   testParseExample(ContentExample.imagePreviewSingleNoThumbnail);
   testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholder);
+  testParseExample(ContentExample.imagePreviewSingleLoadingPlaceholderNoDimensions);
   testParseExample(ContentExample.imagePreviewSingleExternal1);
   testParseExample(ContentExample.imagePreviewSingleExternal2);
   testParseExample(ContentExample.imagePreviewSingleExternal3);
-  testParseExample(ContentExample.imagePreviewInvalidUrl);
+  testParseExample(ContentExample.imagePreviewInvalidSrc);
+  testParseExample(ContentExample.imagePreviewInvalidHref1);
+  testParseExample(ContentExample.imagePreviewInvalidHref2);
+  testParseExample(ContentExample.imagePreviewInvalidSrcAndHref);
   testParseExample(ContentExample.imagePreviewCluster);
   testParseExample(ContentExample.imagePreviewClusterNoThumbnails);
   testParseExample(ContentExample.imagePreviewClusterThenContent);

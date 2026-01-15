@@ -633,39 +633,59 @@ class MessageImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
-    // TODO image hover animation
-    final srcUrl = node.srcUrl;
-    final thumbnailLocator = node.thumbnail;
-    final store = PerAccountStoreWidget.of(context);
-    final resolvedSrcUrl = store.tryResolveUrl(srcUrl);
-    final resolvedThumbnailUrl = thumbnailLocator?.resolve(context,
-      width: MessageMediaContainer.width,
-      height: MessageMediaContainer.height,
-      animationMode: ImageAnimationMode.animateConditionally);
+    final resolvedSrc = switch (node.src) {
+      ImagePreviewNodeSrcThumbnail(:final value) => value.resolve(context,
+        width: MessageMediaContainer.width,
+        height: MessageMediaContainer.height,
+        animationMode: .animateConditionally),
+      ImagePreviewNodeSrcOther(:final value) => store.tryResolveUrl(value),
+    };
+    final resolvedOriginalSrc = store.tryResolveUrl(node.originalSrc);
 
-    // TODO if src fails to parse, show an explicit "broken image"
+    final child = switch ((node.loading, resolvedSrc)) {
+      // resolvedSrc would be a "spinner" image URL.
+      // Use our own progress indicator instead.
+      (true, _) => const CupertinoActivityIndicator(),
+
+      // TODO(#265) use an error-case placeholder
+      // TODO(log)
+      (false, null) => null,
+
+      (false, Uri()) => RealmContentNetworkImage(
+        // TODO(#265) use an error-case placeholder for `errorBuilder`
+        filterQuality: FilterQuality.medium,
+        resolvedSrc!),
+    };
+
+    final lightboxDisplayUrl = (node.loading || node.src is ImagePreviewNodeSrcThumbnail)
+      ? resolvedOriginalSrc
+      : resolvedSrc;
+    if (lightboxDisplayUrl == null) {
+      // TODO(log)
+      return MessageMediaContainer(onTap: null, child: child);
+    }
 
     return MessageMediaContainer(
-      onTap: resolvedSrcUrl == null ? null : () { // TODO(log)
+      onTap: () {
         Navigator.of(context).push(getImageLightboxRoute(
           context: context,
           message: message,
           messageImageContext: context,
-          src: resolvedSrcUrl,
-          thumbnailUrl: resolvedThumbnailUrl,
+          src: lightboxDisplayUrl,
+          thumbnailUrl: node.src is ImagePreviewNodeSrcThumbnail
+            ? resolvedSrc
+            : null,
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
-      child: node.loading
-        ? const CupertinoActivityIndicator()
-        : resolvedSrcUrl == null ? null : LightboxHero(
-            messageImageContext: context,
-            src: resolvedSrcUrl,
-            child: RealmContentNetworkImage(
-              resolvedThumbnailUrl ?? resolvedSrcUrl,
-              filterQuality: FilterQuality.medium)));
+      child: child == null ? null :
+        LightboxHero(
+          messageImageContext: context,
+          src: lightboxDisplayUrl,
+          child: child));
   }
 }
 
