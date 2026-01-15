@@ -127,6 +127,10 @@ mixin _MessageSequence {
   /// conceptually belongs in this message list.
   /// That information is expressed in [fetched], [haveOldest], [haveNewest].
   ///
+  /// This also may or may not represent all the message history that
+  /// conceptually belongs in this narrow because some messages might be
+  /// muted in one way or another and they may not appear in the message list.
+  ///
   /// See also [middleMessage], an index which divides this list
   /// into a top slice and a bottom slice.
   ///
@@ -140,6 +144,32 @@ mixin _MessageSequence {
   ///
   /// The corresponding item index is [middleItem].
   int middleMessage = 0;
+
+  /// The ID of the oldest known message so far in this narrow.
+  ///
+  /// This is used as the anchor for fetching the next batch of older messages
+  /// and will be `null` if no messages of this narrow have been fetched yet.
+  /// A non-null value for this doesn't always mean [haveOldest] is `true`.
+  ///
+  /// The related message may not appear in [messages] because it
+  /// is muted in one way or another. Also, the related message may not stay
+  /// in the narrow for reasons such as message moves or deletions,
+  /// but that's fine for what this is used for.
+  int? get oldMessageId => _oldMessageId;
+  int? _oldMessageId;
+
+  /// The ID of the newest known message so far in this narrow.
+  ///
+  /// This is used as the anchor for fetching the next batch of newer messages
+  /// and will be `null` if no messages of this narrow have been fetched yet.
+  /// A non-null value for this doesn't always mean [haveNewest] is `true`.
+  ///
+  /// The related message may not appear in [messages] because it
+  /// is muted in one way or another. Also, the related message may not stay
+  /// in the narrow for reasons such as message moves or deletions,
+  /// but that's fine for what this is used for.
+  int? get newMessageId => _newMessageId;
+  int? _newMessageId;
 
   /// Whether [messages] and [items] represent the results of a fetch.
   ///
@@ -405,6 +435,8 @@ mixin _MessageSequence {
     generation += 1;
     messages.clear();
     middleMessage = 0;
+    _oldMessageId = null;
+    _newMessageId = null;
     outboxMessages.clear();
     _haveOldest = false;
     _haveNewest = false;
@@ -593,7 +625,7 @@ bool _sameDay(DateTime date1, DateTime date2) {
 ///  * Add listeners with [addListener].
 ///  * Fetch messages with [fetchInitial].  When the fetch completes, this object
 ///    will notify its listeners (as it will any other time the data changes.)
-///  * Fetch more messages as needed with [fetchOlder].
+///  * Fetch more messages as needed with [fetchOlder] and [fetchNewer].
 ///  * On reassemble, call [reassemble].
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
@@ -811,9 +843,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   /// Fetch messages, starting from scratch.
+  ///
+  /// This makes sure there is at least one non-muted message fetched; if any.
+  /// It may do so my repeatedly calling [fetchOlder] and [fetchNewer].
   Future<void> fetchInitial() async {
     assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
+    assert(oldMessageId == null && newMessageId == null);
 
     if (narrow case KeywordSearchNarrow(keyword: '')) {
       // The server would reject an empty keyword search; skip the request.
@@ -836,6 +872,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       allowEmptyTopicName: true,
     );
     if (this.generation > generation) return;
+
+    _oldMessageId = result.messages.firstOrNull?.id;
+    _newMessageId = result.messages.lastOrNull?.id;
 
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
 
@@ -862,6 +901,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
     if (haveNewest) {
       _syncOutboxMessagesFromStore();
+    }
+
+    while (messages.isEmpty && !(haveOldest && haveNewest)) {
+      await fetchOlder(partOfInitialFetch: true);
+      if (messages.isNotEmpty) break;
+      await fetchNewer(partOfInitialFetch: true);
     }
 
     _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchInitial);
@@ -907,16 +952,18 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// then this method does nothing and immediately returns.
   /// That makes this method suitable to call frequently, e.g. every frame,
   /// whenever it looks likely to be useful to have more messages.
-  Future<void> fetchOlder() async {
+  Future<void> fetchOlder({bool partOfInitialFetch = false}) async {
     if (haveOldest) return;
     if (busyFetchingMore) return;
-    assert(fetched);
-    assert(messages.isNotEmpty);
+    assert(partOfInitialFetch || fetched);
+    assert(oldMessageId != null);
     await _fetchMore(
-      anchor: NumericAnchor(messages[0].id),
+      anchor: NumericAnchor(oldMessageId!),
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
+      partOfInitialFetch: partOfInitialFetch,
       processResult: (result) {
+        _oldMessageId = result.messages.firstOrNull?.id ?? oldMessageId;
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -937,16 +984,18 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// then this method does nothing and immediately returns.
   /// That makes this method suitable to call frequently, e.g. every frame,
   /// whenever it looks likely to be useful to have more messages.
-  Future<void> fetchNewer() async {
+  Future<void> fetchNewer({bool partOfInitialFetch = false}) async {
     if (haveNewest) return;
     if (busyFetchingMore) return;
-    assert(fetched);
-    assert(messages.isNotEmpty);
+    assert(partOfInitialFetch || fetched);
+    assert(newMessageId != null);
     await _fetchMore(
-      anchor: NumericAnchor(messages.last.id),
+      anchor: NumericAnchor(newMessageId!),
       numBefore: 0,
       numAfter: kMessageListFetchBatchSize,
+      partOfInitialFetch: partOfInitialFetch,
       processResult: (result) {
+        _newMessageId = result.messages.lastOrNull?.id ?? newMessageId;
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -967,12 +1016,15 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     required Anchor anchor,
     required int numBefore,
     required int numAfter,
+    required bool partOfInitialFetch,
     required void Function(GetMessagesResult) processResult,
   }) async {
     assert(narrow is! TopicNarrow
       // We only intend to send "with" in [fetchInitial]; see there.
       || (narrow as TopicNarrow).with_ == null);
-    _setStatus(FetchingStatus.fetchingMore, was: FetchingStatus.idle);
+    if (!partOfInitialFetch) {
+      _setStatus(FetchingStatus.fetchingMore, was: FetchingStatus.idle);
+    }
     final generation = this.generation;
     bool hasFetchError = false;
     try {
@@ -994,7 +1046,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
       processResult(result);
     } finally {
-      if (this.generation == generation) {
+      if (this.generation == generation && !partOfInitialFetch) {
         if (hasFetchError) {
           _setStatus(FetchingStatus.backoff, was: FetchingStatus.fetchingMore);
           unawaited((_fetchBackoffMachine ??= BackoffMachine())

@@ -874,8 +874,6 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     model.fetchInitial();
   }
 
-  bool _prevFetched = false;
-
   void _modelChanged() {
     // When you're scrolling quickly, our mark-as-read requests include the
     // messages *between* _messagesRecentlyInViewport and the messages currently
@@ -902,14 +900,25 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // This method was called because that just changed.
     });
 
-    if (!_prevFetched && model.fetched && model.messages.isEmpty) {
+    if (scrollController.hasClients && model.fetched) {
+      // This is needed here in order to fetch more messages if the previous
+      // batch is all muted, or its visible (non-muted) messages combined with
+      // the previous messages are less than a screenful. In such cases, there
+      // will be no change in the scroll metrics to fire a notification that
+      // will fetch more messages.
+      // Calling this method in here (inside `_modelChanged`) causes an
+      // apparently inevitable double-fetch glitch which is described inside
+      // the method itself.
+      _fetchMoreIfNeeded(scrollController.position);
+    }
+
+    if (model.messages.isEmpty && model.haveOldest && model.haveNewest) {
       // If the fetch came up empty, there's nothing to read,
       // so opening the keyboard won't be bothersome and could be helpful.
       // It's definitely helpful if we got here from the new-DM page.
       MessageListPage.ancestorOf(context)
         .composeBoxState?.controller.requestFocusIfUnfocused();
     }
-    _prevFetched = model.fetched;
   }
 
   /// Find the range of message IDs on screen, as a (first, last) tuple,
@@ -1032,16 +1041,24 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       _scrollToBottomVisible.value = true;
     }
 
+    _fetchMoreIfNeeded(scrollMetrics);
+  }
+
+  void _fetchMoreIfNeeded(ScrollMetrics scrollMetrics) {
     if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
-      // TODO: This ends up firing a second time shortly after we fetch a batch.
-      //   The result is that each time we decide to fetch a batch, we end up
-      //   fetching two batches in quick succession.  This is basically harmless
-      //   but makes things a bit more complicated to reason about.
-      //   The cause seems to be that this gets called again with maxScrollExtent
-      //   still not yet updated to account for the newly-added messages.
+      // This ends up firing a second time shortly after we fetch a batch.
+      // The result is that each time we decide to fetch a batch, we end up
+      // fetching two batches in quick succession. This is basically harmless
+      // but makes things a bit more complicated to reason about.
+      // The cause is that this gets called again with minScrollExtent
+      // still not yet updated to account for the newly-added messages.
+      // This relates to `_modelChanged` (and in turn the current method) being
+      // called right away as a listener of the model, before the next frame
+      // being drawn with the newly-added messages, updating minScrollExtent.
       model.fetchOlder();
     }
     if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
+      // The comments above about the double-fetch glitch apply here too.
       model.fetchNewer();
     }
   }
