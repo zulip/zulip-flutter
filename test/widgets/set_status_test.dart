@@ -415,12 +415,11 @@ void main() {
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/users/me/status')
-          ..bodyFields.deepEquals({
-            'status_text': 'Busy',
-            'emoji_name': 'working_on_it',
-            'emoji_code': '1f6e0',
-            'reaction_type': 'unicode_emoji',
-          });
+          ..bodyFields['status_text'].equals('Busy')
+          ..bodyFields['emoji_name'].equals('working_on_it')
+          ..bodyFields['emoji_code'].equals('1f6e0')
+          ..bodyFields['reaction_type'].equals('unicode_emoji')
+          ..bodyFields.containsKey('scheduled_end_time');
         await testNavObserver.pumpPastTransition(tester);
         check(find.byType(ProfilePage)).findsOne();
       });
@@ -441,12 +440,11 @@ void main() {
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/users/me/status')
-          ..bodyFields.deepEquals({
-            'status_text': 'Busy',
-            'emoji_name': 'working_on_it',
-            'emoji_code': '1f6e0',
-            'reaction_type': 'unicode_emoji',
-          });
+          ..bodyFields['status_text'].equals('Busy')
+          ..bodyFields['emoji_name'].equals('working_on_it')
+          ..bodyFields['emoji_code'].equals('1f6e0')
+          ..bodyFields['reaction_type'].equals('unicode_emoji')
+          ..bodyFields.containsKey('scheduled_end_time');
         await testNavObserver.pumpPastTransition(tester);
         check(find.byType(ProfilePage)).findsOne();
 

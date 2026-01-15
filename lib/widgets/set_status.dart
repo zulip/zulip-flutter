@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
 import '../api/route/users.dart';
@@ -17,6 +18,17 @@ import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'user.dart';
+
+/// Options for automatically clearing status.
+enum StatusExpirationOption {
+  never,
+  in30Minutes,
+  in1Hour,
+  todayAt5PM,
+  tomorrow,
+  custom,
+}
+
 
 class SetStatusPage extends StatefulWidget {
   const SetStatusPage({super.key, required this.oldStatus});
@@ -38,6 +50,15 @@ class SetStatusPage extends StatefulWidget {
 class _SetStatusPageState extends State<SetStatusPage> {
   late final TextEditingController statusTextController;
   late final ValueNotifier<UserStatusChange> statusChange;
+
+  /// Currently selected expiration option.
+  StatusExpirationOption _selectedExpiration = StatusExpirationOption.never;
+
+  /// Custom expiration time when "Custom" is selected.
+  DateTime? _customExpirationTime;
+
+  /// Whether the user has manually changed the expiration.
+  bool _hasUserChangedExpiration = false;
 
   UserStatus get oldStatus => widget.oldStatus;
   UserStatus get newStatus => statusChange.value.apply(widget.oldStatus);
@@ -83,6 +104,107 @@ class _SetStatusPageState extends State<SetStatusPage> {
     super.dispose();
   }
 
+  /// Returns the default expiration option for a given preset status emoji code.
+  StatusExpirationOption _getDefaultExpiration(String emojiCode) {
+    return switch (emojiCode) {
+      '1f6e0' => StatusExpirationOption.in1Hour,       // Busy
+      '1f4c5' => StatusExpirationOption.in1Hour,       // In a meeting
+      '1f68c' => StatusExpirationOption.in30Minutes,   // Commuting
+      '1f912' => StatusExpirationOption.tomorrow,       // Out sick
+      '1f334' => StatusExpirationOption.never,          // Vacationing
+      '1f3e0' => StatusExpirationOption.todayAt5PM,     // Working remotely
+      '1f3e2' => StatusExpirationOption.todayAt5PM,     // At the office
+      _ => StatusExpirationOption.never,                // Default/Custom
+    };
+  }
+
+  /// Computes the Unix timestamp (in seconds) for the selected expiration option.
+  int? _computeExpirationTimestamp() {
+    final now = DateTime.now();
+    return switch (_selectedExpiration) {
+      StatusExpirationOption.never => null,
+      StatusExpirationOption.in30Minutes =>
+        now.add(const Duration(minutes: 30)).millisecondsSinceEpoch ~/ 1000,
+      StatusExpirationOption.in1Hour =>
+        now.add(const Duration(hours: 1)).millisecondsSinceEpoch ~/ 1000,
+      StatusExpirationOption.todayAt5PM =>
+        DateTime(now.year, now.month, now.day, 17, 0).millisecondsSinceEpoch ~/ 1000,
+      StatusExpirationOption.tomorrow =>
+        DateTime(now.year, now.month, now.day + 1, 0, 0).millisecondsSinceEpoch ~/ 1000,
+      StatusExpirationOption.custom => _customExpirationTime != null
+        ? _customExpirationTime!.millisecondsSinceEpoch ~/ 1000
+        : null,
+    };
+  }
+
+  /// Returns the display name for an expiration option.
+  String _getExpirationOptionLabel(StatusExpirationOption option, ZulipLocalizations zulipLocalizations) {
+    final store = PerAccountStoreWidget.of(context);
+    final use24Hour = store.userSettings.twentyFourHourTime == TwentyFourHourTimeMode.twentyFourHour;
+
+    return switch (option) {
+      StatusExpirationOption.never => zulipLocalizations.statusExpirationNever,
+      StatusExpirationOption.in30Minutes => zulipLocalizations.statusExpirationIn30Minutes,
+      StatusExpirationOption.in1Hour => zulipLocalizations.statusExpirationIn1Hour,
+      StatusExpirationOption.todayAt5PM => zulipLocalizations.statusExpirationTodayAtTime(
+        use24Hour ? '17:00' : '5:00 PM'),
+      StatusExpirationOption.tomorrow => zulipLocalizations.statusExpirationTomorrow,
+      StatusExpirationOption.custom => zulipLocalizations.statusExpirationCustom,
+    };
+  }
+
+  /// Formats the expiration time for display.
+  String? _formatExpirationTime() {
+    final timestamp = _computeExpirationTimestamp();
+    if (timestamp == null) return null;
+
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    final store = PerAccountStoreWidget.of(context);
+    final use24Hour = store.userSettings.twentyFourHourTime == TwentyFourHourTimeMode.twentyFourHour;
+
+    final dateFormat = DateFormat.MMMd();
+    final timeFormat = use24Hour ? DateFormat.Hm() : DateFormat('h:mm a');
+
+    return '${dateFormat.format(dateTime)} at ${timeFormat.format(dateTime)}';
+  }
+
+  /// Opens a date and time picker for custom expiration.
+  Future<void> _pickCustomTime() async {
+    final now = DateTime.now();
+
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: now.add(const Duration(hours: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (pickedDate == null || !mounted) return;
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(now.add(const Duration(hours: 1))),
+    );
+    if (pickedTime == null || !mounted) return;
+
+    final customDateTime = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    // Validate the time is in the future
+    if (customDateTime.isBefore(DateTime.now())) {
+      return;
+    }
+
+    setState(() {
+      _customExpirationTime = customDateTime;
+    });
+  }
+
+
   List<UserStatus> statusSuggestions(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -118,10 +240,15 @@ class _SetStatusPageState extends State<SetStatusPage> {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     Navigator.pop(context);
-    if (newStatus == oldStatus) return;
+    if (newStatus == oldStatus && _selectedExpiration == StatusExpirationOption.never) return;
+
+    // Include the expiration timestamp in the status change
+    final changeWithExpiration = statusChange.value.copyWith(
+      scheduledEndTime: OptionSome(_computeExpirationTimestamp()),
+    );
 
     try {
-      await updateStatus(store.connection, change: statusChange.value);
+      await updateStatus(store.connection, change: changeWithExpiration);
     } catch (e) {
       reportErrorToUserBriefly(zulipLocalizations.updateStatusErrorTitle);
     }
@@ -144,6 +271,13 @@ class _SetStatusPageState extends State<SetStatusPage> {
     statusChange.value = UserStatusChange(
       text: asChange(status.text, old: oldStatus.text),
       emoji: asChange(status.emoji, old: oldStatus.emoji));
+
+    // Auto-set expiration based on the status emoji if user hasn't manually changed it
+    if (!_hasUserChangedExpiration && status.emoji != null) {
+      setState(() {
+        _selectedExpiration = _getDefaultExpiration(status.emoji!.emojiCode);
+      });
+    }
   }
 
   Option<T> asChange<T>(T new_, {required T old}) =>
@@ -265,6 +399,78 @@ class _SetStatusPageState extends State<SetStatusPage> {
                   StatusSuggestionsListEntry(
                     status: status,
                     onTap: () => chooseStatusSuggestion(status)),
+                const SizedBox(height: 16),
+                // Expiration dropdown section
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        zulipLocalizations.statusExpirationLabel,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                          color: designVariables.labelMenuButton,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: designVariables.bgSearchInput,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: DropdownButton<StatusExpirationOption>(
+                          value: _selectedExpiration,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          dropdownColor: designVariables.bgSearchInput,
+                          items: StatusExpirationOption.values.map((option) {
+                            return DropdownMenuItem<StatusExpirationOption>(
+                              value: option,
+                              child: Text(
+                                _getExpirationOptionLabel(option, zulipLocalizations),
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  color: designVariables.textInput,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) async {
+                            if (value == null) return;
+                            if (value == StatusExpirationOption.custom) {
+                              await _pickCustomTime();
+                              if (_customExpirationTime != null) {
+                                setState(() {
+                                  _selectedExpiration = value;
+                                  _hasUserChangedExpiration = true;
+                                });
+                              }
+                            } else {
+                              setState(() {
+                                _selectedExpiration = value;
+                                _hasUserChangedExpiration = true;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      if (_selectedExpiration != StatusExpirationOption.never)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            _formatExpirationTime() ?? '',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: designVariables.labelMenuButton,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ])))),
         ])),
     );
