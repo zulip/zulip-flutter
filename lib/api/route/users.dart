@@ -46,9 +46,12 @@ Future<void> updateStatus(ApiConnection connection, {
       'emoji_name': RawParameter(value?.emojiName ?? ''),
       'emoji_code': RawParameter(value?.emojiCode ?? ''),
       'reaction_type': RawParameter(value?.reactionType.toJson() ?? ''),
-    }
+    },
+    if (change.scheduledEndTime case OptionSome(:var value))
+      'scheduled_end_time': value,
   });
 }
+
 
 /// https://zulip.com/api/update-presence
 ///
