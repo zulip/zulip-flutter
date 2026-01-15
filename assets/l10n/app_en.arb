@@ -1153,6 +1153,35 @@
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
+  "statusExpirationLabel": "Automatically clear status",
+  "@statusExpirationLabel": {
+    "description": "Label for the dropdown to select when status should be automatically cleared."
+  },
+  "statusExpirationNever": "Never",
+  "@statusExpirationNever": {
+    "description": "Option to never automatically clear the status."
+  },
+  "statusExpirationIn30Minutes": "In 30 minutes",
+  "@statusExpirationIn30Minutes": {
+    "description": "Option to clear status in 30 minutes."
+  },
+  "statusExpirationIn1Hour": "In 1 hour",
+  "@statusExpirationIn1Hour": {
+    "description": "Option to clear status in 1 hour."
+  },
+  "statusExpirationTodayAtTime": "Today at {time}",
+  "@statusExpirationTodayAtTime": {
+    "description": "Option to clear status today at a specific time.",
+    "placeholders": { "time": {"type": "String"} }
+  },
+  "statusExpirationTomorrow": "Tomorrow",
+  "@statusExpirationTomorrow": {
+    "description": "Option to clear status tomorrow."
+  },
+  "statusExpirationCustom": "Custom",
+  "@statusExpirationCustom": {
+    "description": "Option to set a custom time to clear the status."
+  },
   "searchMessagesPageTitle": "Search",
   "@searchMessagesPageTitle": {
     "description": "Page title for the 'Search' message view."
