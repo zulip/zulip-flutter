@@ -270,19 +270,42 @@ class UserStatusChange {
   final Option<String?> text;
   final Option<StatusEmoji?> emoji;
 
-  const UserStatusChange({required this.text, required this.emoji});
+  /// The scheduled end time for the status (Unix timestamp in seconds).
+  ///
+  /// If [OptionSome] with a non-null value, the status will be automatically
+  /// cleared at that time. If [OptionSome] with null, any existing scheduled
+  /// end time will be cleared. If [OptionNone], no change to the scheduled
+  /// end time.
+  final Option<int?> scheduledEndTime;
+
+  const UserStatusChange({
+    required this.text,
+    required this.emoji,
+    this.scheduledEndTime = const OptionNone(),
+  });
 
   UserStatus apply(UserStatus old) {
     return UserStatus(text: text.or(old.text), emoji: emoji.or(old.emoji));
   }
 
-  UserStatusChange copyWith({Option<String?>? text, Option<StatusEmoji?>? emoji}) {
-    return UserStatusChange(text: text ?? this.text, emoji: emoji ?? this.emoji);
+  UserStatusChange copyWith({
+    Option<String?>? text,
+    Option<StatusEmoji?>? emoji,
+    Option<int?>? scheduledEndTime,
+  }) {
+    return UserStatusChange(
+      text: text ?? this.text,
+      emoji: emoji ?? this.emoji,
+      scheduledEndTime: scheduledEndTime ?? this.scheduledEndTime,
+    );
   }
 
   factory UserStatusChange.fromJson(Map<String, dynamic> json) {
     return UserStatusChange(
-      text: _textFromJson(json), emoji: _emojiFromJson(json));
+      text: _textFromJson(json),
+      emoji: _emojiFromJson(json),
+      scheduledEndTime: _scheduledEndTimeFromJson(json),
+    );
   }
 
   static Option<String?> _textFromJson(Map<String, dynamic> json) {
@@ -313,6 +336,14 @@ class UserStatusChange {
     }
   }
 
+  static Option<int?> _scheduledEndTimeFromJson(Map<String, dynamic> json) {
+    if (!json.containsKey('scheduled_end_time')) {
+      return OptionNone();
+    }
+    final value = json['scheduled_end_time'] as int?;
+    return OptionSome(value);
+  }
+
   Map<String, dynamic> toJson() {
     return {
       if (text case OptionSome<String?>(:var value))
@@ -325,6 +356,8 @@ class UserStatusChange {
               'emoji_code': value.emojiCode,
               'reaction_type': value.reactionType,
             },
+      if (scheduledEndTime case OptionSome<int?>(:var value))
+        'scheduled_end_time': value,
     };
   }
 }
