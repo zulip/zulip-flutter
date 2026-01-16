@@ -983,8 +983,9 @@ void main() {
   });
 
   group('UserTopicEvent', () {
-    // The ChannelStore.willChangeIfTopicVisible/InChannel methods have their
-    // own thorough unit tests.  So these tests focus on the rest of the logic.
+    // The ChannelStore.topicEventWillAffectIfTopicVisible/InChannel
+    // methods have their own thorough unit tests. So these tests
+    // focus on the rest of the logic.
 
     final stream = eg.stream();
     const String topic = 'foo';

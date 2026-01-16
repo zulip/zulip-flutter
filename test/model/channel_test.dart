@@ -321,7 +321,7 @@ void main() {
       });
     });
 
-    group('willChangeIfTopicVisible/InChannel', () {
+    group('topicEventWillAffectIfTopicVisible/InChannel', () {
       UserTopicEvent mkEvent(UserTopicVisibilityPolicy policy) =>
         eg.userTopicEvent(stream1.streamId, 'topic', policy);
 
@@ -342,12 +342,12 @@ void main() {
           UserTopicVisibilityEffect expectedInChannel,
           UserTopicVisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
-        check(store.willChangeIfTopicVisibleInChannel(event)).equals(expectedInChannel);
-        check(store.willChangeIfTopicVisible         (event)).equals(expectedOverall);
+        check(store.topicEventWillAffectIfTopicVisibleInChannel(event)).equals(expectedInChannel);
+        check(store.topicEventWillAffectIfTopicVisible         (event)).equals(expectedOverall);
 
         final event2 = mkEventDifferentlyCased(newPolicy);
-        check(store.willChangeIfTopicVisibleInChannel(event2)).equals(expectedInChannel);
-        check(store.willChangeIfTopicVisible         (event2)).equals(expectedOverall);
+        check(store.topicEventWillAffectIfTopicVisibleInChannel(event2)).equals(expectedInChannel);
+        check(store.topicEventWillAffectIfTopicVisible         (event2)).equals(expectedOverall);
       }
 
       test('channel not muted, policy none -> followed, no change', () async {
@@ -407,8 +407,8 @@ void main() {
               final oldVisible          = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               final event = mkEvent(newPolicy);
-              final willChangeInChannel = store.willChangeIfTopicVisibleInChannel(event);
-              final willChange          = store.willChangeIfTopicVisible(event);
+              final willAffectInChannel = store.topicEventWillAffectIfTopicVisibleInChannel(event);
+              final willAffect          = store.topicEventWillAffectIfTopicVisible(event);
 
               await store.handleEvent(event);
               final newVisibleInChannel = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
@@ -419,9 +419,9 @@ void main() {
                 if (newVisible) return UserTopicVisibilityEffect.unmuted;
                 return UserTopicVisibilityEffect.muted;
               }
-              check(willChangeInChannel)
+              check(willAffectInChannel)
                 .equals(fromOldNew(oldVisibleInChannel, newVisibleInChannel));
-              check(willChange)
+              check(willAffect)
                 .equals(fromOldNew(oldVisible,         newVisible));
             });
           }
