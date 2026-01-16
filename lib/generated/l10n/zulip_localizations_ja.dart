@@ -417,6 +417,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorBannerDeactivatedDmLabel => '無効化されたユーザーにはメッセージを送信できません。';
 
   @override
+  String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
+      'You cannot send messages here.';
+
+  @override
   String get composeBoxBannerLabelCannotSendInChannel =>
       'このチャンネルに投稿する権限がありません。';
 

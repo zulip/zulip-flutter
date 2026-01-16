@@ -426,6 +426,10 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
       'You cannot send messages to deactivated users.';
 
   @override
+  String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
+      'You cannot send messages here.';
+
+  @override
   String get composeBoxBannerLabelCannotSendInChannel =>
       'You do not have permission to post in this channel.';
 
