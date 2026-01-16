@@ -203,7 +203,7 @@ void main() {
       checkDmConversationMuted([], false);
     });
 
-    group('mightChangeShouldMuteDmConversation', () {
+    group('willAffectShouldMuteDmConversation', () {
       void doTest(
         String description,
         List<int> before,
@@ -216,7 +216,7 @@ void main() {
           await store.addUsers(before.map((id) => eg.user(userId: id)));
           await store.setMutedUsers(before);
           final event = eg.mutedUsersEvent(after);
-          check(store.mightChangeShouldMuteDmConversation(event)).equals(expected);
+          check(store.willAffectShouldMuteDmConversation(event)).equals(expected);
         });
       }
 
