@@ -1481,6 +1481,32 @@ void main() {
       });
     });
 
+    testWidgets('channel without content access (channel narrow)', (tester) async {
+      final channel = eg.stream(
+        inviteOnly: true,
+        canSubscribeGroup: GroupSettingValueNamed(eg.nobodyGroup.id),
+        canAddSubscribersGroup: GroupSettingValueNamed(eg.nobodyGroup.id));
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        subscriptions: []);
+      checkComposeBoxIsShown(false,
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelCannotSendUnspecifiedReason);
+    });
+
+    testWidgets('channel without content access (topic narrow)', (tester) async {
+      final channel = eg.stream(
+        inviteOnly: true,
+        canSubscribeGroup: GroupSettingValueNamed(eg.nobodyGroup.id),
+        canAddSubscribersGroup: GroupSettingValueNamed(eg.nobodyGroup.id));
+      await prepareComposeBox(tester,
+        narrow: eg.topicNarrow(channel.streamId, 'some topic'),
+        streams: [channel],
+        subscriptions: []);
+      checkComposeBoxIsShown(false,
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelCannotSendUnspecifiedReason);
+    });
+
     group('in channel/topic narrow according to channel post policy', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
         bannerLabel: zulipLocalizations.composeBoxBannerLabelCannotSendInChannel);
