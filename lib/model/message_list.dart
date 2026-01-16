@@ -785,7 +785,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   MutedUsersVisibilityEffect _mutedUsersEventCanAffectVisibility(MutedUsersEvent event) {
     switch(narrow) {
       case CombinedFeedNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
 
       case ChannelNarrow():
       case TopicNarrow():
@@ -793,13 +793,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return MutedUsersVisibilityEffect.none;
 
       case MentionsNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
 
       case StarredMessagesNarrow():
         return MutedUsersVisibilityEffect.none;
 
       case KeywordSearchNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
     }
   }
 
