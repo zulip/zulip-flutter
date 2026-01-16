@@ -1256,8 +1256,25 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         switch ((origStreamId == streamId, newStreamId == streamId)) {
           case (false, false): return;
           case (true,  true ): _messagesMovedInternally(messageIds);
-          case (false, true ): _messagesMovedIntoMessageList();
-          case (true,  false): _messagesMovedFromMessageList(messageIds);
+          case (false, true ):
+            switch (store.messageMoveWillAffectIfTopicVisibleInChannel(messageMove)) {
+              case .unmutedToMuted:
+              case .mutedToMuted:
+                return;
+              case .mutedToUnmuted:
+              case .unmutedToUnmuted:
+                _messagesMovedIntoMessageList();
+            }
+
+          case (true,  false):
+            switch (store.messageMoveWillAffectIfTopicVisibleInChannel(messageMove)) {
+              case .mutedToUnmuted:
+              case .mutedToMuted:
+                return;
+              case .unmutedToMuted:
+              case .unmutedToUnmuted:
+                _messagesMovedFromMessageList(messageIds);
+            }
         }
 
       case TopicNarrow(:final streamId, :final topic):
