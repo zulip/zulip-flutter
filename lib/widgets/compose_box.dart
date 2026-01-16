@@ -2239,11 +2239,13 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         if (channel == null) {
           return _Banner(
             intent: _BannerIntent.info,
-            // TODO this doesn't seem like exactly the right message --
-            //   it makes it sound like the channel exists, which might not be
-            //   true. (We'll get here if the channel doesn't exist or if it
-            //   exists but we don't have permission to know about it.)
-            label: zulipLocalizations.composeBoxBannerLabelCannotSendInChannel);
+            // This message is redundant with the message-list placeholder
+            // we'll show following a doomed-empty message fetch (from #1947):
+            // "This channel doesn’t exist, or you are not allowed to view it."
+            // TODO So, support replacing the compose box with nothing,
+            //   not even a banner, in narrows that can offer a compose box.
+            //   (We'll need to handle the bottom device inset carefully.)
+            label: zulipLocalizations.composeBoxBannerLabelCannotSendUnspecifiedReason);
         }
 
         if (!store.selfCanSendMessage(inChannel: channel, byDate: DateTime.now())) {
