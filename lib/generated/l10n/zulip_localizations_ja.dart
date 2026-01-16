@@ -417,7 +417,8 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorBannerDeactivatedDmLabel => '無効化されたユーザーにはメッセージを送信できません。';
 
   @override
-  String get errorBannerCannotPostInChannelLabel => 'このチャンネルに投稿する権限がありません。';
+  String get composeBoxBannerLabelCannotSendInChannel =>
+      'このチャンネルに投稿する権限がありません。';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>

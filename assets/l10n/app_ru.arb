@@ -384,7 +384,7 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
   "@errorBannerDeactivatedDmLabel": {
@@ -1435,7 +1435,7 @@
   "emptyMessageListStarredMessage": "<z-link>Отметка</z-link> звездочкой — это хороший способ отслеживать важные сообщения, такие как задачи, к которым нужно вернуться, или полезные ссылки. Чтобы отметить сообщение, выберите его длинным нажатием, а затем нажмите «{button}».",
   "errorAccountLoggedIn": "Учетная запись {email} на {server} уже присутствует.",
   "errorAccountLoggedInTitle": "Вход в учетную запись уже выполнен",
-  "errorBannerCannotPostInChannelLabel": "У вас нет права писать в этом канале.",
+  "composeBoxBannerLabelCannotSendInChannel": "У вас нет права писать в этом канале.",
   "errorBannerDeactivatedDmLabel": "Нельзя отправить сообщение отключенным пользователям.",
   "errorConnectingToServerDetails": "Ошибка подключения к Zulip на {serverUrl}. Повторим попытку:\n\n{error}",
   "errorConnectingToServerShort": "Ошибка подключения к Zulip. Повторяем попытку…",

@@ -443,7 +443,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Du kannst keine Nachrichten an deaktivierte Nutzer:innen senden.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel =>
+  String get composeBoxBannerLabelCannotSendInChannel =>
       'Du hast keine Berechtigung in diesen Kanal zu schreiben.';
 
   @override

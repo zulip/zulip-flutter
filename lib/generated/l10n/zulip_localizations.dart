@@ -821,11 +821,11 @@ abstract class ZulipLocalizations {
   /// **'You cannot send messages to deactivated users.'**
   String get errorBannerDeactivatedDmLabel;
 
-  /// Error-banner text replacing the compose box when you do not have permission to send a message to the channel.
+  /// Label text for a banner replacing the compose box when you do not have permission to send messages in the channel.
   ///
   /// In en, this message translates to:
   /// **'You do not have permission to post in this channel.'**
-  String get errorBannerCannotPostInChannelLabel;
+  String get composeBoxBannerLabelCannotSendInChannel;
 
   /// Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages.
   ///

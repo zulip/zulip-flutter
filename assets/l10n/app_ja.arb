@@ -281,7 +281,7 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
   "@errorBannerDeactivatedDmLabel": {
@@ -1263,7 +1263,7 @@
   "emptyMessageListSearch": "検索結果はありません。",
   "errorAccountLoggedIn": "{server} の {email} アカウントは、すでにアカウント一覧に追加されています。",
   "errorAccountLoggedInTitle": "このアカウントはすでにログインしています",
-  "errorBannerCannotPostInChannelLabel": "このチャンネルに投稿する権限がありません。",
+  "composeBoxBannerLabelCannotSendInChannel": "このチャンネルに投稿する権限がありません。",
   "errorBannerDeactivatedDmLabel": "無効化されたユーザーにはメッセージを送信できません。",
   "errorConnectingToServerDetails": "Zulip（{serverUrl}）への接続でエラーが発生しました。再試行します：\n\n{error}",
   "errorConnectingToServerShort": "Zulip への接続でエラーが発生しました。再試行中…",

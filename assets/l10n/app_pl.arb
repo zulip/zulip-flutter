@@ -384,7 +384,7 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
   "@errorBannerDeactivatedDmLabel": {
@@ -1435,7 +1435,7 @@
   "emptyMessageListStarredMessage": "<z-link>Oznaczanie gwiazdką</z-link> to dobra metoda aby śledzić ważne wiadomości oraz zadania, do których chcesz wrócić. Aby oznaczyć wiadomość gwiazdką wybierz “{button}.”",
   "errorAccountLoggedIn": "Konto {email} na {server} znajduje się już na liście dodanych kont.",
   "errorAccountLoggedInTitle": "Konto już wylogowane",
-  "errorBannerCannotPostInChannelLabel": "Nie masz uprawnień do dodawania wpisów w tym kanale.",
+  "composeBoxBannerLabelCannotSendInChannel": "Nie masz uprawnień do dodawania wpisów w tym kanale.",
   "errorBannerDeactivatedDmLabel": "Nie można wysyłać wiadomości do dezaktywowanych użytkowników.",
   "errorConnectingToServerDetails": "Błąd połączenia z Zulip {serverUrl}. Spróbujmy ponownie:\n\n{error}",
   "errorConnectingToServerShort": "Błąd połączenia z Zulip. Ponawiam…",

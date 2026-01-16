@@ -384,7 +384,7 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
   "@errorBannerDeactivatedDmLabel": {
@@ -1435,7 +1435,7 @@
   "emptyMessageListStarredMessage": "<z-link>Позначення зірочкою</z-link> – це гарний спосіб відстежувати важливі повідомлення, такі як завдання, до яких потрібно повернутися, або корисні посилання. Щоб позначити повідомлення зірочкою, довго натисніть на нього та натисніть «{button}»",
   "errorAccountLoggedIn": "Обліковий запис {email} на {server} уже є у вашому списку облікових записів.",
   "errorAccountLoggedInTitle": "В обліковий запис уже ввійшли",
-  "errorBannerCannotPostInChannelLabel": "Ви не маєте дозволу на публікацію в цьому каналі.",
+  "composeBoxBannerLabelCannotSendInChannel": "Ви не маєте дозволу на публікацію в цьому каналі.",
   "errorBannerDeactivatedDmLabel": "Ви не можете надсилати повідомлення деактивованим користувачам.",
   "errorConnectingToServerDetails": "Помилка підключення до Zulip на {serverUrl}. Буде повторена спроба:\n\n{error}",
   "errorConnectingToServerShort": "Помилка підключення до Zulip. Повторна спроба…",

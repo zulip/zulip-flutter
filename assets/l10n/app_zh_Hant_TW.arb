@@ -321,7 +321,7 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
   "@errorBannerDeactivatedDmLabel": {
@@ -1346,7 +1346,7 @@
   "emptyMessageListSearch": "沒有搜尋結果。",
   "errorAccountLoggedIn": "在 {server} 的帳號 {email} 已經存在帳號清單中。",
   "errorAccountLoggedInTitle": "帳號已經登入了",
-  "errorBannerCannotPostInChannelLabel": "您沒有權限在此頻道發佈訊息。",
+  "composeBoxBannerLabelCannotSendInChannel": "您沒有權限在此頻道發佈訊息。",
   "errorBannerDeactivatedDmLabel": "您無法向已停用的使用者發送訊息。",
   "errorConnectingToServerDetails": "連接 Zulip {serverUrl} 時發生錯誤。將重試：\n\n{error}",
   "errorConnectingToServerShort": "連接 Zulip 時發生錯誤。重試中…",

@@ -426,7 +426,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
       'You cannot send messages to deactivated users.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel =>
+  String get composeBoxBannerLabelCannotSendInChannel =>
       'You do not have permission to post in this channel.';
 
   @override
@@ -1646,7 +1646,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get errorBannerDeactivatedDmLabel => '您不能向被停用的用户发送消息。';
 
   @override
-  String get errorBannerCannotPostInChannelLabel => '您没有足够的权限在此频道发送消息。';
+  String get composeBoxBannerLabelCannotSendInChannel => '您没有足够的权限在此频道发送消息。';
 
   @override
   String get composeBoxBannerLabelEditMessage => '编辑消息';
@@ -2743,7 +2743,7 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get errorBannerDeactivatedDmLabel => '您無法向已停用的使用者發送訊息。';
 
   @override
-  String get errorBannerCannotPostInChannelLabel => '您沒有權限在此頻道發佈訊息。';
+  String get composeBoxBannerLabelCannotSendInChannel => '您沒有權限在此頻道發佈訊息。';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend => '新訊息將不會自動顯示。';

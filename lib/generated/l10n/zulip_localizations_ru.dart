@@ -440,7 +440,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Нельзя отправить сообщение отключенным пользователям.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel =>
+  String get composeBoxBannerLabelCannotSendInChannel =>
       'У вас нет права писать в этом канале.';
 
   @override

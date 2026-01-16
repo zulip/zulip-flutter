@@ -502,9 +502,9 @@
   "@errorBannerDeactivatedDmLabel": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
-  "errorBannerCannotPostInChannelLabel": "You do not have permission to post in this channel.",
-  "@errorBannerCannotPostInChannelLabel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  "composeBoxBannerLabelCannotSendInChannel": "You do not have permission to post in this channel.",
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Label text for a banner replacing the compose box when you do not have permission to send messages in the channel."
   },
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "New messages will not appear automatically.",
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {

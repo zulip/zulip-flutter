@@ -246,7 +246,7 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
   "@errorBannerDeactivatedDmLabel": {
@@ -1030,7 +1030,7 @@
   "emojiReactionsMore": "altro",
   "errorAccountLoggedIn": "L'account {email} su {server} è già presente nell'elenco account.",
   "errorAccountLoggedInTitle": "Account già registrato",
-  "errorBannerCannotPostInChannelLabel": "Non hai l'autorizzazione per postare su questo canale.",
+  "composeBoxBannerLabelCannotSendInChannel": "Non hai l'autorizzazione per postare su questo canale.",
   "errorBannerDeactivatedDmLabel": "Non è possibile inviare messaggi agli utenti disattivati.",
   "errorConnectingToServerDetails": "Errore durante la connessione a Zulip su {serverUrl}. Verrà effettuato un nuovo tentativo:\n\n{error}",
   "errorConnectingToServerShort": "Errore di connessione a Zulip. Nuovo tentativo…",

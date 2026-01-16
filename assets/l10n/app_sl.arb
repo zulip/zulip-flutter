@@ -321,7 +321,7 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
   "@errorBannerDeactivatedDmLabel": {
@@ -1348,7 +1348,7 @@
   "emptyMessageListSearch": "Ni zadetkov iskanja.",
   "errorAccountLoggedIn": "Račun {email} na {server} je že na vašem seznamu računov.",
   "errorAccountLoggedInTitle": "Račun je že prijavljen",
-  "errorBannerCannotPostInChannelLabel": "Nimate dovoljenja za objavljanje v tem kanalu.",
+  "composeBoxBannerLabelCannotSendInChannel": "Nimate dovoljenja za objavljanje v tem kanalu.",
   "errorBannerDeactivatedDmLabel": "Deaktiviranim uporabnikom ne morete pošiljati sporočil.",
   "errorConnectingToServerDetails": "Napaka pri povezovanju z Zulipom na {serverUrl}. Poskusili bomo znova:\n\n{error}",
   "errorConnectingToServerShort": "Napaka pri povezovanju z Zulipom. Poskušamo znova…",

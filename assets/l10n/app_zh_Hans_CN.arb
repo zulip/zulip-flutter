@@ -297,7 +297,7 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
   "@errorBannerDeactivatedDmLabel": {
@@ -1298,7 +1298,7 @@
   "emptyMessageListSearch": "没有搜索结果。",
   "errorAccountLoggedIn": "在 {server} 的账号 {email} 已经在您的账号列表了。",
   "errorAccountLoggedInTitle": "已经登入该账号",
-  "errorBannerCannotPostInChannelLabel": "您没有足够的权限在此频道发送消息。",
+  "composeBoxBannerLabelCannotSendInChannel": "您没有足够的权限在此频道发送消息。",
   "errorBannerDeactivatedDmLabel": "您不能向被停用的用户发送消息。",
   "errorConnectingToServerDetails": "未能连接到在 {serverUrl} 的 Zulip 服务器。即将重连：\n\n{error}",
   "errorConnectingToServerShort": "未能连接到 Zulip. 重试中…",
