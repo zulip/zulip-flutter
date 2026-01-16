@@ -339,7 +339,7 @@ void main() {
       });
     });
 
-    group('willChangeIfTopicVisible/InChannel', () {
+    group('willAffectIfTopicVisible/InChannel', () {
       UserTopicEvent mkEvent(UserTopicVisibilityPolicy policy) =>
         eg.userTopicEvent(stream1.streamId, 'topic', policy);
 
@@ -360,12 +360,12 @@ void main() {
           UserTopicVisibilityEffect expectedInChannel,
           UserTopicVisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
-        check(store.willChangeIfTopicVisibleInChannel(event)).equals(expectedInChannel);
-        check(store.willChangeIfTopicVisible         (event)).equals(expectedOverall);
+        check(store.willAffectIfTopicVisibleInChannel(event)).equals(expectedInChannel);
+        check(store.willAffectIfTopicVisible         (event)).equals(expectedOverall);
 
         final event2 = mkEventDifferentlyCased(newPolicy);
-        check(store.willChangeIfTopicVisibleInChannel(event2)).equals(expectedInChannel);
-        check(store.willChangeIfTopicVisible         (event2)).equals(expectedOverall);
+        check(store.willAffectIfTopicVisibleInChannel(event2)).equals(expectedInChannel);
+        check(store.willAffectIfTopicVisible         (event2)).equals(expectedOverall);
       }
 
       test('channel not muted, policy none -> followed, no change', () async {
@@ -425,8 +425,8 @@ void main() {
               final oldVisible          = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               final event = mkEvent(newPolicy);
-              final willChangeInChannel = store.willChangeIfTopicVisibleInChannel(event);
-              final willChange          = store.willChangeIfTopicVisible(event);
+              final willAffectInChannel = store.willAffectIfTopicVisibleInChannel(event);
+              final willAffect          = store.willAffectIfTopicVisible(event);
 
               await store.handleEvent(event);
               final newVisibleInChannel = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
@@ -437,9 +437,9 @@ void main() {
                 if (newVisible) return UserTopicVisibilityEffect.unmuted;
                 return UserTopicVisibilityEffect.muted;
               }
-              check(willChangeInChannel)
+              check(willAffectInChannel)
                 .equals(fromOldNew(oldVisibleInChannel, newVisibleInChannel));
-              check(willChange)
+              check(willAffect)
                 .equals(fromOldNew(oldVisible,         newVisible));
             });
           }
