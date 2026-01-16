@@ -2236,12 +2236,13 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
-        if (channel == null) {
+        if (channel == null || !store.selfHasContentAccess(channel)) {
           return _Banner(
             intent: _BannerIntent.info,
-            // This message is redundant with the message-list placeholder
+            // This message is redundant with a message-list placeholder
             // we'll show following a doomed-empty message fetch (from #1947):
             // "This channel doesn’t exist, or you are not allowed to view it."
+            // Or: "You don’t have content access to this channel."
             // TODO So, support replacing the compose box with nothing,
             //   not even a banner, in narrows that can offer a compose box.
             //   (We'll need to handle the bottom device inset carefully.)
