@@ -110,7 +110,7 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
 
   /// Whether the given event might change the result of [shouldMuteDmConversation]
   /// for its list of muted users, compared to the current state.
-  MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event);
+  MutedUsersVisibilityEffect willAffectShouldMuteDmConversation(MutedUsersEvent event);
 
   /// The status of the user with the given ID.
   ///
@@ -150,8 +150,8 @@ mixin ProxyUserStore on UserStore {
     userStore.isUserMuted(userId, event: event);
 
   @override
-  MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event) =>
-    userStore.mightChangeShouldMuteDmConversation(event);
+  MutedUsersVisibilityEffect willAffectShouldMuteDmConversation(MutedUsersEvent event) =>
+    userStore.willAffectShouldMuteDmConversation(event);
 
   @override
   UserStatus getUserStatus(int userId) => userStore.getUserStatus(userId);
@@ -214,7 +214,7 @@ class UserStoreImpl extends HasRealmStore with UserStore {
   }
 
   @override
-  MutedUsersVisibilityEffect mightChangeShouldMuteDmConversation(MutedUsersEvent event) {
+  MutedUsersVisibilityEffect willAffectShouldMuteDmConversation(MutedUsersEvent event) {
     final sortedOld = _mutedUsers.toList()..sort();
     final sortedNew = event.mutedUsers.map((u) => u.id).toList()..sort();
     assert(isSortedWithoutDuplicates(sortedOld));
