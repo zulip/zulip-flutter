@@ -1197,7 +1197,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  void _messagesMovedIntoNarrow() {
+  void _messagesMovedIntoMessageList() {
     // If there are some messages we don't have in [MessageStore], and they
     // occur later than the messages we have here, then we just have to
     // re-fetch from scratch.  That's always valid, so just do that always.
@@ -1207,7 +1207,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     fetchInitial();
   }
 
-  void _messagesMovedFromNarrow(List<int> messageIds) {
+  void _messagesMovedFromMessageList(List<int> messageIds) {
     if (_removeMessagesById(messageIds)) {
       notifyListeners();
     }
@@ -1256,8 +1256,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         switch ((origStreamId == streamId, newStreamId == streamId)) {
           case (false, false): return;
           case (true,  true ): _messagesMovedInternally(messageIds);
-          case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false): _messagesMovedFromNarrow(messageIds);
+          case (false, true ): _messagesMovedIntoMessageList();
+          case (true,  false): _messagesMovedFromMessageList(messageIds);
         }
 
       case TopicNarrow(:final streamId, :final topic):
@@ -1266,9 +1266,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         switch ((oldMatch, newMatch)) {
           case (false, false): return;
           case (true,  true ): return; // TODO(log) when no-op move
-          case (false, true ): _messagesMovedIntoNarrow();
+          case (false, true ): _messagesMovedIntoMessageList();
           case (true,  false):
-            _messagesMovedFromNarrow(messageIds);
+            _messagesMovedFromMessageList(messageIds);
             _handlePropagateMode(propagateMode, TopicNarrow(newStreamId, newTopic));
         }
     }
