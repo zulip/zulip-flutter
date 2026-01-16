@@ -1483,7 +1483,7 @@ void main() {
 
     group('in channel/topic narrow according to channel post policy', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
-        bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelCannotSendInChannel);
 
       const channelNarrow = ChannelNarrow(1);
       final topicNarrow = eg.topicNarrow(1, 'topic');
@@ -1510,7 +1510,7 @@ void main() {
             subscriptions: isChannelSubscribed ? [eg.subscription(channel)] : []);
           checkComposeBoxIsShown(expected,
             bannerLabel: isChannelSubscribed
-              ? zulipLocalizations.errorBannerCannotPostInChannelLabel
+              ? zulipLocalizations.composeBoxBannerLabelCannotSendInChannel
               : zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
         });
       }

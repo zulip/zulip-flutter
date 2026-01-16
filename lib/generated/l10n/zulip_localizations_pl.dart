@@ -438,8 +438,8 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Nie można wysyłać wiadomości do dezaktywowanych użytkowników.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel =>
-      'Nie masz uprawnień do dodawania wpisów w tym kanale.';
+  String get composeBoxBannerLabelCannotSendInChannel =>
+      'You do not have permission to post in this channel.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>

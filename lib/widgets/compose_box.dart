@@ -2243,14 +2243,14 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
             //   it makes it sound like the channel exists, which might not be
             //   true. (We'll get here if the channel doesn't exist or if it
             //   exists but we don't have permission to know about it.)
-            label: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+            label: zulipLocalizations.composeBoxBannerLabelCannotSendInChannel);
         }
 
         if (!store.selfCanSendMessage(inChannel: channel, byDate: DateTime.now())) {
           return (channel is Subscription)
             ? _Banner(
                 intent: _BannerIntent.info,
-                label: zulipLocalizations.errorBannerCannotPostInChannelLabel)
+                label: zulipLocalizations.composeBoxBannerLabelCannotSendInChannel)
             : _Banner(
                 intent: _BannerIntent.warning,
                 label: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend,
