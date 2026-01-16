@@ -1605,26 +1605,43 @@ void main() {
         checkNotified(count: 2);
       });
 
-      test('old channel -> channel: refetch', () => awaitFakeAsync((async) async {
-        await prepareNarrow(narrow, initialMessages);
+      group('old channel -> channel:', () {
+        test('new topic not muted - refetch', () => awaitFakeAsync((async) async {
+          await prepareNarrow(narrow, initialMessages);
 
-        connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
-          foundOldest: false,
-          messages: initialMessages + movedMessages,
-        ).toJson());
-        await store.handleEvent(eg.updateMessageEventMoveTo(
-          origTopicStr: 'orig topic',
-          origStreamId: otherStream.streamId,
-          newMessages: movedMessages,
-        ));
-        check(model).fetched.isFalse();
-        checkHasMessages([]);
-        checkNotifiedOnce();
+          connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+            foundOldest: false,
+            messages: initialMessages + movedMessages,
+          ).toJson());
+          await store.handleEvent(eg.updateMessageEventMoveTo(
+            origTopicStr: 'orig topic',
+            origStreamId: otherStream.streamId,
+            newMessages: movedMessages,
+          ));
+          check(model).fetched.isFalse();
+          checkHasMessages([]);
+          checkNotifiedOnce();
 
-        async.elapse(const Duration(seconds: 2));
-        checkHasMessages(initialMessages + movedMessages);
-        checkNotifiedOnce();
-      }));
+          async.elapse(const Duration(seconds: 2));
+          checkHasMessages(initialMessages + movedMessages);
+          checkNotifiedOnce();
+        }));
+
+        test('new topic muted - unaffected', () async {
+          await prepareNarrow(narrow, initialMessages);
+          await store.setUserTopic(stream, 'new', UserTopicVisibilityPolicy.muted);
+
+          final newTopicMovedMessages = List.generate(5, (i) =>
+            eg.streamMessage(stream: stream, topic: 'new'));
+          await store.handleEvent(eg.updateMessageEventMoveTo(
+            origTopicStr: 'orig topic',
+            origStreamId: otherStream.streamId,
+            newMessages: newTopicMovedMessages,
+          ));
+          checkHasMessages(initialMessages);
+          checkNotNotified();
+        });
+      });
 
       test('channel -> new channel: remove moved messages', () async {
         await prepareNarrow(narrow, initialMessages + movedMessages);
