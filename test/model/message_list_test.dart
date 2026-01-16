@@ -983,7 +983,7 @@ void main() {
   });
 
   group('UserTopicEvent', () {
-    // The ChannelStore.willChangeIfTopicVisible/InChannel methods have their
+    // The ChannelStore.willAffectIfTopicVisible/InChannel methods have their
     // own thorough unit tests.  So these tests focus on the rest of the logic.
 
     final stream = eg.stream();
