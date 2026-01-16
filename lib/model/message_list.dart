@@ -696,7 +696,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         assert(message is MessageBase<StreamConversation>
                && message.conversation.streamId == streamId);
         if (message is! MessageBase<StreamConversation>) return false;
-        return store.isTopicVisibleInStream(streamId, message.conversation.topic);
+        return store.isTopicVisibleInChannel(streamId, message.conversation.topic);
 
       case TopicNarrow():
         assert((narrow as TopicNarrow).containsMessage(message));
@@ -765,11 +765,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   UserTopicVisibilityEffect _canAffectVisibility(UserTopicEvent event) {
     switch (narrow) {
       case CombinedFeedNarrow():
-        return store.willChangeIfTopicVisible(event);
+        return store.topicEventWillAffectIfTopicVisible(event);
 
       case ChannelNarrow(:final streamId):
         if (event.streamId != streamId) return UserTopicVisibilityEffect.none;
-        return store.willChangeIfTopicVisibleInStream(event);
+        return store.topicEventWillAffectIfTopicVisibleInChannel(event);
 
       case TopicNarrow():
       case DmNarrow():
@@ -785,7 +785,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   MutedUsersVisibilityEffect _mutedUsersEventCanAffectVisibility(MutedUsersEvent event) {
     switch(narrow) {
       case CombinedFeedNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
 
       case ChannelNarrow():
       case TopicNarrow():
@@ -793,13 +793,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return MutedUsersVisibilityEffect.none;
 
       case MentionsNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
 
       case StarredMessagesNarrow():
         return MutedUsersVisibilityEffect.none;
 
       case KeywordSearchNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
     }
   }
 
@@ -1197,7 +1197,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  void _messagesMovedIntoNarrow() {
+  void _messagesMovedIntoMessageList() {
     // If there are some messages we don't have in [MessageStore], and they
     // occur later than the messages we have here, then we just have to
     // re-fetch from scratch.  That's always valid, so just do that always.
@@ -1207,7 +1207,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     fetchInitial();
   }
 
-  void _messagesMovedFromNarrow(List<int> messageIds) {
+  void _messagesMovedFromMessageList(List<int> messageIds) {
     if (_removeMessagesById(messageIds)) {
       notifyListeners();
     }
@@ -1237,11 +1237,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return;
 
       case CombinedFeedNarrow():
+        switch(store.messageMoveWillAffectIfTopicVisible(messageMove)) {
+          case .unmutedToMuted:   _messagesMovedFromMessageList(messageIds);
+          case .mutedToUnmuted:   _messagesMovedIntoMessageList();
+          case .unmutedToUnmuted: _messagesMovedInternally(messageIds);
+          case .mutedToMuted:     return;
+        }
+
       case MentionsNarrow():
       case StarredMessagesNarrow():
         // The messages didn't enter or leave this narrow.
-        // TODO(#1255): … except they may have become muted or not.
-        //   We'll handle that at the same time as we handle muting itself changing.
         // Recipient headers, and downstream of those, may change, though.
         _messagesMovedInternally(messageIds);
 
@@ -1255,9 +1260,34 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case ChannelNarrow(:final streamId):
         switch ((origStreamId == streamId, newStreamId == streamId)) {
           case (false, false): return;
-          case (true,  true ): _messagesMovedInternally(messageIds);
-          case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false): _messagesMovedFromNarrow(messageIds);
+
+          case (true,  true ):
+            switch(store.messageMoveWillAffectIfTopicVisibleInChannel(messageMove)) {
+              case .unmutedToMuted:   _messagesMovedFromMessageList(messageIds);
+              case .mutedToUnmuted:   _messagesMovedIntoMessageList();
+              case .unmutedToUnmuted: _messagesMovedInternally(messageIds);
+              case .mutedToMuted:     return;
+            }
+
+          case (false, true ):
+            switch (store.messageMoveWillAffectIfTopicVisibleInChannel(messageMove)) {
+              case .unmutedToMuted:
+              case .mutedToMuted:
+                return;
+              case .mutedToUnmuted:
+              case .unmutedToUnmuted:
+                _messagesMovedIntoMessageList();
+            }
+
+          case (true,  false):
+            switch (store.messageMoveWillAffectIfTopicVisibleInChannel(messageMove)) {
+              case .mutedToUnmuted:
+              case .mutedToMuted:
+                return;
+              case .unmutedToMuted:
+              case .unmutedToUnmuted:
+                _messagesMovedFromMessageList(messageIds);
+            }
         }
 
       case TopicNarrow(:final streamId, :final topic):
@@ -1266,9 +1296,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         switch ((oldMatch, newMatch)) {
           case (false, false): return;
           case (true,  true ): return; // TODO(log) no-op move
-          case (false, true ): _messagesMovedIntoNarrow();
+          case (false, true ): _messagesMovedIntoMessageList();
           case (true,  false):
-            _messagesMovedFromNarrow(messageIds);
+            _messagesMovedFromMessageList(messageIds);
             _handlePropagateMode(propagateMode, TopicNarrow(newStreamId, newTopic));
         }
     }

@@ -257,28 +257,28 @@ void main() {
       });
     });
 
-    group('isTopicVisible/InStream', () {
-      test('with policy none, stream not muted', () async {
+    group('isTopicVisible/InChannel', () {
+      test('with policy none, channel not muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isTrue();
       });
 
-      test('with policy none, stream muted', () async {
+      test('with policy none, channel muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isFalse();
       });
 
-      test('with policy none, stream unsubscribed', () async {
+      test('with policy none, channel unsubscribed', () async {
         final store = eg.store();
         await store.addStream(stream1);
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isFalse();
       });
 
       test('with policy muted', () async {
@@ -286,12 +286,12 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isFalse();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isFalse();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isFalse();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isFalse();
 
         // Case-insensitive
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('ToPiC'))).isFalse();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('ToPiC'))).isFalse();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('ToPiC'))).isFalse();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('ToPiC'))).isFalse();
       });
 
       test('with policy unmuted', () async {
@@ -299,12 +299,12 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.unmuted);
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isTrue();
 
         // Case-insensitive
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('tOpIc'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('tOpIc'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('tOpIc'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('tOpIc'))).isTrue();
       });
 
       test('with policy followed', () async {
@@ -312,16 +312,16 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('topic'))).isTrue();
 
         // Case-insensitive
-        check(store.isTopicVisibleInStream(stream1.streamId, eg.t('TOPIC'))).isTrue();
-        check(store.isTopicVisible        (stream1.streamId, eg.t('TOPIC'))).isTrue();
+        check(store.isTopicVisibleInChannel(stream1.streamId, eg.t('TOPIC'))).isTrue();
+        check(store.isTopicVisible         (stream1.streamId, eg.t('TOPIC'))).isTrue();
       });
     });
 
-    group('willChangeIfTopicVisible/InStream', () {
+    group('topicEventWillAffectIfTopicVisible/InChannel', () {
       UserTopicEvent mkEvent(UserTopicVisibilityPolicy policy) =>
         eg.userTopicEvent(stream1.streamId, 'topic', policy);
 
@@ -339,18 +339,18 @@ void main() {
 
       void checkChanges(PerAccountStore store,
           UserTopicVisibilityPolicy newPolicy,
-          UserTopicVisibilityEffect expectedInStream,
+          UserTopicVisibilityEffect expectedInChannel,
           UserTopicVisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
-        check(store.willChangeIfTopicVisibleInStream(event)).equals(expectedInStream);
-        check(store.willChangeIfTopicVisible        (event)).equals(expectedOverall);
+        check(store.topicEventWillAffectIfTopicVisibleInChannel(event)).equals(expectedInChannel);
+        check(store.topicEventWillAffectIfTopicVisible         (event)).equals(expectedOverall);
 
         final event2 = mkEventDifferentlyCased(newPolicy);
-        check(store.willChangeIfTopicVisibleInStream(event2)).equals(expectedInStream);
-        check(store.willChangeIfTopicVisible        (event2)).equals(expectedOverall);
+        check(store.topicEventWillAffectIfTopicVisibleInChannel(event2)).equals(expectedInChannel);
+        check(store.topicEventWillAffectIfTopicVisible         (event2)).equals(expectedOverall);
       }
 
-      test('stream not muted, policy none -> followed, no change', () async {
+      test('channel not muted, policy none -> followed, no change', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
@@ -358,7 +358,7 @@ void main() {
           UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.none);
       });
 
-      test('stream not muted, policy none -> muted, means muted', () async {
+      test('channel not muted, policy none -> muted, means muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
@@ -366,7 +366,7 @@ void main() {
           UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.muted);
       });
 
-      test('stream muted, policy none -> followed, means none/unmuted', () async {
+      test('channel muted, policy none -> followed, means none/unmuted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
@@ -374,7 +374,7 @@ void main() {
           UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.unmuted);
       });
 
-      test('stream muted, policy none -> muted, means muted/none', () async {
+      test('channel muted, policy none -> muted, means muted/none', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
@@ -387,46 +387,169 @@ void main() {
         UserTopicVisibilityPolicy.none,
         UserTopicVisibilityPolicy.unmuted,
       ];
-      for (final streamMuted in [null, false, true]) {
+      for (final channelMuted in [null, false, true]) {
         for (final oldPolicy in policies) {
           for (final newPolicy in policies) {
-            final streamDesc = switch (streamMuted) {
-              false => "stream not muted",
-              true => "stream muted",
-              null => "stream unsubscribed",
+            final channelDesc = switch (channelMuted) {
+              false => "channel not muted",
+              true => "channel muted",
+              null => "channel unsubscribed",
             };
-            test('$streamDesc, topic ${oldPolicy.name} -> ${newPolicy.name}', () async {
+            test('$channelDesc, topic ${oldPolicy.name} -> ${newPolicy.name}', () async {
               final store = eg.store();
               await store.addStream(stream1);
-              if (streamMuted != null) {
+              if (channelMuted != null) {
                 await store.addSubscription(
-                  eg.subscription(stream1, isMuted: streamMuted));
+                  eg.subscription(stream1, isMuted: channelMuted));
               }
               await store.handleEvent(mkEvent(oldPolicy));
-              final oldVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'));
-              final oldVisible         = store.isTopicVisible(stream1.streamId, eg.t('topic'));
+              final oldVisibleInChannel = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
+              final oldVisible          = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               final event = mkEvent(newPolicy);
-              final willChangeInStream = store.willChangeIfTopicVisibleInStream(event);
-              final willChange         = store.willChangeIfTopicVisible(event);
+              final willAffectInChannel = store.topicEventWillAffectIfTopicVisibleInChannel(event);
+              final willAffect          = store.topicEventWillAffectIfTopicVisible(event);
 
               await store.handleEvent(event);
-              final newVisibleInStream = store.isTopicVisibleInStream(stream1.streamId, eg.t('topic'));
-              final newVisible         = store.isTopicVisible(stream1.streamId, eg.t('topic'));
+              final newVisibleInChannel = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
+              final newVisible          = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               UserTopicVisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
                 if (newVisible == oldVisible) return UserTopicVisibilityEffect.none;
                 if (newVisible) return UserTopicVisibilityEffect.unmuted;
                 return UserTopicVisibilityEffect.muted;
               }
-              check(willChangeInStream)
-                .equals(fromOldNew(oldVisibleInStream, newVisibleInStream));
-              check(willChange)
+              check(willAffectInChannel)
+                .equals(fromOldNew(oldVisibleInChannel, newVisibleInChannel));
+              check(willAffect)
                 .equals(fromOldNew(oldVisible,         newVisible));
             });
           }
         }
       }
+    });
+
+    group('messageMoveWillAffectIfTopicVisible/InChannel', () {
+      UpdateMessageMoveData mkMsgMove({
+        required int origChannelId, required int newChannelId,
+        required TopicName origTopic, required TopicName newTopic,
+      }) {
+        return UpdateMessageMoveData(origStreamId: origChannelId, newStreamId: newChannelId,
+          origTopic: origTopic, newTopic: newTopic, propagateMode: .changeAll);
+      }
+
+      MessageMoveVisibilityEffect fromOrigNew(bool origVisible, bool newVisible) {
+        if (newVisible == origVisible) {
+          return newVisible ? .unmutedToUnmuted : .mutedToMuted;
+        }
+        if (newVisible) return .mutedToUnmuted;
+        return .unmutedToMuted;
+      }
+
+      group('cross-topic moves', () {
+        final channel = eg.stream();
+        final origTopic = eg.t('orig');
+        final newTopic = eg.t('new');
+
+        final policies = <UserTopicVisibilityPolicy>[.muted, .none, .unmuted, .followed];
+        for (final channelMuted in [null, false, true]) {
+          for (final origTopicPolicy in policies) {
+            for (final newTopicPolicy in policies) {
+              final channelDesc = switch (channelMuted) {
+                false => "channel not muted",
+                true => "channel muted",
+                null => "channel unsubscribed",
+              };
+              test('$channelDesc, orig topic ${origTopicPolicy.name} -> '
+                  'new topic ${newTopicPolicy.name}', () async {
+                final store = eg.store();
+                await store.addStream(channel);
+                if (channelMuted != null) {
+                  await store.addSubscription(
+                    eg.subscription(channel, isMuted: channelMuted));
+                }
+
+                await store.setUserTopic(channel, origTopic.apiName, origTopicPolicy);
+                final origVisibleInChannel = store.isTopicVisibleInChannel(channel.streamId, origTopic);
+                final origVisible          = store.isTopicVisible(channel.streamId, origTopic);
+
+                await store.setUserTopic(channel, newTopic.apiName, newTopicPolicy);
+                final newVisibleInChannel = store.isTopicVisibleInChannel(channel.streamId, newTopic);
+                final newVisible          = store.isTopicVisible(channel.streamId, newTopic);
+
+                final msgMove = mkMsgMove(
+                  origChannelId: channel.streamId, newChannelId: channel.streamId,
+                  origTopic: origTopic, newTopic: newTopic);
+                final willAffectInChannel = store.messageMoveWillAffectIfTopicVisibleInChannel(msgMove);
+                final willAffect          = store.messageMoveWillAffectIfTopicVisible(msgMove);
+
+                check(willAffectInChannel)
+                  .equals(fromOrigNew(origVisibleInChannel, newVisibleInChannel));
+                check(willAffect)
+                  .equals(fromOrigNew(origVisible,          newVisible));
+              });
+            }
+          }
+        }
+      });
+
+      group('cross-channel moves', () {
+        final origChannel = eg.stream();
+        final newChannel = eg.stream();
+        final origTopic = eg.t('orig');
+        final newTopic = eg.t('new');
+
+        final muteStatuses = [null, false, true];
+        final policies = <UserTopicVisibilityPolicy>[.muted, .none, .unmuted, .followed];
+        for (final origChannelMuted in muteStatuses) {
+          for (final newChannelMuted in muteStatuses) {
+            for (final origTopicPolicy in policies) {
+              for (final newTopicPolicy in policies) {
+                final origChannelDesc = switch (origChannelMuted) {
+                  false => "orig channel not muted",
+                  true => "orig channel muted",
+                  null => "orig channel unsubscribed",
+                };
+                final newChannelDesc = switch (newChannelMuted) {
+                  false => "new channel not muted",
+                  true => "new channel muted",
+                  null => "new channel unsubscribed",
+                };
+                test('$origChannelDesc, orig topic ${origTopicPolicy.name} -> '
+                    '$newChannelDesc, new topic ${newTopicPolicy.name}', () async {
+                  final store = eg.store();
+                  await store.addStreams([origChannel, newChannel]);
+                  await store.addSubscriptions([
+                    if (origChannelMuted != null)
+                      eg.subscription(origChannel, isMuted: origChannelMuted),
+                    if (newChannelMuted != null)
+                      eg.subscription(newChannel, isMuted: newChannelMuted),
+                  ]);
+
+                  await store.setUserTopic(origChannel, origTopic.apiName, origTopicPolicy);
+                  final origVisibleInChannel = store.isTopicVisibleInChannel(origChannel.streamId, origTopic);
+                  final origVisible          = store.isTopicVisible(origChannel.streamId, origTopic);
+
+                  await store.setUserTopic(newChannel, newTopic.apiName, newTopicPolicy);
+                  final newVisibleInChannel = store.isTopicVisibleInChannel(newChannel.streamId, newTopic);
+                  final newVisible          = store.isTopicVisible(newChannel.streamId, newTopic);
+
+                  final msgMove = mkMsgMove(
+                    origChannelId: origChannel.streamId, newChannelId: newChannel.streamId,
+                    origTopic: origTopic, newTopic: newTopic);
+                  final willAffectInChannel = store.messageMoveWillAffectIfTopicVisibleInChannel(msgMove);
+                  final willAffect          = store.messageMoveWillAffectIfTopicVisible(msgMove);
+
+                  check(willAffectInChannel)
+                    .equals(fromOrigNew(origVisibleInChannel, newVisibleInChannel));
+                  check(willAffect)
+                    .equals(fromOrigNew(origVisible,          newVisible));
+                });
+              }
+            }
+          }
+        }
+      });
     });
 
     void compareTopicVisibility(PerAccountStore store, List<UserTopicItem> expected) {
