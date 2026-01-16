@@ -969,7 +969,10 @@ class UserMentionNode extends InlineContainerNode {
   const UserMentionNode({
     super.debugHtmlNode,
     required super.nodes,
+    required this.userId,
   });
+
+  final int? userId;
 
   // For the legacy design, we don't need this information in code; instead,
   // the inner text already shows how to communicate it to the user
@@ -978,6 +981,12 @@ class UserMentionNode extends InlineContainerNode {
   // We'll need these for implementing the post-2023 Zulip design, though.
   //   final UserMentionType mentionType; // TODO(#646)
   //   final bool isSilent; // TODO(#647)
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IntProperty('userId', userId));
+  }
 }
 
 sealed class EmojiNode extends InlineContentNode {
@@ -1120,11 +1129,15 @@ class _ZulipInlineContentParser {
       return null;
     }
 
+    final userIdString = element.attributes['data-user-id'];
+    final userId = (userIdString == null || userIdString == '*') ? null
+      : int.tryParse(userIdString);
+
     // TODO assert UserMentionNode can't contain LinkNode;
     //   either a debug-mode check, or perhaps we can make expectations much
     //   tighter on a UserMentionNode's contents overall.
     final nodes = parseInlineContentList(element.nodes);
-    return UserMentionNode(nodes: nodes, debugHtmlNode: debugHtmlNode);
+    return UserMentionNode(nodes: nodes, debugHtmlNode: debugHtmlNode, userId: userId);
   }
 
   /// The links found so far in the current block inline container.
