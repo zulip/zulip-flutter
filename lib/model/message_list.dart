@@ -765,11 +765,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   UserTopicVisibilityEffect _canAffectVisibility(UserTopicEvent event) {
     switch (narrow) {
       case CombinedFeedNarrow():
-        return store.willChangeIfTopicVisible(event);
+        return store.topicEventWillAffectIfTopicVisible(event);
 
       case ChannelNarrow(:final streamId):
         if (event.streamId != streamId) return UserTopicVisibilityEffect.none;
-        return store.willChangeIfTopicVisibleInChannel(event);
+        return store.topicEventWillAffectIfTopicVisibleInChannel(event);
 
       case TopicNarrow():
       case DmNarrow():
