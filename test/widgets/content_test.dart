@@ -19,6 +19,7 @@ import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../api/fake_api.dart';
@@ -820,6 +821,54 @@ void main() {
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
     //    expectedWght: 800, // [etc.]
+
+    group('onTap navigates to profile page', () {
+      void userMentionNavigationTest({
+        required String description,
+        required ContentExample example,
+        required int? expectedUserId,
+      }) {
+        testWidgets(description, (tester) async {
+          await prepareContent(tester,
+            plainContent(example.html),
+            wrapWithPerAccountStoreWidget: true);
+
+          await tester.tap(find.byType(UserMention));
+          await tester.pump();
+          await tester.pump();
+
+          final profilePageFinder = find.byType(ProfilePage);
+          if (expectedUserId != null) {
+            check(profilePageFinder).findsOne();
+            final profilePage = tester.widget<ProfilePage>(profilePageFinder);
+            check(profilePage.userId).equals(expectedUserId);
+          } else {
+            check(profilePageFinder).findsNothing();
+          }
+        });
+      }
+
+      userMentionNavigationTest(description: 'tapping on user mention opens profile page',
+        example: ContentExample.userMentionPlain, expectedUserId: 2187);
+      userMentionNavigationTest(description: 'tapping on silent user mention opens profile page',
+        example: ContentExample.userMentionSilent, expectedUserId: 2187);
+      userMentionNavigationTest(description: 'tapping groupMentionPlain does nothing',
+        example: ContentExample.groupMentionPlain, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping groupMentionSilent does nothing',
+        example: ContentExample.groupMentionSilent, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping channelWildcardMentionPlain does nothing',
+        example: ContentExample.channelWildcardMentionPlain, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping channelWildcardMentionSilent does nothing',
+        example: ContentExample.channelWildcardMentionSilent, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping legacyChannelWildcardMentionPlain does nothing',
+        example: ContentExample.legacyChannelWildcardMentionPlain, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping legacyChannelWildcardMentionSilent does nothing',
+        example: ContentExample.legacyChannelWildcardMentionSilent, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping topicMentionPlain does nothing',
+        example: ContentExample.topicMentionPlain, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping topicMentionSilent does nothing',
+        example: ContentExample.topicMentionSilent, expectedUserId: null);
+    });
   });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {

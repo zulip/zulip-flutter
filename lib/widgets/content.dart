@@ -21,6 +21,7 @@ import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
+import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
@@ -1211,7 +1212,7 @@ class _InlineContentBuilder {
 
 const kInlineCodeFontSizeFactor = 0.825;
 
-class UserMention extends StatelessWidget {
+class UserMention extends StatefulWidget {
   const UserMention({
     super.key,
     required this.ambientTextStyle,
@@ -1220,6 +1221,30 @@ class UserMention extends StatelessWidget {
 
   final TextStyle ambientTextStyle;
   final UserMentionNode node;
+
+  @override
+  State<UserMention> createState() => _UserMentionState();
+}
+
+class _UserMentionState extends State<UserMention> {
+  late GestureRecognizer? _recognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _recognizer = switch (widget.node.userId) {
+      null => null,
+      final userId => TapGestureRecognizer()
+        ..onTap = () => Navigator.push(context,
+          ProfilePage.buildRoute(context: context, userId: userId)),
+    };
+  }
+
+  @override
+  void dispose() {
+    _recognizer?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1232,7 +1257,7 @@ class UserMention extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
+        recognizer: _recognizer,
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a UserMentionNode has a TODO to check that.)
         linkRecognizers: null,
@@ -1240,9 +1265,9 @@ class UserMention extends StatelessWidget {
         // TODO(#647) when self-user is non-silently mentioned, make bold, and:
         // TODO(#646) when self-user is non-silently mentioned,
         //   distinguish font color between direct and wildcard mentions
-        style: ambientTextStyle,
+        style: widget.ambientTextStyle,
 
-        nodes: node.nodes));
+        nodes: widget.node.nodes));
   }
 
 // This is a more literal translation of Zulip web's CSS.
