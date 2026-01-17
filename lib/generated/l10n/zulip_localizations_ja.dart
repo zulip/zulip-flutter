@@ -417,6 +417,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorBannerDeactivatedDmLabel => '無効化されたユーザーにはメッセージを送信できません。';
 
   @override
+  String get composeBoxBannerLabelUnknownDmRecipient =>
+      'You cannot send messages to unknown users.';
+
+  @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
       'You cannot send messages here.';
 

@@ -821,6 +821,12 @@ abstract class ZulipLocalizations {
   /// **'You cannot send messages to deactivated users.'**
   String get errorBannerDeactivatedDmLabel;
 
+  /// Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot send messages to unknown users.'**
+  String get composeBoxBannerLabelUnknownDmRecipient;
+
   /// Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason.
   ///
   /// In en, this message translates to:
