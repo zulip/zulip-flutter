@@ -981,19 +981,32 @@ void main() {
   });
 
   group('UserMention', () {
-    testContentSmoke(ContentExample.userMentionPlain);
-    testContentSmoke(ContentExample.userMentionSilent);
-    testContentSmoke(ContentExample.groupMentionPlain);
-    testContentSmoke(ContentExample.groupMentionSilent);
-    testContentSmoke(ContentExample.channelWildcardMentionPlain);
-    testContentSmoke(ContentExample.channelWildcardMentionSilent);
-    testContentSmoke(ContentExample.channelWildcardMentionSilentClassOrderReversed);
-    testContentSmoke(ContentExample.legacyChannelWildcardMentionPlain);
-    testContentSmoke(ContentExample.legacyChannelWildcardMentionSilent);
-    testContentSmoke(ContentExample.legacyChannelWildcardMentionSilentClassOrderReversed);
-    testContentSmoke(ContentExample.topicMentionPlain);
-    testContentSmoke(ContentExample.topicMentionSilent);
-    testContentSmoke(ContentExample.topicMentionSilentClassOrderReversed);
+    testContentSmoke(ContentExample.userMentionPlain,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.userMentionSilent,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.groupMentionPlain,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.groupMentionSilent,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.channelWildcardMentionPlain,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.channelWildcardMentionSilent,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.channelWildcardMentionSilentClassOrderReversed,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.legacyChannelWildcardMentionPlain,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.legacyChannelWildcardMentionSilent,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.legacyChannelWildcardMentionSilentClassOrderReversed,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.topicMentionPlain,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.topicMentionSilent,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.topicMentionSilentClassOrderReversed,
+      wrapWithPerAccountStoreWidget: true);
 
     UserMention? findUserMentionInSpan(InlineSpan rootSpan) {
       UserMention? result;
@@ -1015,6 +1028,7 @@ void main() {
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
       await checkFontSizeRatio(tester,
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
+        wrapWithPerAccountStoreWidget: true,
         targetFontSizeFinder: (rootSpan) {
           final widget = findUserMentionInSpan(rootSpan);
           final style = textStyleFromWidget(tester, widget!, '@Chris Bobbe');
@@ -1027,6 +1041,7 @@ void main() {
       // @_**Greg Price**
       content: plainContent(
         '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>'),
+      wrapWithPerAccountStoreWidget: true,
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
           tester.widget(find.byType(UserMention)), 'Greg Price');
@@ -1041,6 +1056,7 @@ void main() {
       // # @_**Chris Bobbe**
       content: plainContent(
         '<h1><span class="user-mention silent" data-user-id="13313">Chris Bobbe</span></h1>'),
+      wrapWithPerAccountStoreWidget: true,
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
           tester.widget(find.byType(UserMention)), 'Chris Bobbe');
@@ -1049,6 +1065,52 @@ void main() {
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
     //    expectedWght: 800, // [etc.]
+
+    group('dynamic name resolution', () {
+      Future<void> prepare({
+        required WidgetTester tester,
+        required String html,
+        List<User>? users,
+      }) async {
+        final initialSnapshot = eg.initialSnapshot(realmUsers: users);
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          initialSnapshot: initialSnapshot,
+          plainContent(html));
+      }
+
+      testWidgets('resolves current user name from store', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-mention" data-user-id="123">@Old Name</span></p>',
+          users: [eg.selfUser, eg.user(userId: 123, fullName: 'New Name')]);
+        check(find.text('@New Name')).findsOne();
+        check(find.text('@Old Name')).findsNothing();
+      });
+
+      testWidgets('falls back to original text when user not found', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-mention" data-user-id="999">@Unknown User</span></p>');
+        check(find.text('@Unknown User')).findsOne();
+      });
+
+      testWidgets('falls back to original text when userId is null', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-mention channel-wildcard-mention" data-user-id="*">@all</span></p>');
+        check(find.text('@all')).findsOne();
+      });
+
+      testWidgets('handles silent mentions correctly', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-mention silent" data-user-id="123">Old Name</span></p>',
+          users: [eg.selfUser, eg.user(userId: 123, fullName: 'New Name')]);
+        check(find.text('New Name')).findsOne();
+        check(find.text('@New Name')).findsNothing();
+      });
+    });
   });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {

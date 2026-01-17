@@ -1194,7 +1194,15 @@ class UserMention extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
+    var nodes = node.nodes;
+    if (node.userId case final userId?) {
+      final user = store.getUser(userId);
+      if (user case User(:final fullName)) {
+        nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
+      }
+    }
     return Container(
       decoration: BoxDecoration(
         // TODO(#646) different for wildcard mentions
@@ -1213,7 +1221,7 @@ class UserMention extends StatelessWidget {
         //   distinguish font color between direct and wildcard mentions
         style: ambientTextStyle,
 
-        nodes: node.nodes));
+        nodes: nodes));
   }
 
 // This is a more literal translation of Zulip web's CSS.
