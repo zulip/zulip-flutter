@@ -820,6 +820,44 @@ void main() {
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
     //    expectedWght: 800, // [etc.]
+
+    group('dynamic name resolution', () {
+      Future<void> prepare({
+        required WidgetTester tester, 
+        required String html,
+        List<User>? users,
+      }) async {
+        final initialSnapshot = users != null
+          ? eg.initialSnapshot(realmUsers: users)
+          : eg.initialSnapshot();
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          initialSnapshot: initialSnapshot,
+          plainContent(html));
+      }
+      testWidgets('resolves current user name from store', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-mention" data-user-id="123">@Old Name</span></p>',
+          users: [eg.selfUser, eg.user(userId: 123, fullName: 'New Name')]);
+        check(find.text('@New Name')).findsOne();
+        check(find.text('@Old Name')).findsNothing();
+      });
+      testWidgets('falls back to original text when user not found', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-mention" data-user-id="999">@Unknown User</span></p>');
+        check(find.text('@Unknown User')).findsOne();
+      });
+      testWidgets('handles silent mentions correctly', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-mention silent" data-user-id="123">Old Name</span></p>',
+          users: [eg.selfUser, eg.user(userId: 123, fullName: 'New Name')]);
+        check(find.text('New Name')).findsOne();
+        check(find.text('@New Name')).findsNothing();
+      });
+    });
   });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {
