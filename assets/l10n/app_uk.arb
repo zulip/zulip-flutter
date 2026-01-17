@@ -387,7 +387,7 @@
   "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
-  "@errorBannerDeactivatedDmLabel": {
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
@@ -1436,7 +1436,7 @@
   "errorAccountLoggedIn": "Обліковий запис {email} на {server} уже є у вашому списку облікових записів.",
   "errorAccountLoggedInTitle": "В обліковий запис уже ввійшли",
   "composeBoxBannerLabelCannotSendInChannel": "Ви не маєте дозволу на публікацію в цьому каналі.",
-  "errorBannerDeactivatedDmLabel": "Ви не можете надсилати повідомлення деактивованим користувачам.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Ви не можете надсилати повідомлення деактивованим користувачам.",
   "errorConnectingToServerDetails": "Помилка підключення до Zulip на {serverUrl}. Буде повторена спроба:\n\n{error}",
   "errorConnectingToServerShort": "Помилка підключення до Zulip. Повторна спроба…",
   "errorContentNotInsertedTitle": "Вміст не вставлено",

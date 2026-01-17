@@ -815,11 +815,11 @@ abstract class ZulipLocalizations {
   /// **'Channel link copied'**
   String get successChannelLinkCopied;
 
-  /// Label text for error banner when sending a message to one or multiple deactivated users.
+  /// Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deactivated.
   ///
   /// In en, this message translates to:
   /// **'You cannot send messages to deactivated users.'**
-  String get errorBannerDeactivatedDmLabel;
+  String get composeBoxBannerLabelDeactivatedDmRecipient;
 
   /// Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown.
   ///

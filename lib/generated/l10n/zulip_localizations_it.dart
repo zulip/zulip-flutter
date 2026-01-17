@@ -433,7 +433,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get successChannelLinkCopied => 'Channel link copied';
 
   @override
-  String get errorBannerDeactivatedDmLabel =>
+  String get composeBoxBannerLabelDeactivatedDmRecipient =>
       'Non è possibile inviare messaggi agli utenti disattivati.';
 
   @override

@@ -183,7 +183,7 @@
   "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
-  "@errorBannerDeactivatedDmLabel": {
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
@@ -710,7 +710,7 @@
   "errorAccountLoggedIn": "Le compte {email} at {server} figure déjà dans votre liste de comptes.",
   "errorAccountLoggedInTitle": "Vous êtes déjà connecté à ce compte.",
   "composeBoxBannerLabelCannotSendInChannel": "Vous n'avez pas l'autorisation de poster sur ce canal.",
-  "errorBannerDeactivatedDmLabel": "Vous ne pouvez pas envoyer de messages aux utilisateurs désactivés.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Vous ne pouvez pas envoyer de messages aux utilisateurs désactivés.",
   "errorConnectingToServerDetails": "Une erreur s'est produite lors de la connexion à Zulip sur {serverUrl}. Nouvelle tentative imminente :\n\n{error}",
   "errorConnectingToServerShort": "Une erreur s'est produite lors de la connexion au serveur. Nouvelle tentative en cours…",
   "errorCopyingFailed": "Échec de la copie",

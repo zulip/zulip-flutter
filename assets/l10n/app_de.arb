@@ -324,7 +324,7 @@
   "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
-  "@errorBannerDeactivatedDmLabel": {
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
@@ -1349,7 +1349,7 @@
   "errorAccountLoggedIn": "Der Account {email} auf {server} ist bereits in deiner Account-Liste.",
   "errorAccountLoggedInTitle": "Account bereits angemeldet",
   "composeBoxBannerLabelCannotSendInChannel": "Du hast keine Berechtigung in diesen Kanal zu schreiben.",
-  "errorBannerDeactivatedDmLabel": "Du kannst keine Nachrichten an deaktivierte Nutzer:innen senden.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Du kannst keine Nachrichten an deaktivierte Nutzer:innen senden.",
   "errorConnectingToServerDetails": "Fehler beim Verbinden mit Zulip auf {serverUrl}. Wird wiederholt:\n\n{error}",
   "errorConnectingToServerShort": "Fehler beim Verbinden mit Zulip. Wiederhole…",
   "errorContentNotInsertedTitle": "Inhalt nicht eingefügt",

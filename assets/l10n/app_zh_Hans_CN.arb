@@ -300,7 +300,7 @@
   "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
-  "@errorBannerDeactivatedDmLabel": {
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
@@ -1299,7 +1299,7 @@
   "errorAccountLoggedIn": "在 {server} 的账号 {email} 已经在您的账号列表了。",
   "errorAccountLoggedInTitle": "已经登入该账号",
   "composeBoxBannerLabelCannotSendInChannel": "您没有足够的权限在此频道发送消息。",
-  "errorBannerDeactivatedDmLabel": "您不能向被停用的用户发送消息。",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "您不能向被停用的用户发送消息。",
   "errorConnectingToServerDetails": "未能连接到在 {serverUrl} 的 Zulip 服务器。即将重连：\n\n{error}",
   "errorConnectingToServerShort": "未能连接到 Zulip. 重试中…",
   "errorContentNotInsertedTitle": "未插入内容",
