@@ -437,6 +437,10 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Non è possibile inviare messaggi agli utenti disattivati.';
 
   @override
+  String get composeBoxBannerLabelUnknownDmRecipient =>
+      'You cannot send messages to unknown users.';
+
+  @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
       'You cannot send messages here.';
 

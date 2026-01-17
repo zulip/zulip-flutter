@@ -2269,6 +2269,13 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
             intent: _BannerIntent.info,
             label: zulipLocalizations.errorBannerDeactivatedDmLabel);
         }
+        final hasUnknownUser = otherRecipientIds.any((id) =>
+          store.getUser(id) == null);
+        if (hasUnknownUser) {
+          return _Banner(
+            intent: _BannerIntent.info,
+            label: zulipLocalizations.composeBoxBannerLabelUnknownDmRecipient);
+        }
 
       case CombinedFeedNarrow():
       case MentionsNarrow():

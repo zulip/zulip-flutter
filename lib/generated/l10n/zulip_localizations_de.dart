@@ -443,6 +443,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Du kannst keine Nachrichten an deaktivierte Nutzer:innen senden.';
 
   @override
+  String get composeBoxBannerLabelUnknownDmRecipient =>
+      'You cannot send messages to unknown users.';
+
+  @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
       'You cannot send messages here.';
 

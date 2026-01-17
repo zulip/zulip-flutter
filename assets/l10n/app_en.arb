@@ -502,6 +502,10 @@
   "@errorBannerDeactivatedDmLabel": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
+  "composeBoxBannerLabelUnknownDmRecipient": "You cannot send messages to unknown users.",
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
   "composeBoxBannerLabelCannotSendUnspecifiedReason": "You cannot send messages here.",
   "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
     "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
