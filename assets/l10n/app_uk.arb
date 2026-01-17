@@ -1060,6 +1060,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "@shareChooseAccountModalTitle": {
+    "description": "Title for the modal bottom sheet about selecting an account to share content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1593,6 +1596,7 @@
   "serverUrlValidationErrorUnsupportedScheme": "URL-адреса сервера має починатися з http:// або https://.",
   "setStatusPageTitle": "Встановити статус",
   "settingsPageTitle": "Налаштування",
+  "shareChooseAccountModalTitle": "Виберіть обліковий запис",
   "signInWithFoo": "Увійти з {method}",
   "snackBarDetails": "Деталі",
   "spoilerDefaultHeaderText": "Спойлер",
