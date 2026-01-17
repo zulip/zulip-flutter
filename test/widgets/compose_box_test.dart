@@ -1576,13 +1576,13 @@ void main() {
       void testRefreshSubscribeButtons({required Narrow narrow}) {
         testWidgets('Refresh/Subscribe buttons when cannot send and channel unsubscribed, $narrow', (tester) async {
           final channel = eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.administrators);
+            canSendMessageGroup: eg.groupSetting(members: []));
           final messages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i,
             stream: channel, topic: topicNarrow.topic.apiName));
 
           await prepareComposeBox(tester,
             narrow: ChannelNarrow(channel.streamId),
-            selfUser: eg.user(role: UserRole.member),
+            selfUser: eg.selfUser,
             streams: [channel],
             subscriptions: [],
             messages: messages);
