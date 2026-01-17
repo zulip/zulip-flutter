@@ -1402,7 +1402,7 @@ void main() {
 
     group('in DMs with deactivated users', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
-        bannerLabel: zulipLocalizations.errorBannerDeactivatedDmLabel);
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelDeactivatedDmRecipient);
 
       Future<void> changeUserStatus(WidgetTester tester,
           {required User user, required bool isActive}) async {

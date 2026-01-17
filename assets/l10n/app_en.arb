@@ -498,9 +498,9 @@
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
   },
-  "errorBannerDeactivatedDmLabel": "You cannot send messages to deactivated users.",
-  "@errorBannerDeactivatedDmLabel": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  "composeBoxBannerLabelDeactivatedDmRecipient": "You cannot send messages to deactivated users.",
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deactivated."
   },
   "composeBoxBannerLabelUnknownDmRecipient": "You cannot send messages to unknown users.",
   "@composeBoxBannerLabelUnknownDmRecipient": {

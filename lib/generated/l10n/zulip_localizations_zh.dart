@@ -422,7 +422,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get successChannelLinkCopied => 'Channel link copied';
 
   @override
-  String get errorBannerDeactivatedDmLabel =>
+  String get composeBoxBannerLabelDeactivatedDmRecipient =>
       'You cannot send messages to deactivated users.';
 
   @override
@@ -1651,9 +1651,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get successChannelLinkCopied => '频道链接已复制';
 
   @override
-  String get errorBannerDeactivatedDmLabel => '您不能向被停用的用户发送消息。';
-
-  @override
   String get composeBoxBannerLabelEditMessage => '编辑消息';
 
   @override
@@ -2743,9 +2740,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get successChannelLinkCopied => '頻道連結已複製';
-
-  @override
-  String get errorBannerDeactivatedDmLabel => '您無法向已停用的使用者發送訊息。';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend => '新訊息將不會自動顯示。';
