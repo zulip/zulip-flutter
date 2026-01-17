@@ -263,7 +263,6 @@ class PollNewOptionEventSubmessage extends PollEventSubmessage {
 
   PollNewOptionEventSubmessage({required this.option, required this.idx});
 
-  @override
   factory PollNewOptionEventSubmessage.fromJson(Map<String, Object?> json) =>
     _$PollNewOptionEventSubmessageFromJson(json);
 
@@ -284,7 +283,6 @@ class PollQuestionEventSubmessage extends PollEventSubmessage {
 
   PollQuestionEventSubmessage({required this.question});
 
-  @override
   factory PollQuestionEventSubmessage.fromJson(Map<String, Object?> json) =>
     _$PollQuestionEventSubmessageFromJson(json);
 
@@ -310,7 +308,6 @@ class PollVoteEventSubmessage extends PollEventSubmessage {
 
   PollVoteEventSubmessage({required this.key, required this.op});
 
-  @override
   factory PollVoteEventSubmessage.fromJson(Map<String, Object?> json) {
     final result = _$PollVoteEventSubmessageFromJson(json);
     // Crunchy-shell validation
