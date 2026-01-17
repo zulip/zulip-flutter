@@ -209,9 +209,11 @@ void main() {
     });
 
     testWidgets('DmNarrow, empty fetch', (tester) async {
+      final user = eg.user();
       await prepareComposeBox(tester,
         selfUser: eg.selfUser,
-        narrow: DmNarrow.withUser(eg.user().userId, selfUserId: eg.selfUser.userId),
+        otherUsers: [user],
+        narrow: DmNarrow.withUser(user.userId, selfUserId: eg.selfUser.userId),
         messages: []);
       check(controller).isNotNull().contentFocusNode.hasFocus.isTrue();
     });
@@ -785,7 +787,7 @@ void main() {
     testWidgets('smoke DmNarrow', (tester) async {
       final narrow = DmNarrow.withUsers(
         [eg.otherUser.userId], selfUserId: eg.selfUser.userId);
-      await prepareComposeBox(tester, narrow: narrow);
+      await prepareComposeBox(tester, narrow: narrow, otherUsers: [eg.otherUser]);
 
       await checkStartTyping(tester, narrow);
 
@@ -2043,6 +2045,7 @@ void main() {
       addTearDown(MessageStoreImpl.debugReset);
       await prepareComposeBox(tester,
         narrow: narrow,
+        otherUsers: [eg.otherUser],
         subscriptions: [eg.subscription(channel)]);
       await store.addMessages([message, dmMessage]);
       await tester.pump(); // message list updates
