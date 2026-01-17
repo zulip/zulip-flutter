@@ -209,9 +209,11 @@ void main() {
     });
 
     testWidgets('DmNarrow, empty fetch', (tester) async {
+      final user = eg.user();
       await prepareComposeBox(tester,
         selfUser: eg.selfUser,
-        narrow: DmNarrow.withUser(eg.user().userId, selfUserId: eg.selfUser.userId),
+        otherUsers: [user],
+        narrow: DmNarrow.withUser(user.userId, selfUserId: eg.selfUser.userId),
         messages: []);
       check(controller).isNotNull().contentFocusNode.hasFocus.isTrue();
     });
@@ -785,7 +787,7 @@ void main() {
     testWidgets('smoke DmNarrow', (tester) async {
       final narrow = DmNarrow.withUsers(
         [eg.otherUser.userId], selfUserId: eg.selfUser.userId);
-      await prepareComposeBox(tester, narrow: narrow);
+      await prepareComposeBox(tester, narrow: narrow, otherUsers: [eg.otherUser]);
 
       await checkStartTyping(tester, narrow);
 
@@ -1400,7 +1402,7 @@ void main() {
 
     group('in DMs with deactivated users', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
-        bannerLabel: zulipLocalizations.errorBannerDeactivatedDmLabel);
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelDeactivatedDmRecipient);
 
       Future<void> changeUserStatus(WidgetTester tester,
           {required User user, required bool isActive}) async {
@@ -1481,9 +1483,35 @@ void main() {
       });
     });
 
+    testWidgets('channel without content access (channel narrow)', (tester) async {
+      final channel = eg.stream(
+        inviteOnly: true,
+        canSubscribeGroup: GroupSettingValueNamed(eg.nobodyGroup.id),
+        canAddSubscribersGroup: GroupSettingValueNamed(eg.nobodyGroup.id));
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        streams: [channel],
+        subscriptions: []);
+      checkComposeBoxIsShown(false,
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelCannotSendUnspecifiedReason);
+    });
+
+    testWidgets('channel without content access (topic narrow)', (tester) async {
+      final channel = eg.stream(
+        inviteOnly: true,
+        canSubscribeGroup: GroupSettingValueNamed(eg.nobodyGroup.id),
+        canAddSubscribersGroup: GroupSettingValueNamed(eg.nobodyGroup.id));
+      await prepareComposeBox(tester,
+        narrow: eg.topicNarrow(channel.streamId, 'some topic'),
+        streams: [channel],
+        subscriptions: []);
+      checkComposeBoxIsShown(false,
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelCannotSendUnspecifiedReason);
+    });
+
     group('in channel/topic narrow according to channel post policy', () {
       void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
-        bannerLabel: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelCannotSendInChannel);
 
       const channelNarrow = ChannelNarrow(1);
       final topicNarrow = eg.topicNarrow(1, 'topic');
@@ -1510,7 +1538,7 @@ void main() {
             subscriptions: isChannelSubscribed ? [eg.subscription(channel)] : []);
           checkComposeBoxIsShown(expected,
             bannerLabel: isChannelSubscribed
-              ? zulipLocalizations.errorBannerCannotPostInChannelLabel
+              ? zulipLocalizations.composeBoxBannerLabelCannotSendInChannel
               : zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
         });
       }
@@ -1545,21 +1573,25 @@ void main() {
         canSend: false,
         expected: false);
 
-      void testRefreshSubscribeButtons({required Narrow narrow}) {
-        testWidgets('Refresh/Subscribe buttons when cannot send and channel unsubscribed, $narrow', (tester) async {
+      void testRefreshSubscribeButtons({required Narrow narrow, required bool canSendMessages}) {
+        testWidgets('Refresh/Subscribe buttons; ${canSendMessages ? 'with' : 'without'} send-message permission; $narrow', (tester) async {
           final channel = eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.administrators);
+            canSendMessageGroup: canSendMessages
+              ? eg.groupSetting(members: [eg.selfUser.userId])
+              : eg.groupSetting(members: []));
           final messages = List.generate(100, (i) => eg.streamMessage(id: 1000 + i,
             stream: channel, topic: topicNarrow.topic.apiName));
 
           await prepareComposeBox(tester,
             narrow: ChannelNarrow(channel.streamId),
-            selfUser: eg.user(role: UserRole.member),
+            selfUser: eg.selfUser,
             streams: [channel],
             subscriptions: [],
             messages: messages);
-          checkComposeBoxIsShown(false,
-            bannerLabel: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
+          checkComposeBoxParts(areShown: canSendMessages);
+          checkBannerWithLabel(isShown: true, canSendMessages
+            ? zulipLocalizations.composeBoxBannerLabelUnsubscribed
+            : zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
           final model = MessageListPage.ancestorOf(state.context).model!;
           check(model)
             ..fetched.isTrue()..messages.length.equals(100);
@@ -1601,8 +1633,10 @@ void main() {
         });
       }
 
-      testRefreshSubscribeButtons(narrow: channelNarrow);
-      testRefreshSubscribeButtons(narrow: topicNarrow);
+      testRefreshSubscribeButtons(narrow: channelNarrow, canSendMessages: false);
+      testRefreshSubscribeButtons(narrow: topicNarrow, canSendMessages: false);
+      testRefreshSubscribeButtons(narrow: channelNarrow, canSendMessages: true);
+      testRefreshSubscribeButtons(narrow: topicNarrow, canSendMessages: true);
 
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: UserRole.administrator);
@@ -2017,6 +2051,7 @@ void main() {
       addTearDown(MessageStoreImpl.debugReset);
       await prepareComposeBox(tester,
         narrow: narrow,
+        otherUsers: [eg.otherUser],
         subscriptions: [eg.subscription(channel)]);
       await store.addMessages([message, dmMessage]);
       await tester.pump(); // message list updates

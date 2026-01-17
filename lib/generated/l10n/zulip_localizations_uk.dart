@@ -436,12 +436,24 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get successChannelLinkCopied => 'Посилання на канал скопійовано';
 
   @override
-  String get errorBannerDeactivatedDmLabel =>
-      'Ви не можете надсилати повідомлення деактивованим користувачам.';
+  String get composeBoxBannerLabelDeactivatedDmRecipient =>
+      'You cannot send messages to deactivated users.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel =>
-      'Ви не маєте дозволу на публікацію в цьому каналі.';
+  String get composeBoxBannerLabelUnknownDmRecipient =>
+      'You cannot send messages to unknown users.';
+
+  @override
+  String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
+      'You cannot send messages here.';
+
+  @override
+  String get composeBoxBannerLabelCannotSendInChannel =>
+      'You do not have permission to post in this channel.';
+
+  @override
+  String get composeBoxBannerLabelUnsubscribed =>
+      'Replies to your messages will not appear automatically.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>

@@ -498,13 +498,25 @@
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
   },
-  "errorBannerDeactivatedDmLabel": "You cannot send messages to deactivated users.",
-  "@errorBannerDeactivatedDmLabel": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  "composeBoxBannerLabelDeactivatedDmRecipient": "You cannot send messages to deactivated users.",
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deactivated."
   },
-  "errorBannerCannotPostInChannelLabel": "You do not have permission to post in this channel.",
-  "@errorBannerCannotPostInChannelLabel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  "composeBoxBannerLabelUnknownDmRecipient": "You cannot send messages to unknown users.",
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "You cannot send messages here.",
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
+  },
+  "composeBoxBannerLabelCannotSendInChannel": "You do not have permission to post in this channel.",
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Label text for a banner replacing the compose box when you do not have permission to send messages in the channel."
+  },
+  "composeBoxBannerLabelUnsubscribed": "Replies to your messages will not appear automatically.",
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
   },
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "New messages will not appear automatically.",
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {

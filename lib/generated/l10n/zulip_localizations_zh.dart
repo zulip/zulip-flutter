@@ -422,12 +422,24 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get successChannelLinkCopied => 'Channel link copied';
 
   @override
-  String get errorBannerDeactivatedDmLabel =>
+  String get composeBoxBannerLabelDeactivatedDmRecipient =>
       'You cannot send messages to deactivated users.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel =>
+  String get composeBoxBannerLabelUnknownDmRecipient =>
+      'You cannot send messages to unknown users.';
+
+  @override
+  String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
+      'You cannot send messages here.';
+
+  @override
+  String get composeBoxBannerLabelCannotSendInChannel =>
       'You do not have permission to post in this channel.';
+
+  @override
+  String get composeBoxBannerLabelUnsubscribed =>
+      'Replies to your messages will not appear automatically.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
@@ -1643,12 +1655,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get successChannelLinkCopied => '频道链接已复制';
 
   @override
-  String get errorBannerDeactivatedDmLabel => '您不能向被停用的用户发送消息。';
-
-  @override
-  String get errorBannerCannotPostInChannelLabel => '您没有足够的权限在此频道发送消息。';
-
-  @override
   String get composeBoxBannerLabelEditMessage => '编辑消息';
 
   @override
@@ -2738,12 +2744,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get successChannelLinkCopied => '頻道連結已複製';
-
-  @override
-  String get errorBannerDeactivatedDmLabel => '您無法向已停用的使用者發送訊息。';
-
-  @override
-  String get errorBannerCannotPostInChannelLabel => '您沒有權限在此頻道發佈訊息。';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend => '新訊息將不會自動顯示。';
