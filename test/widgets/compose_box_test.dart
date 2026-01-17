@@ -1586,8 +1586,9 @@ void main() {
             streams: [channel],
             subscriptions: [],
             messages: messages);
-          checkComposeBoxIsShown(false,
-            bannerLabel: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
+          checkComposeBoxParts(areShown: false);
+          checkBannerWithLabel(isShown: true,
+            zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
           final model = MessageListPage.ancestorOf(state.context).model!;
           check(model)
             ..fetched.isTrue()..messages.length.equals(100);
