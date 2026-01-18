@@ -1178,6 +1178,40 @@ void main() {
         check(controller!.content.text)
           .equals('[Join video call.](https://zoom.us/j/1234567890?pwd=abcdef)\n\n');
       });
+    });
+
+    group('add voice call link', () {
+      testWidgets('jitsi success', (tester) async {
+        await prepare(tester);
+        connection.prepare();
+
+        await tester.tap(find.byIcon(ZulipIcons.voice));
+        await tester.pump();
+        check(controller!.content.text)
+          ..startsWith('[Join voice call.](https://meet.jit.si')
+          ..endsWith('#config.startWithVideoMuted=true)\n\n');
+      });
+
+      testWidgets('zoom success with token', (tester) async {
+        await prepare(tester, hasZoomToken: true,
+            realmVideoChatProvider: RealmVideoChatProvider.zoomUserOAuth,
+            realmAvailableVideoChatProvider: {
+              'zoom' : RealmAvailableVideoChatProviders(
+                  name: 'zoom',
+                  id: 3)
+            });
+
+        connection.prepare(json: {
+          'result': 'success',
+          'msg': '',
+          'url': 'https://zoom.us/j/1234567890?pwd=abcdef',
+        });
+
+        await tester.tap(find.byIcon(ZulipIcons.voice));
+        await tester.pumpAndSettle();
+        check(controller!.content.text)
+            .equals('[Join voice call.](https://zoom.us/j/1234567890?pwd=abcdef)\n\n');
+      });
 
     });
   });
@@ -1462,6 +1496,7 @@ void main() {
       check(attachButtonFinder(ZulipIcons.image).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(ZulipIcons.camera).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(ZulipIcons.video).evaluate().length).equals(areShown ? 1 : 0);
+      check(attachButtonFinder(ZulipIcons.voice).evaluate().length).equals(areShown ? 1 : 0);
     }
 
     void checkBannerWithLabel(String label, {required bool isShown}) {
