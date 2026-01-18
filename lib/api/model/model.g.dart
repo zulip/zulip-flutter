@@ -26,6 +26,17 @@ Map<String, dynamic> _$GroupSettingValueNamelessToJson(
   'direct_subgroups': instance.directSubgroups,
 };
 
+RealmAvailableVideoChatProviders _$RealmAvailableVideoChatProvidersFromJson(
+  Map<String, dynamic> json,
+) => RealmAvailableVideoChatProviders(
+  name: json['name'] as String,
+  id: (json['id'] as num).toInt(),
+);
+
+Map<String, dynamic> _$RealmAvailableVideoChatProvidersToJson(
+  RealmAvailableVideoChatProviders instance,
+) => <String, dynamic>{'name': instance.name, 'id': instance.id};
+
 CustomProfileField _$CustomProfileFieldFromJson(Map<String, dynamic> json) =>
     CustomProfileField(
       id: (json['id'] as num).toInt(),
