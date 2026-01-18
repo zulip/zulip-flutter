@@ -205,6 +205,9 @@ abstract final class ZulipIcons {
   /// The Zulip custom icon "video".
   static const IconData video = IconData(0xf13b, fontFamily: "Zulip Icons");
 
+  /// The Zulip custom icon "voice".
+  static const IconData voice = IconData(0xf13c, fontFamily: "Zulip Icons");
+
   // END GENERATED ICON DATA
 }
 
