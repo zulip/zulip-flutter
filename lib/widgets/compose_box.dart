@@ -1239,8 +1239,12 @@ class _AddComposeCallUrlButtonState extends State<_AddComposeCallUrlButton> {
     return SizedBox(
       width: _composeButtonSize,
       child: IconButton(
-        icon: Icon(ZulipIcons.video, color: designVariables.foreground.withFadedAlpha(0.5)),
-        tooltip: zulipLocalizations.composeBoxAddVideoCallTooltip,
+        icon: widget.isVideoCall
+          ? Icon(ZulipIcons.video, color: designVariables.foreground.withFadedAlpha(0.5))
+          : Icon(ZulipIcons.voice, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: widget.isVideoCall
+          ? zulipLocalizations.composeBoxAddVideoCallTooltip
+          : zulipLocalizations.composeBoxAddVoiceCallTooltip,
         onPressed: widget.enabled ? () => _handlePress(context) : null));
   }
 }
@@ -1701,6 +1705,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
       _AddComposeCallUrlButton(controller: controller, enabled: composeButtonsEnabled, isVideoCall: true),
+      _AddComposeCallUrlButton(controller: controller, enabled: composeButtonsEnabled, isVideoCall: false),
     ];
 
     final topicInput = buildTopicInput();
