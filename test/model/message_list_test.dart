@@ -1101,7 +1101,7 @@ void main() {
       checkHasMessageIds([1]);
 
       // Dropping from none to muted hides the message
-      // (whereas it'd have no effect in a stream narrow).
+      // (whereas it'd have no effect in the combined feed).
       await setVisibility(UserTopicVisibilityPolicy.muted);
       checkNotifiedOnce();
       checkHasMessageIds([]);
