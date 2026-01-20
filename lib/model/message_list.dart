@@ -1082,12 +1082,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         bool removed = _removeMessagesWhere((message) =>
           message is StreamMessage
             && message.streamId == event.streamId
-            && message.topic == event.topicName);
+            && message.topic.isSameAs(event.topicName));
 
         removed |= _removeOutboxMessagesWhere((message) =>
           message is StreamOutboxMessage
             && message.conversation.streamId == event.streamId
-            && message.conversation.topic == event.topicName);
+            && message.conversation.topic.isSameAs(event.topicName));
 
         if (removed) {
           notifyListeners();
