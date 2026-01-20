@@ -319,6 +319,14 @@ class PigeonEventSink<ReturnType> {
 
 }
 
+/// An event stream that emits a notification payload when the app
+/// encounters a notification tap, while the app is running.
+///
+/// Emits an event when
+/// `userNotificationCenter(_:didReceive:withCompletionHandler:)` gets
+/// called, indicating that the user has tapped on a notification. The
+/// emitted payload will be the raw APNs data dictionary from the
+/// `UNNotificationResponse` passed to that method.
 class NotificationTapEventsStreamHandler: PigeonEventChannelWrapper<NotificationTapEvent> {
   static func register(with messenger: FlutterBinaryMessenger,
                       instanceName: String = "",
