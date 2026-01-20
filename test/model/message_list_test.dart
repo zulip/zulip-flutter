@@ -1011,22 +1011,26 @@ void main() {
       await store.addSubscription(eg.subscription(otherStream));
       await prepareMessages(foundOldest: true, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: 'bar'),
-        eg.streamMessage(id: 2, stream: stream, topic: topic),
-        eg.streamMessage(id: 3, stream: otherStream, topic: 'elsewhere'),
-        eg.dmMessage(    id: 4, from: eg.otherUser, to: [eg.selfUser]),
+        eg.streamMessage(id: 2, stream: stream, topic: 'foo'),
+        eg.streamMessage(id: 3, stream: stream, topic: 'FOO'),
+        eg.streamMessage(id: 4, stream: otherStream, topic: 'elsewhere'),
+        eg.dmMessage(    id: 5, from: eg.otherUser, to: [eg.selfUser]),
       ]);
-      checkHasMessageIds([1, 2, 3, 4]);
+      checkHasMessageIds([1, 2, 3, 4, 5]);
 
       await prepareOutboxMessagesTo([
-        StreamDestination(stream.streamId, eg.t(topic)),
+        StreamDestination(stream.streamId, eg.t('foo')),
+        StreamDestination(stream.streamId, eg.t('FOO')),
         StreamDestination(stream.streamId, eg.t('elsewhere')),
         DmDestination(userIds: [eg.selfUser.userId]),
       ]);
       async.elapse(kLocalEchoDebounceDuration);
-      checkNotified(count: 3);
+      checkNotified(count: 4);
       check(model).outboxMessages.deepEquals(<Condition<Object?>>[
         (it) => it.isA<StreamOutboxMessage>()
-                  .conversation.topic.equals(eg.t(topic)),
+                  .conversation.topic.equals(eg.t('foo')),
+        (it) => it.isA<StreamOutboxMessage>()
+                  .conversation.topic.equals(eg.t('FOO')),
         (it) => it.isA<StreamOutboxMessage>()
                   .conversation.topic.equals(eg.t('elsewhere')),
         (it) => it.isA<DmOutboxMessage>()
@@ -1035,7 +1039,7 @@ void main() {
 
       await setVisibility(UserTopicVisibilityPolicy.muted);
       checkNotifiedOnce();
-      checkHasMessageIds([1, 3, 4]);
+      checkHasMessageIds([1, 4, 5]);
       check(model).outboxMessages.deepEquals(<Condition<Object?>>[
         (it) => it.isA<StreamOutboxMessage>()
                   .conversation.topic.equals(eg.t('elsewhere')),
@@ -1051,10 +1055,11 @@ void main() {
       await prepareOutboxMessagesTo([
         StreamDestination(stream.streamId, eg.t(topic)),
         StreamDestination(stream.streamId, eg.t(topic)),
+        StreamDestination(stream.streamId, eg.t(topic.toUpperCase())),
       ]);
       async.elapse(kLocalEchoDebounceDuration);
-      check(model).outboxMessages.length.equals(2);
-      checkNotified(count: 2);
+      check(model).outboxMessages.length.equals(3);
+      checkNotified(count: 3);
 
       await setVisibility(UserTopicVisibilityPolicy.muted);
       check(model).outboxMessages.isEmpty();
