@@ -1718,17 +1718,23 @@ void main() {
       final narrow = eg.topicNarrow(stream.streamId, 'topic');
       final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
+      final differentlyCasedMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'ToPiC'));
       final otherTopicMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'other topic'));
       final otherChannelMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: otherStream, topic: 'topic'));
 
       group('moved into narrow: should refetch messages', () {
         final testCases = [
-          ('(old channel, topic) -> (channel, topic)',     200,   null),
-          ('(channel, old topic) -> (channel, topic)',     null, 'other'),
-          ('(old channel, old topic) -> (channel, topic)', 200,  'other'),
+          ('(old channel, topic) -> (channel, topic)',
+           origStreamId: 200,  origTopic:  null,   movedMessages: movedMessages),
+          ('(channel, old topic) -> (channel, topic)',
+           origStreamId: null, origTopic: 'other', movedMessages: movedMessages),
+          ('(old channel, old topic) -> (channel, topic)',
+           origStreamId: 200,  origTopic: 'other', movedMessages: movedMessages),
+          ('(channel, old topic) -> (channel, ToPiC)',
+           origStreamId: null, origTopic: 'other', movedMessages: differentlyCasedMovedMessages),
         ];
 
-        for (final (description, origStreamId, origTopic) in testCases) {
+        for (final (description, :origStreamId, :origTopic, :movedMessages) in testCases) {
           test(description, () => awaitFakeAsync((async) async {
             await prepareNarrow(narrow, initialMessages);
 
@@ -1754,12 +1760,17 @@ void main() {
 
       group('moved from narrow: should remove moved messages', () {
         final testCases = [
-          ('(channel, topic) -> (new channel, topic)',     200,   null),
-          ('(channel, topic) -> (channel, new topic)',     null, 'new'),
-          ('(channel, topic) -> (new channel, new topic)', 200,  'new'),
+          ('(channel, topic) -> (new channel, topic)',
+           newStreamId: 200,  newTopic: null,  movedMessages: movedMessages),
+          ('(channel, topic) -> (channel, new topic)',
+           newStreamId: null, newTopic: 'new', movedMessages: movedMessages),
+          ('(channel, topic) -> (new channel, new topic)',
+           newStreamId: 200,  newTopic: 'new', movedMessages: movedMessages),
+          ('(channel, ToPiC) -> (channel, new topic)',
+           newStreamId: null, newTopic: 'new', movedMessages: differentlyCasedMovedMessages),
         ];
 
-        for (final (description, newStreamId, newTopic) in testCases) {
+        for (final (description, :newStreamId, :newTopic, :movedMessages) in testCases) {
           test(description, () async {
             await prepareNarrow(narrow, initialMessages + movedMessages);
 
@@ -1772,6 +1783,30 @@ void main() {
             checkNotifiedOnce();
           });
         }
+      });
+
+      group('moved inside narrow: unaffected', () {
+        test('(channel, topic) -> (channel, ToPiC)', () async {
+          await prepareNarrow(narrow, initialMessages + movedMessages);
+
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: movedMessages,
+            newTopicStr: 'ToPiC',
+          ));
+          checkHasMessages(initialMessages + movedMessages);
+          checkNotifiedOnce();
+        });
+
+        test('(channel, ToPiC) -> (channel, topic)', () async {
+          await prepareNarrow(narrow, initialMessages + differentlyCasedMovedMessages);
+
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: differentlyCasedMovedMessages,
+            newTopicStr: 'topic',
+          ));
+          checkHasMessages(initialMessages + differentlyCasedMovedMessages);
+          checkNotifiedOnce();
+        });
       });
 
       group('irrelevant moves', () {

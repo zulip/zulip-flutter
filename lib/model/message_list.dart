@@ -1261,11 +1261,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         }
 
       case TopicNarrow(:final streamId, :final topic):
-        final oldMatch = (origStreamId == streamId && origTopic == topic);
-        final newMatch = (newStreamId == streamId && newTopic == topic);
+        final oldMatch = (origStreamId == streamId && origTopic.isSameAs(topic));
+        final newMatch = (newStreamId == streamId && newTopic.isSameAs(topic));
         switch ((oldMatch, newMatch)) {
           case (false, false): return;
-          case (true,  true ): return; // TODO(log) no-op move
+          case (true,  true ): return; // TODO(log) when no-op move
           case (false, true ): _messagesMovedIntoNarrow();
           case (true,  false):
             _messagesMovedFromNarrow(messageIds);
