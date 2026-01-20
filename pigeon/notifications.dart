@@ -39,15 +39,15 @@ abstract class NotificationHostApi {
   NotificationDataFromLaunch? getNotificationDataFromLaunch();
 }
 
+/// An event stream that emits a notification payload when the app
+/// encounters a notification tap, while the app is running.
+///
+/// Emits an event when
+/// `userNotificationCenter(_:didReceive:withCompletionHandler:)` gets
+/// called, indicating that the user has tapped on a notification. The
+/// emitted payload will be the raw APNs data dictionary from the
+/// `UNNotificationResponse` passed to that method.
 @EventChannelApi()
 abstract class NotificationEventChannelApi {
-  /// An event stream that emits a notification payload when the app
-  /// encounters a notification tap, while the app is running.
-  ///
-  /// Emits an event when
-  /// `userNotificationCenter(_:didReceive:withCompletionHandler:)` gets
-  /// called, indicating that the user has tapped on a notification. The
-  /// emitted payload will be the raw APNs data dictionary from the
-  /// `UNNotificationResponse` passed to that method.
   NotificationTapEvent notificationTapEvents();
 }
