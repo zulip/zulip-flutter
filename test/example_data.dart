@@ -1030,7 +1030,7 @@ DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   final streamId = messages.first.streamId;
   final topic = messages.first.topic;
   assert(messages.every((m) => m.streamId == streamId));
-  assert(messages.every((m) => m.topic == topic));
+  assert(messages.every((m) => m.topic.isSameAs(topic)));
   return DeleteMessageEvent(
     id: 0,
     messageIds: messages.map((message) => message.id).toList(),
