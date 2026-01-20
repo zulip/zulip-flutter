@@ -339,6 +339,10 @@ class NotificationPigeonApi {
   Future<notif_pigeon.NotificationDataFromLaunch?> getNotificationDataFromLaunch() =>
     _hostApi.getNotificationDataFromLaunch();
 
+  /// An event stream that emits a notification payload
+  /// when a notification is tapped.
+  ///
+  /// For details, see [notif_pigeon.notificationTapEvents].
   Stream<notif_pigeon.NotificationTapEvent> notificationTapEventsStream() =>
     notif_pigeon.notificationTapEvents();
 }
