@@ -1718,6 +1718,7 @@ void main() {
       final narrow = eg.topicNarrow(stream.streamId, 'topic');
       final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
+      final differentlyCasedMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'ToPiC'));
       final otherTopicMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'other topic'));
       final otherChannelMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: otherStream, topic: 'topic'));
 
@@ -1750,6 +1751,35 @@ void main() {
             checkNotifiedOnce();
           }));
         }
+
+        final otherTestCases = [
+          ('(old channel, ToPiC) -> (channel, ToPiC)',     200,   null),
+          ('(channel, old topic) -> (channel, ToPiC)',     null, 'other'),
+          ('(old channel, old topic) -> (channel, ToPiC)', 200,  'other'),
+        ];
+
+        for (final (description, origStreamId, origTopic) in otherTestCases) {
+          test(description, () => awaitFakeAsync((async) async {
+            await prepareNarrow(narrow, initialMessages);
+
+            connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+              foundOldest: false,
+              messages: initialMessages + differentlyCasedMovedMessages,
+            ).toJson());
+            await store.handleEvent(eg.updateMessageEventMoveTo(
+              origStreamId: origStreamId,
+              origTopicStr: origTopic,
+              newMessages: differentlyCasedMovedMessages,
+            ));
+            check(model).fetched.isFalse();
+            checkHasMessages([]);
+            checkNotifiedOnce();
+
+            async.elapse(const Duration(seconds: 2));
+            checkHasMessages(initialMessages + differentlyCasedMovedMessages);
+            checkNotifiedOnce();
+          }));
+        }
       });
 
       group('moved from narrow: should remove moved messages', () {
@@ -1772,6 +1802,52 @@ void main() {
             checkNotifiedOnce();
           });
         }
+
+        final otherTestCases = [
+          ('(channel, ToPiC) -> (new channel, ToPiC)',     200,   null),
+          ('(channel, ToPiC) -> (channel, new topic)',     null, 'new'),
+          ('(channel, ToPiC) -> (new channel, new topic)', 200,  'new'),
+        ];
+
+        for (final (description, newStreamId, newTopic) in otherTestCases) {
+          test(description, () async {
+            await prepareNarrow(narrow, initialMessages + differentlyCasedMovedMessages);
+
+            await store.handleEvent(eg.updateMessageEventMoveFrom(
+              origMessages: differentlyCasedMovedMessages,
+              newStreamId: newStreamId,
+              newTopicStr: newTopic,
+            ));
+            checkHasMessages(initialMessages);
+            checkNotifiedOnce();
+          });
+        }
+      });
+
+      group('moved inside narrow: unaffected', () {
+        test('(channel, topic) -> (channel, ToPiC)', () async {
+          await prepareNarrow(narrow, initialMessages + movedMessages);
+
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: movedMessages,
+            newTopicStr: 'ToPiC',
+          ));
+          checkHasMessages(initialMessages + movedMessages);
+          // checkNotNotified();
+          checkNotifiedOnce(); // unrelated; from notifyListenersIfAnyMessagePresent
+        });
+
+        test('(channel, ToPiC) -> (channel, topic)', () async {
+          await prepareNarrow(narrow, initialMessages);
+
+          await store.handleEvent(eg.updateMessageEventMoveTo(
+            origTopicStr: 'ToPiC',
+            newMessages: movedMessages,
+          ));
+          check(model).fetched.isTrue();
+          checkHasMessages(initialMessages);
+          checkNotNotified();
+        });
       });
 
       group('irrelevant moves', () {
