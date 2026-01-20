@@ -153,7 +153,10 @@ class NotificationOpenService {
     if (currentPageRoute is MaterialAccountWidgetRoute
         && currentPageRoute.accountId == account.id
         && currentPageRoute.page is MessageListPage
-        && MessageListPage.currentNarrow(currentPageRoute) == data.narrow
+        && switch (MessageListPage.currentNarrow(currentPageRoute)) {
+             TopicNarrow narrow => narrow.isSameAs(data.narrow),
+             Narrow      narrow => narrow == data.narrow,
+           }
     ) {
       // The current page is already a MessageListPage at the desired narrow.
       // Instead of pushing another copy of it, stay there; see #1852.

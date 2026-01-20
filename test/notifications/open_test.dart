@@ -408,6 +408,11 @@ void main() {
         await openNotification(tester, eg.selfAccount, message2);
         check(lastPoppedRoute).isNull();
         check(pushedRoutes).isEmpty();
+
+        final message3 = eg.streamMessage(stream: stream, topic: 'A');
+        await openNotification(tester, eg.selfAccount, message3);
+        check(lastPoppedRoute).isNull();
+        check(pushedRoutes).isEmpty();
       });
 
       testWidgets('at different conversation, proceeds normally', (tester) async {

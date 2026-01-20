@@ -135,6 +135,13 @@ class TopicNarrow extends Narrow implements SendableNarrow {
     return 'TopicNarrow(${fields.join(', ')})';
   }
 
+  /// Whether [this] is the same as [other] if treating their topics
+  /// case-insensitively, using [TopicName.isSameAs].
+  bool isSameAs(Narrow other) {
+    if (other is! TopicNarrow) return false;
+    return other.streamId == streamId && other.topic.isSameAs(topic) && other.with_ == with_;
+  }
+
   @override
   bool operator ==(Object other) {
     if (other is! TopicNarrow) return false;
