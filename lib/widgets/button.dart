@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'color.dart';
@@ -159,7 +160,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
     final labelColor = _labelColor(designVariables);
 
-    return AnimatedScaleOnTap(
+    return AnimatedScaleOnPress(
       scaleEnd: 0.96,
       duration: Duration(milliseconds: 100),
       child: TextButton.icon(
@@ -273,10 +274,10 @@ class ZulipIconButton extends StatelessWidget {
   }
 }
 
-/// Apply [Transform.scale] to the child widget when tapped, and reset its scale
-/// when released, while animating the transitions.
-class AnimatedScaleOnTap extends StatefulWidget {
-  const AnimatedScaleOnTap({
+/// Apply [Transform.scale] to the child widget on primary pointer-down,
+/// and reset its scale on -up or -cancel, with animated transitions.
+class AnimatedScaleOnPress extends StatefulWidget {
+  const AnimatedScaleOnPress({
     super.key,
     required this.scaleEnd,
     required this.duration,
@@ -292,10 +293,10 @@ class AnimatedScaleOnTap extends StatefulWidget {
   final Widget child;
 
   @override
-  State<AnimatedScaleOnTap> createState() => _AnimatedScaleOnTapState();
+  State<AnimatedScaleOnPress> createState() => _AnimatedScaleOnPressState();
 }
 
-class _AnimatedScaleOnTapState extends State<AnimatedScaleOnTap> {
+class _AnimatedScaleOnPressState extends State<AnimatedScaleOnPress> {
   double _scale = 1;
 
   void _changeScale(double scale) {
@@ -304,13 +305,42 @@ class _AnimatedScaleOnTapState extends State<AnimatedScaleOnTap> {
     });
   }
 
+  void _checkBounds(PointerEvent event) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null) return;
+
+    // The pointer may be out of the child widget's bounds. When this happens,
+    // the child should be full-size even if the primary pointer is down.
+    if (!box.size.contains(box.globalToLocal(event.position))) {
+      _changeScale(1.0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Listener(
       behavior: HitTestBehavior.translucent,
-      onTapDown: (_) =>  _changeScale(widget.scaleEnd),
-      onTapUp: (_) =>    _changeScale(1),
-      onTapCancel: () => _changeScale(1),
+      onPointerDown: (event) {
+        if ((event.buttons & kPrimaryButton) != 0) {
+          _changeScale(widget.scaleEnd);
+        }
+      },
+      onPointerUp: (event) {
+        if ((event.buttons & kPrimaryButton) == 0) {
+          // `.buttons` are the pointer buttons which are pressed
+          // immediately after the action that caused the event.
+          // When the primary button is up, the button should be full-size.
+          _changeScale(1);
+        }
+      },
+      onPointerCancel: (_) {
+        // Return child to full-size on system-level interruption
+        // (e.g., notification, app backgrounding).
+        _changeScale(1);
+      },
+      onPointerMove: (event) {
+        _checkBounds(event);
+      },
       child: AnimatedScale(
         scale: _scale,
         duration: widget.duration,
