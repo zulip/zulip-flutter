@@ -980,6 +980,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
       'Why not start a conversation?';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => '統合フィード';
 
   @override

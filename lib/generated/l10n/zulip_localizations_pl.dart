@@ -1022,6 +1022,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'A może by tak rozpocząć rozmowę?';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Mieszany widok';
 
   @override

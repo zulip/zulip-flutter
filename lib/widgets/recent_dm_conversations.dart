@@ -8,6 +8,7 @@ import 'icons.dart';
 import 'message_list.dart';
 import 'new_dm_sheet.dart';
 import 'page.dart';
+import 'search.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -42,6 +43,14 @@ class RecentDmConversationsPageBody extends StatefulWidget {
 class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPageBody> with PerAccountStoreAwareStateMixin<RecentDmConversationsPageBody> {
   RecentDmConversationsView? model;
   Unreads? unreadsModel;
+  late TextEditingController _searchController;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController()..addListener(_handleSearchUpdate);
+  }
 
   @override
   void onNewStore() {
@@ -56,9 +65,16 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
 
   @override
   void dispose() {
+    _searchController.dispose();
     model?.removeListener(_modelChanged);
     unreadsModel?.removeListener(_modelChanged);
     super.dispose();
+  }
+
+  void _handleSearchUpdate() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase();
+    });
   }
 
   void _modelChanged() {
@@ -66,6 +82,21 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
       // The actual state lives in [model] and [unreadsModel].
       // This method was called because one of those just changed.
     });
+  }
+
+  bool _filterNarrow(DmNarrow narrow) {
+    if (_searchQuery.isEmpty) return true;
+    final store = PerAccountStoreWidget.of(context);
+    final String title;
+    switch (narrow.otherRecipientIds) {
+      case []:
+        title = store.selfUser.fullName;
+      case [var otherUserId]:
+        title = store.userDisplayName(otherUserId);
+      default:
+        title = narrow.otherRecipientIds.map(store.userDisplayName).join(', ');
+    }
+    return title.toLowerCase().contains(_searchQuery);
   }
 
   void _handleDmSelect(DmNarrow narrow) {
@@ -123,31 +154,48 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
             // Other *PageBody widgets don't handle this because they aren't
             // (re-)used outside the context of the home page.
             bottom: false,
-            child: ListView.builder(
-              padding: EdgeInsets.only(bottom: bottomInsets + 90),
-              itemCount: sorted.length,
-              itemBuilder: (context, index) {
-                final narrow = sorted[index];
-                if (store.shouldMuteDmConversation(narrow)) {
-                  // Filter out conversations where everyone is muted.
-                  // TODO should we offer a "spam folder"-style summary screen
-                  //   for these conversations we're filtering out?
-                  return SizedBox.shrink();
-                }
-                if (widget.hideDmsIfUserCantPost) {
-                  // TODO(#791) handle other cases where user can't post
-                  final hasDeactivatedUser =
-                    narrow.otherRecipientIds.any(
-                      (id) => !(store.getUser(id)?.isActive ?? true));
-                  if (hasDeactivatedUser) {
-                    return SizedBox.shrink();
-                  }
-                }
-                return RecentDmConversationsItem(
-                  narrow: narrow,
-                  unreadCount: unreadsModel!.countInDmNarrow(narrow),
-                  onDmSelect: _handleDmSelect);
-              })),
+            child: CustomScrollView(
+              // Avoid vertical scrollbar appearing on search box
+              primary: false,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: SearchBox(
+                    controller: _searchController,
+                    hintText: zulipLocalizations.recentDmConversationsFilterPlaceholder)),
+                SliverPadding(
+                  padding: EdgeInsets.only(bottom: bottomInsets + 90),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final narrow = sorted[index];
+                        if (!_filterNarrow(narrow)) {
+                           return SizedBox.shrink();
+                        }
+                        if (store.shouldMuteDmConversation(narrow)) {
+                          // Filter out conversations where everyone is muted.
+                          // TODO should we offer a "spam folder"-style summary screen
+                          //   for these conversations we're filtering out?
+                          return SizedBox.shrink();
+                        }
+                        if (widget.hideDmsIfUserCantPost) {
+                          // TODO(#791) handle other cases where user can't post
+                          final hasDeactivatedUser =
+                            narrow.otherRecipientIds.any(
+                              (id) => !(store.getUser(id)?.isActive ?? true));
+                          if (hasDeactivatedUser) {
+                            return SizedBox.shrink();
+                          }
+                        }
+                        return RecentDmConversationsItem(
+                          narrow: narrow,
+                          unreadCount: unreadsModel!.countInDmNarrow(narrow),
+                          onDmSelect: _handleDmSelect);
+                      },
+                      childCount: sorted.length,
+                    ),
+                  ),
+                ),
+              ])),
         Positioned(
           bottom: bottomInsets + 21,
           child: _NewDmButton(onDmSelect: _handleDmSelectForNewDms)),
@@ -303,3 +351,5 @@ class _NewDmButtonState extends State<_NewDmButton> {
           ])));
   }
 }
+
+

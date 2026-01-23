@@ -142,6 +142,75 @@ void main() {
         + Duration(milliseconds: 1));
       check(find.byType(NewDmPicker)).findsNothing();
     });
+
+    group('filter DMs', () {
+      testWidgets('search box is rendered', (tester) async {
+        final user = eg.user(userId: 1, fullName: 'User 1');
+        await setupPage(tester, users: [user], dmMessages: [
+          eg.dmMessage(from: eg.selfUser, to: [user]),
+        ]);
+        check(find.byType(TextField)).findsOne();
+        check(find.text('Filter direct messages')).findsOne();
+      });
+
+      testWidgets('filters by name (1:1)', (tester) async {
+        final user1 = eg.user(userId: 1, fullName: 'Alice');
+        final user2 = eg.user(userId: 2, fullName: 'Bob');
+        await setupPage(tester, users: [user1, user2], dmMessages: [
+          eg.dmMessage(id: 1, from: eg.selfUser, to: [user1]),
+          eg.dmMessage(id: 2, from: eg.selfUser, to: [user2]),
+        ]);
+
+        await tester.enterText(find.byType(TextField), 'Alice');
+        await tester.pump();
+
+        check(findConversationItem(DmNarrow.ofMessage(eg.dmMessage(id: 1, from: eg.selfUser, to: [user1]), selfUserId: eg.selfUser.userId))).findsOne();
+        check(findConversationItem(DmNarrow.ofMessage(eg.dmMessage(id: 2, from: eg.selfUser, to: [user2]), selfUserId: eg.selfUser.userId))).findsNothing();
+      });
+
+      testWidgets('filters by name (group)', (tester) async {
+        final user1 = eg.user(userId: 1, fullName: 'Alice');
+        final user2 = eg.user(userId: 2, fullName: 'Bob');
+        final user3 = eg.user(userId: 3, fullName: 'Charlie');
+        await setupPage(tester, users: [user1, user2, user3], dmMessages: [
+          eg.dmMessage(id: 1, from: eg.selfUser, to: [user1, user2]), // Alice, Bob
+          eg.dmMessage(id: 2, from: eg.selfUser, to: [user3]),        // Charlie
+        ]);
+
+        await tester.enterText(find.byType(TextField), 'Bob');
+        await tester.pump();
+
+        check(findConversationItem(DmNarrow.ofMessage(eg.dmMessage(id: 1, from: eg.selfUser, to: [user1, user2]), selfUserId: eg.selfUser.userId))).findsOne();
+        check(findConversationItem(DmNarrow.ofMessage(eg.dmMessage(id: 2, from: eg.selfUser, to: [user3]), selfUserId: eg.selfUser.userId))).findsNothing();
+      });
+
+      testWidgets('filters by name (self-1:1)', (tester) async {
+        final user1 = eg.user(userId: 1, fullName: 'Alice');
+        await setupPage(tester, users: [user1], dmMessages: [
+          eg.dmMessage(id: 1, from: eg.selfUser, to: []),
+          eg.dmMessage(id: 2, from: eg.selfUser, to: [user1]),
+        ]);
+
+        await tester.enterText(find.byType(TextField), eg.selfUser.fullName);
+        await tester.pump();
+
+        check(findConversationItem(DmNarrow.ofMessage(eg.dmMessage(id: 1, from: eg.selfUser, to: []), selfUserId: eg.selfUser.userId))).findsOne();
+        // Alice shouldn't be found unless her name contains selfUser.fullName (unlikely in test data)
+      });
+
+      testWidgets('empty search results show no placeholder', (tester) async {
+        final user1 = eg.user(userId: 1, fullName: 'Alice');
+        await setupPage(tester, users: [user1], dmMessages: [
+          eg.dmMessage(from: eg.selfUser, to: [user1]),
+        ]);
+
+        await tester.enterText(find.byType(TextField), 'Zack');
+        await tester.pump();
+
+        check(find.byType(RecentDmConversationsItem)).findsNothing();
+        check(find.text('You have no direct messages yet!')).findsNothing();
+      });
+    });
   });
 
   group('RecentDmConversationsItem', () {
