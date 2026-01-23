@@ -1787,6 +1787,12 @@ abstract class ZulipLocalizations {
   /// **'Try going to <z-link>{allChannelsPageTitle}</z-link> and joining some of them.'**
   String channelsEmptyPlaceholderMessage(String allChannelsPageTitle);
 
+  /// Placeholder text for the search box on the 'Channels' page.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter channels'**
+  String get channelsPageFilterPlaceholder;
+
   /// Title for the modal bottom sheet about selecting an account to share content received from other apps.
   ///
   /// In en, this message translates to:

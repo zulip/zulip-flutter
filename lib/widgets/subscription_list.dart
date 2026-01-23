@@ -50,6 +50,14 @@ class SubscriptionListPageBody extends StatefulWidget {
 
 class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> with PerAccountStoreAwareStateMixin<SubscriptionListPageBody> {
   Unreads? unreadsModel;
+  late TextEditingController _searchController;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController()..addListener(_handleSearchUpdate);
+  }
 
   @override
   void onNewStore() {
@@ -60,8 +68,15 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
 
   @override
   void dispose() {
+    _searchController.dispose();
     unreadsModel?.removeListener(_modelChanged);
     super.dispose();
+  }
+
+  void _handleSearchUpdate() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase();
+    });
   }
 
   void _modelChanged() {
@@ -78,6 +93,11 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
 
       return ChannelStore.compareChannelsByName(a, b);
     });
+  }
+
+  bool _filterSubscription(Subscription subscription) {
+    if (_searchQuery.isEmpty) return true;
+    return subscription.name.toLowerCase().contains(_searchQuery);
   }
 
   void _handleChannelSelect(ChannelNarrow narrow) {
@@ -125,6 +145,9 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
           continue;
         }
       }
+      if (!_filterSubscription(subscription)) {
+        continue;
+      }
       if (subscription.pinToTop) {
         pinned.add(subscription);
       } else {
@@ -135,18 +158,23 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     _sortSubs(unpinned);
 
     if (pinned.isEmpty && unpinned.isEmpty) {
-      if (includeAllChannelsButton) {
-        return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.channelsEmptyPlaceholderHeader,
-          messageWithLinkMarkup:
-            zulipLocalizations.channelsEmptyPlaceholderMessage(
-              zulipLocalizations.allChannelsPageTitle),
-          onTapMessageLink: () => Navigator.push(context,
-            AllChannelsPage.buildRoute(context: context)));
-      } else {
-        return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.channelsEmptyPlaceholderHeader);
+      // Only show the empty placeholder if the user truly has no subscriptions,
+      // not when the filter just doesn't match anything.
+      if (_searchQuery.isEmpty) {
+        if (includeAllChannelsButton) {
+          return PageBodyEmptyContentPlaceholder(
+            header: zulipLocalizations.channelsEmptyPlaceholderHeader,
+            messageWithLinkMarkup:
+              zulipLocalizations.channelsEmptyPlaceholderMessage(
+                zulipLocalizations.allChannelsPageTitle),
+            onTapMessageLink: () => Navigator.push(context,
+              AllChannelsPage.buildRoute(context: context)));
+        } else {
+          return PageBodyEmptyContentPlaceholder(
+            header: zulipLocalizations.channelsEmptyPlaceholderHeader);
+        }
       }
+      // If we have a search query but no results, just show empty list (no placeholder)
     }
 
     return SafeArea(
@@ -162,7 +190,10 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
       // (re-)used outside the context of the home page.
       bottom: false,
       child: CustomScrollView(
+        // Avoid vertical scrollbar appearing on search box
+        primary: false,
         slivers: [
+          _FilterChannelsSearchBox(controller: _searchController),
           if (pinned.isNotEmpty) ...[
             _SubscriptionListHeader(label: zulipLocalizations.pinnedSubscriptionsLabel),
             _SubscriptionList(
@@ -347,5 +378,49 @@ class SubscriptionItem extends StatelessWidget {
           ],
           const SizedBox(width: 16),
         ])));
+  }
+}
+
+class _FilterChannelsSearchBox extends StatelessWidget {
+  const _FilterChannelsSearchBox({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        child: TextField(
+          controller: controller,
+          autocorrect: false,
+          cursorColor: designVariables.textInput,
+          style: TextStyle(
+            color: designVariables.textInput,
+            fontSize: 17,
+            height: 22 / 17,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            hintText: zulipLocalizations.channelsPageFilterPlaceholder,
+            hintStyle: TextStyle(
+              color: designVariables.labelSearchPrompt,
+              fontSize: 17,
+              height: 22 / 17),
+            prefixIcon: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 8, 8),
+              child: Icon(size: 20, ZulipIcons.search)),
+            prefixIconColor: designVariables.labelSearchPrompt,
+            prefixIconConstraints: BoxConstraints(),
+            contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            filled: true,
+            fillColor: designVariables.bgSearchInput,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none),
+          ))));
   }
 }

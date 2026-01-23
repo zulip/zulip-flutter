@@ -352,4 +352,149 @@ void main() {
     checkStreamNameWght(mutedStreamWithUnmutedUnreads.name,     400);
     checkStreamNameWght(mutedStreamWithNoUnmutedUnreads.name,   400);
   });
+
+  group('filter channels', () {
+    testWidgets('search box is rendered', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(name: 'general')),
+      ]);
+      check(find.byType(TextField)).findsOne();
+      check(find.text('Filter channels')).findsOne();
+    });
+
+    testWidgets('filters channels by name', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'general')),
+        eg.subscription(eg.stream(streamId: 2, name: 'engineering')),
+        eg.subscription(eg.stream(streamId: 3, name: 'design')),
+      ]);
+      check(getItemCount()).equals(3);
+
+      // Type search query
+      await tester.enterText(find.byType(TextField), 'eng');
+      await tester.pump();
+
+      // Only engineering should be visible
+      check(getItemCount()).equals(1);
+      check(find.text('engineering')).findsOne();
+      check(find.text('general')).findsNothing();
+      check(find.text('design')).findsNothing();
+    });
+
+    testWidgets('filter is case-insensitive', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'General')),
+        eg.subscription(eg.stream(streamId: 2, name: 'ENGINEERING')),
+        eg.subscription(eg.stream(streamId: 3, name: 'DeSiGn')),
+      ]);
+
+      await tester.enterText(find.byType(TextField), 'GENERAL');
+      await tester.pump();
+      check(getItemCount()).equals(1);
+      check(find.text('General')).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'engineering');
+      await tester.pump();
+      check(getItemCount()).equals(1);
+      check(find.text('ENGINEERING')).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'design');
+      await tester.pump();
+      check(getItemCount()).equals(1);
+      check(find.text('DeSiGn')).findsOne();
+    });
+
+    testWidgets('filters both pinned and unpinned channels', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'announcements'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 2, name: 'general'), pinToTop: false),
+        eg.subscription(eg.stream(streamId: 3, name: 'engineering'), pinToTop: true),
+        eg.subscription(eg.stream(streamId: 4, name: 'design'), pinToTop: false),
+      ]);
+      check(getItemCount()).equals(4);
+
+      await tester.enterText(find.byType(TextField), 'eng');
+      await tester.pump();
+
+      // Only engineering should be visible (it's pinned)
+      check(getItemCount()).equals(1);
+      check(find.text('engineering')).findsOne();
+      check(isPinnedHeaderInTree()).isTrue();
+    });
+
+    testWidgets('shows no results when filter matches nothing', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'general')),
+        eg.subscription(eg.stream(streamId: 2, name: 'engineering')),
+      ]);
+      check(getItemCount()).equals(2);
+
+      await tester.enterText(find.byType(TextField), 'nonexistent');
+      await tester.pump();
+
+      check(getItemCount()).equals(0);
+      check(isPinnedHeaderInTree()).isFalse();
+      check(isUnpinnedHeaderInTree()).isFalse();
+      // Should NOT show the "You're not subscribed" placeholder
+      check(find.text("You're not subscribed to any channels yet.")).findsNothing();
+    });
+
+    testWidgets('clearing search shows all channels', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'general')),
+        eg.subscription(eg.stream(streamId: 2, name: 'engineering')),
+        eg.subscription(eg.stream(streamId: 3, name: 'design')),
+      ]);
+
+      // Filter channels
+      await tester.enterText(find.byType(TextField), 'eng');
+      await tester.pump();
+      check(getItemCount()).equals(1);
+
+      // Clear the filter
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pump();
+      check(getItemCount()).equals(3);
+    });
+
+    testWidgets('partial match filters correctly', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'general')),
+        eg.subscription(eg.stream(streamId: 2, name: 'engineering')),
+        eg.subscription(eg.stream(streamId: 3, name: 'general-announcements')),
+        eg.subscription(eg.stream(streamId: 4, name: 'design')),
+      ]);
+
+      await tester.enterText(find.byType(TextField), 'general');
+      await tester.pump();
+
+      // Both 'general' and 'general-announcements' should match
+      check(getItemCount()).equals(2);
+      final items = tester.widgetList<SubscriptionItem>(find.byType(SubscriptionItem));
+      check(items.map((e) => e.subscription.name).toSet())
+        .deepEquals({'general', 'general-announcements'});
+    });
+
+    testWidgets('filter works with special characters in channel names', (tester) async {
+      await setupStreamListPage(tester, subscriptions: [
+        eg.subscription(eg.stream(streamId: 1, name: 'test-channel')),
+        eg.subscription(eg.stream(streamId: 2, name: 'test_channel_2')),
+        eg.subscription(eg.stream(streamId: 3, name: 'test.channel.3')),
+      ]);
+
+      await tester.enterText(find.byType(TextField), 'test');
+      await tester.pump();
+      check(getItemCount()).equals(3);
+
+      await tester.enterText(find.byType(TextField), '-');
+      await tester.pump();
+      check(getItemCount()).equals(1);
+      check(find.text('test-channel')).findsOne();
+
+      await tester.enterText(find.byType(TextField), '_');
+      await tester.pump();
+      check(getItemCount()).equals(1);
+      check(find.text('test_channel_2')).findsOne();
+    });
+  });
 }
