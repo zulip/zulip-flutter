@@ -625,13 +625,13 @@ void main() {
       });
     });
 
-    Uri thumbnailSrc(ImagePreviewNodeSrc src) {
-      final value = (src as ImagePreviewNodeSrcThumbnail).value;
+    Uri thumbnailSrc(ImageNodeSrc src) {
+      final value = (src as ImageNodeSrcThumbnail).value;
       return eg.realmUrl.resolve(value.defaultFormatSrc.toString());
     }
 
-    Uri otherSrc(ImagePreviewNodeSrc src) {
-      final value = (src as ImagePreviewNodeSrcOther).value;
+    Uri otherSrc(ImageNodeSrc src) {
+      final value = (src as ImageNodeSrcOther).value;
       return eg.realmUrl.resolve(value);
     }
 

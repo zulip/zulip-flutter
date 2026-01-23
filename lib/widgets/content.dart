@@ -637,11 +637,11 @@ class MessageImagePreview extends StatelessWidget {
     final message = InheritedMessage.of(context);
 
     final resolvedSrc = switch (node.src) {
-      ImagePreviewNodeSrcThumbnail(:final value) => value.resolve(context,
+      ImageNodeSrcThumbnail(:final value) => value.resolve(context,
         width: MessageMediaContainer.width,
         height: MessageMediaContainer.height,
         animationMode: .animateConditionally),
-      ImagePreviewNodeSrcOther(:final value) => store.tryResolveUrl(value),
+      ImageNodeSrcOther(:final value) => store.tryResolveUrl(value),
     };
     final resolvedOriginalSrc = store.tryResolveUrl(node.originalSrc);
 
@@ -660,7 +660,7 @@ class MessageImagePreview extends StatelessWidget {
         resolvedSrc!),
     };
 
-    final lightboxDisplayUrl = (node.loading || node.src is ImagePreviewNodeSrcThumbnail)
+    final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
       ? resolvedOriginalSrc
       : resolvedSrc;
     if (lightboxDisplayUrl == null) {
@@ -675,7 +675,7 @@ class MessageImagePreview extends StatelessWidget {
           message: message,
           messageImageContext: context,
           src: lightboxDisplayUrl,
-          thumbnailUrl: (node.src is ImagePreviewNodeSrcThumbnail && !node.loading)
+          thumbnailUrl: (node.src is ImageNodeSrcThumbnail && !node.loading)
             ? resolvedSrc
             : null,
           originalWidth: node.originalWidth,

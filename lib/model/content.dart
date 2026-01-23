@@ -557,7 +557,7 @@ class ImagePreviewNode extends BlockContentNode {
   /// this is also meant for viewing the image by itself, in a lightbox
   /// (but if `data-transcoded-image` is present, it's better to use that [1]).
   /// The modern-thumbnailing case is recognized when [loading] is true
-  /// or when [src] is an [ImagePreviewNodeSrcThumbnail].
+  /// or when [src] is an [ImageNodeSrcThumbnail].
   /// From discussion:
   ///   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279483
   ///
@@ -575,7 +575,7 @@ class ImagePreviewNode extends BlockContentNode {
   /// Except for images processed in modern thumbnailing (2026-01),
   /// this is also meant for viewing the image by itself, in a lightbox.
   /// For how to recognize that case, see [originalSrc].
-  final ImagePreviewNodeSrc src;
+  final ImageNodeSrc src;
 
   /// Whether the img has the "image-loading-placeholder" classname.
   ///
@@ -610,7 +610,7 @@ class ImagePreviewNode extends BlockContentNode {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('originalSrc', originalSrc));
-    properties.add(DiagnosticsProperty<ImagePreviewNodeSrc>('src', src));
+    properties.add(DiagnosticsProperty<ImageNodeSrc>('src', src));
     properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
     properties.add(DoubleProperty('originalWidth', originalWidth));
     properties.add(DoubleProperty('originalHeight', originalHeight));
@@ -618,23 +618,23 @@ class ImagePreviewNode extends BlockContentNode {
 }
 
 /// A value of [ImagePreviewNode.src].
-sealed class ImagePreviewNodeSrc extends DiagnosticableTree {
-  const ImagePreviewNodeSrc();
+sealed class ImageNodeSrc extends DiagnosticableTree {
+  const ImageNodeSrc();
 }
 
 /// A thumbnail URL, starting with [ImageThumbnailLocator.srcPrefix].
-class ImagePreviewNodeSrcThumbnail extends ImagePreviewNodeSrc {
-  const ImagePreviewNodeSrcThumbnail(this.value);
+class ImageNodeSrcThumbnail extends ImageNodeSrc {
+  const ImageNodeSrcThumbnail(this.value);
 
   final ImageThumbnailLocator value;
 
   @override
   bool operator ==(Object other) {
-    return other is ImagePreviewNodeSrcThumbnail && other.value == value;
+    return other is ImageNodeSrcThumbnail && other.value == value;
   }
 
   @override
-  int get hashCode => Object.hash('ImagePreviewNodeSrcThumbnail', value);
+  int get hashCode => Object.hash('ImageNodeSrcThumbnail', value);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -653,18 +653,18 @@ class ImagePreviewNodeSrcThumbnail extends ImagePreviewNodeSrc {
 // - This may match `href`, e.g. from pre-thumbnailing servers.
 // - This may start with CAMO_URI, a server variable (e.g. on Zulip Cloud
 //   it's "https://uploads.zulipusercontent.net/" in 2025-10).
-class ImagePreviewNodeSrcOther extends ImagePreviewNodeSrc {
-  const ImagePreviewNodeSrcOther(this.value);
+class ImageNodeSrcOther extends ImageNodeSrc {
+  const ImageNodeSrcOther(this.value);
 
   final String value;
 
   @override
   bool operator ==(Object other) {
-    return other is ImagePreviewNodeSrcOther && other.value == value;
+    return other is ImageNodeSrcOther && other.value == value;
   }
 
   @override
-  int get hashCode => Object.hash('ImagePreviewNodeSrcOther', value);
+  int get hashCode => Object.hash('ImageNodeSrcOther', value);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -1545,8 +1545,8 @@ class _ZulipContentParser {
     return ImagePreviewNode(
       originalSrc: href,
       src: thumbnailSrc != null
-        ? ImagePreviewNodeSrcThumbnail(thumbnailSrc)
-        : ImagePreviewNodeSrcOther(src),
+        ? ImageNodeSrcThumbnail(thumbnailSrc)
+        : ImageNodeSrcOther(src),
       loading: loading,
       originalWidth: originalDimensions?.originalWidth,
       originalHeight: originalDimensions?.originalHeight,
