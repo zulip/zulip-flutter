@@ -643,7 +643,9 @@ class MessageImagePreview extends StatelessWidget {
         animationMode: .animateConditionally),
       ImageNodeSrcOther(:final value) => store.tryResolveUrl(value),
     };
-    final resolvedOriginalSrc = store.tryResolveUrl(node.originalSrc);
+    final originalSrc = node.originalSrc;
+    final resolvedOriginalSrc = originalSrc == null ? null
+      : store.tryResolveUrl(originalSrc);
 
     final child = switch ((node.loading, resolvedSrc)) {
       // resolvedSrc would be a "spinner" image URL.

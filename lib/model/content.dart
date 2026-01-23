@@ -536,8 +536,8 @@ class ImagePreviewNodeList extends BlockContentNode {
   }
 }
 
-class ImagePreviewNode extends BlockContentNode {
-  const ImagePreviewNode({
+sealed class ImageNode extends ContentNode {
+  const ImageNode({
     super.debugHtmlNode,
     required this.loading,
     required this.src,
@@ -584,13 +584,34 @@ class ImagePreviewNode extends BlockContentNode {
   ///     when the original image is in an uncommon format, like TIFF.
   ///     This isn't implemented yet; it's #1268.
   // TODO(#1268) implement transcoded-image feature; update dartdoc
-  final String originalSrc;
+  final String? originalSrc;
 
   /// The width part of data-original-dimensions, if that attribute is present.
   final double? originalWidth;
 
   /// The height part of data-original-dimensions, if that attribute is present.
   final double? originalHeight;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
+    properties.add(DiagnosticsProperty<ImageNodeSrc>('src', src));
+    properties.add(StringProperty('originalSrc', originalSrc));
+    properties.add(DoubleProperty('originalWidth', originalWidth));
+    properties.add(DoubleProperty('originalHeight', originalHeight));
+  }
+}
+
+class ImagePreviewNode extends ImageNode implements BlockContentNode {
+  const ImagePreviewNode({
+    super.debugHtmlNode,
+    required super.loading,
+    required super.src,
+    required super.originalSrc,
+    required super.originalWidth,
+    required super.originalHeight,
+  });
 
   @override
   bool operator ==(Object other) {
@@ -605,16 +626,6 @@ class ImagePreviewNode extends BlockContentNode {
   @override
   int get hashCode => Object.hash('ImagePreviewNode',
     loading, src, originalSrc, originalWidth, originalHeight);
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
-    properties.add(DiagnosticsProperty<ImageNodeSrc>('src', src));
-    properties.add(StringProperty('originalSrc', originalSrc));
-    properties.add(DoubleProperty('originalWidth', originalWidth));
-    properties.add(DoubleProperty('originalHeight', originalHeight));
-  }
 }
 
 /// A value of [ImagePreviewNode.src].
@@ -1537,9 +1548,7 @@ class _ZulipContentParser {
         defaultFormatSrc: srcUrl,
         animated: imgElement.attributes['data-animated'] == 'true');
     }
-    final href = linkElement.attributes['href'];
-    if (href == null) return null;
-
+    final originalSrc = linkElement.attributes['href'];
     final originalDimensions = _tryParseOriginalDimensions(imgElement);
 
     return ImagePreviewNode(
@@ -1547,7 +1556,7 @@ class _ZulipContentParser {
       src: thumbnailSrc != null
         ? ImageNodeSrcThumbnail(thumbnailSrc)
         : ImageNodeSrcOther(src),
-      originalSrc: href,
+      originalSrc: originalSrc,
       originalWidth: originalDimensions?.originalWidth,
       originalHeight: originalDimensions?.originalHeight,
       debugHtmlNode: debugHtmlNode);
