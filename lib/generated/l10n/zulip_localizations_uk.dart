@@ -1023,6 +1023,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Чому б не почати розмову?';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Об\'єднана стрічка';
 
   @override

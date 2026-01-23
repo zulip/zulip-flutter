@@ -1030,6 +1030,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Warum beginnst du nicht einfach eine Unterhaltung?';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Kombinierter Feed';
 
   @override
