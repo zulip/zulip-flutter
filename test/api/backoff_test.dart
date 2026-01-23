@@ -121,4 +121,39 @@ void main() {
       check(async.pendingTimers).isEmpty();
     });
   });
+
+  test('BackoffMachine handles long backoff safely', () => awaitFakeAsync(
+    flushTimeout: Duration(hours: 12),
+    (async) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1339.
+      // The regression was caused by exponential backoff multiplying powers of
+      // two by the `firstBound` duration, collectively causing a double
+      // overflow to Infinity at high retry counts.
+
+      final backoffMachine = BackoffMachine();
+
+      // Smallest exponent `n` where `2^n` overflows to Infinity as a double.
+      const minOverflowExponent = 1024;
+      assert(pow(2.0, minOverflowExponent - 1) != double.infinity);
+      assert(pow(2.0, minOverflowExponent    ) == double.infinity);
+
+      // Number of waits that would surely cause double overflow error.
+      final minTrials = minOverflowExponent + 1;
+
+      final start = clock.now();
+      // Advance the backoff to the point where overflow would occur.
+      for (var i = 0; i < minTrials; i++) {
+        await check(backoffMachine.wait()).completes();
+      }
+
+      // Time limit to avoid exceeding fake_async timeout due to the last
+      // backoff wait.
+      final endTime = Duration(hours: 12) - backoffMachine.maxBound;
+
+      // Continue waiting to ensure backoff stays stable over long runs.
+      while(clock.now().difference(start) < endTime) {
+        await check(backoffMachine.wait()).completes();
+      }
+    },
+  ));
 }
