@@ -171,9 +171,10 @@ void main() {
   /// check that the content has actually rendered.  For examples where there's
   /// no suitable value for [ContentExample.expectedText], use [prepareContent]
   /// and write an appropriate content-has-rendered check directly.
-  void testContentSmoke(ContentExample example) {
+  void testContentSmoke(ContentExample example, {bool wrapWithPerAccountStoreWidget = false}) {
     testWidgets('smoke: ${example.description}', (tester) async {
-      await prepareContent(tester, plainContent(example.html));
+      await prepareContent(tester, plainContent(example.html),
+        wrapWithPerAccountStoreWidget: wrapWithPerAccountStoreWidget);
       assert(example.expectedText != null,
         'testContentExample requires expectedText');
       tester.widget(find.text(example.expectedText!));
@@ -192,6 +193,7 @@ void main() {
     required Widget content,
     required double expectedWght,
     required TextStyle Function(WidgetTester tester) styleFinder,
+    bool wrapWithPerAccountStoreWidget = false,
   }) {
     for (final platformRequestsBold in [false, true]) {
       testWidgets(
@@ -199,7 +201,8 @@ void main() {
         (tester) async {
           tester.platformDispatcher.accessibilityFeaturesTestValue =
             FakeAccessibilityFeatures(boldText: platformRequestsBold);
-          await prepareContent(tester, content);
+          await prepareContent(tester, content,
+            wrapWithPerAccountStoreWidget: wrapWithPerAccountStoreWidget);
           final style = styleFinder(tester);
           double effectiveExpectedWght = expectedWght;
           if (platformRequestsBold) {
