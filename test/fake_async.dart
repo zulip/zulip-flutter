@@ -16,7 +16,7 @@ import 'package:fake_async/fake_async.dart';
 /// If it completed with an error, that error is thrown.
 /// If it hasn't completed, a [TimeoutException] is thrown.
 T awaitFakeAsync<T>(Future<T> Function(FakeAsync async) callback,
-    {DateTime? initialTime}) {
+    {DateTime? initialTime, Duration flushTimeout = const Duration(hours: 1)}) {
   late final T value;
   Object? error;
   StackTrace? stackTrace;
@@ -26,7 +26,7 @@ T awaitFakeAsync<T>(Future<T> Function(FakeAsync async) callback,
         callback(async).then<void>((v) { value = v; completed = true; },
           onError: (Object? e, StackTrace? s) { error = e; stackTrace = s; completed = true; });
       })
-    ..flushTimers();
+    ..flushTimers(timeout: flushTimeout);
 
   // TODO: if the future returned by [callback] completes with an error,
   //   it would be good to throw that error immediately rather than finish
