@@ -122,7 +122,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
-    return 'Se désinscrire de $channelName?';
+    return 'Se désabonner de $channelName ?';
   }
 
   @override
@@ -201,7 +201,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       count,
       locale: localeName,
       other: 'Ce message a été <z-link>lu</z-link> par $count personnes :',
-      one: 'Ce message a été <z-link>lu</z-link> par $count personne:',
+      one: 'Ce message a été <z-link>lu</z-link> par $count personne :',
     );
     return '$_temp0';
   }
@@ -398,7 +398,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get errorUnmuteTopicFailed =>
-      'Impossible de ne plus mettre le sujet en sourdine';
+      'Impossible de réactiver la conversation';
 
   @override
   String get errorFollowTopicFailed => 'Échec du suivi du sujet';
