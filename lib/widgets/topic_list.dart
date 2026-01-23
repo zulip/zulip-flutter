@@ -163,7 +163,12 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
   Widget build(BuildContext context) {
     final channelTopics = topicsModel!.channelTopics(widget.streamId);
     if (channelTopics == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: Semantics(
+        label: 'Loading topics',
+        container: true,
+        liveRegion: true,
+        child:const CircularProgressIndicator(),
+      ));
     }
 
     if (channelTopics.isEmpty) {

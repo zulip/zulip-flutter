@@ -248,7 +248,12 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
+            Semantics(
+              label: 'Loading app',
+              container: true,
+              liveRegion: true,
+              child:const CircularProgressIndicator(),
+            ),
             Visibility(
               visible: showTryAnotherAccount,
               maintainSize: true,
