@@ -184,7 +184,7 @@ class ShareSheet extends StatelessWidget {
       // so first populate the compose box with the text, if there is any.
       if (sharedText case var text?) {
         if (!text.endsWith('\n')) text += '\n';
-        composeBoxController.content.insertPadded(text);
+        composeBoxController.content.insertBlock(text);
       }
       // Then upload the files and populate the content input with their links.
       if (sharedFiles != null) {
