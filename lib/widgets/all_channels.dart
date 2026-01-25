@@ -14,7 +14,6 @@ import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'remote_settings.dart';
-import 'store.dart';
 import 'search.dart';
 import 'store.dart';
 import 'text.dart';
