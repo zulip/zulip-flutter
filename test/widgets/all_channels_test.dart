@@ -302,11 +302,70 @@ void main() {
     await tester.pump();
     final (unsubscribeButton, _) = checkConfirmDialog();
     await tester.tap(find.byWidget(unsubscribeButton));
-    check(connection.lastRequest).isA<http.Request>()
+      check(connection.lastRequest).isA<http.Request>()
       ..method.equals('DELETE')
       ..url.path.equals('/api/v1/users/me/subscriptions')
       ..bodyFields.deepEquals({
         'subscriptions': jsonEncode([channel.name]),
       });
+  });
+
+  group('filter', () {
+    testWidgets('search box is rendered', (tester) async {
+      final channel = eg.stream();
+      await setupAllChannelsPage(tester, channels: [channel]);
+      check(find.byType(TextField)).findsOne();
+      check(find.text('Filter channels')).findsOne();
+    });
+
+    testWidgets('filters by name', (tester) async {
+      final channel1 = eg.stream(name: 'general');
+      final channel2 = eg.stream(name: 'random');
+      await setupAllChannelsPage(tester, channels: [channel1, channel2]);
+
+      await tester.enterText(find.byType(TextField), 'general');
+      await tester.pump();
+
+      check(find.descendant(
+        of: find.byType(AllChannelsListEntry),
+        matching: find.text('general'))).findsOne();
+      check(find.text('random')).findsNothing();
+    });
+
+    testWidgets('case insensitive', (tester) async {
+      final channel = eg.stream(name: 'General');
+      await setupAllChannelsPage(tester, channels: [channel]);
+
+      await tester.enterText(find.byType(TextField), 'general');
+      await tester.pump();
+
+      check(find.text('General')).findsOne();
+    });
+
+    testWidgets('empty search shows all', (tester) async {
+      final channel1 = eg.stream(name: 'general');
+      final channel2 = eg.stream(name: 'random');
+      await setupAllChannelsPage(tester, channels: [channel1, channel2]);
+
+      await tester.enterText(find.byType(TextField), 'gen');
+      await tester.pump();
+      check(find.byType(AllChannelsListEntry)).findsOne();
+
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pump();
+      check(find.byType(AllChannelsListEntry)).findsExactly(2);
+    });
+
+    testWidgets('no results found', (tester) async {
+      final channel = eg.stream(name: 'general');
+      await setupAllChannelsPage(tester, channels: [channel]);
+
+      await tester.enterText(find.byType(TextField), 'zebra');
+      await tester.pump();
+
+      check(find.byType(AllChannelsListEntry)).findsNothing();
+      // And no "empty placeholder"
+      check(find.byType(PageBodyEmptyContentPlaceholder)).findsNothing();
+    });
   });
 }

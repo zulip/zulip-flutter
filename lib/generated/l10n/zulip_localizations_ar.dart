@@ -1026,6 +1026,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   }
 
   @override
+  String get channelsPageFilterPlaceholder => 'Filter channels';
+
+  @override
   String get shareChooseAccountModalTitle => 'Choose an account';
 
   @override

@@ -14,6 +14,7 @@ import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'remote_settings.dart';
+import 'search.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -46,8 +47,40 @@ class AllChannelsPage extends StatelessWidget {
 }
 
 
-class AllChannelsPageBody extends StatelessWidget {
+class AllChannelsPageBody extends StatefulWidget {
   const AllChannelsPageBody({super.key});
+
+  @override
+  State<AllChannelsPageBody> createState() => _AllChannelsPageBodyState();
+}
+
+class _AllChannelsPageBodyState extends State<AllChannelsPageBody> {
+  late final TextEditingController _searchController;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController()
+      ..addListener(_handleSearchUpdate);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _handleSearchUpdate() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase();
+    });
+  }
+
+  bool _filterChannel(ZulipStream channel) {
+    if (_searchQuery.isEmpty) return true;
+    return channel.name.toLowerCase().contains(_searchQuery);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,11 +92,17 @@ class AllChannelsPageBody extends StatelessWidget {
         header: zulipLocalizations.allChannelsEmptyPlaceholderHeader);
     }
 
-    final items = channels.values.toList();
+    final items = channels.values.where(_filterChannel).toList();
     items.sort(ChannelStore.compareChannelsByName);
 
+    // If search is active but no results, show empty list (no placeholder)
+    // If no search and no channels (already handled above), show placeholder.
+
+    // TODO: if we want a specific "No results found" placeholder for search,
+    // we would handle items.isEmpty here differently. For now, match subscription_list behavior.
+
     final sliverList = SliverPadding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       sliver: MediaQuery.removePadding(
         context: context,
         // the bottom inset will be consumed by a different sliver after this one
@@ -76,8 +115,12 @@ class AllChannelsPageBody extends StatelessWidget {
               AllChannelsListEntry(channel: items[i])))));
 
     return CustomScrollView(slivers: [
+      SliverToBoxAdapter(
+        child: SearchBox(
+          controller: _searchController,
+          hintText: zulipLocalizations.channelsPageFilterPlaceholder)),
       sliverList,
-      SliverSafeArea(
+      const SliverSafeArea(
         // TODO(#1572) "New channel" button
         sliver: SliverPadding(padding: EdgeInsets.zero)),
     ]);
