@@ -1376,7 +1376,9 @@ class InlineImage extends StatelessWidget {
           message: InheritedMessage.of(context),
           messageImageContext: context,
           src: lightboxDisplayUrl,
-          thumbnailUrl: resolvedSrc,
+          thumbnailUrl: node.src is ImageNodeSrcThumbnail
+            ? resolvedSrc
+            : null,
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
