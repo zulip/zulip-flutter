@@ -1362,25 +1362,25 @@ class InlineImage extends StatelessWidget {
 
     final resolvedOriginalSrc = node.originalSrc == null ? null
       : store.tryResolveUrl(node.originalSrc!);
-    if (resolvedOriginalSrc != null) {
-      result = GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(getImageLightboxRoute(
-            context: context,
-            message: InheritedMessage.of(context),
-            messageImageContext: context,
-            src: resolvedOriginalSrc,
-            thumbnailUrl: resolvedSrc,
-            originalWidth: node.originalWidth,
-            originalHeight: node.originalHeight));
-        },
-        child: LightboxHero(
-          messageImageContext: context,
-          src: resolvedOriginalSrc,
-          child: result));
+    if (resolvedOriginalSrc == null) {
+      return result;
     }
 
-    return result;
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(getImageLightboxRoute(
+          context: context,
+          message: InheritedMessage.of(context),
+          messageImageContext: context,
+          src: resolvedOriginalSrc,
+          thumbnailUrl: resolvedSrc,
+          originalWidth: node.originalWidth,
+          originalHeight: node.originalHeight));
+      },
+      child: LightboxHero(
+        messageImageContext: context,
+        src: resolvedOriginalSrc,
+        child: result));
   }
 
   @override
