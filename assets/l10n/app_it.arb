@@ -11,6 +11,12 @@
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
+  "@actionSheetOptionCopyChannelLink": {
+    "description": "Label for copy channel link button on action sheet."
+  },
   "@actionSheetOptionCopyMessageLink": {
     "description": "Label for copy message link button on action sheet."
   },
@@ -47,6 +53,9 @@
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
   },
+  "@actionSheetOptionSeeWhoReacted": {
+    "description": "Label for the 'See who reacted' button in the message action sheet."
+  },
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
   },
@@ -67,6 +76,12 @@
   },
   "@actionSheetOptionUnstarMessage": {
     "description": "Label for unstar button on action sheet."
+  },
+  "@actionSheetOptionUnsubscribe": {
+    "description": "Label in the channel action sheet for unsubscribing from the channel."
+  },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
@@ -109,6 +124,9 @@
   },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
@@ -184,6 +202,9 @@
   },
   "@contentValidationErrorUploadInProgress": {
     "description": "Content validation error message when attachments have not finished uploading."
+  },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
   },
   "@dialogCancel": {
     "description": "Button label in dialogs to cancel."
@@ -796,6 +817,44 @@
   "@searchMessagesPageTitle": {
     "description": "Page title for the 'Search' message view."
   },
+  "@seeWhoReactedSheetEmojiNameWithVoteCount": {
+    "description": "In the 'See who reacted' sheet, an emoji reaction's name and how many votes it has. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {
+        "example": "working_on_it",
+        "type": "String"
+      },
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
+  "@seeWhoReactedSheetHeaderLabel": {
+    "description": "In the 'See who reacted' sheet, a label for the list of emoji reactions at the top, with the total number of reactions. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
+  "@seeWhoReactedSheetNoReactions": {
+    "description": "Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened)."
+  },
+  "@seeWhoReactedSheetUserListLabel": {
+    "description": "In the 'See who reacted' sheet, a label for the list of users who chose an emoji reaction, with the emoji's name and how many votes it has. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {
+        "example": "working_on_it",
+        "type": "String"
+      },
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
   "@serverUrlValidationErrorEmpty": {
     "description": "Error message when URL is empty"
   },
@@ -900,6 +959,24 @@
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
   },
+  "@unsubscribeConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
+  },
+  "@unsubscribeConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for unsubscribing from a channel.",
+    "placeholders": {
+      "channelName": {
+        "example": "#mobile",
+        "type": "String"
+      }
+    }
+  },
+  "@unsubscribeFailedTitle": {
+    "description": "Error title when unsubscribing from a channel failed."
+  },
   "@upgradeWelcomeDialogDismiss": {
     "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
   },
@@ -911,6 +988,9 @@
   },
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
   },
   "@userRoleAdministrator": {
     "description": "Label for UserRole.administrator"
@@ -967,6 +1047,8 @@
   "aboutPageOpenSourceLicenses": "Licenze open-source",
   "aboutPageTapToView": "Tap per visualizzare",
   "aboutPageTitle": "Su Zulip",
+  "actionSheetOptionChannelFeed": "Feed del canale",
+  "actionSheetOptionCopyChannelLink": "Copia il collegamento al canale",
   "actionSheetOptionCopyMessageLink": "Copia il collegamento al messaggio",
   "actionSheetOptionCopyMessageText": "Copia il testo del messaggio",
   "actionSheetOptionEditMessage": "Modifica messaggio",
@@ -979,6 +1061,7 @@
   "actionSheetOptionMuteTopic": "Silenzia argomento",
   "actionSheetOptionQuoteMessage": "Cita messaggio",
   "actionSheetOptionResolveTopic": "Segna come risolto",
+  "actionSheetOptionSeeWhoReacted": "Guarda chi ha reagito",
   "actionSheetOptionShare": "Condividi",
   "actionSheetOptionStarMessage": "Messaggio speciale",
   "actionSheetOptionSubscribe": "Iscriviti",
@@ -986,6 +1069,8 @@
   "actionSheetOptionUnmuteTopic": "Riattiva argomento",
   "actionSheetOptionUnresolveTopic": "Segna come irrisolto",
   "actionSheetOptionUnstarMessage": "Messaggio normale",
+  "actionSheetOptionUnsubscribe": "Disiscriversi",
+  "allChannelsEmptyPlaceholderHeader": "Non ci sono canali che puoi visualizzare in questa organizzazione.",
   "allChannelsPageTitle": "Titolo per la pagina \"Tutti i canali\".",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Feed del canale",
@@ -1000,6 +1085,7 @@
   "composeBoxBannerButtonCancel": "Annulla",
   "composeBoxBannerButtonRefresh": "Etichetta il testo per il pulsante \"Aggiorna\" nel banner della casella di composizione quando visualizzi un canale a cui non sei iscritto.",
   "composeBoxBannerButtonSave": "Salva",
+  "composeBoxBannerButtonSubscribe": "Iscriviti",
   "composeBoxBannerLabelEditMessage": "Modifica messaggio",
   "composeBoxChannelContentHint": "Messaggia {destination}",
   "composeBoxDmContentHint": "Messaggia @{user}",
@@ -1015,6 +1101,7 @@
   "contentValidationErrorQuoteAndReplyInProgress": "Attendere il completamento del commento.",
   "contentValidationErrorTooLong": "La lunghezza del messaggio non deve essere superiore a 10.000 caratteri.",
   "contentValidationErrorUploadInProgress": "Attendere il completamento del caricamento.",
+  "deleteMessageConfirmationDialogConfirmButton": "Elimina",
   "dialogCancel": "Annulla",
   "dialogClose": "Chiudi",
   "dialogContinue": "Continua",
@@ -1160,6 +1247,10 @@
   "scrollToBottomTooltip": "Scorri fino in fondo",
   "searchMessagesHintText": "Testo di suggerimento per il campo di testo di ricerca del messaggio.",
   "searchMessagesPageTitle": "Titolo della pagina per la visualizzazione del messaggio \"Cerca\".",
+  "seeWhoReactedSheetEmojiNameWithVoteCount": "{emojiName}: {num, plural, =1{1 voto} other{{num} voti}}",
+  "seeWhoReactedSheetHeaderLabel": "Reazioni emoji ({num} totale)",
+  "seeWhoReactedSheetNoReactions": "Questo messaggio non ha ricevuto reazioni.",
+  "seeWhoReactedSheetUserListLabel": "Voti per {emojiName} ({num})",
   "serverUrlValidationErrorEmpty": "Inserire un URL.",
   "serverUrlValidationErrorInvalidUrl": "Inserire un URL valido.",
   "serverUrlValidationErrorNoUseEmail": "Inserire l'URL del server, non il proprio indirizzo email.",
@@ -1188,10 +1279,15 @@
   "unknownChannelName": "(canale sconosciuto)",
   "unknownUserName": "(utente sconosciuto)",
   "unpinnedSubscriptionsLabel": "Non bloccato",
+  "unsubscribeConfirmationDialogConfirmButton": "Disiscriversi",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "Una volta abbandonato questo canale, non potrai più rientrarvi.",
+  "unsubscribeConfirmationDialogTitle": "Vuoi annullare l'iscrizione a {channelName}?",
+  "unsubscribeFailedTitle": "Disiscrizione fallita",
   "upgradeWelcomeDialogDismiss": "Andiamo",
   "upgradeWelcomeDialogLinkText": "Date un'occhiata al post dell'annuncio sul blog!",
   "upgradeWelcomeDialogMessage": "Troverai un'esperienza familiare in un pacchetto più veloce ed elegante.",
   "upgradeWelcomeDialogTitle": "Benvenuti alla nuova app Zulip!",
+  "userIdle": "Inattivo",
   "userRoleAdministrator": "Amministratore",
   "userRoleGuest": "Ospite",
   "userRoleMember": "Membro",

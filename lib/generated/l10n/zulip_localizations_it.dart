@@ -76,7 +76,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>
-      'There are no channels you can view in this organization.';
+      'Non ci sono canali che puoi visualizzare in questa organizzazione.';
 
   @override
   String get profileButtonSendDirectMessage => 'Invia un messaggio diretto';
@@ -109,31 +109,32 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get actionSheetOptionMarkChannelAsRead => 'Segna il canale come letto';
 
   @override
-  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+  String get actionSheetOptionCopyChannelLink =>
+      'Copia il collegamento al canale';
 
   @override
   String get actionSheetOptionListOfTopics => 'Elenco degli argomenti';
 
   @override
-  String get actionSheetOptionChannelFeed => 'Channel feed';
+  String get actionSheetOptionChannelFeed => 'Feed del canale';
 
   @override
-  String get actionSheetOptionUnsubscribe => 'Unsubscribe';
+  String get actionSheetOptionUnsubscribe => 'Disiscriversi';
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
-    return 'Unsubscribe from $channelName?';
+    return 'Vuoi annullare l\'iscrizione a $channelName?';
   }
 
   @override
   String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
-      'Once you leave this channel, you will not be able to rejoin.';
+      'Una volta abbandonato questo canale, non potrai più rientrarvi.';
 
   @override
-  String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
+  String get unsubscribeConfirmationDialogConfirmButton => 'Disiscriversi';
 
   @override
-  String get unsubscribeFailedTitle => 'Failed to unsubscribe';
+  String get unsubscribeFailedTitle => 'Disiscrizione fallita';
 
   @override
   String get actionSheetOptionMuteTopic => 'Silenzia argomento';
@@ -162,14 +163,15 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Impossibile contrassegnare l\'argomento come irrisolto';
 
   @override
-  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+  String get actionSheetOptionSeeWhoReacted => 'Guarda chi ha reagito';
 
   @override
-  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+  String get seeWhoReactedSheetNoReactions =>
+      'Questo messaggio non ha ricevuto reazioni.';
 
   @override
   String seeWhoReactedSheetHeaderLabel(int num) {
-    return 'Emoji reactions ($num total)';
+    return 'Reazioni emoji ($num totale)';
   }
 
   @override
@@ -177,15 +179,15 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       num,
       locale: localeName,
-      other: '$num votes',
-      one: '1 vote',
+      other: '$num voti',
+      one: '1 voto',
     );
     return '$emojiName: $_temp0';
   }
 
   @override
   String seeWhoReactedSheetUserListLabel(String emojiName, int num) {
-    return 'Votes for $emojiName ($num)';
+    return 'Voti per $emojiName ($num)';
   }
 
   @override
@@ -253,7 +255,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Deleting a message permanently removes it for everyone.';
 
   @override
-  String get deleteMessageConfirmationDialogConfirmButton => 'Delete';
+  String get deleteMessageConfirmationDialogConfirmButton => 'Elimina';
 
   @override
   String get errorDeleteMessageFailedTitle => 'Failed to delete message';
@@ -461,7 +463,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Etichetta il testo per il pulsante \"Aggiorna\" nel banner della casella di composizione quando visualizzi un canale a cui non sei iscritto.';
 
   @override
-  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+  String get composeBoxBannerButtonSubscribe => 'Iscriviti';
 
   @override
   String get composeBoxBannerLabelEditMessage => 'Modifica messaggio';
@@ -872,7 +874,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get userActiveNow => 'Active now';
 
   @override
-  String get userIdle => 'Idle';
+  String get userIdle => 'Inattivo';
 
   @override
   String userActiveMinutesAgo(int minutes) {

@@ -26,6 +26,9 @@
   "@actionSheetOptionCopyTopicLink": {
     "description": "Label for copy topic link button in action sheet."
   },
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
+  },
   "@actionSheetOptionEditMessage": {
     "description": "Label for the 'Edit message' button in the message action sheet."
   },
@@ -104,6 +107,9 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
   },
@@ -112,6 +118,18 @@
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
+  },
+  "@channelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show."
+  },
+  "@channelsEmptyPlaceholderMessage": {
+    "description": "Centered text on the 'Channels' page saying that there is no content to show, with a link to 'All channels'.",
+    "placeholders": {
+      "allChannelsPageTitle": {
+        "example": "All channels",
+        "type": "String"
+      }
+    }
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
@@ -136,11 +154,20 @@
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
   },
   "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel.",
@@ -214,6 +241,15 @@
   "@contentValidationErrorUploadInProgress": {
     "description": "Content validation error message when attachments have not finished uploading."
   },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
+  },
   "@dialogCancel": {
     "description": "Button label in dialogs to cancel."
   },
@@ -262,8 +298,71 @@
   "@emptyMessageList": {
     "description": "Placeholder for some message-list pages when there are no messages."
   },
+  "@emptyMessageListChannelUnavailable": {
+    "description": "Placeholder for a channel page when there are no messages and the channel does not exist or you don't have access to it."
+  },
+  "@emptyMessageListChannelWithoutContentAccess": {
+    "description": "Placeholder for a channel or topic page when there are no messages and you don’t have content access."
+  },
+  "@emptyMessageListCombinedFeed": {
+    "description": "Placeholder for the 'Combined feed' page when there are no messages."
+  },
+  "@emptyMessageListDm": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages.",
+    "placeholders": {
+      "person": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@emptyMessageListDmDeactivatedUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user is deactivated.",
+    "placeholders": {
+      "person": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@emptyMessageListDmStartConversation": {
+    "description": "Extra detail in the placeholder for some DM pages when there are no messages."
+  },
+  "@emptyMessageListDmUnknownUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user's name is unavailable."
+  },
+  "@emptyMessageListGroupDm": {
+    "description": "Placeholder for a group DM page when there are no messages."
+  },
+  "@emptyMessageListGroupDmDeactivatedUser": {
+    "description": "Placeholder for a group DM page when there are no messages and one or more participants is deactivated."
+  },
+  "@emptyMessageListMentionsHeader": {
+    "description": "Placeholder for the 'Mentions' page when there are no messages."
+  },
+  "@emptyMessageListMentionsMessage": {
+    "description": "Extra detail in the placeholder for the 'Mentions' page when there are no messages."
+  },
   "@emptyMessageListSearch": {
     "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "@emptyMessageListSelfDmHeader": {
+    "description": "Placeholder for the self-DM page when there are no messages."
+  },
+  "@emptyMessageListSelfDmMessage": {
+    "description": "Extra detail in the placeholder for the self-DM page when there are no messages."
+  },
+  "@emptyMessageListStarredHeader": {
+    "description": "Placeholder for the 'Starred' page when there are no messages."
+  },
+  "@emptyMessageListStarredMessage": {
+    "description": "Extra detail in the placeholder for the 'Starred' page when there are no messages. The {button} placeholder will be the button's translated text.",
+    "placeholders": {
+      "button": {
+        "example": "Star message",
+        "type": "String"
+      }
+    }
   },
   "@errorAccountLoggedIn": {
     "description": "Error message on attempting to log into an account that's already logged in.",
@@ -312,6 +411,9 @@
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
   },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
+  },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
   },
@@ -335,6 +437,9 @@
   },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
   },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
@@ -578,6 +683,12 @@
       }
     }
   },
+  "@inboxEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Inbox' page saying that there is no content to show."
+  },
+  "@inboxEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Inbox' page saying that there is no content to show."
+  },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
@@ -640,6 +751,9 @@
   },
   "@loginMethodDivider": {
     "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
+  },
+  "@loginMethodDividerSemanticLabel": {
+    "description": "Semantic label for divider between the username/password form and the third-party login options."
   },
   "@loginPageTitle": {
     "description": "Title for login page."
@@ -730,6 +844,9 @@
   },
   "@mutedUser": {
     "description": "Text to display in place of a muted user's name."
+  },
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
   },
   "@navButtonAllChannels": {
     "description": "Title for a nav button that opens the 'All channels' page."
@@ -848,6 +965,12 @@
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
   },
+  "@recentDmConversationsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsEmptyPlaceholderMessage": {
+    "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
+  },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
@@ -931,6 +1054,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "@shareChooseAccountModalTitle": {
+    "description": "Title for the modal bottom sheet about selecting an account to share content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1000,6 +1126,9 @@
   "@today": {
     "description": "Term to use to reference the current day."
   },
+  "@topicListEmptyPlaceholderHeader": {
+    "description": "Header text shown when a channel has no topics."
+  },
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
@@ -1049,6 +1178,9 @@
   },
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
   },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
@@ -1194,6 +1326,7 @@
   "actionSheetOptionCopyMessageLink": "メッセージへのリンクをコピー",
   "actionSheetOptionCopyMessageText": "メッセージ本文をコピー",
   "actionSheetOptionCopyTopicLink": "トピックのリンクをコピー",
+  "actionSheetOptionDeleteMessage": "メッセージを削除",
   "actionSheetOptionEditMessage": "メッセージを編集",
   "actionSheetOptionFollowTopic": "トピックをフォロー",
   "actionSheetOptionHideMutedMessage": "ミュートしたメッセージを再び非表示にする",
@@ -1218,9 +1351,12 @@
   "actionSheetReadReceiptsErrorReadCount": "既読情報の読み込みに失敗しました。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{このメッセージは <z-link>{count} 人</z-link>に読まれています:} other{このメッセージは <z-link>{count} 人</z-link>に読まれています:}}",
   "actionSheetReadReceiptsZeroReadCount": "このメッセージはまだ誰も読んでいません。",
+  "allChannelsEmptyPlaceholderHeader": "この組織には、あなたが閲覧できるチャンネルはありません。",
   "allChannelsPageTitle": "全てのチャンネル",
   "appVersionUnknownPlaceholder": "（…）",
   "channelFeedButtonTooltip": "チャンネルフィード",
+  "channelsEmptyPlaceholderHeader": "まだどのチャンネルも購読していません。",
+  "channelsEmptyPlaceholderMessage": "<z-link>{allChannelsPageTitle}</z-link> に移動して、いくつか参加してみましょう。",
   "channelsPageTitle": "チャンネル",
   "chooseAccountButtonAddAnAccount": "新しいアカウントを追加",
   "chooseAccountPageLogOutButton": "ログアウト",
@@ -1230,15 +1366,18 @@
   "composeBoxAttachFromCameraTooltip": "写真を撮る",
   "composeBoxAttachMediaTooltip": "画像や動画を添付",
   "composeBoxBannerButtonCancel": "キャンセル",
+  "composeBoxBannerButtonRefresh": "更新",
   "composeBoxBannerButtonSave": "保存",
+  "composeBoxBannerButtonSubscribe": "購読する",
   "composeBoxBannerLabelEditMessage": "メッセージを編集",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "新しいメッセージは自動的に表示されません。",
   "composeBoxChannelContentHint": "{destination} にメッセージを送信",
   "composeBoxDmContentHint": "@{user} さんにメッセージ",
   "composeBoxEnterTopicOrSkipHintText": "トピックを入力（省略時は「{defaultTopicName}」）",
   "composeBoxGenericContentHint": "メッセージを入力",
   "composeBoxGroupDmContentHint": "グループにメッセージ",
   "composeBoxLoadingMessage": "（メッセージ {messageId} を読み込み中）",
-  "composeBoxSelfDmContentHint": "メモを書き留める",
+  "composeBoxSelfDmContentHint": "自分宛てにメモを書く",
   "composeBoxSendTooltip": "送信",
   "composeBoxTopicHintText": "トピック",
   "composeBoxUploadingFilename": "{filename} をアップロード中…",
@@ -1246,6 +1385,9 @@
   "contentValidationErrorQuoteAndReplyInProgress": "引用が完了するまでお待ちください。",
   "contentValidationErrorTooLong": "メッセージは10000文字以内で入力してください。",
   "contentValidationErrorUploadInProgress": "アップロードが完了するまでお待ちください。",
+  "deleteMessageConfirmationDialogConfirmButton": "削除",
+  "deleteMessageConfirmationDialogMessage": "メッセージを削除すると、全ユーザーから完全に削除されます。",
+  "deleteMessageConfirmationDialogTitle": "メッセージを削除しますか？",
   "dialogCancel": "キャンセル",
   "dialogClose": "閉じる",
   "dialogContinue": "続行",
@@ -1260,7 +1402,22 @@
   "emojiPickerSearchEmoji": "絵文字を検索",
   "emojiReactionsMore": "その他",
   "emptyMessageList": "ここにはメッセージがありません。",
+  "emptyMessageListChannelUnavailable": "このチャンネルは存在しないか、または閲覧する権限がありません。",
+  "emptyMessageListChannelWithoutContentAccess": "このチャンネルに対する<z-link>コンテンツへのアクセス権</z-link>がありません。",
+  "emptyMessageListCombinedFeed": "統合フィードにメッセージはありません。",
+  "emptyMessageListDm": "{person} さんとのダイレクトメッセージはまだありません。",
+  "emptyMessageListDmDeactivatedUser": "{person} さんとのダイレクトメッセージはありません。",
+  "emptyMessageListDmStartConversation": "会話を始めてみませんか？",
+  "emptyMessageListDmUnknownUser": "このユーザーとのダイレクトメッセージはありません。",
+  "emptyMessageListGroupDm": "これらのユーザーとのダイレクトメッセージはまだありません。",
+  "emptyMessageListGroupDmDeactivatedUser": "これらのユーザーとのダイレクトメッセージはありません。",
+  "emptyMessageListMentionsHeader": "このビューには、あなたが<z-link>メンション</z-link>されたメッセージが表示されます。",
+  "emptyMessageListMentionsMessage": "メッセージに注目してほしいときは、ユーザー、グループ、トピックの参加者、またはチャンネルの全購読者をメンションできます。メッセージ作成ボックスで「@」を入力し、候補リストからメンションしたい相手を選んでください。",
   "emptyMessageListSearch": "検索結果はありません。",
+  "emptyMessageListSelfDmHeader": "自分宛のダイレクトメッセージはまだありません！",
+  "emptyMessageListSelfDmMessage": "このスペースは、自分用のメモやZulipの機能を試すために活用してください。",
+  "emptyMessageListStarredHeader": "スター付きメッセージはありません。",
+  "emptyMessageListStarredMessage": "<z-link>スター</z-link>を付けると、後で見返したいタスクや役立つ参考資料など、重要なメッセージを管理するのに便利です。メッセージにスターを付けるには、メッセージを長押しして「{button}」をタップしてください。",
   "errorAccountLoggedIn": "{server} の {email} アカウントは、すでにアカウント一覧に追加されています。",
   "errorAccountLoggedInTitle": "このアカウントはすでにログインしています",
   "composeBoxBannerLabelCannotSendInChannel": "このチャンネルに投稿する権限がありません。",
@@ -1270,12 +1427,14 @@
   "errorContentNotInsertedTitle": "コンテンツを挿入できませんでした",
   "errorContentToInsertIsEmpty": "挿入しようとしたファイルが空、またはアクセスできません。",
   "errorCopyingFailed": "コピーに失敗しました",
+  "errorCouldNotAccessUploadedFileTitle": "アップロードされたファイルにアクセスできませんでした",
   "errorCouldNotConnectTitle": "接続できませんでした",
   "errorCouldNotEditMessageTitle": "メッセージを編集できませんでした",
   "errorCouldNotFetchMessageSource": "メッセージのソースを取得できませんでした。",
   "errorCouldNotOpenLink": "リンクを開けませんでした：{url}",
   "errorCouldNotOpenLinkTitle": "リンクを開けませんでした",
   "errorCouldNotShowUserProfile": "ユーザープロフィールを表示できませんでした。",
+  "errorDeleteMessageFailedTitle": "メッセージの削除に失敗しました",
   "errorDialogContinue": "OK",
   "errorDialogLearnMore": "詳しく見る",
   "errorDialogTitle": "エラー",
@@ -1322,6 +1481,8 @@
   "experimentalFeatureSettingsPageTitle": "実験的機能",
   "experimentalFeatureSettingsWarning": "これらのオプションは、まだ開発中で未完成の機能を有効にします。正常に動作しない場合や、アプリの他の部分に不具合を引き起こす可能性があります。\n\nこの設定は、Zulip の開発に携わる人が試験的に利用することを目的としています。",
   "filenameAndSizeInMiB": "{filename}: {size} MiB",
+  "inboxEmptyPlaceholderHeader": "受信箱に未読メッセージはありません。",
+  "inboxEmptyPlaceholderMessage": "下のボタンを使用して、統合フィードまたはチャンネル一覧を表示します。",
   "inboxPageTitle": "受信箱",
   "initialAnchorSettingDescription": "メッセージ一覧を、最初の未読メッセージから開くか、最新のメッセージから開くかを選択できます。",
   "initialAnchorSettingFirstUnreadAlways": "最初の未読メッセージ",
@@ -1343,6 +1504,7 @@
   "loginFormSubmitLabel": "ログイン",
   "loginHidePassword": "パスワードを非表示",
   "loginMethodDivider": "または",
+  "loginMethodDividerSemanticLabel": "他のログイン方法",
   "loginPageTitle": "ログイン",
   "loginPasswordLabel": "パスワード",
   "loginServerUrlLabel": "Zulip サーバーのURL",
@@ -1367,6 +1529,7 @@
   "messageListGroupYouWithYourself": "自分とのメッセージ",
   "messageNotSentLabel": "メッセージ未送信",
   "mutedUser": "ミュート中のユーザー",
+  "navBarMenuLabel": "メニュー",
   "navButtonAllChannels": "全てのチャンネル",
   "newDmFabButtonLabel": "新しいDM",
   "newDmSheetComposeButtonLabel": "作成",
@@ -1394,6 +1557,8 @@
   "reactionChipLabel": "{emojiName}: {votes}件",
   "reactionChipVotesYouAndOthers": "{otherUsersCount, plural, =1{自分とほか1人} other{自分とほか{otherUsersCount}人}}",
   "reactionChipsLabel": "リアクション",
+  "recentDmConversationsEmptyPlaceholderHeader": "ダイレクトメッセージはまだありません！",
+  "recentDmConversationsEmptyPlaceholderMessage": "会話を始めてみませんか？",
   "recentDmConversationsPageTitle": "ダイレクトメッセージ",
   "recentDmConversationsSectionHeader": "ダイレクトメッセージ",
   "revealButtonLabel": "メッセージを表示",
@@ -1413,6 +1578,7 @@
   "serverUrlValidationErrorUnsupportedScheme": "サーバーURLは http:// または https:// で始まる必要があります。",
   "setStatusPageTitle": "ステータスの設定",
   "settingsPageTitle": "設定",
+  "shareChooseAccountModalTitle": "アカウントを選択",
   "signInWithFoo": "{method}でログイン",
   "snackBarDetails": "詳細",
   "spoilerDefaultHeaderText": "内容を隠す",
@@ -1434,8 +1600,9 @@
   "themeSettingSystem": "自動テーマ",
   "themeSettingTitle": "テーマ",
   "today": "今日",
+  "topicListEmptyPlaceholderHeader": "トピックはまだありません。",
   "topicValidationErrorMandatoryButEmpty": "この組織ではトピックの入力が必須です。",
-  "topicValidationErrorTooLong": "トピックは60文字以内で入力してください。",
+  "topicValidationErrorTooLong": "トピックの長さは{maxLength, plural, =1{1 文字} other{{maxLength} 文字}} 以内にしてください。",
   "topicsButtonTooltip": "トピック",
   "tryAnotherAccountButton": "別のアカウントを試す",
   "tryAnotherAccountMessage": "{url} のアカウントの読み込みに時間がかかっています。",
@@ -1446,6 +1613,7 @@
   "unknownUserName": "（不明なユーザー）",
   "unpinnedSubscriptionsLabel": "ピン留めなし",
   "unsubscribeConfirmationDialogConfirmButton": "チャンネルから退出",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "このチャンネルを退出すると、再参加できなくなります。",
   "unsubscribeConfirmationDialogTitle": "{channelName} から退出しますか？",
   "unsubscribeFailedTitle": "チャンネルからの退出に失敗しました",
   "updateStatusErrorTitle": "ステータスの更新に失敗しました。もう一度お試しください。",

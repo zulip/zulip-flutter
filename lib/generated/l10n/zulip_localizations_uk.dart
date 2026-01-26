@@ -1056,7 +1056,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   }
 
   @override
-  String get shareChooseAccountModalTitle => 'Choose an account';
+  String get shareChooseAccountModalTitle => 'Виберіть обліковий запис';
 
   @override
   String get mainMenuMyProfile => 'Мій профіль';

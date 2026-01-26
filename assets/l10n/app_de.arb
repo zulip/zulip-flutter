@@ -302,8 +302,71 @@
   "@emptyMessageList": {
     "description": "Placeholder for some message-list pages when there are no messages."
   },
+  "@emptyMessageListChannelUnavailable": {
+    "description": "Placeholder for a channel page when there are no messages and the channel does not exist or you don't have access to it."
+  },
+  "@emptyMessageListChannelWithoutContentAccess": {
+    "description": "Placeholder for a channel or topic page when there are no messages and you don’t have content access."
+  },
+  "@emptyMessageListCombinedFeed": {
+    "description": "Placeholder for the 'Combined feed' page when there are no messages."
+  },
+  "@emptyMessageListDm": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages.",
+    "placeholders": {
+      "person": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@emptyMessageListDmDeactivatedUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user is deactivated.",
+    "placeholders": {
+      "person": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@emptyMessageListDmStartConversation": {
+    "description": "Extra detail in the placeholder for some DM pages when there are no messages."
+  },
+  "@emptyMessageListDmUnknownUser": {
+    "description": "Placeholder for a 1:1 DM page when there are no messages and the other user's name is unavailable."
+  },
+  "@emptyMessageListGroupDm": {
+    "description": "Placeholder for a group DM page when there are no messages."
+  },
+  "@emptyMessageListGroupDmDeactivatedUser": {
+    "description": "Placeholder for a group DM page when there are no messages and one or more participants is deactivated."
+  },
+  "@emptyMessageListMentionsHeader": {
+    "description": "Placeholder for the 'Mentions' page when there are no messages."
+  },
+  "@emptyMessageListMentionsMessage": {
+    "description": "Extra detail in the placeholder for the 'Mentions' page when there are no messages."
+  },
   "@emptyMessageListSearch": {
     "description": "Placeholder for the 'Search' page when there are no messages."
+  },
+  "@emptyMessageListSelfDmHeader": {
+    "description": "Placeholder for the self-DM page when there are no messages."
+  },
+  "@emptyMessageListSelfDmMessage": {
+    "description": "Extra detail in the placeholder for the self-DM page when there are no messages."
+  },
+  "@emptyMessageListStarredHeader": {
+    "description": "Placeholder for the 'Starred' page when there are no messages."
+  },
+  "@emptyMessageListStarredMessage": {
+    "description": "Extra detail in the placeholder for the 'Starred' page when there are no messages. The {button} placeholder will be the button's translated text.",
+    "placeholders": {
+      "button": {
+        "example": "Star message",
+        "type": "String"
+      }
+    }
   },
   "@errorAccountLoggedIn": {
     "description": "Error message on attempting to log into an account that's already logged in.",
@@ -693,6 +756,9 @@
   "@loginMethodDivider": {
     "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
   },
+  "@loginMethodDividerSemanticLabel": {
+    "description": "Semantic label for divider between the username/password form and the third-party login options."
+  },
   "@loginPageTitle": {
     "description": "Title for login page."
   },
@@ -782,6 +848,9 @@
   },
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
+  },
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
   },
   "@navButtonAllChannels": {
     "description": "Title for a nav button that opens the 'All channels' page."
@@ -991,6 +1060,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "@shareChooseAccountModalTitle": {
+    "description": "Title for the modal bottom sheet about selecting an account to share content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1059,6 +1131,9 @@
   },
   "@today": {
     "description": "Term to use to reference the current day."
+  },
+  "@topicListEmptyPlaceholderHeader": {
+    "description": "Header text shown when a channel has no topics."
   },
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
@@ -1329,7 +1404,7 @@
   "contentValidationErrorTooLong": "Nachrichtenlänge sollte nicht größer als 10000 Zeichen sein.",
   "contentValidationErrorUploadInProgress": "Bitte warte bis das Hochladen abgeschlossen ist.",
   "deleteMessageConfirmationDialogConfirmButton": "Löschen",
-  "deleteMessageConfirmationDialogMessage": "Das Löschen einer Nachricht entfernt diese permanent für alle Nutzer:innen.",
+  "deleteMessageConfirmationDialogMessage": "Das Löschen einer Nachricht entfernt diese permanent für alle.",
   "deleteMessageConfirmationDialogTitle": "Nachricht löschen?",
   "dialogCancel": "Abbrechen",
   "dialogClose": "Schließen",
@@ -1345,11 +1420,26 @@
   "emojiPickerSearchEmoji": "Emoji suchen",
   "emojiReactionsMore": "mehr",
   "emptyMessageList": "Hier gibt es keine Nachrichten.",
+  "emptyMessageListChannelUnavailable": "Entweder existiert dieser Kanal nicht oder du bist nicht berechtigt, ihn anzusehen.",
+  "emptyMessageListChannelWithoutContentAccess": "Du hast keinen <z-link>Inhaltszugriff</z-link> zu diesem Kanal.",
+  "emptyMessageListCombinedFeed": "Es befinden sich keine Nachrichten in deinem gesammelten Feed.",
+  "emptyMessageListDm": "Du hast noch keine Direktnachrichten mit {person} ausgetauscht.",
+  "emptyMessageListDmDeactivatedUser": "Du hast keine Direktnachrichten mit {person} ausgetauscht.",
+  "emptyMessageListDmStartConversation": "Warum beginnst du nicht einfach eine Konversation?",
+  "emptyMessageListDmUnknownUser": "Du hast noch keine Nachrichten mit diesem Nutzer ausgetauscht.",
+  "emptyMessageListGroupDm": "Du hast noch keine Direktnachrichten mit diesem Nutzer ausgetauscht.",
+  "emptyMessageListGroupDmDeactivatedUser": "Du hast keine Direktnachrichten mit diesem Nutzer.",
+  "emptyMessageListMentionsHeader": "In dieser Ansicht werden Nachrichten angeführt, in denen du <z-link>erwähnt</z-link> worden bist.",
+  "emptyMessageListMentionsMessage": "Um auf eine Nachricht hinzuweisen, kannst du einen Nutzer, eine Gruppe, die Teilnehmer an diesem Thema oder alle Abonnenten eines Kanals erwähnen. Tippe @ ins Nachrichtenfeld und wähle aus den Vorschlägen, wen du gern erwähnen möchtest.",
   "emptyMessageListSearch": "Keine Suchergebnisse.",
+  "emptyMessageListSelfDmHeader": "Bisher hast du keine Direktnachrichten an dich selbst geschickt!",
+  "emptyMessageListSelfDmMessage": "Nutze diesen Bereich für persönliche Notizen oder um neue Features von Zulip zu testen.",
+  "emptyMessageListStarredHeader": "Du hast noch keine Nachrichten markiert.",
+  "emptyMessageListStarredMessage": "<z-link>Markieren</z-link> ist eine gute Möglichkeit, wichtige Nachrichten wie Aufgaben, die du später erledigen möchtest, oder nützliche Referenzen nicht zu verlieren. Um eine Nachricht zu markieren, tippe sie lange an und tippe danach auf \"{button}\".",
   "errorAccountLoggedIn": "Der Account {email} auf {server} ist bereits in deiner Account-Liste.",
   "errorAccountLoggedInTitle": "Account bereits angemeldet",
   "composeBoxBannerLabelCannotSendInChannel": "Du hast keine Berechtigung in diesen Kanal zu schreiben.",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "Du kannst keine Nachrichten an deaktivierte Nutzer:innen senden.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Du kannst keine Nachrichten an deaktivierte Nutzer senden.",
   "errorConnectingToServerDetails": "Fehler beim Verbinden mit Zulip auf {serverUrl}. Wird wiederholt:\n\n{error}",
   "errorConnectingToServerShort": "Fehler beim Verbinden mit Zulip. Wiederhole…",
   "errorContentNotInsertedTitle": "Inhalt nicht eingefügt",
@@ -1432,6 +1522,7 @@
   "loginFormSubmitLabel": "Anmelden",
   "loginHidePassword": "Passwort verstecken",
   "loginMethodDivider": "ODER",
+  "loginMethodDividerSemanticLabel": "Alternative Möglichkeiten zum Einloggen",
   "loginPageTitle": "Anmelden",
   "loginPasswordLabel": "Passwort",
   "loginServerUrlLabel": "Deine Zulip Server URL",
@@ -1455,14 +1546,15 @@
   "messageListGroupYouAndOthers": "Du und {others}",
   "messageListGroupYouWithYourself": "Nachrichten mit dir selbst",
   "messageNotSentLabel": "NACHRICHT NICHT GESENDET",
-  "mutedUser": "Stummgeschaltete:r Nutzer:in",
+  "mutedUser": "Stummgeschalteter Nutzer",
+  "navBarMenuLabel": "Menü",
   "navButtonAllChannels": "Alle Kanäle",
   "newDmFabButtonLabel": "Neue DN",
   "newDmSheetComposeButtonLabel": "Verfassen",
-  "newDmSheetNoUsersFound": "Keine Nutzer:innen gefunden",
+  "newDmSheetNoUsersFound": "Keine Nutzer gefunden",
   "newDmSheetScreenTitle": "Neue DN",
-  "newDmSheetSearchHintEmpty": "Füge ein oder mehrere Nutzer:innen hinzu",
-  "newDmSheetSearchHintSomeSelected": "Füge weitere Nutzer:in hinzu…",
+  "newDmSheetSearchHintEmpty": "Füge einen oder mehrere Nutzer hinzu",
+  "newDmSheetSearchHintSomeSelected": "Füge weitere Nutzer hinzu…",
   "noEarlierMessages": "Keine früheren Nachrichten",
   "noStatusText": "Kein Statustext",
   "notifGroupDmConversationLabel": "{senderFullName} an dich und {numOthers, plural, =1{1 weitere:n} other{{numOthers} weitere}}",
@@ -1504,6 +1596,7 @@
   "serverUrlValidationErrorUnsupportedScheme": "Die Server-URL muss mit http:// oder https:// beginnen.",
   "setStatusPageTitle": "Status setzen",
   "settingsPageTitle": "Einstellungen",
+  "shareChooseAccountModalTitle": "Wähle ein Konto",
   "signInWithFoo": "Anmelden mit {method}",
   "snackBarDetails": "Details",
   "spoilerDefaultHeaderText": "Spoiler",
@@ -1525,6 +1618,7 @@
   "themeSettingSystem": "System",
   "themeSettingTitle": "THEMA",
   "today": "Heute",
+  "topicListEmptyPlaceholderHeader": "Es gibt noch keine Themen.",
   "topicValidationErrorMandatoryButEmpty": "Themen sind in dieser Organisation erforderlich.",
   "topicValidationErrorTooLong": "Länge des Themas sollte {maxLength, plural, =1{1 Zeichen} other{{maxLength} Zeichen}} nicht überschreiten.",
   "topicsButtonTooltip": "Themen",
@@ -1534,7 +1628,7 @@
   "turnOnInvisibleModeErrorTitle": "Fehler beim Einschalten des unsichtbaren Modus. Bitte versuche es erneut.",
   "twoPeopleTyping": "{typist} und {otherTypist} tippen…",
   "unknownChannelName": "(unbekannter Kanal)",
-  "unknownUserName": "(Nutzer:in unbekannt)",
+  "unknownUserName": "(unbekannter Nutzer)",
   "unpinnedSubscriptionsLabel": "Nicht angeheftet",
   "unsubscribeConfirmationDialogConfirmButton": "Deabonnieren",
   "unsubscribeConfirmationDialogMessageCannotResubscribe": "Sobald du diesen Kanal verlässt, kannst du ihm nicht mehr beitreten.",
