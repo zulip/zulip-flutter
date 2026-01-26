@@ -1319,13 +1319,13 @@ abstract class ZulipLocalizations {
   /// **'Hide password'**
   String get loginHidePassword;
 
-  /// Label for input when an email is required to log in.
+  /// Label for input when an email address is required to log in.
   ///
   /// In en, this message translates to:
   /// **'Email address'**
   String get loginEmailLabel;
 
-  /// Error message when an empty email was provided.
+  /// Error message when an empty email address was provided.
   ///
   /// In en, this message translates to:
   /// **'Please enter your email.'**
@@ -1443,7 +1443,7 @@ abstract class ZulipLocalizations {
   /// **'Please enter a valid URL.'**
   String get serverUrlValidationErrorInvalidUrl;
 
-  /// Error message when URL looks like an email
+  /// Error message when URL looks like an email address
   ///
   /// In en, this message translates to:
   /// **'Please enter the server URL, not your email.'**
