@@ -539,12 +539,31 @@ class ImagePreviewNodeList extends BlockContentNode {
 class ImagePreviewNode extends BlockContentNode {
   const ImagePreviewNode({
     super.debugHtmlNode,
-    required this.originalSrc,
-    required this.src,
     required this.loading,
+    required this.src,
+    required this.originalSrc,
     required this.originalWidth,
     required this.originalHeight,
   });
+
+  /// Whether the img has the "image-loading-placeholder" classname.
+  ///
+  /// This is expected to be true (as of 2026-01)
+  /// while an uploaded image is being thumbnailed.
+  ///
+  /// When this is true, [src] will point to a "spinner" image.
+  /// Clients are invited to show a custom loading indicator instead; we do.
+  final bool loading;
+
+  /// A URL for the image intended to be shown here in Zulip content.
+  ///
+  /// If [loading] is true, this will point to a "spinner" image.
+  /// Clients are invited to show a custom loading indicator instead; we do.
+  ///
+  /// Except for images processed in modern thumbnailing (2026-01),
+  /// this is also meant for viewing the image by itself, in a lightbox.
+  /// For how to recognize that case, see [originalSrc].
+  final ImageNodeSrc src;
 
   /// The canonical source URL of the image.
   ///
@@ -567,25 +586,6 @@ class ImagePreviewNode extends BlockContentNode {
   // TODO(#1268) implement transcoded-image feature; update dartdoc
   final String originalSrc;
 
-  /// A URL for the image intended to be shown here in Zulip content.
-  ///
-  /// If [loading] is true, this will point to a "spinner" image.
-  /// Clients are invited to show a custom loading indicator instead; we do.
-  ///
-  /// Except for images processed in modern thumbnailing (2026-01),
-  /// this is also meant for viewing the image by itself, in a lightbox.
-  /// For how to recognize that case, see [originalSrc].
-  final ImageNodeSrc src;
-
-  /// Whether the img has the "image-loading-placeholder" classname.
-  ///
-  /// This is expected to be true (as of 2026-01)
-  /// while an uploaded image is being thumbnailed.
-  ///
-  /// When this is true, [src] will point to a "spinner" image.
-  /// Clients are invited to show a custom loading indicator instead; we do.
-  final bool loading;
-
   /// The width part of data-original-dimensions, if that attribute is present.
   final double? originalWidth;
 
@@ -595,23 +595,23 @@ class ImagePreviewNode extends BlockContentNode {
   @override
   bool operator ==(Object other) {
     return other is ImagePreviewNode
-      && other.originalSrc == originalSrc
-      && other.src == src
       && other.loading == loading
+      && other.src == src
+      && other.originalSrc == originalSrc
       && other.originalWidth == originalWidth
       && other.originalHeight == originalHeight;
   }
 
   @override
   int get hashCode => Object.hash('ImagePreviewNode',
-    originalSrc, src, loading, originalWidth, originalHeight);
+    loading, src, originalSrc, originalWidth, originalHeight);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(StringProperty('originalSrc', originalSrc));
-    properties.add(DiagnosticsProperty<ImageNodeSrc>('src', src));
     properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
+    properties.add(DiagnosticsProperty<ImageNodeSrc>('src', src));
+    properties.add(StringProperty('originalSrc', originalSrc));
     properties.add(DoubleProperty('originalWidth', originalWidth));
     properties.add(DoubleProperty('originalHeight', originalHeight));
   }
@@ -1524,11 +1524,9 @@ class _ZulipContentParser {
     if (elements == null) return null;
 
     final (linkElement, imgElement) = elements;
-    final href = linkElement.attributes['href'];
-    if (href == null) return null;
+    final loading = imgElement.className == 'image-loading-placeholder';
     final src = imgElement.attributes['src'];
     if (src == null) return null;
-    final loading = imgElement.className == 'image-loading-placeholder';
     ImageThumbnailLocator? thumbnailSrc;
     if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
       final srcUrl = Uri.tryParse(src);
@@ -1539,15 +1537,17 @@ class _ZulipContentParser {
         defaultFormatSrc: srcUrl,
         animated: imgElement.attributes['data-animated'] == 'true');
     }
+    final href = linkElement.attributes['href'];
+    if (href == null) return null;
 
     final originalDimensions = _tryParseOriginalDimensions(imgElement);
 
     return ImagePreviewNode(
-      originalSrc: href,
+      loading: loading,
       src: thumbnailSrc != null
         ? ImageNodeSrcThumbnail(thumbnailSrc)
         : ImageNodeSrcOther(src),
-      loading: loading,
+      originalSrc: href,
       originalWidth: originalDimensions?.originalWidth,
       originalHeight: originalDimensions?.originalHeight,
       debugHtmlNode: debugHtmlNode);
