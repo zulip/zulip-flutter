@@ -1146,6 +1146,24 @@ class GlobalTimeNode extends InlineContentNode {
   }
 }
 
+ImageNodeSrc? _tryParseImgSrc(dom.Element imgElement) {
+  final src = imgElement.attributes['src'];
+  if (src == null) return null;
+
+  if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
+    // For why we recognize this as the thumbnail form, see discussion:
+    //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
+    final srcUrl = Uri.tryParse(src);
+    if (srcUrl == null) return null;
+    final animated = imgElement.attributes['data-animated'] == 'true';
+    return ImageNodeSrcThumbnail(ImageThumbnailLocator(
+      defaultFormatSrc: srcUrl,
+      animated: animated));
+  }
+
+  return ImageNodeSrcOther(src);
+}
+
 final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
 
 /// Parse an `img`'s `data-original-dimensions` attribute,
@@ -1536,26 +1554,14 @@ class _ZulipContentParser {
 
     final (linkElement, imgElement) = elements;
     final loading = imgElement.className == 'image-loading-placeholder';
-    final src = imgElement.attributes['src'];
+    final src = _tryParseImgSrc(imgElement);
     if (src == null) return null;
-    ImageThumbnailLocator? thumbnailSrc;
-    if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
-      final srcUrl = Uri.tryParse(src);
-      if (srcUrl == null) return null;
-      // For why we recognize this as the thumbnail form, see discussion:
-      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
-      thumbnailSrc = ImageThumbnailLocator(
-        defaultFormatSrc: srcUrl,
-        animated: imgElement.attributes['data-animated'] == 'true');
-    }
     final originalSrc = linkElement.attributes['href'];
     final originalDimensions = _tryParseOriginalDimensions(imgElement);
 
     return ImagePreviewNode(
       loading: loading,
-      src: thumbnailSrc != null
-        ? ImageNodeSrcThumbnail(thumbnailSrc)
-        : ImageNodeSrcOther(src),
+      src: src,
       originalSrc: originalSrc,
       originalWidth: originalDimensions?.originalWidth,
       originalHeight: originalDimensions?.originalHeight,
