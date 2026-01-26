@@ -857,11 +857,11 @@
   },
   "loginEmailLabel": "Email address",
   "@loginEmailLabel": {
-    "description": "Label for input when an email is required to log in."
+    "description": "Label for input when an email address is required to log in."
   },
   "loginErrorMissingEmail": "Please enter your email.",
   "@loginErrorMissingEmail": {
-    "description": "Error message when an empty email was provided."
+    "description": "Error message when an empty email address was provided."
   },
   "loginPasswordLabel": "Password",
   "@loginPasswordLabel": {
@@ -961,7 +961,7 @@
   },
   "serverUrlValidationErrorNoUseEmail": "Please enter the server URL, not your email.",
   "@serverUrlValidationErrorNoUseEmail": {
-    "description": "Error message when URL looks like an email"
+    "description": "Error message when URL looks like an email address"
   },
   "serverUrlValidationErrorUnsupportedScheme": "The server URL must start with http:// or https://.",
   "@serverUrlValidationErrorUnsupportedScheme": {
