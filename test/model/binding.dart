@@ -7,7 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+
 import 'package:zulip/host/android_intents.dart';
+import 'package:zulip/host/android_download_manager.g.dart';
 import 'package:zulip/host/android_notifications.dart';
 import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/binding.dart';
@@ -79,6 +81,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetPickFiles();
     _resetPickImage();
     _resetWakelock();
+    _resetDownloads();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -325,6 +328,17 @@ class TestZulipBinding extends ZulipBinding {
   FakeNotificationPigeonApi get notificationPigeonApi =>
     (_notificationPigeonApi ??= FakeNotificationPigeonApi());
   FakeNotificationPigeonApi? _notificationPigeonApi;
+
+  void _resetDownloads() {
+    _androidDownloadHostApi = null;
+  }
+
+  FakeDownloadManagerHostApi? _androidDownloadHostApi;
+
+  @override
+  FakeDownloadManagerHostApi get androidDownloadHost {
+    return (_androidDownloadHostApi ??= FakeDownloadManagerHostApi());
+  }
 
   /// The value that `ZulipBinding.instance.pickFiles()` should return.
   ///
@@ -814,3 +828,40 @@ typedef CopySoundResourceToMediaStoreCall = ({
   String targetFileDisplayName,
   String sourceResourceName,
 });
+
+class FakeDownloadManagerHostApi implements DownloadManagerHostApi {
+  // TODO(?): Find a better way to handle this. This member is exported from
+  //   the Pigeon generated class but are not used for this fake class,
+  //   so return the default value.
+  @override
+  // ignore: non_constant_identifier_names
+  final BinaryMessenger? pigeonVar_binaryMessenger = null;
+
+  // TODO(?): Find a better way to handle this. This member is exported from
+  //   the Pigeon generated class but are not used for this fake class,
+  //   so return the default value.
+  @override
+  // ignore: non_constant_identifier_names
+  final String pigeonVar_messageChannelSuffix = '';
+
+  final List<String> _downloads = [];
+
+  @override
+  Future<String> downloadFile(String fileUrl, String fileName) async {
+    _downloads.add(fileName);
+    return "Download started for: $fileName";
+  }
+
+
+  bool isDownloaded(String fileName) {
+    return _downloads.contains(fileName);
+  }
+
+  void resetDownloads() {
+    _downloads.clear();
+  }
+
+  List<String> getDownloadedFiles() {
+    return List.unmodifiable(_downloads);
+  }
+}

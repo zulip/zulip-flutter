@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:checks/checks.dart';
@@ -443,6 +444,35 @@ void main() {
       await tester.pump();
       tester.widget(find.byType(AppBar));
       tester.widget(find.byType(BottomAppBar));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('download button triggers download', (tester) async {
+      prepareBoringImageHttpClient();
+      final message = eg.streamMessage(sender: eg.otherUser);
+      await setupPage(tester, message: message, thumbnailUrl: null);
+
+      final downloadButton = find.byIcon(Icons.download);
+
+      if (Platform.isAndroid){
+        expect(downloadButton, findsOneWidget);
+        await tester.tap(downloadButton);
+        await tester.pump();
+
+        final snackbar = find.byType(SnackBar);
+        expect(snackbar, findsOneWidget);
+
+        final downloadHost = TestZulipBinding.instance.androidDownloadHost;
+        final fileName = "lightbox-image.png";
+        final downloadResult = await downloadHost.downloadFile(
+          'https://chat.example/lightbox-image.png',
+          fileName);
+        expect(downloadResult, contains("Download started for: $fileName"));
+        expect(downloadHost.getDownloadedFiles(), contains(fileName));
+      } else {
+        expect(downloadButton, findsNothing);
+      }
 
       debugNetworkImageHttpClientProvider = null;
     });

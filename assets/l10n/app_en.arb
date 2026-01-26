@@ -832,6 +832,22 @@
   "@lightboxVideoDuration": {
     "description": "The total duration of the video playing in the lightbox."
   },
+  "lightboxDownloadImageTooltip": "Download image",
+  "@lightboxDownloadImageTooltip": {
+    "description": "Tooltip in lightbox for the download image action."
+  },
+  "lightboxDownloadImageStarted": "Starting download...",
+  "@lightboxDownloadImageStarted": {
+    "description": "Message shown when the image download has started."
+  },
+  "lightboxDownloadImageFailed": "Failed to download the image.",
+  "@lightboxDownloadImageFailed": {
+    "description": "Message shown when the image download fails."
+  },
+  "lightboxDownloadImageError": "An error occurred while downloading the image.",
+  "@lightboxDownloadImageError": {
+    "description": "Message shown when an unexpected error occurs during image download."
+  },
   "loginPageTitle": "Log in",
   "@loginPageTitle": {
     "description": "Title for login page."

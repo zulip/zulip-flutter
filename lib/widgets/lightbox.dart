@@ -1,13 +1,18 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:video_player/video_player.dart';
+import 'dart:io';
+import 'dart:async';
 
 import '../api/core.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/internal_link.dart';
 import 'actions.dart';
 import 'content.dart';
 import 'dialog.dart';
@@ -111,6 +116,60 @@ class _CopyLinkButton extends StatelessWidget {
           successContent: Text(zulipLocalizations.successLinkCopied),
           data: ClipboardData(text: url.toString()));
       });
+  }
+}
+
+class _DownloadImageButton extends StatelessWidget {
+  _DownloadImageButton({required this.url});
+
+  final downloader = ZulipBinding.instance.androidDownloadHost;
+  final Uri url;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return IconButton(
+      tooltip: zulipLocalizations.lightboxDownloadImageTooltip,
+      icon: const Icon(Icons.download),
+      onPressed: () async {
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
+        String message = zulipLocalizations.lightboxDownloadImageFailed;
+        try {
+          await requestStoragePermission();
+          Uri downloadUrl = url;
+          final internalLink = parseInternalLink(url, store);
+          if (internalLink is UserUploadLink){
+            if (!context.mounted) return;
+            final tempUrl = await ZulipAction.getFileTemporaryUrl(context, internalLink);
+            downloadUrl = tempUrl ?? url;
+          }
+
+          final fileName = url.pathSegments.last.trim();
+          await downloader.downloadFile(downloadUrl.toString(), fileName);
+          message = zulipLocalizations.lightboxDownloadImageStarted;
+        } catch (e) {
+          if (e is TimeoutException || e is SocketException) {
+            message = zulipLocalizations.lightboxDownloadImageError;
+          } else {
+            message = zulipLocalizations.lightboxDownloadImageFailed;
+          }
+        }
+
+        scaffoldMessenger.showSnackBar(
+          SnackBar(behavior: SnackBarBehavior.floating, content: Text(message)));
+      });
+  }
+
+  Future<void> requestStoragePermission() async {
+    final androidInfo = await DeviceInfoPlugin().androidInfo;
+
+    // Check Android version (SDK version) and request permission for Android 10 and below
+    if (androidInfo.version.sdkInt <= 29) {
+      if (await Permission.storage.isDenied) {
+        await Permission.storage.request();
+      }
+    }
   }
 }
 
@@ -298,8 +357,8 @@ class _ImageLightboxPageState extends State<ImageLightboxPage> {
       elevation: elevation,
       child: Row(children: [
         _CopyLinkButton(url: widget.src),
+        if (Platform.isAndroid) _DownloadImageButton(url: widget.src),
         // TODO(#43): Share image
-        // TODO(#42): Download image
       ]),
     );
   }
