@@ -560,7 +560,7 @@ class ImagePreviewNode extends BlockContentNode {
   /// If [loading] is true, this will point to a "spinner" image.
   /// Clients are invited to show a custom loading indicator instead; we do.
   ///
-  /// Except for images processed in modern thumbnailing (2026-01),
+  /// Except for images processed in modern thumbnailing (as of 2026-01),
   /// this is also meant for viewing the image by itself, in a lightbox.
   /// For how to recognize that case, see [originalSrc].
   final ImageNodeSrc src;
