@@ -2,6 +2,55 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* Support inline images in message paragraphs, new in Zulip
+  Server 12. (#1913)
+* Dedupe message-list pages on opening a notification. (#1852)
+* Topic-list page stays up to date when a topic is resolved or
+  moved. (#1499)
+* (Android) Allow selecting account when sharing to Zulip. (#1779)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #2048
+  * #2020
+  * #2038.  Fix RTL layout of date in recipient header.
+  * #1951: fix #2060, fix #1499.  Fixed extra recipient header on case
+    change within topic narrow.  Topic-list page stays up to date when
+    a topic is resolved or moved.
+  * #2051
+  * #1987: fix #1936.  Disable image-preview animations when requested
+    in device settings.
+  * #2063.  Fix RTL layout of scroll-to-bottom button.
+  * #1994: fix #1587.  Fix cramped layout of emoji picker in
+    "plain text" emoji theme.
+  * #2034: fix part of #1798.  Clarify behavior on sending or editing
+    in unsubscribed channel.
+  * #1999.  Show starred-message count in main menu.
+  * #2059: fix #1852.  Dedupe message-list pages on opening a
+    notification.
+  * #1883: fix #1779.  Allow selecting account when sharing to Zulip
+    (on Android).
+  * #2053
+  * #2074.  Accept more modern/future notif format.
+  * #2068.  Flutter upgrade.
+  * #2091: fix #2082.  (Dev-only change.)
+  * #2077.
+  * #2069.  (Relates to RTL layout, but NFC.)
+  * #2033: fix #1986.  Fix bug that could cause a message marked
+    unread to appear read.
+  * #2084: fix #1798.  Further clarify behavior on sending or editing
+    in unsubscribed channel.
+  * #2099.
+  * #2100.
+  * #2067: fix #1913.  Support inline images in message paragraphs,
+    new in Zulip Server 12.
+  * #2101.  Update translations.
+
 
 ## 30.0.269 (2025-12-22)
 
