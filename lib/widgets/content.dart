@@ -606,7 +606,7 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
               SizeTransition(
                 sizeFactor: _animation,
                 axis: Axis.vertical,
-                axisAlignment: -1,
+                alignment: AlignmentDirectional.topStart,
                 child: Padding(
                   padding: const EdgeInsets.all(5),
                   child: BlockContentList(nodes: widget.node.content))),
