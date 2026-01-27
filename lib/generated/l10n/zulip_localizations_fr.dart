@@ -1073,6 +1073,9 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Pourquoi ne pas démarrer une conversation ?';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Fil groupé';
 
   @override

@@ -1227,6 +1227,10 @@
   "@recentDmConversationsEmptyPlaceholderMessage": {
     "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
   },
+  "recentDmConversationsFilterPlaceholder": "Filter direct messages",
+  "@recentDmConversationsFilterPlaceholder": {
+    "description": "Placeholder text for the search box on the 'Direct messages' page."
+  },
   "combinedFeedPageTitle": "Combined feed",
   "@combinedFeedPageTitle": {
     "description": "Page title for the 'Combined feed' message view."

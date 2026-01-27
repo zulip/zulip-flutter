@@ -1015,6 +1015,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get recentDmConversationsEmptyPlaceholderMessage => '会話を始めてみませんか？';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => '統合フィード';
 
   @override

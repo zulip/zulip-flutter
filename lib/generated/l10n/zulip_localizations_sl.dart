@@ -1074,6 +1074,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Zakaj ne bi začeli pogovora?';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Združen prikaz';
 
   @override

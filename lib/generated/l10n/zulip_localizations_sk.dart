@@ -1041,6 +1041,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
       'Why not start a conversation?';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Zlúčený kanál';
 
   @override

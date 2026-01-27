@@ -1066,6 +1066,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Почему бы не начать общение?';
 
   @override
+  String get recentDmConversationsFilterPlaceholder => 'Filter direct messages';
+
+  @override
   String get combinedFeedPageTitle => 'Объединенная лента';
 
   @override

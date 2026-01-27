@@ -1795,6 +1795,12 @@ abstract class ZulipLocalizations {
   /// **'Why not start a conversation?'**
   String get recentDmConversationsEmptyPlaceholderMessage;
 
+  /// Placeholder text for the search box on the 'Direct messages' page.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter direct messages'**
+  String get recentDmConversationsFilterPlaceholder;
+
   /// Page title for the 'Combined feed' message view.
   ///
   /// In en, this message translates to:
