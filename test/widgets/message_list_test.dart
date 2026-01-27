@@ -810,7 +810,7 @@ void main() {
       check(itemCount(tester)).equals(401);
     });
 
-    testWidgets('observe double-fetch glitch', (tester) async {
+    testWidgets('do not observe double-fetch glitch', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
       connection.takeRequests();
@@ -830,17 +830,13 @@ void main() {
         if (connection.takeRequests().singleOrNull != null) break;
       }
 
-      // On the next frame, we promptly fetch *a second* batch.
-      // This is a glitch and it'd be nicer if we didn't.
-      connection.prepare(json: eg.olderGetMessagesResult(anchor: 850, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
-      // Allow a delayed frame for the response of the first batch to arrive.
+      // Allow a delayed frame for the response to arrive.
       await tester.pump(Duration(milliseconds: 1));
       check(itemCount(tester)).equals(401);
 
-      // Allow a frame for the response of the second batch to arrive.
-      await tester.pump(Duration.zero);
-      check(itemCount(tester)).equals(501);
+      // Check there is no double-fetch glitch to fetch another batch.
+      check(connection.takeRequests().lastOrNull).isNull();
+      check(itemCount(tester)).equals(401);
     });
 
     testWidgets("avoid getting distracted by nested viewports' metrics", (tester) async {
