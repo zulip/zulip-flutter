@@ -55,6 +55,8 @@ class BackoffMachine {
     }());
   }
 
+  bool _debugWaitInProgress = false;
+
   /// A future that resolves after an appropriate backoff time,
   /// with jitter applied to capped exponential growth.
   ///
@@ -83,12 +85,21 @@ class BackoffMachine {
   /// Because in the real world any delay takes nonzero time, this mainly
   /// affects tests that use fake time, and keeps their behavior more realistic.
   Future<void> wait() async {
+    assert(!_debugWaitInProgress, 'Previous wait still in progress.');
+    assert(() {
+      _debugWaitInProgress = true;
+      return true;
+    }());
     final bound = _minDuration(maxBound,
                                firstBound * pow(base, _waitsCompleted));
     final duration = debugDuration ?? _maxDuration(const Duration(microseconds: 1),
                                                    bound * Random().nextDouble());
     await Future<void>.delayed(duration);
     _waitsCompleted++;
+    assert(() {
+      _debugWaitInProgress = false;
+      return true;
+    }());
   }
 }
 
