@@ -1340,10 +1340,6 @@ class InlineImage extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
-    if (node.loading) {
-      return CupertinoActivityIndicator();
-    }
-
     final resolvedSrc = switch (node.src) {
       ImageNodeSrcThumbnail(:final value) => value.resolve(context,
         width: size.width,
@@ -1353,22 +1349,29 @@ class InlineImage extends StatelessWidget {
     };
     final resolvedOriginalSrc = node.originalSrc == null ? null
       : store.tryResolveUrl(node.originalSrc!);
-    if (resolvedSrc == null) {
-      // TODO(#265) use an error-case placeholder here
-      return SizedBox.shrink();
-    }
 
-    Widget result;
-    result = RealmContentNetworkImage(
-      // TODO(#265) use an error-case placeholder for `errorBuilder`
-      semanticLabel: node.alt,
-      resolvedSrc);
+    final child = switch ((node.loading, resolvedSrc)) {
+      // resolvedSrc would be a "spinner" image URL.
+      // Use our own progress indicator instead.
+      (true, _) => const CupertinoActivityIndicator(),
 
-    final lightboxDisplayUrl = node.src is ImageNodeSrcThumbnail
+      // TODO(#265) use an error-case placeholder
+      // TODO(log)
+      (false, null) => SizedBox.shrink(),
+
+      (false, Uri()) => RealmContentNetworkImage(
+        // TODO(#265) use an error-case placeholder for `errorBuilder`
+        filterQuality: FilterQuality.medium,
+        semanticLabel: node.alt,
+        resolvedSrc!),
+    };
+
+    final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
       ? resolvedOriginalSrc
       : resolvedSrc;
     if (lightboxDisplayUrl == null) {
-      return result;
+      // TODO(log)
+      return child;
     }
 
     return GestureDetector(
@@ -1379,7 +1382,11 @@ class InlineImage extends StatelessWidget {
           messageImageContext: context,
           src: lightboxDisplayUrl,
           thumbnailUrl: node.src is ImageNodeSrcThumbnail
-            ? resolvedSrc
+            ? node.loading
+              // (Image thumbnail is loading; don't show hard-coded spinner image
+              // even if that happens to be a thumbnail URL.)
+              ? null
+              : resolvedSrc
             : null,
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
@@ -1387,7 +1394,7 @@ class InlineImage extends StatelessWidget {
       child: LightboxHero(
         messageImageContext: context,
         src: lightboxDisplayUrl,
-        child: result));
+        child: child));
   }
 
   @override
