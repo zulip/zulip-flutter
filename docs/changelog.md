@@ -9,6 +9,7 @@
 * Dedupe message-list pages on opening a notification. (#1852)
 * Topic-list page stays up to date when a topic is resolved or
   moved. (#1499)
+* Confirm before marking read across multiple conversations. (#1858)
 * (Android) Allow selecting account when sharing to Zulip. (#1779)
 * Too many other improvements and fixes to describe them all here.
 
@@ -50,6 +51,8 @@
   * #2067: fix #1913.  Support inline images in message paragraphs,
     new in Zulip Server 12.
   * #2101.  Update translations.
+  * #2006: fix #1858.  Confirm before marking read across multiple
+    conversations.
 
 
 ## 30.0.269 (2025-12-22)
