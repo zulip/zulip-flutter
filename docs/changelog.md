@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.270 (2026-01-26)
+
 ### Highlights for users
 
 * Support inline images in message paragraphs, new in Zulip
