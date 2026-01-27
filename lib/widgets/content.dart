@@ -1341,13 +1341,12 @@ class InlineImage extends StatelessWidget {
       return CupertinoActivityIndicator();
     }
 
-    final src = node.src;
-    final resolvedSrc = switch (src) {
-      ImageNodeSrcThumbnail() => src.value.resolve(context,
+    final resolvedSrc = switch (node.src) {
+      ImageNodeSrcThumbnail(:final value) => value.resolve(context,
         width: size.width,
         height: size.height,
         animationMode: .animateConditionally),
-      ImageNodeSrcOther() => store.tryResolveUrl(src.value),
+      ImageNodeSrcOther(:final value) => store.tryResolveUrl(value),
     };
     final resolvedOriginalSrc = node.originalSrc == null ? null
       : store.tryResolveUrl(node.originalSrc!);
