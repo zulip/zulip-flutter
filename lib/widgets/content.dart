@@ -1349,6 +1349,8 @@ class InlineImage extends StatelessWidget {
         animationMode: .animateConditionally),
       ImageNodeSrcOther() => store.tryResolveUrl(src.value),
     };
+    final resolvedOriginalSrc = node.originalSrc == null ? null
+      : store.tryResolveUrl(node.originalSrc!);
     if (resolvedSrc == null) {
       // TODO(#265) use an error-case placeholder here
       return SizedBox.shrink();
@@ -1360,8 +1362,6 @@ class InlineImage extends StatelessWidget {
       semanticLabel: node.alt,
       resolvedSrc);
 
-    final resolvedOriginalSrc = node.originalSrc == null ? null
-      : store.tryResolveUrl(node.originalSrc!);
     final lightboxDisplayUrl = node.src is ImageNodeSrcThumbnail
       ? resolvedOriginalSrc
       : resolvedSrc;
