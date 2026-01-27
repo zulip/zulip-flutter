@@ -1044,12 +1044,6 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   void _fetchMoreIfNeeded(ScrollMetrics scrollMetrics) {
     if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
-      // TODO(#2104): This ends up firing a second time shortly after we fetch a batch.
-      //   The result is that each time we decide to fetch a batch, we end up
-      //   fetching two batches in quick succession.  This is basically harmless
-      //   but makes things a bit more complicated to reason about.
-      //   The cause seems to be that this gets called again with maxScrollExtent
-      //   still not yet updated to account for the newly-added messages.
       model.fetchOlder();
     }
     if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
@@ -1068,7 +1062,22 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       _scrollToBottomVisible.value = true;
     }
 
-    _fetchMoreIfNeeded(scrollMetrics);
+    // During a fling-scroll, this runs from the fling's animation tick,
+    // in the `transientCallbacks` phase, before this frame's layout
+    // updates the scroll metrics to account for any just-arrived messages.
+    // Deciding to fetch from those stale metrics would fire an additional
+    // fetch (#2104), so defer the decision to a post-frame callback,
+    // after layout, when the metrics are fresh.
+    if (SchedulerBinding.instance.schedulerPhase == .transientCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (scrollController.hasClients) {
+          // Read the now-fresh metrics, not the stale captured `scrollMetrics`.
+          _fetchMoreIfNeeded(scrollController.position);
+        }
+      });
+    } else {
+      _fetchMoreIfNeeded(scrollMetrics);
+    }
   }
 
   void _scrollChanged() {
