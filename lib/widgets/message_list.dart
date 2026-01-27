@@ -1021,17 +1021,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ?? GlobalStoreWidget.settingsOf(context).markReadOnScrollForNarrow(widget.narrow);
   }
 
-  void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
-    if (_effectiveMarkReadOnScroll()) {
-      _markReadFromScroll();
-    }
-
-    if (scrollMetrics.extentAfter == 0) {
-      _scrollToBottomVisible.value = false;
-    } else {
-      _scrollToBottomVisible.value = true;
-    }
-
+  void _fetchMoreIfNeeded(ScrollMetrics scrollMetrics) {
     if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
       // TODO(#2104): This ends up firing a second time shortly after we fetch a batch.
       //   The result is that each time we decide to fetch a batch, we end up
@@ -1044,6 +1034,20 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
       model.fetchNewer();
     }
+  }
+
+  void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
+    if (_effectiveMarkReadOnScroll()) {
+      _markReadFromScroll();
+    }
+
+    if (scrollMetrics.extentAfter == 0) {
+      _scrollToBottomVisible.value = false;
+    } else {
+      _scrollToBottomVisible.value = true;
+    }
+
+    _fetchMoreIfNeeded(scrollMetrics);
   }
 
   void _scrollChanged() {
