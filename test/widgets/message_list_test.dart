@@ -810,7 +810,8 @@ void main() {
       check(itemCount(tester)).equals(401);
     });
 
-    testWidgets('observe double-fetch glitch', (tester) async {
+    testWidgets('no double-fetch glitch', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/2104
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
       connection.takeRequests();
@@ -830,18 +831,12 @@ void main() {
         if (connection.takeRequests().isNotEmpty) break;
       }
 
-      // When the first batch arrives, we promptly fetch *a second* batch.
-      // This is a glitch and it'd be nicer if we didn't.
-      connection.prepare(json: eg.olderGetMessagesResult(anchor: 850, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
-      // Allow a delayed frame for the response of the first batch to arrive.
+      // Allow a delayed frame for the response to arrive.
       await tester.pump(Duration(milliseconds: 1));
-      check(connection.takeRequests()).isNotEmpty();
       check(itemCount(tester)).equals(401);
-
-      // Allow a frame for the response of the second batch to arrive.
-      await tester.pump(Duration.zero);
-      check(itemCount(tester)).equals(501);
+      await tester.pumpAndSettle();
+      // Check there is no additional request made to cause double-fetch glitch.
+      check(connection.takeRequests()).isEmpty();
     });
 
     testWidgets("avoid getting distracted by nested viewports' metrics", (tester) async {
