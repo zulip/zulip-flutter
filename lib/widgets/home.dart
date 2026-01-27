@@ -250,6 +250,7 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
           children: [
             Semantics(
               label: 'Loading app',
+              textDirection: TextDirection.ltr,
               container: true,
               liveRegion: true,
               child:const CircularProgressIndicator(),

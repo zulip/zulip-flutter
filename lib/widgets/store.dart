@@ -357,6 +357,7 @@ class LoadingPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(child: Semantics(
       label: 'Loading',
+      textDirection: TextDirection.ltr,
       container: true,
       liveRegion: true,
       child:const CircularProgressIndicator(),

@@ -165,6 +165,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
     if (channelTopics == null) {
       return Center(child: Semantics(
         label: 'Loading topics',
+        textDirection: TextDirection.ltr,
         container: true,
         liveRegion: true,
         child:const CircularProgressIndicator(),
