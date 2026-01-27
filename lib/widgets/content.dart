@@ -682,11 +682,15 @@ class MessageImagePreview extends StatelessWidget {
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
-      child: child == null ? null :
-        LightboxHero(
-          messageImageContext: context,
-          src: lightboxDisplayUrl,
-          child: child));
+      child: LightboxHero(
+        messageImageContext: context,
+        src: lightboxDisplayUrl,
+        // `child` can't actually be null here.
+        // It's only null when resolvedSrc is null (see above),
+        // and in that case, lightboxDisplayUrl takes the value of resolvedSrc
+        // -- meaning that too will be null, and we won't reach here
+        // because of the early return on `lightboxDisplayUrl == null` above.
+        child: child!));
   }
 }
 
