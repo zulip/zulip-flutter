@@ -653,7 +653,7 @@ class MessageImagePreview extends StatelessWidget {
 
       // TODO(#265) use an error-case placeholder
       // TODO(log)
-      (false, null) => null,
+      (false, null) => SizedBox.shrink(),
 
       (false, Uri()) => RealmContentNetworkImage(
         // TODO(#265) use an error-case placeholder for `errorBuilder`
@@ -685,12 +685,7 @@ class MessageImagePreview extends StatelessWidget {
       child: LightboxHero(
         messageImageContext: context,
         src: lightboxDisplayUrl,
-        // `child` can't actually be null here.
-        // It's only null when resolvedSrc is null (see above),
-        // and in that case, lightboxDisplayUrl takes the value of resolvedSrc
-        // -- meaning that too will be null, and we won't reach here
-        // because of the early return on `lightboxDisplayUrl == null` above.
-        child: child!));
+        child: child));
   }
 }
 
