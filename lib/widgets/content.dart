@@ -1362,7 +1362,10 @@ class InlineImage extends StatelessWidget {
 
     final resolvedOriginalSrc = node.originalSrc == null ? null
       : store.tryResolveUrl(node.originalSrc!);
-    if (resolvedOriginalSrc == null) {
+    final lightboxDisplayUrl = node.src is ImageNodeSrcThumbnail
+      ? resolvedOriginalSrc
+      : resolvedSrc;
+    if (lightboxDisplayUrl == null) {
       return result;
     }
 
@@ -1372,14 +1375,14 @@ class InlineImage extends StatelessWidget {
           context: context,
           message: InheritedMessage.of(context),
           messageImageContext: context,
-          src: resolvedOriginalSrc,
+          src: lightboxDisplayUrl,
           thumbnailUrl: resolvedSrc,
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
       },
       child: LightboxHero(
         messageImageContext: context,
-        src: resolvedOriginalSrc,
+        src: lightboxDisplayUrl,
         child: result));
   }
 
