@@ -123,9 +123,9 @@ void main() {
   void checkAppBarChannelTopic(String channelName, String topic) {
     final appBarFinder = find.byType(MessageListAppBarTitle);
     check(appBarFinder).findsOne();
-    check(find.descendant(of: appBarFinder, matching: find.text(channelName)))
+    check(find.descendant(of: appBarFinder, matching: find.textContaining(channelName, findRichText: true)))
       .findsOne();
-    check(find.descendant(of: appBarFinder, matching: find.text(topic)))
+    check(find.descendant(of: appBarFinder, matching: find.textContaining(topic, findRichText: true)))
       .findsOne();
   }
 
@@ -275,7 +275,8 @@ void main() {
           matching: find.byIcon(expectedIcon)));
 
         check(Theme.brightnessOf(iconElement)).equals(Brightness.light);
-        check(iconElement.widget as Icon).color.equals(Color(0xff5972fc));
+        final swatch = ChannelColorSwatch.light(color);
+        check(iconElement.widget as Icon).color.equals(swatch.iconOnPlainBackground);
       });
     }
     testChannelIconInChannelRow(ZulipIcons.globe, isWebPublic: true, inviteOnly: false);
@@ -1700,7 +1701,7 @@ void main() {
         // Stream name shows up in [AppBar] so need to avoid matching that
         return find.descendant(
           of: find.byType(MessageList),
-          matching: find.text(text)).evaluate();
+          matching: find.textContaining(text, findRichText: true)).evaluate();
       }
 
       testWidgets('show stream name in CombinedFeedNarrow', (tester) async {
@@ -1815,7 +1816,7 @@ void main() {
           subscriptions: [subscription]);
         await tester.pump();
         check(tester.widget<Icon>(find.byIcon(ZulipIcons.globe)))
-          .color.isNotNull().isSameColorAs(swatch.iconOnBarBackground);
+          .color.isNotNull().isSameColorAs(swatch.iconOnPlainBackground);
       });
 
       testWidgets('normal streams show hash icon', (tester) async {
@@ -1885,7 +1886,7 @@ void main() {
             eg.streamMessage(stream: streamBefore),
           ]);
         await tester.pump();
-        tester.widget(find.text('new stream name'));
+        tester.widget(find.textContaining('new stream name', findRichText: true));
       });
 
       testWidgets('navigates to ChannelNarrow on tapping channel in CombinedFeedNarrow', (tester) async {
@@ -1908,7 +1909,7 @@ void main() {
           foundOldest: true, messages: [message]).toJson());
         await tester.tap(find.descendant(
           of: find.byType(StreamMessageRecipientHeader),
-          matching: find.text(channel.name)));
+          matching: find.textContaining(channel.name, findRichText: true)));
         await tester.pump();
         check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
           .initNarrow.equals(ChannelNarrow(channel.streamId));
