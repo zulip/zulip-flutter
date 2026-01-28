@@ -71,6 +71,108 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.presenceEnabled: 'presence_enabled',
 };
 
+DeviceAddEvent _$DeviceAddEventFromJson(Map<String, dynamic> json) =>
+    DeviceAddEvent(
+      id: (json['id'] as num).toInt(),
+      deviceId: (json['device_id'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$DeviceAddEventToJson(DeviceAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'device_id': instance.deviceId,
+      'op': instance.op,
+    };
+
+DeviceRemoveEvent _$DeviceRemoveEventFromJson(Map<String, dynamic> json) =>
+    DeviceRemoveEvent(
+      id: (json['id'] as num).toInt(),
+      deviceId: (json['device_id'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$DeviceRemoveEventToJson(DeviceRemoveEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'device_id': instance.deviceId,
+      'op': instance.op,
+    };
+
+DeviceUpdateEvent _$DeviceUpdateEventFromJson(
+  Map<String, dynamic> json,
+) => DeviceUpdateEvent(
+  id: (json['id'] as num).toInt(),
+  deviceId: (json['device_id'] as num).toInt(),
+  pushKeyId: _$JsonConverterFromJson<JsonNullable<int>, JsonNullable<int>>(
+    JsonNullable.readIntFromJson(json, 'push_key_id'),
+    const NullableIntJsonConverter().fromJson,
+  ),
+  pushTokenId:
+      _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+        JsonNullable.readStringFromJson(json, 'push_token_id'),
+        const NullableStringJsonConverter().fromJson,
+      ),
+  pendingPushTokenId:
+      _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+        JsonNullable.readStringFromJson(json, 'pending_push_token_id'),
+        const NullableStringJsonConverter().fromJson,
+      ),
+  pushTokenLastUpdatedTimestamp:
+      _$JsonConverterFromJson<JsonNullable<int>, JsonNullable<int>>(
+        JsonNullable.readIntFromJson(json, 'push_token_last_updated_timestamp'),
+        const NullableIntJsonConverter().fromJson,
+      ),
+  pushRegistrationErrorCode:
+      _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+        JsonNullable.readStringFromJson(json, 'push_registration_error_code'),
+        const NullableStringJsonConverter().fromJson,
+      ),
+);
+
+Map<String, dynamic> _$DeviceUpdateEventToJson(
+  DeviceUpdateEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'device_id': instance.deviceId,
+  'op': instance.op,
+  'push_key_id': _$JsonConverterToJson<JsonNullable<int>, JsonNullable<int>>(
+    instance.pushKeyId,
+    const NullableIntJsonConverter().toJson,
+  ),
+  'push_token_id':
+      _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
+        instance.pushTokenId,
+        const NullableStringJsonConverter().toJson,
+      ),
+  'pending_push_token_id':
+      _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
+        instance.pendingPushTokenId,
+        const NullableStringJsonConverter().toJson,
+      ),
+  'push_token_last_updated_timestamp':
+      _$JsonConverterToJson<JsonNullable<int>, JsonNullable<int>>(
+        instance.pushTokenLastUpdatedTimestamp,
+        const NullableIntJsonConverter().toJson,
+      ),
+  'push_registration_error_code':
+      _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
+        instance.pushRegistrationErrorCode,
+        const NullableStringJsonConverter().toJson,
+      ),
+};
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) => json == null ? null : fromJson(json as Json);
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) => value == null ? null : toJson(value);
+
 CustomProfileFieldsEvent _$CustomProfileFieldsEventFromJson(
   Map<String, dynamic> json,
 ) => CustomProfileFieldsEvent(
@@ -332,16 +434,6 @@ const _$UserRoleEnumMap = {
   UserRole.guest: 600,
   UserRole.unknown: null,
 };
-
-Value? _$JsonConverterFromJson<Json, Value>(
-  Object? json,
-  Value? Function(Json json) fromJson,
-) => json == null ? null : fromJson(json as Json);
-
-Json? _$JsonConverterToJson<Json, Value>(
-  Value? value,
-  Json? Function(Value value) toJson,
-) => value == null ? null : toJson(value);
 
 SavedSnippetsAddEvent _$SavedSnippetsAddEventFromJson(
   Map<String, dynamic> json,
