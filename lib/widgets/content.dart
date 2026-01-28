@@ -676,8 +676,12 @@ class MessageImagePreview extends StatelessWidget {
           message: message,
           messageImageContext: context,
           src: lightboxDisplayUrl,
-          thumbnailUrl: (node.src is ImageNodeSrcThumbnail && !node.loading)
-            ? resolvedSrc
+          thumbnailUrl: node.src is ImageNodeSrcThumbnail
+            ? node.loading
+              // (Image thumbnail is loading; don't show hard-coded spinner image
+              // even if that happens to be a thumbnail URL.)
+              ? null
+              : resolvedSrc
             : null,
           originalWidth: node.originalWidth,
           originalHeight: node.originalHeight));
