@@ -569,6 +569,11 @@ class InlineIconGeometryData {
 
   // Values are ad hoc unless otherwise specified.
   static final Map<IconData, InlineIconGeometryData> _inlineIconGeometries = {
+    ZulipIcons.archive: InlineIconGeometryData._(
+      sizeFactor: 0.8,
+      alphabeticBaselineFactor: 1 / 16,
+      paddingFactor: 1 / 4),
+
     ZulipIcons.globe: InlineIconGeometryData._(
       sizeFactor: 0.8,
       alphabeticBaselineFactor: 1 / 8,

@@ -211,7 +211,8 @@ IconData iconDataForStream(ZulipStream stream) {
   // TODO: these icons aren't quite right yet;
   //   see this message and the one after it:
   //   https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/design.3A.20.23F117.20.22Inbox.22.20screen/near/1680637
-  return switch(stream) {
+  return switch (stream) {
+    ZulipStream(isArchived: true) => ZulipIcons.archive,
     ZulipStream(isWebPublic: true) => ZulipIcons.globe,
     ZulipStream(inviteOnly: true) => ZulipIcons.lock,
     ZulipStream() => ZulipIcons.hash_sign,

@@ -309,4 +309,13 @@ void main() {
         'subscriptions': jsonEncode([channel.name]),
       });
   });
+
+  testWidgets('shows archive icon for archived channels', (tester) async {
+    final archivedChannel = eg.stream(isArchived: true);
+    final activeChannel = eg.stream(isArchived: false);
+    await setupAllChannelsPage(tester, channels: [archivedChannel, activeChannel]);
+    await tester.pump();
+
+    check(find.byIcon(ZulipIcons.archive)).findsOne();
+  });
 }
