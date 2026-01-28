@@ -1309,14 +1309,6 @@ class InlineImage extends StatelessWidget {
         if (onTap == null) return child;
         return GestureDetector(onTap: onTap, child: child);
       });
-    if (node.alt != null) {
-      child = Tooltip(
-        message: node.alt,
-        // (Instead of setting a semantics label here,
-        // we give the alt text to [RealmContentNetworkImage].)
-        excludeFromSemantics: true,
-        child: child);
-    }
 
     return Padding(
       // Separate images vertically when they flow onto separate lines.
@@ -1488,7 +1480,7 @@ class _Image extends StatelessWidget {
     final resolvedOriginalSrc = node.originalSrc == null ? null
       : store.tryResolveUrl(node.originalSrc!);
 
-    final child = switch ((node.loading, resolvedSrc)) {
+    Widget child = switch ((node.loading, resolvedSrc)) {
       // resolvedSrc would be a "spinner" image URL.
       // Use our own progress indicator instead.
       (true, _) => const CupertinoActivityIndicator(),
@@ -1503,6 +1495,15 @@ class _Image extends StatelessWidget {
         semanticLabel: node.alt,
         resolvedSrc!),
     };
+
+    if (node.alt != null) {
+      child = Tooltip(
+        message: node.alt,
+        // (Instead of setting a semantics label here,
+        // we give the alt text to [RealmContentNetworkImage].)
+        excludeFromSemantics: true,
+        child: child);
+    }
 
     final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
       ? resolvedOriginalSrc
