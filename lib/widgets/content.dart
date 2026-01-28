@@ -1338,6 +1338,7 @@ class InlineImage extends StatelessWidget {
 
   Widget _buildContent(BuildContext context, {required Size size}) {
     final store = PerAccountStoreWidget.of(context);
+    final message = InheritedMessage.of(context);
 
     if (node.loading) {
       return CupertinoActivityIndicator();
@@ -1374,7 +1375,7 @@ class InlineImage extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(getImageLightboxRoute(
           context: context,
-          message: InheritedMessage.of(context),
+          message: message,
           messageImageContext: context,
           src: lightboxDisplayUrl,
           thumbnailUrl: node.src is ImageNodeSrcThumbnail
