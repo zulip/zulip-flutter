@@ -21,3 +21,11 @@ Map<String, dynamic> _$FetchApiKeyResultToJson(FetchApiKeyResult instance) =>
       'email': instance.email,
       'user_id': instance.userId,
     };
+
+RegisterClientDeviceResult _$RegisterClientDeviceResultFromJson(
+  Map<String, dynamic> json,
+) => RegisterClientDeviceResult(deviceId: (json['device_id'] as num).toInt());
+
+Map<String, dynamic> _$RegisterClientDeviceResultToJson(
+  RegisterClientDeviceResult instance,
+) => <String, dynamic>{'device_id': instance.deviceId};
