@@ -999,6 +999,114 @@ i1.GeneratedColumn<String> _column_35(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NULL',
     );
+
+final class Schema13 extends i0.VersionedSchema {
+  Schema13({required super.database}) : super(version: 13);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    globalSettings,
+    boolGlobalSettings,
+    intGlobalSettings,
+    accounts,
+  ];
+  late final Shape6 globalSettings = Shape6(
+    source: i0.VersionedTable(
+      entityName: 'global_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [],
+      columns: [_column_17, _column_18, _column_19, _column_20, _column_21],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape7 boolGlobalSettings = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'bool_global_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(name)'],
+      columns: [_column_22, _column_23],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape7 intGlobalSettings = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'int_global_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(name)'],
+      columns: [_column_22, _column_24],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape9 accounts = Shape9(
+    source: i0.VersionedTable(
+      entityName: 'accounts',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'UNIQUE(realm_url, user_id)',
+        'UNIQUE(realm_url, email)',
+      ],
+      columns: [
+        _column_25,
+        _column_26,
+        _column_27,
+        _column_28,
+        _column_29,
+        _column_36,
+        _column_30,
+        _column_31,
+        _column_32,
+        _column_33,
+        _column_34,
+        _column_35,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+}
+
+class Shape9 extends i0.VersionedTable {
+  Shape9({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get realmUrl =>
+      columnsByName['realm_url']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get realmName =>
+      columnsByName['realm_name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get realmIcon =>
+      columnsByName['realm_icon']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get userId =>
+      columnsByName['user_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get deviceId =>
+      columnsByName['device_id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get email =>
+      columnsByName['email']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get apiKey =>
+      columnsByName['api_key']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get zulipVersion =>
+      columnsByName['zulip_version']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get zulipMergeBase =>
+      columnsByName['zulip_merge_base']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get zulipFeatureLevel =>
+      columnsByName['zulip_feature_level']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get ackedPushToken =>
+      columnsByName['acked_push_token']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<int> _column_36(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'device_id',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NULL',
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
@@ -1011,6 +1119,7 @@ i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema10 schema) from9To10,
   required Future<void> Function(i1.Migrator m, Schema11 schema) from10To11,
   required Future<void> Function(i1.Migrator m, Schema12 schema) from11To12,
+  required Future<void> Function(i1.Migrator m, Schema13 schema) from12To13,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -1069,6 +1178,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from11To12(migrator, schema);
         return 12;
+      case 12:
+        final schema = Schema13(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from12To13(migrator, schema);
+        return 13;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -1087,6 +1201,7 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema10 schema) from9To10,
   required Future<void> Function(i1.Migrator m, Schema11 schema) from10To11,
   required Future<void> Function(i1.Migrator m, Schema12 schema) from11To12,
+  required Future<void> Function(i1.Migrator m, Schema13 schema) from12To13,
 }) => i0.VersionedSchema.stepByStepHelper(
   step: migrationSteps(
     from1To2: from1To2,
@@ -1100,5 +1215,6 @@ i1.OnUpgrade stepByStep({
     from9To10: from9To10,
     from10To11: from10To11,
     from11To12: from11To12,
+    from12To13: from12To13,
   ),
 );

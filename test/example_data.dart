@@ -333,6 +333,7 @@ Account account({
     email: email,
     apiKey: apiKey ?? 'aeouasdf',
     userId: user.userId,
+    deviceId: 12345,
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
     zulipVersion: zulipVersion ?? recentZulipVersion,
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,

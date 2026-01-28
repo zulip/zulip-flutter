@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -225,7 +226,13 @@ void main() {
     /// Check the account is as expected, ignoring fields that are
     /// freshly generated at login time.
     void checkMatchesAccount(Account actual, Account expected) {
-      check(actual).equals(expected.copyWith(id: actual.id));
+      check(actual).equals(expected.copyWith(
+        id: actual.id,
+        // The example accounts have non-null deviceId because that's how
+        // an account will typically look in the app after fully set up.
+        // But it doesn't happen at login time, so expect null at this stage.
+        deviceId: drift.Value(null),
+      ));
     }
 
     group('username/password login', () {
@@ -278,7 +285,7 @@ void main() {
 
         await login(tester, eg.otherAccount);
         final newAccount = testBinding.globalStore.accounts.singleWhere(
-          (account) => account != eg.selfAccount);
+          (account) => account.userId != eg.selfAccount.userId);
         checkMatchesAccount(newAccount, eg.otherAccount);
         check(poppedRoutes).length.equals(2);
         check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();

@@ -983,6 +983,17 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<int> deviceId = GeneratedColumn<int>(
+    'device_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _emailMeta = const VerificationMeta('email');
   @override
   late final GeneratedColumn<String> email = GeneratedColumn<String>(
@@ -1052,6 +1063,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     realmName,
     realmIcon,
     userId,
+    deviceId,
     email,
     apiKey,
     zulipVersion,
@@ -1087,6 +1099,12 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
       );
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
     }
     if (data.containsKey('email')) {
       context.handle(
@@ -1182,6 +1200,10 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         DriftSqlType.int,
         data['${effectivePrefix}user_id'],
       )!,
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}device_id'],
+      ),
       email: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}email'],
@@ -1253,6 +1275,20 @@ class Account extends DataClass implements Insertable<Account> {
   /// This is the identifier the server uses for the account.
   /// It never changes for a given account.
   final int userId;
+
+  /// The ID of this client device as logged into this account.
+  ///
+  /// This comes from [registerClientDevice] and corresponds to
+  /// a device ID in [InitialSnapshot.devices].
+  ///
+  /// Once this is no longer null, it never again changes for
+  /// a given account record.
+  ///
+  /// This is null if the server is old (TODO(server-12))
+  /// and lacks the concept of device ID,
+  /// as well as when the client has only recently upgraded from a
+  /// version that lacked this column and has not yet populated it.
+  final int? deviceId;
   final String email;
   final String apiKey;
   final String zulipVersion;
@@ -1265,6 +1301,7 @@ class Account extends DataClass implements Insertable<Account> {
     this.realmName,
     this.realmIcon,
     required this.userId,
+    this.deviceId,
     required this.email,
     required this.apiKey,
     required this.zulipVersion,
@@ -1290,6 +1327,9 @@ class Account extends DataClass implements Insertable<Account> {
       );
     }
     map['user_id'] = Variable<int>(userId);
+    if (!nullToAbsent || deviceId != null) {
+      map['device_id'] = Variable<int>(deviceId);
+    }
     map['email'] = Variable<String>(email);
     map['api_key'] = Variable<String>(apiKey);
     map['zulip_version'] = Variable<String>(zulipVersion);
@@ -1314,6 +1354,9 @@ class Account extends DataClass implements Insertable<Account> {
           ? const Value.absent()
           : Value(realmIcon),
       userId: Value(userId),
+      deviceId: deviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deviceId),
       email: Value(email),
       apiKey: Value(apiKey),
       zulipVersion: Value(zulipVersion),
@@ -1338,6 +1381,7 @@ class Account extends DataClass implements Insertable<Account> {
       realmName: serializer.fromJson<String?>(json['realmName']),
       realmIcon: serializer.fromJson<Uri?>(json['realmIcon']),
       userId: serializer.fromJson<int>(json['userId']),
+      deviceId: serializer.fromJson<int?>(json['deviceId']),
       email: serializer.fromJson<String>(json['email']),
       apiKey: serializer.fromJson<String>(json['apiKey']),
       zulipVersion: serializer.fromJson<String>(json['zulipVersion']),
@@ -1355,6 +1399,7 @@ class Account extends DataClass implements Insertable<Account> {
       'realmName': serializer.toJson<String?>(realmName),
       'realmIcon': serializer.toJson<Uri?>(realmIcon),
       'userId': serializer.toJson<int>(userId),
+      'deviceId': serializer.toJson<int?>(deviceId),
       'email': serializer.toJson<String>(email),
       'apiKey': serializer.toJson<String>(apiKey),
       'zulipVersion': serializer.toJson<String>(zulipVersion),
@@ -1370,6 +1415,7 @@ class Account extends DataClass implements Insertable<Account> {
     Value<String?> realmName = const Value.absent(),
     Value<Uri?> realmIcon = const Value.absent(),
     int? userId,
+    Value<int?> deviceId = const Value.absent(),
     String? email,
     String? apiKey,
     String? zulipVersion,
@@ -1382,6 +1428,7 @@ class Account extends DataClass implements Insertable<Account> {
     realmName: realmName.present ? realmName.value : this.realmName,
     realmIcon: realmIcon.present ? realmIcon.value : this.realmIcon,
     userId: userId ?? this.userId,
+    deviceId: deviceId.present ? deviceId.value : this.deviceId,
     email: email ?? this.email,
     apiKey: apiKey ?? this.apiKey,
     zulipVersion: zulipVersion ?? this.zulipVersion,
@@ -1400,6 +1447,7 @@ class Account extends DataClass implements Insertable<Account> {
       realmName: data.realmName.present ? data.realmName.value : this.realmName,
       realmIcon: data.realmIcon.present ? data.realmIcon.value : this.realmIcon,
       userId: data.userId.present ? data.userId.value : this.userId,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
       email: data.email.present ? data.email.value : this.email,
       apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
       zulipVersion: data.zulipVersion.present
@@ -1425,6 +1473,7 @@ class Account extends DataClass implements Insertable<Account> {
           ..write('realmName: $realmName, ')
           ..write('realmIcon: $realmIcon, ')
           ..write('userId: $userId, ')
+          ..write('deviceId: $deviceId, ')
           ..write('email: $email, ')
           ..write('apiKey: $apiKey, ')
           ..write('zulipVersion: $zulipVersion, ')
@@ -1442,6 +1491,7 @@ class Account extends DataClass implements Insertable<Account> {
     realmName,
     realmIcon,
     userId,
+    deviceId,
     email,
     apiKey,
     zulipVersion,
@@ -1458,6 +1508,7 @@ class Account extends DataClass implements Insertable<Account> {
           other.realmName == this.realmName &&
           other.realmIcon == this.realmIcon &&
           other.userId == this.userId &&
+          other.deviceId == this.deviceId &&
           other.email == this.email &&
           other.apiKey == this.apiKey &&
           other.zulipVersion == this.zulipVersion &&
@@ -1472,6 +1523,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<String?> realmName;
   final Value<Uri?> realmIcon;
   final Value<int> userId;
+  final Value<int?> deviceId;
   final Value<String> email;
   final Value<String> apiKey;
   final Value<String> zulipVersion;
@@ -1484,6 +1536,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     this.realmName = const Value.absent(),
     this.realmIcon = const Value.absent(),
     this.userId = const Value.absent(),
+    this.deviceId = const Value.absent(),
     this.email = const Value.absent(),
     this.apiKey = const Value.absent(),
     this.zulipVersion = const Value.absent(),
@@ -1497,6 +1550,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     this.realmName = const Value.absent(),
     this.realmIcon = const Value.absent(),
     required int userId,
+    this.deviceId = const Value.absent(),
     required String email,
     required String apiKey,
     required String zulipVersion,
@@ -1515,6 +1569,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Expression<String>? realmName,
     Expression<String>? realmIcon,
     Expression<int>? userId,
+    Expression<int>? deviceId,
     Expression<String>? email,
     Expression<String>? apiKey,
     Expression<String>? zulipVersion,
@@ -1528,6 +1583,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       if (realmName != null) 'realm_name': realmName,
       if (realmIcon != null) 'realm_icon': realmIcon,
       if (userId != null) 'user_id': userId,
+      if (deviceId != null) 'device_id': deviceId,
       if (email != null) 'email': email,
       if (apiKey != null) 'api_key': apiKey,
       if (zulipVersion != null) 'zulip_version': zulipVersion,
@@ -1543,6 +1599,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Value<String?>? realmName,
     Value<Uri?>? realmIcon,
     Value<int>? userId,
+    Value<int?>? deviceId,
     Value<String>? email,
     Value<String>? apiKey,
     Value<String>? zulipVersion,
@@ -1556,6 +1613,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       realmName: realmName ?? this.realmName,
       realmIcon: realmIcon ?? this.realmIcon,
       userId: userId ?? this.userId,
+      deviceId: deviceId ?? this.deviceId,
       email: email ?? this.email,
       apiKey: apiKey ?? this.apiKey,
       zulipVersion: zulipVersion ?? this.zulipVersion,
@@ -1587,6 +1645,9 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     if (userId.present) {
       map['user_id'] = Variable<int>(userId.value);
     }
+    if (deviceId.present) {
+      map['device_id'] = Variable<int>(deviceId.value);
+    }
     if (email.present) {
       map['email'] = Variable<String>(email.value);
     }
@@ -1616,6 +1677,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
           ..write('realmName: $realmName, ')
           ..write('realmIcon: $realmIcon, ')
           ..write('userId: $userId, ')
+          ..write('deviceId: $deviceId, ')
           ..write('email: $email, ')
           ..write('apiKey: $apiKey, ')
           ..write('zulipVersion: $zulipVersion, ')
@@ -2213,6 +2275,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
       Value<String?> realmName,
       Value<Uri?> realmIcon,
       required int userId,
+      Value<int?> deviceId,
       required String email,
       required String apiKey,
       required String zulipVersion,
@@ -2227,6 +2290,7 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<String?> realmName,
       Value<Uri?> realmIcon,
       Value<int> userId,
+      Value<int?> deviceId,
       Value<String> email,
       Value<String> apiKey,
       Value<String> zulipVersion,
@@ -2268,6 +2332,11 @@ class $$AccountsTableFilterComposer
 
   ColumnFilters<int> get userId => $composableBuilder(
     column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deviceId => $composableBuilder(
+    column: $table.deviceId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2336,6 +2405,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get email => $composableBuilder(
     column: $table.email,
     builder: (column) => ColumnOrderings(column),
@@ -2390,6 +2464,9 @@ class $$AccountsTableAnnotationComposer
 
   GeneratedColumn<int> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<int> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
 
   GeneratedColumn<String> get email =>
       $composableBuilder(column: $table.email, builder: (column) => column);
@@ -2451,6 +2528,7 @@ class $$AccountsTableTableManager
                 Value<String?> realmName = const Value.absent(),
                 Value<Uri?> realmIcon = const Value.absent(),
                 Value<int> userId = const Value.absent(),
+                Value<int?> deviceId = const Value.absent(),
                 Value<String> email = const Value.absent(),
                 Value<String> apiKey = const Value.absent(),
                 Value<String> zulipVersion = const Value.absent(),
@@ -2463,6 +2541,7 @@ class $$AccountsTableTableManager
                 realmName: realmName,
                 realmIcon: realmIcon,
                 userId: userId,
+                deviceId: deviceId,
                 email: email,
                 apiKey: apiKey,
                 zulipVersion: zulipVersion,
@@ -2477,6 +2556,7 @@ class $$AccountsTableTableManager
                 Value<String?> realmName = const Value.absent(),
                 Value<Uri?> realmIcon = const Value.absent(),
                 required int userId,
+                Value<int?> deviceId = const Value.absent(),
                 required String email,
                 required String apiKey,
                 required String zulipVersion,
@@ -2489,6 +2569,7 @@ class $$AccountsTableTableManager
                 realmName: realmName,
                 realmIcon: realmIcon,
                 userId: userId,
+                deviceId: deviceId,
                 email: email,
                 apiKey: apiKey,
                 zulipVersion: zulipVersion,
