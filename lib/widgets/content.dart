@@ -633,63 +633,10 @@ class MessageImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final message = InheritedMessage.of(context);
-
-    final resolvedSrc = switch (node.src) {
-      ImageNodeSrcThumbnail(:final value) => value.resolve(context,
-        width: MessageMediaContainer.size.width,
-        height: MessageMediaContainer.size.height,
-        animationMode: .animateConditionally),
-      ImageNodeSrcOther(:final value) => store.tryResolveUrl(value),
-    };
-    final resolvedOriginalSrc = node.originalSrc == null ? null
-      : store.tryResolveUrl(node.originalSrc!);
-
-    final child = switch ((node.loading, resolvedSrc)) {
-      // resolvedSrc would be a "spinner" image URL.
-      // Use our own progress indicator instead.
-      (true, _) => const CupertinoActivityIndicator(),
-
-      // TODO(#265) use an error-case placeholder
-      // TODO(log)
-      (false, null) => SizedBox.shrink(),
-
-      (false, Uri()) => RealmContentNetworkImage(
-        // TODO(#265) use an error-case placeholder for `errorBuilder`
-        filterQuality: FilterQuality.medium,
-        resolvedSrc!),
-    };
-
-    final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
-      ? resolvedOriginalSrc
-      : resolvedSrc;
-    if (lightboxDisplayUrl == null) {
-      // TODO(log)
-      return MessageMediaContainer(onTap: null, child: child);
-    }
-
-    return MessageMediaContainer(
-      onTap: () {
-        Navigator.of(context).push(getImageLightboxRoute(
-          context: context,
-          message: message,
-          messageImageContext: context,
-          src: lightboxDisplayUrl,
-          thumbnailUrl: node.src is ImageNodeSrcThumbnail
-            ? node.loading
-              // (Image thumbnail is loading; don't show hard-coded spinner image
-              // even if that happens to be a thumbnail URL.)
-              ? null
-              : resolvedSrc
-            : null,
-          originalWidth: node.originalWidth,
-          originalHeight: node.originalHeight));
-      },
-      child: LightboxHero(
-        messageImageContext: context,
-        src: lightboxDisplayUrl,
-        child: child));
+    return _Image(node: node, size: MessageMediaContainer.size,
+      buildContainer: (onTap, child) {
+        return MessageMediaContainer(onTap: onTap, child: child);
+      });
   }
 }
 
@@ -1332,67 +1279,6 @@ class InlineImage extends StatelessWidget {
   final InlineImageNode node;
   final TextStyle ambientTextStyle;
 
-  Widget _buildContent(BuildContext context, {required Size size}) {
-    final store = PerAccountStoreWidget.of(context);
-    final message = InheritedMessage.of(context);
-
-    final resolvedSrc = switch (node.src) {
-      ImageNodeSrcThumbnail(:final value) => value.resolve(context,
-        width: size.width,
-        height: size.height,
-        animationMode: .animateConditionally),
-      ImageNodeSrcOther(:final value) => store.tryResolveUrl(value),
-    };
-    final resolvedOriginalSrc = node.originalSrc == null ? null
-      : store.tryResolveUrl(node.originalSrc!);
-
-    final child = switch ((node.loading, resolvedSrc)) {
-      // resolvedSrc would be a "spinner" image URL.
-      // Use our own progress indicator instead.
-      (true, _) => const CupertinoActivityIndicator(),
-
-      // TODO(#265) use an error-case placeholder
-      // TODO(log)
-      (false, null) => SizedBox.shrink(),
-
-      (false, Uri()) => RealmContentNetworkImage(
-        // TODO(#265) use an error-case placeholder for `errorBuilder`
-        filterQuality: FilterQuality.medium,
-        semanticLabel: node.alt,
-        resolvedSrc!),
-    };
-
-    final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
-      ? resolvedOriginalSrc
-      : resolvedSrc;
-    if (lightboxDisplayUrl == null) {
-      // TODO(log)
-      return child;
-    }
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(getImageLightboxRoute(
-          context: context,
-          message: message,
-          messageImageContext: context,
-          src: lightboxDisplayUrl,
-          thumbnailUrl: node.src is ImageNodeSrcThumbnail
-            ? node.loading
-              // (Image thumbnail is loading; don't show hard-coded spinner image
-              // even if that happens to be a thumbnail URL.)
-              ? null
-              : resolvedSrc
-            : null,
-          originalWidth: node.originalWidth,
-          originalHeight: node.originalHeight));
-      },
-      child: LightboxHero(
-        messageImageContext: context,
-        src: lightboxDisplayUrl,
-        child: child));
-  }
-
   @override
   Widget build(BuildContext context) {
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
@@ -1418,7 +1304,11 @@ class InlineImage extends StatelessWidget {
     final size = BoxConstraints(maxHeight: maxHeight)
       .constrainSizeAndAttemptToPreserveAspectRatio(imageSize);
 
-    Widget child = _buildContent(context, size: size);
+    Widget child = _Image(node: node, size: size,
+      buildContainer: (onTap, child) {
+        if (onTap == null) return child;
+        return GestureDetector(onTap: onTap, child: child);
+      });
     if (node.alt != null) {
       child = Tooltip(
         message: node.alt,
@@ -1565,6 +1455,84 @@ class MessageTableCell extends StatelessWidget {
                 : DefaultTextStyle.of(context).style
                     .merge(weightVariableTextStyle(context, wght: 700))),
       ));
+  }
+}
+
+typedef _ImageContainerBuilder = Widget Function(VoidCallback? onTap, Widget child);
+
+/// A helper widget to deduplicate much of the logic in common
+/// between image previews and inline images.
+class _Image extends StatelessWidget {
+  const _Image({
+    required this.node,
+    required this.size,
+    required this.buildContainer,
+  });
+
+  final ImageNode node;
+  final Size size;
+  final _ImageContainerBuilder buildContainer;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final message = InheritedMessage.of(context);
+
+    final resolvedSrc = switch (node.src) {
+      ImageNodeSrcThumbnail(:final value) => value.resolve(context,
+        width: size.width,
+        height: size.height,
+        animationMode: .animateConditionally),
+      ImageNodeSrcOther(:final value) => store.tryResolveUrl(value),
+    };
+    final resolvedOriginalSrc = node.originalSrc == null ? null
+      : store.tryResolveUrl(node.originalSrc!);
+
+    final child = switch ((node.loading, resolvedSrc)) {
+      // resolvedSrc would be a "spinner" image URL.
+      // Use our own progress indicator instead.
+      (true, _) => const CupertinoActivityIndicator(),
+
+      // TODO(#265) use an error-case placeholder
+      // TODO(log)
+      (false, null) => SizedBox.shrink(),
+
+      (false, Uri()) => RealmContentNetworkImage(
+        // TODO(#265) use an error-case placeholder for `errorBuilder`
+        filterQuality: FilterQuality.medium,
+        semanticLabel: node.alt,
+        resolvedSrc!),
+    };
+
+    final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
+      ? resolvedOriginalSrc
+      : resolvedSrc;
+    if (lightboxDisplayUrl == null) {
+      // TODO(log)
+      return buildContainer(null, child);
+    }
+
+    return buildContainer(
+      () {
+        Navigator.of(context).push(getImageLightboxRoute(
+          context: context,
+          message: message,
+          messageImageContext: context,
+          src: lightboxDisplayUrl,
+          thumbnailUrl: node.src is ImageNodeSrcThumbnail
+            ? node.loading
+              // (Image thumbnail is loading; don't show hard-coded spinner image
+              // even if that happens to be a thumbnail URL.)
+              ? null
+              : resolvedSrc
+            : null,
+          originalWidth: node.originalWidth,
+          originalHeight: node.originalHeight));
+      },
+      LightboxHero(
+        messageImageContext: context,
+        src: lightboxDisplayUrl,
+        child: child));
   }
 }
 
