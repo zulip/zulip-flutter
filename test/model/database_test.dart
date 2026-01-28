@@ -14,7 +14,7 @@ import 'schemas/schema_v5.dart' as v5;
 import 'schemas/schema_v9.dart' as v9;
 import 'schemas/schema_v10.dart' as v10;
 import 'schemas/schema_v11.dart' as v11;
-import 'schemas/schema_v12.dart' as v12;
+import 'schemas/schema_v13.dart' as v13;
 import 'store_checks.dart';
 
 void main() {
@@ -192,6 +192,7 @@ void main() {
         realmName: Value('Example Zulip organization'),
         realmIcon: Value(Uri.parse('/user_avatars/2/realm/icon.png?version=3')),
         userId: 1,
+        deviceId: Value(null),
         email: 'asdf@example.org',
         apiKey: '1234',
         zulipVersion: '6.0',
@@ -365,15 +366,16 @@ void main() {
       await before.close();
 
       final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 12);
+      await verifier.migrateAndValidate(db, 13);
       await db.close();
 
-      final after = v12.DatabaseAtV12(schema.newConnection());
+      final after = v13.DatabaseAtV13(schema.newConnection());
       final account = await after.select(after.accounts).getSingle();
       check(account.toJson()).deepEquals({
         ...accountV1.toJson(),
         'ackedPushToken': null, // v2
         'realmName': null, 'realmIcon': null, // v12
+        'deviceId': null, // v13
       });
       await after.close();
     });
@@ -466,6 +468,8 @@ void main() {
     });
 
     // v12 covered by "existing Account row" above
+
+    // v13 covered by "existing Account row" above
   });
 }
 

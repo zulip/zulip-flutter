@@ -101,7 +101,7 @@ mixin _DatabaseMixin on GlobalStore {
       switch (key) {
         case 'id':
         case 'realm_url' || 'realm_name' || 'realm_icon':
-        case 'user_id' || 'email' || 'api_key':
+        case 'user_id' || 'device_id' || 'email' || 'api_key':
         case 'zulip_feature_level' || 'zulip_version' || 'zulip_merge_base':
         case 'acked_push_token':
           break;
@@ -126,6 +126,7 @@ mixin _DatabaseMixin on GlobalStore {
       realmName: data.realmName.value,
       realmIcon: data.realmIcon.value,
       userId: data.userId.value,
+      deviceId: data.deviceId.value,
       email: data.email.value,
       apiKey: data.apiKey.value,
       zulipFeatureLevel: data.zulipFeatureLevel.value,
