@@ -64,10 +64,12 @@ void main() {
       }
 
       final expectedMax = expectedMaxDurations[i];
-      // Each of these assertions has a failure probability of:
+      // Each of these two assertions has a failure probability of:
       //     pow(0.75, numTrials) = pow(0.75, 100) < 1e-12
       check(minFromAllTrials).isLessThan(   expectedMax * 0.25);
       check(maxFromAllTrials).isGreaterThan(expectedMax * 0.75);
+
+      check(maxFromAllTrials).isLessOrEqual(expectedMax);
     }
   }
 
