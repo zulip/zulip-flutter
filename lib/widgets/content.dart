@@ -638,8 +638,8 @@ class MessageImagePreview extends StatelessWidget {
 
     final resolvedSrc = switch (node.src) {
       ImageNodeSrcThumbnail(:final value) => value.resolve(context,
-        width: MessageMediaContainer.width,
-        height: MessageMediaContainer.height,
+        width: MessageMediaContainer.size.width,
+        height: MessageMediaContainer.size.height,
         animationMode: .animateConditionally),
       ImageNodeSrcOther(:final value) => store.tryResolveUrl(value),
     };
@@ -762,11 +762,8 @@ class MessageMediaContainer extends StatelessWidget {
   final void Function()? onTap;
   final Widget? child;
 
-  /// The container's width, in logical pixels.
-  static const width = 150.0;
-
-  /// The container's height, in logical pixels.
-  static const height = 100.0;
+  /// The container's size, in logical pixels.
+  static const size = Size(150, 100);
 
   @override
   Widget build(BuildContext context) {
@@ -782,9 +779,8 @@ class MessageMediaContainer extends StatelessWidget {
             color: ContentTheme.of(context).colorMessageMediaContainerBackground,
             child: Padding(
               padding: const EdgeInsets.all(1),
-              child: SizedBox(
-                width: width,
-                height: height,
+              child: SizedBox.fromSize(
+                size: size,
                 child: child))))));
   }
 }
@@ -1409,7 +1405,7 @@ class InlineImage extends StatelessWidget {
       ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio
       // Layout plan when original dimensions are unknown:
       // a [MessageMediaContainer]-sized and -colored rectangle.
-      : Size(MessageMediaContainer.width, MessageMediaContainer.height);
+      : MessageMediaContainer.size;
 
     // (a) Don't let tall, thin images take up too much vertical space,
     //     which could be annoying to scroll through. And:
