@@ -89,6 +89,12 @@ InitialSnapshot _$InitialSnapshotFromJson(
   userTopics: (json['user_topics'] as List<dynamic>)
       .map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
       .toList(),
+  devices: (json['devices'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(
+      int.parse(k),
+      ClientDevice.fromJson(e as Map<String, dynamic>),
+    ),
+  ),
   realmCanDeleteAnyMessageGroup:
       json['realm_can_delete_any_message_group'] == null
       ? null
@@ -188,6 +194,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'user_status': instance.userStatuses.map((k, e) => MapEntry(k.toString(), e)),
   'user_settings': instance.userSettings,
   'user_topics': instance.userTopics,
+  'devices': instance.devices?.map((k, e) => MapEntry(k.toString(), e)),
   'realm_can_delete_any_message_group': instance.realmCanDeleteAnyMessageGroup,
   'realm_can_delete_own_message_group': instance.realmCanDeleteOwnMessageGroup,
   'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,

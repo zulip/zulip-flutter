@@ -22,6 +22,12 @@ class JsonNullable<T extends Object> {
     return map.containsKey(key) ? JsonNullable(map[key] as T?) : null;
   }
 
+  static JsonNullable<int>? readIntFromJson(Map<dynamic, dynamic> map, String key) =>
+    readFromJson<int>(map, key);
+
+  static JsonNullable<String>? readStringFromJson(Map<dynamic, dynamic> map, String key) =>
+    readFromJson<String>(map, key);
+
   @override
   bool operator ==(Object other) {
     if (other is! JsonNullable) return false;
@@ -46,6 +52,10 @@ class IdentityJsonConverter<T> extends JsonConverter<T, T> {
 // Just writing `@IdentityJsonConverter<…>` directly as the annotation
 // doesn't work, as json_serializable gets confused.  Possibly related:
 //   https://github.com/google/json_serializable.dart/issues/1398
+class NullableIntJsonConverter extends IdentityJsonConverter<JsonNullable<int>> {
+  const NullableIntJsonConverter();
+}
+
 class NullableStringJsonConverter extends IdentityJsonConverter<JsonNullable<String>> {
   const NullableStringJsonConverter();
 }

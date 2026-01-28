@@ -15,6 +15,14 @@ extension AlertWordsEventChecks on Subject<AlertWordsEvent> {
   Subject<List<String>> get alertWords => has((e) => e.alertWords, 'alertWords');
 }
 
+extension DeviceUpdateEventChecks on Subject<DeviceUpdateEvent> {
+  Subject<JsonNullable<int>?> get pushKeyId => has((e) => e.pushKeyId, 'pushKeyId');
+  Subject<JsonNullable<String>?> get pushTokenId => has((e) => e.pushTokenId, 'pushTokenId');
+  Subject<JsonNullable<String>?> get pendingPushTokenId => has((e) => e.pendingPushTokenId, 'pendingPushTokenId');
+  Subject<JsonNullable<int>?> get pushTokenLastUpdatedTimestamp => has((e) => e.pushTokenLastUpdatedTimestamp, 'pushTokenLastUpdatedTimestamp');
+  Subject<JsonNullable<String>?> get pushRegistrationErrorCode => has((e) => e.pushRegistrationErrorCode, 'pushRegistrationErrorCode');
+}
+
 extension RealmUserUpdateEventChecks on Subject<RealmUserUpdateEvent> {
   Subject<int> get userId => has((e) => e.userId, 'userId');
   Subject<String?> get fullName => has((e) => e.fullName, 'fullName');
