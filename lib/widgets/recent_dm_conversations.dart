@@ -204,7 +204,7 @@ class RecentDmConversationsItem extends StatelessWidget {
     }
 
     // TODO(design) check if this is the right variable
-    final backgroundColor = designVariables.background;
+    final backgroundColor = designVariables.mainBackground;
     return Material(
       color: backgroundColor,
       child: InkWell(

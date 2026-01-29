@@ -142,7 +142,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bannerBgIntInfo: const Color(0xffddecf6),
     bannerBgIntWarning: const Color(0xfffaf5dc),
     bannerTextIntInfo: const Color(0xff06037c),
-    bgBotBar: const Color(0xfff6f6f6),
+    bgBotBar: const Color(0xfff0f0f0),
     bgContextMenu: const Color(0xfff2f2f2),
     bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),

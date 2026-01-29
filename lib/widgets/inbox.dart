@@ -271,7 +271,7 @@ abstract class _HeaderItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     return Material(
       color: collapsed
-        ? designVariables.background // TODO(design) check if this is the right variable
+        ? designVariables.mainBackground
         : uncollapsedBackgroundColor(context),
       child: InkWell(
         // TODO use onRowTap to handle taps that are not on the collapse button.
@@ -409,7 +409,7 @@ class _DmItem extends StatelessWidget {
     };
 
     return Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
+      color: designVariables.mainBackground,
       child: InkWell(
         onTap: () {
           Navigator.push(context,
@@ -538,7 +538,7 @@ class _TopicItem extends StatelessWidget {
       store.topicVisibilityPolicy(streamId, topic));
 
     return Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
+      color: designVariables.mainBackground,
       child: InkWell(
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
