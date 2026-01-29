@@ -478,6 +478,7 @@ class _TextWidget extends StatelessWidget {
   }
 }
 
+// TODO(design) use [UserChip] instead, like in the new-DM UI?
 class _UserWidget extends StatelessWidget {
   const _UserWidget({required this.userId});
 
