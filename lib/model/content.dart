@@ -1077,7 +1077,16 @@ class UserMentionNode extends InlineContainerNode {
   const UserMentionNode({
     super.debugHtmlNode,
     required super.nodes,
+    required this.userId,
   });
+
+  /// The user ID for individual user mentions, or null for other mention types.
+  ///
+  /// This is null for:
+  /// - Wildcard mentions (@all, @channel, @everyone, etc.) which have data-user-id="*"
+  /// - Group mentions (@*group_name*) which use data-user-group-id instead
+  /// - Topic mentions (@topic) which don't have a user ID
+  final int? userId;
 
   // For the legacy design, we don't need this information in code; instead,
   // the inner text already shows how to communicate it to the user
@@ -1318,11 +1327,13 @@ class _ZulipInlineContentParser {
       return null;
     }
 
+    final int? userId = int.tryParse(element.attributes['data-user-id'] ?? '');
+
     // TODO assert UserMentionNode can't contain LinkNode;
     //   either a debug-mode check, or perhaps we can make expectations much
     //   tighter on a UserMentionNode's contents overall.
     final nodes = parseInlineContentList(element.nodes);
-    return UserMentionNode(nodes: nodes, debugHtmlNode: debugHtmlNode);
+    return UserMentionNode(nodes: nodes, userId: userId, debugHtmlNode: debugHtmlNode);
   }
 
   /// The links found so far in the current block inline container.
