@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
@@ -100,11 +101,51 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(titleSpacing: 16,
+      appBar: ZulipAppBar(
+        leadingWidth: 80,
+        leading: Padding(
+          padding: const EdgeInsets.all(4),
+          child: SizedBox(
+            width: 80,
+            height: 48,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                width: 43,
+                height: 43,
+                padding: const EdgeInsets.all(6),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SvgPicture.asset(
+                    'assets/app-icons/company-logo.svg',
+                    width: 30,
+                    height: 30,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        titleSpacing: 0,
+        centerTitle: true,
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
-          child: Text(_currentTabTitle))),
+          child: SizedBox(
+            width: 178,
+            height: 30,
+            child: Text(
+              _currentTabTitle,
+              style: const TextStyle(
+                fontFamily: 'Source Sans 3',
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                height: 1.5, // 30px line height / 20px font size
+                color: Color(0xff1a1a1a),
+              ),
+            ),
+          ))),
       body: Semantics(
         role: SemanticsRole.tabPanel,
         identifier: HomePage.contentSemanticsIdentifier,

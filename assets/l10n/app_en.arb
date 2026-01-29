@@ -1205,7 +1205,7 @@
   "@starredMessagesPageTitle": {
     "description": "Page title for the 'Starred messages' message view."
   },
-  "channelsPageTitle": "Channels",
+  "channelsPageTitle": "Subscribed channels",
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
   },

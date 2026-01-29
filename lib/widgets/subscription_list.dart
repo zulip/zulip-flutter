@@ -12,7 +12,6 @@ import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
-import 'text.dart';
 import 'theme.dart';
 import 'counter_badge.dart';
 
@@ -202,6 +201,23 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
   }
 }
 
+class _IconMarker extends StatelessWidget {
+  const _IconMarker({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    // Design for icon markers based on Figma screen:
+    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 4),
+      // This color comes from the Figma screen for the "@" marker.
+      child: Icon(icon, size: 14, color: designVariables.inboxItemIconMarker));
+  }
+}
+
 class _SubscriptionListHeader extends StatelessWidget {
   const _SubscriptionListHeader({required this.label});
 
@@ -216,8 +232,7 @@ class _SubscriptionListHeader extends StatelessWidget {
 
     return SliverToBoxAdapter(
       child: ColoredBox(
-        // TODO(design) check if this is the right variable
-        color: designVariables.background,
+        color: designVariables.mainBackground,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(width: 16),
@@ -228,10 +243,12 @@ class _SubscriptionListHeader extends StatelessWidget {
               child: Text(label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: designVariables.subscriptionListHeaderText,
-                  fontSize: 14,
-                  letterSpacing: proportionalLetterSpacing(context, 0.04, baseFontSize: 14),
-                  height: (16 / 14),
+                  fontFamily: 'Source Sans 3',
+                  color: designVariables.textMessage,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  height: (20 / 17),
+                  letterSpacing: 0,
                 ))),
             const SizedBox(width: 8),
             line,
@@ -262,8 +279,22 @@ class _SubscriptionList extends StatelessWidget {
         final unreadCount = unreadsModel!.countInChannel(subscription.streamId);
         final showMutedUnreadBadge = unreadCount == 0
           && unreadsModel!.countInChannelNarrow(subscription.streamId) > 0;
+
+        // Check if any unread messages in this channel are mentions
+        bool hasMention = false;
+        final streamUnreads = unreadsModel!.streams[subscription.streamId];
+        if (streamUnreads != null) {
+          for (final messageIds in streamUnreads.values) {
+            if (messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId))) {
+              hasMention = true;
+              break;
+            }
+          }
+        }
+
         return SubscriptionItem(subscription: subscription,
           unreadCount: unreadCount,
+          hasMention: hasMention,
           showMutedUnreadBadge: showMutedUnreadBadge,
           showTopicListButtonInActionSheet: showTopicListButtonInActionSheet,
           onChannelSelect: onChannelSelect);
@@ -277,6 +308,7 @@ class SubscriptionItem extends StatelessWidget {
     super.key,
     required this.subscription,
     required this.unreadCount,
+    required this.hasMention,
     required this.showMutedUnreadBadge,
     required this.showTopicListButtonInActionSheet,
     required this.onChannelSelect,
@@ -284,6 +316,7 @@ class SubscriptionItem extends StatelessWidget {
 
   final Subscription subscription;
   final int unreadCount;
+  final bool hasMention;
   final bool showMutedUnreadBadge;
   final bool showTopicListButtonInActionSheet;
   final OnChannelSelectCallback onChannelSelect;
@@ -296,8 +329,7 @@ class SubscriptionItem extends StatelessWidget {
     final hasUnreads = (unreadCount > 0);
     final opacity = subscription.isMuted ? 0.55 : 1.0;
     return Material(
-      // TODO(design) check if this is the right variable
-      color: designVariables.background,
+      color: designVariables.mainBackground,
       child: InkWell(
         onTap: () => onChannelSelect(ChannelNarrow(subscription.streamId)),
         onLongPress: () => showChannelActionSheet(context,
@@ -309,7 +341,13 @@ class SubscriptionItem extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 11),
             child: Opacity(
               opacity: opacity,
-              child: Icon(size: 18, color: swatch.iconOnPlainBackground,
+              child: Icon(
+                size: 18,
+                // Lock icons (private channels) use a fixed color #90C1C7 per design spec,
+                // while other icons follow the assigned channel theme color.
+                color: subscription.inviteOnly
+                  ? const Color(0xff90C1C7)
+                  : swatch.iconOnPlainBackground,
                 iconDataForStream(subscription)))),
           const SizedBox(width: 5),
           Expanded(
@@ -322,27 +360,25 @@ class SubscriptionItem extends StatelessWidget {
                 opacity: opacity,
                 child: Text(
                   style: TextStyle(
+                    fontFamily: 'Source Sans 3', // Explicitly match Figma typography
                     fontSize: 18,
                     height: (20 / 18),
-                    // TODO(design) check if this is the right variable
-                    color: designVariables.labelMenuButton,
-                  ).merge(weightVariableTextStyle(context,
-                      wght: hasUnreads && !subscription.isMuted ? 600 : null)),
+                    color: designVariables.textMessage,
+                    fontWeight: subscription.isMuted ? FontWeight.normal : FontWeight.w600,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   subscription.name)))),
           if (hasUnreads) ...[
             const SizedBox(width: 12),
-            // TODO(#747) show @-mention indicator when it applies
-            Opacity(
-              opacity: opacity,
-              child: CounterBadge(
-                kind: CounterBadgeKind.unread,
-                count: unreadCount,
-                channelIdForBackground: subscription.streamId)),
+            if (hasMention) _IconMarker(icon: ZulipIcons.at_sign),
+            CounterBadge(
+              kind: CounterBadgeKind.unread,
+              count: unreadCount,
+              channelIdForBackground: null),
           ] else if (showMutedUnreadBadge) ...[
             const SizedBox(width: 12),
-            // TODO(#747) show @-mention indicator when it applies
+            if (hasMention) _IconMarker(icon: ZulipIcons.at_sign),
             const MutedUnreadBadge(),
           ],
           const SizedBox(width: 16),

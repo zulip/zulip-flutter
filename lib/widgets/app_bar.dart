@@ -16,6 +16,8 @@ class ZulipAppBar extends AppBar {
   // TODO(upstream) send a PR to replace our `willCenterTitle` code
   ZulipAppBar({
     super.key,
+    super.leading,
+    super.leadingWidth,
     super.titleSpacing,
     Widget? title,
     Widget Function(bool willCenterTitle)? buildTitle,

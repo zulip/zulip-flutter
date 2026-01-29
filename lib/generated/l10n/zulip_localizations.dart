@@ -1772,7 +1772,7 @@ abstract class ZulipLocalizations {
   /// Title for the page with a list of subscribed channels.
   ///
   /// In en, this message translates to:
-  /// **'Channels'**
+  /// **'Subscribed channels'**
   String get channelsPageTitle;
 
   /// Centered text on the 'Channels' page saying that there is no content to show.

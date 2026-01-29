@@ -66,6 +66,7 @@ dependencies:
   zulip_plugin:
     path: ./packages/zulip_plugin
   unorm_dart: ^0.3.1+1
+  flutter_svg: ^2.2.3
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 dependency_overrides:
@@ -115,6 +116,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/app-icons/company-logo.svg
     - assets/KaTeX/LICENSE
     - assets/Noto_Color_Emoji/LICENSE
     - assets/Pygments/AUTHORS.txt

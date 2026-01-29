@@ -80,6 +80,7 @@ ThemeData zulipThemeData(BuildContext context) {
       // ColorScheme.surfaceContainer for the scrolled-under state and
       // ColorScheme.surface otherwise, and those are different colors.
       scrolledUnderElevation: 0,
+      elevation: 0,
       backgroundColor: designVariables.bgTopBar,
 
       // TODO match actions layout to Figma
@@ -105,6 +106,7 @@ ThemeData zulipThemeData(BuildContext context) {
 
       shape: Border(bottom: BorderSide(
         color: designVariables.borderBar,
+        width: 1.0,
         strokeAlign: BorderSide.strokeAlignInside, // (default restated for explicitness)
       )),
     ),

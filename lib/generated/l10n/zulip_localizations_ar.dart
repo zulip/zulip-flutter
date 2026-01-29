@@ -1014,7 +1014,7 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get starredMessagesPageTitle => 'Starred messages';
 
   @override
-  String get channelsPageTitle => 'Channels';
+  String get channelsPageTitle => 'Subscribed channels';
 
   @override
   String get channelsEmptyPlaceholderHeader =>

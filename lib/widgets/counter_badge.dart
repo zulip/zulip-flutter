@@ -69,7 +69,7 @@ class CounterBadge extends StatelessWidget {
     final double wght = switch ((style, kind)) {
       (CounterBadgeStyle.mainMenu, CounterBadgeKind.unread  ) => 600,
       (CounterBadgeStyle.mainMenu, CounterBadgeKind.quantity) => 500,
-      (CounterBadgeStyle.other,    CounterBadgeKind.unread  ) => 500,
+      (CounterBadgeStyle.other,    CounterBadgeKind.unread  ) => 600,
       (CounterBadgeStyle.other,    CounterBadgeKind.quantity) => 500,
     };
 
