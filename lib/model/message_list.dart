@@ -564,8 +564,8 @@ bool haveSameRecipient(MessageBase prevMessage, MessageBase message) {
 @visibleForTesting
 bool messagesSameDay(MessageBase prevMessage, MessageBase message) {
   // TODO memoize [DateTime]s... also use memoized for showing date/time in msglist
-  final prevTime = DateTime.fromMillisecondsSinceEpoch(prevMessage.timestamp * 1000);
-  final time = DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000);
+  final prevTime = dateTimeFromTimestamp(prevMessage.timestamp);
+  final time = dateTimeFromTimestamp(message.timestamp);
   if (!_sameDay(prevTime, time)) return false;
   return true;
 }
