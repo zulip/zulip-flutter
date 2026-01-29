@@ -23,7 +23,6 @@ import '../model/binding.dart';
 import '../model/test_store.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
-import 'finders.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
@@ -176,7 +175,7 @@ void main() {
           of: find.byType(RecentDmConversationsItem),
           // The title might contain a WidgetSpan (for status emoji); exclude
           // the resulting placeholder character from the text to be matched.
-          matching: findText(expectedText, includePlaceholders: false)));
+          matching: find.textContaining(expectedText)));
         if (expectedLines != null) {
           final renderObject = tester.renderObject<RenderParagraph>(find.byWidget(widget));
           check(renderObject.size.height).equals(
@@ -217,6 +216,25 @@ void main() {
       }
 
       group('self-1:1', () {
+        testWidgets('shows (you) label for self in recent DMs', (tester) async {
+          final message = eg.dmMessage(from: eg.selfUser, to: []);
+          await setupPage(tester, users: [], dmMessages: [message]);
+          // Name is shown
+          expect(find.textContaining(eg.selfUser.fullName), findsOneWidget);
+          // "(you)" is shown
+          expect(find.textContaining('(you)'), findsOneWidget);
+        });
+
+        testWidgets('does not show (you) for non-self users', (tester) async {
+          final otherUser = eg.user(userId: 42);
+          final message = eg.dmMessage(from: eg.selfUser, to: [otherUser]);
+          await setupPage(tester, users: [otherUser], dmMessages: [message]);
+          // Other user's name is shown
+          expect(find.textContaining(otherUser.fullName), findsOneWidget);
+          // "(you)" must NOT be shown
+          expect(find.textContaining('(you)'), findsNothing);
+        });
+
         testWidgets('has right title/avatar', (tester) async {
           final message = eg.dmMessage(from: eg.selfUser, to: []);
           await setupPage(tester, users: [], dmMessages: [message]);
