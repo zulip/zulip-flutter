@@ -32,6 +32,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:share_plus_platform_interface/method_channel/method_channel_share.dart';
+import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/read_receipts.dart';
 import 'package:zulip/widgets/subscription_list.dart';
 import 'package:zulip/widgets/topic_list.dart';
@@ -1390,6 +1391,297 @@ void main() {
         check(expectedLink.toString().contains('/with/')).isFalse();
         check((await Clipboard.getData('text/plain'))!)
           .text.equals(expectedLink.toString());
+      });
+    });
+  });
+
+  group('DM action sheet', () {
+    Future<void> prepare({
+      List<User>? usersExcludingSelf,
+      List<DmMessage>? unreadMessages,
+    }) async {
+      addTearDown(testBinding.reset);
+
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        realmUsers: [eg.selfUser, ...?usersExcludingSelf]));
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+
+      if (unreadMessages != null) {
+        for (final message in unreadMessages) {
+          await store.addMessage(message);
+          check(store.unreads.isUnread(message.id)).isNotNull().isTrue();
+        }
+      }
+    }
+
+    /// Show the action sheet by long-pressing a DM item in the inbox.
+    ///
+    /// The helper will long-press at `find.textContaining(textInDmItem)`
+    /// within the inbox page.
+    Future<void> showFromInbox(WidgetTester tester, {
+      required DmNarrow narrow,
+      required String textInDmItem,
+    }) async {
+      final hasDmWithUnreads = store.unreads.countInDmNarrow(narrow) > 0;
+      if (!hasDmWithUnreads) {
+        throw FlutterError.fromParts([
+          ErrorSummary('showFromInbox called without an unread message'),
+          ErrorHint(
+            'Before calling showFromInbox, ensure that [Unreads] '
+            'has an unread message in the relevant DM narrow.',
+          ),
+        ]);
+      }
+
+      transitionDurationObserver = TransitionDurationObserver();
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          navigatorObservers: [transitionDurationObserver],
+          child: const HomePage()));
+      await tester.pump();
+      check(find.byType(InboxPageBody)).findsOne();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(InboxPageBody),
+        matching: find.textContaining(textInDmItem)));
+      await transitionDurationObserver.pumpPastTransition(tester);
+    }
+
+    /// Show the action sheet by long-pressing the message-list app bar
+    /// for a DM narrow.
+    ///
+    /// The helper will long-press at `find.textContaining(textInAppBarTitle)`
+    /// within the app bar.
+    Future<void> showFromAppBar(WidgetTester tester, {
+      required DmNarrow narrow,
+      required String textInAppBarTitle,
+    }) async {
+      transitionDurationObserver = TransitionDurationObserver();
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          navigatorObservers: [transitionDurationObserver],
+          child: MessageListPage(initNarrow: narrow)));
+      await tester.pump();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.textContaining(textInAppBarTitle)));
+      await transitionDurationObserver.pumpPastTransition(tester);
+    }
+
+    /// Show the action sheet by long-pressing a recipient header for a DM
+    /// in the combined feed.
+    ///
+    /// The helper will long-press at `find.textContaining(textInRecipientHeader)`
+    /// within the recipient header.
+    Future<void> showFromRecipientHeader(WidgetTester tester, {
+      required DmNarrow narrow,
+      required DmMessage message,
+      required String textInRecipientHeader,
+    }) async {
+      assert(narrow.containsMessage(message));
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          navigatorObservers: [transitionDurationObserver],
+          child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.descendant(
+        of: find.byType(RecipientHeader),
+        matching: find.textContaining(textInRecipientHeader)));
+      await transitionDurationObserver.pumpPastTransition(tester);
+    }
+
+    final actionSheetFinder = find.byType(BottomSheet);
+    Finder findButtonForLabel(String label) =>
+      find.descendant(of: actionSheetFinder, matching: find.text(label));
+
+    void checkButton(String label) {
+      check(findButtonForLabel(label)).findsOne();
+    }
+
+    Finder findInHeader(Finder finder) {
+      // We could target this finder more precisely to the header,
+      // if there's risk of confusion with the buttons.
+      return find.descendant(
+        of: actionSheetFinder,
+        matching: finder);
+    }
+
+    group('show from inbox', () {
+      testWidgets('1:1 DM (not self)', (tester) async {
+        final unreadMessage = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+        await prepare(
+          usersExcludingSelf: [eg.otherUser],
+          unreadMessages: [unreadMessage]);
+        final narrow = DmNarrow.withUser(selfUserId: eg.selfUser.userId,
+          eg.otherUser.userId);
+        await showFromInbox(tester,
+          narrow: narrow, textInDmItem: eg.otherUser.fullName);
+        check(findInHeader(find.text('DMs with ${eg.otherUser.fullName}')))
+          .findsOne();
+        checkButton('View profile');
+      });
+
+      testWidgets('self-DM', (tester) async {
+        final unreadMessage = eg.dmMessage(from: eg.selfUser, to: []);
+        await prepare(unreadMessages: [unreadMessage]);
+        final narrow = DmNarrow.withUser(selfUserId: eg.selfUser.userId,
+          eg.selfUser.userId);
+        await showFromInbox(tester,
+          narrow: narrow, textInDmItem: eg.selfUser.fullName);
+        check(findInHeader(find.text('DMs with yourself'))).findsOne();
+        checkButton('View profile');
+      });
+
+      testWidgets('group DM', (tester) async {
+        final unreadMessage = eg.dmMessage(
+          from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]);
+        await prepare(
+          usersExcludingSelf: [eg.otherUser, eg.thirdUser],
+          unreadMessages: [unreadMessage]);
+        final narrow = DmNarrow.withUsers(selfUserId: eg.selfUser.userId,
+          [eg.otherUser.userId, eg.thirdUser.userId]);
+        await showFromInbox(tester,
+          narrow: narrow, textInDmItem: eg.thirdUser.fullName);
+        findInHeader(find.text('Group DM'));
+        check(tester.widgetList(findInHeader(find.byType(UserChip))))
+          .deepEquals(<Condition<Object?>>[
+            (it) => it.isA<UserChip>().userId.equals(eg.otherUser.userId),
+            (it) => it.isA<UserChip>().userId.equals(eg.thirdUser.userId),
+          ]);
+
+        // Tapping a user in the header leads to their profile.
+        await tester.tap(find.widgetWithText(UserChip, eg.otherUser.fullName));
+        await transitionDurationObserver.pumpPastTransition(tester);
+        final profilePageFinder = find.byWidgetPredicate((widget) =>
+          widget is ProfilePage && widget.userId == eg.otherUser.userId);
+        check(profilePageFinder).findsOne();
+      });
+    });
+
+    testWidgets('from app bar (1:1 DM)', (tester) async {
+      await prepare(usersExcludingSelf: [eg.otherUser]);
+      final narrow = DmNarrow.withUser(selfUserId: eg.selfUser.userId,
+        eg.otherUser.userId);
+      await showFromAppBar(tester,
+        narrow: narrow, textInAppBarTitle: eg.otherUser.fullName);
+      check(findInHeader(find.text('DMs with ${eg.otherUser.fullName}')))
+        .findsOne();
+      checkButton('View profile');
+    });
+
+    testWidgets('from recipient header (1:1 DM)', (tester) async {
+      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+      await prepare(usersExcludingSelf: [eg.otherUser]);
+      await store.addMessage(message);
+      final narrow = DmNarrow.withUser(selfUserId: eg.selfUser.userId,
+        eg.otherUser.userId);
+      await showFromRecipientHeader(tester,
+        narrow: narrow,
+        message: message,
+        textInRecipientHeader: eg.otherUser.fullName);
+      check(findInHeader(find.text('DMs with ${eg.otherUser.fullName}')))
+        .findsOne();
+      checkButton('View profile');
+    });
+
+    group('ViewProfileButton', () {
+      testWidgets('self', (tester) async {
+        final unreadMessage = eg.dmMessage(from: eg.selfUser, to: []);
+        await prepare(unreadMessages: [unreadMessage]);
+        final narrow = DmNarrow.withUser(selfUserId: eg.selfUser.userId,
+          eg.selfUser.userId);
+        await showFromInbox(tester,
+          narrow: narrow, textInDmItem: eg.selfUser.fullName);
+        check(findInHeader(find.text('DMs with yourself'))).findsOne();
+
+        await tester.tap(findButtonForLabel('View profile'));
+
+        // The DM action sheet exits and the profile page enters.
+        //
+        // This just pumps through twice the duration of the latest transition.
+        // Ideally we'd check that the two expected transitions were triggered
+        // and that they started at the same time, and pump through the
+        // longer of the two durations.
+        // TODO(upstream) support this in TransitionDurationObserver
+        await transitionDurationObserver.pumpPastTransition(tester);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        final profilePageFinder = find.byWidgetPredicate((widget) =>
+          widget is ProfilePage && widget.userId == eg.selfUser.userId);
+        check(profilePageFinder).findsOne();
+      });
+
+      testWidgets('other', (tester) async {
+        final unreadMessage = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+        await prepare(
+          usersExcludingSelf: [eg.otherUser],
+          unreadMessages: [unreadMessage]);
+        final narrow = DmNarrow.withUser(selfUserId: eg.selfUser.userId,
+          eg.otherUser.userId);
+        await showFromInbox(tester,
+          narrow: narrow, textInDmItem: eg.otherUser.fullName);
+        check(findInHeader(find.text('DMs with ${eg.otherUser.fullName}'))).findsOne();
+
+        await tester.tap(findButtonForLabel('View profile'));
+        await transitionDurationObserver.pumpPastTransition(tester);
+        await transitionDurationObserver.pumpPastTransition(tester);
+        final profilePageFinder = find.byWidgetPredicate((widget) =>
+          widget is ProfilePage && widget.userId == eg.otherUser.userId);
+        check(profilePageFinder).findsOne();
+      });
+    });
+
+    group('MarkDmConversationAsReadButton', () {
+      testWidgets('if there are unreads, button is visible and marks as read when tapped', (tester) async {
+        final unreadMessage = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+        await prepare(
+          usersExcludingSelf: [eg.otherUser],
+          unreadMessages: [unreadMessage]);
+        final narrow = DmNarrow.withUser(selfUserId: eg.selfUser.userId,
+          eg.otherUser.userId);
+        await showFromInbox(tester,
+          narrow: narrow, textInDmItem: eg.otherUser.fullName);
+        check(findInHeader(find.text('DMs with ${eg.otherUser.fullName}')))
+          .findsOne();
+
+        connection.prepare(json: UpdateMessageFlagsForNarrowResult(
+          processedCount: 1, updatedCount: 1,
+          firstProcessedId: unreadMessage.id, lastProcessedId: unreadMessage.id,
+          foundOldest: true, foundNewest: true).toJson());
+        await tester.tap(findButtonForLabel('Mark conversation as read'));
+        await tester.pump();
+        check(connection.lastRequest).isA<http.Request>()
+          ..url.path.equals('/api/v1/messages/flags/narrow')
+          ..bodyFields['narrow'].equals(jsonEncode([
+              ...resolveApiNarrowForServer(
+                narrow.apiEncode(),
+                connection.zulipFeatureLevel!),
+              ApiNarrowIs(IsOperand.unread),
+            ]))
+          ..bodyFields['op'].equals('add')
+          ..bodyFields['flag'].equals('read');
+        // (action sheet closes)
+        await transitionDurationObserver.pumpPastTransition(tester);
+      });
+
+      testWidgets('if no unreads, button not visible', (tester) async {
+        await prepare(usersExcludingSelf: [eg.otherUser]);
+        final narrow = DmNarrow.withUser(selfUserId: eg.selfUser.userId,
+          eg.otherUser.userId);
+        await showFromAppBar(tester,
+          narrow: narrow, textInAppBarTitle: eg.otherUser.fullName);
+        check(findInHeader(find.text('DMs with ${eg.otherUser.fullName}')))
+          .findsOne();
+        check(store.unreads.countInDmNarrow(narrow)).equals(0);
+        check(findButtonForLabel('Mark conversation as read')).findsNothing();
       });
     });
   });

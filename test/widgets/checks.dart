@@ -67,6 +67,10 @@ extension AvatarShapeChecks on Subject<AvatarShape> {
   Subject<Widget> get child => has((i) => i.child, 'child');
 }
 
+extension UserChipChecks on Subject<UserChip> {
+  Subject<int> get userId => has((x) => x.userId, 'userId');
+}
+
 extension MessageListPageChecks on Subject<MessageListPage> {
   Subject<Narrow> get initNarrow => has((x) => x.initNarrow, 'initNarrow');
   Subject<int?> get initAnchorMessageId => has((x) => x.initAnchorMessageId, 'initAnchorMessageId');

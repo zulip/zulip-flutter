@@ -599,6 +599,36 @@ abstract class ZulipLocalizations {
   /// **'Copy link to topic'**
   String get actionSheetOptionCopyTopicLink;
 
+  /// The title of an action sheet for a 1:1 DM conversation with another user.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs with {user}'**
+  String actionSheetTitleDm(String user);
+
+  /// The title of an action sheet for the 1:1 DM conversation with yourself.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs with yourself'**
+  String get actionSheetTitleSelfDm;
+
+  /// The title of an action sheet for a group DM conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Group DM'**
+  String get actionSheetTitleGroupDm;
+
+  /// Option to view the user's profile in the action sheet for a 1:1 DM conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get actionSheetOptionViewProfile;
+
+  /// Option to mark a DM conversation as read in the action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark conversation as read'**
+  String get actionSheetOptionMarkDmConversationAsRead;
+
   /// Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials).
   ///
   /// In en, this message translates to:
