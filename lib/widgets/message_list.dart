@@ -680,16 +680,31 @@ class MessageListAppBarTitle extends StatelessWidget {
                 child: _buildTopicRow(context, stream: stream, topic: topic))),
           ]);
 
-      case DmNarrow(:var otherRecipientIds):
+      case DmNarrow(:var otherRecipientIds): {
         final store = PerAccountStoreWidget.of(context);
+        final alignment = willCenterTitle
+          ? Alignment.center
+          : AlignmentDirectional.centerStart;
+
+        Widget child;
         if (otherRecipientIds.isEmpty) {
-          return Text(zulipLocalizations.dmsWithYourselfPageTitle);
+          child = Text(zulipLocalizations.dmsWithYourselfPageTitle);
         } else {
           final names = otherRecipientIds.map(store.userDisplayName);
           // TODO show avatars
-          return Text(
+          child = Text(
             zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')));
         }
+
+        return SizedBox(
+          width: double.infinity,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onLongPress: () =>
+              showDmActionSheet(context, narrow: narrow as DmNarrow),
+            child: Align(alignment: alignment,
+              child: child)));
+      }
 
       case KeywordSearchNarrow():
         assert(!willCenterTitle);
@@ -1970,6 +1985,8 @@ class DmRecipientHeader extends StatelessWidget {
         : () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
               narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+      onLongPress: () => showDmActionSheet(context,
+        narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId)),
       child: ColoredBox(
         color: messageListTheme.dmRecipientHeaderBg,
         child: Padding(

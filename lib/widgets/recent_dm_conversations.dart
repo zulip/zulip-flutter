@@ -4,6 +4,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
+import 'action_sheet.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'new_dm_sheet.dart';
@@ -209,6 +210,7 @@ class RecentDmConversationsItem extends StatelessWidget {
       color: backgroundColor,
       child: InkWell(
         onTap: () => onDmSelect(narrow),
+        onLongPress: () => showDmActionSheet(context, narrow: narrow),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),

@@ -29,11 +29,13 @@ import 'icons.dart';
 import 'inset_shadow.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'profile.dart';
 import 'read_receipts.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'topic_list.dart';
+import 'user.dart';
 
 /// Show an action sheet with scrollable menu buttons
 /// and an optional scrollable header.
@@ -1040,6 +1042,105 @@ class CopyTopicLinkButton extends ActionSheetMenuItemButton {
     PlatformActions.copyWithPopup(context: pageContext,
       successContent: Text(zulipLocalizations.successTopicLinkCopied),
       data: ClipboardData(text: narrowLink(store, narrow).toString()));
+  }
+}
+
+/// Show a sheet of actions you can take on a DM conversation.
+///
+/// Needs a [PageRoot] ancestor.
+void showDmActionSheet(BuildContext context, {required DmNarrow narrow}) {
+  final pageContext = PageRoot.contextOf(context);
+  final zulipLocalizations = ZulipLocalizations.of(context);
+
+  final store = PerAccountStoreWidget.of(pageContext);
+
+  final unreadCount = store.unreads.countInDmNarrow(narrow);
+
+  final buttonSections = [
+    // TODO(#1534) Button to show list of participants as a separate page?
+
+    [
+      if (narrow.otherRecipientIds.isEmpty)
+        ViewProfileButton(pageContext: context,
+          userId: store.selfUserId)
+      else if (narrow.otherRecipientIds.length == 1)
+        ViewProfileButton(pageContext: context,
+          userId: narrow.otherRecipientIds.single),
+
+      if (unreadCount > 0)
+        MarkDmConversationAsReadButton(pageContext: pageContext, narrow: narrow),
+    ],
+
+    // TODO(#2113) Mute/unmute button
+  ];
+
+  final header = BottomSheetHeader(
+    title: switch (narrow) {
+      DmNarrow(otherRecipientIds: []) =>
+        zulipLocalizations.actionSheetTitleSelfDm,
+      DmNarrow(otherRecipientIds: [final otherUserId]) =>
+        zulipLocalizations.actionSheetTitleDm(
+          store.userDisplayName(otherUserId, replaceIfMuted: false)),
+      DmNarrow() => zulipLocalizations.actionSheetTitleGroupDm,
+    },
+    buildMessage: narrow.otherRecipientIds.length > 1
+      ? (_) => Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: narrow.otherRecipientIds.map((userId) =>
+            UserChip(
+              userId: userId,
+              onTap: () => Navigator.push(context,
+                ProfilePage.buildRoute(context: context, userId: userId)))).toList())
+     : null);
+
+  _showActionSheet(pageContext,
+    header: header,
+    headerScrollable: narrow.otherRecipientIds.length > 1,
+    buttonSections: buttonSections);
+}
+
+class ViewProfileButton extends ActionSheetMenuItemButton {
+  const ViewProfileButton({
+    super.key,
+    required super.pageContext,
+    required this.userId,
+  });
+
+  final int userId;
+
+  @override IconData get icon => ZulipIcons.person;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionViewProfile;
+  }
+
+  @override void onPressed() {
+    Navigator.push(pageContext,
+      ProfilePage.buildRoute(context: pageContext, userId: userId));
+  }
+}
+
+class MarkDmConversationAsReadButton extends ActionSheetMenuItemButton {
+  const MarkDmConversationAsReadButton({
+    super.key,
+    required super.pageContext,
+    required this.narrow,
+  });
+
+  final DmNarrow narrow;
+
+  @override IconData get icon => ZulipIcons.message_checked;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionMarkDmConversationAsRead;
+  }
+
+  @override void onPressed() async {
+    await ZulipAction.markNarrowAsRead(pageContext, narrow);
   }
 }
 
