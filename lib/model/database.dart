@@ -179,6 +179,23 @@ class Accounts extends Table {
   ];
 }
 
+/// The table of [PushKey] records, with keys for E2EE push notifications.
+class PushKeys extends Table {
+  Column<int> get pushKeyId => integer()();
+  Column<Uint8List> get pushKey => blob()();
+
+  Column<int> get accountId => integer()
+    .references(Accounts, #id, onDelete: .cascade)();
+
+  Column<int> get createdTimestamp => integer()();
+  Column<int> get supersededTimestamp => integer().nullable()();
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {pushKeyId},
+  ];
+}
+
 class UriConverter extends TypeConverter<Uri, String> {
   const UriConverter();
   @override String toSql(Uri value) => value.toString();
@@ -187,7 +204,7 @@ class UriConverter extends TypeConverter<Uri, String> {
 
 const _allTables = [
   GlobalSettings, BoolGlobalSettings, IntGlobalSettings,
-  Accounts,
+  Accounts, PushKeys,
 ];
 
 @DriftDatabase(tables: _allTables)
@@ -202,7 +219,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Fix resulting analyzer errors; in particular,
   //    write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 13; // See note.
+  static const int latestSchemaVersion = 14; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -304,6 +321,9 @@ class AppDatabase extends _$AppDatabase {
     from12To13: (m, schema) async {
       await m.addColumn(schema.accounts, schema.accounts.deviceId);
     },
+    from13To14: (m, schema) async {
+      await m.createTable(schema.pushKeys);
+    },
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
@@ -340,7 +360,11 @@ class AppDatabase extends _$AppDatabase {
 
         assert(debugLog('Upgrading DB schema from v$from to v$to.'));
         await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
-      });
+      },
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
   }
 
   Future<GlobalSettingsData> getGlobalSettings() async {
@@ -381,6 +405,24 @@ class AppDatabase extends _$AppDatabase {
       rethrow;
     }
   }
+
+  Future<void> createPushKey(PushKeysCompanion values) async {
+    try {
+      await into(pushKeys).insert(values);
+    } catch (e) {
+      // Unwrap cause if it's a remote Drift call. On the app, it's running
+      // via a remote, but on local tests, it's running natively so
+      // unwrapping is not required.
+      final cause = (e is DriftRemoteException) ? e.remoteCause : e;
+      if (cause case SqliteException(
+              extendedResultCode: SqlExtendedError.SQLITE_CONSTRAINT_UNIQUE)) {
+        throw PushKeyAlreadyExistsException();
+      }
+      rethrow;
+    }
+  }
 }
 
 class AccountAlreadyExistsException implements Exception {}
+
+class PushKeyAlreadyExistsException implements Exception {}

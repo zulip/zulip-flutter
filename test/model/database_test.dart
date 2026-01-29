@@ -6,6 +6,7 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
 
+import '../example_data.dart' as eg;
 import 'schemas/schema.dart';
 import 'schemas/schema_v1.dart' as v1;
 import 'schemas/schema_v3.dart' as v3;
@@ -258,6 +259,44 @@ void main() {
       await check(db.createAccount(accountDataWithSameEmail))
         .throws<AccountAlreadyExistsException>();
     });
+
+    test('create push key', () async {
+      await db.createAccount(eg.selfAccount.toCompanion(false));
+      final pushKeyData = eg.pushKey(account: eg.selfAccount).toCompanion(false);
+      await db.createPushKey(pushKeyData);
+      final pushKey = await db.select(db.pushKeys).getSingle();
+      check(pushKey.toCompanion(false).toJson()).deepEquals(pushKeyData.toJson());
+    });
+
+    test('create push key with duplicate pushKeyId', () async {
+      await db.createAccount(eg.selfAccount.toCompanion(false));
+      final pushKey = eg.pushKey(account: eg.selfAccount);
+      await db.createPushKey(pushKey.toCompanion(false));
+
+      // Duplicates not allowed on the same account…
+      await check(db.createPushKey(eg.pushKey(account: eg.selfAccount,
+        pushKeyId: pushKey.pushKeyId,
+      ).toCompanion(false)))
+        .throws<PushKeyAlreadyExistsException>();
+
+      // … nor a different one.
+      await db.createAccount(eg.otherAccount.toCompanion(false));
+      await check(db.createPushKey(eg.pushKey(account: eg.otherAccount,
+        pushKeyId: pushKey.pushKeyId,
+      ).toCompanion(false)))
+        .throws<PushKeyAlreadyExistsException>();
+    });
+
+    test('delete account cascades to push key', () async {
+      await db.createAccount(eg.selfAccount.toCompanion(false));
+      final pushKey = eg.pushKey(account: eg.selfAccount);
+      await db.createPushKey(pushKey.toCompanion(false));
+      check(await db.select(db.pushKeys).get()).length.equals(1);
+
+      await (db.delete(db.accounts)..where((a) => a.id.equals(eg.selfAccount.id)))
+        .go();
+      check(await db.select(db.pushKeys).get()).isEmpty();
+    });
   });
 
   group('migrations', () {
@@ -470,6 +509,8 @@ void main() {
     // v12 covered by "existing Account row" above
 
     // v13 covered by "existing Account row" above
+
+    // v14 only adds a new table; the "migrate without data" test covers it
   });
 }
 

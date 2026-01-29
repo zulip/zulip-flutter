@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/exception.dart';
@@ -14,6 +15,7 @@ import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/push_device.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 
@@ -419,6 +421,30 @@ final Account thirdAccount = account(
 //|//////////////////////////////////////////////////////////////
 // Data attached to the self-account on the realm
 //
+
+Uint8List _pushKeyKey() {
+  final start = Random().nextInt(256);
+  return Uint8List.fromList([
+    PushDeviceManager.pushKeyTagSecretbox,
+    ...Iterable.generate(32, (i) => (start + i) % 256),
+  ]);
+}
+
+PushKey pushKey({
+  required Account account,
+  int? pushKeyId,
+  Uint8List? pushKey,
+  int? createdTimestamp,
+  int? supersededTimestamp,
+}) {
+  return PushKey(
+    accountId: account.id,
+    pushKeyId: pushKeyId ?? Random().nextInt(1 << 32),
+    pushKey: pushKey ?? _pushKeyKey(),
+    createdTimestamp: createdTimestamp ?? 1771389742,
+    supersededTimestamp: supersededTimestamp,
+  );
+}
 
 int _nextSavedSnippetId() => _lastSavedSnippetId++;
 int _lastSavedSnippetId = 1;
