@@ -8,7 +8,6 @@ import '../model/topics.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'app_bar.dart';
-import 'color.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -328,6 +327,6 @@ class _IconMarker extends StatelessWidget {
     // from the Figma design is omitted.
     return Icon(icon,
       size: textScaler.clamp(maxScaleFactor: 1.5).scale(16),
-      color: designVariables.textMessage.withFadedAlpha(0.4));
+      color: designVariables.inboxItemIconMarker);
   }
 }
