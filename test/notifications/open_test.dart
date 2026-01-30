@@ -408,6 +408,11 @@ void main() {
         await openNotification(tester, eg.selfAccount, message2);
         check(lastPoppedRoute).isNull();
         check(pushedRoutes).isEmpty();
+
+        final message3 = eg.streamMessage(stream: stream, topic: 'A');
+        await openNotification(tester, eg.selfAccount, message3);
+        check(lastPoppedRoute).isNull();
+        check(pushedRoutes).isEmpty();
       });
 
       testWidgets('at different conversation, proceeds normally', (tester) async {
@@ -443,6 +448,16 @@ void main() {
       });
 
       testWidgets('with a dialog on top, dedupes but clears dialog', (tester) async {
+        Future<Route<void>> produceErrorDialog() async {
+          // Produce an error dialog by attempting to send (with an empty compose box).
+          await tester.tap(find.byIcon(ZulipIcons.send));
+          await tester.pump();
+          final pushed = pushedRoutes.single;
+          check(pushed).isA<DialogRoute<Object?>>();
+          pushedRoutes.clear();
+          return pushed;
+        }
+
         final stream = eg.stream();
         final message1 = eg.streamMessage(stream: stream, topic: 'a');
         await prepareMessageListPage(tester,
@@ -452,17 +467,21 @@ void main() {
         await store.addSubscription(eg.subscription(stream));
         await tester.pump();
 
-        // Produce an error dialog by attempting to send (with an empty compose box).
-        await tester.tap(find.byIcon(ZulipIcons.send));
-        await tester.pump();
-        final pushed = pushedRoutes.single;
-        check(pushed).isA<DialogRoute<Object?>>();
-        pushedRoutes.clear();
+        final pushed1 = await produceErrorDialog();
 
         final message2 = eg.streamMessage(stream: stream, topic: 'a');
         await openNotification(tester, eg.selfAccount, message2);
         // The dialog was popped (and nothing was pushed).
-        check(lastPoppedRoute).equals(pushed);
+        check(lastPoppedRoute).equals(pushed1);
+        check(pushedRoutes).isEmpty();
+
+        await tester.pump();
+        final pushed2 = await produceErrorDialog();
+
+        final message3 = eg.streamMessage(stream: stream, topic: 'A');
+        await openNotification(tester, eg.selfAccount, message3);
+        // The dialog was popped (and nothing was pushed).
+        check(lastPoppedRoute).equals(pushed2);
         check(pushedRoutes).isEmpty();
       });
     });

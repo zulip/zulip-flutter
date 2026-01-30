@@ -138,7 +138,7 @@ class TopicNarrow extends Narrow implements SendableNarrow {
   @override
   bool operator ==(Object other) {
     if (other is! TopicNarrow) return false;
-    return other.streamId == streamId && other.topic == topic && other.with_ == with_;
+    return other.streamId == streamId && other.topic.isSameAs(topic) && other.with_ == with_;
   }
 
   @override
