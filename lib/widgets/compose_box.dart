@@ -1756,12 +1756,21 @@ class _Banner extends StatelessWidget {
   const _Banner({
     required this.intent,
     required this.label,
+    this.useSmallerText = false,
     this.trailing,
     this.padEnd = true, // ignore: unused_element_parameter
   });
 
   final _BannerIntent intent;
   final String label;
+
+  /// Whether to decrease the label's font size and line height slightly.
+  ///
+  /// When [label] is so long
+  /// that it doesn't fit on a single line in common device configurations,
+  /// consider passing `true` for this,
+  /// and consider shrinking [trailing], e.g. with [ZulipWebUiKitButton.size].
+  final bool useSmallerText;
 
   /// An optional trailing element.
   ///
@@ -1803,8 +1812,12 @@ class _Banner extends StatelessWidget {
     };
 
     final labelTextStyle = TextStyle(
-      fontSize: 17,
-      height: 22 / 17,
+      fontSize: useSmallerText
+        ? 16
+        : 17,
+      height: useSmallerText
+        ? 18 / 16
+        : 22 / 17,
       color: labelColor,
     ).merge(weightVariableTextStyle(context, wght: 600));
 
@@ -1854,12 +1867,14 @@ class _UnsubscribedChannelBannerTrailing extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
       ZulipWebUiKitButton(
         label: zulipLocalizations.composeBoxBannerButtonRefresh,
+        size: .small,
         intent: ZulipWebUiKitButtonIntent.warning,
         onPressed: () {
           MessageListPage.ancestorOf(pageContext).refresh();
         }),
       ZulipWebUiKitButton(
         label: zulipLocalizations.composeBoxBannerButtonSubscribe,
+        size: .small,
         intent: ZulipWebUiKitButtonIntent.warning,
         attention: ZulipWebUiKitButtonAttention.high,
         onPressed: () async {
@@ -2221,24 +2236,31 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
         final channel = store.streams[streamId];
-        if (channel == null) {
+        if (channel == null || !store.selfHasContentAccess(channel)) {
           return _Banner(
             intent: _BannerIntent.info,
-            // TODO this doesn't seem like exactly the right message --
-            //   it makes it sound like the channel exists, which might not be
-            //   true. (We'll get here if the channel doesn't exist or if it
-            //   exists but we don't have permission to know about it.)
-            label: zulipLocalizations.errorBannerCannotPostInChannelLabel);
+            // This message is redundant with a message-list placeholder
+            // we'll show following a doomed-empty message fetch (from #1947):
+            // "This channel doesn’t exist, or you are not allowed to view it."
+            // Or: "You don’t have content access to this channel."
+            // TODO(#2085) Actually, I tried reproducing the case where a channel
+            //   doesn't exist, with a very high number for the channel ID,
+            //   and got an infinite loading spinner instead; we should fix that.
+            // TODO So, support replacing the compose box with nothing,
+            //   not even a banner, in narrows that can offer a compose box.
+            //   (We'll need to handle the bottom device inset carefully.)
+            label: zulipLocalizations.composeBoxBannerLabelCannotSendUnspecifiedReason);
         }
 
         if (!store.selfCanSendMessage(inChannel: channel, byDate: DateTime.now())) {
           return (channel is Subscription)
             ? _Banner(
                 intent: _BannerIntent.info,
-                label: zulipLocalizations.errorBannerCannotPostInChannelLabel)
+                label: zulipLocalizations.composeBoxBannerLabelCannotSendInChannel)
             : _Banner(
                 intent: _BannerIntent.warning,
                 label: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend,
+                useSmallerText: true,
                 trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
         }
 
@@ -2248,7 +2270,14 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         if (hasDeactivatedUser) {
           return _Banner(
             intent: _BannerIntent.info,
-            label: zulipLocalizations.errorBannerDeactivatedDmLabel);
+            label: zulipLocalizations.composeBoxBannerLabelDeactivatedDmRecipient);
+        }
+        final hasUnknownUser = otherRecipientIds.any((id) =>
+          store.getUser(id) == null);
+        if (hasUnknownUser) {
+          return _Banner(
+            intent: _BannerIntent.info,
+            label: zulipLocalizations.composeBoxBannerLabelUnknownDmRecipient);
         }
 
       case CombinedFeedNarrow():
@@ -2262,6 +2291,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final bannerComposingNotAllowed = _bannerComposingNotAllowed(context);
@@ -2273,8 +2303,31 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     final Widget? body;
     Widget? banner;
 
-    final controller = this.controller;
     final narrow = widget.narrow;
+    switch (narrow) {
+      case ChannelNarrow(:final streamId):
+      case TopicNarrow(:final streamId):
+        final channel = store.streams[streamId];
+        // (If the channel is unknown, we should have already decided
+        // what to show.)
+        assert(channel != null);
+        final subscription = store.subscriptions[streamId];
+        if (channel != null && subscription == null) {
+          banner = _Banner(
+            intent: _BannerIntent.warning,
+            label: zulipLocalizations.composeBoxBannerLabelUnsubscribed,
+            useSmallerText: true,
+            trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+        }
+
+      case DmNarrow():
+      case CombinedFeedNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
+    }
+
+    final controller = this.controller;
     switch (controller) {
       case StreamComposeBoxController(): {
         narrow as ChannelNarrow;

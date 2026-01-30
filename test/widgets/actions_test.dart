@@ -56,6 +56,16 @@ void main() {
     }
 
     group('markNarrowAsRead', () {
+      (Widget, Widget) checkConfirmDialog(WidgetTester tester, int unreadCount) {
+        // TODO write tests for the nuances of what message this dialog shows
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        return checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.markAllAsReadConfirmationDialogTitleNoCount,
+          expectedMessage: zulipLocalizations.markAllAsReadConfirmationDialogMessage,
+          expectDestructiveActionButton: false,
+          expectedActionButtonText: zulipLocalizations.markAllAsReadConfirmationDialogConfirmButton);
+      }
+
       testWidgets('smoke test on modern server', (tester) async {
         final narrow = TopicNarrow.ofMessage(eg.streamMessage());
         await prepare(tester);
@@ -88,8 +98,12 @@ void main() {
           processedCount: 11, updatedCount: 3,
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
+        final unreadCount = store.unreads.countInCombinedFeedNarrow();
         final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
+        await tester.pump(); // confirmation dialog appears
+        final (confirmButton, _) = checkConfirmDialog(tester, unreadCount);
+        await tester.tap(find.byWidget(confirmButton));
+        await tester.pump(Duration.zero); // wait through API request
         await future;
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
@@ -114,8 +128,12 @@ void main() {
           processedCount: 11, updatedCount: 3,
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
+        final unreadCount = store.unreads.countInCombinedFeedNarrow();
         final future = ZulipAction.markNarrowAsRead(context, narrow);
-        await tester.pump(Duration.zero);
+        await tester.pump(); // confirmation dialog appears
+        final (confirmButton, _) = checkConfirmDialog(tester, unreadCount);
+        await tester.tap(find.byWidget(confirmButton));
+        await tester.pump(Duration.zero); // wait through API request
         await future;
         check(store.unreads.oldUnreadsMissing).isFalse();
       });

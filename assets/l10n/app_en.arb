@@ -498,13 +498,25 @@
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
   },
-  "errorBannerDeactivatedDmLabel": "You cannot send messages to deactivated users.",
-  "@errorBannerDeactivatedDmLabel": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  "composeBoxBannerLabelDeactivatedDmRecipient": "You cannot send messages to deactivated users.",
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deactivated."
   },
-  "errorBannerCannotPostInChannelLabel": "You do not have permission to post in this channel.",
-  "@errorBannerCannotPostInChannelLabel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  "composeBoxBannerLabelUnknownDmRecipient": "You cannot send messages to unknown users.",
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "You cannot send messages here.",
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
+  },
+  "composeBoxBannerLabelCannotSendInChannel": "You do not have permission to post in this channel.",
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Label text for a banner replacing the compose box when you do not have permission to send messages in the channel."
+  },
+  "composeBoxBannerLabelUnsubscribed": "Replies to your messages will not appear automatically.",
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
   },
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "New messages will not appear automatically.",
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
@@ -857,11 +869,11 @@
   },
   "loginEmailLabel": "Email address",
   "@loginEmailLabel": {
-    "description": "Label for input when an email is required to log in."
+    "description": "Label for input when an email address is required to log in."
   },
   "loginErrorMissingEmail": "Please enter your email.",
   "@loginErrorMissingEmail": {
-    "description": "Error message when an empty email was provided."
+    "description": "Error message when an empty email address was provided."
   },
   "loginPasswordLabel": "Password",
   "@loginPasswordLabel": {
@@ -961,7 +973,7 @@
   },
   "serverUrlValidationErrorNoUseEmail": "Please enter the server URL, not your email.",
   "@serverUrlValidationErrorNoUseEmail": {
-    "description": "Error message when URL looks like an email"
+    "description": "Error message when URL looks like an email address"
   },
   "serverUrlValidationErrorUnsupportedScheme": "The server URL must start with http:// or https://.",
   "@serverUrlValidationErrorUnsupportedScheme": {
@@ -1004,6 +1016,28 @@
   "errorMarkAsUnreadFailedTitle": "Mark as unread failed",
   "@errorMarkAsUnreadFailedTitle": {
     "description": "Error title when mark as unread action failed."
+  },
+  "markAllAsReadConfirmationDialogTitle": "{count, plural, =1{Mark {count}+ messages as read?} other{Mark {count}+ messages as read?}}",
+  "@markAllAsReadConfirmationDialogTitle": {
+    "description": "Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "description": "Minimum number of messages that will be marked as read"
+      }
+    }
+  },
+  "markAllAsReadConfirmationDialogTitleNoCount": "Mark messages as read?",
+  "@markAllAsReadConfirmationDialogTitleNoCount": {
+    "description": "Title of the confirmation dialog for marking all messages as read."
+  },
+  "markAllAsReadConfirmationDialogMessage": "Messages in multiple conversations may be affected.",
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message in the confirmation dialog for marking all messages as read."
+  },
+  "markAllAsReadConfirmationDialogConfirmButton": "Mark as read",
+  "@markAllAsReadConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read."
   },
   "today": "Today",
   "@today": {

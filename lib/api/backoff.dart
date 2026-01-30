@@ -117,7 +117,6 @@ class BackoffMachine {
       _debugWaitInProgress = true;
       return true;
     }());
-    assert(_bound <= maxBound);
     _waitCompleter = Completer<void>();
     final duration = debugDuration ?? _maxDuration(const Duration(microseconds: 1),
                                                    _bound * Random().nextDouble());

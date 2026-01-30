@@ -15,73 +15,73 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get aboutPageAppVersion => 'App version';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses => 'רישיונות קוד פתוח';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
+  String get aboutPageTapToView => 'הקש כדי להציג';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle =>
+      'ברוכים הבאים לאפליקציית Zulip החדשה!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'תוכלו למצוא חוויה מוכרת בחבילה מהירה וחלקה יותר.';
 
   @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
+  String get upgradeWelcomeDialogLinkText => 'עיין בפוסט בבלוג ההכרזה!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'בא נלך';
 
   @override
-  String get chooseAccountPageTitle => 'Choose account';
+  String get chooseAccountPageTitle => 'בחר חשבון';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => 'הגדרות';
 
   @override
-  String get switchAccountButtonTooltip => 'Switch account';
+  String get switchAccountButtonTooltip => 'החלף חשבון';
 
   @override
   String tryAnotherAccountMessage(Object url) {
-    return 'Your account at $url is taking a while to load.';
+    return 'החשבון שלך ב- $url לוקח זמן לטעון.';
   }
 
   @override
-  String get tryAnotherAccountButton => 'Try another account';
+  String get tryAnotherAccountButton => 'נסה חשבון אחר';
 
   @override
-  String get chooseAccountPageLogOutButton => 'Log out';
+  String get chooseAccountPageLogOutButton => 'התנתק';
 
   @override
-  String get logOutConfirmationDialogTitle => 'Log out?';
+  String get logOutConfirmationDialogTitle => 'להתנתק?';
 
   @override
   String get logOutConfirmationDialogMessage =>
-      'To use this account in the future, you will have to re-enter the URL for your organization and your account information.';
+      'כדי להשתמש בחשבון זה בעתיד, יהיה עליך להכניס מחדש את כתובת האתר של הארגון שלך ואת פרטי החשבון שלך.';
 
   @override
-  String get logOutConfirmationDialogConfirmButton => 'Log out';
+  String get logOutConfirmationDialogConfirmButton => 'התנתק';
 
   @override
-  String get chooseAccountButtonAddAnAccount => 'Add an account';
+  String get chooseAccountButtonAddAnAccount => 'הוספת חשבון';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => 'כל הערוצים';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => 'כל הערוצים';
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>
-      'There are no channels you can view in this organization.';
+      'אין ערוצים שתוכלו להציג בארגון זה.';
 
   @override
-  String get profileButtonSendDirectMessage => 'Send direct message';
+  String get profileButtonSendDirectMessage => 'שלח הודעה ישירה';
 
   @override
-  String get errorCouldNotShowUserProfile => 'Could not show user profile.';
+  String get errorCouldNotShowUserProfile => 'לא ניתן להציג פרופיל משתמש.';
 
   @override
   String get permissionsNeededTitle => 'Permissions needed';
@@ -134,16 +134,16 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Failed to unsubscribe';
 
   @override
-  String get actionSheetOptionMuteTopic => 'Mute topic';
+  String get actionSheetOptionMuteTopic => 'השתקת נושא';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+  String get actionSheetOptionUnmuteTopic => 'בטל את ההשתקה של נושא';
 
   @override
-  String get actionSheetOptionFollowTopic => 'Follow topic';
+  String get actionSheetOptionFollowTopic => 'עקוב אחר הנושא';
 
   @override
-  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+  String get actionSheetOptionUnfollowTopic => 'בטל מעקב אחר נושא';
 
   @override
   String get actionSheetOptionResolveTopic => 'Mark as resolved';
@@ -162,7 +162,7 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get actionSheetOptionSeeWhoReacted => 'See who reacted';
 
   @override
-  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+  String get seeWhoReactedSheetNoReactions => 'להודעה זו אין תגובות.';
 
   @override
   String seeWhoReactedSheetHeaderLabel(int num) {
@@ -422,12 +422,24 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get successChannelLinkCopied => 'Channel link copied';
 
   @override
-  String get errorBannerDeactivatedDmLabel =>
+  String get composeBoxBannerLabelDeactivatedDmRecipient =>
       'You cannot send messages to deactivated users.';
 
   @override
-  String get errorBannerCannotPostInChannelLabel =>
+  String get composeBoxBannerLabelUnknownDmRecipient =>
+      'You cannot send messages to unknown users.';
+
+  @override
+  String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
+      'You cannot send messages here.';
+
+  @override
+  String get composeBoxBannerLabelCannotSendInChannel =>
       'You do not have permission to post in this channel.';
+
+  @override
+  String get composeBoxBannerLabelUnsubscribed =>
+      'Replies to your messages will not appear automatically.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
@@ -838,6 +850,28 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
 
   @override
   String get errorMarkAsUnreadFailedTitle => 'Mark as unread failed';
+
+  @override
+  String markAllAsReadConfirmationDialogTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mark $count+ messages as read?',
+      one: 'Mark $count+ messages as read?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get markAllAsReadConfirmationDialogTitleNoCount =>
+      'Mark messages as read?';
+
+  @override
+  String get markAllAsReadConfirmationDialogMessage =>
+      'Messages in multiple conversations may be affected.';
+
+  @override
+  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
 
   @override
   String get today => 'Today';

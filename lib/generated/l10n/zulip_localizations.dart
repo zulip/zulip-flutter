@@ -15,6 +15,7 @@ import 'zulip_localizations_he.dart';
 import 'zulip_localizations_hu.dart';
 import 'zulip_localizations_it.dart';
 import 'zulip_localizations_ja.dart';
+import 'zulip_localizations_kk.dart';
 import 'zulip_localizations_nb.dart';
 import 'zulip_localizations_pl.dart';
 import 'zulip_localizations_ru.dart';
@@ -121,6 +122,7 @@ abstract class ZulipLocalizations {
     Locale('hu'),
     Locale('it'),
     Locale('ja'),
+    Locale('kk'),
     Locale('nb'),
     Locale('pl'),
     Locale('ru'),
@@ -815,17 +817,35 @@ abstract class ZulipLocalizations {
   /// **'Channel link copied'**
   String get successChannelLinkCopied;
 
-  /// Label text for error banner when sending a message to one or multiple deactivated users.
+  /// Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deactivated.
   ///
   /// In en, this message translates to:
   /// **'You cannot send messages to deactivated users.'**
-  String get errorBannerDeactivatedDmLabel;
+  String get composeBoxBannerLabelDeactivatedDmRecipient;
 
-  /// Error-banner text replacing the compose box when you do not have permission to send a message to the channel.
+  /// Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot send messages to unknown users.'**
+  String get composeBoxBannerLabelUnknownDmRecipient;
+
+  /// Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot send messages here.'**
+  String get composeBoxBannerLabelCannotSendUnspecifiedReason;
+
+  /// Label text for a banner replacing the compose box when you do not have permission to send messages in the channel.
   ///
   /// In en, this message translates to:
   /// **'You do not have permission to post in this channel.'**
-  String get errorBannerCannotPostInChannelLabel;
+  String get composeBoxBannerLabelCannotSendInChannel;
+
+  /// Label text for a compose-box banner when you are viewing an unsubscribed channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies to your messages will not appear automatically.'**
+  String get composeBoxBannerLabelUnsubscribed;
 
   /// Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages.
   ///
@@ -1301,13 +1321,13 @@ abstract class ZulipLocalizations {
   /// **'Hide password'**
   String get loginHidePassword;
 
-  /// Label for input when an email is required to log in.
+  /// Label for input when an email address is required to log in.
   ///
   /// In en, this message translates to:
   /// **'Email address'**
   String get loginEmailLabel;
 
-  /// Error message when an empty email was provided.
+  /// Error message when an empty email address was provided.
   ///
   /// In en, this message translates to:
   /// **'Please enter your email.'**
@@ -1425,7 +1445,7 @@ abstract class ZulipLocalizations {
   /// **'Please enter a valid URL.'**
   String get serverUrlValidationErrorInvalidUrl;
 
-  /// Error message when URL looks like an email
+  /// Error message when URL looks like an email address
   ///
   /// In en, this message translates to:
   /// **'Please enter the server URL, not your email.'**
@@ -1484,6 +1504,30 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Mark as unread failed'**
   String get errorMarkAsUnreadFailedTitle;
+
+  /// Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Mark {count}+ messages as read?} other{Mark {count}+ messages as read?}}'**
+  String markAllAsReadConfirmationDialogTitle(int count);
+
+  /// Title of the confirmation dialog for marking all messages as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark messages as read?'**
+  String get markAllAsReadConfirmationDialogTitleNoCount;
+
+  /// Message in the confirmation dialog for marking all messages as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages in multiple conversations may be affected.'**
+  String get markAllAsReadConfirmationDialogMessage;
+
+  /// Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get markAllAsReadConfirmationDialogConfirmButton;
 
   /// Term to use to reference the current day.
   ///
@@ -2195,6 +2239,7 @@ class _ZulipLocalizationsDelegate
     'hu',
     'it',
     'ja',
+    'kk',
     'nb',
     'pl',
     'ru',
@@ -2252,6 +2297,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsIt();
     case 'ja':
       return ZulipLocalizationsJa();
+    case 'kk':
+      return ZulipLocalizationsKk();
     case 'nb':
       return ZulipLocalizationsNb();
     case 'pl':

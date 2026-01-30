@@ -1832,6 +1832,31 @@ void main() {
         checkNotified(count: 1, storeCount: 1);
         check(store).starredMessages.deepEquals([message1.id, message2.id]);
       });
+
+      test('prevent duplicate flags, when all: false', () async {
+        // Regression test for https://github.com/zulip/zulip-flutter/issues/1986
+        await prepare();
+        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        await prepareMessages([message]);
+
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
+        checkNotifiedOnce();
+        check(store).messages[message.id].flags.deepEquals([MessageFlag.read]);
+      });
+
+      test('prevent duplicate flags, when all: true', () async {
+        // Regression test for https://github.com/zulip/zulip-flutter/issues/1986
+        await prepare();
+        final message1 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message2 = eg.streamMessage(flags: []);
+        await prepareMessages([message1, message2]);
+
+        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        checkNotifiedOnce();
+        check(store).messages
+          ..[message1.id].flags.deepEquals([MessageFlag.read])
+          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+      });
     });
 
     group('remove flag', () {

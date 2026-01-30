@@ -784,7 +784,9 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
 
     if (isAdd && (event as UpdateMessageFlagsAddEvent).all) {
       for (final message in messages.values) {
-        message.flags.add(event.flag);
+        if (!message.flags.contains(event.flag)) {
+          message.flags.add(event.flag);
+        }
       }
 
       for (final view in _messageListViews) {
@@ -798,9 +800,13 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         if (message == null) continue; // a message we don't know about yet
         anyMessageFound = true;
 
-        isAdd
-          ? message.flags.add(event.flag)
-          : message.flags.remove(event.flag);
+        if (isAdd) {
+          if (!message.flags.contains(event.flag)) {
+            message.flags.add(event.flag);
+          }
+        } else {
+          message.flags.remove(event.flag);
+        }
       }
       if (anyMessageFound) {
         // TODO(#818): Support MentionsNarrow live-updates when handling

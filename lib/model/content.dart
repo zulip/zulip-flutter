@@ -536,62 +536,170 @@ class ImagePreviewNodeList extends BlockContentNode {
   }
 }
 
-class ImagePreviewNode extends BlockContentNode {
-  const ImagePreviewNode({
+sealed class ImageNode extends ContentNode {
+  const ImageNode({
     super.debugHtmlNode,
-    required this.srcUrl,
-    required this.thumbnail,
     required this.loading,
+    required this.alt,
+    required this.src,
+    required this.originalSrc,
     required this.originalWidth,
     required this.originalHeight,
   });
+
+  /// Whether the img has the "image-loading-placeholder" classname.
+  ///
+  /// This is expected to be true (as of 2026-01)
+  /// while an uploaded image is being thumbnailed.
+  ///
+  /// When this is true, [src] will point to a "spinner" image.
+  /// Clients are invited to show a custom loading indicator instead; we do.
+  final bool loading;
+
+  final String? alt;
+
+  /// A URL for the image intended to be shown here in Zulip content.
+  ///
+  /// If [loading] is true, this will point to a "spinner" image.
+  /// Clients are invited to show a custom loading indicator instead; we do.
+  ///
+  /// Except for images processed in modern thumbnailing (as of 2026-01),
+  /// this is also meant for viewing the image by itself, in a lightbox.
+  /// For how to recognize that case, see [originalSrc].
+  final ImageNodeSrc src;
 
   /// The canonical source URL of the image.
   ///
   /// This may be a relative URL string. It also may not work without adding
   /// authentication credentials to the request.
-  final String srcUrl;
-
-  /// The thumbnail URL of the image and whether it has an animated version.
   ///
-  /// This will be null if the server hasn't yet generated a thumbnail,
-  /// or is a version that doesn't offer thumbnails.
-  /// It will also be null when [loading] is true.
-  final ImageThumbnailLocator? thumbnail;
-
-  /// A flag to indicate whether to show the placeholder.
+  /// Clients are expected to use this URL when saving the image to the device.
   ///
-  /// Typically it will be `true` while Server is generating thumbnails.
-  final bool loading;
+  /// For images processed in modern thumbnailing (as of 2026-01),
+  /// this is also meant for viewing the image by itself, in a lightbox
+  /// (but if `data-transcoded-image` is present, it's better to use that [1]).
+  /// The modern-thumbnailing case is recognized when [loading] is true
+  /// or when [src] is an [ImageNodeSrcThumbnail].
+  /// From discussion:
+  ///   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279483
+  ///
+  /// [1] The "transcoded image" feature is meant to keep the lightbox working
+  ///     when the original image is in an uncommon format, like TIFF.
+  ///     This isn't implemented yet; it's #1268.
+  // TODO(#1268) implement transcoded-image feature; update dartdoc
+  final String? originalSrc;
 
-  /// The width of the canonical image.
+  /// The width part of data-original-dimensions, if that attribute is present.
   final double? originalWidth;
 
-  /// The height of the canonical image.
+  /// The height part of data-original-dimensions, if that attribute is present.
   final double? originalHeight;
 
   @override
   bool operator ==(Object other) {
-    return other is ImagePreviewNode
-      && other.srcUrl == srcUrl
-      && other.thumbnail == thumbnail
+    return other is ImageNode
       && other.loading == loading
+      && other.alt == alt
+      && other.src == src
+      && other.originalSrc == originalSrc
       && other.originalWidth == originalWidth
       && other.originalHeight == originalHeight;
   }
 
   @override
-  int get hashCode => Object.hash('ImagePreviewNode',
-    srcUrl, thumbnail, loading, originalWidth, originalHeight);
+  int get hashCode => Object.hash('ImageNode',
+    loading,
+    alt,
+    src,
+    originalSrc,
+    originalWidth,
+    originalHeight);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(StringProperty('srcUrl', srcUrl));
-    properties.add(DiagnosticsProperty<ImageThumbnailLocator>('thumbnail', thumbnail));
     properties.add(FlagProperty('loading', value: loading, ifTrue: "is loading"));
+    properties.add(StringProperty('alt', alt));
+    properties.add(DiagnosticsProperty<ImageNodeSrc>('src', src));
+    properties.add(StringProperty('originalSrc', originalSrc));
     properties.add(DoubleProperty('originalWidth', originalWidth));
     properties.add(DoubleProperty('originalHeight', originalHeight));
+  }
+}
+
+class ImagePreviewNode extends ImageNode implements BlockContentNode {
+  const ImagePreviewNode({
+    super.debugHtmlNode,
+    required super.loading,
+    required super.src,
+    required super.originalSrc,
+    required super.originalWidth,
+    required super.originalHeight,
+  }) : super(alt: null);
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImagePreviewNode
+      && super == other;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImagePreviewNode', super.hashCode);
+}
+
+/// A value of [ImagePreviewNode.src].
+sealed class ImageNodeSrc extends DiagnosticableTree {
+  const ImageNodeSrc();
+}
+
+/// A thumbnail URL, starting with [ImageThumbnailLocator.srcPrefix].
+class ImageNodeSrcThumbnail extends ImageNodeSrc {
+  const ImageNodeSrcThumbnail(this.value);
+
+  final ImageThumbnailLocator value;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImageNodeSrcThumbnail && other.value == value;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImageNodeSrcThumbnail', value);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<ImageThumbnailLocator>('value', value));
+  }
+}
+
+/// A `src` that does not start with [ImageThumbnailLocator.srcPrefix].
+///
+/// This may be a relative URL string. It also may not work without adding
+/// authentication credentials to the request.
+// In 2026-01, this class covers these known cases:
+// - This may be a hard-coded "spinner" image,
+//   when thumbnailing of an uploaded image is in progress.
+// - This may match `href`, e.g. from pre-thumbnailing servers.
+// - This may start with CAMO_URI, a server variable (e.g. on Zulip Cloud
+//   it's "https://uploads.zulipusercontent.net/" in 2025-10).
+class ImageNodeSrcOther extends ImageNodeSrc {
+  const ImageNodeSrcOther(this.value);
+
+  final String value;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImageNodeSrcOther && other.value == value;
+  }
+
+  @override
+  int get hashCode => Object.hash('ImageNodeSrcOther', value);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('value', value));
   }
 }
 
@@ -1026,6 +1134,41 @@ class ImageEmojiNode extends EmojiNode {
   }
 }
 
+/// An "inline image" / "Markdown-style image" node,
+/// from the ![alt text](url) syntax.
+///
+/// See `api_docs/message-formatting.md` in the web PR for this feature:
+///   https://github.com/zulip/zulip/pull/36226
+///
+/// This class accommodates forms not expected from servers in 2026-01,
+/// to avoid being a landmine for possible future servers that send such forms.
+/// Notably, in 2026-01, servers are expected to produce this content
+/// just for uploaded images, which means the images' dimensions are available.
+/// UI code should nevertheless do something reasonable when the dimensions
+/// are not available. Discussion:
+///   https://chat.zulip.org/#narrow/channel/378-api-design/topic/HTML.20pattern.20for.20truly.20inline.20images/near/2348085
+// TODO: Link to the merged API doc when it lands.
+class InlineImageNode extends ImageNode implements InlineContentNode {
+  const InlineImageNode({
+    super.debugHtmlNode,
+    required super.loading,
+    required super.alt,
+    required super.src,
+    required super.originalSrc,
+    required super.originalWidth,
+    required super.originalHeight,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    return other is InlineImageNode
+      && super == other;
+  }
+
+  @override
+  int get hashCode => Object.hash('InlineImageNode', super.hashCode);
+}
+
 class MathInlineNode extends MathNode implements InlineContentNode {
   const MathInlineNode({
     super.debugHtmlNode,
@@ -1057,6 +1200,39 @@ class GlobalTimeNode extends InlineContentNode {
   }
 }
 
+ImageNodeSrc? _tryParseImgSrc(dom.Element imgElement) {
+  final src = imgElement.attributes['src'];
+  if (src == null) return null;
+
+  if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
+    // For why we recognize this as the thumbnail form, see discussion:
+    //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
+    final srcUrl = Uri.tryParse(src);
+    if (srcUrl == null) return null;
+    final animated = imgElement.attributes['data-animated'] == 'true';
+    return ImageNodeSrcThumbnail(ImageThumbnailLocator(
+      defaultFormatSrc: srcUrl,
+      animated: animated));
+  }
+
+  return ImageNodeSrcOther(src);
+}
+
+final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
+
+/// Parse an `img`'s `data-original-dimensions` attribute,
+/// which servers encode as "{width}x{height}" (e.g., "300x400").
+({double originalWidth, double originalHeight})? _tryParseOriginalDimensions(dom.Element imgElement) {
+  final attribute = imgElement.attributes['data-original-dimensions'];
+  if (attribute == null) return null;
+  final match = _imageDimensionsRegExp.firstMatch(attribute);
+  if (match == null) return null;
+  final width = int.tryParse(match.group(1)!, radix: 10);
+  final height = int.tryParse(match.group(2)!, radix: 10);
+  if (width == null || height == null) return null;
+  return (originalWidth: width.toDouble(), originalHeight: height.toDouble());
+}
+
 //|//////////////////////////////////////////////////////////////
 
 /// Parser for the inline-content subtrees within Zulip content HTML.
@@ -1067,6 +1243,28 @@ class GlobalTimeNode extends InlineContentNode {
 /// instance has been reset to its starting state, and can be re-used for
 /// parsing other subtrees.
 class _ZulipInlineContentParser {
+  InlineContentNode? parseInlineImage(dom.Element imgElement, {required bool loading}) {
+    assert(imgElement.localName == 'img');
+    assert(imgElement.className.contains('inline-image'));
+    assert(loading == imgElement.className.contains('image-loading-placeholder'));
+
+    final src = _tryParseImgSrc(imgElement);
+    if (src == null) return null;
+    final originalSrc = imgElement.attributes['data-original-src'];
+    final originalDimensions = _tryParseOriginalDimensions(imgElement);
+
+    final alt = imgElement.attributes['alt'];
+
+    return InlineImageNode(
+      loading: loading,
+      src: src,
+      alt: alt,
+      originalSrc: originalSrc,
+      originalWidth: originalDimensions?.originalWidth,
+      originalHeight: originalDimensions?.originalHeight,
+    );
+  }
+
   InlineContentNode? parseInlineMath(dom.Element element) {
     final debugHtmlNode = kDebugMode ? element : null;
     final parsed = parseMath(element, block: false);
@@ -1210,12 +1408,23 @@ class _ZulipInlineContentParser {
       return UnicodeEmojiNode(emojiUnicode: unicode, debugHtmlNode: debugHtmlNode);
     }
 
-    if (localName == 'img' && className == 'emoji') {
-      final alt = element.attributes['alt'];
-      if (alt == null) return unimplemented();
-      final src = element.attributes['src'];
-      if (src == null) return unimplemented();
-      return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+    if (localName == 'img') {
+      if (className == 'emoji') {
+        final alt = element.attributes['alt'];
+        if (alt == null) return unimplemented();
+        final src = element.attributes['src'];
+        if (src == null) return unimplemented();
+        return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+      }
+
+      if (className == 'inline-image') {
+        return parseInlineImage(element, loading: false) ?? unimplemented();
+      } else if (
+        className == 'inline-image image-loading-placeholder'
+        || className == 'image-loading-placeholder inline-image'
+      ) {
+        return parseInlineImage(element, loading: true) ?? unimplemented();
+      }
     }
 
     if (localName == 'time' && className.isEmpty) {
@@ -1407,9 +1616,7 @@ class _ZulipContentParser {
     return CodeBlockNode(spans, debugHtmlNode: debugHtmlNode);
   }
 
-  static final _imageDimensionsRegExp = RegExp(r'^(\d+)x(\d+)$');
-
-  BlockContentNode parseImagePreviewNode(dom.Element divElement) {
+  BlockContentNode? parseImagePreviewNode(dom.Element divElement) {
     final elements = () {
       assert(divElement.localName == 'div'
           && divElement.className == 'message_inline_image');
@@ -1428,75 +1635,21 @@ class _ZulipContentParser {
     }();
 
     final debugHtmlNode = kDebugMode ? divElement : null;
-    if (elements == null) {
-      return UnimplementedBlockContentNode(htmlNode: divElement);
-    }
+    if (elements == null) return null;
 
     final (linkElement, imgElement) = elements;
-    final href = linkElement.attributes['href'];
-    if (href == null) {
-      return UnimplementedBlockContentNode(htmlNode: divElement);
-    }
-    if (imgElement.className == 'image-loading-placeholder') {
-      return ImagePreviewNode(
-        srcUrl: href,
-        thumbnail: null,
-        loading: true,
-        originalWidth: null,
-        originalHeight: null,
-        debugHtmlNode: debugHtmlNode);
-    }
-    final src = imgElement.attributes['src'];
-    if (src == null) {
-      return UnimplementedBlockContentNode(htmlNode: divElement);
-    }
-
-    final String srcUrl;
-    final ImageThumbnailLocator? thumbnail;
-    if (src.startsWith(ImageThumbnailLocator.srcPrefix)) {
-      final parsedSrc = Uri.tryParse(src);
-      if (parsedSrc == null) return UnimplementedBlockContentNode(htmlNode: divElement);
-
-      // For why we recognize this as the thumbnail form, see discussion:
-      //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/documenting.20inline.20images/near/2279872
-      srcUrl = href;
-      thumbnail = ImageThumbnailLocator(
-        defaultFormatSrc: parsedSrc,
-        animated: imgElement.attributes['data-animated'] == 'true');
-    } else {
-      // Known cases this handles:
-      // - `src` starts with CAMO_URI, a server variable (e.g. on Zulip Cloud
-      //   it's "https://uploads.zulipusercontent.net/" in 2025-10).
-      // - `src` matches `href`, e.g. from pre-thumbnailing servers.
-      srcUrl = src;
-      thumbnail = null;
-    }
-
-    double? originalWidth, originalHeight;
-    final originalDimensions = imgElement.attributes['data-original-dimensions'];
-    if (originalDimensions != null) {
-      // Server encodes this string as "{width}x{height}" (eg. "300x400")
-      final match = _imageDimensionsRegExp.firstMatch(originalDimensions);
-      if (match != null) {
-        final width = int.tryParse(match.group(1)!, radix: 10);
-        final height = int.tryParse(match.group(2)!, radix: 10);
-        if (width != null && height != null) {
-          originalWidth = width.toDouble();
-          originalHeight = height.toDouble();
-        }
-      }
-
-      if (originalWidth == null || originalHeight == null) {
-        return UnimplementedBlockContentNode(htmlNode: divElement);
-      }
-    }
+    final loading = imgElement.className == 'image-loading-placeholder';
+    final src = _tryParseImgSrc(imgElement);
+    if (src == null) return null;
+    final originalSrc = linkElement.attributes['href'];
+    final originalDimensions = _tryParseOriginalDimensions(imgElement);
 
     return ImagePreviewNode(
-      srcUrl: srcUrl,
-      thumbnail: thumbnail,
-      loading: false,
-      originalWidth: originalWidth,
-      originalHeight: originalHeight,
+      loading: loading,
+      src: src,
+      originalSrc: originalSrc,
+      originalWidth: originalDimensions?.originalWidth,
+      originalHeight: originalDimensions?.originalHeight,
       debugHtmlNode: debugHtmlNode);
   }
 
@@ -1916,7 +2069,8 @@ class _ZulipContentParser {
     }
 
     if (localName == 'div' && className == 'message_inline_image') {
-      return parseImagePreviewNode(element);
+      return parseImagePreviewNode(element)
+        ?? UnimplementedBlockContentNode(htmlNode: element);
     }
 
     if (localName == 'div') {

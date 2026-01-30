@@ -384,10 +384,10 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@errorBannerCannotPostInChannelLabel": {
+  "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
   },
-  "@errorBannerDeactivatedDmLabel": {
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
@@ -1060,6 +1060,9 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
+  "@shareChooseAccountModalTitle": {
+    "description": "Title for the modal bottom sheet about selecting an account to share content received from other apps."
+  },
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1435,8 +1438,8 @@
   "emptyMessageListStarredMessage": "<z-link>Позначення зірочкою</z-link> – це гарний спосіб відстежувати важливі повідомлення, такі як завдання, до яких потрібно повернутися, або корисні посилання. Щоб позначити повідомлення зірочкою, довго натисніть на нього та натисніть «{button}»",
   "errorAccountLoggedIn": "Обліковий запис {email} на {server} уже є у вашому списку облікових записів.",
   "errorAccountLoggedInTitle": "В обліковий запис уже ввійшли",
-  "errorBannerCannotPostInChannelLabel": "Ви не маєте дозволу на публікацію в цьому каналі.",
-  "errorBannerDeactivatedDmLabel": "Ви не можете надсилати повідомлення деактивованим користувачам.",
+  "composeBoxBannerLabelCannotSendInChannel": "Ви не маєте дозволу на публікацію в цьому каналі.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Ви не можете надсилати повідомлення деактивованим користувачам.",
   "errorConnectingToServerDetails": "Помилка підключення до Zulip на {serverUrl}. Буде повторена спроба:\n\n{error}",
   "errorConnectingToServerShort": "Помилка підключення до Zulip. Повторна спроба…",
   "errorContentNotInsertedTitle": "Вміст не вставлено",
@@ -1593,6 +1596,7 @@
   "serverUrlValidationErrorUnsupportedScheme": "URL-адреса сервера має починатися з http:// або https://.",
   "setStatusPageTitle": "Встановити статус",
   "settingsPageTitle": "Налаштування",
+  "shareChooseAccountModalTitle": "Виберіть обліковий запис",
   "signInWithFoo": "Увійти з {method}",
   "snackBarDetails": "Деталі",
   "spoilerDefaultHeaderText": "Спойлер",
