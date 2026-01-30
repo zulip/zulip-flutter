@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -1193,6 +1195,34 @@ class UpdateMachine {
     store.updateMachine = this;
   }
 
+  AppLifecycleListener? _appLifecycleListener;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+
+  void _handleAppLifecycleStateChange(AppLifecycleState state) {
+    if (_disposed) return;
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // When the app resumes from background, abort any ongoing backoff
+        // so we can retry immediately instead of waiting.
+        _pollBackoffMachine?.abort();
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        // No action needed for these states.
+        break;
+    }
+  }
+
+  void _handleConnectivityChange(List<ConnectivityResult> results) {
+    if (_disposed) return;
+    // When connectivity changes and we have some connection (not none),
+    // abort any ongoing backoff so we can retry immediately.
+    if (results.any((r) => r != ConnectivityResult.none)) {
+      _pollBackoffMachine?.abort();
+    }
+  }
+
   /// Load data for the given account from the server,
   /// and start an event queue going.
   ///
@@ -1413,6 +1443,14 @@ class UpdateMachine {
 
   void poll() async {
     assert(!_disposed);
+    // Create the lifecycle listener when polling starts, not in the constructor.
+    // This matches the pattern in Presence.start().
+    if (debugEnableAppLifecycleListener) {
+      _appLifecycleListener ??= AppLifecycleListener(
+        onStateChange: _handleAppLifecycleStateChange);
+      _connectivitySubscription ??= Connectivity().onConnectivityChanged.listen(
+        _handleConnectivityChange);
+    }
     try {
       while (true) {
         if (_debugLoopSignal != null) {
@@ -1681,6 +1719,10 @@ class UpdateMachine {
   void dispose() {
     assert(!_disposed);
     _disposed = true;
+    _appLifecycleListener?.dispose();
+    _appLifecycleListener = null;
+    _connectivitySubscription?.cancel();
+    _connectivitySubscription = null;
   }
 
   /// In debug mode, controls whether [fetchEmojiData] should
@@ -1699,6 +1741,26 @@ class UpdateMachine {
   static set debugEnableFetchEmojiData(bool value) {
     assert(() {
       _debugEnableFetchEmojiData = value;
+      return true;
+    }());
+  }
+
+  /// In debug mode, controls whether [poll] should set up an
+  /// [AppLifecycleListener] to abort backoff on app resume.
+  ///
+  /// Outside of debug mode, this is always true and the setter has no effect.
+  static bool get debugEnableAppLifecycleListener {
+    bool result = true;
+    assert(() {
+      result = _debugEnableAppLifecycleListener;
+      return true;
+    }());
+    return result;
+  }
+  static bool _debugEnableAppLifecycleListener = true;
+  static set debugEnableAppLifecycleListener(bool value) {
+    assert(() {
+      _debugEnableAppLifecycleListener = value;
       return true;
     }());
   }
