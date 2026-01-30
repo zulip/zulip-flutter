@@ -874,8 +874,6 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     model.fetchInitial();
   }
 
-  bool _prevFetched = false;
-
   void _modelChanged() {
     // When you're scrolling quickly, our mark-as-read requests include the
     // messages *between* _messagesRecentlyInViewport and the messages currently
@@ -902,14 +900,34 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // This method was called because that just changed.
     });
 
-    if (!_prevFetched && model.fetched && model.messages.isEmpty) {
+    if (model.fetched) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (scrollController.hasClients) {
+          // This is needed here in order to fetch more messages if the
+          // visible (non-muted) messages of the previous batch combined
+          // with the already fetched messages are less than a screenful.
+          // In such case, there will be no change in the scroll metrics to
+          // fire a notification that will fetch more messages.
+          // Also, this should be called post frame, otherwise it will end up
+          // fetching an additional batch shortly after we fetch a batch,
+          // even if we don't need the additinal batch at the moment.
+          // The cause is that this will be called again with `ScrollMetrics`
+          // still not yet updated to account for the newly-added messages.
+          // This relates to `_modelChanged` called right away as a listener of
+          // the model, before the next frame being drawn with the newly-added
+          // messages, updating `ScrollMetrics`.
+          _fetchMoreIfNeeded(scrollController.position);
+        }
+      });
+    }
+
+    if (model.messages.isEmpty && model.haveOldest && model.haveNewest) {
       // If the fetch came up empty, there's nothing to read,
       // so opening the keyboard won't be bothersome and could be helpful.
       // It's definitely helpful if we got here from the new-DM page.
       MessageListPage.ancestorOf(context)
         .composeBoxState?.controller.requestFocusIfUnfocused();
     }
-    _prevFetched = model.fetched;
   }
 
   /// Find the range of message IDs on screen, as a (first, last) tuple,
@@ -1021,6 +1039,15 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ?? GlobalStoreWidget.settingsOf(context).markReadOnScrollForNarrow(widget.narrow);
   }
 
+  void _fetchMoreIfNeeded(ScrollMetrics scrollMetrics) {
+    if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
+      model.fetchOlder();
+    }
+    if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
+      model.fetchNewer();
+    }
+  }
+
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
     if (_effectiveMarkReadOnScroll()) {
       _markReadFromScroll();
@@ -1032,17 +1059,17 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       _scrollToBottomVisible.value = true;
     }
 
-    if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
-      // TODO: This ends up firing a second time shortly after we fetch a batch.
-      //   The result is that each time we decide to fetch a batch, we end up
-      //   fetching two batches in quick succession.  This is basically harmless
-      //   but makes things a bit more complicated to reason about.
-      //   The cause seems to be that this gets called again with maxScrollExtent
-      //   still not yet updated to account for the newly-added messages.
-      model.fetchOlder();
-    }
-    if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
-      model.fetchNewer();
+    if (SchedulerBinding.instance.schedulerPhase == .transientCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (scrollController.hasClients) {
+          // From the `transientCallbacks` phase to `postFrameCallbacks` phase,
+          // `scrollMetrics` can become stale; so we use the fresh value
+          // from `scrollController`.
+          _fetchMoreIfNeeded(scrollController.position);
+        }
+      });
+    } else {
+      _fetchMoreIfNeeded(scrollMetrics);
     }
   }
 
