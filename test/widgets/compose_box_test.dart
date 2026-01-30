@@ -219,6 +219,52 @@ void main() {
     });
   });
 
+  group('topic not yet chosen, tap content input -> topic input focused', () {
+    void checkFocused({required bool topic, required bool content}) {
+      assert(!(topic && content), "Topic and content inputs can't both have focus!");
+
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.equals(topic)
+        ..contentFocusNode.hasFocus.equals(content);
+    }
+
+    Future<void> prepareAndTapContentInput(WidgetTester tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)]);
+      checkFocused(topic: false, content: false);
+
+      // Prepare a response for a getChannelTopics request triggered by the
+      // the topic input being focused.
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+      await tester.tap(contentInputFinder);
+      await tester.pump(Duration.zero);
+    }
+
+    testWidgets('basic', (tester) async {
+      await prepareAndTapContentInput(tester);
+      checkFocused(topic: true, content: false);
+    });
+
+    testWidgets('choose topic, tap content input -> content input focused', (tester) async {
+      await prepareAndTapContentInput(tester);
+      checkFocused(topic: true, content: false);
+
+      await tester.enterText(topicInputFinder, 'topic');
+      await tester.tap(contentInputFinder);
+      checkFocused(topic: false, content: true);
+    });
+
+    testWidgets('skip topic, tap content input -> content input focused', (tester) async {
+      await prepareAndTapContentInput(tester);
+      checkFocused(topic: true, content: false);
+
+      await tester.tap(contentInputFinder);
+      checkFocused(topic: false, content: true);
+    });
+  });
+
   group('ComposeBoxTheme', () {
     test('lerp light to dark, no crash', () {
       final a = ComposeBoxTheme.light;

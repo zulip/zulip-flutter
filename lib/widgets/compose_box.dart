@@ -514,6 +514,13 @@ class _ContentInput extends StatelessWidget {
   final String? hintText;
   final bool enabled;
 
+  void _handleTapped(ComposeBoxController controller) {
+    if (controller is StreamComposeBoxController
+        && controller.topicInteractionStatus.value == .notEditingNotChosen) {
+      controller.topicFocusNode.requestFocus();
+    }
+  }
+
   void _handleContentInserted(BuildContext context, KeyboardInsertedContent content) async {
     if (content.data == null || content.data!.isEmpty) {
       // As of writing, the engine implementation never leaves `content.data` as
@@ -590,6 +597,7 @@ class _ContentInput extends StatelessWidget {
               enabled: enabled,
               controller: controller.content,
               focusNode: controller.contentFocusNode,
+              onTap: () => _handleTapped(controller),
               contentInsertionConfiguration: ContentInsertionConfiguration(
                 onContentInserted: (content) => _handleContentInserted(context, content)),
               // Let the content show through the `contentPadding` so that
