@@ -1719,6 +1719,19 @@ void main() {
         ).evaluate()).length.equals(1);
       });
 
+      testWidgets('has header semantics for accessibility', (tester) async {
+        final message = eg.streamMessage();
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message]);
+        await tester.pump();
+
+        final semantics = tester.firstWidget<Semantics>(find.descendant(
+          of: find.byType(StreamMessageRecipientHeader),
+          matching: find.byType(Semantics)));
+        check(semantics.properties.header).equals(true);
+      });
+
       testWidgets('show stream name from message when stream unknown', (tester) async {
         // This can perfectly well happen, because message fetches can race
         // with events.
@@ -1946,6 +1959,19 @@ void main() {
       await tester.tap(find.byType(DmRecipientHeader));
       await tester.pump();
       check(pushedRoutes).isEmpty();
+    });
+
+    testWidgets('has header semantics for accessibility', (tester) async {
+      final dmMessage = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        messages: [dmMessage]);
+      await tester.pump();
+
+      final semantics = tester.firstWidget<Semantics>(find.descendant(
+        of: find.byType(DmRecipientHeader),
+        matching: find.byType(Semantics)));
+      check(semantics.properties.header).equals(true);
     });
   });
 
