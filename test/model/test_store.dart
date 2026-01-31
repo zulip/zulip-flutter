@@ -354,7 +354,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     await handleEvent(ChannelFolderAddEvent(id: 1, channelFolder: channelFolder));
   }
 
-  Future<void> setUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {
+  Future<void> setUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy? visibilityPolicy) async {
     await handleEvent(eg.userTopicEvent(stream.streamId, topic, visibilityPolicy));
   }
 

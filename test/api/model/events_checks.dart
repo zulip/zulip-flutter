@@ -88,5 +88,12 @@ extension HeartbeatEventChecks on Subject<HeartbeatEvent> {
   // No properties not covered by Event.
 }
 
+extension UserTopicEventChecks on Subject<UserTopicEvent> {
+  Subject<int> get streamId => has((e) => e.streamId, 'streamId');
+  Subject<TopicName> get topicName => has((e) => e.topicName, 'topicName');
+  Subject<int> get lastUpdated => has((e) => e.lastUpdated, 'lastUpdated');
+  Subject<UserTopicVisibilityPolicy?> get visibilityPolicy => has((e) => e.visibilityPolicy, 'visibilityPolicy');
+}
+
 // Add more extensions here for more event types as needed.
 // Keep them in the same order as the event types' own definitions.
