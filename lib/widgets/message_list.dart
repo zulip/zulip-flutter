@@ -1904,31 +1904,33 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               store.topicVisibilityPolicy(streamId, topic))),
         ]));
 
-    return GestureDetector(
-      // When already in a topic narrow, disable tap interaction that would just
-      // push a MessageListPage for the same topic narrow.
-      // TODO(#1039) simplify by removing topic-narrow condition if we remove
-      //   recipient headers in topic narrows
-      onTap: narrow is TopicNarrow ? null
-        : () => Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: TopicNarrow.ofMessage(message))),
-      onLongPress: () => showTopicActionSheet(context,
-        channelId: streamId,
-        topic: topic,
-        someMessageIdInTopic: message.id),
-      child: ColoredBox(
-        color: backgroundColor,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // TODO(#282): Long stream name will break layout; find a fix.
-            streamWidget,
-            Expanded(child: topicWidget),
-            // TODO topic links?
-            // Then web also has edit/resolve/mute buttons. Skip those for mobile.
-            RecipientHeaderDate(message: message),
-          ])));
+    return Semantics(
+      header: true,
+      child: GestureDetector(
+        // When already in a topic narrow, disable tap interaction that would just
+        // push a MessageListPage for the same topic narrow.
+        // TODO(#1039) simplify by removing topic-narrow condition if we remove
+        //   recipient headers in topic narrows
+        onTap: narrow is TopicNarrow ? null
+          : () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: TopicNarrow.ofMessage(message))),
+        onLongPress: () => showTopicActionSheet(context,
+          channelId: streamId,
+          topic: topic,
+          someMessageIdInTopic: message.id),
+        child: ColoredBox(
+          color: backgroundColor,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // TODO(#282): Long stream name will break layout; find a fix.
+              streamWidget,
+              Expanded(child: topicWidget),
+              // TODO topic links?
+              // Then web also has edit/resolve/mute buttons. Skip those for mobile.
+              RecipientHeaderDate(message: message),
+            ]))));
   }
 }
 
@@ -1961,34 +1963,36 @@ class DmRecipientHeader extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
-    return GestureDetector(
-      // When already in a DM narrow, disable tap interaction that would just
-      // push a MessageListPage for the same DM narrow.
-      // TODO(#1244) simplify by removing DM-narrow condition if we remove
-      //   recipient headers in DM narrows
-      onTap: narrow is DmNarrow ? null
-        : () => Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
-      child: ColoredBox(
-        color: messageListTheme.dmRecipientHeaderBg,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Icon(
-                  color: designVariables.title,
-                  size: 16,
-                  ZulipIcons.two_person)),
-              Expanded(
-                child: Text(title,
-                  style: recipientHeaderTextStyle(context),
-                  overflow: TextOverflow.ellipsis)),
-              RecipientHeaderDate(message: message),
-            ]))));
+    return Semantics(
+      header: true,
+      child: GestureDetector(
+        // When already in a DM narrow, disable tap interaction that would just
+        // push a MessageListPage for the same DM narrow.
+        // TODO(#1244) simplify by removing DM-narrow condition if we remove
+        //   recipient headers in DM narrows
+        onTap: narrow is DmNarrow ? null
+          : () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: DmNarrow.ofMessage(message, selfUserId: store.selfUserId))),
+        child: ColoredBox(
+          color: messageListTheme.dmRecipientHeaderBg,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 11),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Icon(
+                    color: designVariables.title,
+                    size: 16,
+                    ZulipIcons.two_person)),
+                Expanded(
+                  child: Text(title,
+                    style: recipientHeaderTextStyle(context),
+                    overflow: TextOverflow.ellipsis)),
+                RecipientHeaderDate(message: message),
+              ])))));
   }
 }
 
