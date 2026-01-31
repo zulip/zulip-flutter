@@ -503,6 +503,73 @@ void main() {
 
       debugNetworkImageHttpClientProvider = null;
     });
+
+    testWidgets('scroll position resets when query changes', (tester) async {
+      final composeInputFinder = await setupToComposeInput(tester);
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      // Add many emoji starting with 's' to ensure the list is scrollable.
+      // The autocomplete box has maxHeight of 300, so we need enough items.
+      store.setServerEmojiData(ServerEmojiData(codeToNames: {
+        '1f600': ['sa_first_item'],
+        '1f601': ['sb_second'],
+        '1f602': ['sc_third'],
+        '1f603': ['sd_fourth'],
+        '1f604': ['se_fifth'],
+        '1f605': ['sf_sixth'],
+        '1f606': ['sg_seventh'],
+        '1f607': ['sh_eighth'],
+        '1f608': ['si_ninth'],
+        '1f609': ['sj_tenth'],
+        '1f60a': ['sk_eleventh'],
+        '1f60b': ['sl_twelfth'],
+        '1f60c': ['sm_thirteenth'],
+        '1f60d': ['sn_fourteenth'],
+        '1f60e': ['so_fifteenth'],
+        '1f60f': ['sp_sixteenth'],
+        '1f610': ['sq_seventeenth'],
+        '1f611': ['sr_eighteenth'],
+        '1f612': ['ss_nineteenth'],
+        '1f613': ['sz_last_item'],
+      }));
+
+      // Enter an emoji query to show many options.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'hi :');
+      await tester.enterText(composeInputFinder, 'hi :s');
+      await tester.pump();
+      await tester.pump();
+
+      // Verify the first item is visible and the last is not (needs scrolling).
+      check(find.text('sa_first_item')).findsOne();
+      check(find.text('sz_last_item')).findsNothing();
+
+      // Scroll until the last item is visible.
+      // We need to scroll to see items beyond the maxHeight constraint.
+      final scrollable = find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable)).first;
+      await tester.dragUntilVisible(
+        find.text('sz_last_item'),
+        scrollable,
+        const Offset(0, -50),
+      );
+      await tester.pump();
+
+      // The last item should now be visible.
+      check(find.text('sz_last_item')).findsOne();
+      // The first item should no longer be visible.
+      check(find.text('sa_first_item')).findsNothing();
+
+      // Change the query; scroll should reset to top.
+      await tester.enterText(composeInputFinder, 'hi :sa');
+      await tester.pump();
+      await tester.pump();
+
+      // After query change, the first matching item should be visible at top.
+      check(find.text('sa_first_item')).findsOne();
+
+      debugNetworkImageHttpClientProvider = null;
+    });
   });
 
   group('TopicAutocomplete', () {
