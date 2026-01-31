@@ -899,8 +899,8 @@ enum UserTopicVisibilityPolicy {
   none(apiValue: 0),
   muted(apiValue: 1),
   unmuted(apiValue: 2), // TODO(server-7) newly added
-  followed(apiValue: 3), // TODO(server-8) newly added
-  unknown(apiValue: null); // TODO(#1074) remove this
+  followed(apiValue: 3); // TODO(server-8) newly added
+   //Removed unknown (#1074)
 
   const UserTopicVisibilityPolicy({required this.apiValue});
 

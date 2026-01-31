@@ -119,7 +119,6 @@ Future<void> updateUserTopic(ApiConnection connection, {
   required TopicName topic,
   required UserTopicVisibilityPolicy visibilityPolicy,
 }) {
-  assert(visibilityPolicy != UserTopicVisibilityPolicy.unknown);
   assert(connection.zulipFeatureLevel! >= 170);
   return connection.post('updateUserTopic', (_) {}, 'user_topics', {
     'stream_id': streamId,

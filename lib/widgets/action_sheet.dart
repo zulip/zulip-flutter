@@ -725,10 +725,6 @@ void showTopicActionSheet(BuildContext context, {
         if (supportsFollowingTopics) {
           visibilityOptions.add(UserTopicVisibilityPolicy.none);
         }
-      case UserTopicVisibilityPolicy.unknown:
-        // TODO(#1074): This should be unreachable as we keep `unknown` out of
-        //   our data structures.
-        assert(false);
     }
   } else {
     // Channel is muted.
@@ -750,10 +746,6 @@ void showTopicActionSheet(BuildContext context, {
           if (supportsFollowingTopics) {
             visibilityOptions.add(UserTopicVisibilityPolicy.none);
           }
-        case UserTopicVisibilityPolicy.unknown:
-          // TODO(#1074): This should be unreachable as we keep `unknown` out of
-          //   our data structures.
-          assert(false);
       }
     }
   }
@@ -824,11 +816,6 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
         return ZulipIcons.unmute;
       case UserTopicVisibilityPolicy.followed:
         return ZulipIcons.follow;
-      case UserTopicVisibilityPolicy.unknown:
-        // TODO(#1074): This should be unreachable as we keep `unknown` out of
-        //   our data structures.
-        assert(false);
-        return ZulipIcons.inherit;
     }
   }
 
@@ -855,11 +842,6 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
         assert(false);
         return '';
 
-      case (_, UserTopicVisibilityPolicy.unknown):
-        // This case is unreachable (or should be) because we keep `unknown` out
-        // of our data structures. We plan to remove the `unknown` case in #1074.
-        assert(false);
-        return '';
     }
   }
 
@@ -885,11 +867,6 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
         assert(false);
         return '';
 
-      case (_, UserTopicVisibilityPolicy.unknown):
-        // This case is unreachable (or should be) because we keep `unknown` out
-        // of our data structures. We plan to remove the `unknown` case in #1074.
-        assert(false);
-        return '';
     }
   }
 

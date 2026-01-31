@@ -616,7 +616,7 @@ TopicNarrow topicNarrow(int channelId, String topicName, {int? with_}) {
 }
 
 UserTopicItem userTopicItem(
-    ZulipStream stream, String topic, UserTopicVisibilityPolicy policy) {
+    ZulipStream stream, String topic, UserTopicVisibilityPolicy? policy) {
   return UserTopicItem(
     streamId: stream.streamId,
     topicName: TopicName(topic),
@@ -1007,7 +1007,7 @@ const _unreadMsgs = unreadMsgs;
 //
 
 UserTopicEvent userTopicEvent(
-    int streamId, String topic, UserTopicVisibilityPolicy visibilityPolicy) {
+    int streamId, String topic, UserTopicVisibilityPolicy? visibilityPolicy) {
   return UserTopicEvent(
     id: 1,
     streamId: streamId,
