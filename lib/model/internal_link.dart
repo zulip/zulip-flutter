@@ -14,9 +14,10 @@ const _hashReplacements = {
   "(": ".28",
   ")": ".29",
   ".": ".2E",
+  "'": ".27", // Escape single quotes to prevent URL detection issues
 };
 
-final _encodeHashComponentRegex = RegExp(r'[%().]');
+final _encodeHashComponentRegex = RegExp("[%()'.]");
 
 // Corresponds to encodeHashComponent in Zulip web;
 // see web/shared/src/internal_url.ts.

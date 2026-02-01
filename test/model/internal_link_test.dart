@@ -95,6 +95,12 @@ void main() {
                     '#narrow/channel/377-translation.2Fzh_tw/topic/.E7.BF.BB.E8.AD.AF.20.22stream.22');
         checkNarrow(streamId: 42,  name: 'Outreachy 2016-2017', topic: '2017-18 Stream?', nearMessageId: 302690,
                     '#narrow/channel/42-Outreachy-2016-2017/topic/2017-18.20Stream.3F/near/302690');
+
+        // Test single quote escaping (fixes #2105)
+        checkNarrow(streamId: 500, name: "it's-a-test",
+                    '#narrow/channel/500-it.27s-a-test');
+        checkNarrow(streamId: 501, name: 'general', topic: "What's new?",
+                    '#narrow/channel/501-general/topic/What.27s.20new.3F');
       });
 
       test('legacy including "stream" operator', () {
@@ -408,7 +414,8 @@ void main() {
         ['some_text', 'some_text'],
         ['some.20text', 'some text'],
         ['some.2Etext', 'some.text'],
-
+        ['what.27s.20new', "what's new"], // single quote encoding (fixes #2105)
+        ['what.27s.20up', "what's up"], // new test case for single quote
         ['na.C3.AFvet.C3.A9', 'naïveté'],
         ['.C2.AF.5C_(.E3.83.84)_.2F.C2.AF', r'¯\_(ツ)_/¯'],
       ];
