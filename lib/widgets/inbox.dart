@@ -125,8 +125,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       items.addAll(dmItems);
     }
 
-    final pinnedChannelSections = <_InboxListItemChannelSection>[];
-    final otherChannelSections = <_InboxListItemChannelSection>[];
+    final channelSectionsByFolder = <UiChannelFolder, List<_InboxListItemChannelSection>>{};
+
     for (final MapEntry(key: streamId, value: topics) in unreadsModel!.streams.entries) {
       final sub = subscriptions[streamId];
       // Filter out any straggling unreads in unsubscribed streams.
@@ -162,43 +162,31 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final bLastUnreadId = b.lastUnreadId;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
-      final section = _InboxListItemChannelSection(
-        streamId: streamId,
-        count: countInStream,
-        hasMention: streamHasMention,
-        items: topicItems,
-      );
-      if (sub.pinToTop) {
-        pinnedChannelSections.add(section);
-      } else {
-        otherChannelSections.add(section);
-      }
+
+      final uiChannelFolder = store.uiChannelFolder(streamId);
+      (channelSectionsByFolder[uiChannelFolder] ??= [])
+        .add(_InboxListItemChannelSection(
+          streamId: streamId,
+          count: countInStream,
+          hasMention: streamHasMention,
+          items: topicItems,
+        ));
     }
 
-    // TODO deduplicate sorting code within PINNED and OTHER;
-    //   consider realm-level folders too
-    if (pinnedChannelSections.isNotEmpty) {
-      final label = zulipLocalizations.pinnedChannelsFolderName;
-      items.add(_InboxListItemFolderHeader(label: label));
-      pinnedChannelSections.sort((a, b) {
+    final sortedFolders = channelSectionsByFolder.keys.toList()
+      ..sort(store.compareUiChannelFolders);
+
+    for (final folder in sortedFolders) {
+      items.add(_InboxListItemFolderHeader(
+        label: folder.name(store: store, zulipLocalizations: zulipLocalizations)));
+      final channelSections = channelSectionsByFolder[folder]!.toList();
+      channelSections.sort((a, b) {
         final subA = subscriptions[a.streamId]!;
         final subB = subscriptions[b.streamId]!;
 
         return ChannelStore.compareChannelsByName(subA, subB);
       });
-      items.addAll(pinnedChannelSections);
-    }
-
-    if (otherChannelSections.isNotEmpty) {
-      final label = zulipLocalizations.otherChannelsFolderName;
-      items.add(_InboxListItemFolderHeader(label: label));
-      otherChannelSections.sort((a, b) {
-        final subA = subscriptions[a.streamId]!;
-        final subB = subscriptions[b.streamId]!;
-
-        return ChannelStore.compareChannelsByName(subA, subB);
-      });
-      items.addAll(otherChannelSections);
+      items.addAll(channelSections);
     }
 
     if (items.isEmpty) {
