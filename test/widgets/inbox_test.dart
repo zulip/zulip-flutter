@@ -65,6 +65,7 @@ void main() {
   Future<void> setupPage(WidgetTester tester, {
     List<ZulipStream>? streams,
     List<Subscription>? subscriptions,
+    List<ChannelFolder>? channelFolders,
     List<User>? users,
     required List<Message> unreadMessages,
     List<Message>? otherMessages,
@@ -74,6 +75,7 @@ void main() {
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
+    await store.addChannelFolders(channelFolders ?? []);
     await store.addStreams(streams ?? []);
     await store.addSubscriptions(subscriptions ?? []);
     await store.addUsers(users ?? [eg.selfUser]);
@@ -342,6 +344,110 @@ void main() {
           ]);
         checkFolderHeader('Pinned channels');
         checkFolderHeader('Other channels');
+      });
+
+      testWidgets('channel in a folder: shows folder name as header', (tester) async {
+        final folder = eg.channelFolder(name: 'Engineering');
+        final channel = eg.stream(folderId: folder.id);
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel)],
+          channelFolders: [folder],
+          unreadMessages: [eg.streamMessage(stream: channel)]);
+        checkFolderHeader('Engineering');
+        checkNoFolderHeader('Pinned channels');
+        checkNoFolderHeader('Other channels');
+      });
+
+      testWidgets('channels in different folders: each gets its own header', (tester) async {
+        final folder1 = eg.channelFolder(name: 'Engineering', order: 0);
+        final folder2 = eg.channelFolder(name: 'Marketing', order: 1);
+        final channel1 = eg.stream(folderId: folder1.id);
+        final channel2 = eg.stream(folderId: folder2.id);
+        await setupPage(tester,
+          streams: [channel1, channel2],
+          subscriptions: [
+            eg.subscription(channel1),
+            eg.subscription(channel2),
+          ],
+          channelFolders: [folder1, folder2],
+          unreadMessages: [
+            eg.streamMessage(stream: channel1),
+            eg.streamMessage(stream: channel2),
+          ]);
+        checkFolderHeader('Engineering');
+        checkFolderHeader('Marketing');
+      });
+
+      testWidgets('mix of pinned, folder, and other channels', (tester) async {
+        final folder = eg.channelFolder(name: 'Design');
+        final pinned = eg.stream();
+        final inFolder = eg.stream(folderId: folder.id);
+        final other = eg.stream();
+        await setupPage(tester,
+          streams: [pinned, inFolder, other],
+          subscriptions: [
+            eg.subscription(pinned, pinToTop: true),
+            eg.subscription(inFolder),
+            eg.subscription(other),
+          ],
+          channelFolders: [folder],
+          unreadMessages: [
+            eg.streamMessage(stream: pinned),
+            eg.streamMessage(stream: inFolder),
+            eg.streamMessage(stream: other),
+          ]);
+        checkFolderHeader('Pinned channels');
+        checkFolderHeader('Design');
+        checkFolderHeader('Other channels');
+      });
+
+      testWidgets('pinned channel in a folder: goes under pinned, not the folder', (tester) async {
+        final folder = eg.channelFolder(name: 'Engineering');
+        final channel = eg.stream(folderId: folder.id);
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel, pinToTop: true)],
+          channelFolders: [folder],
+          unreadMessages: [eg.streamMessage(stream: channel)]);
+        checkFolderHeader('Pinned channels');
+        checkNoFolderHeader('Engineering');
+      });
+
+      testWidgets('DMs, pinned, folders in order, other', (tester) async {
+        final folder1 = eg.channelFolder(name: 'Zebra', order: 0);
+        final folder2 = eg.channelFolder(name: 'Alpha', order: 1);
+        final pinned = eg.stream();
+        final inFolder1 = eg.stream(folderId: folder1.id);
+        final inFolder2 = eg.stream(folderId: folder2.id);
+        final other = eg.stream();
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [pinned, inFolder1, inFolder2, other],
+          subscriptions: [
+            eg.subscription(pinned, pinToTop: true),
+            eg.subscription(inFolder1),
+            eg.subscription(inFolder2),
+            eg.subscription(other),
+          ],
+          channelFolders: [folder1, folder2],
+          unreadMessages: [
+            eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+            eg.streamMessage(stream: pinned),
+            eg.streamMessage(stream: inFolder1),
+            eg.streamMessage(stream: inFolder2),
+            eg.streamMessage(stream: other),
+          ]);
+
+        final headers = tester.widgetList<InboxFolderHeaderItem>(
+          find.byType(InboxFolderHeaderItem));
+        check(headers.map((h) => h.label)).deepEquals([
+          'Direct messages',
+          'Pinned channels',
+          'Zebra',
+          'Alpha',
+          'Other channels',
+        ]);
       });
     });
 
