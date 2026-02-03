@@ -168,6 +168,7 @@ void main() {
     bool? expectAtSignIcon,
     bool? expectCollapsed,
     Finder? findSectionContent,
+    bool? expectFolderName,
   }) {
     final findHeader = findChannelHeader(subscription.streamId);
     final element = tester.element(findHeader);
@@ -213,6 +214,11 @@ void main() {
       if (findSectionContent != null) {
         check(findSectionContent).findsExactly(expectCollapsed ? 0 : 1);
       }
+    }
+
+    if (expectFolderName != null) {
+      check((element.widget as InboxChannelHeaderItem).showChannelFolderName)
+        .equals(expectFolderName);
     }
   }
 
@@ -700,7 +706,9 @@ void main() {
 
           // Check that the header is present (which must therefore
           // be as a sticky header).
-          checkChannelHeader(tester, subscription, expectCollapsed: false);
+          checkChannelHeader(tester, subscription,
+            expectCollapsed: false,
+            expectFolderName: true);
 
           await tapCollapseIcon(tester, subscription);
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
@@ -376,6 +377,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
     required this.pageState,
     required this.count,
     required this.hasMention,
+    this.showChannelFolderName = false,
     required this.sectionContext,
   });
 
@@ -384,6 +386,13 @@ class InboxChannelHeaderItem extends StatelessWidget {
   final InboxPageState pageState;
   final int count;
   final bool hasMention;
+
+  // TODO(design) this is kind of a hack; we'd really like to keep the
+  //   folder name onscreen by making it sticky too, i.e. make
+  //   both folder headers and channel headers sticky headers.
+  //   See discussion for defining and implementing that behavior:
+  //     https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20sticky.20headers/near/2367795
+  final bool showChannelFolderName;
 
   /// A build context within the [_StreamSection] or [_AllDmsSection].
   ///
@@ -406,6 +415,34 @@ class InboxChannelHeaderItem extends StatelessWidget {
 
   void _onLongPress() async {
     showChannelActionSheet(sectionContext, channelId: subscription.streamId);
+  }
+
+  TextSpan _buildChannelFolderName(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final uppercaseName = store.uiChannelFolder(subscription.streamId)
+      .name(store: store, zulipLocalizations: zulipLocalizations).toUpperCase();
+
+    final buffer = StringBuffer();
+
+    // Enforce that the folder name prints after the channel name in the ambient
+    // [Directionality] even if the two names are in scripts opposite that.
+    buffer.write(switch (Directionality.of(context)) {
+      TextDirection.ltr => Unicode.LRM,
+      TextDirection.rtl => Unicode.RLM,
+    });
+
+    writeInLocalizedParens(context, buffer,
+      uppercaseName, addSpaceBeforeIfNotCjk: true);
+
+    return TextSpan(
+      style: TextStyle(
+        fontSize: 14,
+        height: (20 / 14),
+        color: designVariables.folderText),
+      text: buffer.toString());
   }
 
   @override
@@ -439,16 +476,20 @@ class InboxChannelHeaderItem extends StatelessWidget {
           const SizedBox(width: 5),
           Expanded(child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
+            child: Text.rich(
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              subscription.name))),
+              TextSpan(children: [
+                TextSpan(
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: (20 / 17),
+                    // TODO(design) check if this is the right variable
+                    color: designVariables.labelMenuButton,
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  text: subscription.name),
+                if (showChannelFolderName) _buildChannelFolderName(context),
+              ])))),
           const SizedBox(width: 12),
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
@@ -474,19 +515,28 @@ class _StreamSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subscription = PerAccountStoreWidget.of(context).subscriptions[data.streamId]!;
-    final header = InboxChannelHeaderItem(
-      subscription: subscription,
-      count: data.count,
-      hasMention: data.hasMention,
-      collapsed: collapsed,
-      pageState: pageState,
-      sectionContext: context,
-    );
+    final store = PerAccountStoreWidget.of(context);
+    final subscription = store.subscriptions[data.streamId]!;
+
     return StickyHeaderItem(
-      header: header,
+      header: InboxChannelHeaderItem(
+        subscription: subscription,
+        count: data.count,
+        hasMention: data.hasMention,
+        collapsed: collapsed,
+        pageState: pageState,
+        sectionContext: context,
+        showChannelFolderName: true,
+      ),
       child: Column(children: [
-        header,
+        InboxChannelHeaderItem(
+          subscription: subscription,
+          count: data.count,
+          hasMention: data.hasMention,
+          collapsed: collapsed,
+          pageState: pageState,
+          sectionContext: context,
+        ),
         if (!collapsed) ...data.items.map((item) {
           return InboxTopicItem(streamId: data.streamId, data: item);
         }),
