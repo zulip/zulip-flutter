@@ -97,33 +97,46 @@ void main () {
     Finder findInBottomNav(Finder finder) =>
       find.descendant(of: findBottomNavSemantics, matching: finder);
 
-    testWidgets('preserve states when switching between views', (tester) async {
+    testWidgets('channel stays collapsed when switching between bottom-nav tabs', (tester) async {
+      // For simplicity, this test just checks the channel header as it appears
+      // in the list; it doesn't also check the case where it's in the
+      // sticky-header position (via [StickyHeaderItem]).
+      // We arrange that by also preparing an unread DM, which
+      // shifts the channel header down so it's not at the top of the viewport.
+
       await prepare(tester);
       await store.addUser(eg.otherUser);
       await store.addMessage(
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
+      final channel = eg.stream();
+      await store.addStream(channel);
+      await store.addSubscription(eg.subscription(channel));
+      await store.addMessage(eg.streamMessage(stream: channel));
       await tester.pump();
 
-      check(find.byIcon(ZulipIcons.arrow_down)).findsExactly(2);
-      check(find.byIcon(ZulipIcons.arrow_right)).findsNothing();
+      Finder findIcon(IconData icon) =>
+        find.widgetWithIcon(InboxChannelHeaderItem, icon);
+
+      check(findIcon(ZulipIcons.arrow_down)).findsOne();
+      check(findIcon(ZulipIcons.arrow_right)).findsNothing();
 
       // Collapsing the header updates inbox's internal state.
-      await tester.tap(find.byIcon(ZulipIcons.arrow_down).first);
+      await tester.tap(findIcon(ZulipIcons.arrow_down));
       await tester.pump();
-      check(find.byIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(find.byIcon(ZulipIcons.arrow_right)).findsExactly(2);
+      check(findIcon(ZulipIcons.arrow_down)).findsNothing();
+      check(findIcon(ZulipIcons.arrow_right)).findsOne();
 
       // Switch to channels view.
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
-      check(find.byIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(find.byIcon(ZulipIcons.arrow_right)).findsNothing();
+      check(findIcon(ZulipIcons.arrow_down)).findsNothing();
+      check(findIcon(ZulipIcons.arrow_right)).findsNothing();
 
       // The header should remain collapsed when we return to the inbox.
       await tester.tap(find.byIcon(ZulipIcons.inbox));
       await tester.pump();
-      check(find.byIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(find.byIcon(ZulipIcons.arrow_right)).findsExactly(2);
+      check(findIcon(ZulipIcons.arrow_down)).findsNothing();
+      check(findIcon(ZulipIcons.arrow_right)).findsOne();
     });
 
     testWidgets('update app bar title when switching between views', (tester) async {
