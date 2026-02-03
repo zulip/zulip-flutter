@@ -287,6 +287,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Konnte Nachrichtenquelle nicht abrufen.';
 
   @override
+  String get errorCouldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get tryAgainButton => 'Try again';
+
+  @override
   String get errorCouldNotAccessUploadedFileTitle =>
       'Konnte nicht auf die hochgeladene Datei zugreifen';
 

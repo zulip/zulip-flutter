@@ -278,6 +278,12 @@ class ZulipLocalizationsHu extends ZulipLocalizations {
       'Could not fetch message source.';
 
   @override
+  String get errorCouldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get tryAgainButton => 'Try again';
+
+  @override
   String get errorCouldNotAccessUploadedFileTitle =>
       'Could not access uploaded file';
 

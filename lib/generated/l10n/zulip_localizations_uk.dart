@@ -288,6 +288,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Не вдалося отримати джерело повідомлення.';
 
   @override
+  String get errorCouldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get tryAgainButton => 'Try again';
+
+  @override
   String get errorCouldNotAccessUploadedFileTitle =>
       'Не вдалося отримати доступ до завантаженого файлу';
 

@@ -287,6 +287,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Ni bilo mogoče pridobiti vira sporočila.';
 
   @override
+  String get errorCouldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get tryAgainButton => 'Try again';
+
+  @override
   String get errorCouldNotAccessUploadedFileTitle =>
       'Dostop do naložene datoteke ni mogoč';
 

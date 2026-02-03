@@ -289,6 +289,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Nie można uzyskać źródłowej wiadomości.';
 
   @override
+  String get errorCouldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get tryAgainButton => 'Try again';
+
+  @override
   String get errorCouldNotAccessUploadedFileTitle =>
       'Brak dostępu do załadowanego pliku';
 
