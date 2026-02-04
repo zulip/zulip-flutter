@@ -1206,6 +1206,12 @@ class Mention extends StatelessWidget {
       if (user case User(:final fullName)) {
         nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
       }
+    } else if (node case UserGroupMentionNode(:final userGroupId)) {
+      final userGroup = store.getGroup(userGroupId);
+      if (userGroup case UserGroup(:final name)) {
+        // TODO(#1260) Get display name for system groups using localization
+        nodes = [TextNode(node.isSilent ? name : '@$name')];
+      }
     }
     return Container(
       decoration: BoxDecoration(
