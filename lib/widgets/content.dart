@@ -1100,6 +1100,10 @@ class _InlineContentBuilder {
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: Mention(ambientTextStyle: widget.style, node: node));
 
+      case UserGroupMentionNode():
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: Mention(ambientTextStyle: widget.style, node: node));
+
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
           style: ContentTheme.of(_context!).textStyleEmoji);
