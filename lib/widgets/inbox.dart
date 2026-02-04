@@ -269,7 +269,7 @@ abstract class _HeaderItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    return Material(
+    Widget result = Material(
       color: collapsed
         ? designVariables.background // TODO(design) check if this is the right variable
         : uncollapsedBackgroundColor(context),
@@ -315,6 +315,9 @@ abstract class _HeaderItem extends StatelessWidget {
               channelIdForBackground: channelId,
               count: count)),
         ])));
+
+    return Semantics(container: true,
+      child: result);
   }
 }
 
@@ -408,7 +411,7 @@ class _DmItem extends StatelessWidget {
       _ => narrow.otherRecipientIds.map(store.userDisplayName).join(', '),
     };
 
-    return Material(
+    Widget result = Material(
       color: designVariables.background, // TODO(design) check if this is the right variable
       child: InkWell(
         onTap: () {
@@ -439,6 +442,9 @@ class _DmItem extends StatelessWidget {
                 channelIdForBackground: null,
                 count: count)),
           ]))));
+
+    return Semantics(container: true,
+      child: result);
   }
 }
 
@@ -537,7 +543,7 @@ class _TopicItem extends StatelessWidget {
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
       store.topicVisibilityPolicy(streamId, topic));
 
-    return Material(
+    Widget result = Material(
       color: designVariables.background, // TODO(design) check if this is the right variable
       child: InkWell(
         onTap: () {
@@ -576,6 +582,9 @@ class _TopicItem extends StatelessWidget {
                 channelIdForBackground: streamId,
                 count: count)),
           ]))));
+
+    return Semantics(container: true,
+      child: result);
   }
 }
 
