@@ -11,12 +11,13 @@ import 'package:flutter/widgets.dart';
 /// and is the item that the list selects for obtaining a sticky header,
 /// then this widget's [header] widget is built and used as the sticky header.
 class StickyHeaderItem extends SingleChildRenderObjectWidget {
-  const StickyHeaderItem({
+  StickyHeaderItem({
     super.key,
     this.allowOverflow = false,
-    required this.header,
+    required Widget header,
+    this.excludeHeaderFromSemantics = true,
     super.child,
-  });
+  }) : header = ExcludeSemantics(excluding: excludeHeaderFromSemantics, child: header);
 
   /// Whether to allow the sticky header to overflow the item's own bounds.
   ///
@@ -36,6 +37,11 @@ class StickyHeaderItem extends SingleChildRenderObjectWidget {
   /// of the list in an enclosing [StickyHeaderListView], this [header] widget
   /// will be built and laid out to display as the sticky header.
   final Widget header;
+
+  /// Whether to exclude [header] from the semantics tree.
+  ///
+  /// Defaults to true.
+  final bool excludeHeaderFromSemantics;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
