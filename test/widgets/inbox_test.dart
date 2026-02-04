@@ -119,14 +119,18 @@ void main() {
       ]);
   }
 
-  /// Find a row with the given label.
-  Widget? findRowByLabel(WidgetTester tester, String label) {
+  /// Find a row with the given label and throw if none are found.
+  ///
+  /// There may be two rows with the given label: one as a regular list item,
+  /// and one chosen by [StickyHeaderListView] as the sticky header.
+  /// One or the other may be returned; the choice is not guaranteed.
+  // TODO instead of .first, could look for both the row in the list *and*
+  //   in the sticky-header position, or at least target one or the other
+  //   intentionally.
+  Widget findRowByLabel(WidgetTester tester, String label) {
     final rowLabel = tester.widgetList(
       find.text(label),
-    ).firstOrNull;
-    if (rowLabel == null) {
-      return null;
-    }
+    ).first;
 
     return tester.widget(
       find.ancestor(
@@ -135,7 +139,7 @@ void main() {
   }
 
   /// Find the all-DMs header element.
-  Widget? findAllDmsHeaderRow(WidgetTester tester) {
+  Widget findAllDmsHeaderRow(WidgetTester tester) {
     return findRowByLabel(tester, 'Direct messages');
   }
 
@@ -144,13 +148,13 @@ void main() {
     check(row).isNotNull();
     final material = tester.firstWidget<Material>(
       find.ancestor(
-        of: find.byWidget(row!),
+        of: find.byWidget(row),
         matching: find.byType(Material)));
     return material.color;
   }
 
   /// For the given stream ID, find the stream header element.
-  Widget? findStreamHeaderRow(WidgetTester tester, int streamId) {
+  Widget findStreamHeaderRow(WidgetTester tester, int streamId) {
     final stream = store.streams[streamId]!;
     return findRowByLabel(tester, stream.name);
   }
@@ -160,7 +164,7 @@ void main() {
     check(row).isNotNull();
     final material = tester.firstWidget<Material>(
       find.ancestor(
-        of: find.byWidget(row!),
+        of: find.byWidget(row),
         matching: find.byType(Material)));
     return material.color;
   }
@@ -180,18 +184,18 @@ void main() {
     check(headerRow).isNotNull();
 
     return tester.widget<Icon>(find.descendant(
-      of: find.byWidget(headerRow!),
+      of: find.byWidget(headerRow),
       matching: find.byIcon(expectedIcon),
     ));
   }
 
   bool hasIcon(WidgetTester tester, {
-    required Widget? parent,
+    required Widget parent,
     required IconData icon,
   }) {
     check(parent).isNotNull();
     return tester.widgetList(find.descendant(
-      of: find.byWidget(parent!),
+      of: find.byWidget(parent),
       matching: find.byIcon(icon),
     )).isNotEmpty;
   }
@@ -220,7 +224,7 @@ void main() {
 
       final text = tester.widget<Text>(
         find.descendant(
-          of: find.byWidget(findRowByLabel(tester, channel.name)!),
+          of: find.byWidget(findRowByLabel(tester, channel.name)),
           matching: find.descendant(
             of: find.byType(CounterBadge),
             matching: find.text('1'))));
@@ -285,7 +289,7 @@ void main() {
       final subscription = eg.subscription(stream);
       const topic = 'lunch';
 
-      bool hasAtSign(WidgetTester tester, Widget? parent) =>
+      bool hasAtSign(WidgetTester tester, Widget parent) =>
         hasIcon(tester, parent: parent, icon: ZulipIcons.at_sign);
 
       testWidgets('topic with a mention', (tester) async {
@@ -405,19 +409,19 @@ void main() {
         await tester.pump();
 
         check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')!),
+          of: find.byWidget(findRowByLabel(tester, 'aaa')),
           matching: find.widgetWithText(CounterBadge, '1'))).findsOne();
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message2]));
         await tester.pump();
         check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')!),
+          of: find.byWidget(findRowByLabel(tester, 'aaa')),
           matching: find.widgetWithText(CounterBadge, '2'))).findsOne();
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message3]));
         await tester.pump();
         check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')!),
+          of: find.byWidget(findRowByLabel(tester, 'aaa')),
           matching: find.widgetWithText(CounterBadge, '3'))).findsOne();
       });
     });
@@ -437,7 +441,7 @@ void main() {
         Future<void> tapCollapseIcon(WidgetTester tester) async {
           final headerRow = findAllDmsHeaderRow(tester);
           check(headerRow).isNotNull();
-          final icon = findHeaderCollapseIcon(tester, headerRow!);
+          final icon = findHeaderCollapseIcon(tester, headerRow);
           await tester.tap(find.byWidget(icon));
           await tester.pump();
         }
@@ -453,7 +457,7 @@ void main() {
         ) {
           final headerRow = findAllDmsHeaderRow(tester);
           check(headerRow).isNotNull();
-          final icon = findHeaderCollapseIcon(tester, headerRow!);
+          final icon = findHeaderCollapseIcon(tester, headerRow);
           check(icon).icon.equals(ZulipIcons.arrow_down);
           check(allDmsHeaderBackgroundColor(tester))
             .isNotNull().isSameColorAs(const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor());
@@ -471,7 +475,7 @@ void main() {
         ) {
           final headerRow = findAllDmsHeaderRow(tester);
           check(headerRow).isNotNull();
-          final icon = findHeaderCollapseIcon(tester, headerRow!);
+          final icon = findHeaderCollapseIcon(tester, headerRow);
           check(icon).icon.equals(ZulipIcons.arrow_right);
           check(allDmsHeaderBackgroundColor(tester))
             .isNotNull().isSameColorAs(Colors.white);
@@ -528,7 +532,7 @@ void main() {
         Future<void> tapCollapseIcon(WidgetTester tester, int streamId) async {
           final headerRow = findStreamHeaderRow(tester, streamId);
           check(headerRow).isNotNull();
-          final icon = findHeaderCollapseIcon(tester, headerRow!);
+          final icon = findHeaderCollapseIcon(tester, headerRow);
           await tester.tap(find.byWidget(icon));
           await tester.pump();
         }
@@ -546,7 +550,7 @@ void main() {
           final subscription = store.subscriptions[streamId]!;
           final headerRow = findStreamHeaderRow(tester, streamId);
           check(headerRow).isNotNull();
-          final collapseIcon = findHeaderCollapseIcon(tester, headerRow!);
+          final collapseIcon = findHeaderCollapseIcon(tester, headerRow);
           check(collapseIcon).icon.equals(ZulipIcons.arrow_down);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
           check(streamIcon).color.isNotNull().isSameColorAs(
@@ -569,7 +573,7 @@ void main() {
           final subscription = store.subscriptions[streamId]!;
           final headerRow = findStreamHeaderRow(tester, streamId);
           check(headerRow).isNotNull();
-          final collapseIcon = findHeaderCollapseIcon(tester, headerRow!);
+          final collapseIcon = findHeaderCollapseIcon(tester, headerRow);
           check(collapseIcon).icon.equals(ZulipIcons.arrow_right);
           final streamIcon = findStreamHeaderIcon(tester, streamId);
           check(streamIcon).color.isNotNull().isSameColorAs(
@@ -647,7 +651,7 @@ void main() {
           // Check that the header is present.
           check(headerRow).isNotNull();
 
-          final rectBeforeTap = tester.getRect(find.byWidget(headerRow!));
+          final rectBeforeTap = tester.getRect(find.byWidget(headerRow));
           final scrollableTop = tester.getRect(find.byType(Scrollable)).top;
           // Check that the header is somewhere in the middle of the screen.
           check(rectBeforeTap.top).isGreaterThan(scrollableTop);
@@ -656,7 +660,7 @@ void main() {
 
           final headerRowAfterTap = findStreamHeaderRow(tester, 1);
           final rectAfterTap =
-            tester.getRect(find.byWidget(headerRowAfterTap!));
+            tester.getRect(find.byWidget(headerRowAfterTap));
 
           // Check that the position of the header before and after
           // collapsing is the same.
