@@ -132,21 +132,21 @@ class ContentExample {
     "@*test-empty*",
     expectedText: '@test-empty',
     '<p><span class="user-group-mention" data-user-group-id="186">@test-empty</span></p>',
-    const UserMentionNode(nodes: [TextNode('@test-empty')], isSilent: false, userId: null));
+    const UserGroupMentionNode(nodes: [TextNode('@test-empty')], isSilent: false, userGroupId: 186));
 
   static final groupMentionSilent = ContentExample.inline(
     'silent group @-mention',
     "@_*test-empty*",
     expectedText: 'test-empty',
     '<p><span class="user-group-mention silent" data-user-group-id="186">test-empty</span></p>',
-    const UserMentionNode(nodes: [TextNode('test-empty')], isSilent: true, userId: null));
+    const UserGroupMentionNode(nodes: [TextNode('test-empty')], isSilent: true, userGroupId: 186));
 
   static final groupMentionSilentClassOrderReversed = ContentExample.inline(
     'silent group @-mention, class order reversed',
     "@_*test-empty*", // (hypothetical server variation)
     expectedText: 'test-empty',
     '<p><span class="silent user-group-mention" data-user-group-id="186">test-empty</span></p>',
-    const UserMentionNode(nodes: [TextNode('test-empty')], isSilent: true, userId: null));
+    const UserGroupMentionNode(nodes: [TextNode('test-empty')], isSilent: true, userGroupId: 186));
 
   static final channelWildcardMentionPlain = ContentExample.inline(
     'plain channel wildcard @-mention',
