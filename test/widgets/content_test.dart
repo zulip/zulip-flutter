@@ -1111,6 +1111,45 @@ void main() {
         check(find.text('@New Name')).findsNothing();
       });
     });
+
+    group('user group mention dynamic name resolution', () {
+      Future<void> prepare({
+        required WidgetTester tester,
+        required String html,
+        List<UserGroup>? userGroups,
+      }) async {
+        final initialSnapshot = eg.initialSnapshot(realmUserGroups: userGroups);
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          initialSnapshot: initialSnapshot,
+          plainContent(html));
+      }
+
+      testWidgets('resolves current user group name from store', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-group-mention" data-user-group-id="186">@old-name</span></p>',
+          userGroups: [eg.userGroup(id: 186, name: 'new-name')]);
+        check(find.text('@new-name')).findsOne();
+        check(find.text('@old-name')).findsNothing();
+      });
+
+      testWidgets('falls back to original text when user group not found', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-group-mention" data-user-group-id="999">@Unknown Group</span></p>');
+        check(find.text('@Unknown Group')).findsOne();
+      });
+
+      testWidgets('handles silent mentions correctly', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-group-mention silent" data-user-group-id="186">old-name</span></p>',
+          userGroups: [eg.userGroup(id: 186, name: 'new-name')]);
+        check(find.text('new-name')).findsOne();
+        check(find.text('@new-name')).findsNothing();
+      });
+    });
   });
 
   Future<void> tapText(WidgetTester tester, Finder textFinder) async {

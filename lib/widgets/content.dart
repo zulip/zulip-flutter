@@ -1196,13 +1196,23 @@ class Mention extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
+
     var nodes = node.nodes;
-    if (node case UserMentionNode(:final userId?)) {
-      final user = store.getUser(userId);
-      if (user case User(:final fullName)) {
-        nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
-      }
+    switch (node) {
+      case UserGroupMentionNode(:final userGroupId):
+        final userGroup = store.getGroup(userGroupId);
+        if (userGroup case UserGroup(:final name)) {
+          // TODO(#1260) Get display name for system groups using localization
+          nodes = [TextNode(node.isSilent ? name : '@$name')];
+        }
+      case UserMentionNode(:final userId?):
+        final user = store.getUser(userId);
+        if (user case User(:final fullName)) {
+          nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
+        }
+      case UserMentionNode(userId: null):
     }
+
     return Container(
       decoration: BoxDecoration(
         // TODO(#646) different for wildcard mentions
