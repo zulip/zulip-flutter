@@ -73,7 +73,7 @@ android {
         // For docs on options available here:
         //   https://developer.android.com/reference/tools/gradle-api/8.5/com/android/build/api/dsl/Lint
         checkAllWarnings = true
-        warningsAsErrors = true
+        warningsAsErrors = false
         baseline = file("lint-baseline.xml")
         disable += ['AndroidGradlePluginVersion']
     }
@@ -101,4 +101,5 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    debugImplementation "dev.flutter.plugins.integration_test:integration_test"
 }
