@@ -13,7 +13,9 @@ import 'compose_box.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'user.dart';
-
+import '../model/content_context.dart';
+import '../model/content.dart' show parseContent, BlockInlineContainerNode, InlineContentNode, ZulipContent, LinkNode, StrongNode, DeletedNode, EmphasisNode, InlineCodeNode;
+import '../widgets/content.dart' show InlineContent, ContentTheme;
 abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
   const AutocompleteField({
     super.key,
@@ -378,25 +380,148 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
 
     if (channel == null) return SizedBox.shrink();
 
+    final designVariables = DesignVariables.of(context);
+
+    Widget? buildDescription() {
+      final html = channel.renderedDescription;
+      if (html == null || html.isEmpty) return null;
+      ZulipContent parsed;
+      try {
+        parsed = parseContent(html);
+      } catch (_) {
+        return null; // If parsing fails, omit description safely.
+      }
+      // Take the first inline-capable block (typically a paragraph).
+      BlockInlineContainerNode? inlineContainer;
+      for (final node in parsed.nodes) {
+        if (node is BlockInlineContainerNode) {
+          inlineContainer = node;
+          break;
+        }
+      }
+      if (inlineContainer == null || inlineContainer.nodes.isEmpty) return null;
+
+      // Flatten links so InlineContent doesn't require linkRecognizers.
+      List<InlineContentNode> flattenLinks(List<InlineContentNode> nodes) {
+        final result = <InlineContentNode>[];
+        void visit(InlineContentNode n) {
+          switch (n) {
+            case LinkNode(:final nodes):
+              for (final c in nodes) { visit(c); }
+            case StrongNode(:final nodes):
+              result.add(StrongNode(nodes: nodes.map((e) {
+                final tmp = <InlineContentNode>[]; // holder
+                // visit into tmp then return single node if needed
+                // but StrongNode expects a list: rebuild by recursively flattening children
+                return e; // placeholder, replaced below
+              }).toList()));
+            case DeletedNode(:final nodes):
+              result.add(DeletedNode(nodes: nodes.map((e) {
+                return e;
+              }).toList()));
+            case EmphasisNode(:final nodes):
+              result.add(EmphasisNode(nodes: nodes.map((e) {
+                return e;
+              }).toList()));
+            case InlineCodeNode(:final nodes):
+              result.add(InlineCodeNode(nodes: nodes.map((e) {
+                return e;
+              }).toList()));
+            default:
+              result.add(n);
+          }
+        }
+        for (final n in nodes) { visit(n); }
+        // The above didn't actually rebuild nested containers correctly; implement properly.
+        List<InlineContentNode> rebuild(List<InlineContentNode> nodes) {
+          final out = <InlineContentNode>[];
+          for (final n in nodes) {
+            switch (n) {
+              case LinkNode(:final nodes):
+                out.addAll(rebuild(nodes));
+              case StrongNode(:final nodes):
+                out.add(StrongNode(nodes: rebuild(nodes)));
+              case DeletedNode(:final nodes):
+                out.add(DeletedNode(nodes: rebuild(nodes)));
+              case EmphasisNode(:final nodes):
+                out.add(EmphasisNode(nodes: rebuild(nodes)));
+              case InlineCodeNode(:final nodes):
+                out.add(InlineCodeNode(nodes: rebuild(nodes)));
+              default:
+                out.add(n);
+            }
+          }
+          return out;
+        }
+        return rebuild(nodes);
+      }
+
+      final inlineNodes = flattenLinks(inlineContainer.nodes);
+      return DefaultTextStyle(
+        style: TextStyle(
+          fontSize: 14,
+          height: 16 / 14,
+          color: designVariables.contextMenuItemMeta,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        child: InlineContent(
+          // Links not tappable in the dropdown preview; that's OK.
+          recognizer: null,
+          linkRecognizers: null,
+          style: ContentTheme.of(context).textStylePlainParagraph.copyWith(
+            fontSize: 14,
+            height: 16 / 14,
+            color: designVariables.contextMenuItemMeta,
+          ),
+          nodes: inlineNodes,
+        ),
+      );
+    }
+
+    final descriptionWidget = buildDescription();
+
     return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: 44),
+      constraints: const BoxConstraints(minHeight: 44),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(12, 4, 10, 4),
-        child: Row(spacing: 10, children: [
-          SizedBox.square(dimension: 24, child: Icon(iconDataForStream(channel),
-            size: 18, color: colorSwatchFor(context, store.subscriptions[channel.streamId]))),
-          Expanded(child: Text(channel.name,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 18, height: 20 / 18,
-              color: DesignVariables.of(context).contextMenuItemLabel,
-            ).merge(weightVariableTextStyle(context, wght: 600)))),
-          // TODO(#1945): show channel description
-        ])),
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 10, 4),
+        child: Row(children: [
+          SizedBox.square(
+            dimension: 24,
+            child: Icon(
+              iconDataForStream(channel),
+              size: 18,
+              color: colorSwatchFor(context, store.subscriptions[channel.streamId]),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  channel.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18,
+                    height: 20 / 18,
+                    color: designVariables.contextMenuItemLabel,
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                ),
+                if (descriptionWidget != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2.0),
+                    child: descriptionWidget,
+                  ),
+              ],
+            ),
+          ),
+        ]),
+      ),
     );
   }
 }
-
 class _EmojiAutocompleteItem extends StatelessWidget {
   const _EmojiAutocompleteItem({required this.option});
 
