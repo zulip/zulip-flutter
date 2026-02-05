@@ -422,6 +422,30 @@ void main() {
       });
     });
 
+    testWidgets('check icon present/absent as topic is resolved/unresolved', (tester) async {
+      final channel = eg.stream();
+      const topic = '✔ resolved topic';
+      final message = eg.streamMessage(stream: channel, topic: topic);
+
+      await setupPage(tester,
+        streams: [channel],
+        subscriptions: [eg.subscription(channel)],
+        unreadMessages: [message]);
+      await tester.pump();
+      check(hasIcon(tester,
+        parent: findRowByLabel(tester, 'resolved topic'),
+        icon: ZulipIcons.check)).isTrue();
+      check(find.textContaining('✔')).findsNothing();
+
+      await store.handleEvent(
+        eg.updateMessageEventMoveFrom(origMessages: [message],
+          newTopic: eg.t('unresolved topic')));
+      await tester.pump();
+      check(hasIcon(tester,
+        parent: findRowByLabel(tester, 'unresolved topic'),
+        icon: ZulipIcons.check)).isFalse();
+    });
+
     group('collapsing', () {
       Icon findHeaderCollapseIcon(WidgetTester tester, Widget headerRow) {
         return tester.widget(

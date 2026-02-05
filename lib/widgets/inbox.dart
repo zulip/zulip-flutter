@@ -537,6 +537,8 @@ class _TopicItem extends StatelessWidget {
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
       store.topicVisibilityPolicy(streamId, topic));
 
+    final unresolvedTopic = topic.unresolve();
+
     return Material(
       color: designVariables.background, // TODO(design) check if this is the right variable
       child: InkWell(
@@ -551,20 +553,32 @@ class _TopicItem extends StatelessWidget {
           someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
+            SizedBox(
+              width: 55,
+              child: Align(
+                // End-align so that the icon grows startward as the device
+                // text-size setting increases, instead of shrinking the space
+                // available for the topic text.
+                alignment: AlignmentDirectional.centerEnd,
+                child: topic.isResolved
+                  ? _IconMarker(icon: ZulipIcons.check, padEnd: false)
+                  : null)),
+            const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text(
                 style: TextStyle(
                   fontSize: 17,
                   height: (20 / 17),
-                  fontStyle: topic.displayName == null ? FontStyle.italic : null,
+                  fontStyle: unresolvedTopic.displayName == null
+                    ? FontStyle.italic
+                    : null,
                   // TODO(design) check if this is the right variable
                   color: designVariables.labelMenuButton,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                topic.displayName ?? store.realmEmptyTopicDisplayName))),
+                unresolvedTopic.displayName ?? store.realmEmptyTopicDisplayName))),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
             // TODO(design) copies the "@" marker color; is there a better color?
@@ -580,19 +594,28 @@ class _TopicItem extends StatelessWidget {
 }
 
 class _IconMarker extends StatelessWidget {
-  const _IconMarker({required this.icon});
+  const _IconMarker({required this.icon, this.padEnd = true});
 
   final IconData icon;
+  final bool padEnd;
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+    final textScaler = MediaQuery.textScalerOf(context);
     // Design for icon markers based on Figma screen:
     //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 4),
+    Widget result = Icon(
+      size: textScaler.clamp(maxScaleFactor: 1.5).scale(16),
       // This color comes from the Figma screen for the "@" marker, but not
       // the topic visibility markers.
-      child: Icon(icon, size: 14, color: designVariables.inboxItemIconMarker));
+      color: designVariables.inboxItemIconMarker,
+      icon);
+    if (padEnd) {
+      result = Padding(
+        padding: const EdgeInsetsDirectional.only(end: 4),
+        child: result);
+    }
+    return result;
   }
 }
