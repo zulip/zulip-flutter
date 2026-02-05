@@ -382,8 +382,8 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     Widget? buildDescription() {
-      final html = channel.renderedDescription;
-      if (html == null || html.isEmpty) return null;
+  final html = channel.renderedDescription;
+  if (html.isEmpty) return null;
       ZulipContent parsed;
       try {
         parsed = parseContent(html);
@@ -402,36 +402,7 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
 
       // Flatten links so InlineContent doesn't require linkRecognizers.
       List<InlineContentNode> flattenLinks(List<InlineContentNode> nodes) {
-        final result = <InlineContentNode>[];
-        void visit(InlineContentNode n) {
-          switch (n) {
-            case LinkNode(:final nodes):
-              for (final c in nodes) { visit(c); }
-            case StrongNode(:final nodes):
-              result.add(StrongNode(nodes: nodes.map((e) {
-                final tmp = <InlineContentNode>[]; // holder
-                // visit into tmp then return single node if needed
-                // but StrongNode expects a list: rebuild by recursively flattening children
-                return e; // placeholder, replaced below
-              }).toList()));
-            case DeletedNode(:final nodes):
-              result.add(DeletedNode(nodes: nodes.map((e) {
-                return e;
-              }).toList()));
-            case EmphasisNode(:final nodes):
-              result.add(EmphasisNode(nodes: nodes.map((e) {
-                return e;
-              }).toList()));
-            case InlineCodeNode(:final nodes):
-              result.add(InlineCodeNode(nodes: nodes.map((e) {
-                return e;
-              }).toList()));
-            default:
-              result.add(n);
-          }
-        }
-        for (final n in nodes) { visit(n); }
-        // The above didn't actually rebuild nested containers correctly; implement properly.
+        // Properly rebuild nested inline containers while stripping LinkNode wrappers.
         List<InlineContentNode> rebuild(List<InlineContentNode> nodes) {
           final out = <InlineContentNode>[];
           for (final n in nodes) {
