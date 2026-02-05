@@ -1077,15 +1077,30 @@ class UserMentionNode extends InlineContainerNode {
   const UserMentionNode({
     super.debugHtmlNode,
     required super.nodes,
+    required this.userId,
+    required this.isSilent,
   });
+
+  /// The ID of the user being mentioned.
+  ///
+  /// This is null for wildcard mentions, user group mentions,
+  /// or when the user ID is unavailable in the HTML (e.g., legacy mentions).
+  final int? userId;
+
+  final bool isSilent; // TODO(#647)
 
   // For the legacy design, we don't need this information in code; instead,
   // the inner text already shows how to communicate it to the user
-  // (e.g., silent mentions' text lacks a leading "@"),
   // and we show that text in the same style for all types of @-mention.
   // We'll need these for implementing the post-2023 Zulip design, though.
   //   final UserMentionType mentionType; // TODO(#646)
-  //   final bool isSilent; // TODO(#647)
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IntProperty('userId', userId));
+    properties.add(FlagProperty('isSilent', value: isSilent, ifTrue: "is silent"));
+  }
 }
 
 sealed class EmojiNode extends InlineContentNode {
@@ -1296,8 +1311,10 @@ class _ZulipInlineContentParser {
     }
 
     if (i >= classes.length) return null;
+    bool isSilent = false;
     if (classes[i] == 'silent') {
-      // A silent @-mention.  We ignore this flag; see [UserMentionNode].
+      // A silent @-mention.
+      isSilent = true;
       i++;
     }
 
@@ -1318,11 +1335,21 @@ class _ZulipInlineContentParser {
       return null;
     }
 
+    final userId = switch (element.attributes['data-user-id']) {
+      // For legacy, user group or wildcard mentions.
+      null || '*' => null,
+      final userIdString => int.tryParse(userIdString),
+    };
+
     // TODO assert UserMentionNode can't contain LinkNode;
     //   either a debug-mode check, or perhaps we can make expectations much
     //   tighter on a UserMentionNode's contents overall.
     final nodes = parseInlineContentList(element.nodes);
-    return UserMentionNode(nodes: nodes, debugHtmlNode: debugHtmlNode);
+    return UserMentionNode(
+      nodes: nodes,
+      userId: userId,
+      isSilent: isSilent,
+      debugHtmlNode: debugHtmlNode);
   }
 
   /// The links found so far in the current block inline container.

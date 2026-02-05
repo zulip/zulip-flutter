@@ -133,7 +133,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
       //   AutocompleteView.
       optionsViewBuilder: (context, _, _) {
         return Align(
-          alignment: Alignment.bottomLeft,
+          alignment: AlignmentDirectional.bottomStart,
           child: Material(
             elevation: 4.0,
             child: ConstrainedBox(
