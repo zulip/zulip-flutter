@@ -13,7 +13,6 @@ import 'compose_box.dart';
 import 'text.dart';
 import 'theme.dart';
 import 'user.dart';
-import '../model/content_context.dart';
 import '../model/content.dart' show parseContent, BlockInlineContainerNode, InlineContentNode, ZulipContent, LinkNode, StrongNode, DeletedNode, EmphasisNode, InlineCodeNode;
 import '../widgets/content.dart' show InlineContent, ContentTheme;
 abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {

@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 import '../api/core.dart' as api_core;
-import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../model/internal_link.dart' as internal;
 import '../model/store.dart' as store_model;
