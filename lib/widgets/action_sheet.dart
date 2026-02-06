@@ -47,9 +47,11 @@ void _showActionSheet(
   BuildContext pageContext, {
   Widget? header,
   bool headerScrollable = true,
+  bool shorterScrollableMaxHeight = false,
   required List<List<Widget>> buttonSections,
 }) {
   assert(header is! BottomSheetHeader || !header.outerVerticalPadding);
+  assert(headerScrollable || !shorterScrollableMaxHeight);
 
   // Could omit this if we need _showActionSheet outside a per-account context.
   final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
@@ -76,12 +78,20 @@ void _showActionSheet(
               //   Needs support for separate properties like `flex-grow`
               //   and `flex-shrink`.
               flex: 1,
-              child: InsetShadowBox(
-                top: 8, bottom: 8,
-                color: designVariables.bgContextMenu,
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: header)))
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: shorterScrollableMaxHeight
+                    // Chosen so we show "4-ish lines rather than 6-ish" in the
+                    // DM action sheet header with group participant pills:
+                    //   https://chat.zulip.org/#narrow/channel/48-mobile/topic/abbreviated.20headings/near/2371840
+                    ? 160
+                    : double.infinity),
+                child: InsetShadowBox(
+                  top: 8, bottom: 8,
+                  color: designVariables.bgContextMenu,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: header))))
           : Padding(
               padding: EdgeInsets.only(top: 16, bottom: 4),
               child: header);
@@ -1155,9 +1165,11 @@ void showDmActionSheet(BuildContext context, {required DmNarrow narrow}) {
                 ProfilePage.buildRoute(context: context, userId: userId)))).toList())
      : null);
 
+  final headerScrollable = otherRecipientIds.length > 1;
   _showActionSheet(pageContext,
     header: header,
-    headerScrollable: otherRecipientIds.length > 1,
+    headerScrollable: headerScrollable,
+    shorterScrollableMaxHeight: headerScrollable,
     buttonSections: buttonSections);
 }
 
