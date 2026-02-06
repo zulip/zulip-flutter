@@ -564,6 +564,18 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
 };
 
+const _$SubscriptionPropertyEnumMap = {
+  SubscriptionProperty.color: 'color',
+  SubscriptionProperty.isMuted: 'is_muted',
+  SubscriptionProperty.pinToTop: 'pin_to_top',
+  SubscriptionProperty.desktopNotifications: 'desktop_notifications',
+  SubscriptionProperty.audibleNotifications: 'audible_notifications',
+  SubscriptionProperty.pushNotifications: 'push_notifications',
+  SubscriptionProperty.emailNotifications: 'email_notifications',
+  SubscriptionProperty.wildcardMentionsNotify: 'wildcard_mentions_notify',
+  SubscriptionProperty.unknown: 'unknown',
+};
+
 const _$MessageFlagEnumMap = {
   MessageFlag.read: 'read',
   MessageFlag.starred: 'starred',

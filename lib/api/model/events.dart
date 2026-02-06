@@ -833,36 +833,6 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
   Map<String, dynamic> toJson() => _$SubscriptionUpdateEventToJson(this);
 }
 
-/// The name of a property in [Subscription].
-///
-/// Used in handling of [SubscriptionUpdateEvent].
-@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
-enum SubscriptionProperty {
-  /// As an int that dart:ui's Color constructor will take:
-  ///   <https://api.flutter.dev/flutter/dart-ui/Color/Color.html>
-  color,
-
-  isMuted,
-  pinToTop,
-  desktopNotifications,
-  audibleNotifications,
-  pushNotifications,
-  emailNotifications,
-  wildcardMentionsNotify,
-
-  /// A new, unrecognized property, or a deprecated one we don't use.
-  ///
-  /// Could be `in_home_view`, deprecated in FL 139 (Server 6) but still sent
-  /// as of CZO on 2025-10-03.
-  // TODO(server-future) Remove `in_home_view` comment once it stops being sent.
-  unknown;
-
-  static SubscriptionProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
-
-  static final _byRawString = _$SubscriptionPropertyEnumMap
-    .map((key, value) => MapEntry(value, key));
-}
-
 /// A [SubscriptionEvent] with op `peer_add`: https://zulip.com/api/get-events#subscription-peer_add
 @JsonSerializable(fieldRename: FieldRename.snake)
 class SubscriptionPeerAddEvent extends SubscriptionEvent {
