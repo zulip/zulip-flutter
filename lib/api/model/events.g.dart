@@ -533,7 +533,7 @@ Map<String, dynamic> _$SubscriptionUpdateEventToJson(
   'type': instance.type,
   'op': instance.op,
   'stream_id': instance.streamId,
-  'property': _$SubscriptionPropertyEnumMap[instance.property]!,
+  'property': instance.property,
   'value': instance.value,
 };
 

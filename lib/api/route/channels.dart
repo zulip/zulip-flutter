@@ -40,6 +40,21 @@ Future<void> unsubscribeFromChannel(ApiConnection connection, {
   });
 }
 
+/// https://zulip.com/api/update-subscription-settings
+Future<void> updateSubscriptionSettings(ApiConnection connection, {
+  required int streamId,
+  required SubscriptionProperty property,
+  required Object value,
+}) {
+  return connection.post('updateSubscriptionSettings', (_) {}, 'users/me/subscriptions/properties', {
+    'subscription_data': [{
+      'stream_id': streamId,
+      'property': property,
+      'value': value,
+    }],
+  });
+}
+
 /// https://zulip.com/api/get-stream-topics
 Future<GetChannelTopicsResult> getChannelTopics(ApiConnection connection, {
   required int channelId,

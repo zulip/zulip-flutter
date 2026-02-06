@@ -864,7 +864,7 @@ class Subscription extends ZulipStream {
 
 /// The name of a property in [Subscription].
 ///
-/// Used in handling of [SubscriptionUpdateEvent].
+/// Used in describing [updateSubscriptionSettings] and [SubscriptionUpdateEvent].
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum SubscriptionProperty {
   /// As an int that dart:ui's Color constructor will take:
@@ -885,6 +885,8 @@ enum SubscriptionProperty {
   /// as of CZO on 2025-10-03.
   // TODO(server-future) Remove `in_home_view` comment once it stops being sent.
   unknown;
+
+  String toJson() => _$SubscriptionPropertyEnumMap[this]!;
 
   static SubscriptionProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
