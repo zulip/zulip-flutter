@@ -1,10 +1,4 @@
 {
-  "hooks": {
-    "postEdit": {
-      "command": "flutter analyze --no-pub 2>&1 | head -20",
-      "description": "Run Flutter analyzer after edits to catch issues early"
-    }
-  },
   "permissions": {
     "allow": [
       "Bash(grep:*)",
