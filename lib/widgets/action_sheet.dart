@@ -383,6 +383,9 @@ class DraggableScrollableModalBottomSheet extends StatelessWidget {
 /// (Even if we did live-update the buttons, it's possible anyway that a user's
 /// action can race with a change that's already been applied on the server,
 /// because it takes some time for the server to report changes to us.)
+//
+// When defining button classes (subclasses of this class), try to
+// put definitions in the same order as the buttons appear in the action sheet.
 abstract class ActionSheetMenuItemButton extends StatelessWidget {
   const ActionSheetMenuItemButton({super.key, required this.pageContext});
 
