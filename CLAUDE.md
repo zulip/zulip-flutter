@@ -45,6 +45,8 @@ flutter gen-l10n
 - **`GlobalStore`** (`lib/model/store.dart`) — app-wide state (accounts, global settings). Access via `GlobalStoreWidget.of(context)`.
 - **`PerAccountStore`** (`lib/model/store.dart`) — per-account data (messages, users, channels, unreads, etc.). Uses `ChangeNotifier` for reactivity.
 
+See `.claude/data-store.md` for detailed conventions and architecture for writing state logic.
+
 ### API layer (`lib/api/`)
 
 - **`core.dart`** — `ApiConnection` HTTP client with auth, JSON handling, error handling
