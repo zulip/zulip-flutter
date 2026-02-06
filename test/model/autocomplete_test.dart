@@ -65,6 +65,8 @@ void main() {
   }
 
   group('ComposeContentController.autocompleteIntent', () {
+    final channelNarrow = ChannelNarrow(1);
+
     /// Test the given input, in a convenient format.
     ///
     /// Represent selection handles as "^". For convenience, a single "^" can
@@ -77,6 +79,7 @@ void main() {
     /// For example, "~@chris^" means the text is "@chris", the selection is
     /// collapsed at index 6, and we expect the syntax to start at index 0.
     void doTest(String markedText, ComposeAutocompleteQuery? expectedQuery, {
+      Narrow? narrow,
       int? maxChannelName,
     }) {
       final description = expectedQuery != null
@@ -85,7 +88,8 @@ void main() {
       test(description, () {
         final store = eg.store(initialSnapshot:
           eg.initialSnapshot(maxChannelNameLength: maxChannelName));
-        final controller = ComposeContentController(store: store);
+        narrow ??= channelNarrow;
+        final controller = ComposeContentController(store: store, narrow: narrow!);
         final parsed = parseMarkedText(markedText);
         assert((expectedQuery == null) == (parsed.expectedSyntaxStart == null));
         controller.value = parsed.value;
