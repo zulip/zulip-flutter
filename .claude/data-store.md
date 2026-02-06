@@ -21,7 +21,9 @@
 
 Each substore domain has its own file: `user.dart`, `channel.dart`, `message.dart`, `realm.dart`, `user_group.dart`, `emoji.dart`, `unreads.dart`, `presence.dart`, `typing_status.dart`, `topics.dart`, `recent_dm_conversations.dart`, `recent_senders.dart`, `saved_snippet.dart`.
 
-Infrastructure files: `database.dart` (Drift ORM), `binding.dart` (ZulipBinding singleton), `settings.dart`, `message_list.dart`, `narrow.dart`, `actions.dart`, `autocomplete.dart`, `server_support.dart`.
+Infrastructure files: `database.dart` (Drift ORM), `binding.dart` (ZulipBinding singleton).
+
+Other model files: `settings.dart`, `message_list.dart`, `narrow.dart`, `actions.dart`, `autocomplete.dart`, `server_support.dart`.
 
 ## 3. Substore Inheritance Hierarchy
 
@@ -39,8 +41,8 @@ This chain means a substore like `MessageStoreImpl` (which extends `HasChannelSt
 
 ## 4. API Model Types (`lib/api/model/`)
 
-- **`initial_snapshot.dart`**: `InitialSnapshot` — the full server state from `/register`. Contains users, channels, subscriptions, messages, unreads, emoji, user groups, settings, topics, etc. Uses `@JsonSerializable(fieldRename: FieldRename.snake)`.
-- **`events.dart`**: Sealed `Event` class with 20+ subtypes (`MessageEvent`, `UpdateMessageEvent`, `DeleteMessageEvent`, `RealmUserAddEvent`, etc.), each with its own `fromJson` factory.
+- **`initial_snapshot.dart`**: `InitialSnapshot` — the full server state from `/register`. Contains users, channels, subscriptions, messages, unreads, emoji, user groups, settings, topics, etc.
+- **`events.dart`**: Sealed `Event` class with 20+ subtypes (`MessageEvent`, `UpdateMessageEvent`, `DeleteMessageEvent`, `RealmUserAddEvent`, etc.), all constructed by the `Event.fromJson` factory.
 - **`model.dart`**: Core types — `User`, `Message`, `ZulipStream`, `Subscription`, `UserGroup`, etc. All constructor params are `required` (even nullable ones).
 - Other files: `reaction.dart`, `submessage.dart`, `narrow.dart`, `permission.dart`.
 
@@ -75,7 +77,7 @@ Provides builder functions for all common test fixtures: `selfUser`, `otherUser`
 
 ```
 Widget Tree (GlobalStoreWidget / PerAccountStoreWidget)
-    │  InheritedNotifier dependency injection
+    │  InheritedNotifier dependency
     ▼
 GlobalStore (ChangeNotifier)
     │  perAccount() / perAccountSync()
