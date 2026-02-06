@@ -59,6 +59,10 @@ extension ZulipStreamChecks on Subject<ZulipStream> {
   Subject<bool> get isWebPublic => has((x) => x.isWebPublic, 'isWebPublic');
 }
 
+extension SubscriptionChecks on Subject<Subscription> {
+  Subject<bool> get pinToTop => has((x) => x.pinToTop, 'pinToTop');
+}
+
 extension ChannelFolderChecks on Subject<ChannelFolder> {
   Subject<int> get id => has((x) => x.id, 'id');
   Subject<String> get name => has((x) => x.name, 'name');

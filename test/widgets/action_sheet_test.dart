@@ -630,6 +630,87 @@ void main() {
       });
     });
 
+    group('PinUnpinButton', () {
+      Future<void> tapButton(WidgetTester tester, String label) async {
+        await tester.ensureVisible(findButtonForLabel(label));
+        await tester.tap(findButtonForLabel(label));
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+      }
+
+      testWidgets('channel subscribed, not pinned', (tester) async {
+        await prepare();
+        final narrow = ChannelNarrow(someChannel.streamId);
+        check(store.subscriptions[narrow.streamId]).isNotNull()
+          .pinToTop.isFalse();
+        await showFromMsglistAppBar(tester, narrow: narrow);
+        checkButton('Pin to top');
+        checkNoButton('Unpin from top');
+      });
+
+      testWidgets('channel subscribed, pinned', (tester) async {
+        await prepare();
+        await store.removeSubscription(someChannel.streamId);
+        await store.addSubscription(eg.subscription(someChannel, pinToTop: true));
+        final narrow = ChannelNarrow(someChannel.streamId);
+        check(store.subscriptions[narrow.streamId]).isNotNull()
+          .pinToTop.isTrue();
+        await showFromMsglistAppBar(tester, narrow: narrow);
+        checkNoButton('Pin to top');
+        checkButton('Unpin from top');
+      });
+
+      testWidgets('channel not subscribed', (tester) async {
+        await prepare();
+        final narrow = ChannelNarrow(someChannel.streamId);
+        await store.removeSubscription(narrow.streamId);
+        await showFromMsglistAppBar(tester, narrow: narrow);
+        checkNoButton('Pin to top');
+        checkNoButton('Unpin from top');
+      });
+
+      testWidgets('smoke: pin', (tester) async {
+        await prepare();
+        final narrow = ChannelNarrow(someChannel.streamId);
+        await showFromMsglistAppBar(tester, narrow: narrow);
+
+        connection.prepare(json: {});
+        await tapButton(tester, 'Pin to top');
+        await tester.pump(Duration.zero);
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/users/me/subscriptions/properties')
+          ..bodyFields.deepEquals({
+            'subscription_data': jsonEncode([{
+              'stream_id': someChannel.streamId,
+              'property': 'pin_to_top',
+              'value': true,
+            }]),
+          });
+      });
+
+      testWidgets('smoke: unpin', (tester) async {
+        await prepare();
+        await store.removeSubscription(someChannel.streamId);
+        await store.addSubscription(eg.subscription(someChannel, pinToTop: true));
+        final narrow = ChannelNarrow(someChannel.streamId);
+        await showFromMsglistAppBar(tester, narrow: narrow);
+
+        connection.prepare(json: {});
+        await tapButton(tester, 'Unpin from top');
+        await tester.pump(Duration.zero);
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/users/me/subscriptions/properties')
+          ..bodyFields.deepEquals({
+            'subscription_data': jsonEncode([{
+              'stream_id': someChannel.streamId,
+              'property': 'pin_to_top',
+              'value': false,
+            }]),
+          });
+      });
+    });
+
     group('UnsubscribeButton', () {
       Future<void> tapButton(WidgetTester tester) async {
         await tester.ensureVisible(findButtonForLabel('Unsubscribe'));

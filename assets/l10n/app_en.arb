@@ -155,6 +155,22 @@
   "@unsubscribeFailedTitle": {
     "description": "Error title when unsubscribing from a channel failed."
   },
+  "actionSheetOptionPinChannel": "Pin to top",
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
+  "actionSheetOptionUnpinChannel": "Unpin from top",
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
+  },
+  "errorPinChannelFailedTitle": "Failed to pin channel",
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
+  "errorUnpinChannelFailedTitle": "Failed to unpin channel",
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
+  },
   "actionSheetOptionMuteTopic": "Mute topic",
   "@actionSheetOptionMuteTopic":  {
     "description": "Label for muting a topic on action sheet."

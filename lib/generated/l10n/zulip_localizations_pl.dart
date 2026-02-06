@@ -136,6 +136,18 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Odsubskrybowanie bez powdzenia';
 
   @override
+  String get actionSheetOptionPinChannel => 'Pin to top';
+
+  @override
+  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+
+  @override
+  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+
+  @override
+  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+
+  @override
   String get actionSheetOptionMuteTopic => 'Wycisz wątek';
 
   @override

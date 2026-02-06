@@ -504,6 +504,7 @@ void showChannelActionSheet(BuildContext context, {
         && channel != null && store.selfHasContentAccess(channel))
       [SubscribeButton(pageContext: pageContext, channelId: channelId)],
     [
+      // This section has frequent actions, with only short-term effects.
       if (unreadCount > 0)
         MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId),
       if (showTopicListButton)
@@ -511,6 +512,14 @@ void showChannelActionSheet(BuildContext context, {
       if (!isOnChannelFeed)
         ChannelFeedButton(pageContext: pageContext, channelId: channelId),
       CopyChannelLinkButton(channelId: channelId, pageContext: pageContext)
+    ],
+    [
+      // This section has settings for the channel or subscription.
+      if (isSubscribed)
+        PinUnpinButton(pageContext: pageContext, channelId: channelId,
+          isPinned: channel.pinToTop),
+      // (It's harmless that this section can be empty; in that case
+      // it ends up rendering to nothing.)
     ],
     if (isSubscribed)
       [UnsubscribeButton(pageContext: pageContext, channelId: channelId)],
@@ -653,6 +662,57 @@ class CopyChannelLinkButton extends ActionSheetMenuItemButton {
     PlatformActions.copyWithPopup(context: pageContext,
       successContent: Text(zulipLocalizations.successChannelLinkCopied),
       data: ClipboardData(text: narrowLink(store, ChannelNarrow(channelId)).toString()));
+  }
+}
+
+class PinUnpinButton extends ActionSheetMenuItemButton {
+  const PinUnpinButton({
+    super.key,
+    required this.channelId,
+    required this.isPinned,
+    required super.pageContext,
+  });
+
+  final int channelId;
+  final bool isPinned;
+
+  @override
+  IconData get icon => isPinned ? ZulipIcons.pin_remove : ZulipIcons.pin;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return isPinned
+      ? zulipLocalizations.actionSheetOptionUnpinChannel
+      : zulipLocalizations.actionSheetOptionPinChannel;
+  }
+
+  @override
+  void onPressed() async {
+    try {
+      await updateSubscriptionSettings(
+        PerAccountStoreWidget.of(pageContext).connection,
+        streamId: channelId,
+        property: SubscriptionProperty.pinToTop,
+        value: !isPinned);
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final zulipLocalizations = ZulipLocalizations.of(pageContext);
+      showErrorDialog(context: pageContext,
+        title: isPinned
+          ? zulipLocalizations.errorUnpinChannelFailedTitle
+          : zulipLocalizations.errorPinChannelFailedTitle,
+        message: errorMessage);
+    }
   }
 }
 
