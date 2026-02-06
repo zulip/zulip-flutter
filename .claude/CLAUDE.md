@@ -9,15 +9,6 @@ Zulip Flutter — the official Zulip mobile app for Android and iOS, built with 
 ## Common commands
 
 ```bash
-# Run all test suites (only changed files vs upstream main)
-tools/check
-
-# Run all test suites on all files
-tools/check --all
-
-# Run specific suite(s)
-tools/check analyze test
-
 # Run unit tests
 flutter test
 
@@ -30,8 +21,11 @@ flutter test test/foo/bar_test.dart --name 'some test name'
 # Static analysis (type-checking + linting)
 flutter analyze
 
+# Run all test suites (only changed files vs upstream main)
+tools/check
+
 # Regenerate JSON serialization code after editing API types
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 
 # Regenerate i18n after editing assets/l10n/app_en.arb
 flutter gen-l10n
@@ -67,7 +61,7 @@ Uses Pigeon for type-safe platform channels (Android intents, notifications).
 
 - **All API type constructor params are `required`**, even nullable ones — no default values. Use `test/example_data.dart` for test defaults.
 - **Server compatibility**: minimum Zulip Server 7.0 (feature level 185). Use `TODO(server-N)` comments for newer features.
-- **Tests use `package:checks`** (not `expect`/`matcher`). See the migration guide if translating example code.
+- **Tests use `package:checks`** (not `expect`/`matcher`).
 - **No `dart format`** — follow existing code style manually. Auto-format is disabled in VS Code settings.
 - **Prefer relative imports** within the package.
 - **Strict analysis**: strict-inference, strict-raw-types, strict-casts are all enabled.
@@ -85,7 +79,7 @@ New UI strings go in `assets/l10n/app_en.arb`. Output class is `ZulipLocalizatio
 
 ### Database
 
-Uses Drift ORM with SQLite. Schema changes require running `tools/check drift` to update versioned schema files and migration helpers.
+Uses Drift ORM with SQLite. Schema changes require running `tools/check --fix drift` to update versioned schema files and migration helpers.
 
 ### Design
 
