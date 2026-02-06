@@ -232,7 +232,7 @@ run_flutter_version() {
 
     local flutter_tree flutter_git
     flutter_tree=$(flutter_tree)
-    flutter_git=( git --git-dir="${flutter_tree}"/.git )
+    flutter_git=( git -C "${flutter_tree}" )
 
     # Parse our Flutter version spec and its commit-ID comment.
     local parsed flutter_version flutter_commit
@@ -484,11 +484,11 @@ EOF
 }
 
 describe_git_head() {
-    local name="$1" repo_path="$2"
+    local name="$1" worktree_path="$2"
     local commit_data
     commit_data=$(
         TZ=UTC \
-        git --git-dir "${repo_path}" \
+        git -C "${worktree_path}" \
             log -1 --format="%h • %cd" \
             --abbrev=9 --date=iso8601-local
     )
@@ -500,12 +500,12 @@ print_header() {
 
     echo "Time now: $(date --utc +'%F %T %z')"
 
-    describe_git_head "zulip-flutter" .git/
+    describe_git_head "zulip-flutter" .
 
     # We avoid `flutter --version` because, weirdly, when run in a
     # GitHub Actions step it takes about 30 seconds.  (The first time;
     # it's fast subsequent times.)  That's even after `flutter precache`.
-    describe_git_head "flutter/flutter" "$(flutter_tree)"/.git
+    describe_git_head "flutter/flutter" "$(flutter_tree)"
 
     dart --version
 }
