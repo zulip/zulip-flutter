@@ -2,8 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(grep:*)",
-      "Bash(flutter test:*)",
-      "Bash(head:*)"
+      "Bash(ls:*)",
+      "Bash(head:*)",
+      "Bash(tools/icons/build-icon-font:*)",
+      "Bash(flutter gen-l10n:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter test:*)"
     ]
   }
 }
