@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(flutter test:*)",
+      "Bash(head:*)"
+    ]
+  }
+}
