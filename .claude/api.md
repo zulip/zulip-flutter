@@ -83,3 +83,4 @@ Check extensions for result types go in `route_checks.dart`.
 - Minimum supported server is Zulip Server 7.0 (feature level 185)
 - Use `TODO(server-N)` comments for version-gated code paths
 - Generated files (`.g.dart`) must be kept up to date via `build_runner`
+- When interpreting data from the server, prefer checking what's in the data rather than explicit version checks. For example, if a field isn't present that new servers always send, interpret the data accordingly (the server is too old to have that field) rather than checking the server version explicitly. Explicit version checks are very rarely needed on the response-handling side.
