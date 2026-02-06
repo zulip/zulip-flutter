@@ -20,6 +20,8 @@ Each route binding follows a consistent pattern:
    }) {
    ```
 
+   The function name exactly matches the slug in the API docs URL, converted to camel case.
+
 2. **Doc comment** with a link to the Zulip API docs: `/// https://zulip.com/api/create-saved-snippet`
 
 3. **Calls `connection.get`/`.post`/`.patch`/`.delete`** with:
@@ -28,7 +30,7 @@ Each route binding follows a consistent pattern:
    - The URL path (relative to `/api/v1/`)
    - A `Map<String, dynamic>?` of parameters
 
-4. **Parameters are encoded** via `encodeParameters()`: values are JSON-encoded unless wrapped in `RawParameter(...)`, which passes the string through as-is. String parameters that shouldn't be double-quoted use `RawParameter`. Optional params are included conditionally with `if (x != null)`.
+4. **Parameter encoding**: values are automatically JSON-encoded (via `encodeParameters()`) unless wrapped in `RawParameter(...)`, which passes the string through as-is. String parameters that shouldn't be double-quoted use `RawParameter`. Optional params are included conditionally with `if (x != null)`.
 
 5. **Server version compat**: Use `connection.zulipFeatureLevel!` to check feature levels and adapt the request (e.g., different param names for old vs new servers). Mark these with `// TODO(server-N)` comments.
 
