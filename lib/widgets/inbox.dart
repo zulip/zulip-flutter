@@ -22,12 +22,24 @@ class InboxPageBody extends StatefulWidget {
   State<InboxPageBody> createState() => _InboxPageState();
 }
 
-class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> {
+
+/// The interface for the state of an [InboxPageBody].
+abstract class InboxPageState extends State<InboxPageBody> {
+  bool get allDmsCollapsed;
+  set allDmsCollapsed(bool value);
+
+  void collapseStream(int streamId);
+  void uncollapseStream(int streamId);
+}
+
+class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> implements InboxPageState{
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
+  @override
   bool get allDmsCollapsed => _allDmsCollapsed;
   bool _allDmsCollapsed = false;
+  @override
   set allDmsCollapsed(bool value) {
     setState(() {
       _allDmsCollapsed = value;
@@ -36,11 +48,13 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
   Set<int> get collapsedStreamIds => _collapsedStreamIds;
   final Set<int> _collapsedStreamIds = {};
+  @override
   void collapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.add(streamId);
     });
   }
+  @override
   void uncollapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.remove(streamId);
@@ -226,7 +240,7 @@ class _StreamSectionTopicData {
 
 abstract class _HeaderItem extends StatelessWidget {
   final bool collapsed;
-  final _InboxPageState pageState;
+  final InboxPageState pageState;
   final int count;
   final bool hasMention;
 
@@ -238,6 +252,7 @@ abstract class _HeaderItem extends StatelessWidget {
   final BuildContext sectionContext;
 
   const _HeaderItem({
+    super.key,
     required this.collapsed,
     required this.pageState,
     required this.count,
@@ -321,8 +336,10 @@ abstract class _HeaderItem extends StatelessWidget {
   }
 }
 
-class _AllDmsHeaderItem extends _HeaderItem {
-  const _AllDmsHeaderItem({
+@visibleForTesting
+class InboxAllDmsHeaderItem extends _HeaderItem {
+  const InboxAllDmsHeaderItem({
+    super.key,
     required super.collapsed,
     required super.pageState,
     required super.count,
@@ -361,7 +378,7 @@ class _AllDmsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final header = _AllDmsHeaderItem(
+    final header = InboxAllDmsHeaderItem(
       count: data.count,
       hasMention: data.hasMention,
       collapsed: collapsed,
@@ -454,10 +471,12 @@ mixin _LongPressable on _HeaderItem {
   Future<void> onLongPress();
 }
 
-class _StreamHeaderItem extends _HeaderItem with _LongPressable {
+@visibleForTesting
+class InboxChannelHeaderItem extends _HeaderItem with _LongPressable {
   final Subscription subscription;
 
-  const _StreamHeaderItem({
+  const InboxChannelHeaderItem({
+    super.key,
     required this.subscription,
     required super.collapsed,
     required super.pageState,
@@ -507,7 +526,7 @@ class _StreamSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subscription = PerAccountStoreWidget.of(context).subscriptions[data.streamId]!;
-    final header = _StreamHeaderItem(
+    final header = InboxChannelHeaderItem(
       subscription: subscription,
       count: data.count,
       hasMention: data.hasMention,
