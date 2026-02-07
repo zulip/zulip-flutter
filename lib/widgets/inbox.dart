@@ -149,7 +149,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
-      final topicItems = <_StreamSectionTopicData>[];
+      final topicItems = <InboxChannelSectionTopicData>[];
       int countInStream = 0;
       bool streamHasMention = false;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
@@ -157,7 +157,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final countInTopic = messageIds.length;
         final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
         if (hasMention) streamHasMention = true;
-        topicItems.add(_StreamSectionTopicData(
+        topicItems.add(InboxChannelSectionTopicData(
           topic: topic,
           count: countInTopic,
           hasMention: hasMention,
@@ -219,18 +219,19 @@ class _StreamSectionData extends _InboxSectionData {
   final int streamId;
   final int count;
   final bool hasMention;
-  final List<_StreamSectionTopicData> items;
+  final List<InboxChannelSectionTopicData> items;
 
   const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
 }
 
-class _StreamSectionTopicData {
+@visibleForTesting
+class InboxChannelSectionTopicData {
   final TopicName topic;
   final int count;
   final bool hasMention;
   final int lastUnreadId;
 
-  const _StreamSectionTopicData({
+  const InboxChannelSectionTopicData({
     required this.topic,
     required this.count,
     required this.hasMention,
@@ -391,7 +392,7 @@ class _AllDmsSection extends StatelessWidget {
         header,
         if (!collapsed) ...data.items.map((item) {
           final (narrow, count, hasMention) = item;
-          return _DmItem(
+          return InboxDmItem(
             narrow: narrow,
             count: count,
             hasMention: hasMention,
@@ -401,8 +402,10 @@ class _AllDmsSection extends StatelessWidget {
   }
 }
 
-class _DmItem extends StatelessWidget {
-  const _DmItem({
+@visibleForTesting
+class InboxDmItem extends StatelessWidget {
+  const InboxDmItem({
+    super.key,
     required this.narrow,
     required this.count,
     required this.hasMention,
@@ -539,21 +542,26 @@ class _StreamSection extends StatelessWidget {
       child: Column(children: [
         header,
         if (!collapsed) ...data.items.map((item) {
-          return _TopicItem(streamId: data.streamId, data: item);
+          return InboxTopicItem(streamId: data.streamId, data: item);
         }),
       ]));
   }
 }
 
-class _TopicItem extends StatelessWidget {
-  const _TopicItem({required this.streamId, required this.data});
+@visibleForTesting
+class InboxTopicItem extends StatelessWidget {
+  const InboxTopicItem({
+    super.key,
+    required this.streamId,
+    required this.data,
+  });
 
   final int streamId;
-  final _StreamSectionTopicData data;
+  final InboxChannelSectionTopicData data;
 
   @override
   Widget build(BuildContext context) {
-    final _StreamSectionTopicData(
+    final InboxChannelSectionTopicData(
       :topic, :count, :hasMention, :lastUnreadId) = data;
 
     final store = PerAccountStoreWidget.of(context);
