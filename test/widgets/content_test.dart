@@ -980,7 +980,7 @@ void main() {
     });
   });
 
-  group('UserMention', () {
+  group('Mention', () {
     testContentSmoke(ContentExample.userMentionPlain,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.userMentionSilent,
@@ -1008,10 +1008,10 @@ void main() {
     testContentSmoke(ContentExample.topicMentionSilentClassOrderReversed,
       wrapWithPerAccountStoreWidget: true);
 
-    UserMention? findUserMentionInSpan(InlineSpan rootSpan) {
-      UserMention? result;
+    Mention? findMentionInSpan(InlineSpan rootSpan) {
+      Mention? result;
       rootSpan.visitChildren((span) {
-        if (span case (WidgetSpan(child: UserMention() && var widget))) {
+        if (span case (WidgetSpan(child: Mention() && var widget))) {
           result = widget;
           return false;
         }
@@ -1020,7 +1020,7 @@ void main() {
       return result;
     }
 
-    TextStyle textStyleFromWidget(WidgetTester tester, UserMention widget, String mentionText) {
+    TextStyle textStyleFromWidget(WidgetTester tester, Mention widget, String mentionText) {
       return mergedStyleOf(tester,
         findAncestor: find.byWidget(widget), mentionText)!;
     }
@@ -1030,7 +1030,7 @@ void main() {
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
         wrapWithPerAccountStoreWidget: true,
         targetFontSizeFinder: (rootSpan) {
-          final widget = findUserMentionInSpan(rootSpan);
+          final widget = findMentionInSpan(rootSpan);
           final style = textStyleFromWidget(tester, widget!, '@Chris Bobbe');
           return style.fontSize!;
         });
@@ -1044,7 +1044,7 @@ void main() {
       wrapWithPerAccountStoreWidget: true,
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(UserMention)), 'Greg Price');
+          tester.widget(find.byType(Mention)), 'Greg Price');
       });
 
     // TODO(#647):
@@ -1059,14 +1059,14 @@ void main() {
       wrapWithPerAccountStoreWidget: true,
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(UserMention)), 'Chris Bobbe');
+          tester.widget(find.byType(Mention)), 'Chris Bobbe');
       });
 
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
     //    expectedWght: 800, // [etc.]
 
-    group('dynamic name resolution', () {
+    group('user mention dynamic name resolution', () {
       Future<void> prepare({
         required WidgetTester tester,
         required String html,
