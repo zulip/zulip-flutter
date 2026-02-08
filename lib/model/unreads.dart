@@ -440,6 +440,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
         return;
 
       case MessageFlag.mentioned:
+      case MessageFlag.topicWildcardMentioned:
+      case MessageFlag.streamWildcardMentioned:
       case MessageFlag.wildcardMentioned:
         // Empirically, we don't seem to get these events when a message is edited
         // to add/remove an @-mention, even though @-mention state is represented

@@ -138,20 +138,20 @@ void main() {
           eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
           eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'b', unreadMessageIds: [3, 4]),
           eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'b', unreadMessageIds: [5, 6]),
-          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'c', unreadMessageIds: [7, 8]),
+          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'c', unreadMessageIds: [7, 8, 9, 10]),
 
           // TODO(server-10) drop this (see implementation)
-          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'C', unreadMessageIds: [9, 10]),
+          eg.unreadChannelMsgs(streamId: stream2.streamId, topic: 'C', unreadMessageIds: [11, 12]),
         ],
         dms: [
-          UnreadDmSnapshot(otherUserId: 1, unreadMessageIds: [11, 12]),
-          UnreadDmSnapshot(otherUserId: 2, unreadMessageIds: [13, 14]),
+          UnreadDmSnapshot(otherUserId: 1, unreadMessageIds: [13, 14]),
+          UnreadDmSnapshot(otherUserId: 2, unreadMessageIds: [15, 16]),
         ],
         huddles: [
-          UnreadHuddleSnapshot(userIdsString: '1,2,${eg.selfUser.userId}', unreadMessageIds: [15, 16]),
-          UnreadHuddleSnapshot(userIdsString: '2,3,${eg.selfUser.userId}', unreadMessageIds: [17, 18]),
+          UnreadHuddleSnapshot(userIdsString: '1,2,${eg.selfUser.userId}', unreadMessageIds: [17, 18]),
+          UnreadHuddleSnapshot(userIdsString: '2,3,${eg.selfUser.userId}', unreadMessageIds: [19, 20, 21]),
         ],
-        mentions: [6, 14, 18],
+        mentions: [6, 9, 10, 16, 20, 21],
         oldUnreadsMissing: false,
       ));
       checkMatchesMessages([
@@ -163,16 +163,21 @@ void main() {
         eg.streamMessage(id: 6, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned]),
         eg.streamMessage(id: 7, stream: stream2, topic: 'c', flags: []),
         eg.streamMessage(id: 8, stream: stream2, topic: 'c', flags: []),
-        eg.streamMessage(id: 9, stream: stream2, topic: 'C', flags: []),
-        eg.streamMessage(id: 10, stream: stream2, topic: 'C', flags: []),
-        eg.dmMessage(id: 11,  from: user1, to: [eg.selfUser], flags: []),
-        eg.dmMessage(id: 12, from: user1, to: [eg.selfUser], flags: []),
-        eg.dmMessage(id: 13, from: user2, to: [eg.selfUser], flags: []),
-        eg.dmMessage(id: 14, from: user2, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
-        eg.dmMessage(id: 15, from: user1, to: [user2, eg.selfUser], flags: []),
-        eg.dmMessage(id: 16, from: user1, to: [user2, eg.selfUser], flags: []),
-        eg.dmMessage(id: 17, from: user2, to: [user3, eg.selfUser], flags: []),
-        eg.dmMessage(id: 18, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
+        eg.streamMessage(id: 9, stream: stream2, topic: 'c', flags: [MessageFlag.topicWildcardMentioned]),
+        eg.streamMessage(id: 10, stream: stream2, topic: 'c', flags: [MessageFlag.streamWildcardMentioned]),
+        eg.streamMessage(id: 11, stream: stream2, topic: 'C', flags: []),
+        eg.streamMessage(id: 12, stream: stream2, topic: 'C', flags: []),
+        eg.dmMessage(id: 13,  from: user1, to: [eg.selfUser], flags: []),
+        eg.dmMessage(id: 14, from: user1, to: [eg.selfUser], flags: []),
+        eg.dmMessage(id: 15, from: user2, to: [eg.selfUser], flags: []),
+        eg.dmMessage(id: 16, from: user2, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+        eg.dmMessage(id: 17, from: user1, to: [user2, eg.selfUser], flags: []),
+        eg.dmMessage(id: 18, from: user1, to: [user2, eg.selfUser], flags: []),
+        eg.dmMessage(id: 19, from: user2, to: [user3, eg.selfUser], flags: []),
+        // Writing @all or @everyone in DM counts as stream wildcard mention.
+        // The server does not check whether the message is sent in a channel(stream) or a DM.
+        eg.dmMessage(id: 20, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
+        eg.dmMessage(id: 21, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
       ]);
     });
   });
@@ -256,11 +261,14 @@ void main() {
         fillWithMessages([
           eg.streamMessage(stream: stream, flags: []),
           eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: stream, flags: [MessageFlag.topicWildcardMentioned]),
+          eg.streamMessage(stream: stream, flags: [MessageFlag.streamWildcardMentioned]),
           eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
         ]);
-        check(model.countInMentionsNarrow()).equals(4);
+        check(model.countInMentionsNarrow()).equals(7);
       });
 
       test('excludes unreads in muted DM conversations', () async {
@@ -388,20 +396,26 @@ void main() {
       bool isUnread,
       bool isStream,
       bool isDirectMentioned,
-      bool isWildcardMentioned,
+      bool isTopicWildcardMentioned,
+      bool isStreamWildcardMentioned,
+      bool isWildcardMentioned, // TODO(server-8) Remove boolean of deprecated flag.
     ) {
       final description = [
         isUnread ? 'unread' : 'read',
         isStream ? 'stream' : 'dm',
         isDirectMentioned ? 'direct mentioned' : 'not direct mentioned',
+        isTopicWildcardMentioned ? 'topic wildcard mentioned' : 'not topic wildcard mentioned',
+        isStreamWildcardMentioned ? 'stream wildcard mentioned' : 'not stream wildcard mentioned',
         isWildcardMentioned ? 'wildcard mentioned' : 'not wildcard mentioned',
       ].join(' / ');
       test(description, () {
         prepare();
         final flags = [
-          if (!isUnread)           MessageFlag.read,
-          if (isDirectMentioned)   MessageFlag.mentioned,
-          if (isWildcardMentioned) MessageFlag.wildcardMentioned,
+          if (!isUnread)                 MessageFlag.read,
+          if (isDirectMentioned)         MessageFlag.mentioned,
+          if (isTopicWildcardMentioned)  MessageFlag.topicWildcardMentioned,
+          if (isStreamWildcardMentioned) MessageFlag.streamWildcardMentioned,
+          if (isWildcardMentioned)       MessageFlag.wildcardMentioned,
         ];
         final Message message = isStream
           ? eg.streamMessage(flags: flags)
@@ -417,12 +431,18 @@ void main() {
     for (final isUnread in [true, false]) {
       for (final isStream in [true, false]) {
         for (final isDirectMentioned in [true, false]) {
-          for (final isWildcardMentioned in [true, false]) {
-            testFlagCombination(
-              isUnread,
-              isStream,
-              isDirectMentioned,
-              isWildcardMentioned);
+          for (final isTopicWildcardMentioned in [true, false]) {
+            for (final isStreamWildcardMentioned in [true, false]) {
+              for (final isWildcardMentioned in [true, false]) {
+                testFlagCombination(
+                  isUnread,
+                  isStream,
+                  isDirectMentioned,
+                  isTopicWildcardMentioned,
+                  isStreamWildcardMentioned,
+                  isWildcardMentioned);
+              }
+            }
           }
         }
       }
@@ -535,7 +555,10 @@ void main() {
               for (final List<MessageFlag> newFlags in [
                 [...baseFlags, MessageFlag.mentioned],
                 [...baseFlags, MessageFlag.mentioned, MessageFlag.wildcardMentioned],
+                [...baseFlags, MessageFlag.topicWildcardMentioned],
+                [...baseFlags, MessageFlag.streamWildcardMentioned],
                 [...baseFlags, MessageFlag.wildcardMentioned],
+                [...baseFlags, MessageFlag.topicWildcardMentioned, MessageFlag.streamWildcardMentioned],
                 [...baseFlags, ],
                 [...baseFlags, MessageFlag.wildcardMentioned],
               ]) {
@@ -936,6 +959,8 @@ void main() {
         MessageFlag.historical => true,
         MessageFlag.unknown => true,
         MessageFlag.mentioned => false,
+        MessageFlag.topicWildcardMentioned => false,
+        MessageFlag.streamWildcardMentioned => false,
         MessageFlag.wildcardMentioned => false,
         MessageFlag.read => false,
       });
@@ -1001,7 +1026,12 @@ void main() {
       });
     }
 
-    for (final mentionFlag in [MessageFlag.mentioned, MessageFlag.wildcardMentioned]) {
+    for (final mentionFlag in [
+      MessageFlag.mentioned,
+      MessageFlag.topicWildcardMentioned,
+      MessageFlag.streamWildcardMentioned,
+      MessageFlag.wildcardMentioned
+    ]) {
       // For a read message in this test, the message won't appear in the model.
       // That case is indistinguishable from an unread that's unknown to
       // the model, so we get coverage for that case too.
@@ -1078,14 +1108,18 @@ void main() {
     //   test should checkNotNotified)
 
     test('mark all as read', () {
-      final message1 = eg.streamMessage(id: 1, flags: []);
-      final message2 = eg.streamMessage(id: 2, flags: [MessageFlag.mentioned]);
-      final message3 = eg.dmMessage(id: 3, from: eg.otherUser, to: [eg.selfUser], flags: []);
-      final message4 = eg.dmMessage(id: 4, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]);
-      final messages = <Message>[message1, message2, message3, message4];
+      final List<Message> messages = [
+        eg.streamMessage(id: 1, flags: []),
+        eg.streamMessage(id: 2, flags: [MessageFlag.mentioned]),
+        eg.streamMessage(id: 3, flags: [MessageFlag.topicWildcardMentioned]),
+        eg.streamMessage(id: 4, flags: [MessageFlag.streamWildcardMentioned]),
+        eg.dmMessage(id: 5, from: eg.otherUser, to: [eg.selfUser], flags: []),
+        eg.dmMessage(id: 6, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
+        eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
+      ];
 
       prepare();
-      fillWithMessages([message1, message2, message3, message4]);
+      fillWithMessages(messages);
 
       // Might as well test with oldUnreadsMissing: true.
       //
