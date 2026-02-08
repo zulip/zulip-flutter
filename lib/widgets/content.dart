@@ -1098,7 +1098,7 @@ class _InlineContentBuilder {
 
       case UserMentionNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: UserMention(ambientTextStyle: widget.style, node: node));
+          child: Mention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
@@ -1182,8 +1182,8 @@ class _InlineContentBuilder {
 
 const kInlineCodeFontSizeFactor = 0.825;
 
-class UserMention extends StatelessWidget {
-  const UserMention({
+class Mention extends StatelessWidget {
+  const Mention({
     super.key,
     required this.ambientTextStyle,
     required this.node,
@@ -1217,8 +1217,7 @@ class UserMention extends StatelessWidget {
         linkRecognizers: null,
 
         // TODO(#647) when self-user is non-silently mentioned, make bold, and:
-        // TODO(#646) when self-user is non-silently mentioned,
-        //   distinguish font color between direct and wildcard mentions
+        // TODO(#646) distinguish font color between direct and wildcard mentions
         style: ambientTextStyle,
 
         nodes: nodes));
