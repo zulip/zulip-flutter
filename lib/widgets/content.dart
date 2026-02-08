@@ -1096,7 +1096,7 @@ class _InlineContentBuilder {
       case InlineCodeNode():
         return _buildInlineCode(node);
 
-      case UserMentionNode():
+      case MentionNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: UserMention(ambientTextStyle: widget.style, node: node));
 
@@ -1190,14 +1190,14 @@ class UserMention extends StatelessWidget {
   });
 
   final TextStyle ambientTextStyle;
-  final UserMentionNode node;
+  final MentionNode node;
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
     var nodes = node.nodes;
-    if (node.userId case final userId?) {
+    if (node case UserMentionNode(:final userId?)) {
       final user = store.getUser(userId);
       if (user case User(:final fullName)) {
         nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
@@ -1213,7 +1213,7 @@ class UserMention extends StatelessWidget {
         // If an @-mention is inside a link, let the @-mention override it.
         recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
         // One hopes an @-mention can't contain an embedded link.
-        // (The parser on creating a UserMentionNode has a TODO to check that.)
+        // (The parser on creating a MentionNode has a TODO to check that.)
         linkRecognizers: null,
 
         // TODO(#647) when self-user is non-silently mentioned, make bold, and:
