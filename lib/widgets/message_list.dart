@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/content.dart';
 import '../model/database.dart';
 import '../model/message.dart';
 import '../model/message_list.dart';
@@ -1733,13 +1734,87 @@ class MessageItem extends StatelessWidget {
   final Widget header;
   final bool isLastInFeed;
 
+  bool _containsSelfGroupMention(Message message, PerAccountStore store) {
+    // Parse the message content to check for UserGroupMentionNodes
+    final content = parseContent(message.content);
+    bool hasSelfGroupMention = false;
+
+    void checkInlineNode(InlineContentNode node) {
+      if (node case UserGroupMentionNode(:final userGroupId)) {
+        final userGroup = store.getGroup(userGroupId);
+        if (userGroup?.members.contains(store.selfUserId) ?? false) {
+          hasSelfGroupMention = true;
+        }
+      } else if (node case LinkNode(:final nodes)) {
+        for (final child in nodes) {
+          checkInlineNode(child);
+          if (hasSelfGroupMention) break;
+        }
+      } else if (node case StrongNode(:final nodes)) {
+        for (final child in nodes) {
+          checkInlineNode(child);
+          if (hasSelfGroupMention) break;
+        }
+      } else if (node case EmphasisNode(:final nodes)) {
+        for (final child in nodes) {
+          checkInlineNode(child);
+          if (hasSelfGroupMention) break;
+        }
+      }
+    }
+
+    void checkBlockNode(BlockContentNode node) {
+      if (node is BlockInlineContainerNode) {
+        for (final inlineNode in node.nodes) {
+          checkInlineNode(inlineNode);
+          if (hasSelfGroupMention) break;
+        }
+      } else if (node is ListNode) {
+        for (final item in node.items) {
+          for (final child in item) {
+            checkBlockNode(child);
+            if (hasSelfGroupMention) break;
+          }
+          if (hasSelfGroupMention) break;
+        }
+      } else if (node is QuotationNode) {
+        for (final child in node.nodes) {
+          checkBlockNode(child);
+          if (hasSelfGroupMention) break;
+        }
+      }
+    }
+
+    for (final node in content.nodes) {
+      checkBlockNode(node);
+      if (hasSelfGroupMention) break;
+    }
+
+    return hasSelfGroupMention;
+  }
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-
     final item = this.item;
+
+    // Determine background color based on message flags
+    Color backgroundColor = designVariables.bgMessageRegular;
+    if (item case MessageListMessageItem(:final message)) {
+      if (message.flags.contains(MessageFlag.mentioned)) {
+        // Check if this is a group mention
+        final store = PerAccountStoreWidget.of(context);
+        if (_containsSelfGroupMention(message, store)) {
+          backgroundColor = designVariables.bgSelfGroupMention;
+        } else {
+          backgroundColor = designVariables.bgSelfDirectMention;
+        }
+      }
+      // TODO(#646): Handle wildcard mentions when that issue is resolved
+    }
+
     Widget child = ColoredBox(
-      color: designVariables.bgMessageRegular,
+      color: backgroundColor,
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(
