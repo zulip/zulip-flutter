@@ -567,14 +567,9 @@ class MessageListAppBarTitle extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    // A null [Icon.icon] makes a blank space.
-    IconData? icon;
-    Color? iconColor;
-    if (stream != null) {
-      icon = iconDataForStream(stream);
-      iconColor = colorSwatchFor(context, store.subscriptions[stream.streamId])
-        .iconOnBarBackground;
-    }
+    final swatch = stream != null
+      ? colorSwatchFor(context, store.subscriptions[stream.streamId])
+      : null;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -583,8 +578,8 @@ class MessageListAppBarTitle extends StatelessWidget {
       //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(size: 16, color: iconColor, icon),
-        const SizedBox(width: 4),
+        StreamIcon(stream: stream, size: 18, color: swatch?.iconOnBarBackground),
+        const SizedBox(width: 5),
         Flexible(child: Text(
           stream?.name ?? zulipLocalizations.unknownChannelName)),
       ]);

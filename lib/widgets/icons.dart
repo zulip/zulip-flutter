@@ -239,3 +239,26 @@ IconData? iconDataForTopicVisibilityPolicy(UserTopicVisibilityPolicy policy) {
       return null;
   }
 }
+
+/// An icon representing a Zulip stream.
+class StreamIcon extends StatelessWidget {
+  const StreamIcon({
+    super.key,
+    required this.stream,
+    this.size = 18,
+    this.color,
+  });
+
+  final ZulipStream? stream;
+  final double size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(
+      stream != null ? iconDataForStream(stream!) : null,
+      size: size,
+      color: color,
+    );
+  }
+}

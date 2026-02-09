@@ -71,11 +71,8 @@ class _TopicListAppBarTitle extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final store = PerAccountStoreWidget.of(context);
     final stream = store.streams[streamId];
-    final channelIconColor = colorSwatchFor(context,
-      store.subscriptions[streamId]).iconOnBarBackground;
+    final swatch = colorSwatchFor(context, store.subscriptions[streamId]);
 
-    // A null [Icon.icon] makes a blank space.
-    final icon = stream != null ? iconDataForStream(stream) : null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
@@ -83,8 +80,8 @@ class _TopicListAppBarTitle extends StatelessWidget {
       //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
-          child: Icon(size: 18, icon, color: channelIconColor)),
+        StreamIcon(stream: stream, size: 18, color: swatch.iconOnBarBackground),
+        const SizedBox(width: 5),
         Flexible(child: Text(
           stream?.name ?? zulipLocalizations.unknownChannelName,
           style: TextStyle(
