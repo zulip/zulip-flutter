@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 /// A machine that can sleep for increasing durations, for network backoff.
@@ -61,6 +62,23 @@ class BackoffMachine {
     }());
   }
 
+  Completer<void>? _waitCompleter;
+
+  /// Whether a [wait] is currently in progress.
+  bool get isWaiting => _waitCompleter != null;
+
+  /// Abort the current [wait] if one is in progress.
+  ///
+  /// This causes the pending [wait] future to complete immediately,
+  /// allowing the caller to retry without waiting for the full backoff duration.
+  /// This is useful when the network becomes available again (e.g., when the
+  /// app resumes from background) and we want to retry immediately.
+  void abort() {
+    if (_waitCompleter != null && !_waitCompleter!.isCompleted) {
+      _waitCompleter!.complete();
+    }
+  }
+
   bool _debugWaitInProgress = false;
 
   /// A future that resolves after an appropriate backoff time,
@@ -90,6 +108,9 @@ class BackoffMachine {
   /// the smallest durations up to one microsecond instead of down to zero.
   /// Because in the real world any delay takes nonzero time, this mainly
   /// affects tests that use fake time, and keeps their behavior more realistic.
+  ///
+  /// The wait can be aborted early by calling [abort], which causes this
+  /// future to complete immediately.
   Future<void> wait() async {
     assert(!_debugWaitInProgress, 'Previous wait still in progress.');
     assert(() {
@@ -97,10 +118,15 @@ class BackoffMachine {
       return true;
     }());
     assert(_bound <= maxBound);
+    _waitCompleter = Completer<void>();
     final duration = debugDuration ?? _maxDuration(const Duration(microseconds: 1),
                                                    _bound * Random().nextDouble());
     _bound = _minDuration(maxBound, _bound * base);
-    await Future<void>.delayed(duration);
+    await Future.any([
+      Future<void>.delayed(duration),
+      _waitCompleter!.future,
+    ]);
+    _waitCompleter = null;
     _waitsCompleted++;
     assert(() {
       _debugWaitInProgress = false;
