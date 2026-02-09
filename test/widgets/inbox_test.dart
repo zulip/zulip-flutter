@@ -207,6 +207,19 @@ void main() {
       await setupVarious(tester);
     });
 
+    testWidgets('channel header has header semantics for accessibility', (tester) async {
+      await setupVarious(tester);
+
+      final headerRow = findStreamHeaderRow(tester, 1);
+      check(headerRow).isNotNull();
+
+      final semanticsFinder = find.ancestor(
+        of: find.byWidget(headerRow!),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Semantics && widget.properties.header == true));
+      check(semanticsFinder).findsOne();
+    });
+
     testWidgets('UnreadCountBadge text color for a channel', (tester) async {
       // Regression test for a bug where
       // DesignVariables.labelCounterUnread was used for the text instead of

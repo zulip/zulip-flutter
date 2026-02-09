@@ -269,52 +269,54 @@ abstract class _HeaderItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    return Material(
-      color: collapsed
-        ? designVariables.background // TODO(design) check if this is the right variable
-        : uncollapsedBackgroundColor(context),
-      child: InkWell(
-        // TODO use onRowTap to handle taps that are not on the collapse button.
-        //   Probably we should give the collapse button a 44px or 48px square
-        //   touch target:
-        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
-        //   But that's in tension with the Figma, which gives these header rows
-        //   40px min height.
-        onTap: onCollapseButtonTap,
-        onLongPress: this is _LongPressable
-          ? (this as _LongPressable).onLongPress
-          : null,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsets.all(10),
-            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
-              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
-          Icon(size: 18,
-            color: collapsed
-              ? collapsedIconColor(context)
-              : uncollapsedIconColor(context),
-            icon),
-          const SizedBox(width: 5),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              title(zulipLocalizations)))),
-          const SizedBox(width: 12),
-          if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-          Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: CounterBadge(
-              // TODO(design) use CounterKind.quantity, following Figma
-              kind: CounterBadgeKind.unread,
-              channelIdForBackground: channelId,
-              count: count)),
-        ])));
+    return Semantics(
+      header: true,
+      child: Material(
+        color: collapsed
+          ? designVariables.background // TODO(design) check if this is the right variable
+          : uncollapsedBackgroundColor(context),
+        child: InkWell(
+          // TODO use onRowTap to handle taps that are not on the collapse button.
+          //   Probably we should give the collapse button a 44px or 48px square
+          //   touch target:
+          //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
+          //   But that's in tension with the Figma, which gives these header rows
+          //   40px min height.
+          onTap: onCollapseButtonTap,
+          onLongPress: this is _LongPressable
+            ? (this as _LongPressable).onLongPress
+            : null,
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Padding(padding: const EdgeInsets.all(10),
+              child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
+                collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
+            Icon(size: 18,
+              color: collapsed
+                ? collapsedIconColor(context)
+                : uncollapsedIconColor(context),
+              icon),
+            const SizedBox(width: 5),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                style: TextStyle(
+                  fontSize: 17,
+                  height: (20 / 17),
+                  // TODO(design) check if this is the right variable
+                  color: designVariables.labelMenuButton,
+                ).merge(weightVariableTextStyle(context, wght: 600)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                title(zulipLocalizations)))),
+            const SizedBox(width: 12),
+            if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+              child: CounterBadge(
+                // TODO(design) use CounterKind.quantity, following Figma
+                kind: CounterBadgeKind.unread,
+                channelIdForBackground: channelId,
+                count: count)),
+          ]))));
   }
 }
 
