@@ -838,12 +838,12 @@ void showTopicActionSheet(BuildContext context, {
     optionButtons.add(MarkTopicAsReadButton(
       channelId: channelId,
       topic: topic,
-      pageContext: context));
+      pageContext: pageContext));
   }
 
   optionButtons.add(CopyTopicLinkButton(
     narrow: TopicNarrow(channelId, topic, with_: someMessageIdInTopic),
-    pageContext: context));
+    pageContext: pageContext));
 
   final header = BottomSheetHeader(
     buildTitle: (baseStyle) => Text.rich(
