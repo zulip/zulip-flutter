@@ -251,6 +251,32 @@ void main() {
     }
   }
 
+  void checkTopic(String topicDisplayName, {
+    bool expectFollowIcon = false,
+    bool expectAtSignIcon = false,
+    bool expectUnmuteIcon = false,
+    String? expectCounterBadgeText,
+  }) {
+    final findRow = find.widgetWithText(InboxTopicItem, topicDisplayName);
+    check(findRow).findsOne();
+
+    check(find.widgetWithIcon(InboxTopicItem, ZulipIcons.follow))
+      .findsExactly(expectFollowIcon ? 1 : 0);
+
+    check(find.widgetWithIcon(InboxTopicItem, ZulipIcons.at_sign))
+      .findsExactly(expectAtSignIcon ? 1 : 0);
+
+    check(find.widgetWithIcon(InboxTopicItem, ZulipIcons.unmute))
+      .findsExactly(expectUnmuteIcon ? 1 : 0);
+
+    if (expectCounterBadgeText != null) {
+      check(find.descendant(
+        of: findRow,
+        matching: find.widgetWithText(CounterBadge, expectCounterBadgeText))
+      ).findsOne();
+    }
+  }
+
   bool hasIcon(WidgetTester tester, {
     required Widget parent,
     required IconData icon,
@@ -362,7 +388,7 @@ void main() {
             flags: [MessageFlag.mentioned])]);
 
         checkChannelHeader(tester, subscription, expectAtSignIcon: true);
-        check(hasAtSign(tester, findRowByLabel(tester, topic))).isTrue();
+        checkTopic(topic, expectAtSignIcon: true);
       });
 
       testWidgets('topic without a mention', (tester) async {
@@ -373,7 +399,7 @@ void main() {
             flags: [])]);
 
         checkChannelHeader(tester, subscription, expectAtSignIcon: false);
-        check(hasAtSign(tester, findRowByLabel(tester, topic))).isFalse();
+        checkTopic(topic, expectAtSignIcon: false);
       });
 
       testWidgets('dm with a mention', (tester) async {
@@ -418,9 +444,7 @@ void main() {
           unreadMessages: [message]);
         await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
         await tester.pump();
-        check(hasIcon(tester,
-          parent: findRowByLabel(tester, topic),
-          icon: ZulipIcons.follow)).isTrue();
+        checkTopic(topic, expectFollowIcon: true);
       });
 
       testWidgets('followed and mentioned', (tester) async {
@@ -431,12 +455,7 @@ void main() {
             flags: [MessageFlag.mentioned])]);
         await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
         await tester.pump();
-        check(hasIcon(tester,
-          parent: findRowByLabel(tester, topic),
-          icon: ZulipIcons.follow)).isTrue();
-        check(hasIcon(tester,
-          parent: findRowByLabel(tester, topic),
-          icon: ZulipIcons.at_sign)).isTrue();
+        checkTopic(topic, expectAtSignIcon: true, expectFollowIcon: true);
       });
 
       testWidgets('unmuted', (tester) async {
@@ -447,9 +466,7 @@ void main() {
           unreadMessages: [message]);
         await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.unmuted);
         await tester.pump();
-        check(hasIcon(tester,
-          parent: findRowByLabel(tester, topic),
-          icon: ZulipIcons.unmute)).isTrue();
+        checkTopic(topic, expectUnmuteIcon: true);
       });
 
       testWidgets('unmuted (topics treated case-insensitively)', (tester) async {
@@ -468,21 +485,15 @@ void main() {
         await store.setUserTopic(channel, 'aaa', UserTopicVisibilityPolicy.unmuted);
         await tester.pump();
 
-        check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')),
-          matching: find.widgetWithText(CounterBadge, '1'))).findsOne();
+        checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '1');
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message2]));
         await tester.pump();
-        check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')),
-          matching: find.widgetWithText(CounterBadge, '2'))).findsOne();
+        checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '2');
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message3]));
         await tester.pump();
-        check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')),
-          matching: find.widgetWithText(CounterBadge, '3'))).findsOne();
+        checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '3');
       });
     });
 
