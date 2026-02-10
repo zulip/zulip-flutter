@@ -35,7 +35,7 @@ dependencies:
              # https://github.com/dart-lang/i18n/issues/759#issuecomment-1864316701
              # https://github.com/flutter/flutter/issues/117163
 
-  app_settings: ^6.1.1
+  app_settings: ^7.0.0
   collection: ^1.17.2
   convert: ^3.1.1
   crypto: ^3.0.3
