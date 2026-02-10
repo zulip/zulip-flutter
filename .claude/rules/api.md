@@ -1,3 +1,9 @@
+---
+paths:
+ - "lib/api/**/*"
+ - "test/api/**/*"
+---
+
 # How API Bindings Work in This Codebase
 
 ## Structure

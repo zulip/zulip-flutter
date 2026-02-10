@@ -53,7 +53,7 @@ See `.claude/data-store.md` for detailed conventions and architecture for writin
 - **`route/`** — one file per API endpoint group; top-level async functions taking `ApiConnection` as first param
 - **`model/`** — data types with JSON serialization via `json_serializable`; generated `.g.dart` files must be kept up to date
 
-See `.claude/api.md` for detailed conventions on writing API bindings.
+See @./rules/api.md for detailed conventions on writing API bindings.
 
 ### Platform layer (`lib/host/`)
 
