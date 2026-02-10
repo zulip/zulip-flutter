@@ -65,11 +65,14 @@ void main() {
     List<User> otherUsers = const [],
     List<ZulipStream>? streams,
     List<Subscription> subscriptions = const [],
+    List<UserTopicItem>? userTopics,
     List<Message>? messages,
+    bool foundOldest = true,
     bool? mandatoryTopics,
     RealmTopicsPolicy? realmTopicsPolicy,
     int? zulipFeatureLevel,
     int? maxTopicLength,
+    bool skipPumpAndSettle = false,
   }) async {
     streams ??= subscriptions;
 
@@ -93,6 +96,7 @@ void main() {
       realmUsers: [selfUser, ...otherUsers],
       streams: streams,
       subscriptions: subscriptions,
+      userTopics: userTopics,
       zulipFeatureLevel: zulipFeatureLevel,
       realmTopicsPolicy: realmTopicsPolicy,
       realmMandatoryTopics: mandatoryTopics,
@@ -106,15 +110,20 @@ void main() {
     connection = store.connection as FakeApiConnection;
 
     connection.prepare(json:
-      eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
+      eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
     if (narrow is ChannelNarrow && messages.isEmpty) {
       // The topic input will autofocus, triggering a getChannelTopics request.
       connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
     }
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       child: MessageListPage(initNarrow: narrow)));
-    await tester.pumpAndSettle();
-    connection.takeRequests();
+    if (skipPumpAndSettle) {
+      await tester.pump(); // global store loaded
+      await tester.pump(); // per-account store loaded
+    } else {
+      await tester.pumpAndSettle();
+      connection.takeRequests();
+    }
 
     state = tester.state<ComposeBoxState>(find.byType(ComposeBox));
     controller = state.controller;
@@ -195,6 +204,86 @@ void main() {
       check(controller).isA<StreamComposeBoxController>()
         ..topicFocusNode.hasFocus.isFalse()
         ..contentFocusNode.hasFocus.isTrue();
+    });
+
+    testWidgets('ChannelNarrow, non-empty fetch, all muted, more unmuted history', (tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)],
+        userTopics: [eg.userTopicItem(channel, 'topic', .muted)],
+        messages: [eg.streamMessage(id: 100, stream: channel, topic: 'topic')],
+        foundOldest: false,
+        skipPumpAndSettle: true);
+
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(
+          anchor: 100, foundOldest: true,
+          messages: [eg.streamMessage(id: 99, stream: channel, topic: 'another')],
+        ).toJson());
+      await tester.pump(Duration.zero); // initial message fetch request
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      await tester.pump(Duration(milliseconds: 1)); // older message fetch request
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+    });
+
+    testWidgets('ChannelNarrow, non-empty fetch, all muted, remaining history muted', (tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)],
+        userTopics: [eg.userTopicItem(channel, 'topic', .muted)],
+        messages: [eg.streamMessage(id: 100, stream: channel, topic: 'topic')],
+        foundOldest: false,
+        skipPumpAndSettle: true);
+
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(
+          anchor: 100, foundOldest: true,
+          messages: [eg.streamMessage(id: 99, stream: channel, topic: 'topic')],
+        ).toJson());
+      await tester.pump(Duration.zero); // initial message fetch request
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      // The topic input will autofocus, triggering a getChannelTopics request.
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+      await tester.pump(Duration(milliseconds: 1)); // older message fetch request
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isTrue()
+        ..contentFocusNode.hasFocus.isFalse();
+    });
+
+    testWidgets('ChannelNarrow, non-empty fetch, then messages deleted', (tester) async {
+      final channel = eg.stream();
+      final message = eg.streamMessage(stream: channel);
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)],
+        messages: [message]);
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      await store.handleEvent(eg.deleteMessageEvent([message]));
+      await tester.pump();
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
     });
 
     testWidgets('TopicNarrow, non-empty fetch', (tester) async {
