@@ -456,7 +456,7 @@ abstract final class PlatformActions {
         title: zulipLocalizations.errorCouldNotOpenLinkTitle,
         message: [
           zulipLocalizations.errorCouldNotOpenLink(url.toString()),
-          if (errorMessage != null) errorMessage,
+          ?errorMessage,
         ].join("\n\n"));
     }
   }

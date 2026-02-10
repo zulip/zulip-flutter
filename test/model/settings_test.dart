@@ -129,7 +129,7 @@ void main() {
     group('set avoids redundant updates', () {
       void checkUpdated(bool? old, bool? new_, {required bool expected}) async {
         final globalSettings = eg.globalStore(boolGlobalSettings: {
-          if (old != null) BoolGlobalSetting.placeholderIgnore: old,
+          BoolGlobalSetting.placeholderIgnore: ?old,
         }).settings;
 
         bool updated = false;
@@ -203,7 +203,7 @@ void main() {
     group('set avoids redundant updates', () {
       void checkUpdated(int? old, int? new_, {required bool expected}) async {
         final globalSettings = eg.globalStore(intGlobalSettings: {
-          if (old != null) IntGlobalSetting.placeholderIgnore: old,
+          IntGlobalSetting.placeholderIgnore: ?old,
         }).settings;
 
         bool updated = false;

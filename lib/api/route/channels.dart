@@ -18,7 +18,7 @@ Future<void> subscribeToChannel(ApiConnection connection, {
 }) {
   return connection.post('subscribeToChannel', (_) {}, 'users/me/subscriptions', {
     'subscriptions': subscriptions.map((name) => {'name': name}).toList(),
-    if (principals != null) 'principals': principals,
+    'principals': ?principals,
   });
 }
 
@@ -36,7 +36,7 @@ Future<void> unsubscribeFromChannel(ApiConnection connection, {
 }) {
   return connection.delete('unsubscribeFromChannel', (_) {}, 'users/me/subscriptions', {
     'subscriptions': subscriptions,
-    if (principals != null) 'principals': principals,
+    'principals': ?principals,
   });
 }
 

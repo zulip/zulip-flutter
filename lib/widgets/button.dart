@@ -484,7 +484,7 @@ class ZulipMenuItemButton extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               spacing: itemSpacingAndEndPadding,
               children: [
-                if (toggle != null) toggle!,
+                ?toggle,
                 if (icon != null) Icon(icon!, color: _iconColor(designVariables)),
               ]))
         : null,

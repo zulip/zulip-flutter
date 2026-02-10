@@ -341,8 +341,7 @@ class AppDatabase extends _$AppDatabase {
   Future<Map<IntGlobalSetting, int>> getIntGlobalSettings() async {
     return {
       for (final row in await select(intGlobalSettings).get())
-        if (IntGlobalSetting.byName(row.name) case final setting?)
-          setting: row.value
+        ?IntGlobalSetting.byName(row.name): row.value
     };
   }
 

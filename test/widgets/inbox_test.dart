@@ -78,7 +78,7 @@ void main() {
 
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
-      navigatorObservers: [if (navigatorObserver != null) navigatorObserver],
+      navigatorObservers: [?navigatorObserver],
       child: const HomePage(),
     ));
     await tester.pump();

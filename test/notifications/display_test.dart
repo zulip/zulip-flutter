@@ -53,7 +53,7 @@ MessageFcmMessage messageFcmMessage(
       TopicNarrow(:var streamId, :var topic) => {
         "recipient_type": "stream",
         "stream_id": streamId.toString(),
-        if (streamName != null) "stream": streamName,
+        "stream": ?streamName,
         "topic": topic,
       },
       DmNarrow(allRecipientIds: [_, _, _, ...]) => {

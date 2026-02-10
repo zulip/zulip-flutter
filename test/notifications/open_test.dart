@@ -64,7 +64,7 @@ Map<String, Object?> messageApnsPayload(
         StreamMessage(:var streamId, :var topic) => {
           "recipient_type": "stream",
           "stream_id": streamId,
-          if (streamName != null) "stream": streamName,
+          "stream": ?streamName,
           "topic": topic,
         },
         DmMessage(allRecipientIds: [_, _, _, ...]) => {

@@ -14,7 +14,7 @@ Future<GetMessageResult> getMessage(ApiConnection connection, {
 }) {
   assert(allowEmptyTopicName, '`allowEmptyTopicName` should only be true');
   return connection.get('getMessage', GetMessageResult.fromJson, 'messages/$messageId', {
-    if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+    'apply_markdown': ?applyMarkdown,
     'allow_empty_topic_name': allowEmptyTopicName,
   });
 }
@@ -51,11 +51,11 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
     'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
     'anchor': RawParameter(anchor.toJson()),
-    if (includeAnchor != null) 'include_anchor': includeAnchor,
+    'include_anchor': ?includeAnchor,
     'num_before': numBefore,
     'num_after': numAfter,
-    if (clientGravatar != null) 'client_gravatar': clientGravatar,
-    if (applyMarkdown != null) 'apply_markdown': applyMarkdown,
+    'client_gravatar': ?clientGravatar,
+    'apply_markdown': ?applyMarkdown,
     'allow_empty_topic_name': allowEmptyTopicName,
   });
 }
@@ -149,7 +149,7 @@ Future<SendMessageResult> sendMessage(
     'content': RawParameter(content),
     if (queueId != null) 'queue_id': RawParameter(queueId),
     if (localId != null) 'local_id': RawParameter(localId),
-    if (readBySender != null) 'read_by_sender': readBySender,
+    'read_by_sender': ?readBySender,
   },
   overrideUserAgent: switch ((supportsReadBySender, readBySender)) {
     // Old servers use the user agent to decide if we're a UI client
@@ -227,11 +227,11 @@ Future<UpdateMessageResult> updateMessage(
   return connection.patch('updateMessage', UpdateMessageResult.fromJson, 'messages/$messageId', {
     if (topic != null) 'topic': RawParameter(topic.apiName),
     if (propagateMode != null) 'propagate_mode': RawParameter(propagateMode.toJson()),
-    if (sendNotificationToOldThread != null) 'send_notification_to_old_thread': sendNotificationToOldThread,
-    if (sendNotificationToNewThread != null) 'send_notification_to_new_thread': sendNotificationToNewThread,
+    'send_notification_to_old_thread': ?sendNotificationToOldThread,
+    'send_notification_to_new_thread': ?sendNotificationToNewThread,
     if (content != null) 'content': RawParameter(content),
     if (prevContentSha256 != null) 'prev_content_sha256': RawParameter(prevContentSha256),
-    if (streamId != null) 'stream_id': streamId,
+    'stream_id': ?streamId,
   });
 }
 
@@ -381,7 +381,7 @@ Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnect
 }) {
   return connection.post('updateMessageFlagsForNarrow', UpdateMessageFlagsForNarrowResult.fromJson, 'messages/flags/narrow', {
     'anchor': RawParameter(anchor.toJson()),
-    if (includeAnchor != null) 'include_anchor': includeAnchor,
+    'include_anchor': ?includeAnchor,
     'num_before': numBefore,
     'num_after': numAfter,
     'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),

@@ -496,7 +496,7 @@ abstract class _SelectItemFinder extends FinderBase<Element> with ChainedFinderM
         resultWidget = widget;
       }
     }
-    return [if (result != null) result];
+    return [?result];
   }
 }
 

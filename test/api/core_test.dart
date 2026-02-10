@@ -304,7 +304,7 @@ void main() {
     }) async {
       final json = {
         'result': 'error',
-        if (code != null) 'code': code,
+        'code': ?code,
         'msg': message,
         ...data,
       };

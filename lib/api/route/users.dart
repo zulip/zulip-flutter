@@ -68,10 +68,10 @@ Future<UpdatePresenceResult> updatePresence(ApiConnection connection, {
   required PresenceStatus status,
 }) {
   return connection.post('updatePresence', UpdatePresenceResult.fromJson, 'users/me/presence', {
-    if (lastUpdateId != null) 'last_update_id': lastUpdateId,
-    if (historyLimitDays != null) 'history_limit_days': historyLimitDays,
-    if (newUserInput != null) 'new_user_input': newUserInput,
-    if (pingOnly != null) 'ping_only': pingOnly,
+    'last_update_id': ?lastUpdateId,
+    'history_limit_days': ?historyLimitDays,
+    'new_user_input': ?newUserInput,
+    'ping_only': ?pingOnly,
     'status': RawParameter(status.toJson()),
     'slim_presence': true,
   });

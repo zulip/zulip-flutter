@@ -1499,7 +1499,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         child: Theme(
           data: inputThemeData,
           child: Column(children: [
-            if (topicInput != null) topicInput,
+            ?topicInput,
             buildContentInput(),
           ]))),
       SizedBox(
@@ -1510,7 +1510,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(children: composeButtons),
-              if (sendButton != null) sendButton,
+              ?sendButton,
             ]))),
     ]);
   }
