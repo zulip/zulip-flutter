@@ -1338,7 +1338,7 @@ class _ZulipInlineContentParser {
     final userId = switch (element.attributes['data-user-id']) {
       // For legacy, user group or wildcard mentions.
       null || '*' => null,
-      final userIdString => int.tryParse(userIdString),
+      final userIdString => int.tryParse(userIdString, radix: 10),
     };
 
     // TODO assert UserMentionNode can't contain LinkNode;
