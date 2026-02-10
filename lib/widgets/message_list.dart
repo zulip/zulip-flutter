@@ -874,7 +874,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     model.fetchInitial();
   }
 
-  bool _prevFetched = false;
+  bool _hasAutofocused = false;
 
   void _modelChanged() {
     // When you're scrolling quickly, our mark-as-read requests include the
@@ -924,14 +924,14 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       _fetchMoreIfNeeded(scrollController.position);
     });
 
-    if (!_prevFetched && model.fetched && model.messages.isEmpty) {
-      // If the fetch came up empty, there's nothing to read,
-      // so opening the keyboard won't be bothersome and could be helpful.
+    if (model.messages.isEmpty && model.haveNewest && model.haveOldest && !_hasAutofocused) {
+      // If there are no messages to show in the whole history,
+      // opening the keyboard won't be bothersome and could be helpful.
       // It's definitely helpful if we got here from the new-DM page.
       MessageListPage.ancestorOf(context)
         .composeBoxState?.controller.requestFocusIfUnfocused();
+      _hasAutofocused = true;
     }
-    _prevFetched = model.fetched;
   }
 
   /// Find the range of message IDs on screen, as a (first, last) tuple,
