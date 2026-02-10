@@ -1,3 +1,13 @@
+---
+paths:
+  - "lib/model/**/*"
+  - "lib/api/model/**/*"
+  - "lib/widgets/store.dart"
+  - "test/model/**/*"
+  - "test/api/model/**/*"
+  - "test/widgets/*store*"
+---
+
 # Data Store Architecture
 
 ## 1. `lib/model/store.dart` — Core Store Classes
