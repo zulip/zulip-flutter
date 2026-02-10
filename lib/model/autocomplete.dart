@@ -1095,7 +1095,7 @@ class AutocompleteDataCache {
 
   List<String> normalizedNameWordsForChannel(ZulipStream channel) {
     return _normalizedNameWordsByChannel[channel.streamId]
-      ?? normalizedNameForChannel(channel).split(' ');
+      ??= normalizedNameForChannel(channel).split(' ');
   }
 
   void invalidateUser(int userId) {
