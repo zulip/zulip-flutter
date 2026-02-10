@@ -1,7 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:drift_dev/api/migrations_common.dart' show ValidationOptions;
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
