@@ -92,6 +92,9 @@ Check extensions for result types go in `route_checks.dart`.
 
 ## Key Conventions
 
+- When documenting the API model (as in dartdoc), prefer referring to the API doc itself, with a URL, rather than writing down new definitions.
+- In general, group class fields logically, following the approach of existing items.
+- Where the same list of parameters or fields appears in multiple places, they should have the exact same order as each other.
 - All constructor parameters in API types use `required`, even for nullable fields (see README "Require all parameters in API constructors")
 - Minimum supported server is Zulip Server 7.0 (feature level 185)
 - Use `TODO(server-N)` comments for version-gated code paths
