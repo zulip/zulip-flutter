@@ -136,22 +136,22 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Не удалось отписаться';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => 'Закрепить';
 
   @override
-  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+  String get actionSheetOptionUnpinChannel => 'Открепить';
 
   @override
-  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+  String get errorPinChannelFailedTitle => 'Не удалось закрепить канал';
 
   @override
-  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+  String get errorUnpinChannelFailedTitle => 'Не удалось открепить канал';
 
   @override
   String get actionSheetOptionMuteTopic => 'Заглушить тему';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Включить оповещения темы';
+  String get actionSheetOptionUnmuteTopic => 'Снять глушение темы';
 
   @override
   String get actionSheetOptionFollowTopic => 'Отслеживать тему';
@@ -410,7 +410,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorMuteTopicFailed => 'Не удалось заглушить тему';
 
   @override
-  String get errorUnmuteTopicFailed => 'Не удалось включить оповещения темы';
+  String get errorUnmuteTopicFailed => 'Не удалось снять глушение темы';
 
   @override
   String get errorFollowTopicFailed => 'Не удалось начать отслеживать тему';
@@ -453,11 +453,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnknownDmRecipient =>
-      'You cannot send messages to unknown users.';
+      'Вы не можете отправлять сообщения неизвестным пользователям.';
 
   @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
-      'You cannot send messages here.';
+      'Здесь вы не можете отправить сообщение.';
 
   @override
   String get composeBoxBannerLabelCannotSendInChannel =>
@@ -465,7 +465,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnsubscribed =>
-      'Replies to your messages will not appear automatically.';
+      'Ответы на ваши сообщения не появятся автоматически.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
@@ -889,22 +889,23 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Mark $count+ messages as read?',
-      one: 'Mark $count+ messages as read?',
+      other: 'Отметить $count+ сообщений как прочитанные?',
+      one: 'Отметить $count+ сообщений как прочитанные?',
     );
     return '$_temp0';
   }
 
   @override
   String get markAllAsReadConfirmationDialogTitleNoCount =>
-      'Mark messages as read?';
+      'Отметить сообщения как прочитанные?';
 
   @override
   String get markAllAsReadConfirmationDialogMessage =>
-      'Messages in multiple conversations may be affected.';
+      'Это может отразиться на сообщениях во многих беседах.';
 
   @override
-  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
+  String get markAllAsReadConfirmationDialogConfirmButton =>
+      'Отметить как прочитанные';
 
   @override
   String get today => 'Сегодня';

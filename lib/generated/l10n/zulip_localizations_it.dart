@@ -984,7 +984,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get userRoleUnknown => 'Sconosciuto';
 
   @override
-  String get statusButtonLabelStatusSet => 'Status';
+  String get statusButtonLabelStatusSet => 'Stato';
 
   @override
   String get statusButtonLabelStatusUnset => 'Set status';
@@ -996,28 +996,28 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get setStatusPageTitle => 'Set status';
 
   @override
-  String get statusClearButtonLabel => 'Clear';
+  String get statusClearButtonLabel => 'Pulisci';
 
   @override
-  String get statusSaveButtonLabel => 'Save';
+  String get statusSaveButtonLabel => 'Salva';
 
   @override
   String get statusTextHint => 'Your status';
 
   @override
-  String get userStatusBusy => 'Busy';
+  String get userStatusBusy => 'Occupato';
 
   @override
   String get userStatusInAMeeting => 'In a meeting';
 
   @override
-  String get userStatusCommuting => 'Commuting';
+  String get userStatusCommuting => 'In spostamento';
 
   @override
   String get userStatusOutSick => 'Out sick';
 
   @override
-  String get userStatusVacationing => 'Vacationing';
+  String get userStatusVacationing => 'In vacanza';
 
   @override
   String get userStatusWorkingRemotely => 'Working remotely';
@@ -1038,7 +1038,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Testo di suggerimento per il campo di testo di ricerca del messaggio.';
 
   @override
-  String get searchMessagesClearButtonTooltip => 'Clear';
+  String get searchMessagesClearButtonTooltip => 'Pulisci';
 
   @override
   String get inboxPageTitle => 'Inbox';
@@ -1122,7 +1122,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get reactedEmojiSelfUser => 'Tu';
 
   @override
-  String get reactionChipsLabel => 'Reactions';
+  String get reactionChipsLabel => 'Reazioni';
 
   @override
   String reactionChipLabel(String emojiName, String votes) {

@@ -136,16 +136,16 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Échec du désabonnement';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => 'Épingler au sommet';
 
   @override
-  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+  String get actionSheetOptionUnpinChannel => 'Détacher du haut';
 
   @override
-  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+  String get errorPinChannelFailedTitle => 'Échec de l\'épinglage du canal';
 
   @override
-  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+  String get errorUnpinChannelFailedTitle => 'Échec du détachement du canal';
 
   @override
   String get actionSheetOptionMuteTopic => 'Mettre la conversation en sourdine';
@@ -183,7 +183,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String seeWhoReactedSheetHeaderLabel(int num) {
-    return 'Réactions emoji ($num total)';
+    return 'Réactions émoji ($num total)';
   }
 
   @override
@@ -462,11 +462,11 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnknownDmRecipient =>
-      'You cannot send messages to unknown users.';
+      'Vous ne pouvez pas envoyer de message à des utilisateurs inconnus.';
 
   @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
-      'You cannot send messages here.';
+      'Vous ne pouvez pas envoyer de message ici.';
 
   @override
   String get composeBoxBannerLabelCannotSendInChannel =>
@@ -474,7 +474,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnsubscribed =>
-      'Replies to your messages will not appear automatically.';
+      'Les réponses à vos messages n\'apparaîtront pas automatiquement.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
@@ -902,22 +902,22 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Mark $count+ messages as read?',
-      one: 'Mark $count+ messages as read?',
+      other: 'Marquer l\'ensemble d\'au moins $count messages comme lu ?',
+      one: 'Marquer l\'ensemble d\'au moins $count message comme lus ?',
     );
     return '$_temp0';
   }
 
   @override
   String get markAllAsReadConfirmationDialogTitleNoCount =>
-      'Mark messages as read?';
+      'Marquer les messages comme lus ?';
 
   @override
   String get markAllAsReadConfirmationDialogMessage =>
-      'Messages in multiple conversations may be affected.';
+      'Des messages de différentes conversations sont concernés.';
 
   @override
-  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
+  String get markAllAsReadConfirmationDialogConfirmButton => 'Marquer comme lu';
 
   @override
   String get today => 'Aujourd\'hui';
@@ -1316,7 +1316,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get emojiReactionsMore => 'plus';
 
   @override
-  String get emojiPickerSearchEmoji => 'Rechercher une émoticône';
+  String get emojiPickerSearchEmoji => 'Rechercher un émoji';
 
   @override
   String get noEarlierMessages => 'Pas de messages plus anciens';

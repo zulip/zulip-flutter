@@ -12,7 +12,7 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get aboutPageTitle => 'About Zulip';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'גרסת ישום';
 
   @override
   String get aboutPageOpenSourceLicenses => 'רישיונות קוד פתוח';
@@ -87,7 +87,7 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get permissionsNeededTitle => 'Permissions needed';
 
   @override
-  String get permissionsNeededOpenSettings => 'Open settings';
+  String get permissionsNeededOpenSettings => 'פתח הגדרות';
 
   @override
   String get permissionsDeniedCameraAccess =>
@@ -98,10 +98,10 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
       'To upload files, please grant Zulip additional permissions in Settings.';
 
   @override
-  String get actionSheetOptionSubscribe => 'Subscribe';
+  String get actionSheetOptionSubscribe => 'הרשם';
 
   @override
-  String get subscribeFailedTitle => 'Failed to subscribe';
+  String get subscribeFailedTitle => 'הרישום נכשל';
 
   @override
   String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
@@ -116,22 +116,22 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get actionSheetOptionChannelFeed => 'Channel feed';
 
   @override
-  String get actionSheetOptionUnsubscribe => 'Unsubscribe';
+  String get actionSheetOptionUnsubscribe => 'בטל רישום';
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
-    return 'Unsubscribe from $channelName?';
+    return 'בטל רישום ל־$channelName?';
   }
 
   @override
   String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
-      'Once you leave this channel, you will not be able to rejoin.';
+      'לאחר היציאה מהערוץ, לא תתאפשר הצטרפות מחדש.';
 
   @override
-  String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
+  String get unsubscribeConfirmationDialogConfirmButton => 'בטל רישום';
 
   @override
-  String get unsubscribeFailedTitle => 'Failed to unsubscribe';
+  String get unsubscribeFailedTitle => 'ביטול הרישום נכשל';
 
   @override
   String get actionSheetOptionPinChannel => 'Pin to top';
@@ -171,7 +171,7 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
       'Failed to mark topic as unresolved';
 
   @override
-  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+  String get actionSheetOptionSeeWhoReacted => 'הצג מי הגיב';
 
   @override
   String get seeWhoReactedSheetNoReactions => 'להודעה זו אין תגובות.';
@@ -235,35 +235,35 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
 
   @override
-  String get actionSheetOptionShare => 'Share';
+  String get actionSheetOptionShare => 'שתף';
 
   @override
-  String get actionSheetOptionQuoteMessage => 'Quote message';
+  String get actionSheetOptionQuoteMessage => 'צטט הודעה';
 
   @override
-  String get actionSheetOptionStarMessage => 'Star message';
+  String get actionSheetOptionStarMessage => 'סמן הודעה בכוכב';
 
   @override
-  String get actionSheetOptionUnstarMessage => 'Unstar message';
+  String get actionSheetOptionUnstarMessage => 'בטל את סימון הודעה';
 
   @override
-  String get actionSheetOptionEditMessage => 'Edit message';
+  String get actionSheetOptionEditMessage => 'ערוך הודעה';
 
   @override
-  String get actionSheetOptionDeleteMessage => 'Delete message';
+  String get actionSheetOptionDeleteMessage => 'מחק הודעה';
 
   @override
-  String get deleteMessageConfirmationDialogTitle => 'Delete message?';
+  String get deleteMessageConfirmationDialogTitle => 'האם למחוק את ההודעה?';
 
   @override
   String get deleteMessageConfirmationDialogMessage =>
-      'Deleting a message permanently removes it for everyone.';
+      'מחיקת הודעה מסירה את ההודעה עבור כולם לאלתר.';
 
   @override
-  String get deleteMessageConfirmationDialogConfirmButton => 'Delete';
+  String get deleteMessageConfirmationDialogConfirmButton => 'מחק';
 
   @override
-  String get errorDeleteMessageFailedTitle => 'Failed to delete message';
+  String get errorDeleteMessageFailedTitle => 'מחיקת ההודעה נכשלה';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
@@ -294,7 +294,7 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
       'Could not access uploaded file';
 
   @override
-  String get errorCopyingFailed => 'Copying failed';
+  String get errorCopyingFailed => 'העתקה נכשלה';
 
   @override
   String errorFailedToUploadFileTitle(String filename) {
@@ -333,7 +333,7 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   }
 
   @override
-  String get errorLoginInvalidInputTitle => 'Invalid input';
+  String get errorLoginInvalidInputTitle => 'קלט לא תקין';
 
   @override
   String get errorLoginFailedTitle => 'Login failed';

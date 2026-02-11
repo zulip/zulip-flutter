@@ -1,9 +1,18 @@
 {
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
   "@aboutPageTapToView": {
     "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
+  },
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
   },
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
@@ -11,11 +20,32 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "@actionSheetOptionSeeWhoReacted": {
+    "description": "Label for the 'See who reacted' button in the message action sheet."
+  },
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "@actionSheetOptionSubscribe": {
+    "description": "Label in the channel action sheet for subscribing to the channel."
+  },
   "@actionSheetOptionUnfollowTopic": {
     "description": "Label for unfollowing a topic on action sheet."
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "@actionSheetOptionUnsubscribe": {
+    "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
@@ -32,8 +62,26 @@
   "@chooseAccountPageTitle": {
     "description": "Title for the page to choose between Zulip accounts."
   },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
+  },
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
+  },
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
   },
   "@logOutConfirmationDialogConfirmButton": {
     "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
@@ -47,6 +95,9 @@
   "@navButtonAllChannels": {
     "description": "Title for a nav button that opens the 'All channels' page."
   },
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
@@ -55,6 +106,9 @@
   },
   "@settingsPageTitle": {
     "description": "Title for the settings page."
+  },
+  "@subscribeFailedTitle": {
+    "description": "Error title when subscribing to a channel failed."
   },
   "@switchAccountButtonTooltip": {
     "description": "Tooltip message for main-menu button leading to the choose-account page."
@@ -69,6 +123,24 @@
       "type": "String"
     }
   },
+  "@unsubscribeConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
+  },
+  "@unsubscribeConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for unsubscribing from a channel.",
+    "placeholders": {
+      "channelName": {
+        "example": "#mobile",
+        "type": "String"
+      }
+    }
+  },
+  "@unsubscribeFailedTitle": {
+    "description": "Error title when unsubscribing from a channel failed."
+  },
   "@upgradeWelcomeDialogDismiss": {
     "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
   },
@@ -81,28 +153,50 @@
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
+  "aboutPageAppVersion": "גרסת ישום",
   "aboutPageOpenSourceLicenses": "רישיונות קוד פתוח",
   "aboutPageTapToView": "הקש כדי להציג",
+  "actionSheetOptionDeleteMessage": "מחק הודעה",
+  "actionSheetOptionEditMessage": "ערוך הודעה",
   "actionSheetOptionFollowTopic": "עקוב אחר הנושא",
   "actionSheetOptionMuteTopic": "השתקת נושא",
+  "actionSheetOptionQuoteMessage": "צטט הודעה",
+  "actionSheetOptionSeeWhoReacted": "הצג מי הגיב",
+  "actionSheetOptionShare": "שתף",
+  "actionSheetOptionStarMessage": "סמן הודעה בכוכב",
+  "actionSheetOptionSubscribe": "הרשם",
   "actionSheetOptionUnfollowTopic": "בטל מעקב אחר נושא",
   "actionSheetOptionUnmuteTopic": "בטל את ההשתקה של נושא",
+  "actionSheetOptionUnstarMessage": "בטל את סימון הודעה",
+  "actionSheetOptionUnsubscribe": "בטל רישום",
   "allChannelsEmptyPlaceholderHeader": "אין ערוצים שתוכלו להציג בארגון זה.",
   "allChannelsPageTitle": "כל הערוצים",
   "chooseAccountButtonAddAnAccount": "הוספת חשבון",
   "chooseAccountPageLogOutButton": "התנתק",
   "chooseAccountPageTitle": "בחר חשבון",
+  "deleteMessageConfirmationDialogConfirmButton": "מחק",
+  "deleteMessageConfirmationDialogMessage": "מחיקת הודעה מסירה את ההודעה עבור כולם לאלתר.",
+  "deleteMessageConfirmationDialogTitle": "האם למחוק את ההודעה?",
+  "errorCopyingFailed": "העתקה נכשלה",
   "errorCouldNotShowUserProfile": "לא ניתן להציג פרופיל משתמש.",
+  "errorDeleteMessageFailedTitle": "מחיקת ההודעה נכשלה",
+  "errorLoginInvalidInputTitle": "קלט לא תקין",
   "logOutConfirmationDialogConfirmButton": "התנתק",
   "logOutConfirmationDialogMessage": "כדי להשתמש בחשבון זה בעתיד, יהיה עליך להכניס מחדש את כתובת האתר של הארגון שלך ואת פרטי החשבון שלך.",
   "logOutConfirmationDialogTitle": "להתנתק?",
   "navButtonAllChannels": "כל הערוצים",
+  "permissionsNeededOpenSettings": "פתח הגדרות",
   "profileButtonSendDirectMessage": "שלח הודעה ישירה",
   "seeWhoReactedSheetNoReactions": "להודעה זו אין תגובות.",
   "settingsPageTitle": "הגדרות",
+  "subscribeFailedTitle": "הרישום נכשל",
   "switchAccountButtonTooltip": "החלף חשבון",
   "tryAnotherAccountButton": "נסה חשבון אחר",
   "tryAnotherAccountMessage": "החשבון שלך ב- {url} לוקח זמן לטעון.",
+  "unsubscribeConfirmationDialogConfirmButton": "בטל רישום",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "לאחר היציאה מהערוץ, לא תתאפשר הצטרפות מחדש.",
+  "unsubscribeConfirmationDialogTitle": "בטל רישום ל־{channelName}?",
+  "unsubscribeFailedTitle": "ביטול הרישום נכשל",
   "upgradeWelcomeDialogDismiss": "בא נלך",
   "upgradeWelcomeDialogLinkText": "עיין בפוסט בבלוג ההכרזה!",
   "upgradeWelcomeDialogMessage": "תוכלו למצוא חוויה מוכרת בחבילה מהירה וחלקה יותר.",

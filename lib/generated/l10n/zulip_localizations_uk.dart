@@ -453,11 +453,11 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnknownDmRecipient =>
-      'You cannot send messages to unknown users.';
+      'Ви не можете надсилати повідомлення невідомим користувачам.';
 
   @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
-      'You cannot send messages here.';
+      'Ви не можете надсилати повідомлення тут.';
 
   @override
   String get composeBoxBannerLabelCannotSendInChannel =>
@@ -465,7 +465,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnsubscribed =>
-      'Replies to your messages will not appear automatically.';
+      'Відповіді на ваші повідомлення не з’являтимуться автоматично.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
@@ -886,22 +886,23 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Mark $count+ messages as read?',
-      one: 'Mark $count+ messages as read?',
+      other: 'Позначити $count+ повідомлень як прочитані?',
+      one: 'Позначити $count+ повідомлень як прочитані?',
     );
     return '$_temp0';
   }
 
   @override
   String get markAllAsReadConfirmationDialogTitleNoCount =>
-      'Mark messages as read?';
+      'Позначити повідомлення як прочитані?';
 
   @override
   String get markAllAsReadConfirmationDialogMessage =>
-      'Messages in multiple conversations may be affected.';
+      'Це може вплинути на повідомлення в кількох розмовах.';
 
   @override
-  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
+  String get markAllAsReadConfirmationDialogConfirmButton =>
+      'Позначити як прочитане';
 
   @override
   String get today => 'Сьогодні';

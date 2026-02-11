@@ -134,11 +134,9 @@
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
   },
-  "@chooseAccountButtonAddAnAccount": {},
   "@chooseAccountPageLogOutButton": {
     "description": "Label for the 'Log out' button for an account on the choose-account page"
   },
-  "@chooseAccountPageTitle": {},
   "@combinedFeedPageTitle": {
     "description": "Page title for the 'Combined feed' message view."
   },
@@ -163,8 +161,23 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
+  },
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
   },
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
     "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
@@ -379,12 +392,6 @@
   },
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
-  },
-  "@composeBoxBannerLabelCannotSendInChannel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
-  },
-  "@composeBoxBannerLabelDeactivatedDmRecipient": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
@@ -773,6 +780,24 @@
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
   },
+  "@markAllAsReadConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message in the confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogTitle": {
+    "description": "Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.",
+    "placeholders": {
+      "count": {
+        "description": "Minimum number of messages that will be marked as read",
+        "type": "int"
+      }
+    }
+  },
+  "@markAllAsReadConfirmationDialogTitleNoCount": {
+    "description": "Title of the confirmation dialog for marking all messages as read."
+  },
   "@markAllAsReadLabel": {
     "description": "Button text to mark messages as read."
   },
@@ -936,7 +961,6 @@
   "@preparingEditMessageContentInput": {
     "description": "Hint text for content input when the compose box is preparing to edit a message."
   },
-  "@profileButtonSendDirectMessage": {},
   "@reactedEmojiSelfUser": {
     "description": "Display name for the user themself, to show on an emoji reaction added by the user."
   },
@@ -1257,12 +1281,6 @@
   "@userNotActiveInYear": {
     "description": "Indicates when a user was last active on Zulip (who is currently offline)"
   },
-  "@userRoleAdministrator": {},
-  "@userRoleGuest": {},
-  "@userRoleMember": {},
-  "@userRoleModerator": {},
-  "@userRoleOwner": {},
-  "@userRoleUnknown": {},
   "@userStatusAtTheOffice": {
     "description": "A suggested user status text, 'At the office'."
   },
@@ -1369,7 +1387,12 @@
   "composeBoxBannerButtonRefresh": "更新",
   "composeBoxBannerButtonSave": "保存",
   "composeBoxBannerButtonSubscribe": "購読する",
+  "composeBoxBannerLabelCannotSendInChannel": "このチャンネルに投稿する権限がありません。",
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "ここではメッセージを送信できません。",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "無効化されたユーザーにはメッセージを送信できません。",
   "composeBoxBannerLabelEditMessage": "メッセージを編集",
+  "composeBoxBannerLabelUnknownDmRecipient": "不明なユーザーにメッセージを送信することはできません。",
+  "composeBoxBannerLabelUnsubscribed": "あなたのメッセージへの返信は、自動的には表示されません。",
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "新しいメッセージは自動的に表示されません。",
   "composeBoxChannelContentHint": "{destination} にメッセージを送信",
   "composeBoxDmContentHint": "@{user} さんにメッセージ",
@@ -1420,8 +1443,6 @@
   "emptyMessageListStarredMessage": "<z-link>スター</z-link>を付けると、後で見返したいタスクや役立つ参考資料など、重要なメッセージを管理するのに便利です。メッセージにスターを付けるには、メッセージを長押しして「{button}」をタップしてください。",
   "errorAccountLoggedIn": "{server} の {email} アカウントは、すでにアカウント一覧に追加されています。",
   "errorAccountLoggedInTitle": "このアカウントはすでにログインしています",
-  "composeBoxBannerLabelCannotSendInChannel": "このチャンネルに投稿する権限がありません。",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "無効化されたユーザーにはメッセージを送信できません。",
   "errorConnectingToServerDetails": "Zulip（{serverUrl}）への接続でエラーが発生しました。再試行します：\n\n{error}",
   "errorConnectingToServerShort": "Zulip への接続でエラーが発生しました。再試行中…",
   "errorContentNotInsertedTitle": "コンテンツを挿入できませんでした",
@@ -1511,6 +1532,10 @@
   "loginUsernameLabel": "ユーザー名",
   "mainMenuMyProfile": "自分のプロフィール",
   "manyPeopleTyping": "複数のユーザーが入力中…",
+  "markAllAsReadConfirmationDialogConfirmButton": "既読にする",
+  "markAllAsReadConfirmationDialogMessage": "複数の会話内のメッセージが影響を受ける可能性があります。",
+  "markAllAsReadConfirmationDialogTitle": "{count, plural, =1{{count} 件以上のメッセージを既読にしますか？} other{{count} 件以上のメッセージを既読にしますか？}}",
+  "markAllAsReadConfirmationDialogTitleNoCount": "メッセージを既読にしますか？",
   "markAllAsReadLabel": "すべてのメッセージを既読にする",
   "markAsReadComplete": "{num, plural, =1{1} other{{num}}}件のメッセージを既読にしました。",
   "markAsReadInProgress": "メッセージを既読にしています…",

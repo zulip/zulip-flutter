@@ -10,14 +10,17 @@ import 'zulip_localizations_de.dart';
 import 'zulip_localizations_el.dart';
 import 'zulip_localizations_en.dart';
 import 'zulip_localizations_es.dart';
+import 'zulip_localizations_et.dart';
 import 'zulip_localizations_fr.dart';
 import 'zulip_localizations_he.dart';
 import 'zulip_localizations_hu.dart';
 import 'zulip_localizations_it.dart';
 import 'zulip_localizations_ja.dart';
 import 'zulip_localizations_kk.dart';
+import 'zulip_localizations_lv.dart';
 import 'zulip_localizations_nb.dart';
 import 'zulip_localizations_pl.dart';
+import 'zulip_localizations_pt.dart';
 import 'zulip_localizations_ru.dart';
 import 'zulip_localizations_sk.dart';
 import 'zulip_localizations_sl.dart';
@@ -117,14 +120,18 @@ abstract class ZulipLocalizations {
     Locale('el'),
     Locale('en', 'GB'),
     Locale('es'),
+    Locale('et'),
     Locale('fr'),
     Locale('he'),
     Locale('hu'),
     Locale('it'),
     Locale('ja'),
     Locale('kk'),
+    Locale('lv'),
     Locale('nb'),
     Locale('pl'),
+    Locale('pt'),
+    Locale('pt', 'PT'),
     Locale('ru'),
     Locale('sk'),
     Locale('sl'),
@@ -2258,14 +2265,17 @@ class _ZulipLocalizationsDelegate
     'el',
     'en',
     'es',
+    'et',
     'fr',
     'he',
     'hu',
     'it',
     'ja',
     'kk',
+    'lv',
     'nb',
     'pl',
+    'pt',
     'ru',
     'sk',
     'sl',
@@ -2297,6 +2307,14 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
         }
         break;
       }
+    case 'pt':
+      {
+        switch (locale.countryCode) {
+          case 'PT':
+            return ZulipLocalizationsPtPt();
+        }
+        break;
+      }
   }
 
   // Lookup logic when only language code is specified.
@@ -2311,6 +2329,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsEn();
     case 'es':
       return ZulipLocalizationsEs();
+    case 'et':
+      return ZulipLocalizationsEt();
     case 'fr':
       return ZulipLocalizationsFr();
     case 'he':
@@ -2323,10 +2343,14 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsJa();
     case 'kk':
       return ZulipLocalizationsKk();
+    case 'lv':
+      return ZulipLocalizationsLv();
     case 'nb':
       return ZulipLocalizationsNb();
     case 'pl':
       return ZulipLocalizationsPl();
+    case 'pt':
+      return ZulipLocalizationsPt();
     case 'ru':
       return ZulipLocalizationsRu();
     case 'sk':

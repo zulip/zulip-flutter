@@ -128,6 +128,12 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
   },
@@ -266,12 +272,6 @@
   },
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
-  },
-  "@composeBoxBannerLabelCannotSendInChannel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
-  },
-  "@composeBoxBannerLabelDeactivatedDmRecipient": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
@@ -702,6 +702,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
+  },
   "@navButtonAllChannels": {
     "description": "Title for a nav button that opens the 'All channels' page."
   },
@@ -793,6 +796,9 @@
   "@reactedEmojiSelfUser": {
     "description": "Display name for the user themself, to show on an emoji reaction added by the user."
   },
+  "@reactionChipsLabel": {
+    "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
+  },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
@@ -810,6 +816,9 @@
   },
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
+  },
+  "@searchMessagesClearButtonTooltip": {
+    "description": "Tooltip for the 'x' button in the search text field."
   },
   "@searchMessagesHintText": {
     "description": "Hint text for the message search text field."
@@ -887,6 +896,15 @@
   },
   "@starredMessagesPageTitle": {
     "description": "Page title for the 'Starred messages' message view."
+  },
+  "@statusButtonLabelStatusSet": {
+    "description": "The status button label in self-user profile page when status is set."
+  },
+  "@statusClearButtonLabel": {
+    "description": "Label for the button that clears the user status, in 'Set status' page."
+  },
+  "@statusSaveButtonLabel": {
+    "description": "Label for the button that saves the user status, in 'Set status' page."
   },
   "@subscribeFailedTitle": {
     "description": "Error title when subscribing to a channel failed."
@@ -1010,6 +1028,15 @@
   "@userRoleUnknown": {
     "description": "Label for UserRole.unknown"
   },
+  "@userStatusBusy": {
+    "description": "A suggested user status text, 'Busy'."
+  },
+  "@userStatusCommuting": {
+    "description": "A suggested user status text, 'Commuting'."
+  },
+  "@userStatusVacationing": {
+    "description": "A suggested user status text, 'Vacationing'."
+  },
   "@wildcardMentionAll": {
     "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
   },
@@ -1086,6 +1113,8 @@
   "composeBoxBannerButtonRefresh": "Etichetta il testo per il pulsante \"Aggiorna\" nel banner della casella di composizione quando visualizzi un canale a cui non sei iscritto.",
   "composeBoxBannerButtonSave": "Salva",
   "composeBoxBannerButtonSubscribe": "Iscriviti",
+  "composeBoxBannerLabelCannotSendInChannel": "Non hai l'autorizzazione per postare su questo canale.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Non è possibile inviare messaggi agli utenti disattivati.",
   "composeBoxBannerLabelEditMessage": "Modifica messaggio",
   "composeBoxChannelContentHint": "Messaggia {destination}",
   "composeBoxDmContentHint": "Messaggia @{user}",
@@ -1117,8 +1146,6 @@
   "emojiReactionsMore": "altro",
   "errorAccountLoggedIn": "L'account {email} su {server} è già presente nell'elenco account.",
   "errorAccountLoggedInTitle": "Account già registrato",
-  "composeBoxBannerLabelCannotSendInChannel": "Non hai l'autorizzazione per postare su questo canale.",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "Non è possibile inviare messaggi agli utenti disattivati.",
   "errorConnectingToServerDetails": "Errore durante la connessione a Zulip su {serverUrl}. Verrà effettuato un nuovo tentativo:\n\n{error}",
   "errorConnectingToServerShort": "Errore di connessione a Zulip. Nuovo tentativo…",
   "errorCopyingFailed": "Copia non riuscita",
@@ -1216,6 +1243,7 @@
   "messageListGroupYouWithYourself": "Messaggi con te stesso",
   "messageNotSentLabel": "MESSAGGIO NON INVIATO",
   "mutedUser": "Utente silenziato",
+  "navBarMenuLabel": "Menu",
   "navButtonAllChannels": "Titolo per un pulsante di navigazione che apre la pagina \"Tutti i canali\".",
   "newDmFabButtonLabel": "Nuovo MD",
   "newDmSheetComposeButtonLabel": "Componi",
@@ -1239,12 +1267,14 @@
   "preparingEditMessageContentInput": "Preparazione…",
   "profileButtonSendDirectMessage": "Invia un messaggio diretto",
   "reactedEmojiSelfUser": "Tu",
+  "reactionChipsLabel": "Reazioni",
   "recentDmConversationsPageTitle": "Messaggi diretti",
   "recentDmConversationsSectionHeader": "Messaggi diretti",
   "revealButtonLabel": "Mostra messaggio per mittente silenziato",
   "savingMessageEditFailedLabel": "MODIFICA NON SALVATA",
   "savingMessageEditLabel": "SALVATAGGIO MODIFICA…",
   "scrollToBottomTooltip": "Scorri fino in fondo",
+  "searchMessagesClearButtonTooltip": "Pulisci",
   "searchMessagesHintText": "Testo di suggerimento per il campo di testo di ricerca del messaggio.",
   "searchMessagesPageTitle": "Titolo della pagina per la visualizzazione del messaggio \"Cerca\".",
   "seeWhoReactedSheetEmojiNameWithVoteCount": "{emojiName}: {num, plural, =1{1 voto} other{{num} voti}}",
@@ -1260,6 +1290,9 @@
   "snackBarDetails": "Dettagli",
   "spoilerDefaultHeaderText": "Spoiler",
   "starredMessagesPageTitle": "Messaggi speciali",
+  "statusButtonLabelStatusSet": "Stato",
+  "statusClearButtonLabel": "Pulisci",
+  "statusSaveButtonLabel": "Salva",
   "subscribeFailedTitle": "Iscrizione non riuscita",
   "successLinkCopied": "Collegamento copiato",
   "successMessageLinkCopied": "Collegamento messaggio copiato",
@@ -1294,6 +1327,9 @@
   "userRoleModerator": "Moderatore",
   "userRoleOwner": "Proprietario",
   "userRoleUnknown": "Sconosciuto",
+  "userStatusBusy": "Occupato",
+  "userStatusCommuting": "In spostamento",
+  "userStatusVacationing": "In vacanza",
   "wildcardMentionAll": "tutti",
   "wildcardMentionAllDmDescription": "Notifica destinatari",
   "wildcardMentionChannel": "canale",

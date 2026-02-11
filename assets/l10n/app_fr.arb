@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
   },
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
@@ -167,8 +173,23 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
+  },
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
   },
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
     "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
@@ -384,12 +405,6 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@composeBoxBannerLabelCannotSendInChannel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
-  },
-  "@composeBoxBannerLabelDeactivatedDmRecipient": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
-  },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
     "placeholders": {
@@ -588,6 +603,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
@@ -652,6 +670,9 @@
   },
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
@@ -776,6 +797,24 @@
   },
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "@markAllAsReadConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message in the confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogTitle": {
+    "description": "Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.",
+    "placeholders": {
+      "count": {
+        "description": "Minimum number of messages that will be marked as read",
+        "type": "int"
+      }
+    }
+  },
+  "@markAllAsReadConfirmationDialogTitleNoCount": {
+    "description": "Title of the confirmation dialog for marking all messages as read."
   },
   "@markAllAsReadLabel": {
     "description": "Button text to mark messages as read."
@@ -1359,6 +1398,7 @@
   "actionSheetOptionMarkChannelAsRead": "Marquer le canal comme lu",
   "actionSheetOptionMarkTopicAsRead": "Marquer la conversation comme lu",
   "actionSheetOptionMuteTopic": "Mettre la conversation en sourdine",
+  "actionSheetOptionPinChannel": "Épingler au sommet",
   "actionSheetOptionQuoteMessage": "Citer le message",
   "actionSheetOptionResolveTopic": "Marquer comme résolue",
   "actionSheetOptionSeeWhoReacted": "Voir qui a réagi",
@@ -1367,6 +1407,7 @@
   "actionSheetOptionSubscribe": "S'abonner",
   "actionSheetOptionUnfollowTopic": "Ne plus suivre la conversation",
   "actionSheetOptionUnmuteTopic": "Désactiver la sourdine sur la conversation",
+  "actionSheetOptionUnpinChannel": "Détacher du haut",
   "actionSheetOptionUnresolveTopic": "Marquer comme non résolue",
   "actionSheetOptionUnstarMessage": "Retirer ce message de la liste des favoris",
   "actionSheetOptionUnsubscribe": "Se désabonner",
@@ -1393,7 +1434,12 @@
   "composeBoxBannerButtonRefresh": "Rafraîchir",
   "composeBoxBannerButtonSave": "Sauvegarder",
   "composeBoxBannerButtonSubscribe": "S'abonner",
+  "composeBoxBannerLabelCannotSendInChannel": "Vous n'avez pas l'autorisation de poster sur ce canal.",
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "Vous ne pouvez pas envoyer de message ici.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Vous ne pouvez pas envoyer de messages aux utilisateurs désactivés.",
   "composeBoxBannerLabelEditMessage": "Editer le message",
+  "composeBoxBannerLabelUnknownDmRecipient": "Vous ne pouvez pas envoyer de message à des utilisateurs inconnus.",
+  "composeBoxBannerLabelUnsubscribed": "Les réponses à vos messages n'apparaîtront pas automatiquement.",
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Les nouveaux messages n’apparaîtront pas automatiquement.",
   "composeBoxChannelContentHint": "Message pour {destination}",
   "composeBoxDmContentHint": "Message à @{user}",
@@ -1423,7 +1469,7 @@
   "dmsWithYourselfPageTitle": "MDs avec vous-même",
   "editAlreadyInProgressMessage": "Une modification est déjà en cours. Merci d'attendre qu'elle soit terminée.",
   "editAlreadyInProgressTitle": "Impossible de modifier le message",
-  "emojiPickerSearchEmoji": "Rechercher une émoticône",
+  "emojiPickerSearchEmoji": "Rechercher un émoji",
   "emojiReactionsMore": "plus",
   "emptyMessageList": "Il n'y a pas de messages ici.",
   "emptyMessageListChannelUnavailable": "Ce canal n'existe pas, ou vous n'avez pas le droit de le consulter.",
@@ -1444,8 +1490,6 @@
   "emptyMessageListStarredMessage": "<z-link>Ajouter aux favoris</z-link> est un bon moyen de garder une trace des messages importants, comme les tâches sur lesquelles vous devez revenir, ou des références utiles. Pour ajouter un message aux favoris, appuyez longuement sur le message puis tapotez “{button}.”",
   "errorAccountLoggedIn": "Le compte {email} at {server} figure déjà dans votre liste de comptes.",
   "errorAccountLoggedInTitle": "Vous êtes déjà connecté à ce compte",
-  "composeBoxBannerLabelCannotSendInChannel": "Vous n'avez pas l'autorisation de poster sur ce canal.",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "Vous ne pouvez pas envoyer de messages aux utilisateurs désactivés.",
   "errorConnectingToServerDetails": "Une erreur s'est produite lors de la connexion à Zulip sur {serverUrl}. Nouvelle tentative imminente :\n\n{error}",
   "errorConnectingToServerShort": "Une erreur s'est produite lors de la connexion au serveur. Nouvelle tentative en cours…",
   "errorContentNotInsertedTitle": "Contenu non inséré",
@@ -1484,6 +1528,7 @@
   "errorNetworkRequestFailed": "Échec de la requête réseau",
   "errorNotificationOpenAccountNotFound": "Le compte associé à cette notification n'a pas été trouvé.",
   "errorNotificationOpenTitle": "Échec de l'ouverture d'une notification",
+  "errorPinChannelFailedTitle": "Échec de l'épinglage du canal",
   "errorQuotationFailed": "Échec de la citation",
   "errorReactionAddingFailedTitle": "Échec de l'ajout d'une réaction",
   "errorReactionRemovingFailedTitle": "Échec de la suppression d'une réaction",
@@ -1497,6 +1542,7 @@
   "errorStarMessageFailedTitle": "Échec de la mise en favori du message",
   "errorUnfollowTopicFailed": "Échec de la tentative de ne plus suivre la conversation",
   "errorUnmuteTopicFailed": "Échec de la désactivation de la sourdine sur la conversation",
+  "errorUnpinChannelFailedTitle": "Échec du détachement du canal",
   "errorUnresolveTopicFailedTitle": "La conversation n'a pas être marquée comme non résolue",
   "errorUnstarMessageFailedTitle": "Échec de la suppression du message des favoris",
   "errorVideoPlayerFailed": "Échec de la lecture de la vidéo.",
@@ -1535,6 +1581,10 @@
   "loginUsernameLabel": "Identifiant",
   "mainMenuMyProfile": "Mon profil",
   "manyPeopleTyping": "Plusieurs personnes sont en train d'écrire…",
+  "markAllAsReadConfirmationDialogConfirmButton": "Marquer comme lu",
+  "markAllAsReadConfirmationDialogMessage": "Des messages de différentes conversations sont concernés.",
+  "markAllAsReadConfirmationDialogTitle": "{count, plural, =1{Marquer l'ensemble d'au moins {count} message comme lus ?} other{Marquer l'ensemble d'au moins {count} messages comme lu ?}}",
+  "markAllAsReadConfirmationDialogTitleNoCount": "Marquer les messages comme lus ?",
   "markAllAsReadLabel": "Marquer tous les messages comme lus",
   "markAsReadComplete": "{num, plural, =1{1 message marqué comme lu} other{{num} messages marqués comme lus}}.",
   "markAsReadInProgress": "Les messages sont en train d'être marqués comme lus…",
@@ -1593,7 +1643,7 @@
   "searchMessagesHintText": "Recherche",
   "searchMessagesPageTitle": "Recherche",
   "seeWhoReactedSheetEmojiNameWithVoteCount": "{emojiName} : {num, plural, =1{1 vote} other{{num} votes}}",
-  "seeWhoReactedSheetHeaderLabel": "Réactions emoji ({num} total)",
+  "seeWhoReactedSheetHeaderLabel": "Réactions émoji ({num} total)",
   "seeWhoReactedSheetNoReactions": "Aucune réaction associée à ce message.",
   "seeWhoReactedSheetUserListLabel": "Votes pour {emojiName} ({num})",
   "serverUrlValidationErrorEmpty": "Merci de saisir une adresse Internet (URL).",

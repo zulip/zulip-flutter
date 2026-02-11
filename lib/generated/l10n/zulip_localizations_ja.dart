@@ -431,11 +431,11 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnknownDmRecipient =>
-      'You cannot send messages to unknown users.';
+      '不明なユーザーにメッセージを送信することはできません。';
 
   @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
-      'You cannot send messages here.';
+      'ここではメッセージを送信できません。';
 
   @override
   String get composeBoxBannerLabelCannotSendInChannel =>
@@ -443,7 +443,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnsubscribed =>
-      'Replies to your messages will not appear automatically.';
+      'あなたのメッセージへの返信は、自動的には表示されません。';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
@@ -849,22 +849,21 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Mark $count+ messages as read?',
-      one: 'Mark $count+ messages as read?',
+      other: '$count 件以上のメッセージを既読にしますか？',
+      one: '$count 件以上のメッセージを既読にしますか？',
     );
     return '$_temp0';
   }
 
   @override
-  String get markAllAsReadConfirmationDialogTitleNoCount =>
-      'Mark messages as read?';
+  String get markAllAsReadConfirmationDialogTitleNoCount => 'メッセージを既読にしますか？';
 
   @override
   String get markAllAsReadConfirmationDialogMessage =>
-      'Messages in multiple conversations may be affected.';
+      '複数の会話内のメッセージが影響を受ける可能性があります。';
 
   @override
-  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
+  String get markAllAsReadConfirmationDialogConfirmButton => '既読にする';
 
   @override
   String get today => '今日';

@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
   },
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
@@ -167,8 +173,23 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
+  },
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
   },
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
     "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
@@ -384,12 +405,6 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@composeBoxBannerLabelCannotSendInChannel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
-  },
-  "@composeBoxBannerLabelDeactivatedDmRecipient": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
-  },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
     "placeholders": {
@@ -588,6 +603,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
@@ -652,6 +670,9 @@
   },
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
@@ -776,6 +797,24 @@
   },
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "@markAllAsReadConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message in the confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogTitle": {
+    "description": "Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.",
+    "placeholders": {
+      "count": {
+        "description": "Minimum number of messages that will be marked as read",
+        "type": "int"
+      }
+    }
+  },
+  "@markAllAsReadConfirmationDialogTitleNoCount": {
+    "description": "Title of the confirmation dialog for marking all messages as read."
   },
   "@markAllAsReadLabel": {
     "description": "Button text to mark messages as read."
@@ -1353,6 +1392,7 @@
   "actionSheetOptionMarkChannelAsRead": "Отметить канал как прочитанный",
   "actionSheetOptionMarkTopicAsRead": "Отметить тему как прочитанную",
   "actionSheetOptionMuteTopic": "Заглушить тему",
+  "actionSheetOptionPinChannel": "Закрепить",
   "actionSheetOptionQuoteMessage": "Цитировать сообщение",
   "actionSheetOptionResolveTopic": "Поставить отметку \"решено\"",
   "actionSheetOptionSeeWhoReacted": "Посмотреть отреагировавших",
@@ -1360,7 +1400,8 @@
   "actionSheetOptionStarMessage": "Отметить сообщение",
   "actionSheetOptionSubscribe": "Подписаться",
   "actionSheetOptionUnfollowTopic": "Не отслеживать тему",
-  "actionSheetOptionUnmuteTopic": "Включить оповещения темы",
+  "actionSheetOptionUnmuteTopic": "Снять глушение темы",
+  "actionSheetOptionUnpinChannel": "Открепить",
   "actionSheetOptionUnresolveTopic": "Пометить как нерешённое",
   "actionSheetOptionUnstarMessage": "Снять отметку с сообщения",
   "actionSheetOptionUnsubscribe": "Отписаться",
@@ -1387,7 +1428,12 @@
   "composeBoxBannerButtonRefresh": "Обновить",
   "composeBoxBannerButtonSave": "Сохранить",
   "composeBoxBannerButtonSubscribe": "Подписаться",
+  "composeBoxBannerLabelCannotSendInChannel": "У вас нет права писать в этом канале.",
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "Здесь вы не можете отправить сообщение.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Нельзя отправить сообщение отключенным пользователям.",
   "composeBoxBannerLabelEditMessage": "Редактирование сообщения",
+  "composeBoxBannerLabelUnknownDmRecipient": "Вы не можете отправлять сообщения неизвестным пользователям.",
+  "composeBoxBannerLabelUnsubscribed": "Ответы на ваши сообщения не появятся автоматически.",
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Новые сообщения не будут отображаться автоматически.",
   "composeBoxChannelContentHint": "Сообщение для {destination}",
   "composeBoxDmContentHint": "Сообщение для @{user}",
@@ -1438,8 +1484,6 @@
   "emptyMessageListStarredMessage": "<z-link>Отметка</z-link> звездочкой — это хороший способ отслеживать важные сообщения, такие как задачи, к которым нужно вернуться, или полезные ссылки. Чтобы отметить сообщение, выберите его длинным нажатием, а затем нажмите «{button}».",
   "errorAccountLoggedIn": "Учетная запись {email} на {server} уже присутствует.",
   "errorAccountLoggedInTitle": "Вход в учетную запись уже выполнен",
-  "composeBoxBannerLabelCannotSendInChannel": "У вас нет права писать в этом канале.",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "Нельзя отправить сообщение отключенным пользователям.",
   "errorConnectingToServerDetails": "Ошибка подключения к Zulip на {serverUrl}. Повторим попытку:\n\n{error}",
   "errorConnectingToServerShort": "Ошибка подключения к Zulip. Повторяем попытку…",
   "errorContentNotInsertedTitle": "Содержимое не вставлено",
@@ -1478,6 +1522,7 @@
   "errorNetworkRequestFailed": "Сбой сетевого запроса",
   "errorNotificationOpenAccountNotFound": "Учетная запись, связанная с этим уведомлением, не найдена.",
   "errorNotificationOpenTitle": "Не удалось открыть оповещения",
+  "errorPinChannelFailedTitle": "Не удалось закрепить канал",
   "errorQuotationFailed": "Цитирование не удалось",
   "errorReactionAddingFailedTitle": "Не удалось добавить реакцию",
   "errorReactionRemovingFailedTitle": "Не удалось удалить реакцию",
@@ -1490,7 +1535,8 @@
   "errorSharingTitle": "Не удалось поделиться содержанием",
   "errorStarMessageFailedTitle": "Не удалось отметить сообщение",
   "errorUnfollowTopicFailed": "Не удалось прекратить отслеживать тему",
-  "errorUnmuteTopicFailed": "Не удалось включить оповещения темы",
+  "errorUnmuteTopicFailed": "Не удалось снять глушение темы",
+  "errorUnpinChannelFailedTitle": "Не удалось открепить канал",
   "errorUnresolveTopicFailedTitle": "Не удалось отметить тему как нерешенную",
   "errorUnstarMessageFailedTitle": "Не удалось снять отметку с сообщения",
   "errorVideoPlayerFailed": "Не удается воспроизвести видео.",
@@ -1529,6 +1575,10 @@
   "loginUsernameLabel": "Имя пользователя",
   "mainMenuMyProfile": "Мой профиль",
   "manyPeopleTyping": "Несколько человек набирают сообщения…",
+  "markAllAsReadConfirmationDialogConfirmButton": "Отметить как прочитанные",
+  "markAllAsReadConfirmationDialogMessage": "Это может отразиться на сообщениях во многих беседах.",
+  "markAllAsReadConfirmationDialogTitle": "{count, plural, =1{Отметить {count}+ сообщений как прочитанные?} other{Отметить {count}+ сообщений как прочитанные?}}",
+  "markAllAsReadConfirmationDialogTitleNoCount": "Отметить сообщения как прочитанные?",
   "markAllAsReadLabel": "Отметить все сообщения как прочитанные",
   "markAsReadComplete": "Отметка прочтения установлена для {num, plural, one{{num} сообщения} other{{num} сообщений}}.",
   "markAsReadInProgress": "Помечаем сообщения как прочитанные…",

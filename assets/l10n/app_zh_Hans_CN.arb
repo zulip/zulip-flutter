@@ -107,6 +107,9 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
   },
@@ -145,6 +148,12 @@
   },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
@@ -296,12 +305,6 @@
   },
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
-  },
-  "@composeBoxBannerLabelCannotSendInChannel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
-  },
-  "@composeBoxBannerLabelDeactivatedDmRecipient": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
@@ -949,7 +952,6 @@
   "@setStatusPageTitle": {
     "description": "Title for the 'Set status' page."
   },
-  "@settingsPageTitle": {},
   "@signInWithFoo": {
     "description": "Button to use {method} to sign in to the app.",
     "placeholders": {
@@ -1068,6 +1070,9 @@
   },
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
   },
   "@unsubscribeConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for unsubscribing from a channel.",
@@ -1250,6 +1255,7 @@
   "actionSheetReadReceiptsErrorReadCount": "加载已读回执失败。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{此消息已被<z-link>阅读</z-link>，共有 {count} 人：} other{此消息已被<z-link>阅读</z-link>，共有 {count} 人：}}",
   "actionSheetReadReceiptsZeroReadCount": "尚无人阅读此消息。",
+  "allChannelsEmptyPlaceholderHeader": "目前组织中没有您可见的频道。",
   "allChannelsPageTitle": "所有频道",
   "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "频道订阅",
@@ -1263,6 +1269,8 @@
   "composeBoxAttachMediaTooltip": "上传图片或视频",
   "composeBoxBannerButtonCancel": "取消",
   "composeBoxBannerButtonSave": "保存",
+  "composeBoxBannerLabelCannotSendInChannel": "您没有足够的权限在此频道发送消息。",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "您不能向被停用的用户发送消息。",
   "composeBoxBannerLabelEditMessage": "编辑消息",
   "composeBoxChannelContentHint": "发送消息到 {destination}",
   "composeBoxDmContentHint": "发送私信给 @{user}",
@@ -1298,8 +1306,6 @@
   "emptyMessageListSearch": "没有搜索结果。",
   "errorAccountLoggedIn": "在 {server} 的账号 {email} 已经在您的账号列表了。",
   "errorAccountLoggedInTitle": "已经登入该账号",
-  "composeBoxBannerLabelCannotSendInChannel": "您没有足够的权限在此频道发送消息。",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "您不能向被停用的用户发送消息。",
   "errorConnectingToServerDetails": "未能连接到在 {serverUrl} 的 Zulip 服务器。即将重连：\n\n{error}",
   "errorConnectingToServerShort": "未能连接到 Zulip. 重试中…",
   "errorContentNotInsertedTitle": "未插入内容",
@@ -1482,6 +1488,7 @@
   "unknownUserName": "（未知用户）",
   "unpinnedSubscriptionsLabel": "未置顶",
   "unsubscribeConfirmationDialogConfirmButton": "取消订阅",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "一旦离开该频道，将无法重新加入。",
   "unsubscribeConfirmationDialogTitle": "确定取消订阅{channelName}么?",
   "unsubscribeFailedTitle": "取消订阅失败",
   "updateStatusErrorTitle": "更新用户状态时发生错误。请再试一次。",

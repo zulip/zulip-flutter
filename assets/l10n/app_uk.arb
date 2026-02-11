@@ -167,8 +167,23 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
+  },
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
   },
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
     "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
@@ -383,12 +398,6 @@
   },
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
-  },
-  "@composeBoxBannerLabelCannotSendInChannel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
-  },
-  "@composeBoxBannerLabelDeactivatedDmRecipient": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
@@ -776,6 +785,24 @@
   },
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "@markAllAsReadConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message in the confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogTitle": {
+    "description": "Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.",
+    "placeholders": {
+      "count": {
+        "description": "Minimum number of messages that will be marked as read",
+        "type": "int"
+      }
+    }
+  },
+  "@markAllAsReadConfirmationDialogTitleNoCount": {
+    "description": "Title of the confirmation dialog for marking all messages as read."
   },
   "@markAllAsReadLabel": {
     "description": "Button text to mark messages as read."
@@ -1387,7 +1414,12 @@
   "composeBoxBannerButtonRefresh": "Оновити",
   "composeBoxBannerButtonSave": "Зберегти",
   "composeBoxBannerButtonSubscribe": "Підписатися",
+  "composeBoxBannerLabelCannotSendInChannel": "Ви не маєте дозволу на публікацію в цьому каналі.",
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "Ви не можете надсилати повідомлення тут.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Ви не можете надсилати повідомлення деактивованим користувачам.",
   "composeBoxBannerLabelEditMessage": "Редагування повідомлення",
+  "composeBoxBannerLabelUnknownDmRecipient": "Ви не можете надсилати повідомлення невідомим користувачам.",
+  "composeBoxBannerLabelUnsubscribed": "Відповіді на ваші повідомлення не з’являтимуться автоматично.",
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Нові повідомлення не з’являтимуться автоматично.",
   "composeBoxChannelContentHint": "Надіслати повідомлення {destination}",
   "composeBoxDmContentHint": "Повідомлення @{user}",
@@ -1438,8 +1470,6 @@
   "emptyMessageListStarredMessage": "<z-link>Позначення зірочкою</z-link> – це гарний спосіб відстежувати важливі повідомлення, такі як завдання, до яких потрібно повернутися, або корисні посилання. Щоб позначити повідомлення зірочкою, довго натисніть на нього та натисніть «{button}»",
   "errorAccountLoggedIn": "Обліковий запис {email} на {server} уже є у вашому списку облікових записів.",
   "errorAccountLoggedInTitle": "В обліковий запис уже ввійшли",
-  "composeBoxBannerLabelCannotSendInChannel": "Ви не маєте дозволу на публікацію в цьому каналі.",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "Ви не можете надсилати повідомлення деактивованим користувачам.",
   "errorConnectingToServerDetails": "Помилка підключення до Zulip на {serverUrl}. Буде повторена спроба:\n\n{error}",
   "errorConnectingToServerShort": "Помилка підключення до Zulip. Повторна спроба…",
   "errorContentNotInsertedTitle": "Вміст не вставлено",
@@ -1529,6 +1559,10 @@
   "loginUsernameLabel": "Ім'я користувача",
   "mainMenuMyProfile": "Мій профіль",
   "manyPeopleTyping": "Кілька людей друкують…",
+  "markAllAsReadConfirmationDialogConfirmButton": "Позначити як прочитане",
+  "markAllAsReadConfirmationDialogMessage": "Це може вплинути на повідомлення в кількох розмовах.",
+  "markAllAsReadConfirmationDialogTitle": "{count, plural, =1{Позначити {count}+ повідомлень як прочитані?} other{Позначити {count}+ повідомлень як прочитані?}}",
+  "markAllAsReadConfirmationDialogTitleNoCount": "Позначити повідомлення як прочитані?",
   "markAllAsReadLabel": "Позначити всі повідомлення як прочитані",
   "markAsReadComplete": "Позначено як прочитані {num, plural, =1{1 повідомлення} other{{num} повідомлення}}.",
   "markAsReadInProgress": "Позначення повідомлень як прочитаних…",
