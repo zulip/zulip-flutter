@@ -450,6 +450,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     return extension!;
   }
 
+  // Named variables from the Figma, but in camelCase.
   final Color background;
   final Color bannerBgIntDanger;
   final Color bannerBgIntInfo;
