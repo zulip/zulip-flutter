@@ -76,6 +76,8 @@ Uses Pigeon for type-safe platform channels (Android intents, notifications).
 - External APIs: wrap in `ZulipBinding`, fake in tests
 - Test fixtures: `test/example_data.dart` has builders for all common data types
 
+See @./rules/testing.md for detailed conventions on writing tests.
+
 ### i18n
 
 New UI strings go in `assets/l10n/app_en.arb`. Output class is `ZulipLocalizations`. Run `flutter gen-l10n` after editing.
