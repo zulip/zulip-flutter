@@ -67,6 +67,7 @@ Uses Pigeon for type-safe platform channels (Android intents, notifications).
 - **No `dart format`** — follow existing code style manually. Auto-format is disabled in VS Code settings.
 - **Prefer relative imports** within the package.
 - **Strict analysis**: strict-inference, strict-raw-types, strict-casts are all enabled.
+- **Stream → channel rename**: Use "channel" instead of "stream" for new variable/parameter names (e.g., `channelId` not `streamId`). The API still uses "stream" in many places, but new code in this codebase should use "channel". See #631.
 
 ### Testing patterns
 
