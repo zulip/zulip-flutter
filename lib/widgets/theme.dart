@@ -146,6 +146,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
     bgMenuButtonSelected: Colors.white,
     bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
+    bgSearchInput: const Color(0xffe3e3e3),
     bgTopBar: const Color(0xfff5f5f5),
     borderBar: Colors.black.withValues(alpha: 0.2),
     borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
@@ -212,10 +213,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
     statusOnline: Color(0xff46aa62),
     textInput: const Color(0xff000000),
-    title: const Color(0xff1a1a1a),
-    bgSearchInput: const Color(0xffe3e3e3),
     textMessage: const Color(0xff262626),
     textMessageMuted: const Color(0xff262626).withValues(alpha: 0.6),
+    title: const Color(0xff1a1a1a),
     channelColorSwatches: ChannelColorSwatches.light,
     avatarPlaceholderBg: const Color(0x33808080),
     avatarPlaceholderIcon: Colors.black.withValues(alpha: 0.5),
@@ -248,6 +248,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
     bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
     bgMessageRegular: const Color(0xff1d1d1d),
+    bgSearchInput: const Color(0xff313131),
     bgTopBar: const Color(0xff242424),
     borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
     borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
@@ -314,10 +315,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
     statusOnline: Color(0xff44bb66),
     textInput: const Color(0xffffffff).withValues(alpha: 0.9),
-    title: const Color(0xffffffff).withValues(alpha: 0.9),
-    bgSearchInput: const Color(0xff313131),
     textMessage: const Color(0xffffffff).withValues(alpha: 0.8),
     textMessageMuted: const Color(0xffffffff).withValues(alpha: 0.5),
+    title: const Color(0xffffffff).withValues(alpha: 0.9),
     channelColorSwatches: ChannelColorSwatches.dark,
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     avatarPlaceholderBg: const Color(0x33cccccc),
@@ -359,6 +359,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgMenuButtonActive,
     required this.bgMenuButtonSelected,
     required this.bgMessageRegular,
+    required this.bgSearchInput,
     required this.bgTopBar,
     required this.borderBar,
     required this.borderMenuButtonSelected,
@@ -389,12 +390,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.contextMenuItemText,
     required this.contextMenuItemTextDanger,
     required this.editorButtonPressedBg,
-    required this.foreground,
     required this.fabBg,
     required this.fabBgPressed,
     required this.fabLabel,
     required this.fabLabelPressed,
     required this.fabShadow,
+    required this.foreground,
     required this.icon,
     required this.iconSelected,
     required this.labelCounterQuantity,
@@ -416,10 +417,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.statusIdle,
     required this.statusOnline,
     required this.textInput,
-    required this.title,
-    required this.bgSearchInput,
     required this.textMessage,
     required this.textMessageMuted,
+    required this.title,
     required this.channelColorSwatches,
     required this.avatarPlaceholderBg,
     required this.avatarPlaceholderIcon,
@@ -462,6 +462,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color bgMenuButtonActive;
   final Color bgMenuButtonSelected;
   final Color bgMessageRegular;
+  final Color bgSearchInput;
   final Color bgTopBar;
   final Color borderBar;
   final Color borderMenuButtonSelected;
@@ -519,10 +520,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color statusIdle;
   final Color statusOnline;
   final Color textInput;
-  final Color title;
-  final Color bgSearchInput;
   final Color textMessage;
   final Color textMessageMuted;
+  final Color title;
 
   // Not exactly from the Figma design, but from Vlad anyway.
   final ChannelColorSwatches channelColorSwatches;
@@ -559,6 +559,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgMenuButtonActive,
     Color? bgMenuButtonSelected,
     Color? bgMessageRegular,
+    Color? bgSearchInput,
     Color? bgTopBar,
     Color? borderBar,
     Color? borderMenuButtonSelected,
@@ -616,10 +617,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? statusIdle,
     Color? statusOnline,
     Color? textInput,
-    Color? title,
-    Color? bgSearchInput,
     Color? textMessage,
     Color? textMessageMuted,
+    Color? title,
     ChannelColorSwatches? channelColorSwatches,
     Color? avatarPlaceholderBg,
     Color? avatarPlaceholderIcon,
@@ -651,6 +651,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgMenuButtonActive: bgMenuButtonActive ?? this.bgMenuButtonActive,
       bgMenuButtonSelected: bgMenuButtonSelected ?? this.bgMenuButtonSelected,
       bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
+      bgSearchInput: bgSearchInput ?? this.bgSearchInput,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
       borderMenuButtonSelected: borderMenuButtonSelected ?? this.borderMenuButtonSelected,
@@ -681,12 +682,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemText,
       contextMenuItemTextDanger: contextMenuItemTextDanger ?? this.contextMenuItemTextDanger,
       editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
-      foreground: foreground ?? this.foreground,
       fabBg: fabBg ?? this.fabBg,
       fabBgPressed: fabBgPressed ?? this.fabBgPressed,
       fabLabel: fabLabel ?? this.fabLabel,
       fabLabelPressed: fabLabelPressed ?? this.fabLabelPressed,
       fabShadow: fabShadow ?? this.fabShadow,
+      foreground: foreground ?? this.foreground,
       icon: icon ?? this.icon,
       iconSelected: iconSelected ?? this.iconSelected,
       labelCounterQuantity: labelCounterQuantity ?? this.labelCounterQuantity,
@@ -708,10 +709,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       statusIdle: statusIdle ?? this.statusIdle,
       statusOnline: statusOnline ?? this.statusOnline,
       textInput: textInput ?? this.textInput,
-      title: title ?? this.title,
-      bgSearchInput: bgSearchInput ?? this.bgSearchInput,
       textMessage: textMessage ?? this.textMessage,
       textMessageMuted: textMessageMuted ?? this.textMessageMuted,
+      title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       avatarPlaceholderBg: avatarPlaceholderBg ?? this.avatarPlaceholderBg,
       avatarPlaceholderIcon: avatarPlaceholderIcon ?? this.avatarPlaceholderIcon,
@@ -750,6 +750,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgMenuButtonActive: Color.lerp(bgMenuButtonActive, other.bgMenuButtonActive, t)!,
       bgMenuButtonSelected: Color.lerp(bgMenuButtonSelected, other.bgMenuButtonSelected, t)!,
       bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
+      bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       borderMenuButtonSelected: Color.lerp(borderMenuButtonSelected, other.borderMenuButtonSelected, t)!,
@@ -780,12 +781,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       contextMenuItemText: Color.lerp(contextMenuItemText, other.contextMenuItemText, t)!,
       contextMenuItemTextDanger: Color.lerp(contextMenuItemTextDanger, other.contextMenuItemTextDanger, t)!,
       editorButtonPressedBg: Color.lerp(editorButtonPressedBg, other.editorButtonPressedBg, t)!,
-      foreground: Color.lerp(foreground, other.foreground, t)!,
       fabBg: Color.lerp(fabBg, other.fabBg, t)!,
       fabBgPressed: Color.lerp(fabBgPressed, other.fabBgPressed, t)!,
       fabLabel: Color.lerp(fabLabel, other.fabLabel, t)!,
       fabLabelPressed: Color.lerp(fabLabelPressed, other.fabLabelPressed, t)!,
       fabShadow: Color.lerp(fabShadow, other.fabShadow, t)!,
+      foreground: Color.lerp(foreground, other.foreground, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
       labelCounterQuantity: Color.lerp(labelCounterQuantity, other.labelCounterQuantity, t)!,
@@ -807,10 +808,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       statusIdle: Color.lerp(statusIdle, other.statusIdle, t)!,
       statusOnline: Color.lerp(statusOnline, other.statusOnline, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
-      title: Color.lerp(title, other.title, t)!,
-      bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
       textMessage: Color.lerp(textMessage, other.textMessage, t)!,
       textMessageMuted: Color.lerp(textMessageMuted, other.textMessageMuted, t)!,
+      title: Color.lerp(title, other.title, t)!,
       channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
       avatarPlaceholderBg: Color.lerp(avatarPlaceholderBg, other.avatarPlaceholderBg, t)!,
       avatarPlaceholderIcon: Color.lerp(avatarPlaceholderIcon, other.avatarPlaceholderIcon, t)!,
