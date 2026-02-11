@@ -33,9 +33,7 @@ extension ComposeContentAutocomplete on ComposeContentController {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that
       // autocorrect and even backspace involve programmatically expanding the
-      // selection to the left. Once we know where the syntax starts, we can at
-      // least require that the selection doesn't extend leftward past that;
-      // see below.
+      // selection to the left.
       return null;
     }
 
@@ -48,23 +46,15 @@ extension ComposeContentAutocomplete on ComposeContentController {
     }
 
     final textUntilCursor = text.substring(0, selection.end);
-    int pos;
-    for (pos = selection.end - 1; pos > selection.start; pos--) {
-      final charAtPos = textUntilCursor[pos];
-      if (charAtPos == '@') {
-        final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else if (charAtPos == ':') {
-        final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else if (charAtPos == '#') {
-        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else {
-        continue;
-      }
-      // See comment about [TextSelection.isCollapsed] above.
-      return null;
+
+    int pos = selection.start;
+    if (selection.isCollapsed) {
+      // Allow ^@chris^ but not ^@chris to trigger autocomplete for "chris".
+      // (^ represents selection handles or the blinking cursor.)
+      // Not sure this special-casing is helpful; could easily start looking
+      // on the left of the selection handle, just like with the blinking cursor,
+      // if desired.
+      pos--;
     }
 
     for (; pos >= earliest; pos--) {
