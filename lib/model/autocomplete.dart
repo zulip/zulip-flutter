@@ -48,24 +48,10 @@ extension ComposeContentAutocomplete on ComposeContentController {
     }
 
     final textUntilCursor = text.substring(0, selection.end);
-    int pos;
-    for (pos = selection.end - 1; pos > selection.start; pos--) {
-      final charAtPos = textUntilCursor[pos];
-      if (charAtPos == '@') {
-        final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else if (charAtPos == ':') {
-        final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else if (charAtPos == '#') {
-        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else {
-        continue;
-      }
-      // See comment about [TextSelection.isCollapsed] above.
-      return null;
-    }
+
+    // See comment about [TextSelection.isCollapsed] above.
+    int pos = selection.start;
+    if (selection.isCollapsed) pos--;
 
     for (; pos >= earliest; pos--) {
       final charAtPos = textUntilCursor[pos];
