@@ -85,6 +85,11 @@ Tests live in `test/api/route/` and use `FakeApiConnection`:
 
 Check extensions for result types go in `route_checks.dart`.
 
+## Reading API docs
+
+- For the API changelog, never try to fetch https://zulip.com/api/changelog .
+  Instead, read the source code of that page, at ../zulip/api_docs/changelog.md .
+
 ## Key Conventions
 
 - All constructor parameters in API types use `required`, even for nullable fields (see README "Require all parameters in API constructors")
