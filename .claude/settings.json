@@ -8,6 +8,10 @@
       "Bash(flutter gen-l10n:*)",
       "Bash(flutter analyze:*)",
       "Bash(flutter test:*)"
+    ],
+    "deny": [
+      "Read(android/*keystore*)",
+      "Read(android/*.jks)"
     ]
   }
 }
