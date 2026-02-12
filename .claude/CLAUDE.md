@@ -19,7 +19,7 @@ flutter test test/foo/bar_test.dart
 flutter test test/foo/bar_test.dart --name 'some test name'
 
 # Static analysis (type-checking + linting)
-flutter analyze
+flutter analyze --no-pub
 
 # Run all test suites (only changed files vs upstream main)
 tools/check
@@ -86,3 +86,9 @@ Uses Drift ORM with SQLite. Schema changes require running `tools/check --fix dr
 ### Design
 
 UI designs come from Figma (linked in issues). Match colors, padding, and font sizes exactly. Use `DesignVariables` and `ContentTheme` for theme values.
+
+
+## Developing changes
+
+- After every edit, run the Flutter analyzer to catch issues early.
+  Use this command: `flutter analyze --no-pub 2>&1 | head -20`
