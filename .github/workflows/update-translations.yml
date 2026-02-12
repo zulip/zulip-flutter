@@ -35,21 +35,7 @@ jobs:
           git reset --hard weblate/main
 
       - name: Clone Flutter SDK
-        # Upstream's version calculation fails with a shallow clone,
-        # so instead clone with `--filter=blob:none`.
-        run: |
-          git clone --filter=blob:none -b main https://github.com/flutter/flutter ~/flutter
-          TZ=UTC git -C ~/flutter log -1 --format='%h | %ci | %s' --date=iso8601-local
-          echo ~/flutter/bin >> "$GITHUB_PATH"
-
-          # The Flutter tool assumes the tip of tree is "origin/master"
-          # (or "upstream/master"):
-          #   https://github.com/flutter/flutter/issues/160626
-          # TODO(upstream): make workaround unneeded
-          git -C ~/flutter update-ref refs/remotes/origin/master origin/main
-
-          # TODO(#2139) do this more cleanly, and/or return to latest main
-          git -C ~/flutter reset --hard 055f3e5bf58354cb50eb55f7e35d03d8e15a6f07
+        run: tools/ci/clone-flutter-sdk
 
       - name: Update generated code
         run: |
