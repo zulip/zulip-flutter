@@ -25,7 +25,7 @@ flutter analyze --no-pub
 tools/check
 
 # Regenerate JSON serialization code after editing API types
-dart run build_runner build
+tools/check --fix build_runner
 
 # Regenerate i18n after editing assets/l10n/app_en.arb
 flutter gen-l10n
