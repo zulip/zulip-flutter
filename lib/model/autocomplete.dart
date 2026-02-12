@@ -21,13 +21,21 @@ extension ComposeContentAutocomplete on ComposeContentController {
   // To avoid spending a lot of time searching for autocomplete intents
   // in long messages, we bound how far back we look for the intent's start.
   int get _maxLookbackForAutocompleteIntent {
-    return 1 // intent character, e.g. "#"
-      + 2 // some optional characters e.g., "_" for silent mention or "**"
-
-      // Per the API doc, maxChannelNameLength is in Unicode code points.
+    // Longest autocomplete syntax is the fallback topic link intent (as of 2026-04):
+    //   [#escapedChannelName](#narrow/channel/channelId-slugifiedChannelName)>topicName
+    return 2 // [#
+      // Largest length of an escaped channel name (see `compose.escapeChannelTopicAvoidedChars`).
+      + 5 * store.maxChannelNameLength
+      + 18 // ](#narrow/channel/
+      + 19 // largest channel ID (9223372036854775807 — largest int) length
+      + 1  // hyphen character (-)
+      // Largest length of a slugified channel name (see `internal_link.narrowLinkFragment`).
+      + 3 * store.maxChannelNameLength
+      + 2  // )>
+      // Per the API doc, maxTopicLength is in Unicode code points.
       // We walk the string by UTF-16 code units, and there might be one or two
       // of those encoding each Unicode code point.
-      + 2 * store.maxChannelNameLength;
+      + 2 * store.maxTopicLength;
   }
 
   AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
@@ -70,9 +78,15 @@ extension ComposeContentAutocomplete on ComposeContentController {
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
       } else if (charAtPos == '#') {
-        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
-        if (match == null) continue;
-        query = ChannelLinkAutocompleteQuery(match.namedGroup('rawQuery')!);
+        final channelIntentMatch = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
+        if (channelIntentMatch != null) {
+          query = ChannelLinkAutocompleteQuery(channelIntentMatch.namedGroup('rawQuery')!);
+        } else {
+          final topicIntentMatch = _topicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
+          if (topicIntentMatch == null) continue;
+          query = TopicLinkAutocompleteQuery(topicIntentMatch.namedGroup('rawQuery')!,
+            channelName: topicIntentMatch.namedGroup('channelName'));
+        }
       } else {
         continue;
       }
@@ -190,13 +204,20 @@ final RegExp _channelLinkIntentRegex = () {
   //   meaning "whitespace and punctuation, except not `#` or `@`":
   //     r'(?<=^|[[\s\p{Punctuation}]--[#@]])'
 
-  // In a channel name, the server accepts a wide range of characters.
-  // It excludes only portions of the `\p{C}` major category,
-  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
-  //   - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
+  // Characters the channel query cannot contain. These include the following:
+  // - The ">" character, which serves as a delimiter between channel and topic
+  //   in topic link autocomplete intent syntax. Allowing this in the channel
+  //   query will mismatch fallback topic link autocomplete syntax. For exmaple,
+  //   "[#…](#narrow…)>topic" will be incorrectly detected as a channel link
+  //   autocomplete intent with "narrow…)>topic" as the query string.
+  // - The characters that are not allowed in a channel name. In a channel name,
+  //   the server accepts a wide range of characters. It excludes only portions
+  //   of the `\p{C}` major category, namely the minor categories `\p{Cc}`,
+  //   `\p{Cs}`, and part of `\p{Cn}`.
+  //     - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
   //
-  // TODO: match the server constraints
-  const nameCharExclusions = r'\r\n';
+  // TODO: incorporate the server constraints
+  const queryCharExclusions = r'>\r\n';
 
   return RegExp(unicode: true,
     before
@@ -208,13 +229,53 @@ final RegExp _channelLinkIntentRegex = () {
     // option, instead of clearing the entire query and starting from scratch.
     + r'(?:'
       // Case '#channel': right after '#', reject whitespace as well as '**'.
-      + r'(?!\s|\*\*)(?<rawQuery>[^' + nameCharExclusions + r']*)'
+      + r'(?!\s|\*\*)(?<rawQuery>[^' + queryCharExclusions + r']*)'
       + r'|'
       // Case '#**channel': right after '#**', reject whitespace.
       // Also, make sure that the remaining query doesn't contain '**',
       // otherwise '#**channel**' (which is a completed channel link syntax) and
       // any text following that will always match.
       + r'\*\*(?!\s)'
+      + r'(?<rawQuery>(?:'
+        + r'[^*' + queryCharExclusions + r']'
+        + r'|'
+        + r'\*[^*' + queryCharExclusions + r']'
+        + r'|'
+        + r'[^*' + queryCharExclusions + r']\*$'
+      + r')*)'
+    + r')$');
+}();
+
+final RegExp _topicLinkIntentRegex = () {
+  // What's likely to come just before #channel>topic syntax: the start of the
+  // string, whitespace, or punctuation. Letters are unlikely.
+  //
+  // Only some punctuation, like "(", is actually likely here. We don't
+  // currently try to be specific about that.
+  const before = r'(?<=^|\s|\p{Punctuation})';
+
+  // In a channel/topic name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L65
+  //
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'\r\n';
+
+  return RegExp(unicode: true,
+    before
+    + r'#'
+    // Match both '#>topic' (shortcut syntax) and '#**…>topic'.
+    + r'(?:'
+      // Case '#>topic'.
+      + r'>(?!\s)(?<rawQuery>[^' + nameCharExclusions + r']*)'
+      + r'|'
+      // Case '#**…>topic'.
+      + r'\*\*(?<channelName>[^*>' + nameCharExclusions + r']+)'
+      + r'>(?!\s)'
+      // Make sure that the query doesn't contain '**', otherwise '#**…>…**'
+      // (which is a completed topic link syntax) and any text following that
+      // will always match.
       + r'(?<rawQuery>(?:'
         + r'[^*' + nameCharExclusions + r']'
         + r'|'
