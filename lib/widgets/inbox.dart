@@ -121,7 +121,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       dmItems.add((dmNarrow, countInNarrow, hasMention));
       allDmsCount += countInNarrow;
     }
-    if (allDmsCount > 0) {
+    if (dmItems.isNotEmpty) {
       sections.add(_AllDmsSectionData(allDmsCount, allDmsHasMention, dmItems));
     }
 
