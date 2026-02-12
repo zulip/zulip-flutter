@@ -232,6 +232,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
     subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
     subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
+    topicAutocompleteTopicOptionIcon: const HSLColor.fromAHSL(1.0, 0, 0.0, 0.58).toColor(),
     unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
     userStatusText: const Color(0xff808080),
   );
@@ -342,6 +343,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
+    // TODO(design-dark) unchanged in dark theme?
+    topicAutocompleteTopicOptionIcon: const HSLColor.fromAHSL(1.0, 0, 0.0, 0.58).toColor(),
     unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
     // TODO(design-dark) unchanged in dark theme?
     userStatusText: const Color(0xff808080),
@@ -436,6 +439,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.star,
     required this.subscriptionListHeaderLine,
     required this.subscriptionListHeaderText,
+    required this.topicAutocompleteTopicOptionIcon,
     required this.unreadCountBadgeTextForChannel,
     required this.userStatusText,
   });
@@ -542,6 +546,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color star;
   final Color subscriptionListHeaderLine;
   final Color subscriptionListHeaderText;
+  // From the web repo: https://github.com/zulip/zulip/blob/e52f5afb7/web/styles/app_variables.css#L1313
+  final Color topicAutocompleteTopicOptionIcon;
   final Color unreadCountBadgeTextForChannel;
   final Color userStatusText; // In Figma, but unnamed.
 
@@ -635,6 +641,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? star,
     Color? subscriptionListHeaderLine,
     Color? subscriptionListHeaderText,
+    Color? topicAutocompleteTopicOptionIcon,
     Color? unreadCountBadgeTextForChannel,
     Color? userStatusText,
   }) {
@@ -727,6 +734,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       star: star ?? this.star,
       subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
       subscriptionListHeaderText: subscriptionListHeaderText ?? this.subscriptionListHeaderText,
+      topicAutocompleteTopicOptionIcon: topicAutocompleteTopicOptionIcon ?? this.topicAutocompleteTopicOptionIcon,
       unreadCountBadgeTextForChannel: unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
       userStatusText: userStatusText ?? this.userStatusText,
     );
@@ -826,6 +834,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       star: Color.lerp(star, other.star, t)!,
       subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
       subscriptionListHeaderText: Color.lerp(subscriptionListHeaderText, other.subscriptionListHeaderText, t)!,
+      topicAutocompleteTopicOptionIcon: Color.lerp(topicAutocompleteTopicOptionIcon, other.topicAutocompleteTopicOptionIcon, t)!,
       unreadCountBadgeTextForChannel: Color.lerp(unreadCountBadgeTextForChannel, other.unreadCountBadgeTextForChannel, t)!,
       userStatusText: Color.lerp(userStatusText, other.userStatusText, t)!,
     );

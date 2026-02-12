@@ -30,6 +30,7 @@ import '../test_images.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
+late FakeApiConnection connection;
 
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
 ///
@@ -55,7 +56,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   await store.addUsers([eg.selfUser, eg.otherUser]);
   await store.addUsers(users);
   await store.addStreams(channels);
-  final connection = store.connection as FakeApiConnection;
+  connection = store.connection as FakeApiConnection;
 
   narrow ??= DmNarrow(
     allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
@@ -382,11 +383,16 @@ void main() {
       checkChannelShown(channel2, expected: true);
       checkChannelShown(channel3, expected: true);
 
+      // Prepare a response for when choosing a channel triggers a fetch of its
+      // topics as a result of the "#**…>" syntax being inserted into the
+      // compose box.
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+
       // Finishing autocomplete updates compose box; causes options to disappear.
       await tester.tap(find.text('mobile design'));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
-        .contains(channelLink(channel2, store: store));
+        .contains(channelLink(channel2, isComplete: false, store: store));
       checkChannelShown(channel1, expected: false);
       checkChannelShown(channel2, expected: false);
       checkChannelShown(channel3, expected: false);
@@ -405,6 +411,139 @@ void main() {
       checkChannelShown(channel1, expected: false);
       checkChannelShown(channel2, expected: false);
       checkChannelShown(channel3, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('#channel>topic link', () {
+    void checkTopicShown(TopicName topic, {required bool expected, bool isNew = false}) {
+      final topicNameFinder = find.text(topic.displayName ?? store.realmEmptyTopicDisplayName);
+      if (isNew) {
+        check(find.ancestor(of: topicNameFinder,
+          matching: find.ancestor(of: find.text('New'),
+            matching: find.byType(Row)))
+        ).findsExactly(expected ? 1 : 0);
+      } else {
+        check(topicNameFinder).findsExactly(expected ? 1 : 0);
+      }
+    }
+
+    testWidgets('options appear, disappear, and change correctly', (tester) async {
+      final channel = eg.stream(name: 'mobile');
+      final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 30, name: 'team');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 20, name: 'design');
+      final topic3 = eg.getChannelTopicsEntry(maxId: 10, name: 'dev help');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2, topic3]).toJson());
+
+      // Options are filtered correctly for query.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>d');
+      await tester.enterText(composeInputFinder, 'check #**mobile>de');
+      await tester.pumpAndSettle();
+
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: true);
+      checkTopicShown(topic3.name, expected: true);
+
+      // Finishing autocomplete updates compose box; causes options to disappear.
+      await tester.tap(find.text('design'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(topicLink(channel, topic2.name, store: store));
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: false);
+      checkTopicShown(topic3.name, expected: false);
+
+      // Then a new autocomplete intent brings up options again.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>de');
+      await tester.enterText(composeInputFinder, 'check #**mobile>dev');
+      await tester.pumpAndSettle();
+      checkTopicShown(topic3.name, expected: true);
+
+      // Removing autocomplete intent causes options to disappear.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check ');
+      await tester.enterText(composeInputFinder, 'check');
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: false);
+      checkTopicShown(topic3.name, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets("query doesn't exactly match any topic -> new option appears", (tester) async {
+      final channel = eg.stream(name: 'mobile');
+      final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'design');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'dev help');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+
+      // The query doesn't exactly match any of the topics.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>d');
+      await tester.enterText(composeInputFinder, 'check #**mobile>dev');
+      await tester.pumpAndSettle();
+
+      // The "new" topic option appears.
+      checkTopicShown(eg.t('dev'), expected: true, isNew: true);
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: true);
+
+      // Tapping on the "new" option, inserts the "new" topic link.
+      await tester.tap(find.text('dev'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(topicLink(channel, eg.t('dev'), store: store));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('empty query -> an option for the channel appears', (tester) async {
+      final channel = eg.stream(name: 'mobile');
+      final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'design');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'dev help');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+
+      // Empty query.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>d');
+      await tester.enterText(composeInputFinder, 'check #**mobile>');
+      await tester.pumpAndSettle();
+
+      // The channel option appears.
+      checkChannelShown(channel,   expected: true);
+      checkTopicShown(topic1.name, expected: true);
+      checkTopicShown(topic2.name, expected: true);
+
+      // Tapping on the channel option, inserts the channel link.
+      await tester.tap(find.text('mobile'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(channelLink(channel, store: store));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('"#**…** >" is replaced by "#**…>"', (tester) async {
+      final channel = eg.stream(name: 'mobile');
+      final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+
+      await tester.enterText(composeInputFinder, 'check #**mobile** >');
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(channelLink(channel, isComplete: false, store: store));
+
+      await tester.enterText(composeInputFinder, 'check #**mobile**>');
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(channelLink(channel, isComplete: false, store: store));
 
       debugNetworkImageHttpClientProvider = null;
     });

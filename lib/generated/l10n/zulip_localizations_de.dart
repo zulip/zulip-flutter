@@ -1192,6 +1192,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Thema benachrichtigen';
 
   @override
+  String get topicAutocompleteChannelOptionLabel => '(link to channel)';
+
+  @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get navBarMenuLabel => 'Menü';
 
   @override

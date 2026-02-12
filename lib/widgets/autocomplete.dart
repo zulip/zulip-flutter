@@ -45,8 +45,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 
   void _handleControllerChange() {
-    var newQuery = widget.autocompleteIntent()?.query;
-    if (newQuery is TopicLinkAutocompleteQuery) newQuery = null; // TODO(#124)
+    final newQuery = widget.autocompleteIntent()?.query;
     // First, tear down the old view-model if necessary.
     if (_viewModel != null
         && (newQuery == null
@@ -234,10 +233,24 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
           // and losing data for the channel.
           return;
         }
+        // TODO(#2154): use complete channel link on "only general chat" channel
+        replacementString = channelLink(channel, isComplete: false, store: store);
+      case TopicLinkAutocompleteChannelResult(:final channelId):
+        final channel = store.streams[channelId];
+        if (channel == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the channel.
+          return;
+        }
         replacementString = '${channelLink(channel, store: store)} ';
-      case TopicLinkAutocompleteChannelResult():
-      case TopicLinkAutocompleteTopicResult():
-        throw UnimplementedError(); // TODO(#124)
+      case TopicLinkAutocompleteTopicResult(:final channelId, :final topic):
+        final channel = store.streams[channelId];
+        if (channel == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the channel.
+          return;
+        }
+        replacementString = '${topicLink(channel, topic, store: store)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -256,7 +269,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
       MentionAutocompleteResult() => MentionAutocompleteItem(
         option: option, narrow: narrow),
       ChannelLinkAutocompleteResult() => _ChannelLinkAutocompleteItem(option: option),
-      TopicLinkAutocompleteResult() => throw UnimplementedError(), // TODO(#124)
+      TopicLinkAutocompleteResult() => _TopicLinkAutocompleteItem(option: option),
       EmojiAutocompleteResult() => _EmojiAutocompleteItem(option: option),
     };
     return InkWell(
@@ -398,6 +411,73 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
             ).merge(weightVariableTextStyle(context, wght: 600)))),
           // TODO(#1945): show channel description
         ])),
+    );
+  }
+}
+
+class _TopicLinkAutocompleteItem extends StatelessWidget {
+  const _TopicLinkAutocompleteItem({required this.option});
+
+  final TopicLinkAutocompleteResult option;
+
+  static const _iconSize = 17.0;
+  static const _iconBoxSize = 24.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final channel = store.streams[option.channelId];
+
+    if (channel == null) return SizedBox.shrink();
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    var labelStyle = TextStyle(
+      fontSize: 17, height: 20 / 17,
+      color: designVariables.contextMenuItemLabel,
+    ).merge(weightVariableTextStyle(context, wght: 500));
+
+    Icon icon;
+    String label;
+    String? trailingLabel;
+    switch (option) {
+      case TopicLinkAutocompleteChannelResult():
+        icon = Icon(iconDataForStream(channel), size: _iconSize,
+                 color: colorSwatchFor(context, store.subscriptions[channel.streamId]));
+        label = channel.name;
+        trailingLabel = zulipLocalizations.topicAutocompleteChannelOptionLabel;
+      case TopicLinkAutocompleteTopicResult(:var topic, :var isNew):
+        icon = Icon(ZulipIcons.corner_down_right, size: _iconSize,
+                 color: designVariables.topicAutocompleteTopicOptionIcon);
+        if (topic.displayName != null) {
+          label = topic.displayName!;
+        } else {
+          label = store.realmEmptyTopicDisplayName;
+          labelStyle = labelStyle.copyWith(fontStyle: FontStyle.italic);
+        }
+        if (isNew) {
+          trailingLabel = zulipLocalizations.topicAutocompleteNewOptionLabel;
+        }
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 44),
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(12, 2, 10, 2),
+        child: Padding(
+          padding: option is TopicLinkAutocompleteChannelResult
+            ? EdgeInsets.zero
+            // Align the topic option icon to the center of the channel option icon.
+            : const EdgeInsetsDirectional.only(start: _iconSize / 2),
+          child: Row(spacing: 10, children: [
+            SizedBox.square(dimension: _iconBoxSize, child: icon),
+            Expanded(child: Text(label, maxLines: 2, overflow: .ellipsis, style: labelStyle)),
+            if (trailingLabel != null)
+              Text(trailingLabel,
+                style: TextStyle(fontSize: 14, height: 16 / 14, fontStyle: .italic,
+                  color: designVariables.contextMenuItemMeta)),
+          ]))),
     );
   }
 }

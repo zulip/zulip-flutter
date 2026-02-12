@@ -1183,6 +1183,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Powiadom w wątku';
 
   @override
+  String get topicAutocompleteChannelOptionLabel => '(link to channel)';
+
+  @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get navBarMenuLabel => 'Menu';
 
   @override
