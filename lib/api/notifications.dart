@@ -67,6 +67,9 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   @JsonKey(readValue: _readRealmUrl) // TODO(server-9)
   final Uri realmUrl;
 
+  /// The realm's name.
+  final String? realmName; // TODO(server-8)
+
   /// This user's ID within the server.
   ///
   /// Useful mainly in the case where the user has multiple accounts in the
@@ -76,6 +79,7 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
 
   FcmMessageWithIdentity({
     required this.realmUrl,
+    required this.realmName,
     required this.userId,
   });
 
@@ -120,6 +124,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
 
   MessageFcmMessage({
     required super.realmUrl,
+    required super.realmName,
     required super.userId,
     required this.senderId,
     required this.senderAvatarUrl,
@@ -250,6 +255,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
 
   RemoveFcmMessage({
     required super.realmUrl,
+    required super.realmName,
     required super.userId,
     required this.messageIds,
   });

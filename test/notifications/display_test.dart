@@ -24,14 +24,18 @@ import 'package:zulip/widgets/theme.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../model/binding.dart';
+import '../model/store_checks.dart';
 import '../test_images.dart';
+import '../api/notifications_test.dart';
 
 MessageFcmMessage messageFcmMessage(
   Message zulipMessage, {
   String? streamName,
+  String? realmName,
   Account? account,
 }) {
   account ??= eg.selfAccount;
+  realmName ??= account.realmName;
   final narrow = SendableNarrow.ofMessage(zulipMessage, selfUserId: account.userId);
   return FcmMessage.fromJson({
     "event": "message",
@@ -40,6 +44,7 @@ MessageFcmMessage messageFcmMessage(
     "realm_id": "4",
     "realm_uri": account.realmUrl.toString(),
     "user_id": account.userId.toString(),
+    if (realmName != null) "realm_name": realmName,
 
     "zulip_message_id": zulipMessage.id.toString(),
     "time": zulipMessage.timestamp.toString(),
@@ -343,13 +348,19 @@ void main() {
   });
 
   group('NotificationDisplayManager show', () {
-    void checkNotification(MessageFcmMessage data, {
+    void checkNotification(
+      MessageFcmMessage data, {
+      Account? account,
       required List<MessageFcmMessage> messageStyleMessages,
       required String expectedTitle,
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
       List<int>? expectedIconBitmap = kSolidBlueAvatar,
+      String? expectedSummaryText,
     }) {
+      account ??= eg.selfAccount;
+      assert(account.userId == data.userId
+          && account.realmUrl == data.realmUrl);
       assert(messageStyleMessages.every((e) => e.userId == data.userId));
       assert(messageStyleMessages.every((e) => e.realmUrl == data.realmUrl));
 
@@ -367,6 +378,9 @@ void main() {
         FcmMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
       }).buildAndroidNotificationUrl();
+      expectedSummaryText ??= account.realmName
+        ?? data.realmName
+        ?? data.realmUrl.toString();
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
@@ -429,13 +443,16 @@ void main() {
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.equals(true)
             ..inboxStyle.which((it) => it.isNotNull()
-              ..summaryText.equals(data.realmUrl.toString()))
+              ..summaryText.equals(expectedSummaryText!))
             ..autoCancel.equals(true)
             ..contentIntent.isNull(),
         ]);
     }
 
-    Future<void> checkNotifications(FakeAsync async, MessageFcmMessage data, {
+    Future<void> checkNotifications(
+      FakeAsync async,
+      MessageFcmMessage data, {
+      Account? account,
       required String expectedTitle,
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
@@ -448,6 +465,7 @@ void main() {
         RemoteMessage(data: data.toJson()));
       async.flushMicrotasks();
       checkNotification(data,
+        account: account,
         messageStyleMessages: [data],
         expectedIsGroupConversation: expectedIsGroupConversation,
         expectedTitle: expectedTitle,
@@ -458,6 +476,7 @@ void main() {
         RemoteMessage(data: data.toJson()));
       async.flushMicrotasks();
       checkNotification(data,
+        account: account,
         messageStyleMessages: [data],
         expectedIsGroupConversation: expectedIsGroupConversation,
         expectedTitle: expectedTitle,
@@ -632,6 +651,112 @@ void main() {
         expectedIsGroupConversation: true,
         expectedTitle: '#(unknown channel) > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
+    })));
+
+    test('stream message: different realms', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+
+      final account1 = eg.account(
+        id: 1001,
+        user: eg.user(),
+        realmUrl: Uri.parse('http://realm1.example'),
+        realmName: 'Realm 1');
+      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      final account2 = eg.account(
+        id: 1002,
+        user: eg.user(),
+        realmUrl: Uri.parse('http://realm2.example'),
+        realmName: 'Realm 2');
+      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+
+      final stream = eg.stream();
+      final topic = 'test topic';
+      final data1 = messageFcmMessage(
+        eg.streamMessage(stream: stream, topic: topic),
+        account: account1, streamName: stream.name);
+      final data2 = messageFcmMessage(
+        eg.streamMessage(stream: stream, topic: topic),
+        account: account2, streamName: stream.name);
+
+      receiveFcmMessage(async, data1);
+      checkNotification(data1,
+        account: account1,
+        messageStyleMessages: [data1],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > $topic',
+        expectedTagComponent: 'stream:${stream.streamId}:$topic',
+        expectedSummaryText: account1.realmName);
+
+      receiveFcmMessage(async, data2);
+      checkNotification(data2,
+        account: account2,
+        messageStyleMessages: [data2],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > $topic',
+        expectedTagComponent: 'stream:${stream.streamId}:$topic',
+        expectedSummaryText: account2.realmName);
+    })));
+
+    test('stream message: realm name absent in account, falls back to notif data', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+
+      var account = eg.account(
+        id: 1001,
+        user: eg.user(),
+        realmUrl: Uri.parse('http://realm1.example'));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      // Override the default realmName from eg.account().
+      account = await testBinding.globalStore.updateAccount(account.id,
+        AccountsCompanion(realmName: const Value(null)));
+      check(account).realmName.isNull();
+
+      final stream = eg.stream();
+      final topic = 'test topic';
+      final data = messageFcmMessage(
+        eg.streamMessage(stream: stream, topic: topic),
+        account: account,
+        streamName: stream.name,
+        realmName: 'Notif realm name');
+      check(data).realmName.equals('Notif realm name');
+
+      receiveFcmMessage(async, data);
+      checkNotification(data,
+        account: account,
+        messageStyleMessages: [data],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > $topic',
+        expectedTagComponent: 'stream:${stream.streamId}:$topic',
+        expectedSummaryText: 'Notif realm name');
+    })));
+
+    test('stream message: realm name absent in account and notif data, falls back to realm URL', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+
+      var account = eg.account(
+        id: 1001,
+        user: eg.user(),
+        realmUrl: Uri.parse('http://realm1.example'));
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      // Override the default realmName from eg.account().
+      account = await testBinding.globalStore.updateAccount(account.id,
+        AccountsCompanion(realmName: const Value(null)));
+      check(account).realmName.isNull();
+
+      final stream = eg.stream();
+      final topic = 'test topic';
+      final data = messageFcmMessage(
+        eg.streamMessage(stream: stream, topic: topic),
+        account: account, streamName: stream.name);
+      check(data).realmName.isNull();
+
+      receiveFcmMessage(async, data);
+      checkNotification(data,
+        account: account,
+        messageStyleMessages: [data],
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > $topic',
+        expectedTagComponent: 'stream:${stream.streamId}:$topic',
+        expectedSummaryText: account.realmUrl.toString());
     })));
 
     test('group DM: 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {

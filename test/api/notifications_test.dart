@@ -8,6 +8,7 @@ import '../stdlib_checks.dart';
 void main() {
   final baseBaseJson = <String, Object?>{
     "realm_url": "https://zulip.example.com/",
+    "realm_name": "Example Organization",
     "user_id": 234,
   };
 
@@ -19,6 +20,7 @@ void main() {
     "realm_id": "4",
     "realm_uri": "https://zulip.example.com/",  // TODO(server-9)
     "realm_url": "https://zulip.example.com/",
+    "realm_name": "Example Organization",
     "user_id": "234",
   };
 
@@ -115,6 +117,7 @@ void main() {
       check(parse(streamJson))
         ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
         ..realmUrl.equals(Uri.parse(baseJsonPreE2ee['realm_uri'] as String)) // TODO(server-9)
+        ..realmName.equals(baseBaseJson['realm_name'] as String)
         ..userId.equals(234)
         ..senderId.equals(123)
         ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url'] as String))
@@ -137,6 +140,9 @@ void main() {
     });
 
     test('optional fields missing cause no error', () {
+      check(parse({ ...streamJson }..remove('realm_name')))
+        .realmName.isNull();
+
       check(parse({ ...streamJson }..remove('channel_name')))
         .recipient.isA<FcmMessageChannelRecipient>().which((it) => it
           ..channelId.equals(42)
@@ -260,6 +266,7 @@ void main() {
       check(parse(baseJson))
         ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
         ..realmUrl.equals(Uri.parse(preE2eeJson['realm_uri'] as String)) // TODO(server-9)
+        ..realmName.equals(baseJson['realm_name'] as String)
         ..userId.equals(234)
         ..messageIds.deepEquals([123, 234]);
     });
@@ -318,6 +325,7 @@ extension UnexpectedFcmMessageChecks on Subject<UnexpectedFcmMessage> {
 
 extension FcmMessageWithIdentityChecks on Subject<FcmMessageWithIdentity> {
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
+  Subject<String?> get realmName => has((x) => x.realmName, 'realmName');
   Subject<int> get userId => has((x) => x.userId, 'userId');
 }
 
