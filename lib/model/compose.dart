@@ -228,11 +228,18 @@ String _channelFallbackMarkdownLink(ZulipStream channel, {
 ///
 /// A plain Markdown link will be used if the channel name includes some
 /// characters that would break normal #**channel** rendering.
-String channelLink(ZulipStream channel, {required PerAccountStore store}) {
+///
+/// Set [isComplete] to `false` for an incomplete syntax such as "#**…>""
+/// or "[#…](#…)>"; the one that will trigger a topic autocomplete
+/// interaction for the channel.
+String channelLink(ZulipStream channel, {
+  bool isComplete = true,
+  required PerAccountStore store,
+}) {
   if (_channelAvoidedCharsRegex.hasMatch(channel.name)) {
-    return _channelFallbackMarkdownLink(channel, store: store);
+    return '${_channelFallbackMarkdownLink(channel, store: store)}${isComplete ? '' : '>'}';
   }
-  return '#**${channel.name}**';
+  return '#**${channel.name}${isComplete ? '**' : '>'}';
 }
 
 /// https://spec.commonmark.org/0.30/#inline-link
