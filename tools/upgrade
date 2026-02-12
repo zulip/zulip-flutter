@@ -157,7 +157,7 @@ upgrade_flutter_local() {
     # TODO upgrade Flutter to latest, rather than what's lying around
 
     local flutter_commit
-    flutter_commit=$(git --git-dir="$(flutter_tree)"/.git rev-parse HEAD)
+    flutter_commit=$(git -C "$(flutter_tree)" rev-parse HEAD)
 
     local flutter_version_output versions flutter_version dart_sdk_version
     flutter_version_output=$(run_visibly flutter --version)
