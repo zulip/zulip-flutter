@@ -130,54 +130,6 @@ void main() {
       .findsNothing();
   }
 
-  // TODO instead of .first, could look for both the row in the list *and*
-  //   in the sticky-header position, or at least target one or the other
-  //   intentionally.
-  final findAllDmsHeader = find.byType(InboxAllDmsHeaderItem).first;
-
-  /// Check details of the "Direct messages" header.
-  ///
-  /// For [findSectionContent], optionally pass a [Finder]
-  /// that will find some of the section's content if it is uncollapsed.
-  /// It will be expected to find something or nothing,
-  /// depending on [expectCollapsed].
-  void checkAllDmsHeader(WidgetTester tester, {
-    Color? expectedBackgroundColor,
-    bool? expectAtSignIcon,
-    bool? expectCollapsed,
-    Finder? findSectionContent,
-  }) {
-    check(findAllDmsHeader).findsOne();
-
-    if (expectAtSignIcon != null) {
-      check(find.descendant(of: findAllDmsHeader, matching: find.byIcon(ZulipIcons.at_sign)))
-        .findsExactly(expectAtSignIcon ? 1 : 0);
-    }
-
-    if (expectCollapsed != null) {
-      check(find.descendant(
-        of: findAllDmsHeader,
-        matching: find.byIcon(
-          expectCollapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down))).findsOne();
-
-      final renderObject = tester.renderObject<RenderBox>(findAllDmsHeader);
-      final paintBounds = renderObject.paintBounds;
-
-      // `paints` isn't a [Matcher] so we wrap it with `equals`;
-      // awkward but it works
-      check(renderObject).legacyMatcher(equals(paints..rrect(
-        rrect: RRect.fromRectAndRadius(paintBounds, Radius.zero),
-        style: .fill,
-        color: expectCollapsed
-          ? Colors.white
-          : const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor())));
-
-      if (findSectionContent != null) {
-        check(findSectionContent).findsExactly(expectCollapsed ? 0 : 1);
-      }
-    }
-  }
-
   void checkDm(Pattern expectLabelContains, {
     bool expectAtSignIcon = false,
     String? expectCounterBadgeText,
@@ -202,7 +154,7 @@ void main() {
   //   in the sticky-header position, or at least target one or the other
   //   intentionally.
   Finder findChannelHeader(int channelId) => find.byWidgetPredicate((widget) =>
-    widget is InboxChannelHeaderItem && widget.channelId == channelId).first;
+    widget is InboxChannelHeaderItem && widget.subscription.streamId == channelId).first;
 
   /// Check details of a channel header.
   ///
@@ -334,6 +286,13 @@ void main() {
     });
 
     group('folder headers', () {
+      testWidgets('DMs header', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser])]);
+        checkFolderHeader('Direct messages');
+      });
+
       testWidgets('only pinned channels: shows pinned header, no other header', (tester) async {
         final channel = eg.stream();
         await setupPage(tester,
@@ -478,7 +437,7 @@ void main() {
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
             flags: [MessageFlag.mentioned])]);
 
-        checkAllDmsHeader(tester, expectAtSignIcon: true);
+        checkFolderHeader('Direct messages');
         checkDm(eg.otherUser.fullName, expectAtSignIcon: true);
       });
 
@@ -488,7 +447,7 @@ void main() {
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
             flags: [])]);
 
-        checkAllDmsHeader(tester, expectAtSignIcon: false);
+        checkFolderHeader('Direct messages');
         checkDm(eg.otherUser.fullName, expectAtSignIcon: false);
       });
     });
@@ -568,64 +527,6 @@ void main() {
     });
 
     group('collapsing', () {
-      group('all-DMs section', () {
-        Future<void> tapCollapseIcon(WidgetTester tester) async {
-          checkAllDmsHeader(tester);
-          await tester.tap(find.descendant(
-            of: findAllDmsHeader,
-            matching: find.byWidgetPredicate((widget) =>
-              widget is Icon
-              && (widget.icon == ZulipIcons.arrow_down
-                  || widget.icon == ZulipIcons.arrow_right))));
-          await tester.pump();
-        }
-
-        testWidgets('appearance', (tester) async {
-          await setupVarious(tester);
-
-          final findSectionContent = find.text(eg.otherUser.fullName);
-
-          checkAllDmsHeader(tester,
-            expectCollapsed: false, findSectionContent: findSectionContent);
-          await tapCollapseIcon(tester);
-          checkAllDmsHeader(tester,
-            expectCollapsed: true, findSectionContent: findSectionContent);
-          await tapCollapseIcon(tester);
-          checkAllDmsHeader(tester,
-            expectCollapsed: false, findSectionContent: findSectionContent);
-        });
-
-        testWidgets('collapse all-DMs section when partially offscreen: '
-          'header remains sticky at top', (tester) async {
-          await setupVarious(tester);
-
-          final listFinder = find.byType(Scrollable);
-          final dmFinder = find.text(eg.otherUser.fullName).hitTestable();
-
-          // Scroll part of [_AllDmsSection] offscreen.
-          await dragUntilInvisible(
-            tester, dmFinder, listFinder, const Offset(0, -50));
-
-          // Check that the header is present (which must therefore
-          // be as a sticky header).
-          checkAllDmsHeader(tester, expectCollapsed: false);
-
-          await tapCollapseIcon(tester);
-
-          // Check that the header is still visible even after
-          // collapsing the section.
-          checkAllDmsHeader(tester, expectCollapsed: true);
-        });
-
-        // TODO check it remains collapsed even if you scroll far away and back
-
-        // TODO check that it's always uncollapsed when it appears after being
-        //   absent, even if it was collapsed the last time it was present.
-        //   (Could test multiple triggers for its reappearance: it could
-        //   reappear because a new unread arrived, but with #296 it could also
-        //   reappear because of a change in muted-users state.)
-      });
-
       group('stream section', () {
         Future<void> tapCollapseIcon(WidgetTester tester, Subscription subscription) async {
           checkChannelHeader(tester, subscription);
