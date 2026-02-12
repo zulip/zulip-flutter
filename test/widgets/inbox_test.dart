@@ -120,25 +120,6 @@ void main() {
       ]);
   }
 
-  /// Find a row with the given label and throw if none are found.
-  ///
-  /// There may be two rows with the given label: one as a regular list item,
-  /// and one chosen by [StickyHeaderListView] as the sticky header.
-  /// One or the other may be returned; the choice is not guaranteed.
-  // TODO instead of .first, could look for both the row in the list *and*
-  //   in the sticky-header position, or at least target one or the other
-  //   intentionally.
-  Widget findRowByLabel(WidgetTester tester, String label) {
-    final rowLabel = tester.widgetList(
-      find.text(label),
-    ).first;
-
-    return tester.widget(
-      find.ancestor(
-        of: find.byWidget(rowLabel),
-        matching: find.byType(Row)));
-  }
-
   // TODO instead of .first, could look for both the row in the list *and*
   //   in the sticky-header position, or at least target one or the other
   //   intentionally.
@@ -184,6 +165,26 @@ void main() {
       if (findSectionContent != null) {
         check(findSectionContent).findsExactly(expectCollapsed ? 0 : 1);
       }
+    }
+  }
+
+  void checkDm(Pattern expectLabelContains, {
+    bool expectAtSignIcon = false,
+    String? expectCounterBadgeText,
+  }) {
+    final findRow = find.ancestor(
+      of: find.textContaining(expectLabelContains),
+      matching: find.byType(InboxDmItem));
+    check(findRow).findsOne();
+
+    check(find.descendant(of: findRow, matching: find.byIcon(ZulipIcons.at_sign)))
+      .findsExactly(expectAtSignIcon ? 1 : 0);
+
+    if (expectCounterBadgeText != null) {
+      check(find.descendant(
+        of: findRow,
+        matching: find.widgetWithText(CounterBadge, expectCounterBadgeText))
+      ).findsOne();
     }
   }
 
@@ -277,17 +278,6 @@ void main() {
     }
   }
 
-  bool hasIcon(WidgetTester tester, {
-    required Widget parent,
-    required IconData icon,
-  }) {
-    check(parent).isNotNull();
-    return tester.widgetList(find.descendant(
-      of: find.byWidget(parent),
-      matching: find.byIcon(icon),
-    )).isNotEmpty;
-  }
-
   group('InboxPage', () {
     testWidgets('page builds; empty', (tester) async {
       await setupPage(tester, unreadMessages: []);
@@ -377,9 +367,6 @@ void main() {
       final subscription = eg.subscription(stream);
       const topic = 'lunch';
 
-      bool hasAtSign(WidgetTester tester, Widget parent) =>
-        hasIcon(tester, parent: parent, icon: ZulipIcons.at_sign);
-
       testWidgets('topic with a mention', (tester) async {
         await setupPage(tester,
           streams: [stream],
@@ -409,7 +396,7 @@ void main() {
             flags: [MessageFlag.mentioned])]);
 
         checkAllDmsHeader(tester, expectAtSignIcon: true);
-        check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isTrue();
+        checkDm(eg.otherUser.fullName, expectAtSignIcon: true);
       });
 
       testWidgets('dm without mention', (tester) async {
@@ -419,7 +406,7 @@ void main() {
             flags: [])]);
 
         checkAllDmsHeader(tester, expectAtSignIcon: false);
-        check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isFalse();
+        checkDm(eg.otherUser.fullName, expectAtSignIcon: false);
       });
     });
 
