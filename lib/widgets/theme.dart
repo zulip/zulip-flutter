@@ -182,6 +182,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     fabLabel: const Color(0xfff1f3fe),
     fabLabelPressed: const Color(0xffeceefc),
     fabShadow: const Color(0xff2b0e8a).withValues(alpha: 0.4),
+    folderText: const Color(0xff596680),
     foreground: const Color(0xff000000),
     icon: const Color(0xff6159e1),
     iconSelected: const Color(0xff222222),
@@ -284,6 +285,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     fabLabel: const Color(0xffeceefc),
     fabLabelPressed: const Color(0xffeceefc),
     fabShadow: const Color(0xff18171c),
+    folderText: const Color(0xff8793ab),
     foreground: const Color(0xffffffff),
     icon: const Color(0xff7977fe),
     iconSelected: Colors.white.withValues(alpha: 0.8),
@@ -395,6 +397,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.fabLabel,
     required this.fabLabelPressed,
     required this.fabShadow,
+    required this.folderText,
     required this.foreground,
     required this.icon,
     required this.iconSelected,
@@ -498,6 +501,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color fabLabel;
   final Color fabLabelPressed;
   final Color fabShadow;
+  final Color folderText;
   final Color foreground;
   final Color icon;
   final Color iconSelected;
@@ -595,6 +599,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? fabLabel,
     Color? fabLabelPressed,
     Color? fabShadow,
+    Color? folderText,
     Color? foreground,
     Color? icon,
     Color? iconSelected,
@@ -687,6 +692,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       fabLabel: fabLabel ?? this.fabLabel,
       fabLabelPressed: fabLabelPressed ?? this.fabLabelPressed,
       fabShadow: fabShadow ?? this.fabShadow,
+      folderText: folderText ?? this.folderText,
       foreground: foreground ?? this.foreground,
       icon: icon ?? this.icon,
       iconSelected: iconSelected ?? this.iconSelected,
@@ -786,6 +792,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       fabLabel: Color.lerp(fabLabel, other.fabLabel, t)!,
       fabLabelPressed: Color.lerp(fabLabelPressed, other.fabLabelPressed, t)!,
       fabShadow: Color.lerp(fabShadow, other.fabShadow, t)!,
+      folderText: Color.lerp(folderText, other.folderText, t)!,
       foreground: Color.lerp(foreground, other.foreground, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
