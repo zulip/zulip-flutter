@@ -22,13 +22,23 @@ extension ComposeContentAutocomplete on ComposeContentController {
   // To avoid spending a lot of time searching for autocomplete intents
   // in long messages, we bound how far back we look for the intent's start.
   int get _maxLookbackForAutocompleteIntent {
-    return 1 // intent character, e.g. "#"
-      + 2 // some optional characters e.g., "_" for silent mention or "**"
-
-      // Per the API doc, maxChannelNameLength is in Unicode code points.
+    // Longest autocomplete syntax is for the fallback topic link intent (as of 2026-08):
+    //   [#escapedChannelName](#narrow/channel/channelId-slugifiedChannelName)>topicName
+    return 2 // [#
+      // Largest length of an escaped channel name (see `compose.escapeChannelTopicAvoidedChars`).
+      + 5 * store.maxChannelNameLength
+      + 18 // ](#narrow/channel/
+      + 19 // largest channel ID (9223372036854775807 — largest int) length
+      + 1  // hyphen character (-)
+      // Largest length of a slugified channel name (see `internal_link.narrowLinkFragment`).
+      // `_encodeHashComponent` encodes each code point as up to 4 UTF-8 bytes,
+      // emitting up to 3 UTF-16 code units for each byte.
+      + 12 * store.maxChannelNameLength
+      + 2  // )>
+      // Per the API doc, maxTopicLength is in Unicode code points.
       // We walk the string by UTF-16 code units, and there might be one or two
       // of those encoding each Unicode code point.
-      + 2 * store.maxChannelNameLength;
+      + 2 * store.maxTopicLength;
   }
 
   AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
@@ -80,9 +90,15 @@ extension ComposeContentAutocomplete on ComposeContentController {
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
       } else if (charAtPos == '#') {
-        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
-        if (match == null) continue;
-        query = ChannelLinkAutocompleteQuery(match.namedGroup('rawQuery')!);
+        final channelIntentMatch = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
+        if (channelIntentMatch != null) {
+          query = ChannelLinkAutocompleteQuery(channelIntentMatch.namedGroup('rawQuery')!);
+        } else {
+          final topicIntentMatch = _topicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
+          if (topicIntentMatch == null) continue;
+          query = TopicLinkAutocompleteQuery(topicIntentMatch.namedGroup('rawQuery')!,
+            channelName: topicIntentMatch.namedGroup('channelName'));
+        }
       } else {
         continue;
       }
@@ -183,17 +199,17 @@ final RegExp _emojiIntentRegex = (() {
     + r')$');
 })();
 
-/// Characters to exclude when matching a channel name,
-/// or a query for one, in the intent regex below.
+/// Characters to exclude when matching a channel or topic name,
+/// or a query for one, in the intent regexes below.
 ///
-/// In a channel name, the server accepts a wide range of characters.
+/// In a channel or topic name, the server accepts a wide range of characters.
 /// It excludes only portions of the `\p{C}` major category,
 /// namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
 ///   - https://github.com/zulip/zulip/blob/c9732f97a/zerver/lib/string_validation.py#L8-L65
 /// Of those, `\r` and `\n` are the only ones likely to be typed,
 /// so excluding just them is enough in practice.
 // TODO: incorporate the server constraints
-const _channelNameCharExclusions = r'\r\n';
+const _channelOrTopicNameCharExclusions = r'\r\n';
 
 /// Matches the text before the cursor as a #channel autocomplete intent:
 /// `#query` or `#**query`, where `query` is matched against channel names
@@ -211,6 +227,12 @@ const _channelNameCharExclusions = r'\r\n';
 /// and then backspaces into the inserted syntax to change their choice.
 /// The query cannot contain `**`, so a completed `#**channel**` never matches,
 /// with or without text after it.
+///
+/// The query also cannot contain `>`, the channel/topic delimiter,
+/// so that `#**channel>query` fall through to [_topicLinkIntentRegex],
+/// which [ComposeContentAutocomplete.autocompleteIntent] checks after this one.
+/// So a channel whose name contains `>` stops autocompleting once the user
+/// types the `>`. That seems acceptable but we can revisit if prompted.
 ///
 /// Groups: `rawQuery` (always present, possibly empty).
 final RegExp _channelLinkIntentRegex = () {
@@ -236,14 +258,73 @@ final RegExp _channelLinkIntentRegex = () {
     // As Web, match both `#query` and `#**query`.
     + r'(?:'
       // Case `#query`.
-      + r'(?!\s|\*\*)(?<rawQuery>[^' + _channelNameCharExclusions + r']*)'
+      + r'(?!\s|\*\*)(?<rawQuery>[^>' + _channelOrTopicNameCharExclusions + r']*)'
       + r'|'
       // Case `#**query`.
       + r'\*\*(?!\s)'
       + r'(?<rawQuery>(?:'
-        + r'[^*' + _channelNameCharExclusions + r']'
+        + r'[^*>' + _channelOrTopicNameCharExclusions + r']'
         + r'|'
-        + r'\*[^*' + _channelNameCharExclusions + r']'
+        + r'\*[^*>' + _channelOrTopicNameCharExclusions + r']'
+        + r'|'
+        + r'\*$'
+      + r')*)'
+    + r')$');
+}();
+
+/// Matches the text before the cursor as a #channel>topic autocomplete intent,
+/// in the `#**channel>topic**` syntax with the closing `**` not yet typed:
+///
+///  * `#**channel>query`, where the `#**channel>` part was inserted
+///    by channel autocomplete (or, unlikely in practice, typed by hand);
+///  * `#>query`, a shortcut for the channel of the current narrow.
+///
+/// There is no `#channel>query` form; the `>` delimiter
+/// is recognized only right after `#` (the shortcut) or after `#**channel`.
+///
+/// Used like [_channelLinkIntentRegex]: the `#` must likewise be at the start
+/// of the text or follow whitespace or punctuation.
+/// The query, if nonempty, doesn't begin with whitespace
+/// and doesn't contain a line break. In the case of `#**channel>query`,
+/// it doesn't contain `**`, so a completed `#**channel>topic**` never matches.
+///
+/// The `channelName` group cannot contain `>`; the first `>` is the delimiter.
+/// In the syntax channel autocomplete inserts, the name never contains `>`:
+/// a channel with `>` in its actual name gets the fallback syntax instead.
+/// So this only affects a hand-typed `#**a>b>query`,
+/// which is taken as channel `a` and query `b>query`.
+///
+/// The `channelName` group also cannot contain `*`,
+/// so that `#**channel**>`, a completed channel link followed by `>`,
+/// isn't matched with `channel**` taken as the name.
+/// This is fine for the same reason excluding `>` is fine:
+/// a channel with `*` in its actual name gets the fallback syntax too.
+///
+/// Groups: `channelName` (absent in the shortcut form)
+/// and `rawQuery` (always present, possibly empty).
+final RegExp _topicLinkIntentRegex = () {
+  // What's likely to come just before #channel>topic syntax: the start of the
+  // string, whitespace, or punctuation. Letters are unlikely.
+  //
+  // Only some punctuation, like `(`, is actually likely here. We don't
+  // currently try to be specific about that.
+  const before = r'(?<=^|\s|\p{Punctuation})';
+
+  return RegExp(unicode: true,
+    before
+    + r'#'
+    // Match both `#>query` (shortcut syntax) and `#**channel>query`.
+    + r'(?:'
+      // Case `#>query`.
+      + r'>(?!\s)(?<rawQuery>[^' + _channelOrTopicNameCharExclusions + r']*)'
+      + r'|'
+      // Case `#**channel>query`.
+      + r'\*\*(?<channelName>[^>*' + _channelOrTopicNameCharExclusions + r']+)'
+      + r'>(?!\s)'
+      + r'(?<rawQuery>(?:'
+        + r'[^*' + _channelOrTopicNameCharExclusions + r']'
+        + r'|'
+        + r'\*[^*' + _channelOrTopicNameCharExclusions + r']'
         + r'|'
         + r'\*$'
       + r')*)'
