@@ -126,7 +126,9 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       sections.add(_AllDmsSectionData(allDmsCount, allDmsHasMention, dmItems));
     }
 
-    final sortedUnreadStreams = unreadsModel!.streams.entries
+    final channelSections = <_StreamSectionData>[];
+    for (final MapEntry(key: streamId, value: topics) in unreadsModel!.streams.entries) {
+      final sub = subscriptions[streamId];
       // Filter out any straggling unreads in unsubscribed streams.
       // There won't normally be any, but it happens with certain infrequent
       // state changes, typically for less than a few hundred milliseconds.
@@ -134,21 +136,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       //
       // Also, we want to depend on the subscription data for things like
       // choosing the stream icon.
-      .where((entry) => subscriptions.containsKey(entry.key))
-      .toList()
-      ..sort((a, b) {
-        final subA = subscriptions[a.key]!;
-        final subB = subscriptions[b.key]!;
+      if (sub == null) continue;
 
-        // TODO "pin" icon on the stream row? dividers in the list?
-        if (subA.pinToTop != subB.pinToTop) {
-          return subA.pinToTop ? -1 : 1;
-        }
-
-        return ChannelStore.compareChannelsByName(subA, subB);
-      });
-
-    for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
       final topicItems = <InboxChannelSectionTopicData>[];
       int countInStream = 0;
       bool streamHasMention = false;
@@ -173,8 +162,22 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final bLastUnreadId = b.lastUnreadId;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
-      sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
+      channelSections.add(
+        _StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
     }
+
+    channelSections.sort((a, b) {
+      final subA = subscriptions[a.streamId]!;
+      final subB = subscriptions[b.streamId]!;
+
+      // TODO "pin" icon on the stream row? dividers in the list?
+      if (subA.pinToTop != subB.pinToTop) {
+        return subA.pinToTop ? -1 : 1;
+      }
+
+      return ChannelStore.compareChannelsByName(subA, subB);
+    });
+    sections.addAll(channelSections);
 
     if (sections.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
