@@ -47,7 +47,8 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 
   void _handleControllerChange() {
-    final newQuery = widget.autocompleteIntent()?.query;
+    var newQuery = widget.autocompleteIntent()?.query;
+    if (newQuery is TopicLinkAutocompleteQuery) newQuery = null; // TODO(#124)
     final oldQuery = _viewModel?.query;
     // First, tear down the old view-model if necessary.
     if (_viewModel != null
