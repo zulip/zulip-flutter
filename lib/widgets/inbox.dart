@@ -156,7 +156,6 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         if (!store.isTopicVisible(streamId, topic)) continue;
         final countInTopic = messageIds.length;
         final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
-        if (hasMention) streamHasMention = true;
         topicItems.add(InboxChannelSectionTopicData(
           topic: topic,
           count: countInTopic,
@@ -164,6 +163,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
           lastUnreadId: messageIds.last,
         ));
         countInStream += countInTopic;
+        streamHasMention |= hasMention;
       }
       if (countInStream == 0) {
         continue;
