@@ -1781,6 +1781,71 @@ void main() {
     });
   });
 
+  group('ComposeBox content input inputFormatters', () {
+    group('PendingTopicLinkAutocompleteFormatter', () {
+      String content(WidgetTester tester) =>
+        tester.widget<TextField>(contentInputFinder).controller!.text;
+
+      testWidgets('"#**…** >" is replaced with "#**…>"', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final channel = eg.stream(name: 'mobile');
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+
+        await enterContent(tester, 'check #**mobile** >');
+        check(content(tester)).equals('check #**mobile>');
+
+        await enterContent(tester, 'check #**mobile**>');
+        check(content(tester)).equals('check #**mobile>');
+      });
+
+      testWidgets('"[#…](#…) >" is replaced with "[#…](#…)>"', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final channel = eg.stream(streamId: 1, name: 'R&D');
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+
+        await enterContent(tester, 'check [#R&amp;D](#narrow/channel/1-R.26D) >');
+        check(content(tester)).equals('check [#R&amp;D](#narrow/channel/1-R.26D)>');
+      });
+
+      testWidgets('"#**…>…** >" with topic link stays unchanged', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final channel = eg.stream(name: 'mobile');
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        await enterContent(tester, 'check #**mobile>faq** >');
+        check(content(tester)).equals('check #**mobile>faq** >');
+
+        await enterContent(tester, 'check #**mobile>faq**>');
+        check(content(tester)).equals('check #**mobile>faq**>');
+      });
+
+      testWidgets('"[#…>…](#…) >" with topic fallback link stays unchanged', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final channel = eg.stream(streamId: 1, name: 'R&D');
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        await enterContent(tester, 'check [#R&amp;D > faq](#narrow/channel/1-R.26D/topic/faq) >');
+        check(content(tester)).equals('check [#R&amp;D > faq](#narrow/channel/1-R.26D/topic/faq) >');
+      });
+    });
+  });
+
   group('ComposeBoxState new-event-queue transition', () {
     testWidgets('content input not cleared when store changes', (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/1470

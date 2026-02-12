@@ -1246,6 +1246,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Obvesti udeležence teme';
 
   @override
+  String get topicAutocompleteChannelOptionLabel => '(link to channel)';
+
+  @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get systemGroupNameEveryoneOnInternet => 'Everyone on the internet';
 
   @override
