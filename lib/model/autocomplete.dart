@@ -312,11 +312,28 @@ class AutocompleteViewManager {
   void handleChannelDeleteEvent(ChannelDeleteEvent event) {
     for (final channelId in event.channelIds) {
       autocompleteDataCache.invalidateChannel(channelId);
+      autocompleteDataCache.invalidateChannelTopic(channelId);
     }
   }
 
   void handleChannelUpdateEvent(ChannelUpdateEvent event) {
     autocompleteDataCache.invalidateChannel(event.streamId);
+  }
+
+  void handleUpdateMessageEvent(UpdateMessageEvent event, {required PerAccountStore store}) {
+    if (event.moveData == null) return;
+    final UpdateMessageMoveData(
+      :origStreamId, :origTopic, :newStreamId, :newTopic, :propagateMode,
+    ) = event.moveData!;
+
+    switch(propagateMode) {
+      case PropagateMode.changeOne:
+      case PropagateMode.changeLater:
+        return;
+      case PropagateMode.changeAll:
+        autocompleteDataCache.invalidateChannelTopic(origStreamId,
+          topic: origTopic.displayName ?? store.realmEmptyTopicDisplayName);
+    }
   }
 
   /// Called when the app is reassembled during debugging, e.g. for hot reload.
@@ -1098,6 +1115,20 @@ class AutocompleteDataCache {
       ??= normalizedNameForChannel(channel).split(' ');
   }
 
+  final Map<int, Map<String, String>> _normalizedNamesByChannelTopic = {};
+
+  String normalizedNameForChannelTopic(int channelId, String topic) {
+    return (_normalizedNamesByChannelTopic[channelId] ??= {})[topic]
+      ??= AutocompleteQuery.lowercaseAndStripDiacritics(topic);
+  }
+
+  final Map<int, Map<String, List<String>>> _normalizedNameWordsByChannelTopic = {};
+
+  List<String> normalizedNameWordsForChannelTopic(int channelId, String topic) {
+    return (_normalizedNameWordsByChannelTopic[channelId] ?? {})[topic]
+      ??= normalizedNameForChannelTopic(channelId, topic).split(' ');
+  }
+
   void invalidateUser(int userId) {
     _normalizedNamesByUser.remove(userId);
     _normalizedNameWordsByUser.remove(userId);
@@ -1112,6 +1143,16 @@ class AutocompleteDataCache {
   void invalidateChannel(int channelId) {
     _normalizedNamesByChannel.remove(channelId);
     _normalizedNameWordsByChannel.remove(channelId);
+  }
+
+  void invalidateChannelTopic(int channelId, {String? topic}) {
+    if (topic == null) {
+      _normalizedNamesByChannelTopic.remove(channelId);
+      _normalizedNameWordsByChannelTopic.remove(channelId);
+    } else {
+      _normalizedNamesByChannelTopic[channelId]?.remove(topic);
+      _normalizedNameWordsByChannelTopic[channelId]?.remove(topic);
+    }
   }
 }
 
@@ -1580,5 +1621,203 @@ class ChannelLinkAutocompleteResult extends ComposeAutocompleteResult {
   //   in the channel name. This doesn't seem to be helpful in most cases,
   //   because it is hard for a query to be present in the name (the way
   //   mentioned before) and also present in the description.
+  final int rank;
+}
+
+/// An [AutocompleteView] for a #channel>topic autocomplete interaction,
+/// an example of a [ComposeAutocompleteView].
+class TopicLinkAutocompleteView extends AutocompleteView<TopicLinkAutocompleteQuery, TopicLinkAutocompleteResult>  {
+  TopicLinkAutocompleteView._({
+    required super.store,
+    required super.query,
+    required this.channelId,
+  });
+
+  factory TopicLinkAutocompleteView.init({
+    required PerAccountStore store,
+    required TopicLinkAutocompleteQuery query,
+  }) {
+    return TopicLinkAutocompleteView._(store: store, query: query, channelId: query.channelId)
+      .._fetch();
+  }
+
+  final int channelId;
+
+  Iterable<TopicName> _topics = [];
+
+  /// Fetches topics of the selected channel, if needed.
+  ///
+  /// When the results are fetched, this restarts the search to refresh UI
+  /// showing the newly fetched topics.
+  Future<void> _fetch() async {
+    // TODO: handle fetch failure
+    // TODO(#2154): do not fetch topics for "only general chat" channel
+    _topics = (await store.topics.getChannelTopics(channelId)).map((e) => e.name);
+    return _startSearch();
+  }
+
+  @override
+  Future<List<TopicLinkAutocompleteResult>?> computeResults() async {
+    final unsorted = <TopicLinkAutocompleteResult>[];
+
+    final channelResult = query.testChannel(channelId);
+    if (channelResult != null) unsorted.add(channelResult);
+
+    if (await filterCandidates(filter: _testTopic,
+          candidates: _topics, results: unsorted)) {
+      return null;
+    }
+
+    final queryTopicResult = query.testQueryTopic(TopicName(query.raw),
+      matchedTopics: unsorted.whereType<TopicLinkAutocompleteTopicResult>()
+                             .map((r) => r.topic));
+    if (queryTopicResult != null) unsorted.add(queryTopicResult);
+
+    return bucketSort(unsorted, (r) => r.rank,
+      numBuckets: TopicLinkAutocompleteQuery._numResultRanks);
+  }
+
+  TopicLinkAutocompleteTopicResult? _testTopic(TopicLinkAutocompleteQuery query, TopicName topic) {
+    return query.testTopic(topic, store);
+  }
+}
+
+/// A #channel>topic autocomplete query, used by [TopicLinkAutocompleteView].
+class TopicLinkAutocompleteQuery extends ComposeAutocompleteQuery {
+  TopicLinkAutocompleteQuery(super.raw, {required this.channelId});
+
+  final int channelId;
+
+  @override
+  ComposeAutocompleteView initViewModel({
+    required PerAccountStore store,
+    required ZulipLocalizations localizations,
+    required Narrow narrow,
+  }) {
+    return TopicLinkAutocompleteView.init(store: store, query: this);
+  }
+
+  TopicLinkAutocompleteChannelResult? testChannel(int channelId) {
+    assert(this.channelId == channelId);
+    if (raw.isNotEmpty) return null;
+    return TopicLinkAutocompleteChannelResult(
+      channelId: channelId, rank: TopicLinkAutocompleteQuery._rankChannelResult);
+  }
+
+  TopicLinkAutocompleteTopicResult? testTopic(TopicName topic, PerAccountStore store) {
+    final cache = store.autocompleteViewManager.autocompleteDataCache;
+    final userFacingName = topic.displayName ?? store.realmEmptyTopicDisplayName;
+    final matchQuality = _matchName(
+      normalizedName: cache.normalizedNameForChannelTopic(channelId, userFacingName),
+      normalizedNameWords: cache.normalizedNameWordsForChannelTopic(channelId, userFacingName));
+    if (matchQuality == null) return null;
+    return TopicLinkAutocompleteTopicResult(
+      channelId: channelId, topic: topic,
+      rank: _rankTopicResult(matchQuality: matchQuality));
+  }
+
+  TopicLinkAutocompleteTopicResult? testQueryTopic(TopicName queryTopic, {
+    required Iterable<TopicName> matchedTopics,
+  }) {
+    assert(raw == queryTopic.apiName);
+    if (raw.isEmpty) return null;
+    final queryTopicExists = matchedTopics.any((t) => t.isSameAs(queryTopic));
+    if (queryTopicExists) return null;
+    return TopicLinkAutocompleteTopicResult(
+      channelId: channelId, topic: queryTopic, isNew: true,
+      rank: TopicLinkAutocompleteQuery._rankTopicResult(isNewTopic: true));
+  }
+
+  /// A measure of the channel result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  ///
+  /// See also [_rankTopicResult].
+  static const _rankChannelResult = 0;
+
+  /// A measure of a topic result's quality in the context of the query,
+  /// from 0 (best) to one less than [_numResultRanks].
+  ///
+  /// See also [_rankChannelResult].
+  static int _rankTopicResult({
+    NameMatchQuality? matchQuality,
+    bool isNewTopic = false,
+  }) {
+    assert((matchQuality != null) ^ isNewTopic);
+    if (isNewTopic) return 1;
+    return switch(matchQuality!) {
+      NameMatchQuality.exact        => 2,
+      NameMatchQuality.totalPrefix  => 3,
+      NameMatchQuality.wordPrefixes => 4,
+    };
+  }
+
+  /// The number of possible values returned by [_rankResult].
+  static const _numResultRanks = 5;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'TopicLinkAutocompleteQuery')}(raw: $raw, channelId: $channelId)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! TopicLinkAutocompleteQuery) return false;
+    return other.raw == raw && other.channelId == channelId;
+  }
+
+  @override
+  int get hashCode => Object.hash('TopicLinkAutocompleteQuery', raw, channelId);
+}
+
+/// An autocomplete result for a #channel>topic autocomplete interaction.
+///
+/// This is abstract because there are two kind of results that can both be
+/// offered in the same #channel>topic autocomplete interaction: one for the
+/// channel and the other for its topics.
+sealed class TopicLinkAutocompleteResult extends ComposeAutocompleteResult {
+  int get channelId;
+
+  /// A measure of the result's quality in the context of the query.
+  ///
+  /// Used internally by [TopicLinkAutocompleteView] for ranking the results.
+  // Behavior we have that web doesn't and might like to follow:
+  // - A "word-prefixes" match quality on topic names:
+  //   see [NameMatchQuality.wordPrefixes], which we rank on.
+  //
+  // Behavior web has that seems undesired, which we don't plan to follow:
+  // - A "word-boundary" match quality on topic names:
+  //   special rank when the whole query appears contiguously
+  //   right after a word-boundary character.
+  //   Our [NameMatchQuality.wordPrefixes] seems smarter.
+  // - Ranking some case-sensitive matches differently from case-insensitive
+  //   matches. Users will expect a lowercase query to be adequate.
+  int get rank;
+}
+
+class TopicLinkAutocompleteChannelResult extends TopicLinkAutocompleteResult {
+  TopicLinkAutocompleteChannelResult({required this.channelId, required this.rank});
+
+  @override
+  final int channelId;
+
+  @override
+  final int rank;
+}
+
+class TopicLinkAutocompleteTopicResult extends TopicLinkAutocompleteResult {
+  TopicLinkAutocompleteTopicResult({
+    required this.channelId,
+    required this.topic,
+    this.isNew = false,
+    required this.rank,
+  });
+
+  @override
+  final int channelId;
+
+  final TopicName topic;
+  final bool isNew;
+
+  @override
   final int rank;
 }
