@@ -12,6 +12,7 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/autocomplete.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
 import '../model/message.dart';
@@ -592,6 +593,7 @@ class _ContentInput extends StatelessWidget {
             child: TextField(
               enabled: enabled,
               controller: controller.content,
+              inputFormatters: [PendingTopicLinkAutocompleteFormatter(controller.content.store)],
               focusNode: controller.contentFocusNode,
               contentInsertionConfiguration: ContentInsertionConfiguration(
                 onContentInserted: (content) => _handleContentInserted(context, content)),
