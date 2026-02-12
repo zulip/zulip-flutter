@@ -284,9 +284,43 @@ void main() {
       check(find.textContaining('There are no unread messages in your inbox.')).findsOne();
     });
 
-    // TODO more checks: ordering, etc.
     testWidgets('page builds; not empty', (tester) async {
       await setupVarious(tester);
+    });
+
+    group('channel sorting', () {
+      testWidgets('channels with names starting with an emoji sort before others', (tester) async {
+        final channelBeta   = eg.stream(name: 'Beta Stream');
+        final channelRocket = eg.stream(name: '🚀 Rocket Stream');
+        final channelAlpha  = eg.stream(name: 'Alpha Stream');
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [channelBeta, channelRocket, channelAlpha],
+          subscriptions: [
+            eg.subscription(channelBeta),
+            eg.subscription(channelRocket),
+            eg.subscription(channelAlpha),
+          ],
+          unreadMessages: [
+            // Add an unread DM to shift the channel headers downward,
+            // preventing a channel header being duplicated in the widget tree
+            // as a sticky header.
+            eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+
+            eg.streamMessage(stream: channelBeta),
+            eg.streamMessage(stream: channelRocket),
+            eg.streamMessage(stream: channelAlpha),
+          ]);
+
+        final listedChannelIds =
+          tester.widgetList<InboxChannelHeaderItem>(find.byType(InboxChannelHeaderItem))
+            .map((item) => item.subscription.streamId).toList();
+        check(listedChannelIds).deepEquals([
+          channelRocket.streamId,
+          channelAlpha.streamId,
+          channelBeta.streamId,
+        ]);
+      });
     });
 
     testWidgets('UnreadCountBadge text color for a channel', (tester) async {

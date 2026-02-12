@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/channel.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
@@ -144,8 +145,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
           return subA.pinToTop ? -1 : 1;
         }
 
-        // TODO(i18n) something like JS's String.prototype.localeCompare
-        return subA.name.toLowerCase().compareTo(subB.name.toLowerCase());
+        return ChannelStore.compareChannelsByName(subA, subB);
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
