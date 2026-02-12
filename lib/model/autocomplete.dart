@@ -20,13 +20,21 @@ extension ComposeContentAutocomplete on ComposeContentController {
   // To avoid spending a lot of time searching for autocomplete intents
   // in long messages, we bound how far back we look for the intent's start.
   int get _maxLookbackForAutocompleteIntent {
-    return 1 // intent character, e.g. "#"
-      + 2 // some optional characters e.g., "_" for silent mention or "**"
-
-      // Per the API doc, maxChannelNameLength is in Unicode code points.
+    // Longest autocomplete syntax is the fallback topic link intent (as of 2026-02):
+    //   [#escapedChannelName](#narrow/channel/channelId-slugifiedChannelName)>topicName
+    return 2 // [#
+      // Largest length of an escaped channel name (see `compose.escapeChannelTopicAvoidedChars`).
+      + 5 * store.maxChannelNameLength
+      + 18 // ](#narrow/channel/
+      + 19 // largest channel ID (9223372036854775807 — largest int) length
+      + 1  // hyphen character (-)
+      // Largest length of a slugified channel name (see `internal_link.narrowLinkFragment`).
+      + 3 * store.maxChannelNameLength
+      + 2  // )>
+      // Per the API doc, maxTopicLength is in Unicode code points.
       // We walk the string by UTF-16 code units, and there might be one or two
       // of those encoding each Unicode code point.
-      + 2 * store.maxChannelNameLength;
+      + 2 * store.maxTopicLength;
   }
 
   AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
@@ -65,9 +73,51 @@ extension ComposeContentAutocomplete on ComposeContentController {
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
       } else if (charAtPos == '#') {
-        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-        query = ChannelLinkAutocompleteQuery(match[1] ?? match[2]!);
+        final channelIntentMatch = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (channelIntentMatch != null) {
+          query = ChannelLinkAutocompleteQuery(channelIntentMatch[1] ?? channelIntentMatch[2]!);
+        } else {
+          final channelLinkMatch = _channelLinkWithTopicDelimiterRegex.matchAsPrefix(textUntilCursor, pos);
+          if (channelLinkMatch != null) {
+            final channel = store.streamsByName[channelLinkMatch[1]];
+            if (channel == null) break;
+            // Replace "#**…** >" with "#**…>" to trigger the topic autocomplete
+            // interaction for the channel.
+            value = value.replaced(
+              TextRange(start: pos, end: value.selection.end),
+              channelLink(channel, isComplete: false, store: store));
+            break;
+          } else {
+            final topicIntentMatch = _topicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+            if (topicIntentMatch == null) continue;
+            final channelId = topicIntentMatch[1] != null
+              ? _channelIdFromNarrow
+              : store.streamsByName[topicIntentMatch[2]]?.streamId;
+            if (channelId == null) break;
+            query = TopicLinkAutocompleteQuery(
+              topicIntentMatch[1] ?? topicIntentMatch[3]!, channelId: channelId);
+          }
+        }
+      } else if (charAtPos == '[') {
+        final channelFallbackLinkMatch = _channelFallbackLinkWithTopicDelimiterRegex.matchAsPrefix(textUntilCursor, pos);
+        if (channelFallbackLinkMatch != null) {
+          final channelName = unescapeChannelTopicAvoidedChars(channelFallbackLinkMatch[1]!);
+          final channel = store.streamsByName[channelName];
+          if (channel == null) break;
+          // Replace "[#…](#…) >" with "[#…](#…)>" to trigger the topic
+          // autocomplete interaction for the channel.
+          value = value.replaced(
+            TextRange(start: pos, end: value.selection.end),
+            channelLink(channel, isComplete: false, store: store));
+          break;
+        } else {
+          final fallbackTopicIntentMatch = _fallbackTopicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+          if (fallbackTopicIntentMatch == null) continue;
+          final channelName = unescapeChannelTopicAvoidedChars(fallbackTopicIntentMatch[1]!);
+          final channelId = store.streamsByName[channelName]?.streamId;
+          if (channelId == null) break;
+          query = TopicLinkAutocompleteQuery(fallbackTopicIntentMatch[2]!, channelId: channelId);
+        }
       } else {
         continue;
       }
@@ -76,6 +126,14 @@ extension ComposeContentAutocomplete on ComposeContentController {
     }
 
     return null;
+  }
+
+  int? get _channelIdFromNarrow {
+    if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(:var streamId)) {
+      return streamId;
+    } else {
+      return null;
+    }
   }
 }
 
@@ -190,8 +248,8 @@ final RegExp _channelLinkIntentRegex = () {
   // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
   //   - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
   //
-  // TODO: match the server constraints
-  const nameCharExclusions = r'\r\n';
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'>\r\n';
 
   // TODO(upstream): maybe use duplicate-named capture groups for better readability?
   //   https://github.com/dart-lang/sdk/issues/61337
@@ -217,9 +275,110 @@ final RegExp _channelLinkIntentRegex = () {
         + r'|'
         + r'\*[^*' + nameCharExclusions + r']'
         + r'|'
+        + r'[^*' + nameCharExclusions + r']\*$'
+      + r')*)'
+    + r')$');
+}();
+
+/// Matches "#**…** >", a completed channel link syntax followed by an optional
+/// space followed by ">".
+///
+/// This indicates that the user wants to initiate a topic autocomplete
+/// interaction for the channel. The match will then be replaced with "#**…>"
+/// which will end up initiating the topic autocomplete interaction.
+final RegExp _channelLinkWithTopicDelimiterRegex = () {
+  // What's likely to come just before "#**…** >" syntax: the start of the
+  // string, whitespace, or punctuation. Letters are unlikely.
+  //
+  // Only some punctuation, like "(", is actually likely here. We don't
+  // currently try to be specific about that.
+  const before = r'(?<=^|\s|\p{Punctuation})';
+
+  // In a channel name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L56
+  //
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'*>\r\n';
+
+  return RegExp(unicode: true,
+    before + r'#\*\*([^' + nameCharExclusions + r']+)\*\*\s?>$');
+}();
+
+/// Matches "[#…](#…) >", a channel fallback link followed by a space and ">".
+///
+/// This indicates that the user wants to initiate a topic autocomplete
+/// interaction for the channel. The match will then be replaced with "[#…](…)>"
+/// which will end up initiating the topic autocomplete interaction.
+final RegExp _channelFallbackLinkWithTopicDelimiterRegex = () {
+  // In a channel name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L56
+  //
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'\r\n';
+
+  return RegExp(unicode: true,
+    r'\[#([^>' + nameCharExclusions + r']+)\]\(#[^)]+\)\s>$');
+}();
+
+final RegExp _topicLinkIntentRegex = () {
+  // What's likely to come just before #channel>topic syntax: the start of the
+  // string, whitespace, or punctuation. Letters are unlikely.
+  //
+  // Only some punctuation, like "(", is actually likely here. We don't
+  // currently try to be specific about that.
+  const before = r'(?<=^|\s|\p{Punctuation})';
+
+  // In a channel/topic name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L65
+  //
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'\r\n';
+
+  // TODO(dart-future): maybe use duplicate-named capture groups for better readability?
+  //   https://github.com/dart-lang/sdk/issues/61337
+  return RegExp(unicode: true,
+    before
+    + r'#'
+    // Match both '#>topic' (shortcut syntax) and '#**…>topic'.
+    + r'(?:'
+      // Case '#>topic'.
+      + r'>(?!\s)([^' + nameCharExclusions + r']*)'
+      + r'|'
+      // Case '#**…>topic'.
+      + r'\*\*([^*>' + nameCharExclusions + r']+)'
+      + r'>(?!\s)'
+      // Make sure that the query doesn't contain '**', otherwise '#**…>…**'
+      // (which is a completed topic link syntax) and any text followed by that
+      // will always match.
+      + r'((?:'
+        + r'[^*' + nameCharExclusions + r']'
+        + r'|'
+        + r'\*[^*' + nameCharExclusions + r']'
+        + r'|'
         + r'\*$'
       + r')*)'
     + r')$');
+}();
+
+final RegExp _fallbackTopicLinkIntentRegex = () {
+  // In a channel/topic name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L65
+  //
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'\r\n';
+
+  return RegExp(unicode: true,
+    r'\[#([^>' + nameCharExclusions + r']+)\]\(#[^)]+\)'
+    + r'>'
+    + r'(?!\s)([^' + nameCharExclusions + r']*)$');
 }();
 
 /// The text controller's recognition that the user might want autocomplete UI.

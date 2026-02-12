@@ -68,7 +68,8 @@ void main() {
   }
 
   group('ComposeContentController.autocompleteIntent', () {
-    final channelNarrow = ChannelNarrow(1);
+    final narrowChannel = eg.stream();
+    final channelNarrow = ChannelNarrow(narrowChannel.streamId);
 
     /// Test the given input, in a convenient format.
     ///
@@ -83,14 +84,18 @@ void main() {
     /// collapsed at index 6, and we expect the syntax to start at index 0.
     void doTest(String markedText, ComposeAutocompleteQuery? expectedQuery, {
       Narrow? narrow,
+      ZulipStream? channel,
       int? maxChannelName,
+      int? maxTopicName,
     }) {
       final description = expectedQuery != null
         ? 'in ${jsonEncode(markedText)}, query ${jsonEncode(expectedQuery.raw)}'
         : 'no query in ${jsonEncode(markedText)}';
       test(description, () {
-        final store = eg.store(initialSnapshot:
-          eg.initialSnapshot(maxChannelNameLength: maxChannelName));
+        final store = eg.store(initialSnapshot: eg.initialSnapshot(
+          streams: [?channel, narrowChannel],
+          maxChannelNameLength: maxChannelName,
+          maxTopicLength: maxTopicName));
         narrow ??= channelNarrow;
         final controller = ComposeContentController(store: store, narrow: narrow!);
         final parsed = parseMarkedText(markedText);
@@ -109,6 +114,7 @@ void main() {
     MentionAutocompleteQuery mention(String raw) => MentionAutocompleteQuery(raw, silent: false);
     MentionAutocompleteQuery silentMention(String raw) => MentionAutocompleteQuery(raw, silent: true);
     ChannelLinkAutocompleteQuery channelLink(String raw) => ChannelLinkAutocompleteQuery(raw);
+    TopicLinkAutocompleteQuery topicLink(String raw, {required int channelId}) => TopicLinkAutocompleteQuery(raw, channelId: channelId);
     EmojiAutocompleteQuery emoji(String raw) => EmojiAutocompleteQuery(raw);
 
     doTest('', null);
@@ -191,12 +197,11 @@ void main() {
     doTest('~@Родион Романович Раскольников^', mention('Родион Романович Раскольников'));
     doTest('~@_Родион Романович Раскольнико^', silentMention('Родион Романович Раскольнико'));
 
-    // "@" sign can be (3 + 2 * maxChannelName) utf-16 code units
-    // away to the left of the cursor.
-    doTest('If ~@chris^ is around, please ask him.', mention('chris'), maxChannelName: 10);
-    doTest('If ~@_chris is^ around, please ask him.', silentMention('chris is'), maxChannelName: 10);
-    doTest('If @chris is around, please ask him.^', null, maxChannelName: 10);
-    doTest('If @_chris is around, please ask him.^', null, maxChannelName: 10);
+    // "@" sign can be (8 * maxChannelName + 2 * maxTopicName + 42) utf-16
+    // code units away to the left of the cursor.
+    // See: ComposeContentAutocomplete._maxLookbackForAutocompleteIntent
+    doTest('If ~@chris is ${'is' * 21}^', mention('chris is ${'is' * 21}'), maxChannelName: 1, maxTopicName: 1);
+    doTest('If @chris is ${'is' * 21} ^', null, maxChannelName: 1, maxTopicName: 1);
 
     // Emoji (":smile:").
 
@@ -326,7 +331,6 @@ void main() {
     // Query can contain a wide range of characters.
     doTest('~#`^', channelLink('`')); doTest('~#a`b^', channelLink('a`b'));
     doTest('~#"^', channelLink('"')); doTest('~#a"b^', channelLink('a"b'));
-    doTest('~#>^', channelLink('>')); doTest('~#a>b^', channelLink('a>b'));
     doTest('~#&^', channelLink('&')); doTest('~#a&b^', channelLink('a&b'));
     doTest('~#_^', channelLink('_')); doTest('~#a_b^', channelLink('a_b'));
     doTest('~#*^', channelLink('*')); doTest('~#a*b^', channelLink('a*b'));
@@ -350,15 +354,175 @@ void main() {
     doTest('#**a\r^',   null); doTest('#**\ra^',   null); doTest('#**a\rb^',   null);
     doTest('#**a\r\n^', null); doTest('#**\r\na^', null); doTest('#**a\r\nb^', null);
 
-    // "#" sign can be (3 + 2 * maxChannelName) utf-16 code units
-    // away to the left of the cursor.
-    doTest('check ~#**mobile dev^ team', channelLink('mobile dev'), maxChannelName: 5);
-    doTest('check ~#mobile dev t^eam', channelLink('mobile dev t'), maxChannelName: 5);
-    doTest('check #mobile dev te^am', null, maxChannelName: 5);
-    doTest('check #mobile dev team for more info^', null, maxChannelName: 5);
+    // "#" sign can be (8 * maxChannelName + 2 * maxTopicName + 42) utf-16
+    // code units away to the left of the cursor.
+    // See: ComposeContentAutocomplete._maxLookbackForAutocompleteIntent
+    doTest('check ~#**mobile ${'is' * 21}^', channelLink('mobile ${'is' * 21}'),
+      maxChannelName: 1, maxTopicName: 1);
+    doTest('check ~#mobile u ${'is' * 21}^', channelLink('mobile u ${'is' * 21}'),
+      maxChannelName: 1, maxTopicName: 1);
+    doTest('check #mobile ui ${'is' * 21}^', null,
+      maxChannelName: 1, maxTopicName: 1);
     // '🙂' is 2 utf-16 code units.
-    doTest('check ~#**🙂🙂🙂🙂🙂^', channelLink('🙂🙂🙂🙂🙂'), maxChannelName: 5);
-    doTest('check #**🙂🙂🙂🙂🙂🙂^', null, maxChannelName: 5);
+    doTest('check ~#${'🙂' * 25} ^', channelLink('${'🙂' * 25} '),
+      maxChannelName: 1, maxTopicName: 1);
+    doTest('check #${'🙂' * 26}^', null, maxChannelName: 1, maxTopicName: 1);
+
+    // #channel>topic links.
+
+    var channel = eg.stream(name: '…');
+    // ignore: no_leading_underscores_for_local_identifiers
+    void _doTest(String markedText, ComposeAutocompleteQuery? expectedQuery, {
+      int? maxChannelName, int? maxTopicName,
+    }) => doTest(markedText, expectedQuery, channel: channel, maxChannelName: maxChannelName, maxTopicName: maxTopicName);
+    // ignore: no_leading_underscores_for_local_identifiers
+    TopicLinkAutocompleteQuery _topicLink(String raw, {bool shortcut = false}) =>
+      topicLink(raw, channelId: shortcut ? narrowChannel.streamId : channel.streamId);
+
+    _doTest('^#**…>',    null); _doTest('^#>',    null); _doTest('^[#…](#…)>',    null);
+    _doTest('^#**…>abc', null); _doTest('^#>abc', null); _doTest('^[#…](#…)>abc', null);
+    _doTest('#**…>abc',  null); _doTest('#>abc',  null); _doTest('[#…](#…)>abc',  null); // (no cursor)
+
+    // Link syntax can be at the start of a string.
+    _doTest('~#**…>^',     _topicLink(''));
+    _doTest('~#>^',        _topicLink('', shortcut: true));
+    _doTest('~[#…](#…)>^', _topicLink(''));
+
+    _doTest('~#**…>abc^',     _topicLink('abc'));
+    _doTest('~#>abc^',        _topicLink('abc', shortcut: true));
+    _doTest('~[#…](#…)>abc^', _topicLink('abc'));
+
+    // Link syntax can contain multiple words.
+    _doTest('~#**…>abc ^',     _topicLink('abc '));
+    _doTest('~#>abc ^',        _topicLink('abc ', shortcut: true));
+    _doTest('~[#…](#…)>abc ^', _topicLink('abc '));
+
+    _doTest('~#**…>abc def^',     _topicLink('abc def'));
+    _doTest('~#>abc def^',        _topicLink('abc def', shortcut: true));
+    _doTest('~[#…](#…)>abc def^', _topicLink('abc def'));
+
+    // Link syntax can come after a word or space.
+    _doTest('xyz ~#**…>abc^',     _topicLink('abc'));
+    _doTest('xyz ~#>abc^',        _topicLink('abc', shortcut: true));
+    _doTest('xyz ~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest(' ~#**…>abc^',     _topicLink('abc'));
+    _doTest(' ~#>abc^',        _topicLink('abc', shortcut: true));
+    _doTest(' ~[#…](#…)>abc^', _topicLink('abc'));
+
+    // Link syntax can come after punctuation…
+    _doTest(':~#**…>abc^',     _topicLink('abc'));
+    _doTest(':~#>abc^',        _topicLink('abc', shortcut: true));
+    _doTest(':~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest('!~#**…>abc^',     _topicLink('abc'));
+    _doTest('!~#>abc^',        _topicLink('abc', shortcut: true));
+    _doTest('!~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest(',~#**…>abc^',     _topicLink('abc'));
+    _doTest(',~#>abc^',        _topicLink('abc', shortcut: true));
+    _doTest(',~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest('.~#**…>abc^',     _topicLink('abc'));
+    _doTest('.~#>abc^',        _topicLink('abc', shortcut: true));
+    _doTest('.~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest('(~#**…>abc^', _topicLink('abc')); _doTest(')~#**…>abc^', _topicLink('abc'));
+    _doTest('(~#>abc^', _topicLink('abc', shortcut: true)); _doTest(')~#>abc^', _topicLink('abc', shortcut: true));
+    _doTest('(~[#…](#…)>abc^', _topicLink('abc')); _doTest(')~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest('{~#**…>abc^', _topicLink('abc')); _doTest('}~#**…>abc^', _topicLink('abc'));
+    _doTest('{~#>abc^', _topicLink('abc', shortcut: true)); _doTest('}~#>abc^', _topicLink('abc', shortcut: true));
+    _doTest('{~[#…](#…)>abc^', _topicLink('abc')); _doTest('}~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest('[~#**…>abc^', _topicLink('abc')); _doTest(']~#**…>abc^', _topicLink('abc'));
+    _doTest('[~#>abc^', _topicLink('abc', shortcut: true)); _doTest(']~#>abc^', _topicLink('abc', shortcut: true));
+    _doTest('[~[#…](#…)>abc^', _topicLink('abc')); _doTest(']~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest('“~#**…>abc^', _topicLink('abc')); _doTest('”~#**…>abc^', _topicLink('abc'));
+    _doTest('“~#>abc^', _topicLink('abc', shortcut: true)); _doTest('”~#>abc^', _topicLink('abc', shortcut: true));
+    _doTest('“~[#…](#…)>abc^', _topicLink('abc')); _doTest('”~[#…](#…)>abc^', _topicLink('abc'));
+
+    _doTest('«~#**…>abc^', _topicLink('abc')); _doTest('»~#**…>abc^', _topicLink('abc'));
+    _doTest('«~#>abc^', _topicLink('abc', shortcut: true)); _doTest('»~#>abc^', _topicLink('abc', shortcut: true));
+    _doTest('«~[#…](#…)>abc^', _topicLink('abc')); _doTest('»~[#…](#…)>abc^', _topicLink('abc'));
+
+    // Query can't start with a space; topic names don't.
+    _doTest('#**…> ^',    null); _doTest('#> ^',    null); _doTest('[#…](#…)> ^',    null);
+    _doTest('#**…> abc^', null); _doTest('#> abc^', null); _doTest('[#…](#…)> abc^', null);
+
+    // Query shouldn't be multiple lines.
+    _doTest('#**…>\n^',     null); _doTest('#**…>a\n^',     null); _doTest('#**…>\na^',     null); _doTest('#**…>a\nb^',     null);
+    _doTest('#>\n^',        null); _doTest('#>a\n^',        null); _doTest('#>\na^',        null); _doTest('#>a\nb^',        null);
+    _doTest('[#…](#…)>\n^', null); _doTest('[#…](#…)>a\n^', null); _doTest('[#…](#…)>\na^', null); _doTest('[#…](#…)>a\nb^', null);
+
+    _doTest('#**…>\r^',     null); _doTest('#**…>a\r^',     null); _doTest('#**…>\ra^',     null); _doTest('#**…>a\rb^',     null);
+    _doTest('#>\r^',        null); _doTest('#>a\r^',        null); _doTest('#>\ra^',        null); _doTest('#>a\rb^',        null);
+    _doTest('[#…](#…)>\r^', null); _doTest('[#…](#…)>a\r^', null); _doTest('[#…](#…)>\ra^', null); _doTest('[#…](#…)>a\rb^', null);
+
+    _doTest('#**…>\r\n^',     null); _doTest('#**…>a\r\n^',     null); _doTest('#**…>\r\na^',     null); _doTest('#**…>a\r\nb^',     null);
+    _doTest('#>\r\n^',        null); _doTest('#>a\r\n^',        null); _doTest('#>\r\na^',        null); _doTest('#>a\r\nb^',        null);
+    _doTest('[#…](#…)>\r\n^', null); _doTest('[#…](#…)>a\r\n^', null); _doTest('[#…](#…)>\r\na^', null); _doTest('[#…](#…)>a\r\nb^', null);
+
+    // Query can contain a wide range of characters.
+    _doTest('~#**…>`^', _topicLink('`')); _doTest('~#**…>a`b^', _topicLink('a`b'));
+    _doTest('~#>`^', _topicLink('`', shortcut: true)); _doTest('~#>a`b^', _topicLink('a`b', shortcut: true));
+    _doTest('~[#…](#…)>`^', _topicLink('`')); _doTest('~[#…](#…)>a`b^', _topicLink('a`b'));
+
+    _doTest('~#**…>"^', _topicLink('"')); _doTest('~#**…>a"b^', _topicLink('a"b'));
+    _doTest('~#>"^', _topicLink('"', shortcut: true)); _doTest('~#>a"b^', _topicLink('a"b', shortcut: true));
+    _doTest('~[#…](#…)>"^', _topicLink('"')); _doTest('~[#…](#…)>a"b^', _topicLink('a"b'));
+
+    _doTest('~#**…>>^', _topicLink('>')); _doTest('~#**…>a>b^', _topicLink('a>b'));
+    _doTest('~#>>^', _topicLink('>', shortcut: true)); _doTest('~#>a>b^', _topicLink('a>b', shortcut: true));
+    _doTest('~[#…](#…)>>^', _topicLink('>')); _doTest('~[#…](#…)>a>b^', _topicLink('a>b'));
+
+    _doTest('~#**…>&^', _topicLink('&')); _doTest('~#**…>a&b^', _topicLink('a&b'));
+    _doTest('~#>&^', _topicLink('&', shortcut: true)); _doTest('~#>a&b^', _topicLink('a&b', shortcut: true));
+    _doTest('~[#…](#…)>&^', _topicLink('&')); _doTest('~[#…](#…)>a&b^', _topicLink('a&b'));
+
+    _doTest('~#**…>_^', _topicLink('_')); _doTest('~#**…>a_b^', _topicLink('a_b'));
+    _doTest('~#>_^', _topicLink('_', shortcut: true)); _doTest('~#>a_b^', _topicLink('a_b', shortcut: true));
+    _doTest('~[#…](#…)>_^', _topicLink('_')); _doTest('~[#…](#…)>a_b^', _topicLink('a_b'));
+
+    _doTest('~#**…>*^', _topicLink('*')); _doTest('~#**…>a*b^', _topicLink('a*b'));
+    _doTest('~#>*^', _topicLink('*', shortcut: true)); _doTest('~#>a*b^', _topicLink('a*b', shortcut: true));
+    _doTest('~[#…](#…)>*^', _topicLink('*')); _doTest('~[#…](#…)>a*b^', _topicLink('a*b'));
+
+    // Avoid interpreting already-entered `#**foo>bar**` or `[#foo>bar](#…)`
+    // syntax as queries.
+    _doTest('#**…>…**^',       null);
+    _doTest('#**…>…** ^',      null);
+    _doTest('#**…>…** abc^',   null);
+    _doTest('[#…>…](#…)>^',    null);
+    _doTest('[#…>…](#…)>abc^', null);
+
+    // Different placements of "*" syntax character in the query.
+    _doTest('~#**…>ab*c^',     _topicLink('ab*c'));
+    _doTest('~#>ab*c^',        _topicLink('ab*c', shortcut: true));
+    _doTest('~[#…](#…)>ab*c^', _topicLink('ab*c'));
+
+    _doTest('~#**…>abc*^',     _topicLink('abc*'));
+    _doTest('~#>abc*^',        _topicLink('abc*', shortcut: true));
+    _doTest('~[#…](#…)>abc*^', _topicLink('abc*'));
+
+    _doTest('#**…>abc**^',       null); // `#**foo>bar**` case above.
+    _doTest('~#>abc**^',        _topicLink('abc**', shortcut: true));
+    _doTest('~[#…](#…)>abc**^', _topicLink('abc**'));
+
+    // "#" or "[" sign can be (8 * maxChannelName + 2 * maxTopicName + 42)
+    // utf-16 code units away to the left of the cursor.
+    // See: ComposeContentAutocomplete._maxLookbackForAutocompleteIntent
+    _doTest('check ~#**…>topic${'is' * 21}^', _topicLink('topic${'is' * 21}'),
+      maxChannelName: 1, maxTopicName: 1);
+    _doTest('check #**…>topic ${'is' * 21}^', null,
+      maxChannelName: 1, maxTopicName: 1);
+    // '🙂' is 2 utf-16 code units.
+    channel = eg.stream(name: '&');
+    _doTest('check ~[#&amp;](#narrow/channel/9223372036854775807-.26)>🙂^', _topicLink('🙂'),
+      maxChannelName: 1, maxTopicName: 1);
+    _doTest('check [#&amp;](#narrow/channel/9223372036854775807-.26)>🙂 ^', null,
+      maxChannelName: 1, maxTopicName: 1);
   });
 
   test('MentionAutocompleteView misc', () async {
