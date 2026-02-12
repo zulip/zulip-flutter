@@ -1998,6 +1998,289 @@ void main() {
       });
     });
   });
+
+  group('TopicLinkAutocompleteView', () {
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+    late ZulipStream channel;
+    late TopicLinkAutocompleteView view;
+
+    Future<void> prepare({
+      required String query,
+      required List<String> topics,
+      ChannelTopicsPolicy topicsPolicy = .allowEmptyTopic,
+      Duration delay = .zero,
+    }) async {
+      channel = eg.stream(topicsPolicy: topicsPolicy);
+      store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [channel], realmEmptyTopicDisplayName: 'general chat'));
+      connection = store.connection as FakeApiConnection;
+      connection.prepare(delay: delay, json: GetChannelTopicsResult(topics: [
+        for (final (index, name) in topics.indexed)
+          eg.getChannelTopicsEntry(maxId: 1000 - index, name: name),
+      ]).toJson());
+
+      view = TopicLinkAutocompleteView(store: store,
+        narrow: ChannelNarrow(channel.streamId),
+        query: TopicLinkAutocompleteQuery(query, channelName: channel.name));
+      bool notified = false;
+      view.addListener(() { notified = true; });
+      await Future(() {});
+      await Future(() {});
+      check(notified).isTrue();
+    }
+
+    Condition<Object?> isChannelResult(int channelId) {
+      return (it) => it.isA<TopicLinkAutocompleteChannelResult>()
+        .channelId.equals(channelId);
+    }
+
+    Condition<Object?> isNewTopicResult(int channelId, TopicName topic) {
+      return (it) => it.isA<TopicLinkAutocompleteNewTopicResult>()
+        ..channelId.equals(channelId)
+        ..topic.equals(topic);
+    }
+
+    Condition<Object?> isTopicResult(int channelId, TopicName topic) {
+      return (it) => it.isA<TopicLinkAutocompleteTopicResult>()
+        ..channelId.equals(channelId)
+        ..topic.equals(topic);
+    }
+
+    test('updates results when topics are loaded', () => awaitFakeAsync((async) async {
+      await prepare(query: '', topics: ['Design', 'Docs'], delay: Duration(milliseconds: 1));
+      check(view.results).single.which(isChannelResult(channel.streamId));
+
+      async.elapse(Duration(milliseconds: 1));
+      check(view.results).deepEquals([
+        isChannelResult(channel.streamId),
+        isTopicResult(channel.streamId, eg.t('Design')),
+        isTopicResult(channel.streamId, eg.t('Docs')),
+      ]);
+    }));
+
+    test('empty query -> channel result ranks first', () async {
+      await prepare(query: '', topics: ['Design']);
+      check(view.results).deepEquals([
+        isChannelResult(channel.streamId),
+        isTopicResult(channel.streamId, eg.t('Design')),
+      ]);
+    });
+
+    test('non-empty query -> no channel result, only topic results', () async {
+      await prepare(query: 'design', topics: ['Design', 'Design docs']);
+      check(view.results).deepEquals([
+        isTopicResult(channel.streamId, eg.t('Design')),
+        isTopicResult(channel.streamId, eg.t('Design docs')),
+      ]);
+    });
+
+    test('non-empty query, no exact topic match -> new-topic result ranks first', () async {
+      await prepare(query: 'D', topics: ['Design', 'Docs']);
+      check(view.results).deepEquals([
+        isNewTopicResult(channel.streamId, eg.t('D')),
+        isTopicResult(channel.streamId, eg.t('Design')),
+        isTopicResult(channel.streamId, eg.t('Docs')),
+      ]);
+
+      view.query = TopicLinkAutocompleteQuery('Design docs', channelName: channel.name);
+      await Future(() {});
+      check(view.results).single.which(
+        isNewTopicResult(channel.streamId, eg.t('Design docs')));
+    });
+
+    group('new-topic result', () {
+      test('query is the empty-topic display name, topic not in channel -> new-topic result', () async {
+        await prepare(query: 'general chat', topics: ['Design']);
+        check(view.results).single.which(isNewTopicResult(channel.streamId, eg.t('')));
+      });
+
+      test('query is the empty-topic display name, topic in channel -> topic result', () async {
+        await prepare(query: 'general chat', topics: ['', 'Design']);
+        check(view.results).single.which(isTopicResult(channel.streamId, eg.t('')));
+      });
+
+      test('query is the empty-topic display name, empty topics disabled -> no new-topic result', () async {
+        await prepare(query: 'general chat', topics: ['Generally Chatting'],
+          topicsPolicy: .disableEmptyTopic);
+        check(view.results).single
+          .which(isTopicResult(channel.streamId, eg.t('Generally Chatting')));
+      });
+
+      test('query names a non-empty topic, only empty topics allowed -> no new-topic result', () async {
+        await prepare(query: 'design docs', topics: [''],
+          topicsPolicy: .emptyTopicOnly);
+        check(view.results).isEmpty();
+      });
+    });
+
+    test('changes in the topics show up in the results for the next query', () async {
+      await prepare(query: 'design', topics: ['Design']);
+      check(view.results).single.which(isTopicResult(channel.streamId, eg.t('Design')));
+
+      // A message arrives in a new topic.
+      await store.addMessage(eg.streamMessage(stream: channel, topic: 'Design docs'));
+
+      view.query = TopicLinkAutocompleteQuery('design', channelName: channel.name);
+      await Future(() {});
+      check(view.results).deepEquals([
+        isTopicResult(channel.streamId, eg.t('Design')),
+        isTopicResult(channel.streamId, eg.t('Design docs')),
+      ]);
+    });
+
+    test('results follow the query when it names a different channel', () async {
+      await prepare(query: '', topics: ['Design']);
+      check(view.results).deepEquals([
+        isChannelResult(channel.streamId),
+        isTopicResult(channel.streamId, eg.t('Design')),
+      ]);
+
+      final otherChannel = eg.stream(name: 'other channel');
+      await store.addStream(otherChannel);
+      connection.prepare(json: GetChannelTopicsResult(topics: [
+        eg.getChannelTopicsEntry(maxId: 20, name: 'Docs'),
+      ]).toJson());
+      view.query = TopicLinkAutocompleteQuery('', channelName: otherChannel.name);
+      await Future(() {});
+      await Future(() {});
+      check(view.results).deepEquals([
+        isChannelResult(otherChannel.streamId),
+        isTopicResult(otherChannel.streamId, eg.t('Docs')),
+      ]);
+    });
+
+    test('no results when the query names an unknown channel', () async {
+      await prepare(query: '', topics: ['First']);
+      check(view.results).isNotEmpty();
+
+      view.query = TopicLinkAutocompleteQuery('', channelName: 'unknown channel');
+      await Future(() {});
+      check(view.results).isEmpty();
+    });
+  });
+
+  group('TopicLinkAutocompleteQuery', () {
+    late PerAccountStore store;
+
+    void doCheck(String rawQuery, String topicApiName, bool expected) {
+      final result = TopicLinkAutocompleteQuery(rawQuery, channelName: 'channel')
+        .testTopic(channelId: 1, topic: eg.t(topicApiName), store);
+      expected
+        ? check(result).isA<TopicLinkAutocompleteTopicResult>()
+        : check(result).isNull();
+    }
+
+    test('testTopic: topic is included if name words match the query', () {
+      store = eg.store(initialSnapshot: eg.initialSnapshot(
+        realmEmptyTopicDisplayName: 'general chat'));
+
+      doCheck('',            'Topic Name',            true);
+      doCheck('Topic Name',  'Topic Name',            true);
+      doCheck('topic name',  'Topic Name',            true);
+      doCheck('Topic Name',  'topic name',            true);
+      doCheck('Topic',       'Topic Name',            true);
+      doCheck('Name',        'Topic Name',            true);
+      doCheck('Topic Name',  'Topics Names',          true);
+      doCheck('Topic Four',  'Topic Name Four Words', true);
+      doCheck('Name Words',  'Topic Name Four Words', true);
+      doCheck('Topic F',     'Topic Name Four Words', true);
+      doCheck('T Four',      'Topic Name Four Words', true);
+      doCheck('topic topic', 'Topic Topic Name',      true);
+      doCheck('topic topic', 'Topic Name Topic',      true);
+
+      // the "general chat" topic cases
+      doCheck('',             '', true);
+      doCheck('General Chat', '', true);
+      doCheck('general chat', '', true);
+      doCheck('General',      '', true);
+      doCheck('chat',         '', true);
+
+      doCheck('Topics Names',          'Topic Name',            false);
+      doCheck('Topic Name',            'Topic',                 false);
+      doCheck('Topic Name',            'Name',                  false);
+      doCheck('pic ame',               'Topic Name',            false);
+      doCheck('pic Name',              'Topic Name',            false);
+      doCheck('Topic ame',             'Topic Name',            false);
+      doCheck('Topic Topic',           'Topic Name',            false);
+      doCheck('Name Name',             'Topic Name',            false);
+      doCheck('Name Topic',            'Topic Name',            false);
+      doCheck('Name Four Topic Words', 'Topic Name Four Words', false);
+      doCheck('F Topic',               'Topic Name Four Words', false);
+      doCheck('Four T',                'Topic Name Four Words', false);
+      // the "general chat" topic case
+      doCheck('generally chatting',    '',                      false);
+    });
+
+    group('ranking', () {
+      final queryChannel = eg.stream();
+
+      int rankOf(String queryStr, TopicName topic) {
+        return TopicLinkAutocompleteQuery(queryStr, channelName: queryChannel.name)
+          .testTopic(channelId: queryChannel.streamId, topic: topic, store)
+          !.rank; // (i.e. throw here if it's not a match)
+      }
+
+      void checkPrecedes(String query, TopicName a, TopicName b) {
+        check(rankOf(query, a)).isLessThan(rankOf(query, b));
+      }
+
+      void checkAllSameRank(String query, Iterable<TopicName> topics) {
+        final firstRank = rankOf(query, topics.first);
+        final remainingRanks = topics.skip(1).map((e) => rankOf(query, e));
+        check(remainingRanks).every((it) => it.equals(firstRank));
+      }
+
+      test('topic name match is case- and diacritics-insensitive', () {
+        store = eg.store();
+        final topics = [
+          eg.t('Über Cars'),
+          eg.t('über cars'),
+          eg.t('Uber Cars'),
+          eg.t('uber cars'),
+        ];
+
+        checkAllSameRank('Über Cars', topics); // exact
+        checkAllSameRank('über cars', topics); // exact
+        checkAllSameRank('Uber Cars', topics); // exact
+        checkAllSameRank('uber cars', topics); // exact
+
+        checkAllSameRank('Über Ca',   topics); // total-prefix
+        checkAllSameRank('über ca',   topics); // total-prefix
+        checkAllSameRank('Uber Ca',   topics); // total-prefix
+        checkAllSameRank('uber ca',   topics); // total-prefix
+
+        checkAllSameRank('Üb Ca',     topics); // word-prefixes
+        checkAllSameRank('üb ca',     topics); // word-prefixes
+        checkAllSameRank('Ub Ca',     topics); // word-prefixes
+        checkAllSameRank('ub ca',     topics); // word-prefixes
+      });
+
+      test('topic name match: exact over total-prefix', () {
+        store = eg.store();
+        final topic1 = eg.t('Resume');
+        final topic2 = eg.t('Resume Tips');
+        checkPrecedes('resume', topic1, topic2);
+      });
+
+      test('topic name match: total-prefix over word-prefixes', () {
+        store = eg.store();
+        final topic1 = eg.t('So Many Ideas');
+        final topic2 = eg.t('Some Modern Topic');
+        checkPrecedes('so m', topic1, topic2);
+      });
+
+      test('full list of ranks', () {
+        store = eg.store();
+        final topic = eg.t('some topic');
+        check([
+          rankOf('some topic', topic), // exact name match
+          rankOf('some to', topic),    // total-prefix name match
+          rankOf('so to', topic),      // word-prefixes name match
+        ]).deepEquals([1, 2, 3]);
+      });
+    });
+  });
 }
 
 typedef WildcardTester = void Function(String query, Narrow narrow, List<WildcardMentionOption> expected);

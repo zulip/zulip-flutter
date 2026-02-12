@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
+import '../api/exception.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -1107,6 +1109,26 @@ class AutocompleteDataCache {
       ??= normalizedNameForChannel(channel).split(' ');
   }
 
+  final Map<String, String> _normalizedNamesByTopic = {};
+
+  /// The normalized form of a topic's display name
+  /// or the org's chosen display name for the empty topic.
+  ///
+  /// The expected input is the string obtained by
+  /// `topic.displayName ?? store.realmEmptyTopicDisplayName`.
+  String normalizedTopicDisplayName(String topic) {
+    return _normalizedNamesByTopic[topic]
+      ??= AutocompleteQuery.lowercaseAndStripDiacritics(topic);
+  }
+
+  final Map<String, List<String>> _normalizedNameWordsByTopic = {};
+
+  /// [normalizedTopicDisplayName], split into words.
+  List<String> normalizedTopicDisplayNameWords(String topic) {
+    return _normalizedNameWordsByTopic[topic]
+      ??= normalizedTopicDisplayName(topic).split(' ');
+  }
+
   void invalidateUser(int userId) {
     _normalizedNamesByUser.remove(userId);
     _normalizedNameWordsByUser.remove(userId);
@@ -1590,5 +1612,284 @@ class ChannelLinkAutocompleteResult extends ComposeAutocompleteResult {
   //   in the channel name. This doesn't seem to be helpful in most cases,
   //   because it is hard for a query to be present in the name (the way
   //   mentioned before) and also present in the description.
+  final int rank;
+}
+
+/// An [AutocompleteView] for a #channel>topic autocomplete interaction,
+/// an example of a [ComposeAutocompleteView].
+class TopicLinkAutocompleteView extends AutocompleteView<TopicLinkAutocompleteQuery, TopicLinkAutocompleteResult> {
+  TopicLinkAutocompleteView({
+    required super.store,
+    required super.query,
+    required this.narrow,
+  });
+
+  final Narrow narrow;
+
+  /// The ID of the channel whose topics this interaction offers,
+  /// or null if the channel is unknown.
+  ///
+  /// When [query] names a channel, as in `#**channel>`,
+  /// this is the channel it names,
+  /// or null if the user doesn't know any channel by that name.
+  ///
+  /// When [query] names no channel, as in the shortcut syntax `#>`,
+  /// this is the channel of [narrow],
+  /// or null if it can't be derived from [narrow], as in a [DmNarrow].
+  int? get _channelId {
+    if (query.channelName != null) {
+      return store.streamsByName[query.channelName]?.streamId;
+    } else {
+      return switch (narrow) {
+        ChannelNarrow(:final channelId) || TopicNarrow(:final channelId) => channelId,
+        _ => null,
+      };
+    }
+  }
+
+  bool _fetchScheduled = false;
+
+  @override
+  Future<List<TopicLinkAutocompleteResult>?> computeResults() async {
+    final channelId = _channelId;
+    if (channelId == null) {
+      // Returning `[]` here directly would have [_startSearch]
+      // notify listeners as soon as microtasks are next drained,
+      // and by then, this view-model may already have been disposed.
+      // That happens when backspacing "#>" to "#" in a DM narrow:
+      // iOS sends two editing-state updates for the single backspace,
+      // and each is delivered immediately (see [ChannelBuffers.setListener]),
+      // so the first restarts this search and the second disposes
+      // this view-model, both before any microtask runs.
+      // So wait before returning a result,
+      // to give [_startSearch] up-to-date state to act on.
+      // [shouldStop] does that by waiting for a later event-queue task;
+      // waiting only for a later microtask would do just as well,
+      // but this is the method we already have for the job.
+      return (await shouldStop()) ? null : [];
+    }
+
+    final unsorted = <TopicLinkAutocompleteResult>[];
+
+    final channelResult = _channelResult(channelId);
+    if (channelResult != null) unsorted.add(channelResult);
+
+    // TODO(#2154): provide no topics for "only general chat" channel
+
+    final topics = store.topics.channelTopics(channelId);
+    if (topics == null) {
+      // Not fetched yet; fetch and re-run the search when the topics arrive.
+      // On failure, offer no topics: the user can still type one out,
+      // and the next keystroke retries the fetch.
+      //
+      // [_fetchScheduled] limits this to one fetch at a time,
+      // and hence one re-query;
+      // otherwise each keystroke during the fetch
+      // would schedule a re-query of its own
+      // (though not another request: [Topics.getChannelTopics] avoids that).
+      if (!_fetchScheduled) {
+        _fetchScheduled = true;
+        unawaited(() async {
+          try {
+            await store.topics.getChannelTopics(channelId);
+          } on ApiRequestException {
+            return;
+          } finally {
+            _fetchScheduled = false;
+          }
+          unawaited(_startSearch());
+        }());
+      }
+      // As at the `channelId == null` return above,
+      // wait until a later event-queue task before returning.
+      return (await shouldStop()) ? null : unsorted;
+    }
+
+    final newTopicResult = _newTopicResult(channelId);
+    if (newTopicResult != null) unsorted.add(newTopicResult);
+
+    if (await filterCandidates(
+          filter: (query, topic) => query.testTopic(
+            channelId: channelId, topic: topic.name, store),
+          candidates: topics, results: unsorted)) {
+      return null;
+    }
+
+    return bucketSort(unsorted, (r) => r.rank,
+      numBuckets: TopicLinkAutocompleteQuery._numResultRanks);
+  }
+
+  TopicLinkAutocompleteChannelResult? _channelResult(int channelId) {
+    if (query.raw.isNotEmpty) return null;
+    return TopicLinkAutocompleteChannelResult(channelId: channelId);
+  }
+
+  TopicLinkAutocompleteNewTopicResult? _newTopicResult(int channelId) {
+    if (query.raw.isEmpty) return null;
+    // The query can have trailing whitespace, but not leading.
+    // The server would trim it anyway.
+    final queryTopic = store.processTopicLikeServer(TopicName(query.raw.trim()));
+    // Don't offer a new topic the channel wouldn't accept sending a message to.
+    final topicsPolicy = store.effectiveTopicsPolicy(channelId);
+    if (queryTopic.displayName == null
+          ? topicsPolicy == .disableEmptyTopic
+          : topicsPolicy == .emptyTopicOnly) {
+      return null;
+    }
+    final queryTopicExists =
+      store.topics.latestMessageInChannelTopic(channelId, queryTopic) != null;
+    if (queryTopicExists) return null;
+    return TopicLinkAutocompleteNewTopicResult(channelId: channelId, topic: queryTopic);
+  }
+}
+
+/// A #channel>topic autocomplete query, used by [TopicLinkAutocompleteView].
+class TopicLinkAutocompleteQuery extends ComposeAutocompleteQuery {
+  TopicLinkAutocompleteQuery(super.raw, {required this.channelName});
+
+  /// The channel name in the syntax, as in `#**channel>`,
+  /// or null if the syntax names no channel, as in the shortcut syntax `#>`.
+  ///
+  /// This is raw text from the compose box,
+  /// so callers should consult the store
+  /// to see if it names a channel the user knows about,
+  /// e.g. with [ChannelStore.streamsByName].
+  final String? channelName;
+
+  @override
+  ComposeAutocompleteView initViewModel({
+    required PerAccountStore store,
+    required ZulipLocalizations localizations,
+    required Narrow narrow,
+  }) {
+    return TopicLinkAutocompleteView(store: store, narrow: narrow, query: this);
+  }
+
+  TopicLinkAutocompleteTopicResult? testTopic(PerAccountStore store, {
+    required int channelId,
+    required TopicName topic,
+  }) {
+    final cache = store.autocompleteViewManager.autocompleteDataCache;
+    final userFacingName = topic.displayName ?? store.realmEmptyTopicDisplayName;
+    final matchQuality = _matchName(
+      normalizedName: cache.normalizedTopicDisplayName(userFacingName),
+      normalizedNameWords: cache.normalizedTopicDisplayNameWords(userFacingName));
+    if (matchQuality == null) return null;
+    return TopicLinkAutocompleteTopicResult(
+      channelId: channelId, topic: topic, rank: _rankTopicResult(matchQuality));
+  }
+
+  /// A measure of a topic result's quality in the context of the query,
+  /// from 1 (best) to one less than [_numResultRanks].
+  ///
+  /// (Rank 0 is reserved either for [TopicLinkAutocompleteChannelResult]
+  /// or [TopicLinkAutocompleteNewTopicResult].)
+  static int _rankTopicResult(NameMatchQuality matchQuality) {
+    return switch(matchQuality) {
+      .exact        => 1,
+      .totalPrefix  => 2,
+      .wordPrefixes => 3,
+    };
+  }
+
+  /// The number of possible values returned by [_rankTopicResult],
+  /// plus one for either [TopicLinkAutocompleteChannelResult]
+  /// or [TopicLinkAutocompleteNewTopicResult].
+  static const _numResultRanks = 4;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'TopicLinkAutocompleteQuery')}(raw: $raw, channelName: $channelName)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! TopicLinkAutocompleteQuery) return false;
+    return other.raw == raw && other.channelName == channelName;
+  }
+
+  @override
+  int get hashCode => Object.hash('TopicLinkAutocompleteQuery', raw, channelName);
+}
+
+/// An autocomplete result for a #channel>topic autocomplete interaction.
+///
+/// This is abstract because there are several kinds of results that can all be
+/// offered in the same #channel>topic autocomplete interaction:
+/// channel, new topic, or an existing topic.
+sealed class TopicLinkAutocompleteResult extends ComposeAutocompleteResult {
+  int get channelId;
+  int get rank;
+}
+
+/// A result for just a channel link, after all, not any topic.
+///
+/// Offered at the top of the list when the topic query is empty.
+///
+/// See also [TopicLinkAutocompleteNewTopicResult], which is mutually exclusive
+/// with this result.
+class TopicLinkAutocompleteChannelResult extends TopicLinkAutocompleteResult {
+  TopicLinkAutocompleteChannelResult({required this.channelId});
+
+  @override
+  final int channelId;
+
+  /// This should always come first in the list of options.
+  ///
+  /// Used internally by [TopicLinkAutocompleteView] for ranking the results.
+  @override
+  int get rank => 0;
+}
+
+/// A result for a new topic taken from the query itself.
+///
+/// Offered at the top of the list when the topic query is not empty and the
+/// query topic doesn't exist in the list of topics.
+///
+/// See also [TopicLinkAutocompleteChannelResult], which is mutually exclusive
+/// with this result.
+class TopicLinkAutocompleteNewTopicResult extends TopicLinkAutocompleteResult {
+  TopicLinkAutocompleteNewTopicResult({required this.channelId, required this.topic});
+
+  @override
+  final int channelId;
+
+  final TopicName topic;
+
+  /// This should always come first in the list of options.
+  ///
+  /// Used internally by [TopicLinkAutocompleteView] for ranking the results.
+  @override
+  int get rank => 0;
+}
+
+/// A result for an existing topic.
+class TopicLinkAutocompleteTopicResult extends TopicLinkAutocompleteResult {
+  TopicLinkAutocompleteTopicResult({
+    required this.channelId,
+    required this.topic,
+    required this.rank,
+  });
+
+  @override
+  final int channelId;
+
+  final TopicName topic;
+
+  /// A measure of the result's quality in the context of the query.
+  ///
+  /// Used internally by [TopicLinkAutocompleteView] for ranking the results.
+  // Behavior we have that web doesn't and might like to follow:
+  // - A "word-prefixes" match quality on topic names:
+  //   see [NameMatchQuality.wordPrefixes], which we rank on.
+  //
+  // Behavior web has that seems undesired, which we don't plan to follow:
+  // - A "word-boundary" match quality on topic names:
+  //   special rank when the whole query appears contiguously
+  //   right after a word-boundary character.
+  //   Our [NameMatchQuality.wordPrefixes] seems smarter.
+  // - Ranking some case-sensitive matches differently from case-insensitive
+  //   matches. Users will expect a lowercase query to be adequate.
+  @override
   final int rank;
 }
