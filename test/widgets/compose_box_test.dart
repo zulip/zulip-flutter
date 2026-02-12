@@ -2070,6 +2070,101 @@ void main() {
     });
   });
 
+  group('ComposeBox content input inputFormatters', () {
+    group('PendingTopicLinkAutocompleteFormatter', () {
+      Future<void> prepare(WidgetTester tester, {required ZulipStream channel}) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        // Needed for when "#**…>" syntax triggers a topic-list fetch.
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+      }
+
+      String content(WidgetTester tester) =>
+        tester.widget<TextField>(contentInputFinder).controller!.text;
+
+      testWidgets('"#**…** >" is replaced with "#**…>"', (tester) async {
+        await prepare(tester, channel: eg.stream(name: 'mobile'));
+
+        await enterContent(tester, 'check #**mobile** >');
+        check(content(tester)).equals('check #**mobile>');
+
+        await enterContent(tester, 'check #**mobile**>');
+        check(content(tester)).equals('check #**mobile>');
+      });
+
+      testWidgets('"#**…**" then ideographic space then ">" is replaced with "#**…>"', (tester) async {
+        await prepare(tester, channel: eg.stream(name: 'mobile'));
+
+        await enterContent(tester, 'check #**mobile**\u3000>');
+        check(content(tester)).equals('check #**mobile>');
+      });
+
+      testWidgets('"#**…** >" with an unknown channel name stays unchanged', (tester) async {
+        await prepare(tester, channel: eg.stream(name: 'mobile'));
+
+        await enterContent(tester, 'check #**backend** >');
+        check(content(tester)).equals('check #**backend** >');
+      });
+
+      testWidgets('"#**…**" then newline then ">" stays unchanged', (tester) async {
+        await prepare(tester, channel: eg.stream(name: 'mobile'));
+
+        await enterContent(tester, 'check #**mobile**\n>');
+        check(content(tester)).equals('check #**mobile**\n>');
+      });
+
+      testWidgets('"#**…>…** >" with topic link stays unchanged', (tester) async {
+        await prepare(tester, channel: eg.stream(name: 'mobile'));
+
+        await enterContent(tester, 'check #**mobile>faq** >');
+        check(content(tester)).equals('check #**mobile>faq** >');
+
+        await enterContent(tester, 'check #**mobile>faq**>');
+        check(content(tester)).equals('check #**mobile>faq**>');
+      });
+
+      testWidgets('"[#…](#narrow…) >" is replaced with "[#…](#narrow…)>"', (tester) async {
+        await prepare(tester, channel: eg.stream(streamId: 1, name: 'R&D'));
+
+        await enterContent(tester, 'check [#R&amp;D](#narrow/channel/1-R.26D) >');
+        check(content(tester)).equals('check [#R&amp;D](#narrow/channel/1-R.26D)>');
+      });
+
+      testWidgets('"[#…](#narrow…)" then ideographic space then ">" is replaced with "[#…](#narrow…)>"', (tester) async {
+        await prepare(tester, channel: eg.stream(streamId: 1, name: 'R&D'));
+
+        await enterContent(tester, 'check [#R&amp;D](#narrow/channel/1-R.26D)\u3000>');
+        check(content(tester)).equals('check [#R&amp;D](#narrow/channel/1-R.26D)>');
+      });
+
+      testWidgets('"[#…](#narrow…) >" with an unknown channel name stays unchanged', (tester) async {
+        await prepare(tester, channel: eg.stream(streamId: 1, name: 'R&D'));
+
+         // The channel ID matches, but lookup is by name (R&E vs. R&D).
+        await enterContent(tester, 'check [#R&amp;E](#narrow/channel/1-R.26E) >');
+        check(content(tester)).equals('check [#R&amp;E](#narrow/channel/1-R.26E) >');
+      });
+
+      testWidgets('"[#…](#narrow…)" then newline then ">" stays unchanged', (tester) async {
+        await prepare(tester, channel: eg.stream(streamId: 1, name: 'R&D'));
+
+        await enterContent(tester, 'check [#R&amp;D](#narrow/channel/1-R.26D)\n>');
+        check(content(tester)).equals('check [#R&amp;D](#narrow/channel/1-R.26D)\n>');
+      });
+
+      testWidgets('"[#… > …](#narrow…) >" with topic fallback link stays unchanged', (tester) async {
+        await prepare(tester, channel: eg.stream(streamId: 1, name: 'R&D'));
+
+        await enterContent(tester, 'check [#R&amp;D > faq](#narrow/channel/1-R.26D/topic/faq) >');
+        check(content(tester)).equals('check [#R&amp;D > faq](#narrow/channel/1-R.26D/topic/faq) >');
+      });
+    });
+  });
+
   group('ComposeBoxState new-event-queue transition', () {
     void prepareNewConnection(List<Map<String, dynamic>> responses) {
       final connection = (testBinding.globalStore
