@@ -237,6 +237,10 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
           return;
         }
         replacementString = '${channelLink(channel, store: store)} ';
+      case TopicLinkAutocompleteChannelResult():
+      case TopicLinkAutocompleteNewTopicResult():
+      case TopicLinkAutocompleteTopicResult():
+        throw UnimplementedError(); // TODO(#124)
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -255,6 +259,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
       MentionAutocompleteResult() => MentionAutocompleteItem(
         option: option, narrow: narrow),
       ChannelLinkAutocompleteResult() => _ChannelLinkAutocompleteItem(option: option),
+      TopicLinkAutocompleteResult() => throw UnimplementedError(), // TODO(#124)
       EmojiAutocompleteResult() => EmojiAutocompleteItem(option: option),
     };
     return InkWell(
