@@ -350,9 +350,10 @@ hello
       check(channelLink(channels[0], store: store)).equals('#**mobile**');
       check(channelLink(channels[1], store: store)).equals('#**dev-ops**');
       check(channelLink(channels[2], store: store)).equals('#**ui/ux**');
-      check(channelLink(channels[3], store: store)).equals('#**api_v3**');
-      check(channelLink(channels[4], store: store)).equals('#**build+test**');
-      check(channelLink(channels[5], store: store)).equals('#**init()**');
+
+      check(channelLink(channels[3], isComplete: false, store: store)).equals('#**api_v3>');
+      check(channelLink(channels[4], isComplete: false, store: store)).equals('#**build+test>');
+      check(channelLink(channels[5], isComplete: false, store: store)).equals('#**init()>');
     });
 
     test('channels with names containing avoided characters', () async {
@@ -370,9 +371,13 @@ hello
       check(channelLink(channels[1 - 1], store: store)).equals('[#&#96;code&#96;](#narrow/channel/1-.60code.60)');
       check(channelLink(channels[2 - 1], store: store)).equals('[#score &gt; 90](#narrow/channel/2-score-.3E-90)');
       check(channelLink(channels[3 - 1], store: store)).equals('[#A&#42;](#narrow/channel/3-A*)');
-      check(channelLink(channels[4 - 1], store: store)).equals('[#R&amp;D](#narrow/channel/4-R.26D)');
-      check(channelLink(channels[5 - 1], store: store)).equals('[#UI &#91;v2&#93;](#narrow/channel/5-UI-.5Bv2.5D)');
-      check(channelLink(channels[6 - 1], store: store)).equals('[#Save &#36;&#36;](#narrow/channel/6-Save-.24.24)');
+
+      check(channelLink(channels[4 - 1], isComplete: false, store: store))
+        .equals('[#R&amp;D](#narrow/channel/4-R.26D)>');
+      check(channelLink(channels[5 - 1], isComplete: false, store: store))
+        .equals('[#UI &#91;v2&#93;](#narrow/channel/5-UI-.5Bv2.5D)>');
+      check(channelLink(channels[6 - 1], isComplete: false, store: store))
+        .equals('[#Save &#36;&#36;](#narrow/channel/6-Save-.24.24)>');
     });
   });
 
