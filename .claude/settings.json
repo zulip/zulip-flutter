@@ -4,6 +4,7 @@
       "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(head:*)",
+      "Bash(find:*)",
       "WebFetch(domain:zulip.com)",
       "Bash(tools/icons/build-icon-font:*)",
       "Bash(flutter gen-l10n:*)",
