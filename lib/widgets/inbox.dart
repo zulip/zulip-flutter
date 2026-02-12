@@ -108,9 +108,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     // TODO efficiently include DM conversations that aren't recent enough
     //   to appear in recentDmConversationsView, but still have unreads in
     //   unreadsModel.
-    final dmItems = <(DmNarrow, int, bool)>[];
-    int allDmsCount = 0;
-    bool allDmsHasMention = false;
+    final dmItems = <_InboxListItemDmConversation>[];
     for (final dmNarrow in recentDmConversationsModel!.sorted) {
       final countInNarrow = unreadsModel!.countInDmNarrow(dmNarrow);
       if (countInNarrow == 0) {
@@ -118,12 +116,13 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       }
       final hasMention = unreadsModel!.dms[dmNarrow]!.any(
         (messageId) => unreadsModel!.mentions.contains(messageId));
-      if (hasMention) allDmsHasMention = true;
-      dmItems.add((dmNarrow, countInNarrow, hasMention));
-      allDmsCount += countInNarrow;
+      dmItems.add(_InboxListItemDmConversation(
+        narrow: dmNarrow, count: countInNarrow, hasMention: hasMention));
     }
     if (dmItems.isNotEmpty) {
-      items.add(_InboxListItemAllDmsSection(allDmsCount, allDmsHasMention, dmItems));
+      items.add(_InboxListItemFolderHeader(
+        label: zulipLocalizations.recentDmConversationsSectionHeader));
+      items.addAll(dmItems);
     }
 
     final pinnedChannelSections = <_InboxListItemChannelSection>[];
@@ -217,12 +216,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
           switch (item) {
             case _InboxListItemFolderHeader():
               return InboxFolderHeaderItem(label: item.label);
-            case _InboxListItemAllDmsSection():
-              return _AllDmsSection(
-                data: item,
-                collapsed: allDmsCollapsed,
-                pageState: this,
-              );
+            case _InboxListItemDmConversation(:final narrow, :final count, :final hasMention):
+              return InboxDmItem(narrow: narrow, count: count, hasMention: hasMention);
             case _InboxListItemChannelSection(:var streamId):
               final collapsed = collapsedStreamIds.contains(streamId);
               return _StreamSection(data: item, collapsed: collapsed, pageState: this);
@@ -244,12 +239,16 @@ class _InboxListItemFolderHeader extends _InboxListItem {
   // TODO count, hasMention
 }
 
-class _InboxListItemAllDmsSection extends _InboxListItem {
+class _InboxListItemDmConversation extends _InboxListItem {
+  const _InboxListItemDmConversation({
+    required this.narrow,
+    required this.count,
+    required this.hasMention,
+  });
+
+  final DmNarrow narrow;
   final int count;
   final bool hasMention;
-  final List<(DmNarrow, int, bool)> items;
-
-  const _InboxListItemAllDmsSection(this.count, this.hasMention, this.items);
 }
 
 class _InboxListItemChannelSection extends _InboxListItem {
@@ -409,71 +408,6 @@ class InboxFolderHeaderItem extends StatelessWidget {
 
     return Semantics(container: true,
       child: result);
-  }
-}
-
-@visibleForTesting
-class InboxAllDmsHeaderItem extends _HeaderItem {
-  const InboxAllDmsHeaderItem({
-    super.key,
-    required super.collapsed,
-    required super.pageState,
-    required super.count,
-    required super.hasMention,
-    required super.sectionContext,
-  });
-
-  @override String title(ZulipLocalizations zulipLocalizations) =>
-    zulipLocalizations.recentDmConversationsSectionHeader;
-  @override IconData get icon => ZulipIcons.two_person;
-
-  // TODO(design) check if this is the right variable for these
-  @override Color collapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
-  @override Color uncollapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
-
-  @override Color uncollapsedBackgroundColor(context) => DesignVariables.of(context).dmHeaderBg;
-  @override int? get channelId => null;
-
-  @override Future<void> onCollapseButtonTap() async {
-    await super.onCollapseButtonTap();
-    pageState.allDmsCollapsed = !collapsed;
-  }
-  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open all-DMs narrow?
-}
-
-class _AllDmsSection extends StatelessWidget {
-  const _AllDmsSection({
-    required this.data,
-    required this.collapsed,
-    required this.pageState,
-  });
-
-  final _InboxListItemAllDmsSection data;
-  final bool collapsed;
-  final _InboxPageState pageState;
-
-  @override
-  Widget build(BuildContext context) {
-    final header = InboxAllDmsHeaderItem(
-      count: data.count,
-      hasMention: data.hasMention,
-      collapsed: collapsed,
-      pageState: pageState,
-      sectionContext: context,
-    );
-    return StickyHeaderItem(
-      header: header,
-      child: Column(children: [
-        header,
-        if (!collapsed) ...data.items.map((item) {
-          final (narrow, count, hasMention) = item;
-          return InboxDmItem(
-            narrow: narrow,
-            count: count,
-            hasMention: hasMention,
-          );
-        }),
-      ]));
   }
 }
 
