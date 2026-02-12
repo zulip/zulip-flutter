@@ -136,16 +136,16 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Odsubskrybowanie bez powdzenia';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => 'Przypnij na górze';
 
   @override
-  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+  String get actionSheetOptionUnpinChannel => 'Odepnij z góry';
 
   @override
-  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+  String get errorPinChannelFailedTitle => 'Nie udało się przypiąć kanału';
 
   @override
-  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+  String get errorUnpinChannelFailedTitle => 'Nie udało się odpiąć kanału';
 
   @override
   String get actionSheetOptionMuteTopic => 'Wycisz wątek';
@@ -451,11 +451,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnknownDmRecipient =>
-      'You cannot send messages to unknown users.';
+      'Nie można wysłyać wiadomości do nieznanych użytkowników.';
 
   @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
-      'You cannot send messages here.';
+      'Nie możesz wysyłać tutaj wiadomości.';
 
   @override
   String get composeBoxBannerLabelCannotSendInChannel =>
@@ -463,7 +463,7 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnsubscribed =>
-      'Replies to your messages will not appear automatically.';
+      'Odpowiedzi na twoje wiadomości nie pojawią się automatycznie.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
@@ -885,22 +885,23 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Mark $count+ messages as read?',
-      one: 'Mark $count+ messages as read?',
+      other: 'Oznaczyć $count+ wiadomości jako przeczytane?',
+      one: 'Oznaczyć $count+ wiadomość jako przeczytaną?',
     );
     return '$_temp0';
   }
 
   @override
   String get markAllAsReadConfirmationDialogTitleNoCount =>
-      'Mark messages as read?';
+      'Oznaczyć wiadomości jako przeczytane?';
 
   @override
   String get markAllAsReadConfirmationDialogMessage =>
-      'Messages in multiple conversations may be affected.';
+      'Może to wpłynąć na wiadomości w kilku rozmowach.';
 
   @override
-  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
+  String get markAllAsReadConfirmationDialogConfirmButton =>
+      'Oznacz jako przeczytane';
 
   @override
   String get today => 'Dzisiaj';
