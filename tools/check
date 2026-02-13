@@ -74,6 +74,8 @@ Modifying this script's output:
               Print output in the given style.  Styles are:
                 default    The default style.
                 verbose    More details about everything.
+                ci         Like verbose, but adapted to a log
+                           rather than a terminal.
   --verbose   Equivalent to \`--output verbose\`.
 EOF
     exit 2
@@ -104,6 +106,7 @@ opt_verbose=
 case "${opt_output}" in
     default) ;;
     verbose) opt_verbose=1;;
+    ci) opt_verbose=1;;
     *) usage;;
 esac
 
@@ -233,8 +236,13 @@ run_analyze() {
 }
 
 run_test() {
+    local options=()
+    if [ "${opt_output}" = ci ]; then
+        options+=( -r failures-only )
+    fi
+
     # no `flutter test --verbose` even when $opt_verbose; it's *very* verbose
-    flutter test
+    flutter test "${options[@]}"
 }
 
 # Check the Flutter version in pubspec.yaml is commented with a commit ID,
