@@ -9,6 +9,9 @@ this_dir=${BASH_SOURCE[0]%/*}
 # shellcheck source=tools/lib/cli.sh
 . "${this_dir}"/lib/cli.sh
 
+# shellcheck source=tools/lib/deps.sh
+. "${this_dir}"/lib/deps.sh
+
 
 ## CLI PARSING
 
