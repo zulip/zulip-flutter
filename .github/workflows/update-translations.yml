@@ -48,6 +48,9 @@ jobs:
           # TODO(upstream): make workaround unneeded
           git --git-dir ~/flutter/.git update-ref refs/remotes/origin/master origin/main
 
+          # TODO(#2139) do this more cleanly, and/or return to latest main
+          git -C ~/flutter reset --hard 055f3e5bf58354cb50eb55f7e35d03d8e15a6f07
+
       - name: Update generated code
         run: |
           mkdir -p build
