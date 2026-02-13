@@ -24,6 +24,9 @@ this_dir=${BASH_SOURCE[0]%/*}
 # shellcheck source=tools/lib/git.sh
 . "${this_dir}"/lib/git.sh
 
+# shellcheck source=tools/lib/deps.sh
+. "${this_dir}"/lib/deps.sh
+
 
 ## CLI PARSING
 
