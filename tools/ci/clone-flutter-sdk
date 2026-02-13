@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+this_dir=${BASH_SOURCE[0]%/*}
+
+# shellcheck source=tools/lib/deps.sh
+. "${this_dir}"/../lib/deps.sh
+
+
 flutter_tree=~/flutter
 
 # Upstream's version calculation fails with a shallow clone,
@@ -17,5 +23,12 @@ echo "$flutter_tree"/bin >> "$GITHUB_PATH"
 # TODO(upstream): make workaround unneeded
 git -C "$flutter_tree" update-ref refs/remotes/origin/master origin/main
 
-# TODO(#2139) do this more cleanly, and/or return to latest main
-git -C "$flutter_tree" reset --hard 055f3e5bf58354cb50eb55f7e35d03d8e15a6f07
+# TODO(#2139): Temporarily pin the Flutter SDK in CI to use the same version
+# in pubspec.yaml. Because currently there are multiple issues,
+# see:
+#   https://github.com/zulip/zulip-flutter/pull/2129#issuecomment-3878692297
+#   https://github.com/zulip/zulip-flutter/pull/2129#issuecomment-3879280784
+#   https://github.com/zulip/zulip-flutter/issues/2139#issuecomment-3895207862
+flutter_commit=
+pubspec_flutter_version || exit 1
+git -C "$flutter_tree" reset --hard "$flutter_commit"
