@@ -1072,6 +1072,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Uporabite spodnje gumbe za ogled združenega vira ali seznama kanalov.';
 
   @override
+  String get pinnedChannelsFolderName => 'Pinned channels';
+
+  @override
+  String get otherChannelsFolderName => 'Other channels';
+
+  @override
   String get recentDmConversationsPageTitle => 'Neposredna sporočila';
 
   @override

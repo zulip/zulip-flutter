@@ -176,9 +176,11 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       }
     }
 
-    // TODO add PINNED and OTHER folder headers;
-    //   deduplicate sorting code within PINNED and OTHER
+    // TODO deduplicate sorting code within PINNED and OTHER;
+    //   consider realm-level folders too
     if (pinnedChannelSections.isNotEmpty) {
+      final label = zulipLocalizations.pinnedChannelsFolderName;
+      items.add(_InboxListItemFolderHeader(label: label));
       pinnedChannelSections.sort((a, b) {
         final subA = subscriptions[a.streamId]!;
         final subB = subscriptions[b.streamId]!;
@@ -189,6 +191,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     }
 
     if (otherChannelSections.isNotEmpty) {
+      final label = zulipLocalizations.otherChannelsFolderName;
+      items.add(_InboxListItemFolderHeader(label: label));
       otherChannelSections.sort((a, b) {
         final subA = subscriptions[a.streamId]!;
         final subB = subscriptions[b.streamId]!;
@@ -211,6 +215,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         itemBuilder: (context, index) {
           final item = items[index];
           switch (item) {
+            case _InboxListItemFolderHeader():
+              return InboxFolderHeaderItem(label: item.label);
             case _InboxListItemAllDmsSection():
               return _AllDmsSection(
                 data: item,
@@ -227,6 +233,15 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
 sealed class _InboxListItem {
   const _InboxListItem();
+}
+
+class _InboxListItemFolderHeader extends _InboxListItem {
+  const _InboxListItemFolderHeader({required this.label});
+
+  /// The label for this folder, not yet uppercased.
+  final String label;
+
+  // TODO count, hasMention
 }
 
 class _InboxListItemAllDmsSection extends _InboxListItem {
@@ -357,6 +372,39 @@ abstract class _HeaderItem extends StatelessWidget {
               kind: CounterBadgeKind.unread,
               channelIdForBackground: channelId,
               count: count)),
+        ])));
+
+    return Semantics(container: true,
+      child: result);
+  }
+}
+
+@visibleForTesting
+class InboxFolderHeaderItem extends StatelessWidget {
+  const InboxFolderHeaderItem({super.key, required this.label});
+
+  /// The label for this folder header, not yet uppercased.
+  ///
+  /// The implementation will call [String.toUpperCase] on this.
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    Widget result = ColoredBox(
+      color: designVariables.background, // TODO(design) check if this is the right variable
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(14, 8, 12, 8),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, spacing: 8, children: [
+          Expanded(
+            child: Text(
+              style: TextStyle(
+                color: designVariables.folderText,
+                fontSize: 16,
+                height: 20 / 16,
+                letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
+              ).merge(weightVariableTextStyle(context, wght: 600)),
+              label.toUpperCase())),
         ])));
 
     return Semantics(container: true,

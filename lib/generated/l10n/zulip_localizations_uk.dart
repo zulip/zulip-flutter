@@ -1056,6 +1056,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Скористайтеся кнопками нижче, щоб переглянути об’єднану стрічку або список каналів.';
 
   @override
+  String get pinnedChannelsFolderName => 'Pinned channels';
+
+  @override
+  String get otherChannelsFolderName => 'Other channels';
+
+  @override
   String get recentDmConversationsPageTitle => 'Особисті повідомлення';
 
   @override

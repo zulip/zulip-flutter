@@ -120,6 +120,16 @@ void main() {
       ]);
   }
 
+  void checkFolderHeader(String label) {
+    check(find.widgetWithText(InboxFolderHeaderItem, label.toUpperCase()))
+      .findsOne();
+  }
+
+  void checkNoFolderHeader(String label) {
+    check(find.widgetWithText(InboxFolderHeaderItem, label.toUpperCase()))
+      .findsNothing();
+  }
+
   // TODO instead of .first, could look for both the row in the list *and*
   //   in the sticky-header position, or at least target one or the other
   //   intentionally.
@@ -320,6 +330,45 @@ void main() {
           channelAlpha.streamId,
           channelBeta.streamId,
         ]);
+      });
+    });
+
+    group('folder headers', () {
+      testWidgets('only pinned channels: shows pinned header, no other header', (tester) async {
+        final channel = eg.stream();
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel, pinToTop: true)],
+          unreadMessages: [eg.streamMessage(stream: channel)]);
+        checkFolderHeader('Pinned channels');
+        checkNoFolderHeader('Other channels');
+      });
+
+      testWidgets('only unpinned channels: shows other header, no pinned header', (tester) async {
+        final channel = eg.stream();
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel, pinToTop: false)],
+          unreadMessages: [eg.streamMessage(stream: channel)]);
+        checkNoFolderHeader('Pinned channels');
+        checkFolderHeader('Other channels');
+      });
+
+      testWidgets('both pinned and unpinned channels: shows both headers', (tester) async {
+        final pinned = eg.stream();
+        final unpinned = eg.stream();
+        await setupPage(tester,
+          streams: [pinned, unpinned],
+          subscriptions: [
+            eg.subscription(pinned, pinToTop: true),
+            eg.subscription(unpinned, pinToTop: false),
+          ],
+          unreadMessages: [
+            eg.streamMessage(stream: pinned),
+            eg.streamMessage(stream: unpinned),
+          ]);
+        checkFolderHeader('Pinned channels');
+        checkFolderHeader('Other channels');
       });
     });
 

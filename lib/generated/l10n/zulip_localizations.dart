@@ -1802,6 +1802,18 @@ abstract class ZulipLocalizations {
   /// **'Use the buttons below to view the combined feed or list of channels.'**
   String get inboxEmptyPlaceholderMessage;
 
+  /// Label for the channel folder for pinned channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned channels'**
+  String get pinnedChannelsFolderName;
+
+  /// Label for the channel folder for other channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Other channels'**
+  String get otherChannelsFolderName;
+
   /// Title for the page with a list of DM conversations.
   ///
   /// In en, this message translates to:

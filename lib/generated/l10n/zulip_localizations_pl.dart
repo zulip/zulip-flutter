@@ -1054,6 +1054,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Użyj poniższych przycisków aby skorzystać z widoku mieszanego lub listy kanałów.';
 
   @override
+  String get pinnedChannelsFolderName => 'Pinned channels';
+
+  @override
+  String get otherChannelsFolderName => 'Other channels';
+
+  @override
   String get recentDmConversationsPageTitle => 'Wiadomości bezpośrednie';
 
   @override
