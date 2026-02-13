@@ -126,7 +126,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       sections.add(_AllDmsSectionData(allDmsCount, allDmsHasMention, dmItems));
     }
 
-    final channelSections = <_StreamSectionData>[];
+    final pinnedChannelSections = <_StreamSectionData>[];
+    final otherChannelSections = <_StreamSectionData>[];
     for (final MapEntry(key: streamId, value: topics) in unreadsModel!.streams.entries) {
       final sub = subscriptions[streamId];
       // Filter out any straggling unreads in unsubscribed streams.
@@ -162,22 +163,36 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final bLastUnreadId = b.lastUnreadId;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
-      channelSections.add(
-        _StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
+      final section = _StreamSectionData(
+        streamId, countInStream, streamHasMention, topicItems);
+      if (sub.pinToTop) {
+        pinnedChannelSections.add(section);
+      } else {
+        otherChannelSections.add(section);
+      }
     }
 
-    channelSections.sort((a, b) {
-      final subA = subscriptions[a.streamId]!;
-      final subB = subscriptions[b.streamId]!;
+    // TODO add PINNED and OTHER folder headers;
+    //   deduplicate sorting code within PINNED and OTHER
+    if (pinnedChannelSections.isNotEmpty) {
+      pinnedChannelSections.sort((a, b) {
+        final subA = subscriptions[a.streamId]!;
+        final subB = subscriptions[b.streamId]!;
 
-      // TODO "pin" icon on the stream row? dividers in the list?
-      if (subA.pinToTop != subB.pinToTop) {
-        return subA.pinToTop ? -1 : 1;
-      }
+        return ChannelStore.compareChannelsByName(subA, subB);
+      });
+      sections.addAll(pinnedChannelSections);
+    }
 
-      return ChannelStore.compareChannelsByName(subA, subB);
-    });
-    sections.addAll(channelSections);
+    if (otherChannelSections.isNotEmpty) {
+      otherChannelSections.sort((a, b) {
+        final subA = subscriptions[a.streamId]!;
+        final subB = subscriptions[b.streamId]!;
+
+        return ChannelStore.compareChannelsByName(subA, subB);
+      });
+      sections.addAll(otherChannelSections);
+    }
 
     if (sections.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
