@@ -41,6 +41,8 @@ extra_suites=(
     shellcheck  # Requires its own dependency, from outside the pub system.
 )
 
+all_suites=( "${default_suites[@]}" "${extra_suites[@]}" )
+
 usage() {
     cat >&2 <<EOF
 usage: tools/check [OPTION]... [SUITE]...
@@ -115,7 +117,7 @@ esac
 
 if (( ! "${#opt_suites[@]}" )); then
     if [ -n "${opt_all}" ]; then
-        opt_suites=( "${default_suites[@]}" "${extra_suites[@]}" )
+        opt_suites=( "${all_suites[@]}" )
     else
         opt_suites=( "${default_suites[@]}" )
     fi
