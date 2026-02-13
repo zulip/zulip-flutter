@@ -70,7 +70,11 @@ Extra things to do:
   --fix       Fix issues found, where possible.
 
 Modifying this script's output:
-  --verbose   Print more details about everything.
+  --output STYLE
+              Print output in the given style.  Styles are:
+                default    The default style.
+                verbose    More details about everything.
+  --verbose   Equivalent to \`--output verbose\`.
 EOF
     exit 2
 }
@@ -80,7 +84,7 @@ orig_cmdline="$0 $*"
 opt_files=branch
 opt_all=
 opt_fix=
-opt_verbose=
+opt_output=default
 opt_suites=()
 while (( $# )); do
     case "$1" in
@@ -88,12 +92,20 @@ while (( $# )); do
         --all-files) opt_files=all; shift;;
         --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
-        --verbose) opt_verbose=1; shift;;
+        --output) shift; opt_output="$1"; shift;;
+        --verbose) opt_output=verbose; shift;;
         analyze|test|flutter_version|build_runner|l10n|drift|pigeon|icons|android|shellcheck)
             opt_suites+=("$1"); shift;;
         *) usage;;
     esac
 done
+
+opt_verbose=
+case "${opt_output}" in
+    default) ;;
+    verbose) opt_verbose=1;;
+    *) usage;;
+esac
 
 if (( ! "${#opt_suites[@]}" )); then
     if [ -n "${opt_all}" ]; then
