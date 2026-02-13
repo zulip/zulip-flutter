@@ -66,8 +66,9 @@ What tests to run:
   --all       In the given suites, run on all files. If no list of suites
               was specified, run all suites.
 
-Extra things to do:
+Extra things to do, or skip doing:
   --fix       Fix issues found, where possible.
+  --no-pub    Tell \`flutter test\` et al. to skip \`flutter pub get\`.
 
 Modifying this script's output:
   --output STYLE
@@ -86,6 +87,7 @@ orig_cmdline="$0 $*"
 opt_files=branch
 opt_all=
 opt_fix=
+opt_no_pub=
 opt_output=default
 opt_suites=()
 while (( $# )); do
@@ -94,6 +96,7 @@ while (( $# )); do
         --all-files) opt_files=all; shift;;
         --all) opt_files=all; opt_all=1; shift;;
         --fix) opt_fix=1; shift;;
+        --no-pub) opt_no_pub=1; shift;;
         --output) shift; opt_output="$1"; shift;;
         --verbose) opt_output=verbose; shift;;
         analyze|test|flutter_version|build_runner|l10n|drift|pigeon|icons|android|shellcheck)
@@ -232,11 +235,14 @@ check_no_changes() {
 
 run_analyze() {
     # no `flutter analyze --verbose` even when $opt_verbose; it's *very* verbose
-    flutter analyze
+    flutter analyze ${opt_no_pub:+--no-pub}
 }
 
 run_test() {
-    local options=()
+    local options=(
+        ${opt_no_pub:+--no-pub}
+    )
+
     if [ "${opt_output}" = ci ]; then
         options+=( -r failures-only )
     fi

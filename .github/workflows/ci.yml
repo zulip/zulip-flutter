@@ -30,4 +30,4 @@ jobs:
       run: flutter pub get
 
     - name: Run tools/check
-      run: TERM=dumb tools/check --all --output ci
+      run: TERM=dumb tools/check --no-pub --all --output ci
