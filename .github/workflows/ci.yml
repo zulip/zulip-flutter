@@ -7,12 +7,31 @@ permissions:
 
 jobs:
   check:
+    name: "analyze, test, generate"
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
 
     - name: Install system dependencies
       run: TERM=dumb sudo apt install libsqlite3-dev -y
+
+    - name: Clone Flutter SDK
+      run: tools/ci/clone-flutter-sdk
+
+    - name: Download Flutter SDK artifacts (flutter precache)
+      run: flutter precache --universal
+
+    - name: Download our dependencies (flutter pub get)
+      run: flutter pub get
+
+    - name: Run tools/check
+      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android
+
+  android:
+    name: "Android build and lint"
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
 
     - name: Set up JDK
       uses: actions/setup-java@v5
@@ -30,4 +49,4 @@ jobs:
       run: flutter pub get
 
     - name: Run tools/check
-      run: TERM=dumb tools/check --no-pub --all --output ci
+      run: TERM=dumb tools/check --all --output ci android
