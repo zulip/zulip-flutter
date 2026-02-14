@@ -387,24 +387,12 @@ void main() {
   });
 
   group('handleMessageEvent', () {
-    for (final (isUnread, isStream, isDirectMentioned, isWildcardMentioned) in [
-      (true,  true,  true,  true ),
-      (true,  true,  true,  false),
-      (true,  true,  false, true ),
-      (true,  true,  false, false),
-      (true,  false, true,  true ),
-      (true,  false, true,  false),
-      (true,  false, false, true ),
-      (true,  false, false, false),
-      (false, true,  true,  true ),
-      (false, true,  true,  false),
-      (false, true,  false, true ),
-      (false, true,  false, false),
-      (false, false, true,  true ),
-      (false, false, true,  false),
-      (false, false, false, true ),
-      (false, false, false, false),
-    ]) {
+    void testFlagCombination(
+      bool isUnread,
+      bool isStream,
+      bool isDirectMentioned,
+      bool isWildcardMentioned,
+    ) {
       final description = [
         isUnread ? 'unread' : 'read',
         isStream ? 'stream' : 'dm',
@@ -427,6 +415,20 @@ void main() {
         }
         checkMatchesMessages([message]);
       });
+    }
+
+    for (final isUnread in [true, false]) {
+      for (final isStream in [true, false]) {
+        for (final isDirectMentioned in [true, false]) {
+          for (final isWildcardMentioned in [true, false]) {
+            testFlagCombination(
+              isUnread,
+              isStream,
+              isDirectMentioned,
+              isWildcardMentioned);
+          }
+        }
+      }
     }
 
     group('stream messages', () {
