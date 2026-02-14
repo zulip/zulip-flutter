@@ -181,6 +181,21 @@ if_verbose() {
   fi
 }
 
+# usage: maybe_time LABEL COMMAND...
+#
+# Run the given command.
+# Then if $opt_verbose, print the command's elapsed time,
+# including the given label.
+maybe_time() {
+    label="$1"; shift
+    if [ -z "${opt_verbose}" ]; then
+       "$@"
+    else
+        local TIMEFORMAT=$'\n'$"${label} elapsed time: %1lR"
+        time "$@"
+    fi
+}
+
 # usage: grep_quiet_hungry GREP_ARGUMENTS...
 #
 # Just like `grep --quiet` aka `grep -q`, except this consumes the
@@ -565,16 +580,17 @@ for suite in "${opt_suites[@]}"; do
     if_verbose echo "${divider_line}"
     echo "Running $suite..."
     case "$suite" in
-        analyze)      run_analyze ;;
-        test)         run_test ;;
-        flutter_version) run_flutter_version ;;
-        build_runner) run_build_runner ;;
-        l10n)         run_l10n ;;
-        drift)        run_drift ;;
-        pigeon)       run_pigeon ;;
-        icons)        run_icons ;;
-        android)      run_android ;;
-        shellcheck)   run_shellcheck ;;
+        analyze)      maybe_time "$suite" run_analyze ;;
+        test)         maybe_time "$suite" run_test ;;
+        flutter_version)
+                      maybe_time "$suite" run_flutter_version ;;
+        build_runner) maybe_time "$suite" run_build_runner ;;
+        l10n)         maybe_time "$suite" run_l10n ;;
+        drift)        maybe_time "$suite" run_drift ;;
+        pigeon)       maybe_time "$suite" run_pigeon ;;
+        icons)        maybe_time "$suite" run_icons ;;
+        android)      maybe_time "$suite" run_android ;;
+        shellcheck)   maybe_time "$suite" run_shellcheck ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )
 done
