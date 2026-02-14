@@ -160,7 +160,7 @@ void main() {
   //   in the sticky-header position, or at least target one or the other
   //   intentionally.
   Finder findChannelHeader(int channelId) => find.byWidgetPredicate((widget) =>
-    widget is InboxChannelHeaderItem && widget.channelId == channelId).first;
+    widget is InboxChannelHeaderItem && widget.subscription.streamId == channelId).first;
 
   /// Check details of a channel header.
   ///
