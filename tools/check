@@ -65,6 +65,9 @@ What tests to run:
               \`git help revisions\` for many more ways to name a commit.)
   --all       In the given suites, run on all files. If no list of suites
               was specified, run all suites.
+  --exclude SUITE
+              Don't run the given suite, despite \`--all\`
+              or the suite appearing as a positional argument.
 
 Extra things to do, or skip doing:
   --fix       Fix issues found, where possible.
@@ -102,6 +105,7 @@ orig_cmdline="$0 $*"
 
 opt_files=branch
 opt_all=
+opt_exclude=()
 opt_fix=
 opt_no_pub=
 opt_output=default
@@ -111,6 +115,8 @@ while (( $# )); do
         --diff) shift; opt_files=diff:"$1"; shift;;
         --all-files) opt_files=all; shift;;
         --all) opt_files=all; opt_all=1; shift;;
+        --exclude) shift; if ! is_suite "$1"; then usage; else
+            opt_exclude+=("$1"); shift; fi;;
         --fix) opt_fix=1; shift;;
         --no-pub) opt_no_pub=1; shift;;
         --output) shift; opt_output="$1"; shift;;
@@ -134,6 +140,17 @@ if (( ! "${#opt_suites[@]}" )); then
     else
         opt_suites=( "${default_suites[@]}" )
     fi
+fi
+
+if (( "${#opt_exclude[@]}" )); then
+    # This logic relies on suite names having no spaces nor glob characters.
+    suites_str=" ${opt_suites[*]} "
+    for suite in "${opt_exclude[@]}"; do
+        suites_str="${suites_str/ "$suite" / }"
+    done
+    # shellcheck disable=SC2206  # see comment at top of block
+    opt_suites=( ${suites_str} )
+    (( "${#opt_suites[@]}" )) || usage
 fi
 
 files_base_commit=
