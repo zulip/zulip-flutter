@@ -103,7 +103,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     final subscriptions = store.subscriptions;
 
     // TODO(#1065) make an incrementally-updated view-model for InboxPage
-    final sections = <_InboxSectionData>[];
+    final items = <_InboxListItem>[];
 
     // TODO efficiently include DM conversations that aren't recent enough
     //   to appear in recentDmConversationsView, but still have unreads in
@@ -123,11 +123,11 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       allDmsCount += countInNarrow;
     }
     if (dmItems.isNotEmpty) {
-      sections.add(_AllDmsSectionData(allDmsCount, allDmsHasMention, dmItems));
+      items.add(_InboxListItemAllDmsSection(allDmsCount, allDmsHasMention, dmItems));
     }
 
-    final pinnedChannelSections = <_StreamSectionData>[];
-    final otherChannelSections = <_StreamSectionData>[];
+    final pinnedChannelSections = <_InboxListItemChannelSection>[];
+    final otherChannelSections = <_InboxListItemChannelSection>[];
     for (final MapEntry(key: streamId, value: topics) in unreadsModel!.streams.entries) {
       final sub = subscriptions[streamId];
       // Filter out any straggling unreads in unsubscribed streams.
@@ -163,7 +163,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final bLastUnreadId = b.lastUnreadId;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
-      final section = _StreamSectionData(
+      final section = _InboxListItemChannelSection(
         streamId, countInStream, streamHasMention, topicItems);
       if (sub.pinToTop) {
         pinnedChannelSections.add(section);
@@ -181,7 +181,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
         return ChannelStore.compareChannelsByName(subA, subB);
       });
-      sections.addAll(pinnedChannelSections);
+      items.addAll(pinnedChannelSections);
     }
 
     if (otherChannelSections.isNotEmpty) {
@@ -191,10 +191,10 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
         return ChannelStore.compareChannelsByName(subA, subB);
       });
-      sections.addAll(otherChannelSections);
+      items.addAll(otherChannelSections);
     }
 
-    if (sections.isEmpty) {
+    if (items.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
         // TODO(#315) add e.g. "You might be interested in recent conversations."
         header: zulipLocalizations.inboxEmptyPlaceholderHeader,
@@ -203,43 +203,43 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
     return SafeArea( // horizontal insets
       child: StickyHeaderListView.builder(
-        itemCount: sections.length,
+        itemCount: items.length,
         itemBuilder: (context, index) {
-          final section = sections[index];
-          switch (section) {
-            case _AllDmsSectionData():
+          final item = items[index];
+          switch (item) {
+            case _InboxListItemAllDmsSection():
               return _AllDmsSection(
-                data: section,
+                data: item,
                 collapsed: allDmsCollapsed,
                 pageState: this,
               );
-            case _StreamSectionData(:var streamId):
+            case _InboxListItemChannelSection(:var streamId):
               final collapsed = collapsedStreamIds.contains(streamId);
-              return _StreamSection(data: section, collapsed: collapsed, pageState: this);
+              return _StreamSection(data: item, collapsed: collapsed, pageState: this);
           }
         }));
   }
 }
 
-sealed class _InboxSectionData {
-  const _InboxSectionData();
+sealed class _InboxListItem {
+  const _InboxListItem();
 }
 
-class _AllDmsSectionData extends _InboxSectionData {
+class _InboxListItemAllDmsSection extends _InboxListItem {
   final int count;
   final bool hasMention;
   final List<(DmNarrow, int, bool)> items;
 
-  const _AllDmsSectionData(this.count, this.hasMention, this.items);
+  const _InboxListItemAllDmsSection(this.count, this.hasMention, this.items);
 }
 
-class _StreamSectionData extends _InboxSectionData {
+class _InboxListItemChannelSection extends _InboxListItem {
   final int streamId;
   final int count;
   final bool hasMention;
   final List<InboxChannelSectionTopicData> items;
 
-  const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
+  const _InboxListItemChannelSection(this.streamId, this.count, this.hasMention, this.items);
 }
 
 @visibleForTesting
@@ -391,7 +391,7 @@ class _AllDmsSection extends StatelessWidget {
     required this.pageState,
   });
 
-  final _AllDmsSectionData data;
+  final _InboxListItemAllDmsSection data;
   final bool collapsed;
   final _InboxPageState pageState;
 
@@ -540,7 +540,7 @@ class _StreamSection extends StatelessWidget {
     required this.pageState,
   });
 
-  final _StreamSectionData data;
+  final _InboxListItemChannelSection data;
   final bool collapsed;
   final _InboxPageState pageState;
 
