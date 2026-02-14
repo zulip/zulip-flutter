@@ -1235,6 +1235,10 @@
   "@otherChannelsFolderName": {
     "description": "Label for the channel folder for other channels."
   },
+  "unknownChannelFolderName": "(unknown channel folder)",
+  "@unknownChannelFolderName": {
+    "description": "Name placeholder to use for a channel folder when we don't know its name."
+  },
   "recentDmConversationsPageTitle": "Direct messages",
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."

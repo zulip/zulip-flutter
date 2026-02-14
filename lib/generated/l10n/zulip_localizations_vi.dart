@@ -1043,6 +1043,9 @@ class ZulipLocalizationsVi extends ZulipLocalizations {
   String get otherChannelsFolderName => 'Other channels';
 
   @override
+  String get unknownChannelFolderName => '(unknown channel folder)';
+
+  @override
   String get recentDmConversationsPageTitle => 'Direct messages';
 
   @override

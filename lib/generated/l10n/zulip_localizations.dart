@@ -1814,6 +1814,12 @@ abstract class ZulipLocalizations {
   /// **'Other channels'**
   String get otherChannelsFolderName;
 
+  /// Name placeholder to use for a channel folder when we don't know its name.
+  ///
+  /// In en, this message translates to:
+  /// **'(unknown channel folder)'**
+  String get unknownChannelFolderName;
+
   /// Title for the page with a list of DM conversations.
   ///
   /// In en, this message translates to:
