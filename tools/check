@@ -41,8 +41,6 @@ extra_suites=(
     shellcheck  # Requires its own dependency, from outside the pub system.
 )
 
-all_suites=( "${default_suites[@]}" "${extra_suites[@]}" )
-
 usage() {
     cat >&2 <<EOF
 usage: tools/check [OPTION]... [SUITE]...
@@ -84,6 +82,22 @@ EOF
     exit 2
 }
 
+all_suites=( "${default_suites[@]}" "${extra_suites[@]}" )
+
+# usage: is_suite PUTATIVE_SUITE
+#
+# Succeeds just if the given argument is the name of a suite.
+is_suite() {
+    needle="$1"
+    # This logic relies on the fact that the suite names have no spaces.
+
+    ! [[ "${needle}" =~ " " ]] \
+    || return
+
+    # shellcheck disable=SC2076  # matching literally is the point
+    [[ " ${all_suites[*]} " =~ " ${needle} " ]]
+}
+
 orig_cmdline="$0 $*"
 
 opt_files=branch
@@ -101,9 +115,8 @@ while (( $# )); do
         --no-pub) opt_no_pub=1; shift;;
         --output) shift; opt_output="$1"; shift;;
         --verbose) opt_output=verbose; shift;;
-        analyze|test|flutter_version|build_runner|l10n|drift|pigeon|icons|android|shellcheck)
-            opt_suites+=("$1"); shift;;
-        *) usage;;
+        *) if ! is_suite "$1"; then usage; else
+            opt_suites+=("$1"); shift; fi;;
     esac
 done
 
