@@ -1236,7 +1236,9 @@ enum MessageFlag {
   starred,
   collapsed,
   mentioned,
-  wildcardMentioned,
+  topicWildcardMentioned,
+  streamWildcardMentioned,
+  wildcardMentioned, // TODO(server-8) Remove deprecated flag.
   hasAlertWord,
   historical,
   unknown;
@@ -1246,7 +1248,7 @@ enum MessageFlag {
   /// Will be [MessageFlag.unknown] if we don't recognize the string.
   ///
   /// Example:
-  ///   'wildcard_mentioned' -> Flag.wildcardMentioned
+  ///   'topic_wildcard_mentioned' -> Flag.topicWildcardMentioned
   static MessageFlag fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`

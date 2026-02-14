@@ -42,20 +42,23 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
-      colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
-      colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
-      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
-      colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
-      colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
-      colorPollNames: const HSLColor.fromAHSL(1, 0, 0, .45).toColor(),
-      colorPollVoteCountBackground: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
-      colorPollVoteCountBorder: const HSLColor.fromAHSL(1, 156, 0.28, 0.7).toColor(),
-      colorPollVoteCountText: const HSLColor.fromAHSL(1, 156, 0.41, 0.4).toColor(),
-      colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.80).toColor(),
-      colorTableHeaderBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
-      colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
+      colorGroupMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.6, 0.45).toColor(),
+      colorTextSelfDirectMention: const HSLColor.fromAHSL(1, 240, 0.52, 0.45).toColor(),
+      colorTextSelfGroupMention: const HSLColor.fromAHSL(1, 183, 0.52, 0.26).toColor(),
+      colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 1).toColor(),
+      colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor(),
+      colorLink: const HSLColor.fromAHSL(1, 207, 0.88, 0.42).toColor(), // the same as Flutter's `Colors.blue`
+      colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.9).toColor(),
+      colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 0).toColor(),
+      colorPollNames: const HSLColor.fromAHSL(1, 236, .15, .4).toColor(),
+      colorPollVoteCountBackground: const HSLColor.fromAHSL(0.1, 0, 0, 0).toColor(),
+      colorPollVoteCountBorder: const HSLColor.fromAHSL(1, 193, 0.3, 0.7).toColor(),
+      colorPollVoteCountText: const HSLColor.fromAHSL(1, 200, 0.5, 0.4).toColor(),
+      colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
+      colorTableHeaderBackground: const HSLColor.fromAHSL(0.5, 0, 0, 1).toColor(),
+      colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withValues(alpha: 0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
-        color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
+        color: const HSLColor.fromAHSL(1, 0, 0, 0.2).toColor(),
         debugLabel: 'ContentTheme.textStylePlainParagraph'),
       textStyleEmoji: TextStyle(
         fontFamily: emojiFontFamily, fontFamilyFallback: const []),
@@ -65,10 +68,10 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       textStyleErrorCode: kMonospaceTextStyle
         .merge(const TextStyle(fontSize: kBaseFontSize, color: Colors.red)),
       textStyleInlineCode: kMonospaceTextStyle.merge(TextStyle(
-        backgroundColor: const HSLColor.fromAHSL(0.06, 0, 0, 0).toColor())),
+        backgroundColor: const HSLColor.fromAHSL(0.08, 0, 0, 0).toColor())),
       textStyleInlineMath: kMonospaceTextStyle.merge(TextStyle(
         // TODO(#46) this won't be needed
-        backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.93).toColor())),
+        backgroundColor: const HSLColor.fromAHSL(1, 240, 0.4, 0.9).toColor())),
     );
   }
 
@@ -76,6 +79,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
+      colorGroupMentionBackground: const HSLColor.fromAHSL(0.20, 183, 0.52, 0.4).toColor(),
+      colorTextSelfDirectMention: const HSLColor.fromAHSL(1, 240, 1.0, 0.88).toColor(),
+      colorTextSelfGroupMention: const HSLColor.fromAHSL(1, 184, 0.52, 0.63).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
@@ -109,6 +115,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme._({
     required this.colorCodeBlockBackground,
     required this.colorDirectMentionBackground,
+    required this.colorGroupMentionBackground,
+    required this.colorTextSelfDirectMention,
+    required this.colorTextSelfGroupMention,
     required this.colorGlobalTimeBackground,
     required this.colorGlobalTimeBorder,
     required this.colorLink,
@@ -142,6 +151,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   final Color colorCodeBlockBackground;
   final Color colorDirectMentionBackground;
+  final Color colorGroupMentionBackground;
+  final Color colorTextSelfDirectMention;
+  final Color colorTextSelfGroupMention;
   final Color colorGlobalTimeBackground;
   final Color colorGlobalTimeBorder;
   final Color colorLink;
@@ -203,6 +215,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme copyWith({
     Color? colorCodeBlockBackground,
     Color? colorDirectMentionBackground,
+    Color? colorGroupMentionBackground,
+    Color? colorTextSelfDirectMention,
+    Color? colorTextSelfGroupMention,
     Color? colorGlobalTimeBackground,
     Color? colorGlobalTimeBorder,
     Color? colorLink,
@@ -226,6 +241,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: colorCodeBlockBackground ?? this.colorCodeBlockBackground,
       colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
+      colorGroupMentionBackground: colorGroupMentionBackground ?? this.colorGroupMentionBackground,
+      colorTextSelfDirectMention: colorTextSelfDirectMention ?? this.colorTextSelfDirectMention,
+      colorTextSelfGroupMention: colorTextSelfGroupMention ?? this.colorTextSelfGroupMention,
       colorGlobalTimeBackground: colorGlobalTimeBackground ?? this.colorGlobalTimeBackground,
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
       colorLink: colorLink ?? this.colorLink,
@@ -256,6 +274,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: Color.lerp(colorCodeBlockBackground, other.colorCodeBlockBackground, t)!,
       colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
+      colorGroupMentionBackground: Color.lerp(colorGroupMentionBackground, other.colorGroupMentionBackground, t)!,
+      colorTextSelfDirectMention: Color.lerp(colorTextSelfDirectMention, other.colorTextSelfDirectMention, t)!,
+      colorTextSelfGroupMention: Color.lerp(colorTextSelfGroupMention, other.colorTextSelfGroupMention, t)!,
       colorGlobalTimeBackground: Color.lerp(colorGlobalTimeBackground, other.colorGlobalTimeBackground, t)!,
       colorGlobalTimeBorder: Color.lerp(colorGlobalTimeBorder, other.colorGlobalTimeBorder, t)!,
       colorLink: Color.lerp(colorLink, other.colorLink, t)!,
@@ -1098,7 +1119,11 @@ class _InlineContentBuilder {
 
       case UserMentionNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: UserMention(ambientTextStyle: widget.style, node: node));
+          child: Mention(ambientTextStyle: widget.style, node: node));
+
+      case UserGroupMentionNode():
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: Mention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
@@ -1182,44 +1207,73 @@ class _InlineContentBuilder {
 
 const kInlineCodeFontSizeFactor = 0.825;
 
-class UserMention extends StatelessWidget {
-  const UserMention({
+class Mention extends StatelessWidget {
+  const Mention({
     super.key,
     required this.ambientTextStyle,
     required this.node,
   });
 
   final TextStyle ambientTextStyle;
-  final UserMentionNode node;
+  final MentionNode node;
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
     var nodes = node.nodes;
-    if (node.userId case final userId?) {
+    if (node case UserMentionNode(:final userId?)) {
       final user = store.getUser(userId);
       if (user case User(:final fullName)) {
         nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
       }
+    } else if (node case UserGroupMentionNode(:final userGroupId)) {
+      final userGroup = store.getGroup(userGroupId);
+      if (userGroup case UserGroup(:final name)) {
+        // TODO(#1260) Get display name for system groups using localization
+        nodes = [TextNode(node.isSilent ? name : '@$name')];
+      }
     }
+
+    // Determine if this is a self-mention
+    bool isSelfMention = false;
+    if (node case UserMentionNode(:final userId?)) {
+      isSelfMention = userId == store.selfUserId;
+    } else if (node case UserGroupMentionNode(:final userGroupId)) {
+      final userGroup = store.getGroup(userGroupId);
+      isSelfMention = userGroup?.members.contains(store.selfUserId) ?? false;
+    }
+
+    // Determine text style for self-mentions
+    TextStyle mentionTextStyle = ambientTextStyle;
+    if (isSelfMention && !node.isSilent) {
+      mentionTextStyle = ambientTextStyle.copyWith(
+        color: node is UserGroupMentionNode
+          ? contentTheme.colorTextSelfGroupMention
+          : contentTheme.colorTextSelfDirectMention,
+        fontWeight: FontWeight.w600, // Bold like web
+      );
+    }
+
+    final backgroundColor = node is UserGroupMentionNode
+        ? contentTheme.colorGroupMentionBackground
+        : contentTheme.colorDirectMentionBackground;
     return Container(
       decoration: BoxDecoration(
         // TODO(#646) different for wildcard mentions
-        color: contentTheme.colorDirectMentionBackground,
+        color: backgroundColor,
         borderRadius: const BorderRadius.all(Radius.circular(3))),
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
         recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
         // One hopes an @-mention can't contain an embedded link.
-        // (The parser on creating a UserMentionNode has a TODO to check that.)
+        // (The parser on creating a MentionNode has a TODO to check that.)
         linkRecognizers: null,
 
         // TODO(#647) when self-user is non-silently mentioned, make bold, and:
-        // TODO(#646) when self-user is non-silently mentioned,
-        //   distinguish font color between direct and wildcard mentions
-        style: ambientTextStyle,
+        // TODO(#646) distinguish font color between direct and wildcard mentions
+        style: mentionTextStyle,
 
         nodes: nodes));
   }

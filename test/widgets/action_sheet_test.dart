@@ -1429,7 +1429,7 @@ void main() {
         checkSenderAndTimestampShown(tester, senderId: message.senderId);
         check(find.descendant(
           of: find.byType(BottomSheet),
-          matching: find.byType(UserMention))
+          matching: find.byType(Mention))
         ).findsOne();
       });
 
@@ -1452,7 +1452,7 @@ void main() {
         checkSenderAndTimestampShown(tester, senderId: message.senderId);
         check(find.descendant(
           of: find.byType(BottomSheet),
-          matching: find.byType(UserMention))
+          matching: find.byType(Mention))
         ).findsOne();
       });
 

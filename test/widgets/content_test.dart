@@ -980,7 +980,7 @@ void main() {
     });
   });
 
-  group('UserMention', () {
+  group('Mention', () {
     testContentSmoke(ContentExample.userMentionPlain,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.userMentionSilent,
@@ -1008,10 +1008,10 @@ void main() {
     testContentSmoke(ContentExample.topicMentionSilentClassOrderReversed,
       wrapWithPerAccountStoreWidget: true);
 
-    UserMention? findUserMentionInSpan(InlineSpan rootSpan) {
-      UserMention? result;
+    Mention? findMentionInSpan(InlineSpan rootSpan) {
+      Mention? result;
       rootSpan.visitChildren((span) {
-        if (span case (WidgetSpan(child: UserMention() && var widget))) {
+        if (span case (WidgetSpan(child: Mention() && var widget))) {
           result = widget;
           return false;
         }
@@ -1020,7 +1020,7 @@ void main() {
       return result;
     }
 
-    TextStyle textStyleFromWidget(WidgetTester tester, UserMention widget, String mentionText) {
+    TextStyle textStyleFromWidget(WidgetTester tester, Mention widget, String mentionText) {
       return mergedStyleOf(tester,
         findAncestor: find.byWidget(widget), mentionText)!;
     }
@@ -1030,7 +1030,7 @@ void main() {
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
         wrapWithPerAccountStoreWidget: true,
         targetFontSizeFinder: (rootSpan) {
-          final widget = findUserMentionInSpan(rootSpan);
+          final widget = findMentionInSpan(rootSpan);
           final style = textStyleFromWidget(tester, widget!, '@Chris Bobbe');
           return style.fontSize!;
         });
@@ -1044,7 +1044,7 @@ void main() {
       wrapWithPerAccountStoreWidget: true,
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(UserMention)), 'Greg Price');
+          tester.widget(find.byType(Mention)), 'Greg Price');
       });
 
     // TODO(#647):
@@ -1059,14 +1059,14 @@ void main() {
       wrapWithPerAccountStoreWidget: true,
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(UserMention)), 'Chris Bobbe');
+          tester.widget(find.byType(Mention)), 'Chris Bobbe');
       });
 
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
     //    expectedWght: 800, // [etc.]
 
-    group('dynamic name resolution', () {
+    group('user mention dynamic name resolution', () {
       Future<void> prepare({
         required WidgetTester tester,
         required String html,
@@ -1109,6 +1109,45 @@ void main() {
           users: [eg.selfUser, eg.user(userId: 123, fullName: 'New Name')]);
         check(find.text('New Name')).findsOne();
         check(find.text('@New Name')).findsNothing();
+      });
+    });
+
+    group('user group mention dynamic name resolution', () {
+      Future<void> prepare({
+        required WidgetTester tester,
+        required String html,
+        List<UserGroup>? userGroups,
+      }) async {
+        final initialSnapshot = eg.initialSnapshot(realmUserGroups: userGroups);
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          initialSnapshot: initialSnapshot,
+          plainContent(html));
+      }
+
+      testWidgets('resolves current user group name from store', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-group-mention" data-user-group-id="186">@old-name</span></p>',
+          userGroups: [eg.userGroup(id: 186, name: 'new-name')]);
+        check(find.text('@new-name')).findsOne();
+        check(find.text('@old-name')).findsNothing();
+      });
+
+      testWidgets('falls back to original text when user group not found', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-group-mention" data-user-group-id="999">@Unknown Group</span></p>');
+        check(find.text('@Unknown Group')).findsOne();
+      });
+
+      testWidgets('handles silent mentions correctly', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-group-mention silent" data-user-group-id="186">old-name</span></p>',
+          userGroups: [eg.userGroup(id: 186, name: 'new-name')]);
+        check(find.text('new-name')).findsOne();
+        check(find.text('@new-name')).findsNothing();
       });
     });
   });

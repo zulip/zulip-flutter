@@ -1071,37 +1071,65 @@ class LinkNode extends InlineContainerNode {
   }
 }
 
-enum UserMentionType { user, userGroup }
+sealed class MentionNode extends InlineContainerNode {
+  const MentionNode({
+    super.debugHtmlNode,
+    required super.nodes,
+    required this.isSilent,
+  });
 
-class UserMentionNode extends InlineContainerNode {
+  final bool isSilent; // TODO(#647)
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(FlagProperty('isSilent', value: isSilent, ifTrue: "is silent"));
+  }
+}
+
+class UserMentionNode extends MentionNode {
   const UserMentionNode({
     super.debugHtmlNode,
     required super.nodes,
+    required super.isSilent,
     required this.userId,
-    required this.isSilent,
   });
 
   /// The ID of the user being mentioned.
   ///
-  /// This is null for wildcard mentions, user group mentions,
+  /// This is null for wildcard mentions
   /// or when the user ID is unavailable in the HTML (e.g., legacy mentions).
   final int? userId;
-
-  final bool isSilent; // TODO(#647)
-
-  // For the legacy design, we don't need this information in code; instead,
-  // the inner text already shows how to communicate it to the user
-  // and we show that text in the same style for all types of @-mention.
-  // We'll need these for implementing the post-2023 Zulip design, though.
-  //   final UserMentionType mentionType; // TODO(#646)
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(IntProperty('userId', userId));
-    properties.add(FlagProperty('isSilent', value: isSilent, ifTrue: "is silent"));
   }
 }
+
+class UserGroupMentionNode extends MentionNode {
+  const UserGroupMentionNode({
+    super.debugHtmlNode,
+    required super.nodes,
+    required super.isSilent,
+    required this.userGroupId,
+  });
+
+  /// The ID of the user group or system group being mentioned.
+  ///
+  /// This is non-nullable because user group and system group mentions
+  /// always have data-user-group-id.
+  final int userGroupId;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IntProperty('userGroupId', userGroupId));
+  }
+}
+
+// TODO(#646) add WildcardMentionNode
 
 sealed class EmojiNode extends InlineContentNode {
   const EmojiNode({super.debugHtmlNode});
@@ -1292,7 +1320,7 @@ class _ZulipInlineContentParser {
       debugSoftFailReason: kDebugMode ? parsed.softFailReason : null);
   }
 
-  UserMentionNode? parseUserMention(dom.Element element) {
+  MentionNode? parseMention(dom.Element element) {
     assert(element.localName == 'span');
     final debugHtmlNode = kDebugMode ? element : null;
 
@@ -1318,15 +1346,15 @@ class _ZulipInlineContentParser {
       i++;
     }
 
+    String? mentionType;
     if (i >= classes.length) return null;
     if ((classes[i] == 'topic-mention' && !hasChannelWildcardClass)
         || classes[i] == 'user-mention'
         || (classes[i] == 'user-group-mention' && !hasChannelWildcardClass)) {
-      // The class we already knew we'd find before we called this function.
-      // We ignore the distinction between these; see [UserMentionNode].
-      // Also, we don't expect "user-group-mention" and "channel-wildcard-mention"
+      // We don't expect "user-group-mention" and "channel-wildcard-mention"
       // to be in the list at the same time and neither we expect "topic-mention"
       // and "channel-wildcard-mention" to be in the list at the same time.
+      mentionType = classes[i];
       i++;
     }
 
@@ -1335,21 +1363,33 @@ class _ZulipInlineContentParser {
       return null;
     }
 
-    final userId = switch (element.attributes['data-user-id']) {
-      // For legacy, user group or wildcard mentions.
-      null || '*' => null,
-      final userIdString => int.tryParse(userIdString),
-    };
-
-    // TODO assert UserMentionNode can't contain LinkNode;
+    // TODO assert MentionNode can't contain LinkNode;
     //   either a debug-mode check, or perhaps we can make expectations much
-    //   tighter on a UserMentionNode's contents overall.
+    //   tighter on a MentionNode's contents overall.
     final nodes = parseInlineContentList(element.nodes);
-    return UserMentionNode(
-      nodes: nodes,
-      userId: userId,
-      isSilent: isSilent,
-      debugHtmlNode: debugHtmlNode);
+    if (mentionType case 'user-group-mention') {
+      final userGroupId = int.tryParse(element.attributes['data-user-group-id'] ?? '');
+      if (userGroupId == null) {
+        // Server sent malformed content.
+        return null;
+      }
+      return UserGroupMentionNode(
+        nodes: nodes,
+        isSilent: isSilent,
+        userGroupId: userGroupId,
+        debugHtmlNode: debugHtmlNode);
+    } else {
+      final userId = switch (element.attributes['data-user-id']) {
+        // For legacy or wildcard mentions.
+        null || '*' => null,
+        final userIdString => int.tryParse(userIdString),
+      };
+      return UserMentionNode(
+        nodes: nodes,
+        isSilent: isSilent,
+        userId: userId,
+        debugHtmlNode: debugHtmlNode);
+    }
   }
 
   /// The links found so far in the current block inline container.
@@ -1364,11 +1404,11 @@ class _ZulipInlineContentParser {
     return result;
   }
 
-  /// Matches all className values that could be a UserMentionNode,
+  /// Matches all className values that could be a subclass of MentionNode,
   /// and no className values that could be any other type of node.
   // Specifically, checks for `user-mention` or `user-group-mention`
   // or `topic-mention` as a member of the list.
-  static final _userMentionClassNameRegexp = RegExp(
+  static final _mentionClassNameRegexp = RegExp(
     r"(^| )" r"(?:user(?:-group)?|topic)-mention" r"( |$)");
 
   static final _emojiClassNameRegexp = () {
@@ -1422,8 +1462,8 @@ class _ZulipInlineContentParser {
     }
 
     if (localName == 'span'
-        && _userMentionClassNameRegexp.hasMatch(className)) {
-      return parseUserMention(element) ?? unimplemented();
+        && _mentionClassNameRegexp.hasMatch(className)) {
+      return parseMention(element) ?? unimplemented();
     }
 
     if (localName == 'span'

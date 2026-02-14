@@ -146,6 +146,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
     bgMenuButtonSelected: Colors.white,
     bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
+    bgSelfDirectMention: const HSLColor.fromAHSL(1, 240, 0.52, 0.95).toColor(),
+    bgSelfGroupMention: const HSLColor.fromAHSL(1, 180, 0.40, 0.94).toColor(),
     bgTopBar: const Color(0xfff5f5f5),
     borderBar: Colors.black.withValues(alpha: 0.2),
     borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
@@ -248,6 +250,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
     bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
     bgMessageRegular: const Color(0xff1d1d1d),
+    bgSelfDirectMention: const HSLColor.fromAHSL(1, 240, 0.13, 0.16).toColor(),
+    bgSelfGroupMention: const HSLColor.fromAHSL(1, 180, 0.13, 0.14).toColor(),
     bgTopBar: const Color(0xff242424),
     borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
     borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
@@ -359,6 +363,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgMenuButtonActive,
     required this.bgMenuButtonSelected,
     required this.bgMessageRegular,
+    required this.bgSelfDirectMention,
+    required this.bgSelfGroupMention,
     required this.bgTopBar,
     required this.borderBar,
     required this.borderMenuButtonSelected,
@@ -461,6 +467,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color bgMenuButtonActive;
   final Color bgMenuButtonSelected;
   final Color bgMessageRegular;
+  final Color bgSelfDirectMention;
+  final Color bgSelfGroupMention;
   final Color bgTopBar;
   final Color borderBar;
   final Color borderMenuButtonSelected;
@@ -558,6 +566,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgMenuButtonActive,
     Color? bgMenuButtonSelected,
     Color? bgMessageRegular,
+    Color? bgSelfDirectMention,
+    Color? bgSelfGroupMention,
     Color? bgTopBar,
     Color? borderBar,
     Color? borderMenuButtonSelected,
@@ -650,6 +660,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgMenuButtonActive: bgMenuButtonActive ?? this.bgMenuButtonActive,
       bgMenuButtonSelected: bgMenuButtonSelected ?? this.bgMenuButtonSelected,
       bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
+      bgSelfDirectMention: bgSelfDirectMention ?? this.bgSelfDirectMention,
+      bgSelfGroupMention: bgSelfGroupMention ?? this.bgSelfGroupMention,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
       borderMenuButtonSelected: borderMenuButtonSelected ?? this.borderMenuButtonSelected,
@@ -749,6 +761,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgMenuButtonActive: Color.lerp(bgMenuButtonActive, other.bgMenuButtonActive, t)!,
       bgMenuButtonSelected: Color.lerp(bgMenuButtonSelected, other.bgMenuButtonSelected, t)!,
       bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
+      bgSelfDirectMention: Color.lerp(bgSelfDirectMention, other.bgSelfDirectMention, t)!,
+      bgSelfGroupMention: Color.lerp(bgSelfGroupMention, other.bgSelfGroupMention, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       borderMenuButtonSelected: Color.lerp(borderMenuButtonSelected, other.borderMenuButtonSelected, t)!,

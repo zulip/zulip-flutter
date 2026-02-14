@@ -328,6 +328,8 @@ class MentionsNarrow extends Narrow {
     return message.flags.any((flag) {
       switch (flag) {
         case MessageFlag.mentioned:
+        case MessageFlag.topicWildcardMentioned:
+        case MessageFlag.streamWildcardMentioned:
         case MessageFlag.wildcardMentioned:
           return true;
 

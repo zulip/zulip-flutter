@@ -581,6 +581,8 @@ const _$MessageFlagEnumMap = {
   MessageFlag.starred: 'starred',
   MessageFlag.collapsed: 'collapsed',
   MessageFlag.mentioned: 'mentioned',
+  MessageFlag.topicWildcardMentioned: 'topic_wildcard_mentioned',
+  MessageFlag.streamWildcardMentioned: 'stream_wildcard_mentioned',
   MessageFlag.wildcardMentioned: 'wildcard_mentioned',
   MessageFlag.hasAlertWord: 'has_alert_word',
   MessageFlag.historical: 'historical',
