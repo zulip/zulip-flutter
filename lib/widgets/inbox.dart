@@ -164,7 +164,11 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
       final section = _InboxListItemChannelSection(
-        streamId, countInStream, streamHasMention, topicItems);
+        streamId: streamId,
+        count: countInStream,
+        hasMention: streamHasMention,
+        items: topicItems,
+      );
       if (sub.pinToTop) {
         pinnedChannelSections.add(section);
       } else {
@@ -234,12 +238,17 @@ class _InboxListItemAllDmsSection extends _InboxListItem {
 }
 
 class _InboxListItemChannelSection extends _InboxListItem {
+  const _InboxListItemChannelSection({
+    required this.streamId,
+    required this.count,
+    required this.hasMention,
+    required this.items,
+  });
+
   final int streamId;
   final int count;
   final bool hasMention;
   final List<InboxChannelSectionTopicData> items;
-
-  const _InboxListItemChannelSection(this.streamId, this.count, this.hasMention, this.items);
 }
 
 @visibleForTesting
