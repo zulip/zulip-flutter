@@ -280,104 +280,6 @@ class InboxChannelSectionTopicData {
   });
 }
 
-abstract class _HeaderItem extends StatelessWidget {
-  final bool collapsed;
-  final InboxPageState pageState;
-  final int count;
-  final bool hasMention;
-
-  /// A build context within the [_StreamSection] or [_AllDmsSection].
-  ///
-  /// Used to ensure the [_StreamSection] or [_AllDmsSection] that encloses the
-  /// current [_HeaderItem] is visible after being collapsed through this
-  /// [_HeaderItem].
-  final BuildContext sectionContext;
-
-  const _HeaderItem({
-    super.key,
-    required this.collapsed,
-    required this.pageState,
-    required this.count,
-    required this.hasMention,
-    required this.sectionContext,
-  });
-
-  String title(ZulipLocalizations zulipLocalizations);
-  IconData get icon;
-  Color collapsedIconColor(BuildContext context);
-  Color uncollapsedIconColor(BuildContext context);
-  Color uncollapsedBackgroundColor(BuildContext context);
-
-  /// A channel ID, if this represents a channel, else null.
-  int? get channelId;
-
-  Future<void> onCollapseButtonTap() async {
-    if (!collapsed) {
-      await Scrollable.ensureVisible(
-        sectionContext,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
-      );
-    }
-  }
-
-  Future<void> onRowTap();
-
-  @override
-  Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final designVariables = DesignVariables.of(context);
-    Widget result = Material(
-      color: collapsed
-        ? designVariables.background // TODO(design) check if this is the right variable
-        : uncollapsedBackgroundColor(context),
-      child: InkWell(
-        // TODO use onRowTap to handle taps that are not on the collapse button.
-        //   Probably we should give the collapse button a 44px or 48px square
-        //   touch target:
-        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
-        //   But that's in tension with the Figma, which gives these header rows
-        //   40px min height.
-        onTap: onCollapseButtonTap,
-        onLongPress: this is _LongPressable
-          ? (this as _LongPressable).onLongPress
-          : null,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsets.all(10),
-            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
-              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
-          Icon(size: 18,
-            color: collapsed
-              ? collapsedIconColor(context)
-              : uncollapsedIconColor(context),
-            icon),
-          const SizedBox(width: 5),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              title(zulipLocalizations)))),
-          const SizedBox(width: 12),
-          if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-          Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: CounterBadge(
-              // TODO(design) use CounterKind.quantity, following Figma
-              kind: CounterBadgeKind.unread,
-              channelIdForBackground: channelId,
-              count: count)),
-        ])));
-
-    return Semantics(container: true,
-      child: result);
-  }
-}
-
 @visibleForTesting
 class InboxFolderHeaderItem extends StatelessWidget {
   const InboxFolderHeaderItem({super.key, required this.label});
@@ -477,50 +379,97 @@ class InboxDmItem extends StatelessWidget {
   }
 }
 
-mixin _LongPressable on _HeaderItem {
-  // TODO(#1272) move to _HeaderItem base class
-  //   when DM headers become long-pressable; remove mixin
-  Future<void> onLongPress();
-}
-
 @visibleForTesting
-class InboxChannelHeaderItem extends _HeaderItem with _LongPressable {
-  final Subscription subscription;
-
+class InboxChannelHeaderItem extends StatelessWidget {
   const InboxChannelHeaderItem({
     super.key,
     required this.subscription,
-    required super.collapsed,
-    required super.pageState,
-    required super.count,
-    required super.hasMention,
-    required super.sectionContext,
+    required this.collapsed,
+    required this.pageState,
+    required this.count,
+    required this.hasMention,
+    required this.sectionContext,
   });
 
-  @override String title(ZulipLocalizations zulipLocalizations) =>
-    subscription.name;
-  @override IconData get icon => iconDataForStream(subscription);
-  @override Color collapsedIconColor(context) =>
-    colorSwatchFor(context, subscription).iconOnPlainBackground;
-  @override Color uncollapsedIconColor(context) =>
-    colorSwatchFor(context, subscription).iconOnBarBackground;
-  @override Color uncollapsedBackgroundColor(context) =>
-    colorSwatchFor(context, subscription).barBackground;
-  @override int? get channelId => subscription.streamId;
+  final Subscription subscription;
+  final bool collapsed;
+  final InboxPageState pageState;
+  final int count;
+  final bool hasMention;
 
-  @override Future<void> onCollapseButtonTap() async {
-    await super.onCollapseButtonTap();
+  /// A build context within the [_StreamSection] or [_AllDmsSection].
+  ///
+  /// Used to ensure the [_StreamSection] or [_AllDmsSection] that encloses the
+  /// current [InboxFolderHeaderItem] is visible after being collapsed through this
+  /// [InboxFolderHeaderItem].
+  final BuildContext sectionContext;
+
+  void _onCollapseButtonTap() async {
     if (collapsed) {
       pageState.uncollapseStream(subscription.streamId);
     } else {
+      await Scrollable.ensureVisible(
+        sectionContext,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
       pageState.collapseStream(subscription.streamId);
     }
   }
-  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open channel narrow
+
+  void _onLongPress() async {
+    showChannelActionSheet(sectionContext, channelId: subscription.streamId);
+  }
 
   @override
-  Future<void> onLongPress() async {
-    showChannelActionSheet(sectionContext, channelId: subscription.streamId);
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final swatch = colorSwatchFor(context, subscription);
+
+    return Material(
+      color: collapsed
+        ? designVariables.background // TODO(design) check if this is the right variable
+        : swatch.barBackground,
+      child: InkWell(
+        // TODO use onRowTap to handle taps that are not on the collapse button.
+        //   Probably we should give the collapse button a 44px or 48px square
+        //   touch target:
+        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
+        //   But that's in tension with the Figma, which gives these header rows
+        //   40px min height.
+        onTap: _onCollapseButtonTap,
+        onLongPress: _onLongPress,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Padding(padding: const EdgeInsets.all(10),
+            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
+              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
+          Icon(size: 18,
+            color: collapsed
+              ? swatch.iconOnPlainBackground
+              : swatch.iconOnBarBackground,
+            iconDataForStream(subscription)),
+          const SizedBox(width: 5),
+          Expanded(child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              style: TextStyle(
+                fontSize: 17,
+                height: (20 / 17),
+                // TODO(design) check if this is the right variable
+                color: designVariables.labelMenuButton,
+              ).merge(weightVariableTextStyle(context, wght: 600)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              subscription.name))),
+          const SizedBox(width: 12),
+          if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+          Padding(padding: const EdgeInsetsDirectional.only(end: 16),
+            child: CounterBadge(
+              // TODO(design) use CounterKind.quantity, following Figma
+              kind: CounterBadgeKind.unread,
+              channelIdForBackground: subscription.streamId,
+              count: count)),
+        ])));
   }
 }
 
