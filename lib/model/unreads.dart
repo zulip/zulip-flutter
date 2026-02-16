@@ -415,6 +415,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
+    final hasChanges = event.messageIds.any(
+      (messageId) => mentions.contains(messageId) || locatorMap.containsKey(messageId));
     mentions.removeAll(event.messageIds);
     switch (event.messageType) {
       case MessageType.stream:
@@ -430,11 +432,13 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
       locatorMap.remove(messageId);
     }
 
-    // TODO skip notifyListeners if unchanged?
-    notifyListeners();
+      if (hasChanges) {
+      notifyListeners();
+    }
   }
 
   void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
+    var hasChanges = false;
     switch (event.flag) {
       case MessageFlag.starred:
       case MessageFlag.collapsed:
@@ -458,17 +462,27 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
         // TODO skip notifyListeners if unchanged?
         switch (event) {
           case UpdateMessageFlagsAddEvent():
+            final previousLength = mentions.length;
             mentions.addAll(
               event.messages.where((messageId) => isUnread(messageId) == true));
+            hasChanges = hasChanges || mentions.length != previousLength;
 
           case UpdateMessageFlagsRemoveEvent():
+            final previousLength = mentions.length;
             mentions.removeAll(event.messages);
+            hasChanges = hasChanges || mentions.length != previousLength;
         }
 
       case MessageFlag.read:
         switch (event) {
           case UpdateMessageFlagsAddEvent():
             if (event.all) {
+              hasChanges = hasChanges
+                || locatorMap.isNotEmpty
+                || streams.isNotEmpty
+                || dms.isNotEmpty
+                || mentions.isNotEmpty
+                || oldUnreadsMissing;
               locatorMap.clear();
               streams.clear();
               dms.clear();
@@ -476,6 +490,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
               oldUnreadsMissing = false;
             } else {
               final messageIds = event.messages;
+              hasChanges = hasChanges || messageIds.any(
+                (messageId) => mentions.contains(messageId) || locatorMap.containsKey(messageId));
               mentions.removeAll(messageIds);
               _removeAllInStreamsAndDms(messageIds);
               for (final messageId in messageIds) {
@@ -488,6 +504,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
             for (final messageId in event.messages) {
               final detail = event.messageDetails![messageId];
               if (detail == null) continue; // TODO(log)
+              hasChanges = true;
 
               if (detail.mentioned == true) {
                 mentions.add(messageId);
@@ -520,7 +537,9 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
             }
         }
     }
-    notifyListeners();
+    if (hasChanges) {
+      notifyListeners();
+    }
   }
 
   /// To be called on success of a mark-all-as-read task.

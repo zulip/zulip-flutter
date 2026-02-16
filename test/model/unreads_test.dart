@@ -905,7 +905,7 @@ void main() {
       // TODO improve implementation; then:
       //   checkNotNotified();
       // For now, at least check callers aren't notified *more* than once:
-      checkNotifiedOnce();
+      checkNotNotified();
       checkMatchesMessages([message]);
     });
 
@@ -924,7 +924,7 @@ void main() {
       // TODO improve implementation; then:
       //   checkNotNotified();
       // For now, at least check callers aren't notified *more* than once:
-      checkNotifiedOnce();
+      checkNotNotified();
       checkMatchesMessages([message]);
     });
   });
@@ -1030,8 +1030,34 @@ void main() {
             // TODO improve implementation; then:
             //   checkNotNotified();
             // For now, at least check callers aren't notified *more* than once:
-            checkNotifiedOnce();
+              checkNotNotified();
           }
+          message.flags.add(mentionFlag);
+          checkMatchesMessages(messages);
+        }
+      });
+
+           test('add flag with other mention already present: ${mentionFlag.name}') {
+        final otherMentionFlag = switch (mentionFlag) {
+          MessageFlag.mentioned => MessageFlag.wildcardMentioned,
+          MessageFlag.wildcardMentioned => MessageFlag.mentioned,
+          _ => throw AssertionError('unreachable'),
+        };
+        final messages = <Message>[
+          eg.streamMessage(flags: [otherMentionFlag]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [otherMentionFlag]),
+        ];
+
+        prepare();
+        fillWithMessages(messages);
+        for (final message in messages) {
+          model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsAddEvent(
+            id: 0,
+            flag: mentionFlag,
+            messages: [message.id],
+            all: false,
+          ));
+          checkNotNotified();
           message.flags.add(mentionFlag);
           checkMatchesMessages(messages);
         }
@@ -1067,7 +1093,7 @@ void main() {
             // TODO improve implementation; then:
             //   checkNotNotified();
             // For now, at least check callers aren't notified *more* than once:
-            checkNotifiedOnce();
+            checkNotified();
           }
           message.flags.remove(mentionFlag);
           checkMatchesMessages(messages);
@@ -1075,9 +1101,33 @@ void main() {
       });
     }
 
-    // TODO test removing just direct or wildcard mention when both are present
-    //   (implementation should skip notifyListeners;
-    //   test should checkNotNotified)
+   for (final mentionFlag in [MessageFlag.mentioned, MessageFlag.wildcardMentioned]) {
+      test('remove flag while other mention remains: ${mentionFlag.name}') {
+        final otherMentionFlag = switch (mentionFlag) {
+          MessageFlag.mentioned => MessageFlag.wildcardMentioned,
+          MessageFlag.wildcardMentioned => MessageFlag.mentioned,
+          _ => throw AssertionError('unreachable'),
+        };
+        final messages = <Message>[
+          eg.streamMessage(flags: [mentionFlag, otherMentionFlag]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag, otherMentionFlag]),
+        ];
+
+        prepare();
+        fillWithMessages(messages);
+        for (final message in messages) {
+          model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsRemoveEvent(
+            id: 0,
+            flag: mentionFlag,
+            messages: [message.id],
+            messageDetails: null,
+          ));
+          checkNotNotified();
+          message.flags.remove(mentionFlag);
+          checkMatchesMessages(messages);
+        }
+      }
+    }
 
     test('mark all as read', () {
       final message1 = eg.streamMessage(id: 1, flags: []);
