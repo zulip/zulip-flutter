@@ -188,7 +188,7 @@ String userGroupMention(String userGroupName, {bool silent = false}) =>
 // Corresponds to `topic_link_util.escape_invalid_stream_topic_characters`
 // in Zulip web:
 //   https://github.com/zulip/zulip/blob/b42d3e77e/web/src/topic_link_util.ts#L15-L34
-const _channelAvoidedCharsReplacements = {
+const _channelTopicAvoidedCharsReplacements = {
   '`': '&#96;',
   '>': '&gt;',
   '*': '&#42;',
@@ -198,29 +198,47 @@ const _channelAvoidedCharsReplacements = {
   r'$$': '&#36;&#36;',
 };
 
-final _channelAvoidedCharsRegex = RegExp(r'[`>*&[\]]|\$\$');
+final _channelTopicAvoidedCharsRegex = RegExp(r'[`>*&[\]]|\$\$');
+final _channelTopicAvoidedCharsReplacementsRegex =
+  RegExp(_channelTopicAvoidedCharsReplacements.values.join('|'));
 
-/// Markdown link for channel when the channel name includes characters that
+String escapeChannelTopicAvoidedChars(String str) {
+  return str.replaceAllMapped(_channelTopicAvoidedCharsRegex,
+    (match) => _channelTopicAvoidedCharsReplacements[match[0]]!);
+}
+
+String unescapeChannelTopicAvoidedChars(String str) {
+  return str.replaceAllMapped(_channelTopicAvoidedCharsReplacementsRegex,
+    (match) => _channelTopicAvoidedCharsReplacements.map((k, v) => MapEntry(v, k))[match[0]]!);
+}
+
+/// Markdown link for channel or topic whose name includes characters that
 /// will break normal markdown rendering.
 ///
-/// Refer to [_channelAvoidedCharsReplacements] for a complete list of
+/// Refer to [_channelTopicAvoidedCharsReplacements] for a complete list of
 /// these characters.
 // Adopted from `topic_link_util.get_fallback_markdown_link` in Zulip web;
 //   https://github.com/zulip/zulip/blob/b42d3e77e/web/src/topic_link_util.ts#L96-L108
-String _channelFallbackMarkdownLink(ZulipStream channel, {
-  required PerAccountStore store,
+String _channelTopicFallbackMarkdownLink(ZulipStream channel, PerAccountStore store, {
+  TopicName? topic,
 }) {
+  final text = StringBuffer('#${escapeChannelTopicAvoidedChars(channel.name)}');
+  if (topic != null) {
+    text.write(' > ${escapeChannelTopicAvoidedChars(topic.displayName ?? store.realmEmptyTopicDisplayName)}');
+  }
+
+  final narrow = topic == null
+    ? ChannelNarrow(channel.streamId) : TopicNarrow(channel.streamId, topic);
   // Like Zulip web, we use a relative URL here, unlike [quoteAndReply] which
   // uses an absolute URL.  There'd be little benefit to an absolute URL here
   // because this isn't a likely flow when a user wants something to copy-paste
-  // elsewhere: this flow normally produces `#**…**` syntax, which wouldn't work
-  // for that at all.  And conversely, it's nice to keep reasonably short the
-  // markup that we put into the text box and which the user sees.  Discussion:
+  // elsewhere: this flow normally produces `#**…**` or `#**…>…**` syntax,
+  // which wouldn't work for that at all.  And conversely, it's nice to keep
+  // reasonably short the markup that we put into the text box and which the
+  // user sees.  Discussion:
   //   https://chat.zulip.org/#narrow/channel/101-design/topic/.22quote.20message.22.20uses.20absolute.20URL.20instead.20of.20realm-relative/near/2325588
-  final relativeLink = '#${narrowLinkFragment(store, ChannelNarrow(channel.streamId))}';
+  final relativeLink = '#${narrowLinkFragment(store, narrow)}';
 
-  final text = '#${channel.name.replaceAllMapped(_channelAvoidedCharsRegex,
-    (match) => _channelAvoidedCharsReplacements[match[0]]!)}';
   return inlineLink(text.toString(), relativeLink);
 }
 
@@ -236,10 +254,22 @@ String channelLink(ZulipStream channel, {
   bool isComplete = true,
   required PerAccountStore store,
 }) {
-  if (_channelAvoidedCharsRegex.hasMatch(channel.name)) {
-    return '${_channelFallbackMarkdownLink(channel, store: store)}${isComplete ? '' : '>'}';
+  if (_channelTopicAvoidedCharsRegex.hasMatch(channel.name)) {
+    return '${_channelTopicFallbackMarkdownLink(channel, store)}${isComplete ? '' : '>'}';
   }
   return '#**${channel.name}${isComplete ? '**' : '>'}';
+}
+
+/// A #channel>topic link syntax of a topic, like #**announce>GSoC**.
+///
+/// A plain Markdown link will be used if the channel or topic name includes
+/// some characters that would break normal #**channel>topic** rendering.
+String topicLink(ZulipStream channel, TopicName topic, {required PerAccountStore store}) {
+  if (_channelTopicAvoidedCharsRegex.hasMatch(channel.name)
+      || _channelTopicAvoidedCharsRegex.hasMatch(topic.apiName)) {
+    return _channelTopicFallbackMarkdownLink(channel, topic: topic, store);
+  }
+  return '#**${channel.name}>${topic.apiName}**';
 }
 
 /// https://spec.commonmark.org/0.30/#inline-link
