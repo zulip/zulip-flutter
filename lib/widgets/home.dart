@@ -104,7 +104,18 @@ class _HomePageState extends State<HomePage> {
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
-          child: Text(_currentTabTitle))),
+          child: Text(_currentTabTitle)),
+        actions: [
+          IconButton(
+            icon: const Icon(ZulipIcons.search),
+            tooltip: ZulipLocalizations.of(context).searchMessagesPageTitle,
+            onPressed: () {
+              Navigator.of(context).push(MessageListPage.buildRoute(
+                context: context, narrow: KeywordSearchNarrow('')));
+            },
+          ),
+        ],
+      ),
       body: Semantics(
         role: SemanticsRole.tabPanel,
         identifier: HomePage.contentSemanticsIdentifier,
