@@ -471,6 +471,12 @@ abstract class _MessageListAppBar {
     List<Widget> actions = [];
     switch (narrow) {
       case CombinedFeedNarrow():
+        actions.add(IconButton(
+          icon: const Icon(ZulipIcons.search),
+          tooltip: zulipLocalizations.searchMessagesPageTitle,
+          onPressed: () => Navigator.push(context,
+            MessageListPage.buildRoute(context: context,
+              narrow: KeywordSearchNarrow('')))));
       case MentionsNarrow():
       case StarredMessagesNarrow():
       case KeywordSearchNarrow():
