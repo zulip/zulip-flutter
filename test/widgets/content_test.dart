@@ -14,12 +14,14 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../api/fake_api.dart';
@@ -1109,6 +1111,52 @@ void main() {
           users: [eg.selfUser, eg.user(userId: 123, fullName: 'New Name')]);
         check(find.text('New Name')).findsOne();
         check(find.text('@New Name')).findsNothing();
+      });
+
+      testWidgets('tap navigates to user profile', (tester) async {
+        final pushedRoutes = <Route<dynamic>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+        final initialSnapshot = eg.initialSnapshot(
+          realmUsers: [eg.selfUser, eg.user(userId: 123, fullName: 'Test User')]);
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          initialSnapshot: initialSnapshot,
+          plainContent('<p><span class="user-mention" data-user-id="123">@Test User</span></p>'),
+          navObservers: [navObserver]);
+
+        // Clear initial route
+        pushedRoutes.clear();
+
+        await tester.tap(find.text('@Test User'));
+        await tester.pump();
+
+        check(pushedRoutes).single.isA<WidgetRoute>().page
+          .isA<ProfilePage>()
+          .userId.equals(123);
+      });
+
+      testWidgets('tap on wildcard mention does not navigate', (tester) async {
+        final pushedRoutes = <Route<dynamic>>[];
+        final navObserver = TestNavigatorObserver()
+          ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+        final initialSnapshot = eg.initialSnapshot(realmUsers: [eg.selfUser]);
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          initialSnapshot: initialSnapshot,
+          plainContent('<p><span class="user-mention channel-wildcard-mention" data-user-id="*">@all</span></p>'),
+          navObservers: [navObserver]);
+
+        // Clear initial route
+        pushedRoutes.clear();
+
+        await tester.tap(find.text('@all'));
+        await tester.pump();
+
+        // Should not push any route
+        check(pushedRoutes).isEmpty();
       });
     });
   });

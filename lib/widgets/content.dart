@@ -21,6 +21,7 @@ import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
+import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
@@ -1197,13 +1198,14 @@ class UserMention extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
     var nodes = node.nodes;
-    if (node.userId case final userId?) {
+    final int? userId = node.userId;
+    if (userId != null) {
       final user = store.getUser(userId);
       if (user case User(:final fullName)) {
         nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
       }
     }
-    return Container(
+    Widget result = Container(
       decoration: BoxDecoration(
         // TODO(#646) different for wildcard mentions
         color: contentTheme.colorDirectMentionBackground,
@@ -1211,7 +1213,7 @@ class UserMention extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
+        recognizer: null,
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a UserMentionNode has a TODO to check that.)
         linkRecognizers: null,
@@ -1222,6 +1224,14 @@ class UserMention extends StatelessWidget {
         style: ambientTextStyle,
 
         nodes: nodes));
+    if (userId != null) {
+      result = GestureDetector(
+        onTap: () {
+          Navigator.push(context, ProfilePage.buildRoute(context: context, userId: userId));
+        },
+        child: result);
+    }
+    return result;
   }
 
 // This is a more literal translation of Zulip web's CSS.
