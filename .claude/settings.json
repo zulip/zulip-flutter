@@ -24,6 +24,7 @@
       "Bash(flutter analyze:*)",
       "Bash(flutter test:*)",
 
+      "Bash(tools/check:*)",
       "Bash(tools/icons/build-icon-font:*)",
       "Bash(flutter gen-l10n:*)"
     ],
