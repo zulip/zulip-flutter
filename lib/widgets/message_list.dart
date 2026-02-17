@@ -377,6 +377,14 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
       initAnchor = useFirstUnread ? AnchorCode.firstUnread : AnchorCode.newest;
     }
 
+    if (narrow case ChannelNarrow(:final streamId)) {
+      final stream = PerAccountStoreWidget.of(context).streams[streamId];
+      final topicsPolicy = stream?.topicsPolicy;
+      if (topicsPolicy == TopicsPolicy.emptyTopicOnly) {
+        narrow = TopicNarrow(streamId, TopicName("general chat"));
+      }
+    }
+
     Widget result = Scaffold(
       appBar: _MessageListAppBar.build(context, narrow: narrow),
       // TODO question for Vlad: for a stream view, should we set the Scaffold's
@@ -479,13 +487,17 @@ abstract class _MessageListAppBar {
       case ChannelNarrow(:final streamId):
         actions.add(_TopicListButton(streamId: streamId));
       case TopicNarrow(:final streamId):
-        actions.add(IconButton(
-          icon: const Icon(ZulipIcons.message_feed),
-          tooltip: zulipLocalizations.channelFeedButtonTooltip,
-          onPressed: () => Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: ChannelNarrow(streamId)))));
-        actions.add(_TopicListButton(streamId: streamId));
+        final stream = PerAccountStoreWidget.of(context).streams[streamId];
+        final allowsOnlyGeneralChat = stream?.topicsPolicy == TopicsPolicy.emptyTopicOnly;
+        if (!allowsOnlyGeneralChat){
+          actions.add(IconButton(
+            icon: const Icon(ZulipIcons.message_feed),
+            tooltip: zulipLocalizations.channelFeedButtonTooltip,
+            onPressed: () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: ChannelNarrow(streamId)))));
+          actions.add(_TopicListButton(streamId: streamId));
+        }
     }
 
     return ZulipAppBar(
