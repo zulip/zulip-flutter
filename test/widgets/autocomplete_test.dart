@@ -356,14 +356,14 @@ void main() {
     });
   });
 
-  group('#channel link', () {
-    void checkChannelShown(ZulipStream channel, {required bool expected}) {
-      check(find.ancestor(of: find.byIcon(iconDataForStream(channel)),
-        matching: find.ancestor(of: find.text(channel.name),
-          matching: find.byType(Row)))
-      ).findsExactly(expected ? 1 : 0);
-    }
+  void checkChannelShown(ZulipStream channel, {required bool expected}) {
+    check(find.ancestor(of: find.byIcon(iconDataForStream(channel)),
+      matching: find.ancestor(of: find.text(channel.name),
+        matching: find.byType(Row)))
+    ).findsExactly(expected ? 1 : 0);
+  }
 
+  group('#channel link', () {
     testWidgets('options appear, disappear, and change correctly', (tester) async {
       final channel1 = eg.stream(name: 'mobile');
       final channel2 = eg.stream(name: 'mobile design');
