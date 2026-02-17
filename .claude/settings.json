@@ -6,6 +6,7 @@
       "Bash(head:*)",
       "Bash(find:*)",
       "WebFetch(domain:zulip.com)",
+      "Bash(tools/check:*)",
       "Bash(tools/icons/build-icon-font:*)",
       "Bash(flutter gen-l10n:*)",
       "Bash(flutter analyze:*)",
