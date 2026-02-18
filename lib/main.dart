@@ -8,6 +8,12 @@ import 'notifications/receive.dart';
 import 'widgets/app.dart';
 import 'widgets/share.dart';
 
+// This library defines the Dart entrypoint function for the
+// headless Flutter engine used in our iOS "NotificationService" app extension.
+// Importing it here causes it to be included in the build.
+// ignore: unused_import
+import 'notifications/ios_service.dart';
+
 void main() {
   mainInit();
   runApp(const ZulipApp());
