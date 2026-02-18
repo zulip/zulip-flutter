@@ -115,6 +115,14 @@ const _$AnchorCodeEnumMap = {
   AnchorCode.firstUnread: 'first_unread',
 };
 
+const _$LegacyReportMessageTypeEnumMap = {
+  LegacyReportMessageType.spam: 'spam',
+  LegacyReportMessageType.harassment: 'harassment',
+  LegacyReportMessageType.inappropriate: 'inappropriate',
+  LegacyReportMessageType.norms: 'norms',
+  LegacyReportMessageType.other: 'other',
+};
+
 const _$UpdateMessageFlagsOpEnumMap = {
   UpdateMessageFlagsOp.add: 'add',
   UpdateMessageFlagsOp.remove: 'remove',

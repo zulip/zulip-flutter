@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
+import '../model/initial_snapshot.dart';
 import '../model/model.dart';
 import '../model/narrow.dart';
 
@@ -253,6 +254,45 @@ Future<void> deleteMessage(
   required int messageId,
 }) {
   return connection.delete('deleteMessage', (_) {}, 'messages/$messageId', {});
+}
+
+/// https://zulip.com/api/report-message
+Future<void> reportMessage(ApiConnection connection, {
+  required int messageId,
+  required String reportType,
+  String? description,
+}) {
+  return connection.post('reportMessage', (_) {}, 'messages/$messageId/report', {
+    'report_type': RawParameter(reportType),
+    if (description != null) 'description': RawParameter(description),
+  });
+}
+
+/// The `report_type` value meaning "other", for [reportMessage].
+///
+/// https://zulip.com/api/report-message
+const kMessageReportTypeOther = 'other';
+
+/// The max length for a report-message description, in Unicode code points.
+///
+/// https://zulip.com/api/report-message#parameter-description
+const kMaxMessageReportDescriptionLength = 1000;
+
+/// The type of report to submit for [reportMessage].
+///
+/// Servers at feature level 435+ provide the report types as
+/// [InitialSnapshot.serverReportMessageTypes]; always use that when available.
+///
+/// https://zulip.com/api/report-message#parameter-report_type
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum LegacyReportMessageType {
+  spam,
+  harassment,
+  inappropriate,
+  norms,
+  other;
+
+  String toJson() => _$LegacyReportMessageTypeEnumMap[this]!;
 }
 
 /// https://zulip.com/api/upload-file

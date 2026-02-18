@@ -128,6 +128,8 @@ class InitialSnapshot {
 
   final Uri serverEmojiDataUrl;
 
+  final int? realmModerationRequestChannelId; // TODO(server-10)
+
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
 
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
@@ -136,6 +138,8 @@ class InitialSnapshot {
   final List<User> realmNonActiveUsers;
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
   final List<User> crossRealmBots;
+
+  final List<ReportMessageType>? serverReportMessageTypes; // TODO(server-12)
 
   // TODO(server): Get this API stabilized, to replace [SupportedPermissionSettings.fixture].
   // final SupportedPermissionSettings? serverSupportedPermissionSettings;
@@ -208,10 +212,12 @@ class InitialSnapshot {
     required this.maxFileUploadSizeMib,
     required this.serverThumbnailFormats,
     required this.serverEmojiDataUrl,
+    required this.realmModerationRequestChannelId,
     required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
     required this.realmNonActiveUsers,
     required this.crossRealmBots,
+    required this.serverReportMessageTypes,
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>
@@ -299,6 +305,26 @@ class ThumbnailFormat {
     _$ThumbnailFormatFromJson(json);
 
   Map<String, dynamic> toJson() => _$ThumbnailFormatToJson(this);
+}
+
+/// An item in `server_report_message_types`.
+///
+/// For docs, search for "server_report_message_types:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ReportMessageType {
+  final String key;
+  final String name;
+
+  ReportMessageType({
+    required this.key,
+    required this.name,
+  });
+
+  factory ReportMessageType.fromJson(Map<String, dynamic> json) =>
+    _$ReportMessageTypeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReportMessageTypeToJson(this);
 }
 
 /// An item in `recent_private_conversations`.
