@@ -44,7 +44,7 @@ MessageFcmMessage messageFcmMessage(
     "realm_id": "4",
     "realm_uri": account.realmUrl.toString(),
     "user_id": account.userId.toString(),
-    if (realmName != null) "realm_name": realmName,
+    "realm_name": ?realmName,
 
     "zulip_message_id": zulipMessage.id.toString(),
     "time": zulipMessage.timestamp.toString(),
