@@ -206,6 +206,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B378A5072F45B08F0031EFA1 /* Build configuration list for PBXNativeTarget "NotificationService" */;
 			buildPhases = (
+				B378A52C2F45C31A0031EFA1 /* ShellScript */,
 				B378A4F62F45B08F0031EFA1 /* Sources */,
 				B378A4F72F45B08F0031EFA1 /* Frameworks */,
 				B378A4F82F45B08F0031EFA1 /* Resources */,
@@ -353,7 +354,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build\n";
+		};
+		B378A52C2F45C31A0031EFA1 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build\n";
 		};
 		CF082B7052F068E927BF3A60 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
