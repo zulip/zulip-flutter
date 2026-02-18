@@ -462,6 +462,42 @@ void main() {
     });
   });
 
+  group('reportMessage', () {
+    test('smoke', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {});
+        await reportMessage(connection,
+          messageId: 123,
+          reportType: 'spam',
+        );
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/123/report')
+          ..bodyFields.deepEquals({
+            'report_type': 'spam',
+          });
+      });
+    });
+
+    test('with description', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {});
+        await reportMessage(connection,
+          messageId: 123,
+          reportType: 'other',
+          description: 'some details',
+        );
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/123/report')
+          ..bodyFields.deepEquals({
+            'report_type': 'other',
+            'description': 'some details',
+          });
+      });
+    });
+  });
+
   group('uploadFile', () {
     Future<void> checkUploadFile(FakeApiConnection connection, {
       required List<List<int>> content,

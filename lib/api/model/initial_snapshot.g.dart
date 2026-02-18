@@ -131,6 +131,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
           .toList() ??
       [],
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
+  realmModerationRequestChannelId:
+      (json['realm_moderation_request_channel_id'] as num?)?.toInt(),
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -149,6 +151,12 @@ InitialSnapshot _$InitialSnapshotFromJson(
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'cross_realm_bots')
               as List<dynamic>)
           .map((e) => User.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  serverReportMessageTypes:
+      (json['server_report_message_types'] as List<dynamic>?)
+          ?.map(
+            (e) => ReportMessageType.fromJson(e as Map<String, dynamic>),
+          )
           .toList(),
 );
 
@@ -207,10 +215,13 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
   'server_thumbnail_formats': instance.serverThumbnailFormats,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
+  'realm_moderation_request_channel_id':
+      instance.realmModerationRequestChannelId,
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,
   'cross_realm_bots': instance.crossRealmBots,
+  'server_report_message_types': instance.serverReportMessageTypes,
 };
 
 const _$RealmDeleteOwnMessagePolicyEnumMap = {
@@ -265,6 +276,17 @@ Map<String, dynamic> _$ThumbnailFormatToJson(ThumbnailFormat instance) =>
       'animated': instance.animated,
       'format': instance.format,
     };
+
+ReportMessageType _$ReportMessageTypeFromJson(
+  Map<String, dynamic> json,
+) => ReportMessageType(
+  key: json['key'] as String,
+  name: json['name'] as String,
+);
+
+Map<String, dynamic> _$ReportMessageTypeToJson(
+  ReportMessageType instance,
+) => <String, dynamic>{'key': instance.key, 'name': instance.name};
 
 RecentDmConversation _$RecentDmConversationFromJson(
   Map<String, dynamic> json,
