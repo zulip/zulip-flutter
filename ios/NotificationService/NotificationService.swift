@@ -45,6 +45,29 @@ class NotificationService: UNNotificationServiceExtension {
     // Register Flutter plugins with the headless engine.
     GeneratedPluginRegistrant.register(with: headlessEngine)
 
+    let iosNotifFlutterApi = IosNotifFlutterApi(
+      binaryMessenger: headlessEngine.binaryMessenger
+    )
+
+    var loopRunning = true
+    iosNotifFlutterApi.didReceivePushNotification(
+      content: NotificationContent(payload: bestAttemptContent.userInfo)
+    ) { result in
+      defer { loopRunning = false }
+
+      switch result {
+      case .success(let improvedNotificationContent):
+        bestAttemptContent.title = improvedNotificationContent.title
+        if let body = improvedNotificationContent.body {
+          bestAttemptContent.body = body
+        }
+        contentHandler(bestAttemptContent)
+
+      case .failure(let error):
+        contentHandler(bestAttemptContent)  // TODO(log)
+      }
+    }
+
     // FlutterEngine even in the headless mode assumes that the event loop of
     // current thread is being polled by the system. Which is not the case in
     // the NotificationService extension, so here we manually poll the event loop.
@@ -55,25 +78,15 @@ class NotificationService: UNNotificationServiceExtension {
     //     https://github.com/flutter/flutter/pull/181645
 
     // Adapted from: https://github.com/flutter/flutter/blob/65b1ec407/engine/src/flutter/fml/platform/darwin/message_loop_darwin.mm#L44-L62
-    loop: while true {
-      let result = CFRunLoopRunInMode(.defaultMode, 1, true)
-
-      switch result {
-      case .handledSource:
-        // Keep polling until there are events in the event loop.
-        continue
-
-      case .finished, .stopped, .timedOut:
-        break loop
-
-      @unknown default:
-        fatalError()
+    let kDistantFuture = 1.0e10
+    while loopRunning {
+      let result = CFRunLoopRunInMode(.defaultMode, kDistantFuture, true)
+      if result == .stopped || result == .finished {
+        loopRunning = false
       }
     }
 
     headlessEngine.destroyContext()
-
-    contentHandler(bestAttemptContent)
   }
 
   /// Called by iOS when the `didReceive(_:withContentHandler:)` method doesn't
