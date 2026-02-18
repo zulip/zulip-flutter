@@ -1169,6 +1169,12 @@ class ZulipLocalizationsKk extends ZulipLocalizations {
   String get navBarMenuLabel => 'Menu';
 
   @override
+  String get navbarFeedLabel => 'Feed';
+
+  @override
+  String get navbarDMsLabel => 'DMs';
+
+  @override
   String get messageIsEditedLabel => 'EDITED';
 
   @override

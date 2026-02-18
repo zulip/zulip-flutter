@@ -1388,6 +1388,14 @@
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
   },
+  "navbarFeedLabel": "Feed",
+  "@navbarFeedLabel": {
+    "description": "Label for the Feed button on the bottom navigation bar."
+  },
+  "navbarDMsLabel": "DMs",
+  "@navbarDMsLabel": {
+    "description": "Label for the DMs button on the bottom navigation bar."
+  },
   "messageIsEditedLabel": "EDITED",
   "@messageIsEditedLabel": {
     "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"

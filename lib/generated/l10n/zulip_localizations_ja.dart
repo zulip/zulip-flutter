@@ -1143,6 +1143,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get navBarMenuLabel => 'メニュー';
 
   @override
+  String get navbarFeedLabel => 'Feed';
+
+  @override
+  String get navbarDMsLabel => 'DMs';
+
+  @override
   String get messageIsEditedLabel => '編集済み';
 
   @override

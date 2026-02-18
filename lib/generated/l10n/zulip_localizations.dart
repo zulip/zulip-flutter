@@ -2012,6 +2012,18 @@ abstract class ZulipLocalizations {
   /// **'Menu'**
   String get navBarMenuLabel;
 
+  /// Label for the Feed button on the bottom navigation bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get navbarFeedLabel;
+
+  /// Label for the DMs button on the bottom navigation bar.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs'**
+  String get navbarDMsLabel;
+
   /// Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)
   ///
   /// In en, this message translates to:

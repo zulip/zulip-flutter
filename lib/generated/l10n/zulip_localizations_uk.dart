@@ -1188,6 +1188,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get navBarMenuLabel => 'Меню';
 
   @override
+  String get navbarFeedLabel => 'Feed';
+
+  @override
+  String get navbarDMsLabel => 'DMs';
+
+  @override
   String get messageIsEditedLabel => 'РЕДАГОВАНО';
 
   @override
