@@ -27,6 +27,12 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
+  @override
+  void initState() {
+    super.initState();
+    IntroDialog.maybeShow(IntroDialogDestination.inbox);
+  }
+
   bool get allDmsCollapsed => _allDmsCollapsed;
   bool _allDmsCollapsed = false;
   set allDmsCollapsed(bool value) {
@@ -56,7 +62,6 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     recentDmConversationsModel?.removeListener(_modelChanged);
     recentDmConversationsModel = newStore.recentDmConversationsView
       ..addListener(_modelChanged);
-    showInboxIntroModal(context);
   }
 
   @override

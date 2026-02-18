@@ -358,7 +358,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     super.initState();
     narrow = widget.initNarrow;
     if (narrow is CombinedFeedNarrow) {
-      showCombinedFeedIntroModal(context);
+      IntroDialog.maybeShow(IntroDialogDestination.combinedFeed);
     }
   }
 
