@@ -8,7 +8,6 @@ import 'package:zulip/model/settings.dart';
 
 import 'schemas/schema.dart';
 import 'schemas/schema_v1.dart' as v1;
-import 'schemas/schema_v2.dart' as v2;
 import 'schemas/schema_v3.dart' as v3;
 import 'schemas/schema_v4.dart' as v4;
 import 'schemas/schema_v5.dart' as v5;
@@ -320,7 +319,9 @@ void main() {
       }
     });
 
-    test('upgrade to v2, with data', () async {
+    test('migrate existing Account row', () async {
+      // This tests several migrations that apply to Accounts and
+      // don't interact with each other.
       final schema = await verifier.schemaAt(1);
       final before = v1.DatabaseAtV1(schema.newConnection());
       await before.into(before.accounts).insert(v1.AccountsCompanion.insert(
@@ -336,17 +337,20 @@ void main() {
       await before.close();
 
       final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 2);
+      await verifier.migrateAndValidate(db, 12);
       await db.close();
 
-      final after = v2.DatabaseAtV2(schema.newConnection());
+      final after = v12.DatabaseAtV12(schema.newConnection());
       final account = await after.select(after.accounts).getSingle();
       check(account.toJson()).deepEquals({
         ...accountV1.toJson(),
-        'ackedPushToken': null,
+        'ackedPushToken': null, // v2
+        'realmName': null, 'realmIcon': null, // v12
       });
       await after.close();
     });
+
+    // v2 covered by "existing Account row" above
 
     // v3 only adds a new table; the "migrate without data" test covers it
 
@@ -467,34 +471,7 @@ void main() {
       await after.close();
     });
 
-    test('upgrade to v12, with data', () async {
-      final schema = await verifier.schemaAt(11);
-      final before = v11.DatabaseAtV11(schema.newConnection());
-      await before.into(before.accounts).insert(v11.AccountsCompanion.insert(
-          realmUrl: 'https://chat.example/',
-          userId: 1,
-          email: 'asdf@example.org',
-          apiKey: '1234',
-          zulipVersion: '11.2',
-          zulipMergeBase: const Value('11.2'),
-          zulipFeatureLevel: 420,
-      ));
-      final accountV11 = await before.select(before.accounts).watchSingle().first;
-      await before.close();
-
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 12);
-      await db.close();
-
-      final after = v12.DatabaseAtV12(schema.newConnection());
-      final account = await after.select(after.accounts).getSingle();
-      check(account.toJson()).deepEquals({
-        ...accountV11.toJson(),
-        'realmName': null,
-        'realmIcon': null,
-      });
-      await after.close();
-    });
+    // v12 covered by "existing Account row" above
   });
 }
 
