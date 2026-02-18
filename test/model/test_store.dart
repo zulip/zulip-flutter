@@ -136,7 +136,8 @@ mixin _DatabaseMixin on GlobalStore {
 /// A [GlobalStore] containing data provided by callers,
 /// and that causes no database queries or network requests.
 ///
-/// Tests can provide data to the store by calling [add].
+/// Tests can provide data to the store by calling [add]
+/// or [addInitialSnapshot].
 ///
 /// The per-account stores will use [FakeApiConnection].
 ///
@@ -174,6 +175,9 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   ///
   /// By default, [setLastVisitedAccount] is called for the account.
   /// Pass false for [markLastVisited] to skip that.
+  ///
+  /// See also:
+  ///  * [addInitialSnapshot]
   Future<void> add(
     Account account,
     InitialSnapshot initialSnapshot, {
@@ -189,6 +193,20 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
     if (markLastVisited) {
       await setLastVisitedAccount(account.id);
     }
+  }
+
+  /// Add server data to the test data, for an account already present.
+  ///
+  /// The given initial snapshot will be used to initialize a corresponding
+  /// [PerAccountStore] when [perAccount] is subsequently called for this
+  /// account, in particular when a [PerAccountStoreWidget] is mounted.
+  ///
+  /// See also:
+  ///  * [add], for adding the account as well as the server data.
+  void addInitialSnapshot(int accountId, InitialSnapshot initialSnapshot) {
+    assert(accountIds.contains(accountId));
+    assert(!_initialSnapshots.containsKey(accountId));
+    _initialSnapshots[accountId] = initialSnapshot;
   }
 
   Duration? loadPerAccountDuration;
