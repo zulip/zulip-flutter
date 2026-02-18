@@ -115,6 +115,14 @@ const _$AnchorCodeEnumMap = {
   AnchorCode.firstUnread: 'first_unread',
 };
 
+const _$ReportTypeEnumMap = {
+  ReportType.spam: 'spam',
+  ReportType.harassment: 'harassment',
+  ReportType.inappropriate: 'inappropriate',
+  ReportType.norms: 'norms',
+  ReportType.other: 'other',
+};
+
 const _$UpdateMessageFlagsOpEnumMap = {
   UpdateMessageFlagsOp.add: 'add',
   UpdateMessageFlagsOp.remove: 'remove',

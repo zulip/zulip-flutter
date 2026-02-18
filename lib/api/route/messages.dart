@@ -255,6 +255,32 @@ Future<void> deleteMessage(
   return connection.delete('deleteMessage', (_) {}, 'messages/$messageId', {});
 }
 
+/// https://zulip.com/api/report-message
+Future<void> reportMessage(ApiConnection connection, {
+  required int messageId,
+  required ReportType reportType,
+  String? description,
+}) {
+  return connection.post('reportMessage', (_) {}, 'messages/$messageId/report', {
+    'report_type': RawParameter(reportType.toJson()),
+    if (description != null) 'description': RawParameter(description),
+  });
+}
+
+/// The type of report to submit for [reportMessage].
+///
+/// https://zulip.com/api/report-message#parameter-report_type
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum ReportType {
+  spam,
+  harassment,
+  inappropriate,
+  norms,
+  other;
+
+  String toJson() => _$ReportTypeEnumMap[this]!;
+}
+
 /// https://zulip.com/api/upload-file
 Future<UploadFileResult> uploadFile(
   ApiConnection connection, {
