@@ -348,6 +348,8 @@ void main() {
       await after.close();
     });
 
+    // v3 only adds a new table; the "migrate without data" test covers it
+
     test('upgrade to v4, with data', () async {
       final schema = await verifier.schemaAt(3);
       final before = v3.DatabaseAtV3(schema.newConnection());
@@ -403,7 +405,15 @@ void main() {
       await after.close();
     });
 
+    // v6 only adds a new table; the "migrate without data" test covers it
+
+    // v7 adds a boring column; skip migration test
+
+    // v8 adds a boring column; skip migration test
+
     // TODO(#1593) test upgrade to v9: legacyUpgradeState set to noLegacy
+
+    // v10 only adds a new table; the "migrate without data" test covers it
 
     test('upgrade to v11: with accounts available, '
         'insert first account ID as the last-visited account ID', () async {
