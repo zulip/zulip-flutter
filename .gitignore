@@ -43,6 +43,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Patrol
+patrol_test/test_bundle.dart
+
 # Symbolication related
 app.*.symbols
 

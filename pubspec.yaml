@@ -226,3 +226,10 @@ flutter:
         - asset: assets/icons/ZulipIcons.ttf
 
     # If adding a font, remember to account for its license in lib/licenses.dart.
+
+patrol:
+  app_name: Zulip
+  android:
+    package_name: com.zulipmobile
+  ios:
+    bundle_id: org.zulip.Zulip
