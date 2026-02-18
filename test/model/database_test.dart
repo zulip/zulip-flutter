@@ -11,6 +11,7 @@ import 'schemas/schema_v1.dart' as v1;
 import 'schemas/schema_v3.dart' as v3;
 import 'schemas/schema_v4.dart' as v4;
 import 'schemas/schema_v5.dart' as v5;
+import 'schemas/schema_v9.dart' as v9;
 import 'schemas/schema_v10.dart' as v10;
 import 'schemas/schema_v11.dart' as v11;
 import 'schemas/schema_v12.dart' as v12;
@@ -319,6 +320,33 @@ void main() {
       }
     });
 
+    test('migrate existing GlobalSettings row', () async {
+      // This tests several migrations that apply to GlobalSettings and
+      // don't interact with each other.
+      final schema = await verifier.schemaAt(3);
+      final before = v3.DatabaseAtV3(schema.newConnection());
+      await before.into(before.globalSettings).insert(
+        v3.GlobalSettingsCompanion.insert(
+          themeSetting: Value(ThemeSetting.light.name)));
+      await before.close();
+
+      final db = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(db, 9);
+      await db.close();
+
+      final after = v9.DatabaseAtV9(schema.newConnection());
+      final globalSettings = await after.select(after.globalSettings).getSingle();
+      check(globalSettings.toJson()).deepEquals({
+        'themeSetting': ThemeSetting.light.name,
+        'browserPreference': null, // v4
+        // (v5 has no effect when a GlobalSettings row already exists)
+        'visitFirstUnread': null, // v7
+        'markReadOnScroll': null, // v8
+        'legacyUpgradeState': 'noLegacy', // v9
+      });
+      await after.close();
+    });
+
     test('migrate existing Account row', () async {
       // This tests several migrations that apply to Accounts and
       // don't interact with each other.
@@ -354,43 +382,9 @@ void main() {
 
     // v3 only adds a new table; the "migrate without data" test covers it
 
-    test('upgrade to v4, with data', () async {
-      final schema = await verifier.schemaAt(3);
-      final before = v3.DatabaseAtV3(schema.newConnection());
-      await before.into(before.globalSettings).insert(
-        v3.GlobalSettingsCompanion.insert(
-          themeSetting: Value(ThemeSetting.light.name)));
-      await before.close();
+    // v4 covered by "existing GlobalSettings row" above
 
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 4);
-      await db.close();
-
-      final after = v4.DatabaseAtV4(schema.newConnection());
-      final globalSettings = await after.select(after.globalSettings).getSingle();
-      check(globalSettings.themeSetting).equals(ThemeSetting.light.name);
-      check(globalSettings.browserPreference).isNull();
-      await after.close();
-    });
-
-    test('upgrade to v5: with existing GlobalSettings row, do nothing', () async {
-      final schema = await verifier.schemaAt(4);
-      final before = v4.DatabaseAtV4(schema.newConnection());
-      await before.into(before.globalSettings).insert(
-        v4.GlobalSettingsCompanion.insert(
-          themeSetting: Value(ThemeSetting.light.name)));
-      await before.close();
-
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 5);
-      await db.close();
-
-      final after = v5.DatabaseAtV5(schema.newConnection());
-      final globalSettings = await after.select(after.globalSettings).getSingle();
-      check(globalSettings.themeSetting).equals(ThemeSetting.light.name);
-      check(globalSettings.browserPreference).isNull();
-      await after.close();
-    });
+    // v5 partly covered by "existing GlobalSettings row" above
 
     test('upgrade to v5: with no existing GlobalSettings row, insert one', () async {
       final schema = await verifier.schemaAt(4);
@@ -411,11 +405,11 @@ void main() {
 
     // v6 only adds a new table; the "migrate without data" test covers it
 
-    // v7 adds a boring column; skip migration test
+    // v7 covered by "existing GlobalSettings row" above
 
-    // v8 adds a boring column; skip migration test
+    // v8 covered by "existing GlobalSettings row" above
 
-    // TODO(#1593) test upgrade to v9: legacyUpgradeState set to noLegacy
+    // v9 covered by "existing GlobalSettings row" above
 
     // v10 only adds a new table; the "migrate without data" test covers it
 
