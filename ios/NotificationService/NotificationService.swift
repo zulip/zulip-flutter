@@ -32,7 +32,6 @@ class NotificationService: UNNotificationServiceExtension {
     }
 
     // Modify the notification content here...
-    // bestAttemptContent.title = "\(bestAttemptContent.title) [modified]"
 
     let headlessEngine = FlutterEngine(
       name: "zulip_headless",
@@ -47,6 +46,35 @@ class NotificationService: UNNotificationServiceExtension {
 
     GeneratedPluginRegistrant.register(with: headlessEngine)
 
+    let iosNotifFlutterApi = IosNotifFlutterApi(
+      binaryMessenger: headlessEngine.binaryMessenger
+    )
+
+    var loopRunning = true
+    iosNotifFlutterApi.didReceivePushNotification(
+      content: NotificationContent(payload: bestAttemptContent.userInfo)
+    ) { result in
+      defer { loopRunning = false }
+
+      os_log(
+        "iosNotifFlutterApi.didReceivePushNotification: thread=\(Thread.current)"
+      )
+
+      switch result {
+      case .success(let mutatedNotificationContent):
+        os_log("didReceivePushNotification: success")
+        bestAttemptContent.title = mutatedNotificationContent.title
+        if let body = mutatedNotificationContent.body {
+          bestAttemptContent.body = body
+        }
+        contentHandler(bestAttemptContent)
+
+      case .failure(let error):
+        os_log("didReceivePushNotification: failed: error=\(error.localizedDescription)")
+        contentHandler(bestAttemptContent)
+      }
+    }
+
     // FlutterEngine even in the headless mode assumes that the event loop of
     // current thread is being polled by the system. Which is not the case in
     // Notification Service Extension, so here we manually poll the event loop.
@@ -54,29 +82,17 @@ class NotificationService: UNNotificationServiceExtension {
     //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/Running.20Dart.20code.20in.20iOS.20Notification.20Service.20Extension/with/2370721
 
     // Adapted from: https://github.com/flutter/flutter/blob/65b1ec407/engine/src/flutter/fml/platform/darwin/message_loop_darwin.mm#L44-L62
-    loop: while true {
+    let kDistantFuture = 1.0e10
+    while loopRunning {
       os_log("loop: CFRunLoopRunInMode(…)")
-
-      let result = CFRunLoopRunInMode(.defaultMode, 1, true)
-      os_log("loop: result=\(String(describing: result))")
-
-      switch result {
-      case .handledSource:
-        // Keep polling until there are events in the event loop.
-        continue
-
-      case .finished, .stopped, .timedOut:
-        break loop
-
-      @unknown default:
-        fatalError()
+      let result = CFRunLoopRunInMode(.defaultMode, kDistantFuture, true)
+      if result == .stopped || result == .finished {
+        loopRunning = false
       }
     }
 
     headlessEngine.destroyContext()
     os_log("Done destroying headlessEngine")
-
-    contentHandler(bestAttemptContent)
   }
 
   override func serviceExtensionTimeWillExpire() {

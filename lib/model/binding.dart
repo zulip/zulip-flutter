@@ -12,6 +12,7 @@ import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
 import '../host/android_intents.dart' as android_intents_pigeon;
 import '../host/android_notifications.dart';
+import '../host/ios_notifications.g.dart';
 import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
 import 'store.dart';
@@ -185,6 +186,8 @@ abstract class ZulipBinding {
   NotificationPigeonApi get notificationPigeonApi;
 
   Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents;
+
+  void setupIosNotifFlutterApi(IosNotifFlutterApi api);
 
   /// Pick files from the media library, via package:file_picker.
   ///
@@ -497,6 +500,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents => android_intents_pigeon.androidIntentEvents();
+
+  @override
+  void setupIosNotifFlutterApi(IosNotifFlutterApi api) => IosNotifFlutterApi.setUp(api);
 
   @override
   Future<file_picker.FilePickerResult?> pickFiles({

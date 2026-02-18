@@ -9,6 +9,7 @@ import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/host/android_intents.dart';
 import 'package:zulip/host/android_notifications.dart';
+import 'package:zulip/host/ios_notifications.g.dart';
 import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
@@ -325,6 +326,14 @@ class TestZulipBinding extends ZulipBinding {
   FakeNotificationPigeonApi get notificationPigeonApi =>
     (_notificationPigeonApi ??= FakeNotificationPigeonApi());
   FakeNotificationPigeonApi? _notificationPigeonApi;
+
+  IosNotifFlutterApi? get iosNotifFlutterApi => _iosNotifFlutterApi;
+  IosNotifFlutterApi? _iosNotifFlutterApi;
+
+  @override
+  void setupIosNotifFlutterApi(IosNotifFlutterApi api) {
+    _iosNotifFlutterApi = api;
+  }
 
   /// The value that `ZulipBinding.instance.pickFiles()` should return.
   ///
