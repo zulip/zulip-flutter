@@ -65,6 +65,8 @@ TODO: use a different app ID for Patrol vs. the app.
 
 ## One-time setup
 
+### Patrol
+
 Upstream docs: https://patrol.leancode.co/documentation
 
 1. Install the `patrol` CLI tool:
@@ -80,3 +82,22 @@ Upstream docs: https://patrol.leancode.co/documentation
    ```
 
    (If it complains `ANDROID_HOME` is unset, that seems to be harmless.)
+
+
+### Live login credentials
+
+In order to run the tests in `patrol_test/live_test.dart`, create a
+file `.patrol.env` at the root of the project tree, like so:
+```
+REALM_URL=chat.example.com
+EMAIL=user@example.com
+PASSWORD=hunter2
+```
+
+with the realm URL, email, and password of a test account on some
+real Zulip server.
+
+The tests will log into that real account and interact there.
+Avoid using chat.zulip.org or any other realm that people use
+for real human conversations;
+instead use a Zulip development server, or a test realm.
