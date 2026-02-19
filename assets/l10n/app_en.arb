@@ -494,6 +494,10 @@
   "@errorCouldNotEditMessageTitle": {
     "description": "Error title when an exception prevented us from opening the compose box for editing a message."
   },
+  "errorCouldNotAppendCallUrl": "Fail to get call URL",
+  "@errorCouldNotAppendCallUrl": {
+    "description": "Error title when fetching a call URL failed."
+  },
   "successLinkCopied": "Link copied",
   "@successLinkCopied": {
     "description": "Success message after copy link action completed."
@@ -602,6 +606,14 @@
   "@composeBoxAttachFromCameraTooltip": {
     "description": "Tooltip for compose box icon to attach an image from the camera to the message."
   },
+  "composeBoxAddVideoCallTooltip": "Add video call",
+  "@composeBoxAddVideoCallTooltip": {
+    "description": "Tooltip for compose box icon to add a video call url to the message."
+  },
+  "composeBoxAddVoiceCallTooltip": "Add voice call",
+  "@composeBoxAddVoiceCallTooltip": {
+    "description": "Tooltip for compose box icon to add a voice call url to the message."
+  },
   "composeBoxGenericContentHint": "Type a message",
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."
@@ -681,6 +693,14 @@
     "placeholders": {
       "filename": {"type": "String", "example": "file.txt"}
     }
+  },
+  "composeBoxVideoCallLinkText": "Join video call.",
+  "@composeBoxVideoCallLinkText": {
+    "description": "Text for a Markdown link to a video-call URL."
+  },
+  "composeBoxVoiceCallLinkText": "Join voice call.",
+  "@composeBoxVoiceCallLinkText": {
+    "description": "Text for a Markdown link to a voice-call URL."
   },
   "composeBoxLoadingMessage": "(loading message {messageId})",
   "@composeBoxLoadingMessage": {

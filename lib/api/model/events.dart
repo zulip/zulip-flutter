@@ -29,6 +29,7 @@ sealed class Event {
           case 'update': return UserSettingsUpdateEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      case 'has_zoom_token': return HasZoomTokenEvent.fromJson(json);
       case 'custom_profile_fields': return CustomProfileFieldsEvent.fromJson(json);
       case 'user_group':
         switch (json['op'] as String) {
@@ -1601,6 +1602,27 @@ class ReactionEvent extends Event {
 enum ReactionOp {
   add,
   remove,
+}
+
+/// A Zulip event of type `hasZoomToken`: https://zulip.com/api/get-events#has_zoom_token
+@JsonSerializable(fieldRename: FieldRename.snake)
+class HasZoomTokenEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'has_zoom_token';
+
+  final bool value;
+
+  HasZoomTokenEvent({
+    required super.id,
+    required this.value,
+  });
+
+  factory HasZoomTokenEvent.fromJson(Map<String, dynamic> json) =>
+    _$HasZoomTokenEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$HasZoomTokenEventToJson(this);
 }
 
 /// A Zulip event of type `heartbeat`: https://zulip.com/api/get-events#heartbeat
