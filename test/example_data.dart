@@ -95,8 +95,8 @@ Uri get _realmUrl => realmUrl;
 final Uri realmIcon = Uri.parse('/user_avatars/2/realm/icon.png?version=3');
 Uri get _realmIcon => realmIcon;
 
-const String recentZulipVersion = '9.0';
-const int recentZulipFeatureLevel = 382;
+const String recentZulipVersion = '11.0';
+const int recentZulipFeatureLevel = 468;
 const int futureZulipFeatureLevel = 9999;
 const int ancientZulipFeatureLevel = kMinSupportedZulipFeatureLevel - 1;
 
