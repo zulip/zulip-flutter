@@ -295,7 +295,11 @@ run_test() {
     fi
 
     # no `flutter test --verbose` even when $opt_verbose; it's *very* verbose
-    flutter test "${options[@]}"
+    if (( "${#options[@]}" )); then
+        flutter test "${options[@]}"
+    else
+        flutter test
+    fi
 }
 
 # Check the Flutter version in pubspec.yaml is commented with a commit ID,
