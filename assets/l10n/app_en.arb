@@ -321,6 +321,29 @@
   "@actionSheetOptionCopyTopicLink": {
     "description": "Label for copy topic link button in action sheet."
   },
+  "actionSheetTitleDm": "DMs with {user}",
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {"type": "String", "example": "Alice"}
+    }
+  },
+  "actionSheetTitleSelfDm": "DMs with yourself",
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
+  },
+  "actionSheetTitleGroupDm": "Group DM",
+  "@actionSheetTitleGroupDm": {
+    "description": "The title of an action sheet for a group DM conversation."
+  },
+  "actionSheetOptionViewProfile": "View profile",
+  "@actionSheetOptionViewProfile": {
+    "description": "Option to view the user's profile in the action sheet for a 1:1 DM conversation."
+  },
+  "actionSheetOptionMarkDmConversationAsRead": "Mark conversation as read",
+  "@actionSheetOptionMarkDmConversationAsRead": {
+    "description": "Option to mark a DM conversation as read in the action sheet."
+  },
   "errorWebAuthOperationalErrorTitle": "Something went wrong",
   "@errorWebAuthOperationalErrorTitle": {
     "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."

@@ -418,6 +418,7 @@ class _DmItem extends StatelessWidget {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
         },
+        onLongPress: () => showDmActionSheet(context, narrow: narrow),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             const SizedBox(width: 63),

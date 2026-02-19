@@ -283,6 +283,24 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get actionSheetOptionCopyTopicLink => 'Skopiuj odnośnik do wątku';
 
   @override
+  String actionSheetTitleDm(String user) {
+    return 'DMs with $user';
+  }
+
+  @override
+  String get actionSheetTitleSelfDm => 'DMs with yourself';
+
+  @override
+  String get actionSheetTitleGroupDm => 'Group DM';
+
+  @override
+  String get actionSheetOptionViewProfile => 'View profile';
+
+  @override
+  String get actionSheetOptionMarkDmConversationAsRead =>
+      'Mark conversation as read';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => 'Coś poszło nie tak';
 
   @override
