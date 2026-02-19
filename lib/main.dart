@@ -9,6 +9,14 @@ import 'widgets/app.dart';
 import 'widgets/share.dart';
 
 void main() {
+  mainInit();
+  runApp(const ZulipApp());
+}
+
+/// Everything [main] does short of [runApp].
+///
+/// This is useful for setup in Patrol-based integration tests.
+void mainInit() {
   assert(() {
     debugLogEnabled = true;
     return true;
@@ -18,5 +26,4 @@ void main() {
   LiveZulipBinding.ensureInitialized();
   NotificationService.instance.start();
   ShareService.start();
-  runApp(const ZulipApp());
 }
