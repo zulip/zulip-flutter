@@ -308,10 +308,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
         locatorMap[event.message.id] = narrow;
         _addLastInDm(message.id, narrow);
     }
-    if (
-      message.flags.contains(MessageFlag.mentioned)
-      || message.flags.contains(MessageFlag.wildcardMentioned)
-    ) {
+    if (message.flags.any((flag) => flag.isMentionFlag)) {
       mentions.add(message.id);
     }
     notifyListeners();
@@ -324,9 +321,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     // [messageId] message when its content is edited; so, handle that.
     // (As of writing, we don't expect such changes to be signaled by
     // an [UpdateMessageFlagsEvent].)
-    final bool isMentioned = event.flags.any(
-      (f) => f == MessageFlag.mentioned || f == MessageFlag.wildcardMentioned,
-    );
+    final bool isMentioned = event.flags.any((flag) => flag.isMentionFlag);
 
     // We expect the event's 'read' flag to be boring,
     // matching the message's local unread state.

@@ -1253,6 +1253,22 @@ enum MessageFlag {
   static final _byRawString = _$MessageFlagEnumMap.map((key, value) => MapEntry(value, key));
 
   String toJson() => _$MessageFlagEnumMap[this]!;
+
+  bool get isMentionFlag {
+    switch (this) {
+      case MessageFlag.mentioned:
+      case MessageFlag.wildcardMentioned:
+        return true;
+
+      case MessageFlag.read:
+      case MessageFlag.starred:
+      case MessageFlag.collapsed:
+      case MessageFlag.hasAlertWord:
+      case MessageFlag.historical:
+      case MessageFlag.unknown:
+        return false;
+    }
+  }
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

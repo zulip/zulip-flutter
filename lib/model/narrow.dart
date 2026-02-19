@@ -325,21 +325,7 @@ class MentionsNarrow extends Narrow {
   @override
   bool containsMessage(MessageBase message) {
     if (message is! Message) return false;
-    return message.flags.any((flag) {
-      switch (flag) {
-        case MessageFlag.mentioned:
-        case MessageFlag.wildcardMentioned:
-          return true;
-
-        case MessageFlag.read:
-        case MessageFlag.starred:
-        case MessageFlag.collapsed:
-        case MessageFlag.hasAlertWord:
-        case MessageFlag.historical:
-        case MessageFlag.unknown:
-          return false;
-      }
-    });
+    return message.flags.any((flag) => flag.isMentionFlag);
   }
 
   @override
