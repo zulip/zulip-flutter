@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -94,6 +95,28 @@ mixin _DatabaseMixin on GlobalStore {
           && (data.userId.value == account.userId
               || data.email.value == account.email))) {
       throw AccountAlreadyExistsException();
+    }
+
+    for (final key in data.toColumns(false).keys) {
+      switch (key) {
+        case 'id':
+        case 'realm_url' || 'realm_name' || 'realm_icon':
+        case 'user_id' || 'email' || 'api_key':
+        case 'zulip_feature_level' || 'zulip_version' || 'zulip_merge_base':
+        case 'acked_push_token':
+          break;
+
+        default:
+          // TODO(drift): Automate the construction below so this check isn't needed:
+          //     https://github.com/simolus3/drift/issues/3761
+          //   Otherwise if you add a column and forget to update below,
+          //   the resulting test failures are very confusing.
+          throw FlutterError.fromParts([
+            ErrorSummary('Unexpected column in Account: $key'),
+            ErrorHint('Add this column to the Account() call below this line,'
+              ' then to the switch cases above.'),
+          ]);
+      }
     }
 
     final accountId = data.id.present ? data.id.value : _nextAccountId++;
