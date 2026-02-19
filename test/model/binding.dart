@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:sodium_libs/sodium_libs.dart' as sodium;
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/host/android_intents.dart';
@@ -278,6 +279,9 @@ class TestZulipBinding extends ZulipBinding {
   @override
   PackageInfo? get syncPackageInfo => packageInfoResult;
 
+  @override
+  Future<sodium.Sodium> sodiumInit() async => FakeSodium();
+
   void _resetFirebase() {
     _firebaseInitialized = false;
     _firebaseMessaging = null;
@@ -425,6 +429,10 @@ class TestZulipBinding extends ZulipBinding {
   @override
   // TODO(#1787) implement androidIntentEvents and write related tests
   Stream<AndroidIntentEvent> get androidIntentEvents => throw UnimplementedError();
+}
+
+class FakeSodium extends Fake implements sodium.Sodium {
+  // Fill in libsodium features here as needed.
 }
 
 class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
