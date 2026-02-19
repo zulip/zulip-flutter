@@ -2514,6 +2514,18 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get unsubscribeFailedTitle => '取消訂閱失敗';
 
   @override
+  String get actionSheetOptionPinChannel => '釘到最上面';
+
+  @override
+  String get actionSheetOptionUnpinChannel => '取消最上面的釘選';
+
+  @override
+  String get errorPinChannelFailedTitle => '釘選頻道失敗';
+
+  @override
+  String get errorUnpinChannelFailedTitle => '取消釘選頻道失敗';
+
+  @override
   String get actionSheetOptionMuteTopic => '靜音話題';
 
   @override

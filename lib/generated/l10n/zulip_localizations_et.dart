@@ -9,19 +9,21 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   ZulipLocalizationsEt([String locale = 'et']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'Zulipi teave';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'Rakenduse versioon';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses =>
+      'Avatud lähtekoodiga tarkvara litsentsid';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
+  String get aboutPageTapToView => 'Vaatamiseks klõpsa';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle =>
+      'Tere tulemast kasutama uut Zulipi rakendust!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
@@ -260,7 +262,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Deleting a message permanently removes it for everyone.';
 
   @override
-  String get deleteMessageConfirmationDialogConfirmButton => 'Delete';
+  String get deleteMessageConfirmationDialogConfirmButton => 'Kustuta';
 
   @override
   String get errorDeleteMessageFailedTitle => 'Failed to delete message';
@@ -458,19 +460,19 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'New messages will not appear automatically.';
 
   @override
-  String get composeBoxBannerButtonRefresh => 'Refresh';
+  String get composeBoxBannerButtonRefresh => 'Värskenda andmeid';
 
   @override
-  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+  String get composeBoxBannerButtonSubscribe => 'Telli';
 
   @override
   String get composeBoxBannerLabelEditMessage => 'Edit message';
 
   @override
-  String get composeBoxBannerButtonCancel => 'Cancel';
+  String get composeBoxBannerButtonCancel => 'Katkesta';
 
   @override
-  String get composeBoxBannerButtonSave => 'Save';
+  String get composeBoxBannerButtonSave => 'Salvesta';
 
   @override
   String get editAlreadyInProgressTitle => 'Cannot edit message';
@@ -498,7 +500,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'When you restore an unsent message, the content that was previously in the compose box is discarded.';
 
   @override
-  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
+  String get discardDraftConfirmationDialogConfirmButton => 'Loobu';
 
   @override
   String get composeBoxAttachFilesTooltip => 'Attach files';
@@ -513,7 +515,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get composeBoxGenericContentHint => 'Type a message';
 
   @override
-  String get newDmSheetComposeButtonLabel => 'Compose';
+  String get newDmSheetComposeButtonLabel => 'Koosta sõnum';
 
   @override
   String get newDmSheetScreenTitle => 'New DM';
@@ -547,16 +549,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get preparingEditMessageContentInput => 'Preparing…';
+  String get preparingEditMessageContentInput => 'Valmistun…';
 
   @override
-  String get composeBoxSendTooltip => 'Send';
+  String get composeBoxSendTooltip => 'Saada';
 
   @override
   String get unknownChannelName => '(unknown channel)';
 
   @override
-  String get composeBoxTopicHintText => 'Topic';
+  String get composeBoxTopicHintText => 'Teema';
 
   @override
   String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
@@ -676,25 +678,25 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Please wait for the upload to complete.';
 
   @override
-  String get dialogCancel => 'Cancel';
+  String get dialogCancel => 'Katkesta';
 
   @override
-  String get dialogContinue => 'Continue';
+  String get dialogContinue => 'Jätka';
 
   @override
-  String get dialogClose => 'Close';
+  String get dialogClose => 'Sulge';
 
   @override
   String get errorDialogLearnMore => 'Learn more';
 
   @override
-  String get errorDialogContinue => 'OK';
+  String get errorDialogContinue => 'Sobib';
 
   @override
-  String get errorDialogTitle => 'Error';
+  String get errorDialogTitle => 'Viga';
 
   @override
-  String get snackBarDetails => 'Details';
+  String get snackBarDetails => 'Üksikasjad';
 
   @override
   String get lightboxCopyLinkTooltip => 'Copy link';
@@ -712,7 +714,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get loginFormSubmitLabel => 'Log in';
 
   @override
-  String get loginMethodDivider => 'OR';
+  String get loginMethodDivider => 'VÕI';
 
   @override
   String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
@@ -729,7 +731,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get loginServerUrlLabel => 'Your Zulip server URL';
 
   @override
-  String get loginHidePassword => 'Hide password';
+  String get loginHidePassword => 'Peida salasõna';
 
   @override
   String get loginEmailLabel => 'Email address';
@@ -738,13 +740,13 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get loginErrorMissingEmail => 'Please enter your email.';
 
   @override
-  String get loginPasswordLabel => 'Password';
+  String get loginPasswordLabel => 'Salasõna';
 
   @override
-  String get loginErrorMissingPassword => 'Please enter your password.';
+  String get loginErrorMissingPassword => 'Palun sisesta oma salasõna.';
 
   @override
-  String get loginUsernameLabel => 'Username';
+  String get loginUsernameLabel => 'Kasutajanimi';
 
   @override
   String get loginErrorMissingUsername => 'Please enter your username.';
@@ -886,16 +888,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
 
   @override
-  String get today => 'Today';
+  String get today => 'Täna';
 
   @override
-  String get yesterday => 'Yesterday';
+  String get yesterday => 'Eile';
 
   @override
   String get userActiveNow => 'Active now';
 
   @override
-  String get userIdle => 'Idle';
+  String get userIdle => 'Jõude';
 
   @override
   String userActiveMinutesAgo(int minutes) {
@@ -953,25 +955,25 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Error turning off invisible mode. Please try again.';
 
   @override
-  String get userRoleOwner => 'Owner';
+  String get userRoleOwner => 'Omanik';
 
   @override
-  String get userRoleAdministrator => 'Administrator';
+  String get userRoleAdministrator => 'Peakasutaja';
 
   @override
-  String get userRoleModerator => 'Moderator';
+  String get userRoleModerator => 'Moderaator';
 
   @override
-  String get userRoleMember => 'Member';
+  String get userRoleMember => 'Liige';
 
   @override
-  String get userRoleGuest => 'Guest';
+  String get userRoleGuest => 'Külaline';
 
   @override
-  String get userRoleUnknown => 'Unknown';
+  String get userRoleUnknown => 'Teadmata';
 
   @override
-  String get statusButtonLabelStatusSet => 'Status';
+  String get statusButtonLabelStatusSet => 'Olek';
 
   @override
   String get statusButtonLabelStatusUnset => 'Set status';
@@ -983,28 +985,28 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get setStatusPageTitle => 'Set status';
 
   @override
-  String get statusClearButtonLabel => 'Clear';
+  String get statusClearButtonLabel => 'Tühjenda';
 
   @override
-  String get statusSaveButtonLabel => 'Save';
+  String get statusSaveButtonLabel => 'Salvesta';
 
   @override
   String get statusTextHint => 'Your status';
 
   @override
-  String get userStatusBusy => 'Busy';
+  String get userStatusBusy => 'Hõivatud';
 
   @override
   String get userStatusInAMeeting => 'In a meeting';
 
   @override
-  String get userStatusCommuting => 'Commuting';
+  String get userStatusCommuting => 'Liikumas ühest kohast teise';
 
   @override
   String get userStatusOutSick => 'Out sick';
 
   @override
-  String get userStatusVacationing => 'Vacationing';
+  String get userStatusVacationing => 'Puhkusel';
 
   @override
   String get userStatusWorkingRemotely => 'Working remotely';
@@ -1017,16 +1019,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Error updating user status. Please try again.';
 
   @override
-  String get searchMessagesPageTitle => 'Search';
+  String get searchMessagesPageTitle => 'Otsing';
 
   @override
-  String get searchMessagesHintText => 'Search';
+  String get searchMessagesHintText => 'Otsi';
 
   @override
-  String get searchMessagesClearButtonTooltip => 'Clear';
+  String get searchMessagesClearButtonTooltip => 'Tühjenda';
 
   @override
-  String get inboxPageTitle => 'Inbox';
+  String get inboxPageTitle => 'Sisendkaust';
 
   @override
   String get inboxEmptyPlaceholderHeader =>
@@ -1054,13 +1056,13 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get combinedFeedPageTitle => 'Combined feed';
 
   @override
-  String get mentionsPageTitle => 'Mentions';
+  String get mentionsPageTitle => 'Mainimised';
 
   @override
   String get starredMessagesPageTitle => 'Starred messages';
 
   @override
-  String get channelsPageTitle => 'Channels';
+  String get channelsPageTitle => 'Kanalid';
 
   @override
   String get channelsEmptyPlaceholderHeader =>
@@ -1078,7 +1080,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get mainMenuMyProfile => 'My profile';
 
   @override
-  String get topicsButtonTooltip => 'Topics';
+  String get topicsButtonTooltip => 'Teemad';
 
   @override
   String get channelFeedButtonTooltip => 'Channel feed';
@@ -1095,19 +1097,19 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get pinnedSubscriptionsLabel => 'Pinned';
+  String get pinnedSubscriptionsLabel => 'Esiletõstetud';
 
   @override
-  String get unpinnedSubscriptionsLabel => 'Unpinned';
+  String get unpinnedSubscriptionsLabel => 'Pole esiletõstetud';
 
   @override
-  String get notifSelfUser => 'You';
+  String get notifSelfUser => 'Sina';
 
   @override
-  String get reactedEmojiSelfUser => 'You';
+  String get reactedEmojiSelfUser => 'Sina';
 
   @override
-  String get reactionChipsLabel => 'Reactions';
+  String get reactionChipsLabel => 'Reageerimised';
 
   @override
   String reactionChipLabel(String emojiName, String votes) {
@@ -1139,19 +1141,19 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get manyPeopleTyping => 'Several people are typing…';
 
   @override
-  String get wildcardMentionAll => 'all';
+  String get wildcardMentionAll => 'kõik';
 
   @override
-  String get wildcardMentionEveryone => 'everyone';
+  String get wildcardMentionEveryone => 'kogu seltskond';
 
   @override
-  String get wildcardMentionChannel => 'channel';
+  String get wildcardMentionChannel => 'kanal';
 
   @override
   String get wildcardMentionStream => 'stream';
 
   @override
-  String get wildcardMentionTopic => 'topic';
+  String get wildcardMentionTopic => 'teema';
 
   @override
   String get wildcardMentionChannelDescription => 'Notify channel';
@@ -1166,13 +1168,13 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Notify topic';
 
   @override
-  String get navBarMenuLabel => 'Menu';
+  String get navBarMenuLabel => 'Menüü';
 
   @override
-  String get messageIsEditedLabel => 'EDITED';
+  String get messageIsEditedLabel => 'MUUDETUD';
 
   @override
-  String get messageIsMovedLabel => 'MOVED';
+  String get messageIsMovedLabel => 'TEISALDATUD';
 
   @override
   String get messageNotSentLabel => 'MESSAGE NOT SENT';
@@ -1183,16 +1185,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get themeSettingTitle => 'THEME';
+  String get themeSettingTitle => 'KUJUNDUS';
 
   @override
-  String get themeSettingDark => 'Dark';
+  String get themeSettingDark => 'Tume kujundus';
 
   @override
-  String get themeSettingLight => 'Light';
+  String get themeSettingLight => 'Hele kujundus';
 
   @override
-  String get themeSettingSystem => 'System';
+  String get themeSettingSystem => 'Süsteemi kujundus';
 
   @override
   String get openLinksWithInAppBrowser => 'Open links with in-app browser';
@@ -1228,10 +1230,10 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'When scrolling through messages, should they automatically be marked as read?';
 
   @override
-  String get markReadOnScrollSettingAlways => 'Always';
+  String get markReadOnScrollSettingAlways => 'Alati';
 
   @override
-  String get markReadOnScrollSettingNever => 'Never';
+  String get markReadOnScrollSettingNever => 'Mitte kunagi';
 
   @override
   String get markReadOnScrollSettingConversations =>
@@ -1269,7 +1271,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'There is no account logged in. Please log in to an account and try again.';
 
   @override
-  String get emojiReactionsMore => 'more';
+  String get emojiReactionsMore => 'näita veel';
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';

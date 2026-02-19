@@ -133,16 +133,16 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'チャンネルからの退出に失敗しました';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => '上部に固定';
 
   @override
-  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+  String get actionSheetOptionUnpinChannel => '上部に固定を解除';
 
   @override
-  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+  String get errorPinChannelFailedTitle => 'チャンネルの固定に失敗しました';
 
   @override
-  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+  String get errorUnpinChannelFailedTitle => 'チャンネルの固定解除に失敗しました';
 
   @override
   String get actionSheetOptionMuteTopic => 'トピックをミュート';
