@@ -1,13 +1,20 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
+import 'dart:math';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
+import 'package:zulip/api/core.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/main.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/store.dart';
+
+import '../test/example_data.dart' as eg;
 
 void main() {
   mainInit();
@@ -16,6 +23,15 @@ void main() {
   // and the same real device platform, by the nature of live tests.
   // So we might as well let them use the same real database and global store.
   ZulipBinding.instance.debugRelaxGetGlobalStoreUniquely = true;
+
+  ApiConnection makeOtherConnection() {
+    return ApiConnection.live(
+      realmUrl: Uri.parse(const String.fromEnvironment('REALM_URL')),
+      email: const String.fromEnvironment('OTHER_EMAIL'),
+      apiKey: const String.fromEnvironment('OTHER_API_KEY'),
+      zulipFeatureLevel: eg.recentZulipFeatureLevel, // TODO get real value from server
+    );
+  }
 
   patrolTest('login', ($) async {
     addTearDown(ZulipApp.debugReset);
@@ -42,5 +58,37 @@ void main() {
     await $(findUsernameInput).enterText(const String.fromEnvironment('EMAIL'));
     await $(findPasswordInput).enterText(const String.fromEnvironment('PASSWORD'));
     await $.tap($(find.widgetWithText(ElevatedButton, 'Log in')));
+  });
+
+  patrolTest('notification', ($) async {
+    // Already logged in by the test above; no need to set up the account again.
+
+    addTearDown(ZulipApp.debugReset);
+    await $.pumpWidgetAndSettle(ZulipApp());
+
+    final navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    if (!context.mounted) throw Error();
+    final globalStore = GlobalStoreWidget.of(context);
+    final account = globalStore.accounts.single;
+    final store = globalStore.getAccount(account.id)!;
+
+    await Future<void>.delayed(Duration(milliseconds: 500));
+
+    final token = Random().nextInt(1 << 32).toRadixString(16).padLeft(8, '0');
+    final content = 'hello $token';
+    final otherConnection = makeOtherConnection();
+    await sendMessage(otherConnection,
+      destination: DmDestination(userIds: [store.userId]),
+      content: content);
+
+    await $.platform.mobile.openNotifications();
+    // TODO poll? in a loop, with a timeout
+    final notifs = await $.platform.mobile.getNotifications();
+    check(notifs).isNotEmpty();
+
+    await $.platform.mobile.tapOnNotificationByIndex(0);
+    await $.waitUntilVisible($(RegExp(r'^DMs with')));
+    check($(content)).findsOne();
   });
 }

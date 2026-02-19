@@ -89,15 +89,18 @@ Upstream docs: https://patrol.leancode.co/documentation
 In order to run the tests in `patrol_test/live_test.dart`, create a
 file `.patrol.env` at the root of the project tree, like so:
 ```
-REALM_URL=chat.example.com
+REALM_URL=https://chat.example.com
 EMAIL=user@example.com
 PASSWORD=hunter2
+OTHER_EMAIL=other.user@example.com
+OTHER_API_KEY=asdf1234
 ```
 
-with the realm URL, email, and password of a test account on some
-real Zulip server.
+with the realm URL of some real Zulip server, and credentials for
+two different test accounts there.  (The second account is used for
+sending messages to the first account, to cause notifications.)
 
-The tests will log into that real account and interact there.
+The tests will log into those real accounts and interact there.
 Avoid using chat.zulip.org or any other realm that people use
 for real human conversations;
 instead use a Zulip development server, or a test realm.
