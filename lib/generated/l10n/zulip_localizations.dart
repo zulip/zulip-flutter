@@ -980,6 +980,24 @@ abstract class ZulipLocalizations {
   /// **'Take a photo'**
   String get composeBoxAttachFromCameraTooltip;
 
+  /// Tooltip for compose box icon to insert a global time timestamp to the message.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert global time'**
+  String get composeBoxAttachGlobalTimeTooltip;
+
+  /// Help text shown in the date picker when selecting a date for global time insertion.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get composeBoxGlobalTimeDatePickerHelpText;
+
+  /// Help text shown in the time picker when selecting a time for global time insertion.
+  ///
+  /// In en, this message translates to:
+  /// **'Select time'**
+  String get composeBoxGlobalTimeTimePickerHelpText;
+
   /// Hint text for content input when sending a message.
   ///
   /// In en, this message translates to:

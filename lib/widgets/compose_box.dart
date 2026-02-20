@@ -274,6 +274,41 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       : TextRange.collapsed(text.length);
   }
 
+    /// Inserts [newText] in [text],
+  /// setting off with a space character before and after.
+  ///
+  /// Assumes [newText] does not start or end with whitespace
+  /// (i.e. that [String.trim] would not return a different string).
+  ///
+  /// Inserts at [insertionIndex]. If that's zero, no space is added before.
+  ///
+  /// If there is already an empty space before or after, does not add another.
+  void insertInline(String newText) {
+    assert(newText.isNotEmpty);
+    assert(newText.trim() == newText);
+    final i = insertionIndex();
+    final textBefore = text.substring(0, i.start);
+    final textAfter = text.substring(i.start);
+
+    final String paddingBefore;
+    if (textBefore.isEmpty) {
+      paddingBefore = ''; // At start of input.
+    } else if (textBefore.endsWith(' ')) {
+      paddingBefore = ''; // Already have space before.
+    } else {
+      paddingBefore = ' ';
+    }
+
+    final String paddingAfter;
+    if (textAfter.isEmpty || textAfter.startsWith(' ')) {
+      paddingAfter = ''; // At end of input or already have space after.
+    } else {
+      paddingAfter = ' ';
+    }
+
+    value = value.replaced(i, '$paddingBefore$newText$paddingAfter');
+  }
+
   /// Inserts [newText] in [text], setting off with an empty line before and after.
   ///
   /// Assumes [newText] is not empty and consists entirely of complete lines
@@ -282,7 +317,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   /// Inserts at [insertionIndex]. If that's zero, no empty line is added before.
   ///
   /// If there is already an empty line before or after, does not add another.
-  void insertPadded(String newText) {
+  void insertBlock(String newText) {
     assert(newText.isNotEmpty);
     assert(newText.endsWith('\n'));
     final i = insertionIndex();
@@ -318,7 +353,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       zulipLocalizations, store, message: message);
     _quoteAndReplies[tag] = (messageId: message.id, placeholder: placeholder);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
-    insertPadded(placeholder);
+    insertBlock(placeholder);
     return tag;
   }
 
@@ -341,8 +376,8 @@ class ComposeContentController extends ComposeController<ContentValidationError>
         TextRange(start: startIndex, end: startIndex + val.placeholder.length),
         replacementText,
       );
-    } else if (replacementText != '') { // insertPadded requires non-empty string
-      insertPadded(replacementText);
+    } else if (replacementText != '') { // insertBlock requires non-empty string
+      insertBlock(replacementText);
     }
     _quoteAndReplies.remove(tag);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
@@ -1242,6 +1277,34 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
   }
 }
 
+/// A button to insert a global time timestamp into the compose box.
+///
+/// Shows date and time pickers sequentially, then inserts a formatted
+/// timestamp in Zulip's global time format: `<time:YYYY-MM-DDTHH:mm:ss±HH:mm>`
+class _AttachGlobalTimeButton extends StatelessWidget {
+  const _AttachGlobalTimeButton({required this.controller, required this.enabled});
+
+  final ComposeBoxController controller;
+  final bool enabled;
+
+  void _handlePress(BuildContext context) async {
+    await controller.insertGlobalTime(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(ZulipIcons.clock, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: zulipLocalizations.composeBoxAttachGlobalTimeTooltip,
+        onPressed: enabled ? () => _handlePress(context) : null));
+  }
+}
+
 class _SendButton extends StatefulWidget {
   const _SendButton({required this.controller, required this.getDestination});
 
@@ -1489,6 +1552,7 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      _AttachGlobalTimeButton(controller: controller, enabled: composeButtonsEnabled),
     ];
 
     final topicInput = buildTopicInput();
@@ -1634,6 +1698,42 @@ sealed class ComposeBoxController {
       contentFocusNode: contentFocusNode,
       shouldRequestFocus: shouldRequestFocus,
       files: files);
+  }
+
+  /// Shows date and time pickers, then inserts a formatted timestamp.
+  ///
+  /// First shows a date picker, then a time picker. If either is cancelled,
+  /// the operation is aborted without inserting anything.
+  ///
+  /// The timestamp is inserted at the current cursor position, or at the end
+  /// of the text if there is no cursor position.
+  Future<void> insertGlobalTime(BuildContext context) async {
+    final now = DateTime.now();
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final date = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 5),
+      helpText: zulipLocalizations.composeBoxGlobalTimeDatePickerHelpText,
+      cancelText: zulipLocalizations.dialogCancel);
+
+    if (date == null || !context.mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(now),
+      helpText: zulipLocalizations.composeBoxGlobalTimeTimePickerHelpText,
+      cancelText: zulipLocalizations.dialogCancel,);
+
+    if (time == null) return;
+
+    final combined = date.copyWith(
+      hour: time.hour,
+      minute: time.minute);
+
+    content.insertInline('<time:${globalTime(combined)}>');
   }
 
   @mustCallSuper

@@ -17,6 +17,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
@@ -229,7 +230,7 @@ void main() {
   });
 
   group('ComposeContentController', () {
-    group('insertPadded', () {
+    group('insertBlock', () {
       // Like `parseMarkedText` in test/model/autocomplete_test.dart,
       //   but a bit different -- could maybe deduplicate some.
       TextEditingValue parseMarkedText(String markedText) {
@@ -253,79 +254,79 @@ void main() {
         return TextEditingValue(text: textBuffer.toString(), selection: TextSelection.collapsed(offset: insertionPoint));
       }
 
-      /// Test the given `insertPadded` call, in a convenient format.
+      /// Test the given `insertBlock` call, in a convenient format.
       ///
       /// In valueBefore, represent the insertion point as "^".
       /// In expectedValue, represent the collapsed selection as "^".
-      void testInsertPadded(String description, String valueBefore, String textToInsert, String expectedValue) {
+      void testinsertBlock(String description, String valueBefore, String textToInsert, String expectedValue) {
         test(description, () {
           store = eg.store();
           final controller = ComposeContentController(store: store);
           controller.value = parseMarkedText(valueBefore);
-          controller.insertPadded(textToInsert);
+          controller.insertBlock(textToInsert);
           check(controller.value).equals(parseMarkedText(expectedValue));
         });
       }
 
-      // TODO(?) exercise the part of insertPadded that chooses the insertion
+      // TODO(?) exercise the part of insertBlock that chooses the insertion
       //   point based on [TextEditingValue.selection], which may be collapsed,
       //   expanded, or null (what they call !TextSelection.isValid).
 
-      testInsertPadded('empty; insert one line',
+      testinsertBlock('empty; insert one line',
         '^', 'a\n',    'a\n\n^');
-      testInsertPadded('empty; insert two lines',
+      testinsertBlock('empty; insert two lines',
         '^', 'a\nb\n', 'a\nb\n\n^');
 
       group('insert at end', () {
-        testInsertPadded('one empty line; insert one line',
+        testinsertBlock('one empty line; insert one line',
           '\n^',     'a\n',    '\na\n\n^');
-        testInsertPadded('two empty lines; insert one line',
+        testinsertBlock('two empty lines; insert one line',
           '\n\n^',   'a\n',    '\n\na\n\n^');
-        testInsertPadded('one line, incomplete; insert one line',
+        testinsertBlock('one line, incomplete; insert one line',
           'a^',      'b\n',    'a\n\nb\n\n^');
-        testInsertPadded('one line, complete; insert one line',
+        testinsertBlock('one line, complete; insert one line',
           'a\n^',    'b\n',    'a\n\nb\n\n^');
-        testInsertPadded('multiple lines, last is incomplete; insert one line',
+        testinsertBlock('multiple lines, last is incomplete; insert one line',
           'a\nb^',   'c\n',    'a\nb\n\nc\n\n^');
-        testInsertPadded('multiple lines, last is complete; insert one line',
+        testinsertBlock('multiple lines, last is complete; insert one line',
           'a\nb\n^', 'c\n',    'a\nb\n\nc\n\n^');
-        testInsertPadded('multiple lines, last is complete; insert two lines',
+        testinsertBlock('multiple lines, last is complete; insert two lines',
           'a\nb\n^', 'c\nd\n', 'a\nb\n\nc\nd\n\n^');
       });
 
       group('insert at start', () {
-        testInsertPadded('one empty line; insert one line',
+        testinsertBlock('one empty line; insert one line',
           '^\n',     'a\n',    'a\n\n^');
-        testInsertPadded('two empty lines; insert one line',
+        testinsertBlock('two empty lines; insert one line',
           '^\n\n',   'a\n',    'a\n\n^\n');
-        testInsertPadded('one line, incomplete; insert one line',
+        testinsertBlock('one line, incomplete; insert one line',
           '^a',      'b\n',    'b\n\n^a');
-        testInsertPadded('one line, complete; insert one line',
+        testinsertBlock('one line, complete; insert one line',
           '^a\n',    'b\n',    'b\n\n^a\n');
-        testInsertPadded('multiple lines, last is incomplete; insert one line',
+        testinsertBlock('multiple lines, last is incomplete; insert one line',
           '^a\nb',   'c\n',    'c\n\n^a\nb');
-        testInsertPadded('multiple lines, last is complete; insert one line',
+        testinsertBlock('multiple lines, last is complete; insert one line',
           '^a\nb\n', 'c\n',    'c\n\n^a\nb\n');
-        testInsertPadded('multiple lines, last is complete; insert two lines',
+        testinsertBlock('multiple lines, last is complete; insert two lines',
           '^a\nb\n', 'c\nd\n', 'c\nd\n\n^a\nb\n');
       });
 
       group('insert in middle', () {
-        testInsertPadded('middle of line',
+        testinsertBlock('middle of line',
           'a^a\n',       'b\n', 'a\n\nb\n\n^a\n');
-        testInsertPadded('start of non-empty line, after empty line',
+        testinsertBlock('start of non-empty line, after empty line',
           'b\n\n^a\n',   'c\n', 'b\n\nc\n\n^a\n');
-        testInsertPadded('end of non-empty line, before non-empty line',
+        testinsertBlock('end of non-empty line, before non-empty line',
           'a^\nb\n',     'c\n', 'a\n\nc\n\n^b\n');
-        testInsertPadded('start of non-empty line, after non-empty line',
+        testinsertBlock('start of non-empty line, after non-empty line',
           'a\n^b\n',     'c\n', 'a\n\nc\n\n^b\n');
-        testInsertPadded('text start; one empty line; insertion point; one empty line',
+        testinsertBlock('text start; one empty line; insertion point; one empty line',
           '\n^\n',       'a\n', '\na\n\n^');
-        testInsertPadded('text start; one empty line; insertion point; two empty lines',
+        testinsertBlock('text start; one empty line; insertion point; two empty lines',
           '\n^\n\n',     'a\n', '\na\n\n^\n');
-        testInsertPadded('text start; two empty lines; insertion point; one empty line',
+        testinsertBlock('text start; two empty lines; insertion point; one empty line',
           '\n\n^\n',     'a\n', '\n\na\n\n^');
-        testInsertPadded('text start; two empty lines; insertion point; two empty lines',
+        testinsertBlock('text start; two empty lines; insertion point; two empty lines',
           '\n\n^\n\n',   'a\n', '\n\na\n\n^\n');
       });
     });
@@ -1369,6 +1370,136 @@ void main() {
           expectedMessage: 'The file to be inserted is empty or cannot be accessed.');
         checkAppearsLoading(tester, false);
       });
+    });
+  });
+
+  group('global time button', () {
+    final channel = eg.stream();
+    final narrow = eg.topicNarrow(channel.streamId, 'topic');
+
+    Future<void> prepare(WidgetTester tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        subscriptions: [eg.subscription(channel)]);
+    }
+
+    Finder globalTimeButtonFinder() => find.descendant(
+      of: find.byType(ComposeBox),
+      matching: find.byIcon(ZulipIcons.clock));
+
+    testWidgets('global time button is present', (tester) async {
+      await prepare(tester);
+      check(globalTimeButtonFinder()).findsOne();
+    });
+
+    testWidgets('tapping global time button shows date picker', (tester) async {
+      await prepare(tester);
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+
+      check(find.byType(DatePickerDialog)).findsOne();
+    });
+
+    testWidgets('selecting date and time inserts formatted timestamp', (tester) async {
+      await prepare(tester);
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      check(find.byType(TimePickerDialog)).findsOne();
+
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      final contentText = controller!.content.text;
+      check(contentText).contains('<time:');
+      check(contentText).contains('>');
+    });
+
+    testWidgets('canceling date picker does not insert timestamp', (tester) async {
+      await prepare(tester);
+
+      final initialContent = 'existing text';
+      await enterContent(tester, initialContent);
+
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      check(controller!.content.text).equals(initialContent);
+    });
+
+    testWidgets('canceling time picker does not insert timestamp', (tester) async {
+      await prepare(tester);
+
+      final initialContent = 'existing text';
+      await enterContent(tester, initialContent);
+
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      check(controller!.content.text).equals(initialContent);
+    });
+
+    testWidgets('timestamp inserted at cursor position', (tester) async {
+      await prepare(tester);
+
+      await enterContent(tester, 'before after');
+
+      final textField = tester.widget<TextField>(contentInputFinder);
+      textField.controller!.selection = const TextSelection.collapsed(offset: 7);
+
+      await tester.tap(globalTimeButtonFinder());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'OK'));
+      await tester.pumpAndSettle();
+
+      final contentText = controller!.content.text;
+      check(contentText).startsWith('before <time:');
+      check(contentText).endsWith('after');
+    });
+
+    test('formatGlobalTime produces correct format', () {
+      final testStore = eg.store();
+      final controller = StreamComposeBoxController(store: testStore);
+
+      final testDate = DateTime(2025, 12, 31, 13, 30);
+      final formatted = globalTime(testDate);
+
+      check(formatted).startsWith('2025-12-31T13:30:00');
+
+      final regExp = RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$');
+      check(formatted).has((s) => regExp.hasMatch(s), 'matches ISO 8601 with timezone').isTrue();
+
+      controller.dispose();
+    });
+
+    test('formatGlobalTime handles timezone offset correctly', () {
+      final testStore = eg.store();
+      final controller = StreamComposeBoxController(store: testStore);
+
+      final testDate = DateTime(2025, 1, 1, 0, 0);
+      final formatted = globalTime(testDate);
+
+      final regExp = RegExp(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$');
+      check(formatted).has((s) => regExp.hasMatch(s), 'matches ISO 8601 with timezone').isTrue();
+
+      controller.dispose();
     });
   });
 
