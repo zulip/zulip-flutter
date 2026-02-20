@@ -164,6 +164,9 @@ abstract class MessageListPageState extends State<MessageListPage> {
   ///
   /// For example, this is set to false after pressing
   /// "Mark as unread from here" in the message action sheet.
+  // TODO(#1655) When this is false and
+  //   [GlobalSettingsStore.markReadOnScrollForNarrow] gives true,
+  //   show an alert and a button that lets you exit this temporary state.
   bool? get markReadOnScroll;
   set markReadOnScroll(bool? value);
 
@@ -356,6 +359,18 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   void initState() {
     super.initState();
     narrow = widget.initNarrow;
+
+    switch (narrow) {
+      case CombinedFeedNarrow():
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+        break;
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+        // TODO(#1583) write tests for this
+        _markReadOnScroll = false;
+    }
   }
 
   void _narrowChanged(Narrow newNarrow) {
