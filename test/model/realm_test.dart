@@ -240,4 +240,106 @@ void main() {
       check(store.customProfileFields.map((f) => f.id)).deepEquals([2, 0, 1]);
     });
   });
+
+  group('primaryPronounFieldId', () {
+    test('null when no pronoun fields exist', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.longText),
+        ]));
+      check(store.primaryPronounFieldId).isNull();
+    });
+
+    test('returns the one pronoun field', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.pronouns),
+        ]));
+      check(store.primaryPronounFieldId).equals(1);
+    });
+
+    test('returns field with lowest order among multiple pronoun fields', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.pronouns, order: 10),
+          eg.customProfileField(2, CustomProfileFieldType.pronouns, order: 5),
+          eg.customProfileField(3, CustomProfileFieldType.pronouns, order: 8),
+        ]));
+      check(store.primaryPronounFieldId).equals(2);
+    });
+
+    test('updates after CustomProfileFieldsEvent', () async {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      check(store.primaryPronounFieldId).equals(0);
+
+      await store.handleEvent(CustomProfileFieldsEvent(id: 0, fields: [
+        eg.customProfileField(1, CustomProfileFieldType.shortText),
+      ]));
+      check(store.primaryPronounFieldId).isNull();
+    });
+  });
+
+  group('primaryPronounsFor', () {
+    test('returns pronoun value when present', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'he/him', renderedValue: null),
+      });
+      check(store.primaryPronounsFor(user)).equals('he/him');
+    });
+
+    test('returns null when no pronoun field exists', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'some text', renderedValue: null),
+      });
+      check(store.primaryPronounsFor(user)).isNull();
+    });
+
+    test('returns null when user has no profile data for field', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user();
+      check(store.primaryPronounsFor(user)).isNull();
+    });
+
+    test('returns null when user has empty value for field', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: '', renderedValue: null),
+      });
+      check(store.primaryPronounsFor(user)).isNull();
+    });
+
+    test('uses field with lowest order among multiple pronoun fields', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns, order: 10),
+          eg.customProfileField(1, CustomProfileFieldType.pronouns, order: 5),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'he/him', renderedValue: null),
+        1: ProfileFieldUserData(value: 'they/them', renderedValue: null),
+      });
+      // Field 1 has lower order (5 < 10), so its value is used.
+      check(store.primaryPronounsFor(user)).equals('they/them');
+    });
+  });
 }
