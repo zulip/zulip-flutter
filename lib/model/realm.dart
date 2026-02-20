@@ -95,6 +95,18 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   List<CustomProfileField> get customProfileFields;
 
   //|//////////////////////////////////////////////////////////////
+  // Digests of the settings.
+
+  /// The ID of the primary pronoun-type custom profile field, if any.
+  ///
+  /// If the realm has multiple pronoun fields, this is the first one
+  /// in the [customProfileFields] list. Returns null if no pronoun field
+  /// exists.
+  ///
+  /// See: https://github.com/zulip/zulip/issues/26924
+  int? get primaryPronounFieldId;
+
+  //|//////////////////////////////////////////////////////////////
   // Methods that examine the settings.
 
   /// Process the given topic to match how it would appear
@@ -140,6 +152,25 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
       return TopicName('');
     }
     return topic;
+  }
+
+  /// The pronoun text for [user] from the primary pronoun field, or null.
+  ///
+  /// Returns null if:
+  /// - The realm has no pronoun-type custom profile field.
+  /// - The user has no value (or an empty value) for that field.
+  ///
+  /// If multiple pronoun fields exist, only the first in the
+  /// [customProfileFields] list is used, even if the user's value for it
+  /// is empty. This ensures consistent behavior across all users.
+  ///
+  /// See: https://github.com/zulip/zulip/issues/26924
+  String? primaryPronounsFor(User user) {
+    final fieldId = primaryPronounFieldId;
+    if (fieldId == null) return null;
+    final value = user.profileData?[fieldId]?.value;
+    if (value == null || value.isEmpty) return null;
+    return value;
   }
 
   /// Whether the self-user has passed the realm's waiting period
@@ -216,6 +247,8 @@ mixin ProxyRealmStore on RealmStore {
   int get maxTopicLength => realmStore.maxTopicLength;
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
+  @override
+  int? get primaryPronounFieldId => realmStore.primaryPronounFieldId;
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
     realmStore.selfHasPassedWaitingPeriod(byDate: byDate);
@@ -452,6 +485,14 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   @override
   List<CustomProfileField> customProfileFields;
+
+  @override
+  int? get primaryPronounFieldId {
+    for (final field in customProfileFields) {
+      if (field.type == CustomProfileFieldType.pronouns) return field.id;
+    }
+    return null;
+  }
 
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
     // TODO(server): The realm-wide field objects have an `order` property,

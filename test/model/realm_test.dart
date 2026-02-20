@@ -240,4 +240,105 @@ void main() {
       check(store.customProfileFields.map((f) => f.id)).deepEquals([2, 0, 1]);
     });
   });
+
+  group('primaryPronounFieldId', () {
+    test('null when no pronoun fields exist', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.longText),
+        ]));
+      check(store.primaryPronounFieldId).isNull();
+    });
+
+    test('returns the one pronoun field', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.pronouns),
+        ]));
+      check(store.primaryPronounFieldId).equals(1);
+    });
+
+    test('returns first pronoun field in list among multiple', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.pronouns),
+          eg.customProfileField(2, CustomProfileFieldType.pronouns),
+        ]));
+      check(store.primaryPronounFieldId).equals(1);
+    });
+
+    test('updates after CustomProfileFieldsEvent', () async {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      check(store.primaryPronounFieldId).equals(0);
+
+      await store.handleEvent(CustomProfileFieldsEvent(id: 0, fields: [
+        eg.customProfileField(1, CustomProfileFieldType.shortText),
+      ]));
+      check(store.primaryPronounFieldId).isNull();
+    });
+  });
+
+  group('primaryPronounsFor', () {
+    test('returns pronoun value when present', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'he/him', renderedValue: null),
+      });
+      check(store.primaryPronounsFor(user)).equals('he/him');
+    });
+
+    test('returns null when no pronoun field exists', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'some text', renderedValue: null),
+      });
+      check(store.primaryPronounsFor(user)).isNull();
+    });
+
+    test('returns null when user has no profile data for field', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user();
+      check(store.primaryPronounsFor(user)).isNull();
+    });
+
+    test('returns null when user has empty value for field', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: '', renderedValue: null),
+      });
+      check(store.primaryPronounsFor(user)).isNull();
+    });
+
+    test('uses first pronoun field in list among multiple', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+          eg.customProfileField(1, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'he/him', renderedValue: null),
+        1: ProfileFieldUserData(value: 'they/them', renderedValue: null),
+      });
+      // Field 0 appears first in the list, so its value is used.
+      check(store.primaryPronounsFor(user)).equals('he/him');
+    });
+  });
 }
