@@ -7,6 +7,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:path_provider_foundation/path_provider_foundation.dart';
 
 import '../api/core.dart';
 import '../api/exception.dart';
@@ -1120,6 +1121,8 @@ class LiveGlobalStore extends GlobalStore {
 
   /// The file path to use for the app database.
   static Future<File> _dbFile() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) return _iosDbFile();
+
     // What directory should we use?
     //   path_provider's getApplicationSupportDirectory:
     //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
@@ -1135,6 +1138,29 @@ class LiveGlobalStore extends GlobalStore {
     //     That Linux answer is definitely not a fit.  Harder to tell about the rest.
     final dir = await getApplicationSupportDirectory();
     return File(p.join(dir.path, 'zulip.db'));
+  }
+
+  static Future<File> _iosDbFile() async {
+    final pathProviderFoundation = PathProviderFoundation();
+    final containerDbDir = await pathProviderFoundation.getContainerPath(appGroupIdentifier: 'group.zulip.test');
+    final containerDbFile = File(p.join(containerDbDir!, 'zulip.db'));
+    print('containerDbFile: $containerDbFile');
+    if (await containerDbFile.exists()) {
+      print('containerDbFile: $containerDbFile already exits!');
+      return containerDbFile;
+    }
+
+    final nonContainerDbDir = await getApplicationSupportDirectory();
+    final nonContainerDbFile = File(p.join(nonContainerDbDir.path, 'zulip.db'));
+    if (await nonContainerDbFile.exists()) {
+      print('nonContainerDbFile: $nonContainerDbFile already exits!');
+      print('copying nonContainerDbFile: $nonContainerDbFile to containerDbFile: $containerDbFile');
+      await nonContainerDbFile.copy(containerDbFile.path);
+
+      // TODO do we want to delete old file?
+    }
+
+    return containerDbFile;
   }
 
   final LiveGlobalStoreBackend _backend;
