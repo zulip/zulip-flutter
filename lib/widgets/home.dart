@@ -90,6 +90,23 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  List<Widget>? get _currentTabAppBarActions {
+    switch(_tab.value) {
+      case _HomePageTab.inbox:
+        return [
+          IconButton(
+            icon: const Icon(ZulipIcons.search),
+            tooltip: ZulipLocalizations.of(context).searchMessagesPageTitle,
+            onPressed: () => Navigator.of(context).push(MessageListPage.buildRoute(
+              context: context, narrow: const KeywordSearchNarrow(''))),
+          ),
+        ];
+      case _HomePageTab.channels:
+      case _HomePageTab.directMessages:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const pageBodies = [
@@ -104,7 +121,8 @@ class _HomePageState extends State<HomePage> {
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
-          child: Text(_currentTabTitle))),
+          child: Text(_currentTabTitle)),
+        actions: _currentTabAppBarActions),
       body: Semantics(
         role: SemanticsRole.tabPanel,
         identifier: HomePage.contentSemanticsIdentifier,
