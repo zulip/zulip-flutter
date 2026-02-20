@@ -303,9 +303,16 @@ void main() {
         return find.descendant(of: itemColumn, matching: find.byType(Text));
       }
 
-      testWidgets('no sublabel when delivery email is unavailable', (tester) async {
-        final user = eg.user(fullName: 'User One', deliveryEmail: null);
+      Future<void> checkUserMentionSublabel(WidgetTester tester, {
+        required User user,
+        List<CustomProfileField>? customProfileFields,
+        required String? expectedSublabel,
+      }) async {
         final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+        if (customProfileFields != null) {
+          await store.handleEvent(CustomProfileFieldsEvent(
+            id: 0, fields: customProfileFields));
+        }
 
         // TODO(#226): Remove this extra edit when this bug is fixed.
         await tester.enterText(composeInputFinder, 'hello @user ');
@@ -313,28 +320,46 @@ void main() {
         await tester.pumpAndSettle(); // async computation; options appear
 
         checkUserShown(user, expected: true);
-        check(find.text(user.email)).findsNothing();
-        check(findLabelsForItem(
-          itemFinder: find.text(user.fullName))).findsOne();
-
+        final labelsFinder = findLabelsForItem(
+          itemFinder: find.text(user.fullName));
+        if (expectedSublabel == null) {
+          check(labelsFinder).findsOne();
+        } else {
+          check(find.text(expectedSublabel)).findsOne();
+          check(labelsFinder).findsExactly(2);
+        }
         debugNetworkImageHttpClientProvider = null;
+      }
+
+      testWidgets('no sublabel when delivery email and pronouns are unavailable',
+          (tester) async {
+        await checkUserMentionSublabel(tester,
+          user: eg.user(fullName: 'User One', deliveryEmail: null),
+          expectedSublabel: null);
       });
 
       testWidgets('show sublabel when delivery email is available', (tester) async {
         final user = eg.user(fullName: 'User One', deliveryEmail: 'email1@email.com');
-        final composeInputFinder = await setupToComposeInput(tester, users: [user]);
+        await checkUserMentionSublabel(tester,
+          user: user,
+          expectedSublabel: user.deliveryEmail);
+      });
 
-        // TODO(#226): Remove this extra edit when this bug is fixed.
-        await tester.enterText(composeInputFinder, 'hello @user ');
-        await tester.enterText(composeInputFinder, 'hello @user o');
-        await tester.pumpAndSettle(); // async computation; options appear
+      testWidgets('show pronouns in sublabel when available', (tester) async {
+        await checkUserMentionSublabel(tester,
+          user: eg.user(fullName: 'User One', deliveryEmail: null,
+            profileData: {0: ProfileFieldUserData(value: 'he/him')}),
+          customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.pronouns)],
+          expectedSublabel: 'he/him');
+      });
 
-        checkUserShown(user, expected: true);
-        check(find.text(user.deliveryEmail!)).findsOne();
-        check(findLabelsForItem(
-          itemFinder: find.text(user.fullName))).findsExactly(2);
-
-        debugNetworkImageHttpClientProvider = null;
+      testWidgets('show pronouns with email in sublabel', (tester) async {
+        await checkUserMentionSublabel(tester,
+          user: eg.user(fullName: 'User One',
+            deliveryEmail: 'email@example.com',
+            profileData: {0: ProfileFieldUserData(value: 'she/her')}),
+          customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.pronouns)],
+          expectedSublabel: 'she/her, email@example.com');
       });
 
       testWidgets('show sublabel for wildcard mention items', (tester) async {

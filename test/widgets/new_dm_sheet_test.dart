@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/store.dart';
@@ -405,6 +406,41 @@ void main() {
       check(findUserTile(user)).findsOne();
       check(findUserChip(user)).findsOne();
       check(find.textContaining('Busy')).findsNothing();
+    });
+  });
+
+  group('pronouns in user list item', () {
+    testWidgets('shows pronouns when available', (tester) async {
+      final user = eg.user(fullName: 'User One', profileData: {
+        0: ProfileFieldUserData(value: 'he/him', renderedValue: null),
+      });
+      await setupSheet(tester, users: [user]);
+      await store.handleEvent(CustomProfileFieldsEvent(id: 0, fields: [
+        eg.customProfileField(0, CustomProfileFieldType.pronouns),
+      ]));
+      await tester.pump();
+
+      check(find.textContaining('(he/him)')).findsOne();
+    });
+
+    testWidgets('no pronouns when field is empty', (tester) async {
+      final user = eg.user(fullName: 'User One', profileData: {
+        0: ProfileFieldUserData(value: '', renderedValue: null),
+      });
+      await setupSheet(tester, users: [user]);
+      await store.handleEvent(CustomProfileFieldsEvent(id: 0, fields: [
+        eg.customProfileField(0, CustomProfileFieldType.pronouns),
+      ]));
+      await tester.pump();
+
+      check(find.textContaining('(')).findsNothing();
+    });
+
+    testWidgets('no pronouns when no pronoun field exists', (tester) async {
+      final user = eg.user(fullName: 'User One');
+      await setupSheet(tester, users: [user]);
+
+      check(find.textContaining('(')).findsNothing();
     });
   });
 

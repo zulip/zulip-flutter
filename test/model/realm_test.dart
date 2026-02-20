@@ -240,4 +240,48 @@ void main() {
       check(store.customProfileFields.map((f) => f.id)).deepEquals([2, 0, 1]);
     });
   });
+
+  group('primaryPronounFieldId', () {
+    test('null when no pronoun fields exist', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.longText),
+        ]));
+      check(store.primaryPronounFieldId).isNull();
+    });
+
+    test('returns the one pronoun field', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+          eg.customProfileField(1, CustomProfileFieldType.pronouns),
+        ]));
+      check(store.primaryPronounFieldId).equals(1);
+    });
+
+    test('returns first pronoun field in list among multiple', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns, order: 3),
+          eg.customProfileField(1, CustomProfileFieldType.shortText, order: 2),
+          eg.customProfileField(2, CustomProfileFieldType.pronouns, order: 1),
+        ]));
+      check(store.primaryPronounFieldId).equals(0);
+    });
+
+    test('updates after CustomProfileFieldsEvent', () async {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      check(store.primaryPronounFieldId).equals(0);
+
+      await store.handleEvent(CustomProfileFieldsEvent(id: 0, fields: [
+        eg.customProfileField(1, CustomProfileFieldType.shortText),
+      ]));
+      check(store.primaryPronounFieldId).isNull();
+    });
+  });
+
 }
