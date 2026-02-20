@@ -1063,6 +1063,13 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
+    if (model.fetchInitialError != null) {
+      return _FetchInitialErrorWidget(
+        error: model.fetchInitialError!,
+        onRetry: model.retryFetchInitial,
+      );
+    }
+
     if (!model.fetched) return const Center(child: CircularProgressIndicator());
 
     if (model.items.isEmpty && model.haveNewest && model.haveOldest) {
@@ -2591,5 +2598,44 @@ class _RestoreOutboxMessageGestureDetector extends StatelessWidget {
         composeBoxState.restoreMessageNotSent(localMessageId);
       },
       child: child);
+  }
+}
+
+/// Widget shown when the initial message fetch fails.
+class _FetchInitialErrorWidget extends StatelessWidget {
+  const _FetchInitialErrorWidget({
+    required this.error,
+    required this.onRetry,
+  });
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: designVariables.icon),
+            const SizedBox(height: 16),
+            Text(
+              zulipLocalizations.errorCouldNotLoadMessages,
+              style: const TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: Text(zulipLocalizations.tryAgainButton),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
