@@ -312,7 +312,14 @@ class MentionAutocompleteItem extends StatelessWidget {
         label = store.userDisplayName(userId);
         emoji = UserStatusEmoji(userId: userId, size: 18,
           padding: const EdgeInsetsDirectional.only(start: 5.0));
-        sublabel = store.getUser(userId)?.deliveryEmail;
+        final user = store.getUser(userId);
+        final pronouns = user != null ? store.primaryPronounsFor(user) : null;
+        final email = user?.deliveryEmail;
+        final parts = <String>[
+          if (pronouns != null) '($pronouns)',
+          ?email,
+        ];
+        sublabel = parts.isEmpty ? null : parts.join('  ');
       case UserGroupMentionAutocompleteResult(:final groupId):
         final group = store.getGroup(groupId);
         avatar = SizedBox.square(dimension: 36,
