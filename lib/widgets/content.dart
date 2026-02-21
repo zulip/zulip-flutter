@@ -21,6 +21,7 @@ import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
+import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
@@ -1182,7 +1183,7 @@ class _InlineContentBuilder {
 
 const kInlineCodeFontSizeFactor = 0.825;
 
-class Mention extends StatelessWidget {
+class Mention extends StatefulWidget {
   const Mention({
     super.key,
     required this.ambientTextStyle,
@@ -1193,22 +1194,68 @@ class Mention extends StatelessWidget {
   final MentionNode node;
 
   @override
+  State<Mention> createState() => _MentionState();
+}
+
+class _MentionState extends State<Mention> {
+  GestureRecognizer? _recognizer;
+
+  void _prepareRecognizer() {
+    switch (widget.node) {
+      case UserMentionNode(:final userId?):
+        _recognizer = TapGestureRecognizer()
+          ..onTap = () {
+            Navigator.push(context,
+              ProfilePage.buildRoute(context: context, userId: userId));
+          };
+      case UserGroupMentionNode():
+      case UserMentionNode(userId: null):
+    }
+  }
+
+  void _disposeRecognizer() {
+    _recognizer?.dispose();
+    _recognizer = null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _prepareRecognizer();
+  }
+
+  @override
+  void didUpdateWidget(covariant Mention oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.node != oldWidget.node) {
+      _disposeRecognizer();
+      _prepareRecognizer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposeRecognizer();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
 
-    var nodes = node.nodes;
-    switch (node) {
+    var nodes = widget.node.nodes;
+    switch (widget.node) {
       case UserGroupMentionNode(:final userGroupId):
         final userGroup = store.getGroup(userGroupId);
         if (userGroup case UserGroup(:final name)) {
           // TODO(#1260) Get display name for system groups using localization
-          nodes = [TextNode(node.isSilent ? name : '@$name')];
+          nodes = [TextNode(widget.node.isSilent ? name : '@$name')];
         }
       case UserMentionNode(:final userId?):
         final user = store.getUser(userId);
         if (user case User(:final fullName)) {
-          nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
+          nodes = [TextNode(widget.node.isSilent ? fullName : '@$fullName')];
         }
       case UserMentionNode(userId: null):
     }
@@ -1221,14 +1268,14 @@ class Mention extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
+        recognizer: _recognizer,
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a MentionNode has a TODO to check that.)
         linkRecognizers: null,
 
         // TODO(#647) when self-user is non-silently mentioned, make bold, and:
         // TODO(#646) distinguish font color between direct and wildcard mentions
-        style: ambientTextStyle,
+        style: widget.ambientTextStyle,
 
         nodes: nodes));
   }
