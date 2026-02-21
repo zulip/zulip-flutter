@@ -1036,6 +1036,29 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Помилка оновлення статусу користувача. Спробуйте ще раз.';
 
   @override
+  String get statusExpirationLabel => 'Automatically clear status';
+
+  @override
+  String get statusExpirationNever => 'Never';
+
+  @override
+  String get statusExpirationIn30Minutes => 'In 30 minutes';
+
+  @override
+  String get statusExpirationIn1Hour => 'In 1 hour';
+
+  @override
+  String statusExpirationTodayAtTime(String time) {
+    return 'Today at $time';
+  }
+
+  @override
+  String get statusExpirationTomorrow => 'Tomorrow';
+
+  @override
+  String get statusExpirationCustom => 'Custom';
+
+  @override
   String get searchMessagesPageTitle => 'Пошук';
 
   @override
