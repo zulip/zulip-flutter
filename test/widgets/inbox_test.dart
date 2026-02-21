@@ -2,13 +2,14 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/channel_colors.dart';
+import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/counter_badge.dart';
 
@@ -119,81 +120,162 @@ void main() {
       ]);
   }
 
-  /// Find a row with the given label.
-  Widget? findRowByLabel(WidgetTester tester, String label) {
-    final rowLabel = tester.widgetList(
-      find.text(label),
-    ).firstOrNull;
-    if (rowLabel == null) {
-      return null;
+  // TODO instead of .first, could look for both the row in the list *and*
+  //   in the sticky-header position, or at least target one or the other
+  //   intentionally.
+  final findAllDmsHeader = find.byType(InboxAllDmsHeaderItem).first;
+
+  /// Check details of the "Direct messages" header.
+  ///
+  /// For [findSectionContent], optionally pass a [Finder]
+  /// that will find some of the section's content if it is uncollapsed.
+  /// It will be expected to find something or nothing,
+  /// depending on [expectCollapsed].
+  void checkAllDmsHeader(WidgetTester tester, {
+    Color? expectedBackgroundColor,
+    bool? expectAtSignIcon,
+    bool? expectCollapsed,
+    Finder? findSectionContent,
+  }) {
+    check(findAllDmsHeader).findsOne();
+
+    if (expectAtSignIcon != null) {
+      check(find.descendant(of: findAllDmsHeader, matching: find.byIcon(ZulipIcons.at_sign)))
+        .findsExactly(expectAtSignIcon ? 1 : 0);
     }
 
-    return tester.widget(
-      find.ancestor(
-        of: find.byWidget(rowLabel),
-        matching: find.byType(Row)));
+    if (expectCollapsed != null) {
+      check(find.descendant(
+        of: findAllDmsHeader,
+        matching: find.byIcon(
+          expectCollapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down))).findsOne();
+
+      final renderObject = tester.renderObject<RenderBox>(findAllDmsHeader);
+      final paintBounds = renderObject.paintBounds;
+
+      // `paints` isn't a [Matcher] so we wrap it with `equals`;
+      // awkward but it works
+      check(renderObject).legacyMatcher(equals(paints..rrect(
+        rrect: RRect.fromRectAndRadius(paintBounds, Radius.zero),
+        style: .fill,
+        color: expectCollapsed
+          ? Colors.white
+          : const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor())));
+
+      if (findSectionContent != null) {
+        check(findSectionContent).findsExactly(expectCollapsed ? 0 : 1);
+      }
+    }
   }
 
-  /// Find the all-DMs header element.
-  Widget? findAllDmsHeaderRow(WidgetTester tester) {
-    return findRowByLabel(tester, 'Direct messages');
+  void checkDm(Pattern expectLabelContains, {
+    bool expectAtSignIcon = false,
+    String? expectCounterBadgeText,
+  }) {
+    final findRow = find.ancestor(
+      of: find.textContaining(expectLabelContains),
+      matching: find.byType(InboxDmItem));
+    check(findRow).findsOne();
+
+    check(find.descendant(of: findRow, matching: find.byIcon(ZulipIcons.at_sign)))
+      .findsExactly(expectAtSignIcon ? 1 : 0);
+
+    if (expectCounterBadgeText != null) {
+      check(find.descendant(
+        of: findRow,
+        matching: find.widgetWithText(CounterBadge, expectCounterBadgeText))
+      ).findsOne();
+    }
   }
 
-  Color? allDmsHeaderBackgroundColor(WidgetTester tester) {
-    final row = findAllDmsHeaderRow(tester);
-    check(row).isNotNull();
-    final material = tester.firstWidget<Material>(
-      find.ancestor(
-        of: find.byWidget(row!),
-        matching: find.byType(Material)));
-    return material.color;
-  }
+  // TODO instead of .first, could look for both the row in the list *and*
+  //   in the sticky-header position, or at least target one or the other
+  //   intentionally.
+  Finder findChannelHeader(int channelId) => find.byWidgetPredicate((widget) =>
+    widget is InboxChannelHeaderItem && widget.channelId == channelId).first;
 
-  /// For the given stream ID, find the stream header element.
-  Widget? findStreamHeaderRow(WidgetTester tester, int streamId) {
-    final stream = store.streams[streamId]!;
-    return findRowByLabel(tester, stream.name);
-  }
+  /// Check details of a channel header.
+  ///
+  /// For [findSectionContent], optionally pass a [Finder]
+  /// that will find some of the section's content if it is uncollapsed.
+  /// It will be expected to find something or nothing,
+  /// depending on [expectCollapsed].
+  void checkChannelHeader(WidgetTester tester, Subscription subscription, {
+    bool? expectAtSignIcon,
+    bool? expectCollapsed,
+    Finder? findSectionContent,
+  }) {
+    final findHeader = findChannelHeader(subscription.streamId);
+    final element = tester.element(findHeader);
 
-  Color? streamHeaderBackgroundColor(WidgetTester tester, int streamId) {
-    final row = findStreamHeaderRow(tester, streamId);
-    check(row).isNotNull();
-    final material = tester.firstWidget<Material>(
-      find.ancestor(
-        of: find.byWidget(row!),
-        matching: find.byType(Material)));
-    return material.color;
-  }
+    final swatch = colorSwatchFor(element, subscription);
 
-  IconData expectedStreamHeaderIcon(int streamId) {
-    final subscription = store.subscriptions[streamId]!;
-    return switch (subscription) {
+    if (expectAtSignIcon != null) {
+      check(find.descendant(of: findHeader, matching: find.byIcon(ZulipIcons.at_sign)))
+        .findsExactly(expectAtSignIcon ? 1 : 0);
+    }
+
+    final expectedChannelIcon = switch (subscription) {
       Subscription(isWebPublic: true) => ZulipIcons.globe,
       Subscription(inviteOnly: true) => ZulipIcons.lock,
       Subscription() => ZulipIcons.hash_sign,
     };
+    final channelIcon = tester.widget<Icon>(
+      find.descendant(of: findHeader, matching: find.byIcon(expectedChannelIcon)));
+
+    if (expectCollapsed != null) {
+      check(find.descendant(
+        of: findHeader,
+        matching: find.byIcon(
+          expectCollapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down))).findsOne();
+
+      check(channelIcon).color.isNotNull()
+        .isSameColorAs(expectCollapsed
+          ? swatch.iconOnPlainBackground
+          : swatch.iconOnBarBackground);
+
+      final renderObject = tester.renderObject<RenderBox>(findHeader);
+      final paintBounds = renderObject.paintBounds;
+
+      // `paints` isn't a [Matcher] so we wrap it with `equals`;
+      // awkward but it works
+      check(renderObject).legacyMatcher(equals(paints..rrect(
+        rrect: RRect.fromRectAndRadius(paintBounds, Radius.zero),
+        style: .fill,
+        color: expectCollapsed
+          ? Colors.white
+          : swatch.barBackground)));
+
+      if (findSectionContent != null) {
+        check(findSectionContent).findsExactly(expectCollapsed ? 0 : 1);
+      }
+    }
   }
 
-  Icon findStreamHeaderIcon(WidgetTester tester, int streamId) {
-    final expectedIcon = expectedStreamHeaderIcon(streamId);
-    final headerRow = findStreamHeaderRow(tester, streamId);
-    check(headerRow).isNotNull();
-
-    return tester.widget<Icon>(find.descendant(
-      of: find.byWidget(headerRow!),
-      matching: find.byIcon(expectedIcon),
-    ));
-  }
-
-  bool hasIcon(WidgetTester tester, {
-    required Widget? parent,
-    required IconData icon,
+  void checkTopic(String topicDisplayName, {
+    bool expectFollowIcon = false,
+    bool expectAtSignIcon = false,
+    bool expectUnmuteIcon = false,
+    String? expectCounterBadgeText,
   }) {
-    check(parent).isNotNull();
-    return tester.widgetList(find.descendant(
-      of: find.byWidget(parent!),
-      matching: find.byIcon(icon),
-    )).isNotEmpty;
+    final findRow = find.widgetWithText(InboxTopicItem, topicDisplayName);
+    check(findRow).findsOne();
+
+    check(find.widgetWithIcon(InboxTopicItem, ZulipIcons.follow))
+      .findsExactly(expectFollowIcon ? 1 : 0);
+
+    check(find.widgetWithIcon(InboxTopicItem, ZulipIcons.at_sign))
+      .findsExactly(expectAtSignIcon ? 1 : 0);
+
+    check(find.widgetWithIcon(InboxTopicItem, ZulipIcons.unmute))
+      .findsExactly(expectUnmuteIcon ? 1 : 0);
+
+    if (expectCounterBadgeText != null) {
+      check(find.descendant(
+        of: findRow,
+        matching: find.widgetWithText(CounterBadge, expectCounterBadgeText))
+      ).findsOne();
+    }
   }
 
   group('InboxPage', () {
@@ -220,7 +302,7 @@ void main() {
 
       final text = tester.widget<Text>(
         find.descendant(
-          of: find.byWidget(findRowByLabel(tester, channel.name)!),
+          of: findChannelHeader(channel.streamId),
           matching: find.descendant(
             of: find.byType(CounterBadge),
             matching: find.text('1'))));
@@ -285,9 +367,6 @@ void main() {
       final subscription = eg.subscription(stream);
       const topic = 'lunch';
 
-      bool hasAtSign(WidgetTester tester, Widget? parent) =>
-        hasIcon(tester, parent: parent, icon: ZulipIcons.at_sign);
-
       testWidgets('topic with a mention', (tester) async {
         await setupPage(tester,
           streams: [stream],
@@ -295,9 +374,8 @@ void main() {
           unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
             flags: [MessageFlag.mentioned])]);
 
-        check(hasAtSign(tester, findStreamHeaderRow(tester, stream.streamId)))
-          .isTrue();
-        check(hasAtSign(tester, findRowByLabel(tester, topic))).isTrue();
+        checkChannelHeader(tester, subscription, expectAtSignIcon: true);
+        checkTopic(topic, expectAtSignIcon: true);
       });
 
       testWidgets('topic without a mention', (tester) async {
@@ -307,9 +385,8 @@ void main() {
           unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
             flags: [])]);
 
-        check(hasAtSign(tester, findStreamHeaderRow(tester, stream.streamId)))
-          .isFalse();
-        check(hasAtSign(tester, findRowByLabel(tester, topic))).isFalse();
+        checkChannelHeader(tester, subscription, expectAtSignIcon: false);
+        checkTopic(topic, expectAtSignIcon: false);
       });
 
       testWidgets('dm with a mention', (tester) async {
@@ -318,8 +395,8 @@ void main() {
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
             flags: [MessageFlag.mentioned])]);
 
-        check(hasAtSign(tester, findAllDmsHeaderRow(tester))).isTrue();
-        check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isTrue();
+        checkAllDmsHeader(tester, expectAtSignIcon: true);
+        checkDm(eg.otherUser.fullName, expectAtSignIcon: true);
       });
 
       testWidgets('dm without mention', (tester) async {
@@ -328,8 +405,8 @@ void main() {
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
             flags: [])]);
 
-        check(hasAtSign(tester, findAllDmsHeaderRow(tester))).isFalse();
-        check(hasAtSign(tester, findRowByLabel(tester, eg.otherUser.fullName))).isFalse();
+        checkAllDmsHeader(tester, expectAtSignIcon: false);
+        checkDm(eg.otherUser.fullName, expectAtSignIcon: false);
       });
     });
 
@@ -354,9 +431,7 @@ void main() {
           unreadMessages: [message]);
         await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
         await tester.pump();
-        check(hasIcon(tester,
-          parent: findRowByLabel(tester, topic),
-          icon: ZulipIcons.follow)).isTrue();
+        checkTopic(topic, expectFollowIcon: true);
       });
 
       testWidgets('followed and mentioned', (tester) async {
@@ -367,12 +442,7 @@ void main() {
             flags: [MessageFlag.mentioned])]);
         await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
         await tester.pump();
-        check(hasIcon(tester,
-          parent: findRowByLabel(tester, topic),
-          icon: ZulipIcons.follow)).isTrue();
-        check(hasIcon(tester,
-          parent: findRowByLabel(tester, topic),
-          icon: ZulipIcons.at_sign)).isTrue();
+        checkTopic(topic, expectAtSignIcon: true, expectFollowIcon: true);
       });
 
       testWidgets('unmuted', (tester) async {
@@ -383,9 +453,7 @@ void main() {
           unreadMessages: [message]);
         await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.unmuted);
         await tester.pump();
-        check(hasIcon(tester,
-          parent: findRowByLabel(tester, topic),
-          icon: ZulipIcons.unmute)).isTrue();
+        checkTopic(topic, expectUnmuteIcon: true);
       });
 
       testWidgets('unmuted (topics treated case-insensitively)', (tester) async {
@@ -404,93 +472,44 @@ void main() {
         await store.setUserTopic(channel, 'aaa', UserTopicVisibilityPolicy.unmuted);
         await tester.pump();
 
-        check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(CounterBadge, '1'))).findsOne();
+        checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '1');
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message2]));
         await tester.pump();
-        check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(CounterBadge, '2'))).findsOne();
+        checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '2');
 
         await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message3]));
         await tester.pump();
-        check(find.descendant(
-          of: find.byWidget(findRowByLabel(tester, 'aaa')!),
-          matching: find.widgetWithText(CounterBadge, '3'))).findsOne();
+        checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '3');
       });
     });
 
     group('collapsing', () {
-      Icon findHeaderCollapseIcon(WidgetTester tester, Widget headerRow) {
-        return tester.widget(
-          find.descendant(
-            of: find.byWidget(headerRow),
-            matching: find.byWidgetPredicate(
-              (widget) => widget is Icon
-                && (widget.icon == ZulipIcons.arrow_down
-                || widget.icon == ZulipIcons.arrow_right))));
-      }
-
       group('all-DMs section', () {
         Future<void> tapCollapseIcon(WidgetTester tester) async {
-          final headerRow = findAllDmsHeaderRow(tester);
-          check(headerRow).isNotNull();
-          final icon = findHeaderCollapseIcon(tester, headerRow!);
-          await tester.tap(find.byWidget(icon));
+          checkAllDmsHeader(tester);
+          await tester.tap(find.descendant(
+            of: findAllDmsHeader,
+            matching: find.byWidgetPredicate((widget) =>
+              widget is Icon
+              && (widget.icon == ZulipIcons.arrow_down
+                  || widget.icon == ZulipIcons.arrow_right))));
           await tester.pump();
-        }
-
-        /// Check that the section appears uncollapsed.
-        ///
-        /// For [findSectionContent], pass a [Finder] that will find some of
-        /// the section's content if it is uncollapsed. The function will
-        /// check that it finds something.
-        void checkAppearsUncollapsed(
-          WidgetTester tester,
-          Finder findSectionContent,
-        ) {
-          final headerRow = findAllDmsHeaderRow(tester);
-          check(headerRow).isNotNull();
-          final icon = findHeaderCollapseIcon(tester, headerRow!);
-          check(icon).icon.equals(ZulipIcons.arrow_down);
-          check(allDmsHeaderBackgroundColor(tester))
-            .isNotNull().isSameColorAs(const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor());
-          check(tester.widgetList(findSectionContent)).isNotEmpty();
-        }
-
-        /// Check that the section appears collapsed.
-        ///
-        /// For [findSectionContent], pass a [Finder] that would find some of
-        /// the section's content if it were uncollapsed. The function will
-        /// check that the finder comes up empty.
-        void checkAppearsCollapsed(
-          WidgetTester tester,
-          Finder findSectionContent,
-        ) {
-          final headerRow = findAllDmsHeaderRow(tester);
-          check(headerRow).isNotNull();
-          final icon = findHeaderCollapseIcon(tester, headerRow!);
-          check(icon).icon.equals(ZulipIcons.arrow_right);
-          check(allDmsHeaderBackgroundColor(tester))
-            .isNotNull().isSameColorAs(Colors.white);
-          check(tester.widgetList(findSectionContent)).isEmpty();
         }
 
         testWidgets('appearance', (tester) async {
           await setupVarious(tester);
 
-          final headerRow = findAllDmsHeaderRow(tester);
-          check(headerRow).isNotNull();
-
           final findSectionContent = find.text(eg.otherUser.fullName);
 
-          checkAppearsUncollapsed(tester, findSectionContent);
+          checkAllDmsHeader(tester,
+            expectCollapsed: false, findSectionContent: findSectionContent);
           await tapCollapseIcon(tester);
-          checkAppearsCollapsed(tester, findSectionContent);
+          checkAllDmsHeader(tester,
+            expectCollapsed: true, findSectionContent: findSectionContent);
           await tapCollapseIcon(tester);
-          checkAppearsUncollapsed(tester, findSectionContent);
+          checkAllDmsHeader(tester,
+            expectCollapsed: false, findSectionContent: findSectionContent);
         });
 
         testWidgets('collapse all-DMs section when partially offscreen: '
@@ -506,13 +525,13 @@ void main() {
 
           // Check that the header is present (which must therefore
           // be as a sticky header).
-          check(findAllDmsHeaderRow(tester)).isNotNull();
+          checkAllDmsHeader(tester, expectCollapsed: false);
 
           await tapCollapseIcon(tester);
 
           // Check that the header is still visible even after
           // collapsing the section.
-          check(findAllDmsHeaderRow(tester)).isNotNull();
+          checkAllDmsHeader(tester, expectCollapsed: true);
         });
 
         // TODO check it remains collapsed even if you scroll far away and back
@@ -525,101 +544,62 @@ void main() {
       });
 
       group('stream section', () {
-        Future<void> tapCollapseIcon(WidgetTester tester, int streamId) async {
-          final headerRow = findStreamHeaderRow(tester, streamId);
-          check(headerRow).isNotNull();
-          final icon = findHeaderCollapseIcon(tester, headerRow!);
-          await tester.tap(find.byWidget(icon));
+        Future<void> tapCollapseIcon(WidgetTester tester, Subscription subscription) async {
+          checkChannelHeader(tester, subscription);
+          await tester.tap(find.descendant(
+            of: findChannelHeader(subscription.streamId),
+            matching: find.byWidgetPredicate((widget) =>
+              widget is Icon
+              && (widget.icon == ZulipIcons.arrow_down
+                  || widget.icon == ZulipIcons.arrow_right))));
           await tester.pump();
-        }
-
-        /// Check that the section appears uncollapsed.
-        ///
-        /// For [findSectionContent], pass a [Finder] that will find some of
-        /// the section's content if it is uncollapsed. The function will
-        /// check that it finds something.
-        void checkAppearsUncollapsed(
-          WidgetTester tester,
-          int streamId,
-          Finder findSectionContent,
-        ) {
-          final subscription = store.subscriptions[streamId]!;
-          final headerRow = findStreamHeaderRow(tester, streamId);
-          check(headerRow).isNotNull();
-          final collapseIcon = findHeaderCollapseIcon(tester, headerRow!);
-          check(collapseIcon).icon.equals(ZulipIcons.arrow_down);
-          final streamIcon = findStreamHeaderIcon(tester, streamId);
-          check(streamIcon).color.isNotNull().isSameColorAs(
-            ChannelColorSwatch.light(subscription.color).iconOnBarBackground);
-          check(streamHeaderBackgroundColor(tester, streamId))
-            .isNotNull().isSameColorAs(ChannelColorSwatch.light(subscription.color).barBackground);
-          check(tester.widgetList(findSectionContent)).isNotEmpty();
-        }
-
-        /// Check that the section appears collapsed.
-        ///
-        /// For [findSectionContent], pass a [Finder] that would find some of
-        /// the section's content if it were uncollapsed. The function will
-        /// check that the finder comes up empty.
-        void checkAppearsCollapsed(
-          WidgetTester tester,
-          int streamId,
-          Finder findSectionContent,
-        ) {
-          final subscription = store.subscriptions[streamId]!;
-          final headerRow = findStreamHeaderRow(tester, streamId);
-          check(headerRow).isNotNull();
-          final collapseIcon = findHeaderCollapseIcon(tester, headerRow!);
-          check(collapseIcon).icon.equals(ZulipIcons.arrow_right);
-          final streamIcon = findStreamHeaderIcon(tester, streamId);
-          check(streamIcon).color.isNotNull().isSameColorAs(
-            ChannelColorSwatch.light(subscription.color).iconOnPlainBackground);
-          check(streamHeaderBackgroundColor(tester, streamId))
-            .isNotNull().isSameColorAs(Colors.white);
-          check(tester.widgetList(findSectionContent)).isEmpty();
         }
 
         testWidgets('appearance', (tester) async {
           await setupVarious(tester);
-
-          final headerRow = findStreamHeaderRow(tester, 1);
-          check(headerRow).isNotNull();
+          final subscription = store.subscriptions[1]!;
 
           final findSectionContent = find.text('specific topic');
 
-          checkAppearsUncollapsed(tester, 1, findSectionContent);
-          await tapCollapseIcon(tester, 1);
-          checkAppearsCollapsed(tester, 1, findSectionContent);
-          await tapCollapseIcon(tester, 1);
-          checkAppearsUncollapsed(tester, 1, findSectionContent);
+          checkChannelHeader(tester, subscription,
+            expectCollapsed: false, findSectionContent: findSectionContent);
+          await tapCollapseIcon(tester, subscription);
+          checkChannelHeader(tester, subscription,
+            expectCollapsed: true, findSectionContent: findSectionContent);
+          await tapCollapseIcon(tester, subscription);
+          checkChannelHeader(tester, subscription,
+            expectCollapsed: false, findSectionContent: findSectionContent);
         });
 
         testWidgets('uncollapsed header changes background color when [subscription.color] changes', (tester) async {
-          final initialColor = Colors.indigo.argbInt;
-
           final stream = eg.stream(streamId: 1);
+          final subscription = eg.subscription(stream, color: Colors.indigo.argbInt);
           await setupPage(tester,
             streams: [stream],
-            subscriptions: [eg.subscription(stream, color: initialColor)],
+            subscriptions: [subscription],
             unreadMessages: [eg.streamMessage(stream: stream, topic: 'specific topic', flags: [])]);
 
-          checkAppearsUncollapsed(tester, stream.streamId, find.text('specific topic'));
+          final findSectionContent = find.text('specific topic');
 
-          check(streamHeaderBackgroundColor(tester, 1))
-            .isNotNull().isSameColorAs(ChannelColorSwatch.light(initialColor).barBackground);
+          // helper will expect indigo
+          checkChannelHeader(tester, subscription,
+            expectCollapsed: false, findSectionContent: findSectionContent);
 
           final newColor = Colors.orange.argbInt;
           await store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
             property: SubscriptionProperty.color, value: newColor));
+          check(subscription.color).equals(Colors.orange.argbInt);
           await tester.pump();
 
-          check(streamHeaderBackgroundColor(tester, 1))
-            .isNotNull().isSameColorAs(ChannelColorSwatch.light(newColor).barBackground);
+          // helper will expect orange
+          checkChannelHeader(tester, subscription,
+            expectCollapsed: false, findSectionContent: findSectionContent);
         });
 
         testWidgets('collapse stream section when partially offscreen: '
           'header remains sticky at top', (tester) async {
           await setupVarious(tester);
+          final subscription = store.subscriptions[1]!;
 
           final topicFinder = find.text('stream 1 topic 4').hitTestable();
           final listFinder = find.byType(Scrollable);
@@ -630,33 +610,31 @@ void main() {
 
           // Check that the header is present (which must therefore
           // be as a sticky header).
-          check(findStreamHeaderRow(tester, 1)).isNotNull();
+          checkChannelHeader(tester, subscription, expectCollapsed: false);
 
-          await tapCollapseIcon(tester, 1);
+          await tapCollapseIcon(tester, subscription);
 
           // Check that the header is still visible even after
           // collapsing the section.
-          check(findStreamHeaderRow(tester, 1)).isNotNull();
+          checkChannelHeader(tester, subscription, expectCollapsed: true);
         });
 
         testWidgets('collapse stream section in middle of screen: '
           'header stays fixed', (tester) async {
           await setupVarious(tester);
+          final subscription = store.subscriptions[1]!;
 
-          final headerRow = findStreamHeaderRow(tester, 1);
-          // Check that the header is present.
-          check(headerRow).isNotNull();
+          checkChannelHeader(tester, subscription);
 
-          final rectBeforeTap = tester.getRect(find.byWidget(headerRow!));
+          final rectBeforeTap = tester.getRect(findChannelHeader(1));
           final scrollableTop = tester.getRect(find.byType(Scrollable)).top;
           // Check that the header is somewhere in the middle of the screen.
           check(rectBeforeTap.top).isGreaterThan(scrollableTop);
 
-          await tapCollapseIcon(tester, 1);
+          await tapCollapseIcon(tester, subscription);
 
-          final headerRowAfterTap = findStreamHeaderRow(tester, 1);
           final rectAfterTap =
-            tester.getRect(find.byWidget(headerRowAfterTap!));
+            tester.getRect(findChannelHeader(1));
 
           // Check that the position of the header before and after
           // collapsing is the same.

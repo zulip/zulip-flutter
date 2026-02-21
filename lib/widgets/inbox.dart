@@ -22,12 +22,24 @@ class InboxPageBody extends StatefulWidget {
   State<InboxPageBody> createState() => _InboxPageState();
 }
 
-class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> {
+
+/// The interface for the state of an [InboxPageBody].
+abstract class InboxPageState extends State<InboxPageBody> {
+  bool get allDmsCollapsed;
+  set allDmsCollapsed(bool value);
+
+  void collapseStream(int streamId);
+  void uncollapseStream(int streamId);
+}
+
+class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> implements InboxPageState{
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
+  @override
   bool get allDmsCollapsed => _allDmsCollapsed;
   bool _allDmsCollapsed = false;
+  @override
   set allDmsCollapsed(bool value) {
     setState(() {
       _allDmsCollapsed = value;
@@ -36,11 +48,13 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
   Set<int> get collapsedStreamIds => _collapsedStreamIds;
   final Set<int> _collapsedStreamIds = {};
+  @override
   void collapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.add(streamId);
     });
   }
+  @override
   void uncollapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.remove(streamId);
@@ -135,7 +149,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       });
 
     for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
-      final topicItems = <_StreamSectionTopicData>[];
+      final topicItems = <InboxChannelSectionTopicData>[];
       int countInStream = 0;
       bool streamHasMention = false;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
@@ -143,7 +157,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final countInTopic = messageIds.length;
         final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
         if (hasMention) streamHasMention = true;
-        topicItems.add(_StreamSectionTopicData(
+        topicItems.add(InboxChannelSectionTopicData(
           topic: topic,
           count: countInTopic,
           hasMention: hasMention,
@@ -205,18 +219,19 @@ class _StreamSectionData extends _InboxSectionData {
   final int streamId;
   final int count;
   final bool hasMention;
-  final List<_StreamSectionTopicData> items;
+  final List<InboxChannelSectionTopicData> items;
 
   const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
 }
 
-class _StreamSectionTopicData {
+@visibleForTesting
+class InboxChannelSectionTopicData {
   final TopicName topic;
   final int count;
   final bool hasMention;
   final int lastUnreadId;
 
-  const _StreamSectionTopicData({
+  const InboxChannelSectionTopicData({
     required this.topic,
     required this.count,
     required this.hasMention,
@@ -226,7 +241,7 @@ class _StreamSectionTopicData {
 
 abstract class _HeaderItem extends StatelessWidget {
   final bool collapsed;
-  final _InboxPageState pageState;
+  final InboxPageState pageState;
   final int count;
   final bool hasMention;
 
@@ -238,6 +253,7 @@ abstract class _HeaderItem extends StatelessWidget {
   final BuildContext sectionContext;
 
   const _HeaderItem({
+    super.key,
     required this.collapsed,
     required this.pageState,
     required this.count,
@@ -321,8 +337,10 @@ abstract class _HeaderItem extends StatelessWidget {
   }
 }
 
-class _AllDmsHeaderItem extends _HeaderItem {
-  const _AllDmsHeaderItem({
+@visibleForTesting
+class InboxAllDmsHeaderItem extends _HeaderItem {
+  const InboxAllDmsHeaderItem({
+    super.key,
     required super.collapsed,
     required super.pageState,
     required super.count,
@@ -361,7 +379,7 @@ class _AllDmsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final header = _AllDmsHeaderItem(
+    final header = InboxAllDmsHeaderItem(
       count: data.count,
       hasMention: data.hasMention,
       collapsed: collapsed,
@@ -374,7 +392,7 @@ class _AllDmsSection extends StatelessWidget {
         header,
         if (!collapsed) ...data.items.map((item) {
           final (narrow, count, hasMention) = item;
-          return _DmItem(
+          return InboxDmItem(
             narrow: narrow,
             count: count,
             hasMention: hasMention,
@@ -384,8 +402,10 @@ class _AllDmsSection extends StatelessWidget {
   }
 }
 
-class _DmItem extends StatelessWidget {
-  const _DmItem({
+@visibleForTesting
+class InboxDmItem extends StatelessWidget {
+  const InboxDmItem({
+    super.key,
     required this.narrow,
     required this.count,
     required this.hasMention,
@@ -454,10 +474,12 @@ mixin _LongPressable on _HeaderItem {
   Future<void> onLongPress();
 }
 
-class _StreamHeaderItem extends _HeaderItem with _LongPressable {
+@visibleForTesting
+class InboxChannelHeaderItem extends _HeaderItem with _LongPressable {
   final Subscription subscription;
 
-  const _StreamHeaderItem({
+  const InboxChannelHeaderItem({
+    super.key,
     required this.subscription,
     required super.collapsed,
     required super.pageState,
@@ -507,7 +529,7 @@ class _StreamSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subscription = PerAccountStoreWidget.of(context).subscriptions[data.streamId]!;
-    final header = _StreamHeaderItem(
+    final header = InboxChannelHeaderItem(
       subscription: subscription,
       count: data.count,
       hasMention: data.hasMention,
@@ -520,21 +542,26 @@ class _StreamSection extends StatelessWidget {
       child: Column(children: [
         header,
         if (!collapsed) ...data.items.map((item) {
-          return _TopicItem(streamId: data.streamId, data: item);
+          return InboxTopicItem(streamId: data.streamId, data: item);
         }),
       ]));
   }
 }
 
-class _TopicItem extends StatelessWidget {
-  const _TopicItem({required this.streamId, required this.data});
+@visibleForTesting
+class InboxTopicItem extends StatelessWidget {
+  const InboxTopicItem({
+    super.key,
+    required this.streamId,
+    required this.data,
+  });
 
   final int streamId;
-  final _StreamSectionTopicData data;
+  final InboxChannelSectionTopicData data;
 
   @override
   Widget build(BuildContext context) {
-    final _StreamSectionTopicData(
+    final InboxChannelSectionTopicData(
       :topic, :count, :hasMention, :lastUnreadId) = data;
 
     final store = PerAccountStoreWidget.of(context);
