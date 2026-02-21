@@ -1021,6 +1021,15 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       ?? GlobalStoreWidget.settingsOf(context).markReadOnScrollForNarrow(widget.narrow);
   }
 
+  void _fetchMoreIfNeeded(ScrollMetrics scrollMetrics) {
+    if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
+      model.fetchOlder();
+    }
+    if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
+      model.fetchNewer();
+    }
+  }
+
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
     if (_effectiveMarkReadOnScroll()) {
       _markReadFromScroll();
@@ -1032,17 +1041,17 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       _scrollToBottomVisible.value = true;
     }
 
-    if (scrollMetrics.extentBefore < kFetchMessagesBufferPixels) {
-      // TODO: This ends up firing a second time shortly after we fetch a batch.
-      //   The result is that each time we decide to fetch a batch, we end up
-      //   fetching two batches in quick succession.  This is basically harmless
-      //   but makes things a bit more complicated to reason about.
-      //   The cause seems to be that this gets called again with maxScrollExtent
-      //   still not yet updated to account for the newly-added messages.
-      model.fetchOlder();
-    }
-    if (scrollMetrics.extentAfter < kFetchMessagesBufferPixels) {
-      model.fetchNewer();
+    if (SchedulerBinding.instance.schedulerPhase == .transientCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (scrollController.hasClients) {
+          // From the `transientCallbacks` phase to `postFrameCallbacks` phase,
+          // `scrollMetrics` can become stale; so we use the fresh value
+          // from `scrollController`.
+          _fetchMoreIfNeeded(scrollController.position);
+        }
+      });
+    } else {
+      _fetchMoreIfNeeded(scrollMetrics);
     }
   }
 

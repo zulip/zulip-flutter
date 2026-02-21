@@ -810,35 +810,34 @@ void main() {
       check(itemCount(tester)).equals(401);
     });
 
-    testWidgets('observe double-fetch glitch', (tester) async {
+    testWidgets('no double-fetch glitch', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/2104
       await setupMessageListPage(tester, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(101);
+        messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
+      connection.takeRequests();
+      check(itemCount(tester)).equals(301);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
       await tester.pump();
 
       // ... and we fetch more messages as we go.
-      connection.prepare(json: eg.olderGetMessagesResult(anchor: 950, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(anchor: 950, foundOldest: false,
+          messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
       for (int i = 0; i < 30; i++) {
         // Find the point in the fling where the fetch starts.
         await tester.pump(const Duration(milliseconds: 100));
-        if (itemCount(tester)! > 101) break; // The loading indicator appeared.
+        if (connection.takeRequests().isNotEmpty) break;
       }
-      await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
-      check(itemCount(tester)).equals(201);
 
-      // On the next frame, we promptly fetch *another* batch.
-      // This is a glitch and it'd be nicer if we didn't.
-      connection.prepare(json: eg.olderGetMessagesResult(anchor: 850, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
-      await tester.pump(const Duration(milliseconds: 1));
-      await tester.pump(Duration.zero);
-      check(itemCount(tester)).equals(301);
-    }, skip: true); // TODO this still reproduces manually, still needs debugging,
-                    // but has become harder to reproduce in a test.
+      // Allow a delayed frame for the response to arrive.
+      await tester.pump(Duration(milliseconds: 1));
+      check(itemCount(tester)).equals(401);
+      await tester.pumpAndSettle();
+      // Check there is no additional request made to cause double-fetch glitch.
+      check(connection.takeRequests()).isEmpty();
+    });
 
     testWidgets("avoid getting distracted by nested viewports' metrics", (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/507
