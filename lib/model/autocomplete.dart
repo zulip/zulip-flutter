@@ -73,7 +73,7 @@ extension ComposeContentAutocomplete on ComposeContentController {
       if (charAtPos == '@') {
         final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
-        query = MentionAutocompleteQuery(match[2]!, silent: match[1]! == '_');
+        query = MentionAutocompleteQuery(match[2] ?? match[3]!, silent: match[1]! == '_');
       } else if (charAtPos == ':') {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
@@ -115,15 +115,24 @@ final RegExp _mentionIntentRegex = (() {
   // full_name, find uses of UserProfile.NAME_INVALID_CHARS in zulip/zulip.)
   const fullNameAndEmailCharExclusions = r'\*`\\>"\p{Other}';
 
-  // TODO(#1967): ignore immediate "**" after '@' sign
   return RegExp(
     beforeAtSign
     + r'@(_?)' // capture, so we can distinguish silent mentions
-    + r'(|'
-      // Reject on whitespace right after "@" or "@_". Emails can't start with
-      // it, and full_name can't either (it's run through Python's `.strip()`).
-      + r'[^\s' + fullNameAndEmailCharExclusions + r']'
-      + r'[^'   + fullNameAndEmailCharExclusions + r']*'
+    + r'(?:'
+      // Reject on whitespace and "**" right after "@" or "@_". Emails can't start
+      // with both, and full_name can't either (it's run through Python's `.strip()`).
+      + r'(?!\*\*|\s)([^' + fullNameAndEmailCharExclusions + r']*)'
+      + r'|'
+      // Beginning with "**", we allow "*",
+      // but immediately stop if we encounter "**".
+      + r'\*\*(?!\s)'
+      + r'((?:'
+        + r'[^' + fullNameAndEmailCharExclusions + r']'
+        + r'|'
+        + r'\*[^' + fullNameAndEmailCharExclusions + r']'
+        + r'|'
+        + r'\*$'
+      + r')*)'
     + r')$',
     unicode: true);
 })();
