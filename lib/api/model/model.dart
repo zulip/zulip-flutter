@@ -1146,7 +1146,10 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   @override
   final int id;
   bool isMeMessage;
+  @JsonKey(readValue: _readLastEditTimestamp)
   int? lastEditTimestamp;
+  @JsonKey(readValue: _readLastMovedTimestamp)
+  int? lastMovedTimestamp;
 
   @JsonKey(fromJson: _reactionsFromJson, toJson: _reactionsToJson)
   Reactions? reactions; // null is equivalent to an empty [Reactions]
@@ -1197,6 +1200,21 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
     );
   }
 
+  /// Reads `last_edit_timestamp` from JSON.
+  ///
+  /// This field is present when the message's content has been edited.
+  static int? _readLastEditTimestamp(Map<dynamic, dynamic> json, String key) {
+    return json['last_edit_timestamp'] as int?;
+  }
+
+  /// Reads `last_moved_timestamp` from JSON.
+  ///
+  /// This field is present when the message has been moved to a different
+  /// channel or topic (excluding resolve/unresolve operations).
+  static int? _readLastMovedTimestamp(Map<dynamic, dynamic> json, String key) {
+    return json['last_moved_timestamp'] as int?;
+  }
+
   Message({
     required this.client,
     required this.content,
@@ -1205,6 +1223,7 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
     required this.id,
     required this.isMeMessage,
     required this.lastEditTimestamp,
+    required this.lastMovedTimestamp,
     required this.reactions,
     required this.recipientId,
     required this.senderEmail,
@@ -1310,6 +1329,7 @@ class StreamMessage extends Message<StreamConversation> {
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
+    required super.lastMovedTimestamp,
     required super.reactions,
     required super.recipientId,
     required super.senderEmail,
@@ -1372,6 +1392,7 @@ class DmMessage extends Message<DmConversation> {
     required super.id,
     required super.isMeMessage,
     required super.lastEditTimestamp,
+    required super.lastMovedTimestamp,
     required super.reactions,
     required super.recipientId,
     required super.senderEmail,
@@ -1426,41 +1447,11 @@ enum MessageEditState {
   }
 
   static MessageEditState _readFromMessage(Map<dynamic, dynamic> json, String key) {
-    // Adapted from `analyze_edit_history` in the web app:
-    //   https://github.com/zulip/zulip/blob/c31cebbf68a93927d41e9947427c2dd4d46503e3/web/src/message_list_view.js#L68-L118
-    final editHistory = json['edit_history'] as List<dynamic>?;
     final lastEditTimestamp = json['last_edit_timestamp'] as int?;
-    if (editHistory == null) {
-      return (lastEditTimestamp != null)
-        ? MessageEditState.edited
-        : MessageEditState.none;
-    }
+    final lastMovedTimestamp = json['last_moved_timestamp'] as int?;
 
-    // Edit history should never be empty whenever it is present
-    assert(editHistory.isNotEmpty);
-
-    bool hasMoved = false;
-    for (final entry in editHistory) {
-      if (entry['prev_content'] != null) {
-        return MessageEditState.edited;
-      }
-
-      if (entry['prev_stream'] != null) {
-        hasMoved = true;
-        continue;
-      }
-
-      final prevTopicStr = entry['prev_topic'] as String?;
-      if (prevTopicStr != null) {
-        final prevTopic = TopicName.fromJson(prevTopicStr);
-        final topic = TopicName.fromJson(entry['topic'] as String);
-        hasMoved |= !topicMoveWasResolveOrUnresolve(topic, prevTopic);
-      }
-    }
-
-    if (hasMoved) return MessageEditState.moved;
-
-    // This can happen when a topic is resolved but nothing else has been edited
+    if (lastEditTimestamp != null) return MessageEditState.edited;
+    if (lastMovedTimestamp != null) return MessageEditState.moved;
     return MessageEditState.none;
   }
 }
