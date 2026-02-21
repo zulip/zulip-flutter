@@ -237,10 +237,13 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ComposeContentController({
     super.text,
     required super.store,
+    required this.narrow,
     this.requireNotEmpty = true,
   }) {
     _update();
   }
+
+  final Narrow narrow;
 
   /// Whether to produce [ContentValidationError.empty].
   final bool requireNotEmpty;
@@ -1595,8 +1598,8 @@ class _EditMessageComposeBoxBody extends _ComposeBoxBody {
 }
 
 sealed class ComposeBoxController {
-  ComposeBoxController({required PerAccountStore store})
-    : content = ComposeContentController(store: store);
+  ComposeBoxController({required PerAccountStore store, required Narrow narrow})
+    : content = ComposeContentController(store: store, narrow: narrow);
 
   final ComposeContentController content;
   final contentFocusNode = FocusNode();
@@ -1691,7 +1694,7 @@ enum ComposeTopicInteractionStatus {
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  StreamComposeBoxController({required super.store})
+  StreamComposeBoxController({required super.store, required super.narrow})
     : topic = ComposeTopicController(store: store);
 
   final ComposeTopicController topic;
@@ -1722,24 +1725,26 @@ class StreamComposeBoxController extends ComposeBoxController {
 }
 
 class FixedDestinationComposeBoxController extends ComposeBoxController {
-  FixedDestinationComposeBoxController({required super.store});
+  FixedDestinationComposeBoxController({required super.store, required super.narrow});
 }
 
 class EditMessageComposeBoxController extends ComposeBoxController {
   EditMessageComposeBoxController({
     required super.store,
+    required super.narrow,
     required this.messageId,
     required this.originalRawContent,
     required String? initialText,
   }) : _content = ComposeContentController(
                     text: initialText,
                     store: store,
+                    narrow: narrow,
                     // Editing to delete the content is a supported form of
                     // deletion: https://zulip.com/help/delete-a-message#delete-message-content
                     requireNotEmpty: false);
 
-  factory EditMessageComposeBoxController.empty(PerAccountStore store, int messageId) =>
-    EditMessageComposeBoxController(store: store, messageId: messageId,
+  factory EditMessageComposeBoxController.empty(PerAccountStore store, Narrow narrow, int messageId) =>
+    EditMessageComposeBoxController(store: store, narrow: narrow, messageId: messageId,
       originalRawContent: null, initialText: null);
 
   @override ComposeContentController get content => _content;
@@ -2121,6 +2126,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       controller.dispose();
       _controller = EditMessageComposeBoxController(
         store: store,
+        narrow: widget.narrow,
         messageId: messageId,
         originalRawContent: failedEdit.originalRawContent,
         initialText: failedEdit.newContent,
@@ -2132,7 +2138,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   void _editFromRawContentFetch(int messageId) async {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final emptyEditController = EditMessageComposeBoxController.empty(store, messageId);
+    final emptyEditController = EditMessageComposeBoxController.empty(store, widget.narrow, messageId);
     setState(() {
       controller.dispose();
       _controller = emptyEditController;
@@ -2210,10 +2216,10 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     _controller?.dispose(); // `?.` because this might be the first call
     switch (widget.narrow) {
       case ChannelNarrow():
-        _controller = StreamComposeBoxController(store: store);
+        _controller = StreamComposeBoxController(store: store, narrow: widget.narrow);
       case TopicNarrow():
       case DmNarrow():
-        _controller = FixedDestinationComposeBoxController(store: store);
+        _controller = FixedDestinationComposeBoxController(store: store, narrow: widget.narrow);
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():

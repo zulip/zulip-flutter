@@ -2006,6 +2006,18 @@ abstract class ZulipLocalizations {
   /// **'Notify topic'**
   String get wildcardMentionTopicDescription;
 
+  /// Label for a topic autocomplete option representing the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'(link to channel)'**
+  String get topicAutocompleteChannelOptionLabel;
+
+  /// Label for a topic autocomplete option matching the user's query when no exact topic exists.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get topicAutocompleteNewOptionLabel;
+
   /// Label for the Menu button on the bottom navigation bar.
   ///
   /// In en, this message translates to:

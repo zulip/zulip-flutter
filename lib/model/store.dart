@@ -961,6 +961,7 @@ class PerAccountStore extends PerAccountStoreBase with
         _messages.handleUpdateMessageEvent(event);
         unreads.handleUpdateMessageEvent(event);
         topics.handleUpdateMessageEvent(event);
+        autocompleteViewManager.handleUpdateMessageEvent(event, store: this);
 
       case DeleteMessageEvent():
         assert(debugLog("server event: delete_message ${event.messageIds}"));

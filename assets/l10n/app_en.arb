@@ -1384,6 +1384,14 @@
   "@wildcardMentionTopicDescription": {
     "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
   },
+  "topicAutocompleteChannelOptionLabel": "(link to channel)",
+  "@topicAutocompleteChannelOptionLabel": {
+    "description": "Label for a topic autocomplete option representing the channel."
+  },
+  "topicAutocompleteNewOptionLabel": "New",
+  "@topicAutocompleteNewOptionLabel": {
+    "description": "Label for a topic autocomplete option matching the user's query when no exact topic exists."
+  },
   "navBarMenuLabel": "Menu",
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
