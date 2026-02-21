@@ -159,14 +159,14 @@ void main () {
         of: find.byType(ZulipAppBar),
         matching: find.text('Channels'))).findsOne();
 
-      await tester.tap(findInBottomNav(find.text('Direct messages')));
+      await tester.tap(findInBottomNav(find.text('DMs')));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Direct messages'))).findsOne();
     });
 
-    testWidgets('combined feed', (tester) async {
+    testWidgets('Feed', (tester) async {
       await prepare(tester);
       pushedRoutes.clear();
 
