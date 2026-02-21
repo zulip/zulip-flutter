@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
@@ -354,6 +355,56 @@ void main() {
       // TODO test _getUserId case
       // TODO test handling failure in fetchApiKey request
       // TODO test _inProgress logic
+    });
+
+    group('email auth disabled', () {
+      testWidgets('hides username/password fields and login button', (tester) async {
+        final serverSettings = eg.serverSettings(emailAuthEnabled: false);
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsNothing();
+        check(findPasswordInput).findsNothing();
+        check(findSubmitButton).findsNothing();
+      });
+
+      testWidgets('shows external auth methods without divider', (tester) async {
+        final method = ExternalAuthenticationMethod(
+          name: 'google',
+          displayName: 'Google',
+          displayIcon: null,
+          loginUrl: '/accounts/login/social/google',
+          signupUrl: '/accounts/register/social/google',
+        );
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          externalAuthenticationMethods: [method]);
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsNothing();
+        check(findPasswordInput).findsNothing();
+        check(findSubmitButton).findsNothing();
+        check(find.textContaining('Google')).findsOne();
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        check(find.text(zulipLocalizations.loginMethodDivider)).findsNothing();
+      });
+
+      testWidgets('shows divider when email auth enabled with external methods', (tester) async {
+        final method = ExternalAuthenticationMethod(
+          name: 'google',
+          displayName: 'Google',
+          displayIcon: null,
+          loginUrl: '/accounts/login/social/google',
+          signupUrl: '/accounts/register/social/google',
+        );
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: true,
+          externalAuthenticationMethods: [method]);
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsOne();
+        check(findPasswordInput).findsOne();
+        check(findSubmitButton).findsOne();
+        check(find.textContaining('Google')).findsOne();
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        check(find.text(zulipLocalizations.loginMethodDivider)).findsOne();
+      });
     });
 
     group('web auth', () {
