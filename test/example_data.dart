@@ -464,6 +464,7 @@ ZulipStream stream({
   bool? isWebPublic,
   bool? historyPublicToSubscribers,
   int? messageRetentionDays,
+  TopicsPolicy? topicsPolicy,
   ChannelPostPolicy? channelPostPolicy,
   int? folderId,
   GroupSettingValue? canAddSubscribersGroup,
@@ -497,6 +498,7 @@ ZulipStream stream({
     isWebPublic: isWebPublic ?? false,
     historyPublicToSubscribers: historyPublicToSubscribers ?? true,
     messageRetentionDays: messageRetentionDays,
+    topicsPolicy: topicsPolicy ?? TopicsPolicy.inherit,
     channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
     folderId: folderId,
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
@@ -543,6 +545,7 @@ Subscription subscription(
     isWebPublic: stream.isWebPublic,
     historyPublicToSubscribers: stream.historyPublicToSubscribers,
     messageRetentionDays: stream.messageRetentionDays,
+    topicsPolicy: stream.topicsPolicy,
     channelPostPolicy: stream.channelPostPolicy,
     folderId: stream.folderId,
     canAddSubscribersGroup: stream.canAddSubscribersGroup,
@@ -1263,6 +1266,8 @@ ChannelUpdateEvent channelUpdateEvent(
       assert(value is bool);
     case ChannelPropertyName.messageRetentionDays:
       assert(value is int?);
+    case ChannelPropertyName.topicsPolicy:
+      assert(value is TopicsPolicy);
     case ChannelPropertyName.channelPostPolicy:
       assert(value is ChannelPostPolicy);
     case ChannelPropertyName.folderId:
@@ -1357,6 +1362,7 @@ InitialSnapshot initialSnapshot({
   GroupSettingValue? realmCanDeleteOwnMessageGroup,
   RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
+  RealmTopicsPolicy? realmTopicsPolicy,
   bool? realmMandatoryTopics,
   String? realmName,
   int? realmWaitingPeriodThreshold,
@@ -1419,6 +1425,7 @@ InitialSnapshot initialSnapshot({
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    realmTopicsPolicy: realmTopicsPolicy ?? RealmTopicsPolicy.unknown,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmName: realmName ?? 'Example Zulip organization',
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
