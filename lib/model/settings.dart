@@ -177,6 +177,14 @@ enum BoolGlobalSetting {
   /// welcome dialog for upgrading from the legacy app.
   upgradeWelcomeDialogShown(GlobalSettingType.internal, false),
 
+  /// A pseudo-setting recording whether the user has been shown the
+  /// intro dialog for the inbox page.
+  inboxIntroModalShown(GlobalSettingType.internal, false),
+
+  /// A pseudo-setting recording whether the user has been shown the
+  /// intro dialog for the combined feed page.
+  combinedFeedIntroModalShown(GlobalSettingType.internal, false),
+
   /// An experimental flag to enable rendering KaTeX even when some
   /// errors are encountered.
   forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
