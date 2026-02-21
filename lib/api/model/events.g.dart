@@ -679,9 +679,10 @@ UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
       streamId: (json['stream_id'] as num).toInt(),
       topicName: TopicName.fromJson(json['topic_name'] as String),
       lastUpdated: (json['last_updated'] as num).toInt(),
-      visibilityPolicy: $enumDecode(
+      visibilityPolicy: $enumDecodeNullable(
         _$UserTopicVisibilityPolicyEnumMap,
         json['visibility_policy'],
+        unknownValue: JsonKey.nullForUndefinedEnumValue,
       ),
     );
 
@@ -700,7 +701,6 @@ const _$UserTopicVisibilityPolicyEnumMap = {
   UserTopicVisibilityPolicy.muted: 1,
   UserTopicVisibilityPolicy.unmuted: 2,
   UserTopicVisibilityPolicy.followed: 3,
-  UserTopicVisibilityPolicy.unknown: null,
 };
 
 MutedUsersEvent _$MutedUsersEventFromJson(Map<String, dynamic> json) =>
