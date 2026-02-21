@@ -115,6 +115,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
   realmMessageContentEditLimitSeconds:
       (json['realm_message_content_edit_limit_seconds'] as num?)?.toInt(),
   realmEnableReadReceipts: json['realm_enable_read_receipts'] as bool,
+  realmModerationRequestChannelId:
+      (json['realm_moderation_request_channel_id'] as num?)?.toInt(),
   realmIconUrl: Uri.parse(json['realm_icon_url'] as String),
   realmPresenceDisabled: json['realm_presence_disabled'] as bool,
   realmDefaultExternalAccounts:
@@ -201,6 +203,8 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_message_content_edit_limit_seconds':
       instance.realmMessageContentEditLimitSeconds,
   'realm_enable_read_receipts': instance.realmEnableReadReceipts,
+  'realm_moderation_request_channel_id':
+      instance.realmModerationRequestChannelId,
   'realm_icon_url': instance.realmIconUrl.toString(),
   'realm_presence_disabled': instance.realmPresenceDisabled,
   'realm_default_external_accounts': instance.realmDefaultExternalAccounts,
