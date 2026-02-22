@@ -12,6 +12,7 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
 import '../widgets/color.dart';
 import '../widgets/theme.dart';
 import 'open.dart';
@@ -216,20 +217,13 @@ class NotificationDisplayManager {
     await NotificationChannelManager.ensureChannel();
   }
 
-  static void onFcmMessage(FcmMessage data) {
+  static void onFcmMessage(FcmMessage data) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
-    switch (data) {
-      case MessageFcmMessage(): _onMessageFcmMessage(data);
-      case RemoveFcmMessage(): _onRemoveFcmMessage(data);
-      case UnexpectedFcmMessage(): break; // TODO(log)
-    }
-  }
 
-  static Future<void> _onMessageFcmMessage(MessageFcmMessage data) async {
-    assert(debugLog('notif message content: ${data.content}'));
-    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final groupKey = _groupKey(data.realmUrl, data.userId);
-    final conversationKey = _conversationKey(data, groupKey);
+    switch (data) {
+      case FcmMessageWithIdentity(): break;
+      case UnexpectedFcmMessage(): return; // TODO(log)
+    }
 
     final globalStore = await ZulipBinding.instance.getGlobalStore();
     final account = globalStore.accounts.firstWhereOrNull((account) =>
@@ -242,6 +236,21 @@ class NotificationDisplayManager {
     if (account == null) {
       return;
     }
+
+    switch (data) {
+      case MessageFcmMessage(): await _onMessageFcmMessage(data, account);
+      case RemoveFcmMessage(): await _onRemoveFcmMessage(data);
+    }
+  }
+
+  static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Account account) async {
+    assert(debugLog('notif message content: ${data.content}'));
+    assert(account.realmUrl.origin == data.realmUrl.origin
+        && account.userId == data.userId);
+
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+    final groupKey = _groupKey(data.realmUrl, data.userId);
+    final conversationKey = _conversationKey(data, groupKey);
 
     final oldMessagingStyle = await _androidHost
       .getActiveNotificationMessagingStyleByTag(conversationKey);
@@ -365,7 +374,7 @@ class NotificationDisplayManager {
     );
   }
 
-  static void _onRemoveFcmMessage(RemoveFcmMessage data) async {
+  static Future<void> _onRemoveFcmMessage(RemoveFcmMessage data) async {
     // We have an FCM message telling us that some Zulip messages were read
     // and should no longer appear as notifications.  We'll remove their
     // conversations' notifications, if appropriate, and then the whole
