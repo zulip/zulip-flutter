@@ -1,15 +1,24 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 import 'package:zulip/main.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/widgets/app.dart';
 
 void main() {
   mainInit();
 
+  // Successive tests in this file interact with the same real server
+  // and the same real device platform, by the nature of live tests.
+  // So we might as well let them use the same real database and global store.
+  ZulipBinding.instance.debugRelaxGetGlobalStoreUniquely = true;
+
   patrolTest('login', ($) async {
+    addTearDown(ZulipApp.debugReset);
     await $.pumpWidget(ZulipApp());
 
     await $.waitUntilVisible($('Choose account'));
