@@ -205,6 +205,6 @@ class NotificationService {
 
   static void _onRemoteMessage(FirebaseRemoteMessage message) {
     final data = FcmMessage.fromJson(message.data);
-    NotificationDisplayManager.onFcmMessage(data, message.data);
+    NotificationDisplayManager.onFcmMessage(data);
   }
 }

@@ -216,16 +216,16 @@ class NotificationDisplayManager {
     await NotificationChannelManager.ensureChannel();
   }
 
-  static void onFcmMessage(FcmMessage data, Map<String, dynamic> dataJson) {
+  static void onFcmMessage(FcmMessage data) {
     assert(defaultTargetPlatform == TargetPlatform.android);
     switch (data) {
-      case MessageFcmMessage(): _onMessageFcmMessage(data, dataJson);
+      case MessageFcmMessage(): _onMessageFcmMessage(data);
       case RemoveFcmMessage(): _onRemoveFcmMessage(data);
       case UnexpectedFcmMessage(): break; // TODO(log)
     }
   }
 
-  static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Map<String, dynamic> dataJson) async {
+  static Future<void> _onMessageFcmMessage(MessageFcmMessage data) async {
     assert(debugLog('notif message content: ${data.content}'));
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
     final groupKey = _groupKey(data.realmUrl, data.userId);
