@@ -813,8 +813,7 @@ void main() {
 
       addTearDown(testBinding.reset);
 
-      final account = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
-      await testBinding.globalStore.add(account, eg.initialSnapshot(
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
         realmUsers: [eg.selfUser, eg.otherUser],
         streams: [effectiveChannel],
         subscriptions: isChannelSubscribed

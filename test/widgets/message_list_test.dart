@@ -82,14 +82,13 @@ void main() {
     addTearDown(testBinding.reset);
     streams ??= subscriptions ??= [eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId))];
     zulipFeatureLevel ??= eg.recentZulipFeatureLevel;
-    final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
-    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
       zulipFeatureLevel: zulipFeatureLevel,
       streams: streams,
       subscriptions: subscriptions,
       unreadMsgs: unreadMsgs,
       starredMessages: starredMessages));
-    store = await testBinding.globalStore.perAccount(selfAccount.id);
+    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
     // prepare message list data
@@ -110,7 +109,7 @@ void main() {
     }
     connection.prepare(json: fetchResult.toJson());
 
-    await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       skipAssertAccountExists: skipAssertAccountExists,
       navigatorObservers: navObservers,
       child: MessageListPage(initNarrow: narrow)));
