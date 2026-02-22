@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
@@ -203,8 +204,25 @@ class NotificationService {
     NotificationDisplayManager.init(); // TODO call this just once per isolate
   }
 
-  static void _onRemoteMessage(FirebaseRemoteMessage message) {
+  static void _onRemoteMessage(FirebaseRemoteMessage message) async {
     final data = FcmMessage.fromJson(message.data);
-    NotificationDisplayManager.onFcmMessage(data);
+    switch (data) {
+      case FcmMessageWithIdentity(): break;
+      case UnexpectedFcmMessage(): return; // TODO(log)
+    }
+
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == data.realmUrl.origin && account.userId == data.userId);
+
+    // Skip showing notifications for a logged-out account. This can occur if
+    // the unregisterToken request failed previously. It would be annoying
+    // to the user if notifications keep showing up after they've logged out.
+    // (Also alarming: it suggests the logout didn't fully work.)
+    if (account == null) {
+      return;
+    }
+
+    NotificationDisplayManager.onFcmMessage(data, account);
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -217,26 +216,8 @@ class NotificationDisplayManager {
     await NotificationChannelManager.ensureChannel();
   }
 
-  static void onFcmMessage(FcmMessage data) async {
+  static void onFcmMessage(FcmMessageWithIdentity data, Account account) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
-
-    switch (data) {
-      case FcmMessageWithIdentity(): break;
-      case UnexpectedFcmMessage(): return; // TODO(log)
-    }
-
-    final globalStore = await ZulipBinding.instance.getGlobalStore();
-    final account = globalStore.accounts.firstWhereOrNull((account) =>
-      account.realmUrl.origin == data.realmUrl.origin && account.userId == data.userId);
-
-    // Skip showing notifications for a logged-out account. This can occur if
-    // the unregisterToken request failed previously. It would be annoying
-    // to the user if notifications keep showing up after they've logged out.
-    // (Also alarming: it suggests the logout didn't fully work.)
-    if (account == null) {
-      return;
-    }
-
     switch (data) {
       case MessageFcmMessage(): await _onMessageFcmMessage(data, account);
       case RemoveFcmMessage(): await _onRemoveFcmMessage(data);
