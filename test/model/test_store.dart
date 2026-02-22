@@ -191,6 +191,9 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   /// [PerAccountStore] when [perAccount] is subsequently called for this
   /// account, in particular when a [PerAccountStoreWidget] is mounted.
   ///
+  /// The account's [Account.zulipFeatureLevel] will be updated to match
+  /// that of the initial snapshot.
+  ///
   /// By default, [setLastVisitedAccount] is called for the account.
   /// Pass false for [markLastVisited] to skip that.
   ///
@@ -203,7 +206,9 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   }) async {
     assert(initialSnapshot.zulipVersion == account.zulipVersion);
     assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
-    assert(initialSnapshot.zulipFeatureLevel == account.zulipFeatureLevel);
+    if (initialSnapshot.zulipFeatureLevel != account.zulipFeatureLevel) {
+      account = account.copyWith(zulipFeatureLevel: initialSnapshot.zulipFeatureLevel);
+    }
     await insertAccount(account.toCompanion(false));
     assert(!_initialSnapshots.containsKey(account.id));
     _initialSnapshots[account.id] = initialSnapshot;
