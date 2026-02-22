@@ -45,11 +45,10 @@ void main() {
     return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
   }
 
-  Future<void> prepare({String? ackedPushToken = '123'}) async {
+  Future<void> prepare() async {
     addTearDown(testBinding.reset);
-    final selfAccount = eg.selfAccount.copyWith(ackedPushToken: Value(ackedPushToken));
-    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot());
-    store = await testBinding.globalStore.perAccount(selfAccount.id);
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
   }
 
@@ -97,6 +96,9 @@ void main() {
   group('logOutAccount', () {
     test('smoke', () => awaitFakeAsync((async) async {
       await prepare();
+      addTearDown(NotificationService.debugReset);
+      NotificationService.instance.token = ValueNotifier('asdf');
+
       check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
       const unregisterDelay = Duration(seconds: 5);
       assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
@@ -122,6 +124,9 @@ void main() {
 
     test('unregister request has an error', () => awaitFakeAsync((async) async {
       await prepare();
+      addTearDown(NotificationService.debugReset);
+      NotificationService.instance.token = ValueNotifier('asdf');
+
       check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
       const unregisterDelay = Duration(seconds: 5);
       assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
@@ -172,19 +177,7 @@ void main() {
 
   group('unregisterToken', () {
     testAndroidIos('smoke, happy path', () => awaitFakeAsync((async) async {
-      await prepare(ackedPushToken: '123');
-
-      final newConnection = separateConnection()
-        ..prepare(json: {'msg': '', 'result': 'success'});
-      final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
-      async.elapse(Duration.zero);
-      await future;
-      checkSingleUnregisterRequest(newConnection, expectedToken: '123');
-      check(newConnection.isOpen).isFalse();
-    }));
-
-    test('fallback to current token if acked is missing', () => awaitFakeAsync((async) async {
-      await prepare(ackedPushToken: null);
+      await prepare();
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier('asdf');
 
@@ -197,8 +190,8 @@ void main() {
       check(newConnection.isOpen).isFalse();
     }));
 
-    test('no error if acked token and current token both missing', () => awaitFakeAsync((async) async {
-      await prepare(ackedPushToken: null);
+    test('no error if current token missing', () => awaitFakeAsync((async) async {
+      await prepare();
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier(null);
 
@@ -210,7 +203,9 @@ void main() {
     }));
 
     test('connection closed if request errors', () => awaitFakeAsync((async) async {
-      await prepare(ackedPushToken: '123');
+      await prepare();
+      addTearDown(NotificationService.debugReset);
+      NotificationService.instance.token = ValueNotifier('asdf');
 
       final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
@@ -218,7 +213,7 @@ void main() {
       final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
       async.elapse(Duration.zero);
       await future;
-      checkSingleUnregisterRequest(newConnection, expectedToken: '123');
+      checkSingleUnregisterRequest(newConnection, expectedToken: 'asdf');
       check(newConnection.isOpen).isFalse();
     }));
   });

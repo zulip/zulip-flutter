@@ -88,7 +88,6 @@ LegacyAppAccount _$LegacyAppAccountFromJson(Map<String, dynamic> json) =>
         const _LegacyAppZulipVersionJsonConverter().fromJson,
       ),
       zulipFeatureLevel: (json['zulipFeatureLevel'] as num?)?.toInt(),
-      ackedPushToken: json['ackedPushToken'] as String?,
     );
 
 Map<String, dynamic> _$LegacyAppAccountToJson(LegacyAppAccount instance) =>
@@ -102,7 +101,6 @@ Map<String, dynamic> _$LegacyAppAccountToJson(LegacyAppAccount instance) =>
         const _LegacyAppZulipVersionJsonConverter().toJson,
       ),
       'zulipFeatureLevel': instance.zulipFeatureLevel,
-      'ackedPushToken': instance.ackedPushToken,
     };
 
 Value? _$JsonConverterFromJson<Json, Value>(
