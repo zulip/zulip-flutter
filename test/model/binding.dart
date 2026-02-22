@@ -112,6 +112,7 @@ class TestZulipBinding extends ZulipBinding {
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
     assert(() {
+      if (debugRelaxGetGlobalStoreUniquely) return true;
       if (_debugAlreadyLoadedStore) {
         throw FlutterError.fromParts([
           ErrorSummary('The same test global store was loaded twice.'),

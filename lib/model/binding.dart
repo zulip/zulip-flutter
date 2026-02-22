@@ -98,6 +98,9 @@ abstract class ZulipBinding {
   /// a widget test neglects to clean up with `testBinding.reset`.
   Future<GlobalStore> getGlobalStoreUniquely();
 
+  /// If true, make [getGlobalStoreUniquely] behave just like [getGlobalStore].
+  bool debugRelaxGetGlobalStoreUniquely = false;
+
   /// Checks whether the platform can launch [url], via package:url_launcher.
   ///
   /// This wraps [url_launcher.canLaunchUrl].
@@ -384,9 +387,15 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
+    assert(debugRelaxGetGlobalStoreUniquely
+        || _debugEnforceGetGlobalStoreUniquely());
+    return getGlobalStore();
+  }
+
+  bool _debugEnforceGetGlobalStoreUniquely() {
     assert(!_debugCalledGetGlobalStoreUniquely);
     assert(_debugCalledGetGlobalStoreUniquely = true);
-    return getGlobalStore();
+    return true;
   }
   bool _debugCalledGetGlobalStoreUniquely = false;
 
