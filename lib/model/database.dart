@@ -170,8 +170,6 @@ class Accounts extends Table {
   Column<String> get zulipMergeBase => text().nullable()();
   Column<int>    get zulipFeatureLevel => integer()();
 
-  Column<String> get ackedPushToken => text().nullable()();
-
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {realmUrl, userId},
@@ -219,7 +217,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Fix resulting analyzer errors; in particular,
   //    write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 14; // See note.
+  static const int latestSchemaVersion = 15; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -323,6 +321,9 @@ class AppDatabase extends _$AppDatabase {
     },
     from13To14: (m, schema) async {
       await m.createTable(schema.pushKeys);
+    },
+    from14To15: (m, schema) async {
+      await m.dropColumn(schema.accounts, 'acked_push_token');
     },
   );
 

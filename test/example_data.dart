@@ -320,7 +320,6 @@ Account account({
   int? zulipFeatureLevel,
   String? zulipVersion,
   String? zulipMergeBase,
-  String? ackedPushToken,
 }) {
   _checkPositive(id, 'account ID');
   // When `user.deliveryEmail` is null, using `user.email`
@@ -339,7 +338,6 @@ Account account({
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
     zulipVersion: zulipVersion ?? recentZulipVersion,
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
-    ackedPushToken: ackedPushToken,
   );
 }
 const _account = account;

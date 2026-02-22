@@ -37,18 +37,16 @@ void main() {
 
     Future<void> prepare(WidgetTester tester, {
       UnreadMessagesSnapshot? unreadMsgs,
-      String? ackedPushToken = '123',
       bool skipAssertAccountExists = false,
     }) async {
       addTearDown(testBinding.reset);
-      final selfAccount = eg.selfAccount.copyWith(ackedPushToken: Value(ackedPushToken));
-      await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
         unreadMsgs: unreadMsgs));
-      store = await testBinding.globalStore.perAccount(selfAccount.id);
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       connection = store.connection as FakeApiConnection;
 
       await tester.pumpWidget(TestZulipApp(
-        accountId: selfAccount.id,
+        accountId: eg.selfAccount.id,
         skipAssertAccountExists: skipAssertAccountExists,
         child: const Scaffold(body: Placeholder())));
       await tester.pump();

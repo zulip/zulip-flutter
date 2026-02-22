@@ -15,7 +15,7 @@ import 'schemas/schema_v5.dart' as v5;
 import 'schemas/schema_v9.dart' as v9;
 import 'schemas/schema_v10.dart' as v10;
 import 'schemas/schema_v11.dart' as v11;
-import 'schemas/schema_v13.dart' as v13;
+import 'schemas/schema_v15.dart' as v15;
 import 'store_checks.dart';
 
 void main() {
@@ -193,7 +193,6 @@ void main() {
         realmName: Value('Example Zulip organization'),
         realmIcon: Value(Uri.parse('/user_avatars/2/realm/icon.png?version=3')),
         userId: 1,
-        deviceId: Value(null),
         email: 'asdf@example.org',
         apiKey: '1234',
         zulipVersion: '6.0',
@@ -208,7 +207,7 @@ void main() {
       check(account.toCompanion(false).toJson()).deepEquals({
         ...accountData.toJson(),
         'id': (Subject<Object?> it) => it.isA<int>(),
-        'acked_push_token': null,
+        'device_id': null,
       });
     });
 
@@ -405,14 +404,14 @@ void main() {
       await before.close();
 
       final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 13);
+      await verifier.migrateAndValidate(db, 15);
       await db.close();
 
-      final after = v13.DatabaseAtV13(schema.newConnection());
+      final after = v15.DatabaseAtV15(schema.newConnection());
       final account = await after.select(after.accounts).getSingle();
       check(account.toJson()).deepEquals({
         ...accountV1.toJson(),
-        'ackedPushToken': null, // v2
+        // 'ackedPushToken': null, // added in v2, removed in v15; was always null
         'realmName': null, 'realmIcon': null, // v12
         'deviceId': null, // v13
       });
@@ -511,6 +510,8 @@ void main() {
     // v13 covered by "existing Account row" above
 
     // v14 only adds a new table; the "migrate without data" test covers it
+
+    // v15 covered by "existing Account row" above
   });
 }
 
