@@ -1047,6 +1047,41 @@ void main() {
           tester.widget(find.byType(Mention)), 'Greg Price');
       });
 
+    group('pill colors', () {
+      testWidgets('pill color user mention', (tester) async {
+        await prepareContent(tester, plainContent(ContentExample.userMentionPlain.html),
+          wrapWithPerAccountStoreWidget: true);
+        final context = tester.element(find.byType(Mention));
+        final container = tester.widget<Container>(
+          find.descendant(of: find.byType(Mention), matching: find.byType(Container)));
+        check(container.decoration)
+          .isA<BoxDecoration>()
+          .color.equals(ContentTheme.of(context).colorDirectMentionBackground);
+      });
+
+      testWidgets('pill color user group mention', (tester) async {
+        await prepareContent(tester, plainContent(ContentExample.groupMentionPlain.html),
+          wrapWithPerAccountStoreWidget: true);
+        final context = tester.element(find.byType(Mention));
+        final container = tester.widget<Container>(
+          find.descendant(of: find.byType(Mention), matching: find.byType(Container)));
+        check(container.decoration)
+          .isA<BoxDecoration>()
+          .color.equals(ContentTheme.of(context).colorGroupMentionBackground);
+      });
+
+      testWidgets('pill color wildcard mention', (tester) async {
+        await prepareContent(tester, plainContent(ContentExample.channelWildcardMentionPlain.html),
+          wrapWithPerAccountStoreWidget: true);
+        final context = tester.element(find.byType(Mention));
+        final container = tester.widget<Container>(
+          find.descendant(of: find.byType(Mention), matching: find.byType(Container)));
+        check(container.decoration)
+          .isA<BoxDecoration>()
+          .color.equals(ContentTheme.of(context).colorGroupMentionBackground);
+      });
+    });
+
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in plain paragraph',
     //    expectedWght: 600, // [etc.]
