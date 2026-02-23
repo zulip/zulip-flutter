@@ -112,6 +112,58 @@ test that needs it, and have each test clean up its state as usual.
 [uninstalls and reinstalls]: https://github.com/zulip/zulip-flutter/pull/2171#discussion_r2853854928
 
 
+### Need to specify iOS version
+
+When running on iOS, the test might fail to start with the output
+looking like this:
+```
+• Running app with entrypoint test_bundle.dart for iOS simulator on simulator iPhone 15 Pro Max...
+Hot Restart: logs connected
+[WARN] Hot Restart: not attached to the app yet
+✓ App shut down on request (3.4s)
+```
+
+One cause of this symptom is an issue where the `patrol` tool defaults
+to telling `xcodebuild` it must run on the iOS version "latest".
+This is true even when you specify a particular device with `-d`,
+and that device has some other iOS version which isn't the latest;
+and in that case, `xcodebuild` will fail.
+
+(The detailed `xcodebuild` command and error output can be seen by
+adding `--verbose` to the Patrol command.)
+
+To deal with the issue, add an argument like `--ios=17.0` to your
+`patrol develop` or `patrol test` command, with whatever iOS version
+is on the device you're using.
+
+
+### iOS: "isn't a member of the specified test plan or scheme"
+
+When running on iOS, the test might fail to start with the output
+ending like this (with `--verbose`):
+```
+Hot Restart: logs connected
+[WARN] Hot Restart: not attached to the app yet
+	Showing iPhone 15 Pro Max logs:
+	xcodebuild: error: Failed to build workspace Runner with scheme Runner.: Tests in the target “RunnerUITests” can’t be run because “RunnerUITests” isn’t a member of the specified test plan or scheme.
+✓ App shut down on request (2.5s)
+```
+
+The cause of this appears to be that there are two `*.xctestrun`
+files lying around, one of which is near empty, and the wrong one
+gets used:
+```
+$ ls -Al build/ios_integ/Build/Products/
+total 8
+drwxr-xr-x 42 greg staff 1344 Feb 23 12:12 Debug-iphonesimulator/
+-rw-r--r--  1 greg staff 3944 Feb 23 12:16 Runner_iphonesimulator18.2-arm64-x86_64.xctestrun
+-rw-r--r--  1 greg staff  443 Feb 23 11:49 Runner_iphonesimulator18.2.xctestrun
+```
+
+As a workaround, deleting `build/ios_integ/` and rerunning seems to
+work.  (Likely deleting just the one file would suffice.)
+
+
 ## One-time setup
 
 ### Patrol
@@ -130,7 +182,8 @@ Upstream docs: https://patrol.leancode.co/documentation
    $ patrol doctor
    ```
 
-   (If it complains `ANDROID_HOME` is unset, that seems to be harmless.)
+   (If it complains `ANDROID_HOME` is unset, that seems to be harmless.
+   Similarly if it complains `ideviceinstaller` is not found.)
 
 
 ### Live login credentials
