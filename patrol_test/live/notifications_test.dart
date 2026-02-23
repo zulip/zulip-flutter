@@ -14,7 +14,7 @@ import 'package:zulip/model/binding.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/store.dart';
 
-import '../test/example_data.dart' as eg;
+import '../../test/example_data.dart' as eg;
 
 void main() {
   mainInit();

@@ -291,7 +291,7 @@ Upstream docs: https://patrol.leancode.co/documentation
 
 ### Live login credentials
 
-In order to run the tests in `patrol_test/live_test.dart`, create a
+In order to run the tests in `patrol_test/live/`, create a
 file `.patrol.env` at the root of the project tree, like so:
 ```
 REALM_URL=https://chat.example.com
