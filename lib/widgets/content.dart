@@ -1227,7 +1227,7 @@ class Mention extends StatelessWidget {
         linkRecognizers: null,
 
         // TODO(#647) when self-user is non-silently mentioned, make bold, and:
-        // TODO(#646) distinguish font color between direct and wildcard mentions
+        // distinguish font color between direct and wildcard mentions.
         style: ambientTextStyle,
 
         nodes: nodes));
