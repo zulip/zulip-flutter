@@ -72,6 +72,10 @@ abstract class ZulipBinding {
     return instance!;
   }
 
+  /// Initialize the binding instance.
+  ///
+  /// This does the job of a constructor, but can be overridden in mixins
+  /// as well as in ordinary classes.
   @protected
   @mustCallSuper
   void initInstance() {
@@ -370,7 +374,9 @@ class NotificationPigeonApi {
 /// Methods wrapping a plugin, like [launchUrl], invoke the actual
 /// underlying plugin method.
 class LiveZulipBinding extends ZulipBinding {
-  LiveZulipBinding() {
+  @override
+  void initInstance() {
+    super.initInstance();
     _deviceInfo = _prefetchDeviceInfo();
     _packageInfo = _prefetchPackageInfo();
   }
