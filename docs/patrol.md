@@ -1,5 +1,108 @@
 # Integration tests with Patrol
 
+## Why and when to use Patrol
+
+Patrol is a tool for writing integration tests of Flutter apps.
+Unlike widget tests (which are the mainstay of our UI tests),
+Patrol tests run on a real physical or emulated device, and
+interact with the real device platform (Android or iOS).
+
+This makes them a lot slower, and tends to make them flakier, than
+the normal Flutter tests found in `test/` and run by `flutter test`.
+Whenever possible, we prefer to test any given aspect of the app
+in normal Flutter tests.  Patrol tests are useful for things that
+normal Flutter tests can't cover, where we would otherwise resort
+to manual testing.
+
+Specifically, when we're interacting with the device platform's APIs,
+or with our own Kotlin or Swift code, those aren't present in Flutter
+tests.  We use either `ZulipBinding` or Flutter's own "binding"
+classes to abstract them away, and to replace them in tests with fake
+implementations.  This works great for most things; but when there's
+enough complexity in the API, we can't be confident our fakes are
+entirely accurate.  Patrol tests can exercise our code with the real
+implementation from the device platform.
+
+
+### Types of Patrol test
+
+There are a few different types of Patrol tests we can write, based on
+the implementation of `ZulipBinding` they use:
+
+ * *Live* Patrol tests use `LiveZulipBinding`, the same implementation
+   as the actual app.  This means they talk to a real Zulip server and
+   store their data in a real local database file, as well as using
+   the real device platform.
+
+   This is useful where the Zulip server, too, has complexity we're
+   not entirely confident of modeling in our tests.  Zulip's main
+   server API has high-quality structured docs, automatically
+   validated by the server's own test suite; so this applies to
+   interactions outside that main API.  Examples:
+   * notifications, where the server has to send a payload through the
+     push bouncer and then Google's or Apple's push services;
+   * web auth, where we open up a browser pointing at a URL on the
+     server, and it typically redirects the user to an external auth
+     provider which later redirects back.
+
+   On the other hand, these are inconvenient because a Zulip server
+   is required.
+
+ * Some Patrol tests use `TestZulipBinding`, the same implementation
+   as our normal Flutter tests.  Like all Patrol tests, though, they
+   use the live `WidgetsFlutterBinding` implementation of the Flutter
+   bindings.
+
+   This is useful when the relevant aspects of the device platform
+   interact through Flutter's binding classes but not `ZulipBinding`.
+   Example: keyboard interactions.
+   We could use Patrol to write regression tests for issues like
+   [#552](https://github.com/zulip/zulip-flutter/issues/552),
+   [#743](https://github.com/zulip/zulip-flutter/issues/743),
+   [#591](https://github.com/zulip/zulip-flutter/issues/591),
+   [#546](https://github.com/zulip/zulip-flutter/issues/546),
+   [#1100](https://github.com/zulip/zulip-flutter/issues/1100),
+   [#1753](https://github.com/zulip/zulip-flutter/issues/1753),
+   or [#1974](https://github.com/zulip/zulip-flutter/issues/1974).
+
+ * We could also write Patrol tests that are a hybrid: we could make a
+   `ZulipBinding` implementation that takes its interactions with the
+   server and perhaps the database from `TestZulipBinding`, but its
+   interactions with the device platform from `LiveZulipBinding`.
+
+   This would be useful when the Zulip server interactions are all
+   through the main Zulip API as usual, but there are other relevant
+   interactions that go through `ZulipBinding`.
+   Example: share-to-Zulip.
+
+
+### Limitations
+
+Patrol's architecture is that the test is driven from
+inside a build of the app.
+(This design is described in the [Patrol 1.0 blog post][].)
+This causes two notable limitations:
+
+ * A test can't continue after quitting the app.  This is tracked as
+   Patrol's [issue #1374](https://github.com/leancodepl/patrol/issues/1374).
+
+   This means that for notifications, we can test only two of the
+   three contexts for receiving a notification: when the app is in the
+   foreground or the background, but not when it wasn't running.
+
+ * There's no way to take a screenshot from within a Patrol test.
+   This is tracked as Patrol's [issue #534](https://github.com/leancodepl/patrol/issues/534).
+
+   (In principle this might be solvable with the inside-the-app
+   architecture.  A previous version of Patrol with a different
+   architecture had this feature, though, as seen in the thread;
+   as the syntax `tester.host.takeScreenshot(…)` indicates, it
+   involved code running on the host machine, outside the device.
+   See also their [issue #584](https://github.com/leancodepl/patrol/issues/584).)
+
+[Patrol 1.0 blog post]: https://leancode.co/blog/patrol-1-0-powerful-flutter-ui-testing-framework
+
+
 ## Writing tests
 
 See various upstream guide-level docs:
