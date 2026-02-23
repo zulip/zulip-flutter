@@ -354,30 +354,12 @@ class NotificationPigeonApi {
     notif_pigeon.notificationTapEvents();
 }
 
-/// A concrete binding for use in the live application.
+/// An implementation of the app's data store binding for use in the live app.
 ///
 /// The global store returned by [getGlobalStore], and consequently by
 /// [GlobalStoreWidget.of] in application code, will be a [LiveGlobalStore].
 /// It therefore uses a live server and live, persistent local database.
-///
-/// Methods wrapping a plugin, like [launchUrl], invoke the actual
-/// underlying plugin method.
-class LiveZulipBinding extends ZulipBinding {
-  @override
-  void initInstance() {
-    super.initInstance();
-    _deviceInfo = _prefetchDeviceInfo();
-    _packageInfo = _prefetchPackageInfo();
-  }
-
-  /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
-  static LiveZulipBinding ensureInitialized() {
-    if (ZulipBinding._instance == null) {
-      LiveZulipBinding();
-    }
-    return ZulipBinding.instance as LiveZulipBinding;
-  }
-
+mixin LiveZulipStoreBinding on ZulipBinding {
   @override
   Future<GlobalStore> getGlobalStore() {
     return _globalStoreFuture ??= LiveGlobalStore.load().then((store) {
@@ -420,6 +402,20 @@ class LiveZulipBinding extends ZulipBinding {
      _debugCalledGetGlobalStoreUniquely = false;
       return true;
     }());
+  }
+}
+
+/// An implementation of the app's miscellaneous needs from plugins and the
+/// device platform, for use in the live app.
+///
+/// Methods wrapping a plugin, like [launchUrl], invoke the actual
+/// underlying plugin method.
+mixin LiveZulipDeviceBinding on ZulipBinding {
+  @override
+  void initInstance() {
+    super.initInstance();
+    _deviceInfo = _prefetchDeviceInfo();
+    _packageInfo = _prefetchPackageInfo();
   }
 
   @override
@@ -556,4 +552,23 @@ class LiveZulipBinding extends ZulipBinding {
   Future<void> toggleWakelock({required bool enable}) async {
     return wakelock_plus.WakelockPlus.toggle(enable: enable);
   }
+}
+
+/// A concrete binding for use in the live application.
+///
+/// The global store returned by [getGlobalStore], and consequently by
+/// [GlobalStoreWidget.of] in application code, will be a [LiveGlobalStore].
+/// It therefore uses a live server and live, persistent local database.
+///
+/// Methods wrapping a plugin, like [launchUrl], invoke the actual
+/// underlying plugin method.
+class LiveZulipBinding extends ZulipBinding with LiveZulipStoreBinding, LiveZulipDeviceBinding {
+  /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
+  static LiveZulipBinding ensureInitialized() {
+    if (ZulipBinding._instance == null) {
+      LiveZulipBinding();
+    }
+    return ZulipBinding.instance as LiveZulipBinding;
+  }
+
 }
