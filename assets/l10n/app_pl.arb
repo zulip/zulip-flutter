@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
   },
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
@@ -167,8 +173,23 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
+  },
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
   },
   "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
     "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
@@ -384,12 +405,6 @@
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "@composeBoxBannerLabelCannotSendInChannel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
-  },
-  "@composeBoxBannerLabelDeactivatedDmRecipient": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
-  },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
     "placeholders": {
@@ -588,6 +603,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
@@ -652,6 +670,9 @@
   },
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
@@ -776,6 +797,24 @@
   },
   "@manyPeopleTyping": {
     "description": "Text to display when there are multiple users typing."
+  },
+  "@markAllAsReadConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Mark as read' button on a confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogMessage": {
+    "description": "Message in the confirmation dialog for marking all messages as read."
+  },
+  "@markAllAsReadConfirmationDialogTitle": {
+    "description": "Title of the confirmation dialog for marking all messages as read. The '+' means 'this many messages or more'.",
+    "placeholders": {
+      "count": {
+        "description": "Minimum number of messages that will be marked as read",
+        "type": "int"
+      }
+    }
+  },
+  "@markAllAsReadConfirmationDialogTitleNoCount": {
+    "description": "Title of the confirmation dialog for marking all messages as read."
   },
   "@markAllAsReadLabel": {
     "description": "Button text to mark messages as read."
@@ -1353,6 +1392,7 @@
   "actionSheetOptionMarkChannelAsRead": "Oznacz kanał jako przeczytany",
   "actionSheetOptionMarkTopicAsRead": "Oznacz wątek jako przeczytany",
   "actionSheetOptionMuteTopic": "Wycisz wątek",
+  "actionSheetOptionPinChannel": "Przypnij na górze",
   "actionSheetOptionQuoteMessage": "Cytuj wiadomość",
   "actionSheetOptionResolveTopic": "Oznacz jako rozwiązany",
   "actionSheetOptionSeeWhoReacted": "Pokaż kto zareagował",
@@ -1361,6 +1401,7 @@
   "actionSheetOptionSubscribe": "Subskrybuj",
   "actionSheetOptionUnfollowTopic": "Nie śledź wątku",
   "actionSheetOptionUnmuteTopic": "Wznów wątek",
+  "actionSheetOptionUnpinChannel": "Odepnij z góry",
   "actionSheetOptionUnresolveTopic": "Oznacz brak rozwiązania",
   "actionSheetOptionUnstarMessage": "Odbierz gwiazdkę",
   "actionSheetOptionUnsubscribe": "Odsubskrybuj",
@@ -1387,7 +1428,12 @@
   "composeBoxBannerButtonRefresh": "Odśwież",
   "composeBoxBannerButtonSave": "Zapisz",
   "composeBoxBannerButtonSubscribe": "Subskrybuj",
+  "composeBoxBannerLabelCannotSendInChannel": "Nie masz uprawnień do dodawania wpisów w tym kanale.",
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "Nie możesz wysyłać tutaj wiadomości.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Nie można wysyłać wiadomości do dezaktywowanych użytkowników.",
   "composeBoxBannerLabelEditMessage": "Zmień wiadomość",
+  "composeBoxBannerLabelUnknownDmRecipient": "Nie można wysłyać wiadomości do nieznanych użytkowników.",
+  "composeBoxBannerLabelUnsubscribed": "Odpowiedzi na twoje wiadomości nie pojawią się automatycznie.",
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Nowe wiadomości nie pojawią się z automatu.",
   "composeBoxChannelContentHint": "Wiadomość do {destination}",
   "composeBoxDmContentHint": "Napisz do @{user}",
@@ -1438,8 +1484,6 @@
   "emptyMessageListStarredMessage": "<z-link>Oznaczanie gwiazdką</z-link> to dobra metoda aby śledzić ważne wiadomości oraz zadania, do których chcesz wrócić. Aby oznaczyć wiadomość gwiazdką wybierz “{button}.”",
   "errorAccountLoggedIn": "Konto {email} na {server} znajduje się już na liście dodanych kont.",
   "errorAccountLoggedInTitle": "Konto już wylogowane",
-  "composeBoxBannerLabelCannotSendInChannel": "Nie masz uprawnień do dodawania wpisów w tym kanale.",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "Nie można wysyłać wiadomości do dezaktywowanych użytkowników.",
   "errorConnectingToServerDetails": "Błąd połączenia z Zulip {serverUrl}. Spróbujmy ponownie:\n\n{error}",
   "errorConnectingToServerShort": "Błąd połączenia z Zulip. Ponawiam…",
   "errorContentNotInsertedTitle": "Dodanie zawartości bez powodzenia",
@@ -1478,6 +1522,7 @@
   "errorNetworkRequestFailed": "Dostęp do sieci bez powodzenia",
   "errorNotificationOpenAccountNotFound": "Nie odnaleziono konta powiązanego z tym powiadomieniem.",
   "errorNotificationOpenTitle": "Otwieranie powiadomienia bez powodzenia",
+  "errorPinChannelFailedTitle": "Nie udało się przypiąć kanału",
   "errorQuotationFailed": "Cytowanie bez powodzenia",
   "errorReactionAddingFailedTitle": "Dodanie reakcji bez powodzenia",
   "errorReactionRemovingFailedTitle": "Usuwanie reakcji bez powodzenia",
@@ -1491,6 +1536,7 @@
   "errorStarMessageFailedTitle": "Dodanie gwiazdki bez powodzenia",
   "errorUnfollowTopicFailed": "Nie śledź bez powodzenia",
   "errorUnmuteTopicFailed": "Wznowienie bez powodzenia",
+  "errorUnpinChannelFailedTitle": "Nie udało się odpiąć kanału",
   "errorUnresolveTopicFailedTitle": "Nie udało się oznaczyć brak rozwiązania",
   "errorUnstarMessageFailedTitle": "Odebranie gwiazdki bez powodzenia",
   "errorVideoPlayerFailed": "Nie da rady odtworzyć wideo.",
@@ -1529,6 +1575,10 @@
   "loginUsernameLabel": "Użytkownik",
   "mainMenuMyProfile": "Mój profil",
   "manyPeopleTyping": "Wielu ludzi coś pisze…",
+  "markAllAsReadConfirmationDialogConfirmButton": "Oznacz jako przeczytane",
+  "markAllAsReadConfirmationDialogMessage": "Może to wpłynąć na wiadomości w kilku rozmowach.",
+  "markAllAsReadConfirmationDialogTitle": "{count, plural, =1{Oznaczyć {count}+ wiadomość jako przeczytaną?} other{Oznaczyć {count}+ wiadomości jako przeczytane?}}",
+  "markAllAsReadConfirmationDialogTitleNoCount": "Oznaczyć wiadomości jako przeczytane?",
   "markAllAsReadLabel": "Oznacz wszystkie jako przeczytane",
   "markAsReadComplete": "Oznaczono {num, plural, =1{1 wiadomość} other{{num} wiadomości}} jako przeczytane.",
   "markAsReadInProgress": "Oznaczanie wiadomości jako przeczytane…",

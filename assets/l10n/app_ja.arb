@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
   },
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
@@ -591,6 +597,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
@@ -655,6 +664,9 @@
   },
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
@@ -1353,6 +1365,7 @@
   "actionSheetOptionMarkChannelAsRead": "チャンネルを既読にする",
   "actionSheetOptionMarkTopicAsRead": "トピックを既読にする",
   "actionSheetOptionMuteTopic": "トピックをミュート",
+  "actionSheetOptionPinChannel": "上部に固定",
   "actionSheetOptionQuoteMessage": "メッセージを引用",
   "actionSheetOptionResolveTopic": "解決済みにする",
   "actionSheetOptionSeeWhoReacted": "リアクションした人を見る",
@@ -1361,6 +1374,7 @@
   "actionSheetOptionSubscribe": "チャンネルに参加",
   "actionSheetOptionUnfollowTopic": "トピックのフォローを解除",
   "actionSheetOptionUnmuteTopic": "トピックのミュートを解除",
+  "actionSheetOptionUnpinChannel": "上部に固定を解除",
   "actionSheetOptionUnresolveTopic": "未解決にする",
   "actionSheetOptionUnstarMessage": "メッセージのスターを外す",
   "actionSheetOptionUnsubscribe": "チャンネルから退出",
@@ -1481,6 +1495,7 @@
   "errorNetworkRequestFailed": "ネットワークエラーが発生しました",
   "errorNotificationOpenAccountNotFound": "この通知に関連付けられたアカウントが見つかりませんでした。",
   "errorNotificationOpenTitle": "通知を開けませんでした",
+  "errorPinChannelFailedTitle": "チャンネルの固定に失敗しました",
   "errorQuotationFailed": "引用できませんでした",
   "errorReactionAddingFailedTitle": "リアクションを追加できませんでした",
   "errorReactionRemovingFailedTitle": "リアクションを削除できませんでした",
@@ -1494,6 +1509,7 @@
   "errorStarMessageFailedTitle": "メッセージにスターを付けられませんでした",
   "errorUnfollowTopicFailed": "トピックのフォロー解除ができませんでした",
   "errorUnmuteTopicFailed": "トピックのミュート解除ができませんでした",
+  "errorUnpinChannelFailedTitle": "チャンネルの固定解除に失敗しました",
   "errorUnresolveTopicFailedTitle": "トピックを未解決にできませんでした",
   "errorUnstarMessageFailedTitle": "メッセージのスターを外せませんでした",
   "errorVideoPlayerFailed": "動画を再生できません。",
