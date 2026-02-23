@@ -68,12 +68,12 @@ the implementation of `ZulipBinding` they use:
    [#1753](https://github.com/zulip/zulip-flutter/issues/1753),
    or [#1974](https://github.com/zulip/zulip-flutter/issues/1974).
 
- * We could also write Patrol tests that are a hybrid: we could make a
-   `ZulipBinding` implementation that takes its interactions with the
-   server and perhaps the database from `TestZulipBinding`, but its
-   interactions with the device platform from `LiveZulipBinding`.
+ * Some Patrol tests are a hybrid: they use `SemiLiveZulipBinding`.
+   This binding takes its interactions with the server and database
+   from `TestZulipBinding`, but
+   its interactions with the device platform from `LiveZulipBinding`.
 
-   This would be useful when the Zulip server interactions are all
+   This is useful when the Zulip server interactions are all
    through the main Zulip API as usual, but there are other relevant
    interactions that go through `ZulipBinding`.
    Example: share-to-Zulip.
