@@ -9,6 +9,7 @@ import 'package:zulip/widgets/app.dart';
 
 import '../../test/example_data.dart' as eg;
 import '../../test/model/binding.dart';
+import '../../test/model/test_store.dart';
 
 /// The binding instance used in live Patrol tests.
 ///
@@ -62,6 +63,23 @@ class PatrolLiveZulipBinding extends LiveZulipBinding {
     } on PathNotFoundException {
       // ignore
     }
+  }
+
+  /// Add an account to the app's data, as if logging in.
+  ///
+  /// Returns the resulting [Account]
+  /// (which in particular will have its own account ID).
+  ///
+  /// Compare [TestGlobalStore.add].
+  Future<Account> addAccount(Account account, {
+    bool markLastVisited = true,
+  }) async {
+    final globalStore = await getGlobalStore();
+    final accountId = await globalStore.insertAccount(account.toCompanion(false));
+    if (markLastVisited) {
+      await globalStore.setLastVisitedAccount(accountId);
+    }
+    return globalStore.getAccount(accountId)!;
   }
 }
 
