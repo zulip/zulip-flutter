@@ -36,7 +36,7 @@ void main() {
 
     await $.tap($('Add an account'));
 
-    await $(TextField).enterText(const String.fromEnvironment('REALM_URL'));
+    await $(TextField).enterText(LiveCredentials.realmUrlStr);
     await $.tap($('Continue'));
 
     final findUsernameInput = find.byWidgetPredicate((widget) =>
@@ -45,8 +45,8 @@ void main() {
     final findPasswordInput = find.byWidgetPredicate((widget) =>
       widget is TextField
       && (widget.autofillHints ?? []).contains(AutofillHints.password));
-    await $(findUsernameInput).enterText(const String.fromEnvironment('EMAIL'));
-    await $(findPasswordInput).enterText(const String.fromEnvironment('PASSWORD'));
+    await $(findUsernameInput).enterText(LiveCredentials.email);
+    await $(findPasswordInput).enterText(LiveCredentials.password);
     await $.tap($(find.widgetWithText(ElevatedButton, 'Log in')));
 
     await $.waitUntilVisible($('Inbox'));
