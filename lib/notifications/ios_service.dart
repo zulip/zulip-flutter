@@ -14,11 +14,21 @@ void iosNotificationServiceMain() {
   IosNotificationService.init();
 }
 
-@visibleForTesting
 class IosNotificationService {
   const IosNotificationService._();
 
+  /// Whether the currently executing context is
+  /// iOS notification service app extension.
+  static bool isExecutingInExtension = false;
+
+  /// Reset the state of the [IosNotificationService], for testing.
+  @visibleForTesting
+  static void debugReset() {
+    isExecutingInExtension = false;
+  }
+
   static void init() {
+    isExecutingInExtension = true;
     _debugLog('dart: IosNotificationService.init');
     final iosNotifFlutterApiImpl = _IosNotifFlutterApiImpl();
     ZulipBinding.instance.setupIosNotifFlutterApi(iosNotifFlutterApiImpl);

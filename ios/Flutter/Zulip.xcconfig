@@ -7,5 +7,7 @@ IPHONEOS_DEPLOYMENT_TARGET=15.0
 
 DEVELOPMENT_TEAM=66KHCWMEYB
 
+// This should match the `iosAppGroupIdentifier` variable in
+// lib/model/store.dart.
 // TODO change group name
 ZULIP_APP_GROUP_IDENTIFIER=group.zulip.test

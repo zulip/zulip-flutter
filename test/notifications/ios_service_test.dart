@@ -15,6 +15,7 @@ void main() {
   test('smoke', () async {
     addTearDown(testBinding.reset);
     IosNotificationService.init();
+    addTearDown(IosNotificationService.debugReset);
 
     final title = 'test title';
     final content = 'test content';
