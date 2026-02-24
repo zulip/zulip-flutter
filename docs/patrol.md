@@ -299,14 +299,18 @@ file `.patrol.env` at the root of the project tree, like so:
 ```
 REALM_URL=https://chat.example.com
 EMAIL=user@example.com
+USER_ID=123
+API_KEY=asdf1234
 PASSWORD=hunter2
 OTHER_EMAIL=other.user@example.com
-OTHER_API_KEY=asdf1234
+OTHER_API_KEY=qwer5678
 ```
 
 with the realm URL of some real Zulip server, and credentials for
 two different test accounts there.  (The second account is used for
-sending messages to the first account, to cause notifications.)
+sending messages to the first account, to cause notifications.
+The password is used in testing the login flow itself,
+and the API key otherwise.)
 
 The tests will log into those real accounts and interact there.
 Avoid using chat.zulip.org or any other realm that people use
