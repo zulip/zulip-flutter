@@ -8,6 +8,7 @@ import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart' as intl;
 
 import '../api/model/model.dart';
+import '../api/model/permission.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
@@ -1196,14 +1197,22 @@ class Mention extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     var nodes = node.nodes;
     switch (node) {
       case UserGroupMentionNode(:final userGroupId):
         final userGroup = store.getGroup(userGroupId);
-        if (userGroup case UserGroup(:final name)) {
-          // TODO(#1260) Get display name for system groups using localization
-          nodes = [TextNode(node.isSilent ? name : '@$name')];
+        if (userGroup case UserGroup(:final name, :final isSystemGroup)) {
+          final String displayName;
+          if (isSystemGroup) {
+            final groupName = SystemGroupName.fromJson(name); // TODO(log) if null
+            displayName = groupName?.displayName(zulipLocalizations) ?? name;
+          } else {
+            displayName = name;
+          }
+
+          nodes = [TextNode(node.isSilent ? displayName : '@$displayName')];
         }
       case UserMentionNode(:final userId?):
         final user = store.getUser(userId);

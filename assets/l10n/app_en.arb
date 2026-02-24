@@ -1388,6 +1388,38 @@
   "@wildcardMentionTopicDescription": {
     "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
   },
+  "systemGroupNameEveryoneOnInternet": "Everyone on the internet",
+  "@systemGroupNameEveryoneOnInternet": {
+    "description": "Display name for the system group that includes everyone on the internet."
+  },
+  "systemGroupNameEveryone": "Everyone including guests",
+  "@systemGroupNameEveryone": {
+    "description": "Display name for the system group that includes all users including guests."
+  },
+  "systemGroupNameMembers": "Everyone except guests",
+  "@systemGroupNameMembers": {
+    "description": "Display name for the system group that includes all users excluding guests."
+  },
+  "systemGroupNameFullMembers": "Full members",
+  "@systemGroupNameFullMembers": {
+    "description": "Display name for the system group that includes all full members of the organization."
+  },
+  "systemGroupNameModerators": "Moderators",
+  "@systemGroupNameModerators": {
+    "description": "Display name for the system group that includes all users with at least the moderator role."
+  },
+  "systemGroupNameAdministrators": "Administrators",
+  "@systemGroupNameAdministrators": {
+    "description": "Display name for the system group that includes all users with at least the administrator role."
+  },
+  "systemGroupNameOwners": "Owners",
+  "@systemGroupNameOwners": {
+    "description": "Display name for the system group that includes all users with the owner role."
+  },
+  "systemGroupNameNobody": "Nobody",
+  "@systemGroupNameNobody": {
+    "description": "Display name for the system group that includes nobody."
+  },
   "navBarFeedLabel": "Feed",
   "@navBarFeedLabel": {
     "description": "Label for the Feed button on the bottom navigation bar."

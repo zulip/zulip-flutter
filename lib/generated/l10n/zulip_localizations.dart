@@ -2012,6 +2012,54 @@ abstract class ZulipLocalizations {
   /// **'Notify topic'**
   String get wildcardMentionTopicDescription;
 
+  /// Display name for the system group that includes everyone on the internet.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone on the internet'**
+  String get systemGroupNameEveryoneOnInternet;
+
+  /// Display name for the system group that includes all users including guests.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone including guests'**
+  String get systemGroupNameEveryone;
+
+  /// Display name for the system group that includes all users excluding guests.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone except guests'**
+  String get systemGroupNameMembers;
+
+  /// Display name for the system group that includes all full members of the organization.
+  ///
+  /// In en, this message translates to:
+  /// **'Full members'**
+  String get systemGroupNameFullMembers;
+
+  /// Display name for the system group that includes all users with at least the moderator role.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderators'**
+  String get systemGroupNameModerators;
+
+  /// Display name for the system group that includes all users with at least the administrator role.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrators'**
+  String get systemGroupNameAdministrators;
+
+  /// Display name for the system group that includes all users with the owner role.
+  ///
+  /// In en, this message translates to:
+  /// **'Owners'**
+  String get systemGroupNameOwners;
+
+  /// Display name for the system group that includes nobody.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody'**
+  String get systemGroupNameNobody;
+
   /// Label for the Feed button on the bottom navigation bar.
   ///
   /// In en, this message translates to:

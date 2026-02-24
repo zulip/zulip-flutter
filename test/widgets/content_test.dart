@@ -1149,6 +1149,37 @@ void main() {
         check(find.text('new-name')).findsOne();
         check(find.text('@new-name')).findsNothing();
       });
+
+      for (final (apiName, displayName) in const [
+        ('role:internet',       'Everyone on the internet'),
+        ('role:everyone',       'Everyone including guests'),
+        ('role:members',        'Everyone except guests'),
+        ('role:fullmembers',    'Full members'),
+        ('role:moderators',     'Moderators'),
+        ('role:administrators', 'Administrators'),
+        ('role:owners',         'Owners'),
+        ('role:nobody',         'Nobody'),
+      ]) {
+        testWidgets('shows localized display name for system group $apiName',
+            (tester) async {
+          await prepare(
+            tester: tester,
+            html: '<p><span class="user-group-mention"'
+              ' data-user-group-id="5">@$apiName</span></p>',
+            userGroups: [eg.userGroup(id: 5, name: apiName, isSystemGroup: true)]);
+          check(find.text('@$displayName')).findsOne();
+          check(find.text('@$apiName')).findsNothing();
+        });
+      }
+
+      testWidgets('shows localized display name for silent system group mention', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-group-mention silent" data-user-group-id="5">role:administrators</span></p>',
+          userGroups: [eg.userGroup(id: 5, name: 'role:administrators', isSystemGroup: true)]);
+        check(find.text('Administrators')).findsOne();
+        check(find.text('@Administrators')).findsNothing();
+      });
     });
   });
 
