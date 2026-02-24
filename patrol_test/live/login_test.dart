@@ -6,16 +6,13 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 import 'package:zulip/main.dart';
-import 'package:zulip/model/binding.dart';
 import 'package:zulip/widgets/app.dart';
 
-void main() {
-  mainInit();
+import 'binding.dart';
 
-  // Successive tests in this file interact with the same real server
-  // and the same real device platform, by the nature of live tests.
-  // So we might as well let them use the same real database and global store.
-  ZulipBinding.instance.debugRelaxGetGlobalStoreUniquely = true;
+void main() {
+  PatrolLiveZulipBinding.ensureInitialized();
+  mainInit();
 
   patrolTest('email/password', ($) async {
     // This isn't especially useful as a test: it duplicates flows we have in
@@ -27,7 +24,7 @@ void main() {
     // app ourselves day to day, this test has some marginal value in
     // double-checking that we haven't missed something.
 
-    addTearDown(ZulipApp.debugReset);
+    await patrolLiveBinding.reset();
     await $.pumpWidget(ZulipApp());
 
     await $.waitUntilVisible($('Choose account'));
