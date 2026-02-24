@@ -24,10 +24,20 @@ void iosNotificationServiceMain() {
   IosNotificationService.init();
 }
 
-@visibleForTesting
 abstract class IosNotificationService {
+  /// Whether the currently executing context is
+  /// iOS notification service app extension.
+  static bool isExecutingInExtension = false;
+
+  /// Reset the state of the [IosNotificationService], for testing.
+  @visibleForTesting
+  static void debugReset() {
+    isExecutingInExtension = false;
+  }
+
   @visibleForTesting
   static void init() {
+    isExecutingInExtension = true;
     assert(debugLog('IosNotificationService.init'));
     ZulipBinding.instance.setupIosNotifFlutterApi(_IosNotifFlutterApiImpl());
   }
