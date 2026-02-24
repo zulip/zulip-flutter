@@ -174,25 +174,6 @@ TODO: use a different app ID for Patrol vs. the app.
 
 ## Troubleshooting
 
-### When app was already installed
-
-There seems to be a bug in the `patrol` tool with the following
-symptom: you try running `patrol develop`; it spends some time
-building; and then before actually running any tests, it aborts
-with the message `App shut down on request`.
-
-One cause of this symptom occurs when an old copy of the app had been
-installed (e.g. by a previous Patrol run), and Patrol uninstalled it.
-There seems to be a race where the uninstall happens out of order
-relative to Patrol starting the app for testing.
-
-To work around the issue, uninstall the app explicitly before starting
-Patrol.  For example:
-```
-$ adb uninstall com.zulipmobile; patrol develop -t patrol_test/example_test.dart
-```
-
-
 ### Later tests may or may not share state from previous
 
 The documented, normal behavior of `patrol test` or `patrol develop`
