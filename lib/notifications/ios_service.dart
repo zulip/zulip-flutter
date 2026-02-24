@@ -14,9 +14,11 @@ void iosNotificationServiceMain() {
   IosNotificationService.init();
 }
 
-@visibleForTesting
 class IosNotificationService {
+  static bool isExecutingInExtension = false;
+
   static void init() {
+    isExecutingInExtension = true;
     _debugLog('dart: IosNotificationService.init');
     final iosNotifFlutterApiImpl = _IosNotifFlutterApiImpl();
     ZulipBinding.instance.setupIosNotifFlutterApi(iosNotifFlutterApiImpl);

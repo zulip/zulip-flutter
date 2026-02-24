@@ -7,6 +7,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:path_provider_foundation/path_provider_foundation.dart';
 
 import '../api/core.dart';
 import '../api/exception.dart';
@@ -17,8 +18,10 @@ import '../api/route/events.dart';
 import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../log.dart';
+import '../notifications/ios_service.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
+import 'binding.dart';
 import 'database.dart';
 import 'emoji.dart';
 import 'localizations.dart';
@@ -1120,6 +1123,8 @@ class LiveGlobalStore extends GlobalStore {
 
   /// The file path to use for the app database.
   static Future<File> _dbFile() async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) return _maybeCopyIosDbFile();
+
     // What directory should we use?
     //   path_provider's getApplicationSupportDirectory:
     //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
@@ -1135,6 +1140,48 @@ class LiveGlobalStore extends GlobalStore {
     //     That Linux answer is definitely not a fit.  Harder to tell about the rest.
     final dir = await getApplicationSupportDirectory();
     return File(p.join(dir.path, 'zulip.db'));
+  }
+
+  /// Copies the existing database file to the iOS App Group container path,
+  /// if it exists.
+  ///
+  /// Returns the file path of the copied database file, or path to be
+  /// used to create a new database.
+  static Future<File> _maybeCopyIosDbFile() async {
+    final pathProviderFoundation = PathProviderFoundation();
+    final containerDbDir = await pathProviderFoundation.getContainerPath(
+        appGroupIdentifier: ZulipBinding.iosAppGroupIdentifier);
+    final containerDbFile = File(p.join(containerDbDir!, 'zulip.db'));
+    if (await containerDbFile.exists()) {
+      assert(debugLog('Database file in iOS app group container '
+                      'already exists: $containerDbFile'));
+      return containerDbFile;
+    }
+
+    if (IosNotificationService.isExecutingInExtension) {
+      // In iOS Notification Service Extension we can't copy the file, as the
+      // extension will not have access to main app target's filesystem.
+      // We also can't return the App Group container path here when running in
+      // the extension, because it will cause creation of new empty DB file,
+      // which then the main app target will prefer because of the code above.
+      // So, abort if we are running in iOS Notification Service Extension and
+      // the database is not already migrated to the App Group container.
+      throw Exception('The database file in iOS app group container doesn\'t '
+        'exists, and when running in iOS Notification Service Extension the '
+        'database file can\'t be migrated');
+    }
+
+    final nonContainerDbDir = await getApplicationSupportDirectory();
+    final nonContainerDbFile = File(p.join(nonContainerDbDir.path, 'zulip.db'));
+    if (await nonContainerDbFile.exists()) {
+      assert(debugLog('Copying $nonContainerDbFile '
+                      'to iOS app group container path: $containerDbFile'));
+      await nonContainerDbFile.copy(containerDbFile.path);
+
+      // TODO do we want to delete nonContainerDbFile here?
+    }
+
+    return containerDbFile;
   }
 
   final LiveGlobalStoreBackend _backend;
