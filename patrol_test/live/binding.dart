@@ -2,10 +2,12 @@
 
 import 'dart:io';
 
+import 'package:zulip/api/core.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
 
+import '../../test/example_data.dart' as eg;
 import '../../test/model/binding.dart';
 
 /// The binding instance used in live Patrol tests.
@@ -60,5 +62,54 @@ class PatrolLiveZulipBinding extends LiveZulipBinding {
     } on PathNotFoundException {
       // ignore
     }
+  }
+}
+
+/// The live Zulip credentials provided in the build environment.
+///
+/// In Patrol tests, these come from `.patrol.env` at the root of the tree.
+/// See `docs/patrol.md`.
+abstract class LiveCredentials {
+  static const realmUrlStr = String.fromEnvironment('REALM_URL');
+  static final realmUrl = Uri.parse(const String.fromEnvironment('REALM_URL'));
+
+  static const email = String.fromEnvironment('EMAIL');
+  static const password = String.fromEnvironment('PASSWORD');
+  static final userId = int.parse(const String.fromEnvironment('USER_ID'), radix: 10);
+  static const apiKey = String.fromEnvironment('API_KEY');
+
+  static const otherEmail = String.fromEnvironment('OTHER_EMAIL');
+  static const otherApiKey = String.fromEnvironment('OTHER_API_KEY');
+
+  static Account account({
+    int? id,
+    String? realmName,
+    Uri? realmIcon,
+    int? zulipFeatureLevel,
+    String? zulipVersion,
+    String? zulipMergeBase,
+  }) {
+    return eg.account(
+      realmUrl: realmUrl,
+      user: eg.user(
+        userId: userId,
+        deliveryEmail: email),
+      apiKey: apiKey,
+      id: id,
+      realmName: realmName,
+      realmIcon: realmIcon,
+      zulipFeatureLevel: zulipFeatureLevel,
+      zulipVersion: zulipVersion,
+      zulipMergeBase: zulipMergeBase,
+    );
+  }
+
+  static ApiConnection makeOtherConnection() {
+    return ApiConnection.live(
+      realmUrl: realmUrl,
+      email: otherEmail,
+      apiKey: otherApiKey,
+      zulipFeatureLevel: eg.recentZulipFeatureLevel, // TODO get real value from server
+    );
   }
 }
