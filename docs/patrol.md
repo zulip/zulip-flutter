@@ -30,9 +30,12 @@ There are a few different types of Patrol tests we can write, based on
 the implementation of `ZulipBinding` they use:
 
  * *Live* Patrol tests use `LiveZulipBinding`, the same implementation
-   as the actual app.  This means they talk to a real Zulip server and
-   store their data in a real local database file, as well as using
-   the real device platform.
+   as the actual app.
+   (Specifically they use `PatrolLiveZulipBinding`, a subclass which
+   adds some convenience features.)
+   This means they talk to a real Zulip server
+   and store their data in a real local database file,
+   as well as using the real device platform.
 
    This is useful where the Zulip server, too, has complexity we're
    not entirely confident of modeling in our tests.  Zulip's main
