@@ -12,10 +12,8 @@ import 'schemas/schema_v1.dart' as v1;
 import 'schemas/schema_v3.dart' as v3;
 import 'schemas/schema_v4.dart' as v4;
 import 'schemas/schema_v5.dart' as v5;
-import 'schemas/schema_v9.dart' as v9;
 import 'schemas/schema_v10.dart' as v10;
 import 'schemas/schema_v11.dart' as v11;
-import 'schemas/schema_v15.dart' as v15;
 import 'store_checks.dart';
 
 void main() {
@@ -369,11 +367,8 @@ void main() {
           themeSetting: Value(ThemeSetting.light.name)));
       await before.close();
 
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 9);
-      await db.close();
-
-      final after = v9.DatabaseAtV9(schema.newConnection());
+      final after = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(after, AppDatabase.latestSchemaVersion);
       final globalSettings = await after.select(after.globalSettings).getSingle();
       check(globalSettings.toJson()).deepEquals({
         'themeSetting': ThemeSetting.light.name,
@@ -403,14 +398,13 @@ void main() {
       final accountV1 = await before.select(before.accounts).watchSingle().first;
       await before.close();
 
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 15);
-      await db.close();
-
-      final after = v15.DatabaseAtV15(schema.newConnection());
+      final after = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(after, AppDatabase.latestSchemaVersion);
       final account = await after.select(after.accounts).getSingle();
       check(account.toJson()).deepEquals({
         ...accountV1.toJson(),
+        'realmUrl': Uri.parse(accountV1.realmUrl), // TODO(drift): type mismatch between latest and test schemas
+
         // 'ackedPushToken': null, // added in v2, removed in v15; was always null
         'realmName': null, 'realmIcon': null, // v12
         'deviceId': null, // v13
