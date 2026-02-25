@@ -1808,6 +1808,12 @@ abstract class ZulipLocalizations {
   /// **'Direct messages'**
   String get recentDmConversationsPageTitle;
 
+  /// Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'DMs'**
+  String get recentDmConversationsPageShortLabel;
+
   /// Heading for direct messages section on the 'Inbox' message view.
   ///
   /// In en, this message translates to:
@@ -2005,6 +2011,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Notify topic'**
   String get wildcardMentionTopicDescription;
+
+  /// Label for the Feed button on the bottom navigation bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get navBarFeedLabel;
 
   /// Label for the Menu button on the bottom navigation bar.
   ///

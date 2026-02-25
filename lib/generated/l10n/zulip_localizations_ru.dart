@@ -1068,6 +1068,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'Личные сообщения';
 
   @override
+  String get recentDmConversationsPageShortLabel => 'DMs';
+
+  @override
   String get recentDmConversationsSectionHeader => 'Личные сообщения';
 
   @override
@@ -1194,6 +1197,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get wildcardMentionTopicDescription => 'Оповестить тему';
+
+  @override
+  String get navBarFeedLabel => 'Feed';
 
   @override
   String get navBarMenuLabel => 'Меню';

@@ -275,7 +275,7 @@ class ShareSheet extends StatelessWidget {
                 text: zulipLocalizations.channelsPageTitle,
                 icon: ZulipIcons.hash_italic),
               mkTabLabel(
-                text: zulipLocalizations.recentDmConversationsPageTitle,
+                text: zulipLocalizations.recentDmConversationsPageShortLabel,
                 icon: ZulipIcons.two_person),
             ])),
         ]),

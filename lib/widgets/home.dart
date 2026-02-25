@@ -148,7 +148,7 @@ class _BottomNavBar extends StatelessWidget {
         icon: ZulipIcons.inbox,
         label: zulipLocalizations.inboxPageTitle),
       _NavigationBarButton(icon: ZulipIcons.message_feed,
-        label: zulipLocalizations.combinedFeedPageTitle,
+        label: zulipLocalizations.navBarFeedLabel,
         selected: false,
         onPressed: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
@@ -159,7 +159,7 @@ class _BottomNavBar extends StatelessWidget {
       // TODO(#1094): Users
       _button(tab: _HomePageTab.directMessages,
         icon: ZulipIcons.two_person,
-        label: zulipLocalizations.recentDmConversationsPageTitle),
+        label: zulipLocalizations.recentDmConversationsPageShortLabel),
       _NavigationBarButton(icon: ZulipIcons.menu,
         label: zulipLocalizations.navBarMenuLabel,
         selected: false,

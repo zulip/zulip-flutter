@@ -1231,6 +1231,10 @@
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
+  "recentDmConversationsPageShortLabel": "DMs",
+  "@recentDmConversationsPageShortLabel": {
+    "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
+  },
   "recentDmConversationsSectionHeader": "Direct messages",
   "@recentDmConversationsSectionHeader": {
     "description": "Heading for direct messages section on the 'Inbox' message view."
@@ -1383,6 +1387,10 @@
   "wildcardMentionTopicDescription": "Notify topic",
   "@wildcardMentionTopicDescription": {
     "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "navBarFeedLabel": "Feed",
+  "@navBarFeedLabel": {
+    "description": "Label for the Feed button on the bottom navigation bar."
   },
   "navBarMenuLabel": "Menu",
   "@navBarMenuLabel": {

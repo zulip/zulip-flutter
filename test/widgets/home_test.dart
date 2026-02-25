@@ -159,7 +159,7 @@ void main () {
         of: find.byType(ZulipAppBar),
         matching: find.text('Channels'))).findsOne();
 
-      await tester.tap(findInBottomNav(find.text('Direct messages')));
+      await tester.tap(findInBottomNav(find.text('DMs')));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),

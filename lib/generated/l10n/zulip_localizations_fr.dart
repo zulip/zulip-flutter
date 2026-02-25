@@ -1074,6 +1074,9 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'Messages directs';
 
   @override
+  String get recentDmConversationsPageShortLabel => 'DMs';
+
+  @override
   String get recentDmConversationsSectionHeader => 'Messages directs';
 
   @override
@@ -1201,6 +1204,9 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   @override
   String get wildcardMentionTopicDescription =>
       'Notifier les participants à cette conversation';
+
+  @override
+  String get navBarFeedLabel => 'Feed';
 
   @override
   String get navBarMenuLabel => 'Menu';
