@@ -28,6 +28,14 @@ import '../model/store_checks.dart';
 import '../test_images.dart';
 import '../api/notifications_test.dart';
 
+/// Encode an FCM message payload into the form Firebase would supply it in.
+///
+/// The result is suitable for passing to a method like
+/// `testBinding.firebaseMessaging.onMessage`.
+Future<RemoteMessage> encodeFcmMessage(FcmMessage data) async {
+  return RemoteMessage(data: data.toJson());
+}
+
 MessageFcmMessage messageFcmMessage(
   Message zulipMessage, {
   String? streamName,
@@ -468,7 +476,7 @@ void main() {
       // the logic in `NotificationService` that listens for these FCM messages.
 
       testBinding.firebaseMessaging.onMessage.add(
-        RemoteMessage(data: data.toJson()));
+        await encodeFcmMessage(data));
       async.flushMicrotasks();
       checkNotification(data,
         account: account,
@@ -479,7 +487,7 @@ void main() {
       testBinding.androidNotificationHost.clearActiveNotifications();
 
       testBinding.firebaseMessaging.onBackgroundMessage.add(
-        RemoteMessage(data: data.toJson()));
+        await encodeFcmMessage(data));
       async.flushMicrotasks();
       checkNotification(data,
         account: account,
@@ -491,7 +499,7 @@ void main() {
 
     Future<void> receiveFcmMessage(FakeAsync async, FcmMessage data) async {
       testBinding.firebaseMessaging.onMessage.add(
-        RemoteMessage(data: data.toJson()));
+        await encodeFcmMessage(data));
       async.flushMicrotasks();
     }
 
@@ -930,7 +938,7 @@ void main() {
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
       testBinding.firebaseMessaging.onMessage.add(
-        RemoteMessage(data: removeFcmMessage([message]).toJson()));
+        await encodeFcmMessage(removeFcmMessage([message])));
       async.flushMicrotasks();
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
@@ -941,7 +949,7 @@ void main() {
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
       testBinding.firebaseMessaging.onBackgroundMessage.add(
-        RemoteMessage(data: removeFcmMessage([message]).toJson()));
+        await encodeFcmMessage(removeFcmMessage([message])));
       async.flushMicrotasks();
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));

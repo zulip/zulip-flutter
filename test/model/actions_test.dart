@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:checks/checks.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -162,7 +161,7 @@ void main() {
       // Create a notification to check that it's removed after logout
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       testBinding.firebaseMessaging.onMessage.add(
-        RemoteMessage(data: messageFcmMessage(message).toJson()));
+        await encodeFcmMessage(messageFcmMessage(message)));
       async.flushMicrotasks();
       check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
 
