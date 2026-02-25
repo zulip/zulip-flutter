@@ -1,15 +1,31 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(head:*)",
+      "Bash(grep:*)",
       "Bash(find:*)",
+
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+
+      "Bash(git add:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_SEQUENCE_EDITOR=true git rebase:*)",
+      "Bash(GIT_SEQUENCE_EDITOR=\":\" git rebase:*)",
+
       "WebFetch(domain:zulip.com)",
-      "Bash(tools/icons/build-icon-font:*)",
-      "Bash(flutter gen-l10n:*)",
+
       "Bash(flutter analyze:*)",
-      "Bash(flutter test:*)"
+      "Bash(flutter test:*)",
+
+      "Bash(tools/icons/build-icon-font:*)",
+      "Bash(flutter gen-l10n:*)"
     ],
     "deny": [
       "Read(android/*keystore*)",
