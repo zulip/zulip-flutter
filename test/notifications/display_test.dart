@@ -108,11 +108,15 @@ void main() {
     return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
   }
 
+  Future<void> addAccount(Account account) async {
+    await testBinding.globalStore.add(account, eg.initialSnapshot());
+  }
+
   Future<void> init({bool addSelfAccount = true}) async {
-    if (addSelfAccount) {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    }
     addTearDown(testBinding.reset);
+    if (addSelfAccount) {
+      await addAccount(eg.selfAccount);
+    }
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
@@ -661,13 +665,14 @@ void main() {
         user: eg.user(),
         realmUrl: Uri.parse('http://realm1.example'),
         realmName: 'Realm 1');
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await addAccount(account1);
+
       final account2 = eg.account(
         id: 1002,
         user: eg.user(),
         realmUrl: Uri.parse('http://realm2.example'),
         realmName: 'Realm 2');
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account2);
 
       final stream = eg.stream();
       final topic = 'test topic';
@@ -704,7 +709,8 @@ void main() {
         id: 1001,
         user: eg.user(),
         realmUrl: Uri.parse('http://realm1.example'));
-      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      await addAccount(account);
+
       // Override the default realmName from eg.account().
       account = await testBinding.globalStore.updateAccount(account.id,
         AccountsCompanion(realmName: const Value(null)));
@@ -736,7 +742,8 @@ void main() {
         id: 1001,
         user: eg.user(),
         realmUrl: Uri.parse('http://realm1.example'));
-      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      await addAccount(account);
+
       // Override the default realmName from eg.account().
       account = await testBinding.globalStore.updateAccount(account.id,
         AccountsCompanion(realmName: const Value(null)));
@@ -1022,7 +1029,7 @@ void main() {
         realmUrl: Uri.parse('https://1.chat.example'),
         id: 1001,
         user: eg.user(userId: 1001));
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await addAccount(account1);
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
@@ -1032,7 +1039,7 @@ void main() {
         realmUrl: Uri.parse('https://2.chat.example'),
         id: 1002,
         user: eg.user(userId: 1001));
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account2);
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -1067,14 +1074,14 @@ void main() {
       final conversationKey = 'stream:${stream.streamId}:some topic';
 
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await addAccount(account1);
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
         messageFcmMessage(message1, account: account1, streamName: stream.name);
       final groupKey1 = '${account1.realmUrl}|${account1.userId}';
 
       final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account2);
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
         messageFcmMessage(message2, account: account2, streamName: stream.name);
@@ -1118,8 +1125,8 @@ void main() {
       final realmUrl = eg.realmUrl;
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
       final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account1);
+      await addAccount(account2);
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
@@ -1147,8 +1154,8 @@ void main() {
       final account2 = eg.account(
         id: 1002, user: eg.user(userId: userId),
         realmUrl: Uri.parse('https://realm2.example'));
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account1);
+      await addAccount(account2);
 
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
