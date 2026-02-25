@@ -196,6 +196,7 @@ void main() {
         zulipVersion: '6.0',
         zulipMergeBase: const Value('6.0'),
         zulipFeatureLevel: 42,
+        possibleLegacyPushToken: Value(false),
       );
       final accountId = await db.createAccount(accountData);
       final account = await (db.select(db.accounts)
@@ -206,6 +207,7 @@ void main() {
         ...accountData.toJson(),
         'id': (Subject<Object?> it) => it.isA<int>(),
         'device_id': null,
+        'possible_legacy_push_token': false,
       });
     });
 
@@ -408,6 +410,7 @@ void main() {
         // 'ackedPushToken': null, // added in v2, removed in v15; was always null
         'realmName': null, 'realmIcon': null, // v12
         'deviceId': null, // v13
+        'possibleLegacyPushToken': true, // v16
       });
       await after.close();
     });
@@ -506,6 +509,8 @@ void main() {
     // v14 only adds a new table; the "migrate without data" test covers it
 
     // v15 covered by "existing Account row" above
+
+    // v16 covered by "existing Account row" above
   });
 }
 

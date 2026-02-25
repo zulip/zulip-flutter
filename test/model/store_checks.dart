@@ -29,6 +29,7 @@ extension AccountChecks on Subject<Account> {
   Subject<String> get zulipVersion => has((x) => x.zulipVersion, 'zulipVersion');
   Subject<String?> get zulipMergeBase => has((x) => x.zulipMergeBase, 'zulipMergeBase');
   Subject<int> get zulipFeatureLevel => has((x) => x.zulipFeatureLevel, 'zulipFeatureLevel');
+  Subject<bool> get possibleLegacyPushToken => has((x) => x.possibleLegacyPushToken, 'possibleLegacyPushToken');
 }
 
 extension PushKeyChecks on Subject<PushKey> {

@@ -163,6 +163,9 @@ class PushDeviceManager extends PerAccountStoreBase {
     final token = NotificationService.instance.token.value;
     if (token == null) return;
 
+    await updateAccount(AccountsCompanion(
+      possibleLegacyPushToken: drift.Value(true)));
+
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         await addFcmToken(connection, token: token);

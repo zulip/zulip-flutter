@@ -102,6 +102,7 @@ Future<void> migrateLegacyAppData(AppDatabase db) async {
         zulipVersion: account.zulipVersion!,
         // no zulipMergeBase; legacy app didn't record it
         zulipFeatureLevel: account.zulipFeatureLevel!,
+        possibleLegacyPushToken: const drift.Value(true),
       ));
     } on AccountAlreadyExistsException {
       // There's one known way this can actually happen: the legacy app doesn't

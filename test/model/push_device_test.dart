@@ -12,6 +12,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import 'binding.dart';
+import 'store_checks.dart';
 import 'store_test.dart';
 import '../stdlib_checks.dart';
 
@@ -161,6 +162,27 @@ void main() {
         connection.prepare(json: {});
         await model.debugUnpauseRegisterToken();
         checkLastRequestApns(token: '012abc', appid: 'com.example.test');
+      }));
+
+      test('set possibleLegacyPushToken', () => awaitFakeAsync((async) async {
+        testBinding.firebaseMessagingInitialToken = '012abc';
+        await NotificationService.instance.start();
+
+        prepareStoreLegacy();
+        check(store.account).possibleLegacyPushToken.isFalse();
+
+        // Start registering the token.  Make the request take a while.
+        connection.prepare(json: {}, delay: Duration(seconds: 1));
+        final future = model.debugUnpauseRegisterToken();
+        await Future<void>.delayed(Duration.zero);
+
+        // The possibleLegacyPushToken flag is now true,
+        // even before the register request completes.
+        check(store.account).possibleLegacyPushToken.isTrue();
+
+        await Future<void>.delayed(Duration(seconds: 1));
+        await future;
+        checkLastRequestFcm(token: '012abc');
       }));
     });
   });

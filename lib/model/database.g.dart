@@ -1045,6 +1045,21 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _possibleLegacyPushTokenMeta =
+      const VerificationMeta('possibleLegacyPushToken');
+  @override
+  late final GeneratedColumn<bool> possibleLegacyPushToken =
+      GeneratedColumn<bool>(
+        'possible_legacy_push_token',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("possible_legacy_push_token" IN (0, 1))',
+        ),
+        defaultValue: Constant(true),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1058,6 +1073,7 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     zulipVersion,
     zulipMergeBase,
     zulipFeatureLevel,
+    possibleLegacyPushToken,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1141,6 +1157,15 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     } else if (isInserting) {
       context.missing(_zulipFeatureLevelMeta);
     }
+    if (data.containsKey('possible_legacy_push_token')) {
+      context.handle(
+        _possibleLegacyPushTokenMeta,
+        possibleLegacyPushToken.isAcceptableOrUnknown(
+          data['possible_legacy_push_token']!,
+          _possibleLegacyPushTokenMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1202,6 +1227,10 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
       zulipFeatureLevel: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}zulip_feature_level'],
+      )!,
+      possibleLegacyPushToken: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}possible_legacy_push_token'],
       )!,
     );
   }
@@ -1269,6 +1298,13 @@ class Account extends DataClass implements Insertable<Account> {
   final String zulipVersion;
   final String? zulipMergeBase;
   final int zulipFeatureLevel;
+
+  /// Whether this device might be registered with the server for
+  /// legacy plaintext push notifications.
+  ///
+  /// This is false for new [Account] records.
+  /// It's set to true on registering a legacy token or migrating old records.
+  final bool possibleLegacyPushToken;
   const Account({
     required this.id,
     required this.realmUrl,
@@ -1281,6 +1317,7 @@ class Account extends DataClass implements Insertable<Account> {
     required this.zulipVersion,
     this.zulipMergeBase,
     required this.zulipFeatureLevel,
+    required this.possibleLegacyPushToken,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1310,6 +1347,7 @@ class Account extends DataClass implements Insertable<Account> {
       map['zulip_merge_base'] = Variable<String>(zulipMergeBase);
     }
     map['zulip_feature_level'] = Variable<int>(zulipFeatureLevel);
+    map['possible_legacy_push_token'] = Variable<bool>(possibleLegacyPushToken);
     return map;
   }
 
@@ -1334,6 +1372,7 @@ class Account extends DataClass implements Insertable<Account> {
           ? const Value.absent()
           : Value(zulipMergeBase),
       zulipFeatureLevel: Value(zulipFeatureLevel),
+      possibleLegacyPushToken: Value(possibleLegacyPushToken),
     );
   }
 
@@ -1354,6 +1393,9 @@ class Account extends DataClass implements Insertable<Account> {
       zulipVersion: serializer.fromJson<String>(json['zulipVersion']),
       zulipMergeBase: serializer.fromJson<String?>(json['zulipMergeBase']),
       zulipFeatureLevel: serializer.fromJson<int>(json['zulipFeatureLevel']),
+      possibleLegacyPushToken: serializer.fromJson<bool>(
+        json['possibleLegacyPushToken'],
+      ),
     );
   }
   @override
@@ -1371,6 +1413,9 @@ class Account extends DataClass implements Insertable<Account> {
       'zulipVersion': serializer.toJson<String>(zulipVersion),
       'zulipMergeBase': serializer.toJson<String?>(zulipMergeBase),
       'zulipFeatureLevel': serializer.toJson<int>(zulipFeatureLevel),
+      'possibleLegacyPushToken': serializer.toJson<bool>(
+        possibleLegacyPushToken,
+      ),
     };
   }
 
@@ -1386,6 +1431,7 @@ class Account extends DataClass implements Insertable<Account> {
     String? zulipVersion,
     Value<String?> zulipMergeBase = const Value.absent(),
     int? zulipFeatureLevel,
+    bool? possibleLegacyPushToken,
   }) => Account(
     id: id ?? this.id,
     realmUrl: realmUrl ?? this.realmUrl,
@@ -1400,6 +1446,8 @@ class Account extends DataClass implements Insertable<Account> {
         ? zulipMergeBase.value
         : this.zulipMergeBase,
     zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
+    possibleLegacyPushToken:
+        possibleLegacyPushToken ?? this.possibleLegacyPushToken,
   );
   Account copyWithCompanion(AccountsCompanion data) {
     return Account(
@@ -1420,6 +1468,9 @@ class Account extends DataClass implements Insertable<Account> {
       zulipFeatureLevel: data.zulipFeatureLevel.present
           ? data.zulipFeatureLevel.value
           : this.zulipFeatureLevel,
+      possibleLegacyPushToken: data.possibleLegacyPushToken.present
+          ? data.possibleLegacyPushToken.value
+          : this.possibleLegacyPushToken,
     );
   }
 
@@ -1436,7 +1487,8 @@ class Account extends DataClass implements Insertable<Account> {
           ..write('apiKey: $apiKey, ')
           ..write('zulipVersion: $zulipVersion, ')
           ..write('zulipMergeBase: $zulipMergeBase, ')
-          ..write('zulipFeatureLevel: $zulipFeatureLevel')
+          ..write('zulipFeatureLevel: $zulipFeatureLevel, ')
+          ..write('possibleLegacyPushToken: $possibleLegacyPushToken')
           ..write(')'))
         .toString();
   }
@@ -1454,6 +1506,7 @@ class Account extends DataClass implements Insertable<Account> {
     zulipVersion,
     zulipMergeBase,
     zulipFeatureLevel,
+    possibleLegacyPushToken,
   );
   @override
   bool operator ==(Object other) =>
@@ -1469,7 +1522,8 @@ class Account extends DataClass implements Insertable<Account> {
           other.apiKey == this.apiKey &&
           other.zulipVersion == this.zulipVersion &&
           other.zulipMergeBase == this.zulipMergeBase &&
-          other.zulipFeatureLevel == this.zulipFeatureLevel);
+          other.zulipFeatureLevel == this.zulipFeatureLevel &&
+          other.possibleLegacyPushToken == this.possibleLegacyPushToken);
 }
 
 class AccountsCompanion extends UpdateCompanion<Account> {
@@ -1484,6 +1538,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<String> zulipVersion;
   final Value<String?> zulipMergeBase;
   final Value<int> zulipFeatureLevel;
+  final Value<bool> possibleLegacyPushToken;
   const AccountsCompanion({
     this.id = const Value.absent(),
     this.realmUrl = const Value.absent(),
@@ -1496,6 +1551,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     this.zulipVersion = const Value.absent(),
     this.zulipMergeBase = const Value.absent(),
     this.zulipFeatureLevel = const Value.absent(),
+    this.possibleLegacyPushToken = const Value.absent(),
   });
   AccountsCompanion.insert({
     this.id = const Value.absent(),
@@ -1509,6 +1565,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     required String zulipVersion,
     this.zulipMergeBase = const Value.absent(),
     required int zulipFeatureLevel,
+    this.possibleLegacyPushToken = const Value.absent(),
   }) : realmUrl = Value(realmUrl),
        userId = Value(userId),
        email = Value(email),
@@ -1527,6 +1584,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Expression<String>? zulipVersion,
     Expression<String>? zulipMergeBase,
     Expression<int>? zulipFeatureLevel,
+    Expression<bool>? possibleLegacyPushToken,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1540,6 +1598,8 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       if (zulipVersion != null) 'zulip_version': zulipVersion,
       if (zulipMergeBase != null) 'zulip_merge_base': zulipMergeBase,
       if (zulipFeatureLevel != null) 'zulip_feature_level': zulipFeatureLevel,
+      if (possibleLegacyPushToken != null)
+        'possible_legacy_push_token': possibleLegacyPushToken,
     });
   }
 
@@ -1555,6 +1615,7 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Value<String>? zulipVersion,
     Value<String?>? zulipMergeBase,
     Value<int>? zulipFeatureLevel,
+    Value<bool>? possibleLegacyPushToken,
   }) {
     return AccountsCompanion(
       id: id ?? this.id,
@@ -1568,6 +1629,8 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       zulipVersion: zulipVersion ?? this.zulipVersion,
       zulipMergeBase: zulipMergeBase ?? this.zulipMergeBase,
       zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
+      possibleLegacyPushToken:
+          possibleLegacyPushToken ?? this.possibleLegacyPushToken,
     );
   }
 
@@ -1611,6 +1674,11 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     if (zulipFeatureLevel.present) {
       map['zulip_feature_level'] = Variable<int>(zulipFeatureLevel.value);
     }
+    if (possibleLegacyPushToken.present) {
+      map['possible_legacy_push_token'] = Variable<bool>(
+        possibleLegacyPushToken.value,
+      );
+    }
     return map;
   }
 
@@ -1627,7 +1695,8 @@ class AccountsCompanion extends UpdateCompanion<Account> {
           ..write('apiKey: $apiKey, ')
           ..write('zulipVersion: $zulipVersion, ')
           ..write('zulipMergeBase: $zulipMergeBase, ')
-          ..write('zulipFeatureLevel: $zulipFeatureLevel')
+          ..write('zulipFeatureLevel: $zulipFeatureLevel, ')
+          ..write('possibleLegacyPushToken: $possibleLegacyPushToken')
           ..write(')'))
         .toString();
   }
@@ -2631,6 +2700,7 @@ typedef $$AccountsTableCreateCompanionBuilder =
       required String zulipVersion,
       Value<String?> zulipMergeBase,
       required int zulipFeatureLevel,
+      Value<bool> possibleLegacyPushToken,
     });
 typedef $$AccountsTableUpdateCompanionBuilder =
     AccountsCompanion Function({
@@ -2645,6 +2715,7 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<String> zulipVersion,
       Value<String?> zulipMergeBase,
       Value<int> zulipFeatureLevel,
+      Value<bool> possibleLegacyPushToken,
     });
 
 final class $$AccountsTableReferences
@@ -2737,6 +2808,11 @@ class $$AccountsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get possibleLegacyPushToken => $composableBuilder(
+    column: $table.possibleLegacyPushToken,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> pushKeysRefs(
     Expression<bool> Function($$PushKeysTableFilterComposer f) f,
   ) {
@@ -2826,6 +2902,11 @@ class $$AccountsTableOrderingComposer
     column: $table.zulipFeatureLevel,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get possibleLegacyPushToken => $composableBuilder(
+    column: $table.possibleLegacyPushToken,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AccountsTableAnnotationComposer
@@ -2873,6 +2954,11 @@ class $$AccountsTableAnnotationComposer
 
   GeneratedColumn<int> get zulipFeatureLevel => $composableBuilder(
     column: $table.zulipFeatureLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get possibleLegacyPushToken => $composableBuilder(
+    column: $table.possibleLegacyPushToken,
     builder: (column) => column,
   );
 
@@ -2941,6 +3027,7 @@ class $$AccountsTableTableManager
                 Value<String> zulipVersion = const Value.absent(),
                 Value<String?> zulipMergeBase = const Value.absent(),
                 Value<int> zulipFeatureLevel = const Value.absent(),
+                Value<bool> possibleLegacyPushToken = const Value.absent(),
               }) => AccountsCompanion(
                 id: id,
                 realmUrl: realmUrl,
@@ -2953,6 +3040,7 @@ class $$AccountsTableTableManager
                 zulipVersion: zulipVersion,
                 zulipMergeBase: zulipMergeBase,
                 zulipFeatureLevel: zulipFeatureLevel,
+                possibleLegacyPushToken: possibleLegacyPushToken,
               ),
           createCompanionCallback:
               ({
@@ -2967,6 +3055,7 @@ class $$AccountsTableTableManager
                 required String zulipVersion,
                 Value<String?> zulipMergeBase = const Value.absent(),
                 required int zulipFeatureLevel,
+                Value<bool> possibleLegacyPushToken = const Value.absent(),
               }) => AccountsCompanion.insert(
                 id: id,
                 realmUrl: realmUrl,
@@ -2979,6 +3068,7 @@ class $$AccountsTableTableManager
                 zulipVersion: zulipVersion,
                 zulipMergeBase: zulipMergeBase,
                 zulipFeatureLevel: zulipFeatureLevel,
+                possibleLegacyPushToken: possibleLegacyPushToken,
               ),
           withReferenceMapper: (p0) => p0
               .map(

@@ -232,6 +232,7 @@ void main() {
         // an account will typically look in the app after fully set up.
         // But it doesn't happen at login time, so expect null at this stage.
         deviceId: drift.Value(null),
+        possibleLegacyPushToken: false,
       ));
     }
 

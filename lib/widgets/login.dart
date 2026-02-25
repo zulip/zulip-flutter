@@ -404,6 +404,7 @@ class _LoginPageState extends State<LoginPage> {
         zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
         zulipVersion: widget.serverSettings.zulipVersion,
         zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
+        possibleLegacyPushToken: const Value(false),
       ));
       // TODO give feedback to user on other SQL exceptions
     } on AccountAlreadyExistsException {

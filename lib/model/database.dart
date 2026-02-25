@@ -170,6 +170,19 @@ class Accounts extends Table {
   Column<String> get zulipMergeBase => text().nullable()();
   Column<int>    get zulipFeatureLevel => integer()();
 
+  /// Whether this device might be registered with the server for
+  /// legacy plaintext push notifications.
+  ///
+  /// This is false for new [Account] records.
+  /// It's set to true on registering a legacy token or migrating old records.
+  //
+  // The default here, of true, is because that's what we need for the migration
+  // that adds this column.
+  // (And then SQLite makes it cumbersome to alter the column later).
+  // TODO ideally remove the default on this column
+  Column<bool>   get possibleLegacyPushToken => boolean()
+    .withDefault(Constant(true))();
+
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {realmUrl, userId},
@@ -217,7 +230,7 @@ class AppDatabase extends _$AppDatabase {
   //  * Fix resulting analyzer errors; in particular,
   //    write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 15; // See note.
+  static const int latestSchemaVersion = 16; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -324,6 +337,9 @@ class AppDatabase extends _$AppDatabase {
     },
     from14To15: (m, schema) async {
       await m.dropColumn(schema.accounts, 'acked_push_token');
+    },
+    from15To16: (m, schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.possibleLegacyPushToken);
     },
   );
 
