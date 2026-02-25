@@ -489,7 +489,7 @@ void main() {
         expectedTagComponent: expectedTagComponent);
     }
 
-    void receiveFcmMessage(FakeAsync async, FcmMessage data) {
+    Future<void> receiveFcmMessage(FakeAsync async, FcmMessage data) async {
       testBinding.firebaseMessaging.onMessage.add(
         RemoteMessage(data: data.toJson()));
       async.flushMicrotasks();
@@ -541,21 +541,21 @@ void main() {
       final expectedTitle = '#${stream.name} > $topic';
       final expectedTagComponent = 'stream:${stream.streamId}:$topic';
 
-      receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
 
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
 
-      receiveFcmMessage(async, data3);
+      await receiveFcmMessage(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data2, data3],
         expectedIsGroupConversation: true,
@@ -575,21 +575,21 @@ void main() {
       final message3 = eg.streamMessage(topic: topicA, stream: stream);
       final data3 = messageFcmMessage(message3, streamName: stream.name);
 
-      receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicA',
         expectedTagComponent: 'stream:${stream.streamId}:${topicA.toLowerCase()}');
 
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data2],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicB',
         expectedTagComponent: 'stream:${stream.streamId}:${topicB.toLowerCase()}');
 
-      receiveFcmMessage(async, data3);
+      await receiveFcmMessage(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data3],
         expectedIsGroupConversation: true,
@@ -607,14 +607,14 @@ void main() {
       final message2 = eg.streamMessage(topic: topic2, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
 
-      receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topic1',
         expectedTagComponent: 'stream:${stream.streamId}:a topic');
 
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
@@ -630,7 +630,7 @@ void main() {
       final message1 = eg.streamMessage(topic: topic, stream: stream);
       final data1 = messageFcmMessage(message1, streamName: stream.name);
 
-      receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
@@ -641,7 +641,7 @@ void main() {
       final message2 = eg.streamMessage(topic: topic, stream: stream);
       final data2 = messageFcmMessage(message2, streamName: stream.name);
 
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
@@ -685,7 +685,7 @@ void main() {
         eg.streamMessage(stream: stream, topic: topic),
         account: account2, streamName: stream.name);
 
-      receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data1);
       checkNotification(data1,
         account: account1,
         messageStyleMessages: [data1],
@@ -694,7 +694,7 @@ void main() {
         expectedTagComponent: 'stream:${stream.streamId}:$topic',
         expectedSummaryText: account1.realmName);
 
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data2);
       checkNotification(data2,
         account: account2,
         messageStyleMessages: [data2],
@@ -727,7 +727,7 @@ void main() {
         realmName: 'Notif realm name');
       check(data).realmName.equals('Notif realm name');
 
-      receiveFcmMessage(async, data);
+      await receiveFcmMessage(async, data);
       checkNotification(data,
         account: account,
         messageStyleMessages: [data],
@@ -758,7 +758,7 @@ void main() {
         account: account, streamName: stream.name);
       check(data).realmName.isNull();
 
-      receiveFcmMessage(async, data);
+      await receiveFcmMessage(async, data);
       checkNotification(data,
         account: account,
         messageStyleMessages: [data],
@@ -796,14 +796,14 @@ void main() {
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.otherUser.fullName} to you and 1 other",
         expectedTagComponent: expectedTagComponent);
 
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
@@ -828,7 +828,7 @@ void main() {
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: false,
@@ -839,7 +839,7 @@ void main() {
       final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
       final data2 = messageFcmMessage(message2);
 
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: false,
@@ -855,7 +855,7 @@ void main() {
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: false,
@@ -866,7 +866,7 @@ void main() {
       final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
       final data2 = messageFcmMessage(message2);
 
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: false,
@@ -879,7 +879,7 @@ void main() {
         await init();
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
         final data = messageFcmMessage(message);
-        receiveFcmMessage(async, data);
+        await receiveFcmMessage(async, data);
         checkNotification(data,
           messageStyleMessages: [data],
           expectedIsGroupConversation: false,
@@ -895,7 +895,7 @@ void main() {
         await init();
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
         final data = messageFcmMessage(message);
-        receiveFcmMessage(async, data);
+        await receiveFcmMessage(async, data);
         checkNotification(data,
           messageStyleMessages: [data],
           expectedIsGroupConversation: false,
@@ -924,7 +924,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Check on foreground event; onMessage
-      receiveFcmMessage(async, data);
+      await receiveFcmMessage(async, data);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
         conditionSummaryActiveNotif(expectedGroupKey),
@@ -935,7 +935,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Check on background event; onBackgroundMessage
-      receiveFcmMessage(async, data);
+      await receiveFcmMessage(async, data);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
         conditionSummaryActiveNotif(expectedGroupKey),
@@ -961,23 +961,23 @@ void main() {
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      receiveFcmMessage(async, data1);
-      receiveFcmMessage(async, data2);
-      receiveFcmMessage(async, data3);
+      await receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data3);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data3, conversationKey),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
       // A RemoveFcmMessage for the first two messages; the notification stays.
-      receiveFcmMessage(async, removeFcmMessage([message1, message2]));
+      await receiveFcmMessage(async, removeFcmMessage([message1, message2]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data3, conversationKey),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
       // Then a RemoveFcmMessage for the last message; clear the notification.
-      receiveFcmMessage(async, removeFcmMessage([message3]));
+      await receiveFcmMessage(async, removeFcmMessage([message3]));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -999,8 +999,8 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Two notifications for different conversations; but same account.
-      receiveFcmMessage(async, data1);
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, conversationKey1),
         conditionSummaryActiveNotif(expectedGroupKey),
@@ -1008,7 +1008,7 @@ void main() {
       ]);
 
       // A RemoveFcmMessage for first conversation; only clears the first conversation notif.
-      receiveFcmMessage(async, removeFcmMessage([message1]));
+      await receiveFcmMessage(async, removeFcmMessage([message1]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionSummaryActiveNotif(expectedGroupKey),
         conditionActiveNotif(data2, conversationKey2),
@@ -1016,7 +1016,7 @@ void main() {
 
       // Then a RemoveFcmMessage for the only remaining conversation;
       // clears both the conversation notif and summary notif.
-      receiveFcmMessage(async, removeFcmMessage([message2]));
+      await receiveFcmMessage(async, removeFcmMessage([message2]));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -1049,8 +1049,8 @@ void main() {
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      receiveFcmMessage(async, data1);
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, conversationKey),
         conditionSummaryActiveNotif(groupKey1),
@@ -1058,13 +1058,13 @@ void main() {
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
+      await receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data2, conversationKey),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      await receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -1091,8 +1091,8 @@ void main() {
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      receiveFcmMessage(async, data1);
-      receiveFcmMessage(async, data2);
+      await receiveFcmMessage(async, data1);
+      await receiveFcmMessage(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, conversationKey),
         conditionSummaryActiveNotif(groupKey1),
@@ -1100,20 +1100,20 @@ void main() {
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
+      await receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data2, conversationKey),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      await receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
     test('removeNotificationsForAccount: removes notifications', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      receiveFcmMessage(async, messageFcmMessage(message));
+      await receiveFcmMessage(async, messageFcmMessage(message));
       check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
 
       await NotificationDisplayManager.removeNotificationsForAccount(
@@ -1134,8 +1134,8 @@ void main() {
 
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
-      receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
-      receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
+      await receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
+      await receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
       check(testBinding.androidNotificationHost.activeNotifications)
         .length.equals(4);
 
@@ -1161,8 +1161,8 @@ void main() {
 
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
-      receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
-      receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
+      await receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
+      await receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
       check(testBinding.androidNotificationHost.activeNotifications)
         .length.equals(4);
 
