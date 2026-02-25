@@ -83,6 +83,10 @@ void main() {
 
     await Future<void>.delayed(Duration(milliseconds: 500));
 
+    // Put the app in the background.
+    // (On iOS we don't show notifications when in the foreground: #408.)
+    await $.platform.mobile.pressHome();
+
     final token = Random().nextInt(1 << 32).toRadixString(16).padLeft(8, '0');
     final content = 'hello $token';
     final otherConnection = makeOtherConnection();
@@ -91,12 +95,16 @@ void main() {
       content: content);
 
     await $.platform.mobile.openNotifications();
-    // TODO poll? in a loop, with a timeout
+
+    await Future<void>.delayed(Duration(seconds: 10)); // TODO poll? in a loop, with a timeout
     final notifs = await $.platform.mobile.getNotifications();
     check(notifs).isNotEmpty();
 
-    await $.platform.mobile.tapOnNotificationByIndex(0);
+    await $.platform.mobile.tapOnNotificationBySelector(Selector(text: content));
     await $.waitUntilVisible($(RegExp(r'^DMs with')));
+
+    // Scroll to the message.  (It might have been offscreen due to older unreads.)
+    await $.scrollUntilVisible(finder: $(content));
     check($(content)).findsOne();
   });
 }
