@@ -1136,9 +1136,11 @@ sealed class EmojiNode extends InlineContentNode {
 }
 
 class UnicodeEmojiNode extends EmojiNode {
-  const UnicodeEmojiNode({super.debugHtmlNode, required this.emojiUnicode});
+  const UnicodeEmojiNode({super.debugHtmlNode, required this.emojiUnicode,
+    this.isStandalone = false});
 
   final String emojiUnicode;
+  final bool isStandalone;
 
   @override
   bool operator ==(Object other) {
@@ -1156,10 +1158,12 @@ class UnicodeEmojiNode extends EmojiNode {
 }
 
 class ImageEmojiNode extends EmojiNode {
-  const ImageEmojiNode({super.debugHtmlNode, required this.src, required this.alt });
+  const ImageEmojiNode({super.debugHtmlNode, required this.src, required this.alt,
+    this.isStandalone = false});
 
   final String src;
   final String alt;
+  final bool isStandalone;
 
   @override
   bool operator ==(Object other) {
@@ -1535,7 +1539,46 @@ class _ZulipInlineContentParser {
   }
 
   List<InlineContentNode> parseInlineContentList(List<dom.Node> nodes) {
-    return nodes.map(parseInlineContent).toList(growable: false);
+    final parsedNodes = nodes.map(parseInlineContent).toList(growable: false);
+
+    int meaningfulCount = 0;
+    InlineContentNode? targetEmojiNode;
+    int targetIndex = -1;
+
+    for (int i = 0; i < parsedNodes.length; i++) {
+      final node = parsedNodes[i];
+
+      // Skip invisible text and line breaks
+      if (node is TextNode && node.text.trim().isEmpty) continue;
+      if (node is LineBreakInlineNode) continue;
+
+      meaningfulCount++;
+      if (node is EmojiNode) {
+        targetEmojiNode = node;
+        targetIndex = i;
+      }
+
+      if (meaningfulCount > 1) break;
+    }
+
+    if (meaningfulCount == 1 && targetEmojiNode is EmojiNode) {
+      parsedNodes[targetIndex] = switch (targetEmojiNode) {
+
+        UnicodeEmojiNode e => UnicodeEmojiNode(
+          emojiUnicode: e.emojiUnicode,
+          isStandalone: true,
+          debugHtmlNode: e.debugHtmlNode,
+        ),
+
+        ImageEmojiNode e => ImageEmojiNode(
+          src: e.src,
+          alt: e.alt,
+          isStandalone: true,
+          debugHtmlNode: e.debugHtmlNode,
+        )};
+    }
+
+    return parsedNodes;
   }
 
   /// Parse the children of a [BlockInlineContainerNode], making up a
