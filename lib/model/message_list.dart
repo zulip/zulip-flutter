@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../api/backoff.dart';
 import '../api/model/events.dart';
@@ -67,6 +67,26 @@ class MessageListMessageItem extends MessageListMessageBaseItem {
   });
 }
 
+InlineContentNode _buildOutboxNode(String markdown) {
+  final trimmed = markdown.trim();
+  if (trimmed.characters.length == 1) {
+
+    // Check if the string is a single Unicode emoji.
+    final emojiRegex = RegExp(
+      r'[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]',
+      unicode: true);
+
+    // We should display a single Unicode emoji with size twice as large.
+    if (emojiRegex.hasMatch(trimmed)) {
+      return UnicodeEmojiNode(
+        emojiUnicode: trimmed,
+        isStandalone: true);
+    }
+  }
+
+  return TextNode(markdown);
+}
+
 /// An [OutboxMessage] to show in the message list.
 class MessageListOutboxMessageItem extends MessageListMessageBaseItem {
   @override
@@ -79,7 +99,7 @@ class MessageListOutboxMessageItem extends MessageListMessageBaseItem {
     required super.showSender,
     required super.isLastInBlock,
   }) : content = ZulipContent(nodes: [
-    ParagraphNode(links: null, nodes: [TextNode(message.contentMarkdown)]),
+    ParagraphNode(links: null, nodes: [_buildOutboxNode(message.contentMarkdown)]),
   ]);
 }
 
