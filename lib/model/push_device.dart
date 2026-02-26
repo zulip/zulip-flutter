@@ -41,9 +41,17 @@ class PushDeviceManager extends PerAccountStoreBase {
   ///
   /// An absent map in [InitialSnapshot] (from an old server) is treated
   /// as empty, since a server without this feature has none of these records.
+  ///
+  /// See also [thisDevice].
   // TODO(server-12) simplify doc re an absent map
   late Map<int, ClientDevice> devices = UnmodifiableMapView(_devices);
   final Map<int, ClientDevice> _devices;
+
+  /// The client-device information the server currently reports for
+  /// this very install of the app, if any.
+  ///
+  /// This is an entry in [devices].
+  ClientDevice? get thisDevice => _devices[account.deviceId];
 
   void handleDeviceEvent(DeviceEvent event) {
     switch (event) {
