@@ -1,8 +1,12 @@
+
 import 'package:checks/checks.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
+import 'package:zulip/api/route/account.dart';
 import 'package:zulip/model/push_device.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
 
 import '../api/fake_api.dart';
@@ -15,22 +19,51 @@ import '../stdlib_checks.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
+  late PerAccountStore store;
+  late PushDeviceManager model;
+  late FakeApiConnection connection;
+
+  void prepareStore({int? zulipFeatureLevel}) {
+    addTearDown(testBinding.reset);
+    addTearDown(NotificationService.debugReset);
+    PushDeviceManager.debugAutoPause = true;
+    addTearDown(() => PushDeviceManager.debugAutoPause = false);
+    store = eg.store(
+      account: eg.account(user: eg.selfUser, zulipFeatureLevel: zulipFeatureLevel),
+      initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
+    model = store.pushDevices;
+    connection = store.connection as FakeApiConnection;
+  }
+
+  group('register device', () {
+    test('registers', () => awaitFakeAsync((async) async {
+      prepareStore();
+      await store.updateAccount(AccountsCompanion(deviceId: drift.Value(null)));
+      check(store.account.deviceId).isNull();
+
+      connection.prepare(json: RegisterClientDeviceResult(deviceId: 123).toJson());
+      await model.debugUnpauseRegisterToken();
+      check(store.account.deviceId).equals(123);
+    }));
+
+    test('no register when already done', () => awaitFakeAsync((async) async {
+      prepareStore();
+      await store.updateAccount(AccountsCompanion(deviceId: drift.Value(123)));
+
+      await model.debugUnpauseRegisterToken();
+      check(store.account.deviceId).equals(123);
+    }));
+
+    test('no register when server old', () => awaitFakeAsync((async) async {
+      prepareStore(zulipFeatureLevel: 468 - 1);
+      await store.updateAccount(AccountsCompanion(deviceId: drift.Value(null)));
+
+      await model.debugUnpauseRegisterToken();
+      check(store.account.deviceId).isNull();
+    }));
+  });
+
   group('register token', () {
-    late PushDeviceManager model;
-    late FakeApiConnection connection;
-
-    void prepareStore({int? zulipFeatureLevel}) {
-      addTearDown(testBinding.reset);
-      addTearDown(NotificationService.debugReset);
-      PushDeviceManager.debugAutoPause = true;
-      addTearDown(() => PushDeviceManager.debugAutoPause = false);
-      final store = eg.store(
-        account: eg.account(user: eg.selfUser, zulipFeatureLevel: zulipFeatureLevel),
-        initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
-      model = store.pushDevices;
-      connection = store.connection as FakeApiConnection;
-    }
-
     group('legacy', () {
       void prepareStoreLegacy() {
         prepareStore(zulipFeatureLevel: 468 - 1);

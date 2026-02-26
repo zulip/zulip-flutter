@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/route/account.dart';
 import '../api/route/notifications.dart';
 import '../notifications/receive.dart';
 import 'binding.dart';
@@ -109,6 +111,18 @@ class PushDeviceManager extends PerAccountStoreBase {
     _debugMaybePause();
     if (_debugRegisterTokenProceed != null) {
       await _debugRegisterTokenProceed!.future;
+    }
+
+    if (account.deviceId == null
+        && zulipFeatureLevel >= 468) { // TODO(server-12)
+      // We haven't yet managed registerClientDevice for this account. Do it now.
+      // (We'll need this logic here for as long as clients may be upgrading
+      // from either old clients, or old servers, that lack this feature.
+      // After that, we could set account.deviceId at login time instead.)
+      final result = await registerClientDevice(connection);
+      await updateAccount(AccountsCompanion(
+        deviceId: drift.Value(result.deviceId)));
+      assert(account.deviceId != null);
     }
 
     NotificationService.instance.token.addListener(_registerToken);

@@ -528,6 +528,10 @@ abstract class PerAccountStoreBase {
   ///
   /// For the corresponding [User] object, see [UserStore.selfUser].
   int get selfUserId => core.selfUserId;
+
+  Future<void> updateAccount(AccountsCompanion data) async {
+    await _globalStore.updateAccount(accountId, data);
+  }
 }
 
 const _tryResolveUrl = tryResolveUrl;
