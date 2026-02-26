@@ -20,6 +20,8 @@ void main() {
     late FakeApiConnection connection;
 
     void prepareStore({int? zulipFeatureLevel}) {
+      addTearDown(testBinding.reset);
+      addTearDown(NotificationService.debugReset);
       PushDeviceManager.debugAutoPause = true;
       addTearDown(() => PushDeviceManager.debugAutoPause = false);
       final store = eg.store(
@@ -52,10 +54,8 @@ void main() {
         // This tests the case where [NotificationService.start] has already
         // learned the token before the store is created.
         // (This is probably the common case.)
-        addTearDown(testBinding.reset);
         testBinding.firebaseMessagingInitialToken = '012abc';
         testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.zulip.flutter');
-        addTearDown(NotificationService.debugReset);
         await NotificationService.instance.start();
 
         // On store startup, send the token.
@@ -80,10 +80,8 @@ void main() {
       testAndroidIos('token initially unknown', () => awaitFakeAsync((async) async {
         // This tests the case where the store is created while our
         // request for the token is still pending.
-        addTearDown(testBinding.reset);
         testBinding.firebaseMessagingInitialToken = '012abc';
         testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.zulip.flutter');
-        addTearDown(NotificationService.debugReset);
         final startFuture = NotificationService.instance.start();
 
         // TODO this test is a bit brittle in its interaction with asynchrony;
@@ -122,10 +120,9 @@ void main() {
         final origTargetPlatform = debugDefaultTargetPlatformOverride;
         addTearDown(() => debugDefaultTargetPlatformOverride = origTargetPlatform);
         debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        addTearDown(testBinding.reset);
+
         testBinding.firebaseMessagingInitialToken = '012abc';
         testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.example.test');
-        addTearDown(NotificationService.debugReset);
         await NotificationService.instance.start();
 
         prepareStoreLegacy();
