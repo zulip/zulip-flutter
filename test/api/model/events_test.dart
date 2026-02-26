@@ -331,4 +331,39 @@ void main() {
       })).recipientIds.isNotNull().deepEquals([1, 2, 4, 8, 10]);
     });
   });
+  group('user_topic: visibility_policy null handling', () {
+    final baseJson = {
+      'id': 1,
+      'type': 'user_topic',
+      'stream_id': 42,
+      'topic_name': 'test topic',
+      'last_updated': 1234567890,
+    };
+
+    test('known visibility_policy values deserialize correctly', () {
+      check(UserTopicEvent.fromJson({...baseJson, 'visibility_policy': 0}))
+        .visibilityPolicy.equals(UserTopicVisibilityPolicy.none);
+      check(UserTopicEvent.fromJson({...baseJson, 'visibility_policy': 1}))
+        .visibilityPolicy.equals(UserTopicVisibilityPolicy.muted);
+      check(UserTopicEvent.fromJson({...baseJson, 'visibility_policy': 2}))
+        .visibilityPolicy.equals(UserTopicVisibilityPolicy.unmuted);
+      check(UserTopicEvent.fromJson({...baseJson, 'visibility_policy': 3}))
+        .visibilityPolicy.equals(UserTopicVisibilityPolicy.followed);
+    });
+
+    test('unknown visibility_policy value becomes null', () {
+      check(UserTopicEvent.fromJson({...baseJson, 'visibility_policy': 999}))
+        .visibilityPolicy.isNull();
+    });
+
+    test('missing visibility_policy field becomes null', () {
+      check(UserTopicEvent.fromJson(baseJson))
+        .visibilityPolicy.isNull();
+    });
+
+    test('explicit null visibility_policy remains null', () {
+      check(UserTopicEvent.fromJson({...baseJson, 'visibility_policy': null}))
+        .visibilityPolicy.isNull();
+    });
+  });
 }

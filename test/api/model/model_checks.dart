@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/basic.dart';
@@ -159,6 +160,13 @@ extension ReactionChecks on Subject<Reaction> {
   Subject<String> get emojiCode => has((r) => r.emojiCode, 'emojiCode');
   Subject<ReactionType> get reactionType => has((r) => r.reactionType, 'reactionType');
   Subject<int> get userId => has((r) => r.userId, 'userId');
+}
+
+extension UserTopicItemChecks on Subject<UserTopicItem> {
+  Subject<int> get streamId => has((e) => e.streamId, 'streamId');
+  Subject<TopicName> get topicName => has((e) => e.topicName, 'topicName');
+  Subject<int> get lastUpdated => has((e) => e.lastUpdated, 'lastUpdated');
+  Subject<UserTopicVisibilityPolicy?> get visibilityPolicy => has((e) => e.visibilityPolicy, 'visibilityPolicy');
 }
 
 // TODO similar extensions for other types in model

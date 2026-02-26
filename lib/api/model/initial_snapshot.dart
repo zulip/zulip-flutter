@@ -370,8 +370,8 @@ class UserTopicItem {
   final int streamId;
   final TopicName topicName;
   final int lastUpdated;
-  @JsonKey(unknownEnumValue: UserTopicVisibilityPolicy.unknown)
-  final UserTopicVisibilityPolicy visibilityPolicy;
+  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
+  final UserTopicVisibilityPolicy? visibilityPolicy;
 
   UserTopicItem({
     required this.streamId,

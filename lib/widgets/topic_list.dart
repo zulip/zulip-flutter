@@ -247,9 +247,6 @@ class _TopicItem extends StatelessWidget {
       case UserTopicVisibilityPolicy.unmuted:
       case UserTopicVisibilityPolicy.followed:
         opacity = 1;
-      case UserTopicVisibilityPolicy.unknown:
-        assert(false);
-        opacity = 1;
     }
 
     final visibilityIcon = iconDataForTopicVisibilityPolicy(visibilityPolicy);

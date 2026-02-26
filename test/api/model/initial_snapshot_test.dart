@@ -5,6 +5,7 @@ import 'package:zulip/api/model/model.dart';
 
 import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
+import 'model_checks.dart';
 
 void main() {
   test('UnreadMessagesSnapshot from json recognizes channels as streams', () {
@@ -71,5 +72,38 @@ void main() {
       final settings = UserSettings.fromJson(json);
       check(settings.emojiset).equals(Emojiset.unknown);
     }
+  });
+  group('UserTopicItem: visibility_policy unknown to null conversion', () {
+    final baseJson = {
+      'stream_id': 123,
+      'topic_name': 'test topic',
+      'last_updated': 1234567890,
+    };
+
+    test('known visibility_policy values deserialize correctly', () {
+      check(UserTopicItem.fromJson({...baseJson, 'visibility_policy': 0}))
+        .visibilityPolicy.equals(UserTopicVisibilityPolicy.none);
+      check(UserTopicItem.fromJson({...baseJson, 'visibility_policy': 1}))
+        .visibilityPolicy.equals(UserTopicVisibilityPolicy.muted);
+      check(UserTopicItem.fromJson({...baseJson, 'visibility_policy': 2}))
+        .visibilityPolicy.equals(UserTopicVisibilityPolicy.unmuted);
+      check(UserTopicItem.fromJson({...baseJson, 'visibility_policy': 3}))
+        .visibilityPolicy.equals(UserTopicVisibilityPolicy.followed);
+    });
+
+    test('unknown visibility_policy value becomes null', () {
+      check(UserTopicItem.fromJson({...baseJson, 'visibility_policy': 999}))
+        .visibilityPolicy.isNull();
+    });
+
+    test('missing visibility_policy field becomes null', () {
+      check(UserTopicItem.fromJson(baseJson))
+        .visibilityPolicy.isNull();
+    });
+
+    test('explicit null visibility_policy remains null', () {
+      check(UserTopicItem.fromJson({...baseJson, 'visibility_policy': null}))
+        .visibilityPolicy.isNull();
+    });
   });
 }

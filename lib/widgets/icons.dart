@@ -232,10 +232,5 @@ IconData? iconDataForTopicVisibilityPolicy(UserTopicVisibilityPolicy policy) {
       return ZulipIcons.follow;
     case UserTopicVisibilityPolicy.none:
       return null;
-    case UserTopicVisibilityPolicy.unknown:
-      // This case is unreachable (or should be) because we keep `unknown` out
-      // of our data structures. We plan to remove the `unknown` case in #1074.
-      assert(false);
-      return null;
   }
 }
