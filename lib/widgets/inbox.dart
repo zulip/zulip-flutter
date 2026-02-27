@@ -6,6 +6,7 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'dialog.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -25,6 +26,12 @@ class InboxPageBody extends StatefulWidget {
 class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> {
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
+
+  @override
+  void initState() {
+    super.initState();
+    IntroDialog.maybeShow(IntroDialogDestination.inbox);
+  }
 
   bool get allDmsCollapsed => _allDmsCollapsed;
   bool _allDmsCollapsed = false;

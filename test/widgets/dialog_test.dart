@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/dialog.dart';
-
+import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -165,5 +165,101 @@ void main() {
       check(find.ancestor(of: find.text(expectedMessage),
         matching: find.byType(SingleChildScrollView))).findsOne();
     }, variant: TargetPlatformVariant.all());
+  });
+
+  group('IntroDialog', () {
+    testWidgets('IntroDialog widget displays correctly', (tester) async {
+      final transitionDurationObserver = TransitionDurationObserver();
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, false);
+
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionDurationObserver]));
+      await tester.pump();
+
+      IntroDialog.maybeShow(IntroDialogDestination.inbox);
+      await transitionDurationObserver.pumpPastTransition(tester);
+
+      check(find.text('Welcome to your inbox!')).findsOne();
+      check(find.text('Got it')).findsOne();
+    });
+
+    group('inbox', () {
+      testWidgets('shows dialog on first visit to inbox', (tester) async {
+        final transitionDurationObserver = TransitionDurationObserver();
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, false);
+
+        await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionDurationObserver]));
+        await tester.pump();
+
+        IntroDialog.maybeShow(IntroDialogDestination.inbox);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        check(find.byType(IntroDialog)).findsOne();
+        check(find.text('Welcome to your inbox!')).findsOne();
+        check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isFalse();
+
+        await tester.tap(find.text('Got it'));
+        await tester.pumpAndSettle();
+
+        check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.inboxIntroModalShown)).isTrue();
+      });
+
+      testWidgets('does not show dialog on subsequent visits', (tester) async {
+        final transitionDurationObserver = TransitionDurationObserver();
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings.setBool(BoolGlobalSetting.inboxIntroModalShown, true);
+
+        await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionDurationObserver]));
+        await tester.pump();
+
+        IntroDialog.maybeShow(IntroDialogDestination.inbox);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        check(find.byType(IntroDialog)).findsNothing();
+      });
+    });
+
+    group('combined feed', () {
+      testWidgets('shows dialog on first visit to combined feed', (tester) async {
+        final transitionDurationObserver = TransitionDurationObserver();
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, false);
+
+        await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionDurationObserver]));
+        await tester.pump();
+
+        IntroDialog.maybeShow(IntroDialogDestination.combinedFeed);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        check(find.byType(IntroDialog)).findsOne();
+        check(find.text('Welcome to your combined feed!')).findsOne();
+        check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isFalse();
+
+        await tester.tap(find.text('Got it'));
+        await tester.pumpAndSettle();
+
+        check(testBinding.globalStore.settings.getBool(BoolGlobalSetting.combinedFeedIntroModalShown)).isTrue();
+      });
+
+      testWidgets('does not show dialog on subsequent visits', (tester) async {
+        final transitionDurationObserver = TransitionDurationObserver();
+        addTearDown(testBinding.reset);
+        await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+        await testBinding.globalStore.settings.setBool(BoolGlobalSetting.combinedFeedIntroModalShown, true);
+
+        await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionDurationObserver]));
+        await tester.pump();
+
+        IntroDialog.maybeShow(IntroDialogDestination.combinedFeed);
+        await transitionDurationObserver.pumpPastTransition(tester);
+
+        check(find.byType(IntroDialog)).findsNothing();
+      });
+    });
   });
 }

@@ -185,7 +185,9 @@ class UpgradeWelcomeDialog extends StatelessWidget {
     final navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
-    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    if (!context.mounted) {
+      return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    }
 
     final globalSettings = GlobalStoreWidget.settingsOf(context);
     switch (globalSettings.legacyUpgradeState) {
@@ -243,3 +245,67 @@ class UpgradeWelcomeDialog extends StatelessWidget {
       ]);
   }
 }
+
+class IntroDialog extends StatelessWidget {
+  const IntroDialog._({
+    required this.title,
+    required this.message,
+  });
+
+  final String title;
+  final String message;
+
+  static void maybeShow(IntroDialogDestination destination) async {
+    final navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) {
+      return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    }
+
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final BoolGlobalSetting setting;
+    final String title;
+    final String message;
+
+    switch (destination) {
+      case IntroDialogDestination.inbox:
+        setting = BoolGlobalSetting.inboxIntroModalShown;
+        title = zulipLocalizations.inboxIntroModalTitle;
+        message = zulipLocalizations.inboxIntroModalMessage;
+      case IntroDialogDestination.combinedFeed:
+        setting = BoolGlobalSetting.combinedFeedIntroModalShown;
+        title = zulipLocalizations.combinedFeedIntroModalTitle;
+        message = zulipLocalizations.combinedFeedIntroModalMessage;
+    }
+
+    if (globalSettings.getBool(setting)) return;
+
+    final future = showDialog<void>(
+      context: context,
+      builder: (context) => IntroDialog._(title: title, message: message),
+    );
+
+    await future;
+
+    await globalSettings.setBool(setting, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return AlertDialog.adaptive(
+      title: Text(title),
+      content: _adaptiveContent(Text(message)),
+      actions: [
+        _adaptiveAction(
+          onPressed: () => Navigator.pop(context),
+          isDefaultAction: true,
+          text: zulipLocalizations.introModalDismissButton)
+      ]);
+  }
+}
+
+enum IntroDialogDestination { inbox, combinedFeed }

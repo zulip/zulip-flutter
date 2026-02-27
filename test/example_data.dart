@@ -1299,7 +1299,12 @@ TestGlobalStore globalStore({
 }) {
   return TestGlobalStore(
     globalSettings: globalSettings,
-    boolGlobalSettings: boolGlobalSettings,
+    boolGlobalSettings: {
+      // Prevent intro modals from appearing in tests by default.
+      BoolGlobalSetting.inboxIntroModalShown: true,
+      BoolGlobalSetting.combinedFeedIntroModalShown: true,
+      ...?boolGlobalSettings,
+    },
     intGlobalSettings: intGlobalSettings,
     accounts: accounts,
   );

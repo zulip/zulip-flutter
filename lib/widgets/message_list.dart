@@ -23,6 +23,7 @@ import 'button.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
+import 'dialog.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'page.dart';
@@ -356,6 +357,9 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   void initState() {
     super.initState();
     narrow = widget.initNarrow;
+    if (narrow is CombinedFeedNarrow) {
+      IntroDialog.maybeShow(IntroDialogDestination.combinedFeed);
+    }
   }
 
   void _narrowChanged(Narrow newNarrow) {
