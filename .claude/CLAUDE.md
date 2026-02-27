@@ -95,3 +95,5 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
 
 - After every edit, run the Flutter analyzer to catch issues early.
   Use this command: `flutter analyze --no-pub 2>&1 | head -20`
+- When working on an issue, don't try to look at the server/web implementation.
+  Stick to the issue's spec and the API docs.

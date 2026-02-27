@@ -1370,10 +1370,12 @@ InitialSnapshot initialSnapshot({
   int? maxFileUploadSizeMib,
   List<ThumbnailFormat>? serverThumbnailFormats,
   Uri? serverEmojiDataUrl,
+  int? realmModerationRequestChannelId = -1,
   String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
+  List<ReportMessageType>? serverReportMessageTypes,
 }) {
   if (realmDeleteOwnMessagePolicy == null) {
     // Set a default for realmCanDeleteOwnMessageGroup, but only if we're
@@ -1433,10 +1435,12 @@ InitialSnapshot initialSnapshot({
     serverThumbnailFormats: serverThumbnailFormats ?? [],
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
+    realmModerationRequestChannelId: realmModerationRequestChannelId,
     realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
     realmUsers: realmUsers ?? [selfUser],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
+    serverReportMessageTypes: serverReportMessageTypes,
   );
 }
 const _initialSnapshot = initialSnapshot;
