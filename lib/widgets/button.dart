@@ -12,6 +12,12 @@ import 'theme.dart';
 /// The Figma uses this for the "Cancel" and "Save" buttons in the compose box
 /// for editing an already-sent message.
 ///
+/// Pass null for [onPressed] to make the button disabled.
+/// The disabled state is essentially 50% opacity;
+/// this isn't specified in the Figma, but Vlad suggested it informally:
+///   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/toggle.3A.20disabled.20state/near/2250883
+/// and empirically web seems to do this too.
+///
 /// See Figma:
 ///   * Component: https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=1-2780&t=Wia0D0i1I0GXdD9z-0
 ///   * Edit-message compose box: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3988-38201&m=dev
@@ -31,7 +37,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
   final ZulipWebUiKitButtonSize size;
   final String label;
   final IconData? icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
     switch ((attention, intent)) {
@@ -86,35 +92,39 @@ class ZulipWebUiKitButton extends StatelessWidget {
   }
 
   Color _labelColor(DesignVariables designVariables) {
-    switch ((attention, intent)) {
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
+    Color result = switch ((attention, intent)) {
+      (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral) =>
         // TODO nit: don't fade in pressed state
-        return designVariables.neutralButtonLabel.withFadedAlpha(0.85);
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
-        throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
-        return designVariables.btnLabelAttMediumIntWarning;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
-        return designVariables.btnLabelAttHighIntWarning;
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
-        throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
-        return designVariables.btnLabelAttLowIntDanger;
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
-        return designVariables.btnLabelAttMediumIntDanger;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
-        throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
-        return designVariables.btnLabelAttMediumIntInfo;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
-        return designVariables.btnLabelAttHigh;
+        designVariables.neutralButtonLabel.withFadedAlpha(0.85),
+      (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral)
+        || (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral)
+        || (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral)
+        || (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning)
+        || (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning) =>
+             throw UnimplementedError(),
+      (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning) =>
+        designVariables.btnLabelAttMediumIntWarning,
+      (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning) =>
+        designVariables.btnLabelAttHighIntWarning,
+      (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger) =>
+        throw UnimplementedError(),
+      (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger) =>
+        designVariables.btnLabelAttLowIntDanger,
+      (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger) =>
+        designVariables.btnLabelAttMediumIntDanger,
+      (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger)
+        || (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info)
+        || (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info) =>
+             throw UnimplementedError(),
+      (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info) =>
+        designVariables.btnLabelAttMediumIntInfo,
+      (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info) =>
+        designVariables.btnLabelAttHigh,
+    };
+    if (onPressed == null) {
+      result = result.withFadedAlpha(0.5);
     }
+    return result;
   }
 
   TextStyle _labelStyle(BuildContext context, {required TextScaler textScaler}) {
@@ -187,44 +197,56 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
     final labelColor = _labelColor(designVariables);
 
-    return AnimatedScaleOnPress(
-      scaleEnd: 0.96,
-      duration: Duration(milliseconds: 100),
-      child: TextButton.icon(
-        // TODO the gap between the icon and label should be 6px, not 8px
-        icon: icon != null ? Icon(icon) : null,
-        style: TextButton.styleFrom(
-          iconSize: 16,
-          iconColor: labelColor,
-          padding: EdgeInsets.symmetric(
-            horizontal: _forSize(6, 10),
-            vertical: 4 - densityVerticalAdjustment,
-          ),
-          foregroundColor: labelColor,
-          shape: RoundedRectangleBorder(
-            side: _borderSide(designVariables),
-            borderRadius: BorderRadius.circular(_forSize(6, 4))),
-          splashFactory: NoSplash.splashFactory,
+    Widget result = TextButton.icon(
+      // TODO the gap between the icon and label should be 6px, not 8px
+      icon: icon != null ? Icon(icon) : null,
+      style: TextButton.styleFrom(
+        iconSize: 16,
+        iconColor: labelColor,
+        padding: EdgeInsets.symmetric(
+          horizontal: _forSize(6, 10),
+          vertical: 4 - densityVerticalAdjustment,
+        ),
+        foregroundColor: labelColor,
+        shape: RoundedRectangleBorder(
+          side: _borderSide(designVariables),
+          borderRadius: BorderRadius.circular(_forSize(6, 4))),
+        splashFactory: NoSplash.splashFactory,
 
-          // These three arguments make the button `buttonHeight` tall,
-          // but with vertical padding to make the touch target 44px tall:
-          //   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
-          visualDensity: visualDensity,
-          tapTargetSize: MaterialTapTargetSize.padded,
-          minimumSize: Size(
-            kMinInteractiveDimension,
-            buttonHeight - densityVerticalAdjustment,
-          ),
-        ).copyWith(backgroundColor: _backgroundColor(designVariables)),
-        onPressed: onPressed,
-        label: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 240),
-          child: Text(label,
-            textScaler: textScaler,
-            maxLines: 1,
-            style: _labelStyle(context, textScaler: textScaler),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis))));
+        // These three arguments make the button `buttonHeight` tall,
+        // but with vertical padding to make the touch target 44px tall:
+        //   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
+        visualDensity: visualDensity,
+        tapTargetSize: MaterialTapTargetSize.padded,
+        minimumSize: Size(
+          kMinInteractiveDimension,
+          buttonHeight - densityVerticalAdjustment,
+        ),
+      ).copyWith(backgroundColor: WidgetStateColor.resolveWith((states) {
+        Color result = _backgroundColor(designVariables).resolve(states);
+        if (states.contains(WidgetState.disabled)) {
+          result = result.withFadedAlpha(0.5);
+        }
+        return result;
+      })),
+      onPressed: onPressed,
+      label: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 240),
+        child: Text(label,
+          textScaler: textScaler,
+          maxLines: 1,
+          style: _labelStyle(context, textScaler: textScaler),
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis)));
+
+    if (onPressed != null) {
+      result = AnimatedScaleOnPress(
+        scaleEnd: 0.96,
+        duration: Duration(milliseconds: 100),
+        child: result);
+    }
+
+    return result;
   }
 }
 
