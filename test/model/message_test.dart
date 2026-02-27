@@ -175,7 +175,7 @@ void main() {
 
     test('outbox messages get unique localMessageId', () async {
       await prepare(stream: stream);
-      await prepareMessages([]);
+      await prepareMessages([], foundOldest: true);
 
       for (int i = 0; i < 10; i++) {
         connection.prepare(json: SendMessageResult(id: 1).toJson());
@@ -566,7 +566,7 @@ void main() {
   test('takeOutboxMessage', () async {
     final stream = eg.stream();
     await prepare(stream: stream);
-    await prepareMessages([]);
+    await prepareMessages([], foundOldest: true);
 
     for (int i = 0; i < 10; i++) {
       connection.prepare(apiException: eg.apiBadRequest());
@@ -1745,7 +1745,7 @@ void main() {
 
       // The actual message hasn't been fetched by a message list;
       // we want to test [MessageStore.starredMessages] in isolation.
-      await prepareMessages([]);
+      await prepareMessages([], foundOldest: true);
 
       check(store).starredMessages.single.equals(message.id);
       await store.handleEvent(eg.deleteMessageEvent([message]));
@@ -1806,7 +1806,7 @@ void main() {
 
       test('all: true; we don\'t know about any messages', () async {
         await prepare();
-        await prepareMessages([]);
+        await prepareMessages([], foundOldest: true);
         await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
         checkNotNotified();
       });
