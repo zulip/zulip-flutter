@@ -345,6 +345,14 @@
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
+  "errorCouldNotLoadMessages": "Could not load messages.",
+  "@errorCouldNotLoadMessages": {
+    "description": "Error message when loading messages initially failed."
+  },
+  "tryAgainButton": "Try again",
+  "@tryAgainButton": {
+    "description": "Label for a button to retry a failed action."
+  },
   "errorCouldNotAccessUploadedFileTitle": "Could not access uploaded file",
   "@errorCouldNotAccessUploadedFileTitle": {
     "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
