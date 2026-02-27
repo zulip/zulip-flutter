@@ -198,6 +198,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         backgroundColor: appBarBackgroundColor,
         shape: const Border(), // Remove bottom border from [AppBarTheme]
         elevation: appBarElevation,
+        toolbarHeight: 56, 
         title: Row(children: [
           Avatar(
             size: 36,
