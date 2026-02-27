@@ -731,6 +731,43 @@ class KatexExample extends ContentExample {
         ]),
       ]),
     ]);
+
+    static final notEqual = KatexExample.inline(
+      r'not-equal, like `\ne`.',
+      //https://chat.zulip.org/#narrow/channel/7-test-here/topic/Saif.20KaTeX/near/2285658.2E01
+      r'\ne',
+      '<p>'
+        '<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo mathvariant="normal">≠</mo></mrow><annotation encoding="application/x-tex"> \\ne </annotation></semantics></math></span>'
+          '<span class="katex-html" aria-hidden="true">'
+            '<span class="base">'
+              '<span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span>'
+              '<span class="mrel"><span class="mrel">'
+                  '<span class="mord vbox">'
+                    '<span class="thinbox">'
+                      '<span class="rlap">'
+                        '<span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span>'
+                        '<span class="inner"><span class="mord"><span class="mrel"></span></span></span>'
+                        '<span class="fix"></span></span></span></span></span>'
+                '<span class="mrel">=</span></span></span></span></span></p>',[
+        KatexSpanNode(nodes: [
+          KatexStrutNode(heightEm: 0.8889, verticalAlignEm: -0.1944),
+          KatexSpanNode(nodes: [
+            KatexSpanNode(nodes: [
+              KatexSpanNode(nodes: [
+                KatexSpanNode(
+                  styles: KatexSpanStyles(widthEm: 0),
+                  nodes: [
+                    KatexSpanNode(
+                      styles: KatexSpanStyles(widthEm: 0),
+                      nodes: [KatexStrutNode(heightEm: 0.8889, verticalAlignEm: -0.1944),
+                        KatexSpanNode(nodes: [
+                          KatexSpanNode(nodes: [KatexSpanNode(text: '')]),
+                        ]),KatexSpanNode(nodes: [])],
+                    )]),
+              ])]),
+            KatexSpanNode(text: '=')]),
+        ]),
+      ]);
 }
 
 void main() async {
@@ -754,6 +791,7 @@ void main() async {
   testParseExample(KatexExample.bigOperators);
   testParseExample(KatexExample.colonEquals);
   testParseExample(KatexExample.nulldelimiter);
+  testParseExample(KatexExample.notEqual);
 
   group('parseCssHexColor', () {
     const testCases = [
