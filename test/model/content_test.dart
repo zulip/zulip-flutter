@@ -458,7 +458,9 @@ class ContentExample {
     'code block without syntax highlighting',
     "```\nverb\natim\n```",
     expectedText: 'verb\natim',
-    '<div class="codehilite"><pre><span></span><code>verb\natim\n</code></pre></div>', [
+    '<div class="codehilite">'
+      '<pre><span></span>'
+        '<code>verb\natim\n</code></pre></div>', [
       CodeBlockNode([
         CodeBlockSpanNode(text: 'verb\natim', type: CodeBlockSpanType.text),
       ]),
@@ -468,10 +470,14 @@ class ContentExample {
     'code block with syntax highlighting',
     "```dart\nclass A {}\n```",
     expectedText: 'class A {}',
-    '<div class="codehilite" data-code-language="Dart"><pre>'
-        '<span></span><code><span class="kd">class</span><span class="w"> </span>'
-        '<span class="nc">A</span><span class="w"> </span><span class="p">{}</span>'
-        '\n</code></pre></div>', [
+    '<div class="codehilite" data-code-language="Dart">'
+      '<pre><span></span>'
+        '<code>'
+          '<span class="kd">class</span>'
+          '<span class="w"> </span>'
+          '<span class="nc">A</span>'
+          '<span class="w"> </span>'
+          '<span class="p">{}</span>\n</code></pre></div>', [
       CodeBlockNode([
         CodeBlockSpanNode(text: 'class', type: CodeBlockSpanType.keywordDeclaration),
         CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
@@ -485,15 +491,27 @@ class ContentExample {
     'code block, multiline, with syntax highlighting',
     '```rust\nfn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}\n```',
     expectedText: 'fn main() {\n    print!("Hello ");\n\n    print!("world!\\n");\n}',
-    '<div class="codehilite" data-code-language="Rust"><pre>'
-        '<span></span><code><span class="k">fn</span> <span class="nf">main</span>'
-        '<span class="p">()</span><span class="w"> </span><span class="p">{</span>\n'
-        '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
-        '<span class="s">"Hello "</span><span class="p">);</span>\n\n'
-        '<span class="w">    </span><span class="fm">print!</span><span class="p">(</span>'
-        '<span class="s">"world!</span><span class="se">\\n</span><span class="s">"</span>'
-        '<span class="p">);</span>\n<span class="p">}</span>\n'
-        '</code></pre></div>', [
+    '<div class="codehilite" data-code-language="Rust">'
+      '<pre><span></span>'
+        '<code>'
+          '<span class="k">fn</span> '
+          '<span class="nf">main</span>'
+          '<span class="p">()</span>'
+          '<span class="w"> </span>'
+          '<span class="p">{</span>\n'
+          '<span class="w">    </span>'
+          '<span class="fm">print!</span>'
+          '<span class="p">(</span>'
+          '<span class="s">"Hello "</span>'
+          '<span class="p">);</span>\n\n'
+          '<span class="w">    </span>'
+          '<span class="fm">print!</span>'
+          '<span class="p">(</span>'
+          '<span class="s">"world!</span>'
+          '<span class="se">\\n</span>'
+          '<span class="s">"</span>'
+          '<span class="p">);</span>\n'
+          '<span class="p">}</span>\n</code></pre></div>', [
       CodeBlockNode([
         CodeBlockSpanNode(text: 'fn', type: CodeBlockSpanType.keyword),
         CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.text),
@@ -526,10 +544,11 @@ class ContentExample {
     expectedText: '- item',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Greg/near/1949014
     '<div class="codehilite" data-code-language="YAML">'
-        '<pre><span></span><code><span class="p p-Indicator">-</span>'
-        '<span class="w"> </span>'
-        '<span class="l l-Scalar l-Scalar-Plain">item</span>\n'
-        '</code></pre></div>', [
+      '<pre><span></span>'
+        '<code>'
+          '<span class="p p-Indicator">-</span>'
+          '<span class="w"> </span>'
+          '<span class="l l-Scalar l-Scalar-Plain">item</span>\n</code></pre></div>', [
       CodeBlockNode([
         CodeBlockSpanNode(text: "-", type: CodeBlockSpanType.punctuation),
         CodeBlockSpanNode(text: " ", type: CodeBlockSpanType.whitespace),
@@ -551,19 +570,27 @@ class ContentExample {
   static final codeBlockWithHighlightedLines = ContentExample(
     'code block, with syntax highlighting and highlighted lines',
     '```\n::markdown hl_lines="2 4"\n# he\n## llo\n### world\n```',
-    '<div class="codehilite"><pre>'
-        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
-        '<span class="hll"><span class="gh"># he</span>\n'
-        '</span><span class="gu">## llo</span>\n'
-        '<span class="hll"><span class="gu">### world</span>\n'
-        '</span></code></pre></div>', [
-      // TODO: Fix this, see comment under `CodeBlockSpanType.highlightedLines` case in lib/model/content.dart.
-      blockUnimplemented('<div class="codehilite"><pre>'
-        '<span></span><code>::markdown hl_lines=&quot;2 4&quot;\n'
-        '<span class="hll"><span class="gh"># he</span>\n'
-        '</span><span class="gu">## llo</span>\n'
-        '<span class="hll"><span class="gu">### world</span>\n'
-        '</span></code></pre></div>'),
+    '<div class="codehilite">'
+      '<pre><span></span>'
+        '<code>'
+          '::markdown hl_lines=&quot;2 4&quot;\n'
+          '<span class="hll">'
+            '<span class="gh"># he</span>\n</span>'
+          '<span class="gu">## llo</span>\n'
+          '<span class="hll">'
+            '<span class="gu">### world</span>\n</span></code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '::markdown hl_lines="2 4"\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.highlightedLines, spans: [
+          CodeBlockSpanNode(text: '# he', type: CodeBlockSpanType.genericHeading),
+          CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        ]),
+        CodeBlockSpanNode(text: '## llo', type: CodeBlockSpanType.genericSubheading),
+        CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.highlightedLines, spans: [
+          CodeBlockSpanNode(text: '### world', type: CodeBlockSpanType.genericSubheading),
+        ]),
+      ]),
     ]);
 
   static final codeBlockWithUnknownSpanType = ContentExample(
@@ -586,6 +613,82 @@ class ContentExample {
     '<p>some content</p>', [
       CodeBlockNode([CodeBlockSpanNode(text: "code block.", type: CodeBlockSpanType.text)]),
       ParagraphNode(links: null, nodes: [TextNode("some content")]),
+    ]);
+
+  static const codeBlockKeywordHighlight = ContentExample(
+    'code block, search highlight',
+    '```dart\nclass A {}\n```',
+    '<div class="codehilite" data-code-language="Dart">'
+      '<pre><span></span>'
+        '<code>'
+          '<span class="kd">'
+            '<span class="highlight">class</span></span>'
+          '<span class="w"> </span>'
+          '<span class="nc">A</span>'
+          '<span class="w"> </span>'
+          '<span class="p">{}</span>\n</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(type: CodeBlockSpanType.keywordDeclaration, spans: [
+          CodeBlockSpanNode(text: 'class', type: CodeBlockSpanType.highlight),
+        ]),
+        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: 'A', type: CodeBlockSpanType.nameClass),
+        CodeBlockSpanNode(text: ' ', type: CodeBlockSpanType.whitespace),
+        CodeBlockSpanNode(text: '{}', type: CodeBlockSpanType.punctuation),
+      ]),
+    ]);
+
+  static const codeBlockKeywordHighlightBetweenText = ContentExample(
+    'code block, search highlight between text',
+    '```console\n# postgresql\nThe World\'s Most Advanced Open Source Relational Database\n```',
+    '<div class="codehilite" data-code-language="Bash Session">'
+      '<pre><span></span>'
+        '<code>'
+          '<span class="gp"># </span>postgresql\n'
+          '<span class="go">'
+            'The '
+            '<span class="highlight">World</span>'
+            '\'s Most Advanced Open Source Relational Database</span>\n</code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '# ', type: CodeBlockSpanType.genericPrompt),
+        CodeBlockSpanNode(text: "postgresql\n", type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.genericOutput, spans: [
+          CodeBlockSpanNode(text: 'The ', type: CodeBlockSpanType.text),
+          CodeBlockSpanNode(text: 'World', type: CodeBlockSpanType.highlight),
+          CodeBlockSpanNode(text: '\'s Most Advanced Open Source Relational Database', type: CodeBlockSpanType.text),
+        ]),
+      ]),
+    ]);
+
+  static const codeBlockWithHighlightedLinesAndKeywordHighlight = ContentExample(
+    'code block with highlighted lines and keyword highlight',
+     '```\n::markdown hl_lines="2 4"\n# he\n## llo\n### world\n```',
+    '<div class="codehilite">'
+      '<pre><span></span>'
+        '<code>'
+          '::markdown hl_lines=&quot;2 4&quot;\n'
+          '<span class="hll">'
+            '<span class="gh"># he</span>\n</span>'
+          '<span class="gu">## llo</span>\n'
+          '<span class="hll">'
+            '<span class="gu">'
+              '### '
+              '<span class="highlight">world</span></span>\n</span></code></pre></div>', [
+      CodeBlockNode([
+        CodeBlockSpanNode(text: '::markdown hl_lines="2 4"\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.highlightedLines, spans: [
+          CodeBlockSpanNode(text: '# he', type: CodeBlockSpanType.genericHeading),
+          CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        ]),
+        CodeBlockSpanNode(text: '## llo', type: CodeBlockSpanType.genericSubheading),
+        CodeBlockSpanNode(text: '\n', type: CodeBlockSpanType.text),
+        CodeBlockSpanNode(type: CodeBlockSpanType.highlightedLines, spans: [
+          CodeBlockSpanNode(type: CodeBlockSpanType.genericSubheading, spans: [
+            CodeBlockSpanNode(text: '### ', type: CodeBlockSpanType.text),
+            CodeBlockSpanNode(text: 'world', type: CodeBlockSpanType.highlight),
+          ]),
+        ]),
+      ]),
     ]);
 
   static final mathInline = ContentExample.inline(
@@ -2074,6 +2177,9 @@ void main() async {
   testParseExample(ContentExample.codeBlockWithHighlightedLines);
   testParseExample(ContentExample.codeBlockWithUnknownSpanType);
   testParseExample(ContentExample.codeBlockFollowedByMultipleLineBreaks);
+  testParseExample(ContentExample.codeBlockKeywordHighlight);
+  testParseExample(ContentExample.codeBlockKeywordHighlightBetweenText);
+  testParseExample(ContentExample.codeBlockWithHighlightedLinesAndKeywordHighlight);
 
   // The math examples in this file are about how math blocks and spans fit
   // into the context of a Zulip message.

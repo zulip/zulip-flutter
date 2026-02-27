@@ -739,14 +739,27 @@ class CodeBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final styles = ContentTheme.of(context).codeBlockTextStyles;
+    final codeBlockTextStyles = ContentTheme.of(context).codeBlockTextStyles;
+
+    TextSpan buildNode(CodeBlockSpanNode child) {
+      final style = codeBlockTextStyles.forSpan(child.type);
+
+      if (child.text != null) {
+        return TextSpan(
+          style: style,
+          text: child.text!);
+      }
+
+      return TextSpan(
+        style: style,
+        children: List.unmodifiable(child.spans!.map(buildNode)));
+    }
+
     return _CodeBlockContainer(
       borderColor: Colors.transparent,
       child: Text.rich(TextSpan(
-        style: styles.plain,
-        children: node.spans
-          .map((node) => TextSpan(style: styles.forSpan(node.type), text: node.text))
-          .toList(growable: false))));
+        style: codeBlockTextStyles.plain,
+        children: List.unmodifiable(node.spans.map(buildNode)))));
   }
 }
 
