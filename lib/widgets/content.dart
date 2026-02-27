@@ -1101,8 +1101,17 @@ class _InlineContentBuilder {
           child: Mention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
+        final baseStyle = ContentTheme.of(_context!).textStyleEmoji;
+
+        final currentFontSize = baseStyle.fontSize
+            ?? DefaultTextStyle.of(_context!).style.fontSize
+            ?? 14.0;
+
+        final emojiNodeStyle = node.isStandalone
+          ? baseStyle.copyWith(fontSize: currentFontSize * 2.0)
+          : baseStyle;
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
-          style: ContentTheme.of(_context!).textStyleEmoji);
+          style: emojiNodeStyle);
 
       case ImageEmojiNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
@@ -1258,19 +1267,18 @@ class MessageImageEmoji extends StatelessWidget {
   const MessageImageEmoji({super.key, required this.node});
 
   final ImageEmojiNode node;
-
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.src);
-
-    const size = 20.0;
+    final nodeIsStandalone = node.isStandalone;
+    final size = nodeIsStandalone ? 40.0 : 20.0;
 
     return Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: [
-        const SizedBox(width: size, height: kBaseFontSize),
+        SizedBox(width: size, height: nodeIsStandalone ? kBaseFontSize * 2.0 : kBaseFontSize),
         Positioned(
           // Web's css makes this seem like it should be -0.5, but that looks
           // too low.

@@ -1368,6 +1368,29 @@ void main() {
       final style = mergedStyleOf(tester, '\u{1f44d}');
       check(style!.decoration).equals(TextDecoration.lineThrough);
     });
+
+    testWidgets('UnicodeEmoji renders at double size when it is the only content', (tester) async {
+      final example = ContentExample.emojiUnicode;
+      await prepareContent(tester, messageContent(example.html));
+      final style = mergedStyleOf(tester, example.expectedText!);
+      check(style?.fontSize).equals(kBaseFontSize * 2);
+    });
+
+    testWidgets('UnicodeEmoji renders at base size when joined with text', (tester) async {
+      final example = ContentExample.emojiUnicodeWithText;
+
+      await prepareContent(tester, messageContent(example.html));
+      final style = mergedStyleOf(tester, '\u{1f44d}');
+      check(style?.fontSize).equals(kBaseFontSize);
+    });
+
+    testWidgets('UnicodeEmoji renders at base size when repeated', (tester) async {
+      final example = ContentExample.emojiUnicodeRepeated;
+
+      await prepareContent(tester, messageContent(example.html));
+      final style = mergedStyleOf(tester, '\u{1f44d}');
+      check(style?.fontSize).equals(kBaseFontSize);
+    });
   });
 
   group('inline math', () {
@@ -1585,6 +1608,36 @@ void main() {
       await prepare(tester, ContentExample.emojiZulipExtra.html);
       tester.widget(find.byType(MessageImageEmoji));
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('ImageEmoji renders at double size when it is the only content', (tester) async {
+      await prepare(tester, ContentExample.emojiZulipExtra.html);
+
+      final SizedBox sizeBox = tester.widget(find.descendant(
+        of: find.byType(MessageImageEmoji),
+        matching: find.byType(SizedBox)));
+      check(sizeBox.width).equals(40.0);
+      check(sizeBox.height).equals(kBaseFontSize * 2.0);
+    });
+
+    testWidgets('ImageEmoji renders at base size when joined with text', (tester) async {
+      await prepare(tester, ContentExample.emojiZulipExtraWithText.html);
+
+      final SizedBox sizeBox = tester.widget(find.descendant(
+        of: find.byType(MessageImageEmoji),
+        matching: find.byType(SizedBox)));
+      check(sizeBox.width).equals(20.0);
+      check(sizeBox.height).equals(kBaseFontSize);
+    });
+
+    testWidgets('ImageEmojis renders at base size when repeated', (tester) async {
+      await prepare(tester, ContentExample.emojiZulipExtraRepeated.html);
+
+      final SizedBox sizeBox = tester.widget(find.descendant(
+          of: find.byType(MessageImageEmoji),
+          matching: find.byType(SizedBox)).first);
+      check(sizeBox.width).equals(20.0);
+      check(sizeBox.height).equals(kBaseFontSize);
     });
   });
 

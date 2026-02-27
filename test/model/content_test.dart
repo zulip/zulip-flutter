@@ -350,6 +350,52 @@ class ContentExample {
       url: '/#narrow/channel/378-api-design/topic/notation.20for.20near.20links/near/1972281',
       nodes: [TextNode('#api design > notation for near links @ 💬')]));
 
+  static final emojiUnicodeWithText = ContentExample(
+    'Unicode emoji joined with text',
+    'foo :thumbs_up:',
+    expectedText: 'foo \u{1f44d}',
+    '<p>foo '
+      '<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    [ParagraphNode(links: null, nodes: [
+      TextNode('foo '),
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')],
+    )],
+  );
+
+  static final emojiUnicodeRepeated = ContentExample(
+    'Repeated unicode emojis',
+    ':thumbs_up: :thumbs_up:',
+    expectedText: '\u{1f44d} \u{1f44d}',
+    '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span>'
+    '<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    [ParagraphNode(links: null, nodes: [
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'),
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')],
+    )],
+  );
+
+  static final emojiZulipExtraWithText = ContentExample(
+    'Zulip extra emoji with text',
+    "foo :zulip:",
+    '<p>foo '
+      '<img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
+    [ParagraphNode(links: null, nodes: [
+      TextNode('foo '),
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:')],
+    )],
+  );
+
+  static final emojiZulipExtraRepeated = ContentExample(
+    'Repeated zulip extra emoji',
+    ":zulip: :zulip:",
+    '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip">'
+    '<img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
+    [ParagraphNode(links: null, nodes: [
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'),
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:')],
+    )],
+  );
+
   static const orderedListCustomStart = ContentExample(
     'ordered list with custom start',
     '5. fifth\n6. sixth',
@@ -1889,9 +1935,13 @@ void main() async {
   testParseExample(ContentExample.emojiUnicodeClassesFlipped);
   testParseExample(ContentExample.emojiUnicodeMultiCodepoint);
   testParseExample(ContentExample.emojiUnicodeLiteral);
+  testParseExample(ContentExample.emojiUnicodeWithText);
+  testParseExample(ContentExample.emojiUnicodeRepeated);
   testParseExample(ContentExample.emojiCustom);
   testParseExample(ContentExample.emojiCustomInvalidUrl);
   testParseExample(ContentExample.emojiZulipExtra);
+  testParseExample(ContentExample.emojiZulipExtraWithText);
+  testParseExample(ContentExample.emojiZulipExtraRepeated);
 
   testParseExample(ContentExample.inlineImage);
   testParseExample(ContentExample.inlineImageLoading);
