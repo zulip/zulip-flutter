@@ -62,10 +62,9 @@ class StickyHeaderItem extends SingleChildRenderObjectWidget {
 /// The render object configured by a [StickyHeaderItem].
 class RenderStickyHeaderItem extends RenderProxyBox {
   RenderStickyHeaderItem({
-    required bool allowOverflow,
-    required Widget header,
-  }) : _allowOverflow = allowOverflow,
-       _header = header;
+    required this._allowOverflow,
+    required this._header,
+  });
 
   bool get allowOverflow => _allowOverflow;
   bool _allowOverflow;
@@ -468,8 +467,8 @@ class _SliverStickyHeaderListElement extends RenderObjectElement {
 
 class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelpers {
   _RenderSliverStickyHeaderList({
-    required _SliverStickyHeaderListElement element,
-  }) : _element = element;
+    required this._element,
+  });
 
   final _SliverStickyHeaderListElement _element;
 

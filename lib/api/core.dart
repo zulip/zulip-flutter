@@ -58,13 +58,12 @@ class ApiConnection {
     required this.zulipFeatureLevel, // required even though nullable; see field doc
     String? email,
     String? apiKey,
-    required http.Client client,
+    required this._client,
     required this.useBinding,
   }) : assert((email != null) == (apiKey != null)),
        _authValue = (email != null && apiKey != null)
          ? _authHeaderValue(email: email, apiKey: apiKey)
-         : null,
-       _client = client;
+         : null;
 
   /// Construct an API connection that talks to a live Zulip server over the real network.
   ApiConnection.live({

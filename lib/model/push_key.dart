@@ -19,10 +19,9 @@ import 'store.dart';
 /// if we had any code that would want to listen.
 class GlobalPushKeyStore {
   GlobalPushKeyStore({
-    required GlobalStoreBackend backend,
+    required this._backend,
     required Iterable<PushKey> data,
-  }) : _backend = backend,
-       _pushKeys = Map.fromEntries(data.map((k) => MapEntry(k.pushKeyId, k)));
+  }) : _pushKeys = Map.fromEntries(data.map((k) => MapEntry(k.pushKeyId, k)));
 
   final GlobalStoreBackend _backend;
 
@@ -85,11 +84,10 @@ class GlobalPushKeyStore {
 /// if we had any code that would want to listen.
 class PushKeyStore {
   PushKeyStore({
-    required GlobalPushKeyStore globalPushKeys,
+    required this._globalPushKeys,
     required this.accountId,
     required Iterable<PushKey> data,
-  }) : _globalPushKeys = globalPushKeys,
-       _pushKeys = Map.fromEntries(data.map((k) => MapEntry(k.pushKeyId, k)));
+  }) : _pushKeys = Map.fromEntries(data.map((k) => MapEntry(k.pushKeyId, k)));
 
   final GlobalPushKeyStore _globalPushKeys;
   final int accountId;
