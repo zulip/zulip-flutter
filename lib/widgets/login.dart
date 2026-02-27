@@ -254,6 +254,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   _controller.clearComposing();
                   // …but leave out unfocusing the input in case more editing is needed.
                 },
+                style: filledInputTextStyle(designVariables),
                 decoration: baseFilledInputDecoration(designVariables)
                   .copyWith(
                     // TODO(#2183) follow design for label text
@@ -612,6 +613,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         return null;
       },
       textInputAction: TextInputAction.next,
+      style: filledInputTextStyle(designVariables),
       decoration: baseFilledInputDecoration(designVariables).copyWith(
         hintText: requireEmailFormatUsernames
           ? zulipLocalizations.loginEmailLabel
@@ -633,6 +635,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       },
       textInputAction: TextInputAction.go,
       onFieldSubmitted: (value) => _submit(),
+      style: filledInputTextStyle(designVariables),
       decoration: baseFilledInputDecoration(designVariables).copyWith(
         hintText: zulipLocalizations.loginPasswordLabel,
         helperText: kLayoutPinningHelperText,

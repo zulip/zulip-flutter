@@ -7,6 +7,9 @@ import 'theme.dart';
 /// Callers should use [InputDecoration.copyWith] to add field-specific
 /// properties like [InputDecoration.hintText] or [InputDecoration.suffixIcon].
 ///
+/// [filledInputTextStyle] is recommended for styling the text-input's value,
+/// i.e., the text the user has typed. That's not a job of [InputDecoration].
+///
 /// The returned decoration won't configure a "label" above the input,
 /// for callers building a form, even though [InputDecoration] supports that.
 /// That's because we don't have a Figma design for form fields with labels,
@@ -30,6 +33,19 @@ InputDecoration baseFilledInputDecoration(DesignVariables designVariables) {
       borderRadius: BorderRadius.circular(10),
       borderSide: BorderSide.none));
 }
+
+/// A [TextStyle] for the user-entered text in "filled"-style text inputs.
+///
+/// This is intended to be paired with [baseFilledInputDecoration].
+TextStyle filledInputTextStyle(DesignVariables designVariables) => TextStyle(
+  // Font size and height from
+  //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10806-25228&m=dev
+  fontSize: 19,
+  height: 26 / 19,
+
+  // https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10867-99284&m=dev
+  color: designVariables.textInput,
+);
 
 /// A space to use for [InputDecoration.helperText] so the layout doesn't jump.
 ///

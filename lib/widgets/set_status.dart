@@ -233,7 +233,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
                   // See: https://zulip.com/api/update-status#parameter-status_text
                   maxLength: 60,
                   textCapitalization: TextCapitalization.sentences,
-                  style: TextStyle(fontSize: 19, height: 24 / 19),
+                  style: filledInputTextStyle(designVariables),
                   decoration: baseFilledInputDecoration(designVariables)
                     .copyWith(
                       // TODO: display a counter as suggested in CZO discussion:
