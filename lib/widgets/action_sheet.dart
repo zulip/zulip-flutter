@@ -1134,6 +1134,10 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   final isSenderMuted = store.isUserMuted(message.senderId);
 
+  // Server returns -1 when no moderation channel is configured
+  final moderationChannelId = store.realmModerationRequestChannelId;
+  final isModerationEnabled = moderationChannelId != null && moderationChannelId > 0;
+
   final buttonSections = [
     [
       if (popularEmojiLoaded)
@@ -1155,6 +1159,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       ShareButton(message: message, pageContext: pageContext),
       if (_getShouldShowEditButton(pageContext, message))
         EditButton(message: message, pageContext: pageContext),
+      if (isModerationEnabled)
+        ReportMessageButton(message: message, pageContext: pageContext),
     ],
     if (store.selfCanDeleteMessage(message.id, atDate: now))
       [DeleteMessageButton(message: message, pageContext: pageContext)],
@@ -1735,5 +1741,255 @@ class DeleteMessageButton extends MessageActionSheetMenuItemButton {
       final title = ZulipLocalizations.of(pageContext).errorDeleteMessageFailedTitle;
       showErrorDialog(context: pageContext, title: title, message: errorMessage);
     }
+  }
+}
+
+class ReportMessageButton extends MessageActionSheetMenuItemButton {
+  ReportMessageButton({super.key, required super.message, required super.pageContext});
+
+  @override
+  IconData get icon => ZulipIcons.flag;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.actionSheetOptionReportMessage;
+
+  @override void onPressed() {
+    showModalBottomSheet<void>(
+      context: pageContext,
+      clipBehavior: Clip.antiAlias,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (context) => ReportMessageSheet(
+        message: message,
+        pageContext: pageContext,
+      ),
+    );
+  }
+}
+
+/// A bottom sheet for reporting a message to moderators.
+///
+/// Allows the user to select a reason and optionally provide details
+/// before submitting the report.
+class ReportMessageSheet extends StatefulWidget {
+  const ReportMessageSheet({
+    super.key,
+    required this.message,
+    required this.pageContext,
+  });
+
+  final Message message;
+  final BuildContext pageContext;
+
+  @override
+  State<ReportMessageSheet> createState() => _ReportMessageSheetState();
+}
+
+class _ReportMessageSheetState extends State<ReportMessageSheet> {
+  String _selectedReason = 'spam';
+  final TextEditingController _detailsController = TextEditingController();
+
+  static const Map<String, String> _reasonApiValues = {
+    'spam': 'spam',
+    'harassment': 'harassment',
+    'inappropriate': 'inappropriate',
+    'norms': 'norms',
+    'other': 'other',
+  };
+
+  String _getReasonLabel(String key, ZulipLocalizations zulipLocalizations) {
+    switch (key) {
+      case 'spam': return zulipLocalizations.reportMessageReasonSpam;
+      case 'harassment': return zulipLocalizations.reportMessageReasonHarassment;
+      case 'inappropriate': return zulipLocalizations.reportMessageReasonInappropriate;
+      case 'norms': return zulipLocalizations.reportMessageReasonNorms;
+      case 'other': return zulipLocalizations.reportMessageReasonOther;
+      default: return key;
+    }
+  }
+
+  void _submit() async {
+    final store = PerAccountStoreWidget.of(widget.pageContext);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final description = _detailsController.text.trim();
+
+    // Close the sheet immediately
+    Navigator.pop(context);
+
+    try {
+      await reportMessage(store.connection,
+        messageId: widget.message.id,
+        reportType: _reasonApiValues[_selectedReason]!,
+        description: description.isEmpty ? null : description,
+      );
+    } catch (e) {
+      if (!widget.pageContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+        default:
+      }
+
+      showErrorDialog(context: widget.pageContext,
+        title: zulipLocalizations.errorReportMessageFailedTitle,
+        message: errorMessage);
+    }
+  }
+
+  @override
+  void dispose() {
+    _detailsController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 16,
+        children: [
+          // Header row
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 0),
+            child: Row(spacing: 8, children: [
+              // Cancel button
+              GestureDetector(
+                onTap: Navigator.of(context).pop,
+                child: Text(zulipLocalizations.dialogCancel, style: TextStyle(
+                  color: designVariables.icon,
+                  fontSize: 20,
+                  height: 30 / 20))),
+              // Title
+              Expanded(child: Text(zulipLocalizations.reportMessageDialogTitle,
+                style: TextStyle(
+                  color: designVariables.title,
+                  fontSize: 20,
+                  height: 30 / 20,
+                ).merge(weightVariableTextStyle(context, wght: 600)),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                textAlign: TextAlign.center)),
+              // Submit button
+              GestureDetector(
+                onTap: _submit,
+                child: Text(zulipLocalizations.reportMessageSubmitButton,
+                  style: TextStyle(
+                    color: designVariables.icon,
+                    fontSize: 20,
+                    height: 30 / 20,
+                  ).merge(weightVariableTextStyle(context, wght: 600)))),
+            ]),
+          ),
+          // Description
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              zulipLocalizations.reportMessageDialogDescription,
+              style: TextStyle(
+                color: designVariables.labelMenuButton,
+                fontSize: 14,
+                height: 20 / 14,
+              ),
+            ),
+          ),
+          // Reason dropdown
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                Text(
+                  zulipLocalizations.reportMessageReasonLabel,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 20 / 14,
+                    color: designVariables.labelMenuButton,
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: designVariables.bgSearchInput,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: _selectedReason,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      dropdownColor: designVariables.bgContextMenu,
+                      style: TextStyle(
+                        color: designVariables.textMessage,
+                        fontSize: 17,
+                        height: 22 / 17,
+                      ),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedReason = value);
+                        }
+                      },
+                      items: _reasonApiValues.keys.map((key) {
+                        return DropdownMenuItem(
+                          value: key,
+                          child: Text(_getReasonLabel(key, zulipLocalizations)),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Details text field
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                Text(
+                  zulipLocalizations.reportMessageDetailsLabel,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 20 / 14,
+                    color: designVariables.labelMenuButton,
+                  ),
+                ),
+                TextField(
+                  controller: _detailsController,
+                  maxLines: 3,
+                  cursorColor: designVariables.textInput,
+                  style: TextStyle(
+                    color: designVariables.textMessage,
+                    fontSize: 17,
+                    height: 22 / 17,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: true,
+                    fillColor: designVariables.bgSearchInput,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Bottom safe area
+          SizedBox(height: MediaQuery.of(context).padding.bottom),
+        ],
+      ),
+    );
   }
 }

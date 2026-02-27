@@ -255,6 +255,26 @@ Future<void> deleteMessage(
   return connection.delete('deleteMessage', (_) {}, 'messages/$messageId', {});
 }
 
+/// Report a message to moderators.
+///
+/// This sends a report to the organization's moderation channel.
+/// The feature is only available when the realm has a moderation request
+/// channel configured.
+///
+/// See: https://zulip.com/help/report-a-message
+Future<void> reportMessage(
+  ApiConnection connection, {
+  required int messageId,
+  required String reportType,
+  String? description,
+}) {
+  return connection.post('reportMessage', (_) {}, 'messages/$messageId/report', {
+    'report_type': RawParameter(reportType),
+    if (description != null && description.isNotEmpty)
+      'description': RawParameter(description),
+  });
+}
+
 /// https://zulip.com/api/upload-file
 Future<UploadFileResult> uploadFile(
   ApiConnection connection, {
