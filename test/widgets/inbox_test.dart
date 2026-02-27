@@ -12,11 +12,14 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/counter_badge.dart';
+import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/page.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_navigation.dart';
 import 'test_app.dart';
 
 /// Repeatedly drags `view` by `moveStep` until `finder` is invisible.
@@ -282,6 +285,28 @@ void main() {
     testWidgets('page builds; empty', (tester) async {
       await setupPage(tester, unreadMessages: []);
       check(find.textContaining('There are no unread messages in your inbox.')).findsOne();
+    });
+
+    testWidgets('search button navigates to search page', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final navObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      await setupPage(tester, unreadMessages: [], navigatorObserver: navObserver);
+
+      final searchButtonFinder = find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search));
+      check(searchButtonFinder).findsOne();
+
+      pushedRoutes.clear();
+
+      await tester.tap(searchButtonFinder);
+      await tester.pump();
+
+      check(pushedRoutes).single.isA<WidgetRoute>().page
+        .isA<MessageListPage>()
+        .initNarrow.equals(const KeywordSearchNarrow(''));
     });
 
     // TODO more checks: ordering, etc.

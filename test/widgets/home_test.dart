@@ -192,6 +192,52 @@ void main () {
         .initNarrow.equals(const CombinedFeedNarrow());
       await tester.pump(Duration.zero); // message-list fetch
     });
+
+    testWidgets('search button on inbox navigates to search page', (tester) async {
+      await prepare(tester);
+
+      final searchButtonFinder = find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search));
+      check(searchButtonFinder).findsOne();
+
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+
+      await tester.tap(searchButtonFinder);
+      await tester.pump();
+
+      check(pushedRoutes).single.isA<WidgetRoute>().page
+        .isA<MessageListPage>()
+        .initNarrow.equals(const KeywordSearchNarrow(''));
+      await tester.pump(Duration.zero);
+    });
+
+    testWidgets('search button not shown on channels tab', (tester) async {
+      await prepare(tester);
+
+      await tester.tap(find.byIcon(ZulipIcons.hash_italic));
+      await tester.pump();
+
+      final searchButtonFinder = find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search));
+      check(searchButtonFinder).findsNothing();
+    });
+
+    testWidgets('search button not shown on direct messages tab', (tester) async {
+      await prepare(tester);
+
+      await tester.tap(find.byIcon(ZulipIcons.two_person));
+      await tester.pump();
+
+      final searchButtonFinder = find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search));
+      check(searchButtonFinder).findsNothing();
+    });
   });
 
   group('menu', () {
