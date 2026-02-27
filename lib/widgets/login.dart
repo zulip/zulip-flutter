@@ -223,6 +223,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
     final error = _parseResult.error;
     final errorText = error == null || error.shouldDeferFeedback()
       ? null
@@ -253,11 +254,15 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   _controller.clearComposing();
                   // …but leave out unfocusing the input in case more editing is needed.
                 },
-                decoration: InputDecoration(
-                  labelText: zulipLocalizations.loginServerUrlLabel,
-                  errorText: errorText,
-                  helperText: kLayoutPinningHelperText,
-                  hintText: AddAccountPage._serverUrlHint)),
+                decoration: baseFilledInputDecoration(designVariables)
+                  .copyWith(
+                    // TODO(#2183) follow design for label text
+                    //   (or don't use it here?)
+                    labelText: zulipLocalizations.loginServerUrlLabel,
+                    errorText: errorText,
+                    helperText: kLayoutPinningHelperText,
+                    hintText: AddAccountPage._serverUrlHint,
+                  )),
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: !_inProgress && errorText == null
@@ -580,6 +585,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final designVariables = DesignVariables.of(context);
     final serverSettings = widget.loginPageState.widget.serverSettings;
     final zulipLocalizations = ZulipLocalizations.of(context);
     final requireEmailFormatUsernames = serverSettings.requireEmailFormatUsernames;
@@ -606,8 +612,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         return null;
       },
       textInputAction: TextInputAction.next,
-      decoration: InputDecoration(
-        labelText: requireEmailFormatUsernames
+      decoration: baseFilledInputDecoration(designVariables).copyWith(
+        hintText: requireEmailFormatUsernames
           ? zulipLocalizations.loginEmailLabel
           : zulipLocalizations.loginUsernameLabel,
         helperText: kLayoutPinningHelperText,
@@ -627,8 +633,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       },
       textInputAction: TextInputAction.go,
       onFieldSubmitted: (value) => _submit(),
-      decoration: InputDecoration(
-        labelText: zulipLocalizations.loginPasswordLabel,
+      decoration: baseFilledInputDecoration(designVariables).copyWith(
+        hintText: zulipLocalizations.loginPasswordLabel,
         helperText: kLayoutPinningHelperText,
         suffixIcon: IconButton(
           tooltip: zulipLocalizations.loginHidePassword,
@@ -636,7 +642,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
           icon: const Icon(Icons.visibility),
           isSelected: _obscurePassword,
           selectedIcon: const Icon(Icons.visibility_off),
-        )));
+        ))
+      );
 
     return Form(
       // TODO(#110) Try to highlight CZO / Zulip Cloud realms in autofill
