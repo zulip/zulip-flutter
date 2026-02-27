@@ -747,7 +747,6 @@ class _SearchBarState extends State<_SearchBar> {
 
       autofocus: true,
       onSubmitted: _handleSubmitted,
-      cursorColor: designVariables.textInput,
       style: TextStyle(
         color: designVariables.textInput,
         fontSize: 19,

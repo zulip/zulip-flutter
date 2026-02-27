@@ -232,7 +232,6 @@ class _SetStatusPageState extends State<SetStatusPage> {
                   // The limit on the size of the status text is 60 characters.
                   // See: https://zulip.com/api/update-status#parameter-status_text
                   maxLength: 60,
-                  cursorColor: designVariables.textInput,
                   textCapitalization: TextCapitalization.sentences,
                   style: TextStyle(fontSize: 19, height: 24 / 19),
                   decoration: baseFilledInputDecoration(designVariables)
