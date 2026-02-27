@@ -587,19 +587,22 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
       message: widget.message,
       buildAppBarBottom: (context) => null,
       buildBottomAppBar: _buildBottomAppBar,
-      child: SafeArea(
-        child: Center(
-          child: Stack(alignment: Alignment.center, children: [
-            if (_controller != null && _controller!.value.isInitialized)
-              AspectRatio(
-                aspectRatio: _controller!.value.aspectRatio,
-                child: VideoPlayer(_controller!)),
-            if (_controller == null || !_controller!.value.isInitialized || _controller!.value.isBuffering)
-              const SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(color: Colors.white)),
-            ]))));
+      child: Stack(alignment: Alignment.center, children: [
+        InteractiveViewer(
+          child: SafeArea(
+            child: Center(
+              child: (_controller != null && _controller!.value.isInitialized)
+                ? AspectRatio(
+                    aspectRatio: _controller!.value.aspectRatio,
+                    child: VideoPlayer(_controller!))
+                : Container()))
+        ),
+        if (_controller == null || !_controller!.value.isInitialized || _controller!.value.isBuffering)
+          const SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(color: Colors.white)),
+      ]));
   }
 }
 
