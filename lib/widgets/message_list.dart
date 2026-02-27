@@ -25,6 +25,7 @@ import 'compose_box.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
+import 'input.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'scrolling.dart';
@@ -753,36 +754,28 @@ class _SearchBarState extends State<_SearchBar> {
         height: 28 / 19,
       ),
       textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
-        isDense: true,
-        hintText: zulipLocalizations.searchMessagesHintText,
-        hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
-        prefixIcon: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 0, 8),
-          child: Icon(size: 24, ZulipIcons.search)),
-        prefixIconColor: designVariables.labelSearchPrompt,
-        prefixIconConstraints: BoxConstraints(),
-        suffixIcon: IconButton(
-          tooltip: zulipLocalizations.searchMessagesClearButtonTooltip,
-          onPressed: _clearInput,
-          // This and `suffixIconConstraints` allow 42px square touch target.
-          visualDensity: VisualDensity.compact,
-          highlightColor: Colors.transparent,
-          style: ButtonStyle(
-            padding: WidgetStatePropertyAll(EdgeInsets.zero),
-            splashFactory: NoSplash.splashFactory,
-          ),
-          iconSize: 24,
-          icon: Icon(ZulipIcons.remove)),
-        suffixIconColor: designVariables.textMessageMuted,
-        suffixIconConstraints: BoxConstraints(minWidth: 42, minHeight: 42),
-        contentPadding: const EdgeInsetsDirectional.symmetric(vertical: 7),
-        filled: true,
-        fillColor: designVariables.bgSearchInput,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide.none),
-      ));
+      decoration: baseFilledInputDecoration(designVariables)
+        .copyWith(
+          hintText: zulipLocalizations.searchMessagesHintText,
+          prefixIcon: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 0, 8),
+            child: Icon(size: 24, ZulipIcons.search)),
+          prefixIconColor: designVariables.labelSearchPrompt,
+          prefixIconConstraints: BoxConstraints(),
+          suffixIcon: IconButton(
+            tooltip: zulipLocalizations.searchMessagesClearButtonTooltip,
+            onPressed: _clearInput,
+            // This and `suffixIconConstraints` allow 42px square touch target.
+            visualDensity: VisualDensity.compact,
+            highlightColor: Colors.transparent,
+            style: ButtonStyle(
+              padding: WidgetStatePropertyAll(EdgeInsets.zero),
+              splashFactory: NoSplash.splashFactory,
+            ),
+            iconSize: 24,
+            icon: Icon(ZulipIcons.remove)),
+          suffixIconColor: designVariables.textMessageMuted,
+          suffixIconConstraints: BoxConstraints(minWidth: 42, minHeight: 42)));
   }
 }
 
