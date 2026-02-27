@@ -20,6 +20,7 @@ import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../api/fake_api.dart';
@@ -1149,6 +1150,63 @@ void main() {
         check(find.text('new-name')).findsOne();
         check(find.text('@new-name')).findsNothing();
       });
+    });
+
+    group('UserMention tap test', () {
+      void userMentionNavigationTest({
+        required String description,
+        required String html,
+        int? expectedUserId,
+      }) {
+        testWidgets(description, (tester) async {
+          final pushedRoutes = <Route<dynamic>>[];
+          final testNavObserver = TestNavigatorObserver()
+            ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+          await prepareContent(tester,
+            plainContent(html), navObservers: [testNavObserver],
+            wrapWithPerAccountStoreWidget: true,
+            initialSnapshot: eg.initialSnapshot(realmUsers: [
+              eg.selfUser,
+              eg.user(userId: 2187, fullName: 'Greg Price'),
+            ]));
+
+          assert(pushedRoutes.length == 1);
+          pushedRoutes.removeLast();
+          await tester.tap(find.byType(Mention));
+          if (expectedUserId != null) {
+            check(pushedRoutes).single
+              .isA<WidgetRoute>().page
+              .isA<ProfilePage>().userId
+              .equals(expectedUserId);
+          } else {
+            check(pushedRoutes).isEmpty();
+          }
+        });
+      }
+
+      userMentionNavigationTest(description: 'tapping on user mention navigates to profile page',
+        html: ContentExample.userMentionPlain.html, expectedUserId: 2187);
+      userMentionNavigationTest(description: 'tapping on silent user mention navigates to profile page',
+        html: ContentExample.userMentionSilent.html, expectedUserId: 2187);
+      userMentionNavigationTest(description: 'tapping on an unknown user navigates to ProfilePage, which builds a _ProfileErrorPage',
+        html: '<p><span class="user-mention" data-user-id="999">@Unknown User</span></p>', expectedUserId: 999);
+      userMentionNavigationTest(description: 'tapping groupMentionPlain does nothing',
+        html: ContentExample.groupMentionPlain.html, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping groupMentionSilent does nothing',
+        html: ContentExample.groupMentionSilent.html, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping channelWildcardMentionPlain does nothing',
+        html: ContentExample.channelWildcardMentionPlain.html, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping channelWildcardMentionSilent does nothing',
+        html: ContentExample.channelWildcardMentionSilent.html, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping legacyChannelWildcardMentionPlain does nothing',
+        html: ContentExample.legacyChannelWildcardMentionPlain.html, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping legacyChannelWildcardMentionSilent does nothing',
+        html: ContentExample.legacyChannelWildcardMentionSilent.html, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping topicMentionPlain does nothing',
+        html: ContentExample.topicMentionPlain.html, expectedUserId: null);
+      userMentionNavigationTest(description: 'tapping topicMentionSilent does nothing',
+        html: ContentExample.topicMentionSilent.html, expectedUserId: null);
     });
   });
 
