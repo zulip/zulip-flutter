@@ -32,6 +32,7 @@ import 'test_store.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
   Presence.debugEnable = false;
+  UpdateMachine.debugEnableAppLifecycleListener = false;
 
   final account1 = eg.selfAccount.copyWith(id: 1);
   final account2 = eg.otherAccount.copyWith(id: 2);
