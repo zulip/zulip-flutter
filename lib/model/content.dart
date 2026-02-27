@@ -1097,9 +1097,8 @@ class UserMentionNode extends MentionNode {
 
   /// The ID of the user being mentioned.
   ///
-  /// This is null for wildcard mentions
-  /// or when the user ID is unavailable in the HTML (e.g., legacy mentions).
-  final int? userId;
+  /// This is non-nullable because user mentions always have data-user-id.
+  final int userId;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -1129,7 +1128,13 @@ class UserGroupMentionNode extends MentionNode {
   }
 }
 
-// TODO(#646) add WildcardMentionNode
+class WildcardMentionNode extends MentionNode {
+  const WildcardMentionNode({
+    super.debugHtmlNode,
+    required super.nodes,
+    required super.isSilent,
+  });
+}
 
 sealed class EmojiNode extends InlineContentNode {
   const EmojiNode({super.debugHtmlNode});
@@ -1382,16 +1387,23 @@ class _ZulipInlineContentParser {
         userGroupId: userGroupId,
         debugHtmlNode: debugHtmlNode);
     } else {
-      final userId = switch (element.attributes['data-user-id']) {
-        // For legacy or wildcard mentions.
-        null || '*' => null,
-        final userIdString => int.tryParse(userIdString, radix: 10),
-      };
-      return UserMentionNode(
-        nodes: nodes,
-        isSilent: isSilent,
-        userId: userId,
-        debugHtmlNode: debugHtmlNode);
+      switch (element.attributes['data-user-id']) {
+        case null || '*':
+          return WildcardMentionNode(
+            nodes: nodes,
+            isSilent: isSilent,
+            debugHtmlNode: debugHtmlNode);
+        case final userIdString:
+          final userId = int.tryParse(userIdString, radix: 10);
+          if (userId == null) {
+            return null;
+          }
+          return UserMentionNode(
+            nodes: nodes,
+            isSilent: isSilent,
+            userId: userId,
+            debugHtmlNode: debugHtmlNode);
+      }
     }
   }
 

@@ -42,6 +42,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
+      colorGroupMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.6, 0.45).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
@@ -76,6 +77,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
+      colorGroupMentionBackground: const HSLColor.fromAHSL(0.20, 183, 0.52, 0.4).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
@@ -109,6 +111,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme._({
     required this.colorCodeBlockBackground,
     required this.colorDirectMentionBackground,
+    required this.colorGroupMentionBackground,
     required this.colorGlobalTimeBackground,
     required this.colorGlobalTimeBorder,
     required this.colorLink,
@@ -142,6 +145,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   final Color colorCodeBlockBackground;
   final Color colorDirectMentionBackground;
+  final Color colorGroupMentionBackground;
   final Color colorGlobalTimeBackground;
   final Color colorGlobalTimeBorder;
   final Color colorLink;
@@ -203,6 +207,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme copyWith({
     Color? colorCodeBlockBackground,
     Color? colorDirectMentionBackground,
+    Color? colorGroupMentionBackground,
     Color? colorGlobalTimeBackground,
     Color? colorGlobalTimeBorder,
     Color? colorLink,
@@ -226,6 +231,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: colorCodeBlockBackground ?? this.colorCodeBlockBackground,
       colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
+      colorGroupMentionBackground: colorGroupMentionBackground ?? this.colorGroupMentionBackground,
       colorGlobalTimeBackground: colorGlobalTimeBackground ?? this.colorGlobalTimeBackground,
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
       colorLink: colorLink ?? this.colorLink,
@@ -256,6 +262,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: Color.lerp(colorCodeBlockBackground, other.colorCodeBlockBackground, t)!,
       colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
+      colorGroupMentionBackground: Color.lerp(colorGroupMentionBackground, other.colorGroupMentionBackground, t)!,
       colorGlobalTimeBackground: Color.lerp(colorGlobalTimeBackground, other.colorGlobalTimeBackground, t)!,
       colorGlobalTimeBorder: Color.lerp(colorGlobalTimeBorder, other.colorGlobalTimeBorder, t)!,
       colorLink: Color.lerp(colorLink, other.colorLink, t)!,
@@ -1205,18 +1212,23 @@ class Mention extends StatelessWidget {
           // TODO(#1260) Get display name for system groups using localization
           nodes = [TextNode(node.isSilent ? name : '@$name')];
         }
-      case UserMentionNode(:final userId?):
+      case UserMentionNode(:final userId):
         final user = store.getUser(userId);
         if (user case User(:final fullName)) {
           nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
         }
-      case UserMentionNode(userId: null):
+      case WildcardMentionNode():
     }
+
+    final backgroundPillColor = switch (node) {
+      UserMentionNode() => contentTheme.colorDirectMentionBackground,
+      UserGroupMentionNode() || WildcardMentionNode()
+        => contentTheme.colorGroupMentionBackground,
+    };
 
     return Container(
       decoration: BoxDecoration(
-        // TODO(#646) different for wildcard mentions
-        color: contentTheme.colorDirectMentionBackground,
+        color: backgroundPillColor,
         borderRadius: const BorderRadius.all(Radius.circular(3))),
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
@@ -1227,7 +1239,7 @@ class Mention extends StatelessWidget {
         linkRecognizers: null,
 
         // TODO(#647) when self-user is non-silently mentioned, make bold, and:
-        // TODO(#646) distinguish font color between direct and wildcard mentions
+        // distinguish font color between direct and wildcard mentions.
         style: ambientTextStyle,
 
         nodes: nodes));
