@@ -88,8 +88,10 @@ void main() {
       await tester.pump();
       await tester.pump(Duration.zero);
       check(find.descendant(
-        of: find.byType(MessageListPage),
-        matching: find.text('channel foo')),
+        of: find.descendant(
+          of: find.byType(MessageListPage),
+          matching: find.byType(ZulipAppBar)),
+        matching: find.textContaining('channel foo', findRichText: true)),
       ).findsOne();
     });
 

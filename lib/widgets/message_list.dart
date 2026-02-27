@@ -564,17 +564,8 @@ class MessageListAppBarTitle extends StatelessWidget {
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
   }) {
-    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-
-    // A null [Icon.icon] makes a blank space.
-    IconData? icon;
-    Color? iconColor;
-    if (stream != null) {
-      icon = iconDataForStream(stream);
-      iconColor = colorSwatchFor(context, store.subscriptions[stream.streamId])
-        .iconOnBarBackground;
-    }
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -583,10 +574,21 @@ class MessageListAppBarTitle extends StatelessWidget {
       //     https://github.com/zulip/zulip-flutter/pull/219#discussion_r1281024746
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(size: 16, color: iconColor, icon),
-        const SizedBox(width: 4),
-        Flexible(child: Text(
-          stream?.name ?? zulipLocalizations.unknownChannelName)),
+        if (stream != null)
+          Flexible(child: Text.rich(
+            channelTopicLabelSpan(
+              context: context,
+              channelId: stream.streamId,
+              fontSize: 20,
+              color: designVariables.unreadCountBadgeTextForChannel,
+            )))
+        else
+          Flexible(child: Text(
+            zulipLocalizations.unknownChannelName,
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              color: designVariables.unreadCountBadgeTextForChannel,
+            ))),
       ]);
   }
 
@@ -1839,7 +1841,6 @@ class StreamMessageRecipientHeader extends StatelessWidget {
 
     final swatch = colorSwatchFor(context, store.subscriptions[streamId]);
     final backgroundColor = swatch.barBackground;
-    final iconColor = swatch.iconOnBarBackground;
 
     final Widget streamWidget;
     if (!_containsDifferentChannels(narrow)) {
@@ -1859,22 +1860,34 @@ class StreamMessageRecipientHeader extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              // Figma specifies 5px horizontal spacing around an icon that's
-              // 18x18 and includes 1px padding.  The icon SVG is flush with
-              // the edges, so make it 16x16 with 6px horizontal padding.
-              // Bottom padding added here to shift icon up to
-              // match alignment with text visually.
-              padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
-              child: Icon(size: 16, color: iconColor,
-                // A null [Icon.icon] makes a blank space.
-                stream != null ? iconDataForStream(stream) : null)),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 11),
-              child: Text(streamName,
-                style: recipientHeaderTextStyle(context),
-                overflow: TextOverflow.ellipsis),
-            ),
+            if (stream != null)
+              Padding(
+                // Figma specifies 5px horizontal spacing around an icon that's
+                // 18x18 and includes 1px padding.  The icon SVG is flush with
+                // the edges, so make it 16x16 with 6px horizontal padding.
+                padding: const EdgeInsets.only(left: 6, right: 6),
+                child: Text.rich(
+                  channelTopicLabelSpan(
+                    context: context,
+                    channelId: streamId,
+                    fontSize: 20,
+                    color: designVariables.unreadCountBadgeTextForChannel,
+                  ),
+                  style: recipientHeaderTextStyle(context),
+                  overflow: TextOverflow.ellipsis),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.only(left: 6, right: 6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  child: Text(streamName,
+                    style: recipientHeaderTextStyle(context).copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: designVariables.unreadCountBadgeTextForChannel,
+                    ),
+                    overflow: TextOverflow.ellipsis)),
+              ),
             Padding(
               // Figma has 5px horizontal padding around an 8px wide icon.
               // Icon is 16px wide here so horizontal padding is 1px.
