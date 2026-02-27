@@ -110,6 +110,12 @@ ThemeData zulipThemeData(BuildContext context) {
     ),
     colorScheme: colorScheme,
     scaffoldBackgroundColor: designVariables.mainBackground,
+    textSelectionTheme: TextSelectionThemeData(
+      // As in Figma:
+      //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=11011-18859&m=dev
+      cursorColor: designVariables.textInput,
+      // TODO(design) selectionColor, selectionHandleColor?
+    ),
     tooltipTheme: const TooltipThemeData(preferBelow: false),
     bottomSheetTheme: BottomSheetThemeData(
       clipBehavior: Clip.antiAlias,
