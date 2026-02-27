@@ -478,13 +478,12 @@ class AccountNotFoundException implements Exception {}
 /// (for example, it calls [ApiConnection.dispose] on [connection]).
 class CorePerAccountStore {
   CorePerAccountStore._({
-    required GlobalStore globalStore,
+    required this._globalStore,
     required this.connection,
     required this.queueId,
     required this.accountId,
     required this.selfUserId,
-  }) : _globalStore = globalStore,
-       assert(connection.realmUrl == globalStore.getAccount(accountId)!.realmUrl);
+  }) : assert(connection.realmUrl == _globalStore.getAccount(accountId)!.realmUrl);
 
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
@@ -690,29 +689,23 @@ class PerAccountStore extends PerAccountStoreBase with
 
   PerAccountStore._({
     required super.core,
-    required UserGroupStoreImpl groups,
-    required RealmStoreImpl realm,
-    required EmojiStoreImpl emoji,
+    required this._groups,
+    required this._realm,
+    required this._emoji,
     required this.userSettings,
     required this.pushDevices,
-    required SavedSnippetStoreImpl savedSnippets,
+    required this._savedSnippets,
     required this.typingNotifier,
-    required UserStoreImpl users,
+    required this._users,
     required this.typingStatus,
     required this.presence,
-    required ChannelStoreImpl channels,
+    required this._channels,
     required this.topics,
-    required MessageStoreImpl messages,
+    required this._messages,
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : _groups = groups,
-       _realm = realm,
-       _emoji = emoji,
-       _savedSnippets = savedSnippets,
-       _users = users,
-       _channels = channels,
-       _messages = messages;
+  });
 
   //|//////////////////////////////////////////////////////////////
   // Data.
@@ -1065,7 +1058,7 @@ class PerAccountStore extends PerAccountStoreBase with
 /// The underlying data store is an [AppDatabase] corresponding to a
 /// SQLite database file in the app's persistent storage on the device.
 class LiveGlobalStoreBackend implements GlobalStoreBackend {
-  LiveGlobalStoreBackend._({required AppDatabase db}) : _db = db;
+  LiveGlobalStoreBackend._({required this._db});
 
   final AppDatabase _db;
 
@@ -1133,14 +1126,13 @@ class LiveGlobalStoreBackend implements GlobalStoreBackend {
 /// and will have an associated [UpdateMachine].
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
-    required LiveGlobalStoreBackend backend,
+    required this._backend,
     required super.globalSettings,
     required super.boolGlobalSettings,
     required super.intGlobalSettings,
     required super.accounts,
     required super.pushKeys,
-  }) : _backend = backend,
-       super(backend: backend);
+  }) : super(backend: _backend);
 
   @override
   ApiConnection apiConnection({

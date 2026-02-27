@@ -291,12 +291,10 @@ class NegativeLeftOffset extends SingleChildRenderObjectWidget {
 // TODO(upstream): give Padding an option to accept negative padding (at cost of hit-testing not working)
 class RenderNegativePadding extends RenderShiftedBox {
   RenderNegativePadding({
-    required EdgeInsetsGeometry padding,
-    TextDirection? textDirection,
+    required this._padding,
+    this._textDirection,
     RenderBox? child,
-  }) : assert(!padding.isNonNegative),
-       _textDirection = textDirection,
-       _padding = padding,
+  }) : assert(!_padding.isNonNegative),
        super(child);
 
   EdgeInsets? _resolvedPaddingCache;
