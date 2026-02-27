@@ -11,6 +11,8 @@ import 'theme.dart';
 InputDecoration baseFilledInputDecoration(DesignVariables designVariables) {
   return InputDecoration(
     hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
+    // TODO(design) is this the right variable?
+    errorStyle: TextStyle(color: designVariables.contextMenuItemTextDanger),
     isDense: true,
     contentPadding: EdgeInsets.symmetric(
       vertical: 8,
