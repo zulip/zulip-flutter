@@ -1766,6 +1766,48 @@ abstract class ZulipLocalizations {
   /// **'Error updating user status. Please try again.'**
   String get updateStatusErrorTitle;
 
+  /// Label for the dropdown to select when status should be automatically cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically clear status'**
+  String get statusExpirationLabel;
+
+  /// Option to never automatically clear the status.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get statusExpirationNever;
+
+  /// Option to clear status in 30 minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'In 30 minutes'**
+  String get statusExpirationIn30Minutes;
+
+  /// Option to clear status in 1 hour.
+  ///
+  /// In en, this message translates to:
+  /// **'In 1 hour'**
+  String get statusExpirationIn1Hour;
+
+  /// Option to clear status today at a specific time.
+  ///
+  /// In en, this message translates to:
+  /// **'Today at {time}'**
+  String statusExpirationTodayAtTime(String time);
+
+  /// Option to clear status tomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get statusExpirationTomorrow;
+
+  /// Option to set a custom time to clear the status.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get statusExpirationCustom;
+
   /// Page title for the 'Search' message view.
   ///
   /// In en, this message translates to:
