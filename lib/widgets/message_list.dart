@@ -2345,53 +2345,54 @@ class MessageWithPossibleSender extends StatelessWidget {
         : () => showMessageActionSheet(context: context, message: message),
       child: Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Column(children: [
-          if (item.showSender)
-            SenderRow(message: message,
-              timestampStyle: MessageTimestampStyle.timeOnly),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: localizedTextBaseline(context),
-            children: [
-              const SizedBox(width: 16),
-              Expanded(child: showAsMuted
-                ? Align(
-                    alignment: AlignmentDirectional.topStart,
-                    child: ZulipWebUiKitButton(
-                      label: zulipLocalizations.revealButtonLabel,
-                      icon: ZulipIcons.eye,
-                      size: ZulipWebUiKitButtonSize.small,
-                      intent: ZulipWebUiKitButtonIntent.neutral,
-                      attention: ZulipWebUiKitButtonAttention.minimal,
-                      onPressed: () {
-                        MessageListPage.ancestorOf(context).revealMutedMessage(message.id);
-                      }))
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      content,
-                      if ((message.reactions?.total ?? 0) > 0)
-                        ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                      if (editMessageErrorStatus != null)
-                        _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
-                      else if (editStateText != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(editStateText,
-                            textAlign: TextAlign.end,
-                            style: TextStyle(
-                              color: designVariables.labelEdited,
-                              fontSize: 12,
-                              height: (12 / 12),
-                              letterSpacing: proportionalLetterSpacing(context,
-                                0.05, baseFontSize: 12))))
-                      else
-                        Padding(padding: const EdgeInsets.only(bottom: 4))
-                    ])),
-              SizedBox(width: 16,
-                child: star),
-            ]),
-        ])));
+        child: MergeSemantics(
+          child: Column(children: [
+            if (item.showSender)
+              SenderRow(message: message,
+                timestampStyle: MessageTimestampStyle.timeOnly),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: localizedTextBaseline(context),
+              children: [
+                const SizedBox(width: 16),
+                Expanded(child: showAsMuted
+                  ? Align(
+                      alignment: AlignmentDirectional.topStart,
+                      child: ZulipWebUiKitButton(
+                        label: zulipLocalizations.revealButtonLabel,
+                        icon: ZulipIcons.eye,
+                        size: ZulipWebUiKitButtonSize.small,
+                        intent: ZulipWebUiKitButtonIntent.neutral,
+                        attention: ZulipWebUiKitButtonAttention.minimal,
+                        onPressed: () {
+                          MessageListPage.ancestorOf(context).revealMutedMessage(message.id);
+                        }))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        content,
+                        if ((message.reactions?.total ?? 0) > 0)
+                          ReactionChipsList(messageId: message.id, reactions: message.reactions!),
+                        if (editMessageErrorStatus != null)
+                          _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
+                        else if (editStateText != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(editStateText,
+                              textAlign: TextAlign.end,
+                              style: TextStyle(
+                                color: designVariables.labelEdited,
+                                fontSize: 12,
+                                height: (12 / 12),
+                                letterSpacing: proportionalLetterSpacing(context,
+                                  0.05, baseFontSize: 12))))
+                        else
+                          Padding(padding: const EdgeInsets.only(bottom: 4))
+                      ])),
+                SizedBox(width: 16,
+                  child: star),
+              ]),
+          ]))));
   }
 }
 

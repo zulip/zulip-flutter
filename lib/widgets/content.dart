@@ -296,13 +296,14 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = this.content;
-    return InheritedMessage(message: message,
-      child: DefaultTextStyle(
-        style: ContentTheme.of(context).textStylePlainParagraph,
-        child: switch (content) {
-          ZulipContent() => BlockContentList(nodes: content.nodes),
-          PollContent()  => PollWidget(messageId: message.id, poll: content.poll),
-        }));
+    return MergeSemantics(
+      child: InheritedMessage(message: message,
+        child: DefaultTextStyle(
+          style: ContentTheme.of(context).textStylePlainParagraph,
+          child: switch (content) {
+            ZulipContent() => BlockContentList(nodes: content.nodes),
+            PollContent()  => PollWidget(messageId: message.id, poll: content.poll),
+          })));
   }
 }
 
@@ -334,53 +335,55 @@ class BlockContentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      ...nodes.map((node) {
-        return switch (node) {
-          LineBreakNode() =>
-            // This goes in a Column.  So to get the effect of a newline,
-            // just use an empty Text.
-            const Text(''),
-          ThematicBreakNode() => const ThematicBreak(),
-          ParagraphNode() => Paragraph(node: node),
-          HeadingNode() => Heading(node: node),
-          QuotationNode() => Quotation(node: node),
-          ListNode() => ListNodeWidget(node: node),
-          SpoilerNode() => Spoiler(node: node),
-          CodeBlockNode() => CodeBlock(node: node),
-          MathBlockNode() => MathBlock(node: node),
-          ImagePreviewNodeList() => MessageImagePreviewList(node: node),
-          ImagePreviewNode() => (){
-            assert(false,
-              "[ImagePreviewNode] not allowed in [BlockContentList]. "
-              "It should be wrapped in [ImagePreviewNodeList]."
-            );
-            return MessageImagePreview(node: node);
-          }(),
-          InlineVideoNode() => MessageInlineVideo(node: node),
-          EmbedVideoNode() => MessageEmbedVideo(node: node),
-          TableNode() => MessageTable(node: node),
-          TableRowNode() => () {
-            assert(false,
-              "[TableRowNode] not allowed in [BlockContentList]. "
-              "It should be wrapped in [TableNode]."
-            );
-            return const SizedBox.shrink();
-          }(),
-          TableCellNode() => () {
-            assert(false,
-              "[TableCellNode] not allowed in [BlockContentList]. "
-              "It should be wrapped in [TableRowNode]."
-            );
-            return const SizedBox.shrink();
-          }(),
-          WebsitePreviewNode() => WebsitePreview(node: node),
-          UnimplementedBlockContentNode() =>
-            Text.rich(_errorUnimplemented(node, context: context)),
-        };
-
-      }),
-    ]);
+    return Semantics(
+      explicitChildNodes: true,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        ...nodes.map((node) {
+          return switch (node) {
+            LineBreakNode() =>
+              // This goes in a Column.  So to get the effect of a newline,
+              // just use an empty Text.
+              const Text(''),
+            ThematicBreakNode() => const ThematicBreak(),
+            ParagraphNode() => Paragraph(node: node),
+            HeadingNode() => Heading(node: node),
+            QuotationNode() => Quotation(node: node),
+            ListNode() => ListNodeWidget(node: node),
+            SpoilerNode() => Spoiler(node: node),
+            CodeBlockNode() => CodeBlock(node: node),
+            MathBlockNode() => MathBlock(node: node),
+            ImagePreviewNodeList() => MessageImagePreviewList(node: node),
+            ImagePreviewNode() => (){
+              assert(false,
+                "[ImagePreviewNode] not allowed in [BlockContentList]. "
+                "It should be wrapped in [ImagePreviewNodeList]."
+              );
+              return MessageImagePreview(node: node);
+            }(),
+            InlineVideoNode() => MessageInlineVideo(node: node),
+            EmbedVideoNode() => MessageEmbedVideo(node: node),
+            TableNode() => MessageTable(node: node),
+            TableRowNode() => () {
+              assert(false,
+                "[TableRowNode] not allowed in [BlockContentList]. "
+                "It should be wrapped in [TableNode]."
+              );
+              return const SizedBox.shrink();
+            }(),
+            TableCellNode() => () {
+              assert(false,
+                "[TableCellNode] not allowed in [BlockContentList]. "
+                "It should be wrapped in [TableRowNode]."
+              );
+              return const SizedBox.shrink();
+            }(),
+            WebsitePreviewNode() => WebsitePreview(node: node),
+            UnimplementedBlockContentNode() =>
+              Text.rich(_errorUnimplemented(node, context: context)),
+          };
+      
+        }),
+      ]));
   }
 }
 
