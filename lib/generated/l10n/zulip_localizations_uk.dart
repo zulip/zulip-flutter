@@ -840,6 +840,22 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'URL-адреса сервера має починатися з http:// або https://.';
 
   @override
+  String serverCompatBannerAdminMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+  }
+
+  @override
+  String serverCompatBannerUserMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+  }
+
+  @override
+  String get serverCompatBannerDismissLabel => 'Dismiss';
+
+  @override
+  String get serverCompatBannerLearnMoreLabel => 'Learn more';
+
+  @override
   String get spoilerDefaultHeaderText => 'Спойлер';
 
   @override
