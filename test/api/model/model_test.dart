@@ -276,121 +276,32 @@ void main() {
   group('MessageEditState', () {
     Map<String, dynamic> baseJson() => deepToJson(eg.streamMessage()) as Map<String, dynamic>;
 
-    group('Edit history is absent', () {
-      test('Message with no evidence of an edit history -> none', () {
-        check(Message.fromJson(baseJson()..['edit_history'] = null))
-          .editState.equals(MessageEditState.none);
-      });
-
-      test('Message without edit history has last edit timestamp -> edited', () {
-        check(Message.fromJson(baseJson()
-            ..['edit_history'] = null
-            ..['last_edit_timestamp'] = 1678139636))
-          .editState.equals(MessageEditState.edited);
-      });
+    test('No edits or moves -> none', () {
+      check(Message.fromJson(baseJson()
+          ..['last_edit_timestamp'] = null
+          ..['last_moved_timestamp'] = null))
+        .editState.equals(MessageEditState.none);
     });
 
-    void checkEditState(MessageEditState editState, List<Map<String, dynamic>> editHistory){
-      check(Message.fromJson(baseJson()..['edit_history'] = editHistory))
-        .editState.equals(editState);
-    }
-
-    group('edit history exists', () {
-      test('Moved message has last edit timestamp but no actual edits -> moved', () {
-        check(Message.fromJson(baseJson()
-            ..['edit_history'] = [{'prev_stream': 5, 'stream': 7}]
-            ..['last_edit_timestamp'] = 1678139636))
-          .editState.equals(MessageEditState.moved);
-      });
-
-      test('Channel change only -> moved', () {
-        checkEditState(MessageEditState.moved,
-          [{'prev_stream': 5, 'stream': 7}]);
-      });
-
-      test('Topic name change only -> moved', () {
-        checkEditState(MessageEditState.moved,
-          [{'prev_topic': 'old_topic', 'topic': 'new_topic'}]);
-      });
-
-      test('Both topic and content changed -> edited', () {
-        checkEditState(MessageEditState.edited, [
-          {'prev_topic': 'old_topic', 'topic': 'new_topic'},
-          {'prev_content': 'old_content'},
-        ]);
-        checkEditState(MessageEditState.edited, [
-          {'prev_content': 'old_content'},
-          {'prev_topic': 'old_topic', 'topic': 'new_topic'},
-        ]);
-      });
-
-      test('Both topic and content changed in a single edit -> edited', () {
-        checkEditState(MessageEditState.edited,
-          [{'prev_topic': 'old_topic', 'topic': 'new_topic', 'prev_content': 'old_content'}]);
-      });
-
-      test('Content change only -> edited', () {
-        checkEditState(MessageEditState.edited,
-          [{'prev_content': 'old_content'}]);
-      });
+    test('Content edited only -> edited', () {
+      check(Message.fromJson(baseJson()
+          ..['last_edit_timestamp'] = 1678139636
+          ..['last_moved_timestamp'] = null))
+        .editState.equals(MessageEditState.edited);
     });
 
-    group('topic resolved in edit history', () {
-      test('Topic was only resolved -> none', () {
-        checkEditState(MessageEditState.none,
-          [{'prev_topic': 'old_topic', 'topic': '✔ old_topic'}]);
-      });
+    test('Moved only -> moved', () {
+      check(Message.fromJson(baseJson()
+          ..['last_edit_timestamp'] = null
+          ..['last_moved_timestamp'] = 1678139636))
+        .editState.equals(MessageEditState.moved);
+    });
 
-      test('Topic was resolved but the content changed in the history -> edited', () {
-        checkEditState(MessageEditState.edited, [
-          {'prev_topic': 'old_topic', 'topic': '✔ old_topic'},
-          {'prev_content': 'old_content'},
-        ]);
-      });
-
-      test('Topic was resolved but it also moved in the history -> moved', () {
-        checkEditState(MessageEditState.moved, [
-          {'prev_topic': 'old_topic', 'topic': 'new_topic'},
-          {'prev_topic': '✔ old_topic', 'topic': 'old_topic'},
-        ]);
-      });
-
-      test('Topic was moved but it also was resolved in the history -> moved', () {
-        checkEditState(MessageEditState.moved, [
-          {'prev_topic': '✔ old_topic', 'topic': 'old_topic'},
-          {'prev_topic': 'old_topic', 'topic': 'new_topic'},
-        ]);
-      });
-
-      // Technically the topic *was* unresolved, so MessageEditState.none
-      // would be valid and preferable -- if it didn't need more intense
-      // computation than we're comfortable with in a hot codepath, i.e.,
-      // a regex test instead of a simple `startsWith` / `substring` check.
-      // See comment on the implementation, and discussion:
-      //   https://github.com/zulip/zulip-flutter/pull/1242#discussion_r1917592157
-      test('Unresolving topic with a weird prefix -> moved', () {
-          checkEditState(MessageEditState.moved,
-            [{'prev_topic': '✔ ✔old_topic', 'topic': 'old_topic'}]);
-      });
-
-      // Similar reasoning as in the previous test.
-      // Also, Zulip doesn't produce topics with a weird resolved-topic prefix,
-      // so this case can only be produced by unusual input in an
-      // edit/move-topic UI. A "moved" marker seems like a fine response
-      // in that circumstance.
-      test('Resolving topic with a weird prefix -> moved', () {
-          checkEditState(MessageEditState.moved,
-            [{'prev_topic': 'old_topic', 'topic': '✔ ✔old_topic'}]);
-      });
-
-      // Similar reasoning as the previous test, including that this case had to
-      // involve unusual input in an edit/move-topic UI.
-      // Here the computation burden would have come from calling
-      // [TopicName.canonicalize].
-      test('Topic was resolved but with changed case -> moved', () {
-        checkEditState(MessageEditState.moved,
-          [{'prev_topic': 'old ToPiC', 'topic': '✔ OLD tOpIc'}]);
-      });
+    test('Both edited and moved -> edited', () {
+      check(Message.fromJson(baseJson()
+          ..['last_edit_timestamp'] = 1678139700
+          ..['last_moved_timestamp'] = 1678139636))
+        .editState.equals(MessageEditState.edited);
     });
   });
 }

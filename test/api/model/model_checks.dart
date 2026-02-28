@@ -103,6 +103,7 @@ extension MessageChecks on Subject<Message> {
   Subject<int> get id => has((e) => e.id, 'id');
   Subject<bool> get isMeMessage => has((e) => e.isMeMessage, 'isMeMessage');
   Subject<int?> get lastEditTimestamp => has((e) => e.lastEditTimestamp, 'lastEditTimestamp');
+  Subject<int?> get lastMovedTimestamp => has((e) => e.lastMovedTimestamp, 'lastMovedTimestamp');
   Subject<MessageEditState> get editState => has((e) => e.editState, 'editState');
   Subject<Reactions?> get reactions => has((e) => e.reactions, 'reactions');
   Subject<int> get recipientId => has((e) => e.recipientId, 'recipientId');
