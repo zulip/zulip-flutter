@@ -23,6 +23,18 @@ const kMinSupportedZulipVersion = '7.0';
 ///   https://zulip.com/api/changelog
 const kMinSupportedZulipFeatureLevel = 185;
 
+/// The minimum Zulip server version which is officialy supported.
+///
+/// For details regarding this, see:
+///   https://zulip.readthedocs.io/en/latest/overview/release-lifecycle.html
+const kMinOfficiallySupportedZulipVersion = '9.2';
+
+/// The Zulip feature level reserved for the [kMinOfficiallySupportedZulipVersion] release.
+///
+/// For this value, see the API changelog:
+///   https://zulip.com/api/changelog
+const kMinOfficiallySupportedZulipFeatureLevel = 278;
+
 /// The doc stating our oldest supported server version.
 // TODO: Instead, link to new Help Center doc once we have it:
 //   https://github.com/zulip/zulip/issues/23842

@@ -1,9 +1,12 @@
 import 'dart:ui';
 
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/actions.dart';
@@ -663,4 +666,94 @@ void main () {
   // TODO end-to-end widget test that checks the error dialog when connecting
   //   to an ancient server:
   //     https://github.com/zulip/zulip-flutter/pull/1410#discussion_r1999991512
+
+  group('server compatibility banner', () {
+    Future<void> prepareBanner(WidgetTester tester, {
+      required int zulipFeatureLevel,
+      required String zulipVersion,
+      User? selfUser,
+      Uri? realmUrl,
+    }) async {
+      addTearDown(testBinding.reset);
+      final user = selfUser ?? eg.selfUser;
+      final account = eg.account(
+        user: user,
+        zulipFeatureLevel: zulipFeatureLevel,
+        zulipVersion: zulipVersion,
+        realmUrl: realmUrl);
+      await testBinding.globalStore.add(
+        account,
+        eg.initialSnapshot(
+          zulipFeatureLevel: zulipFeatureLevel,
+          zulipVersion: zulipVersion,
+          realmUsers: [user],
+        ));
+      await tester.pumpWidget(TestZulipApp(
+        accountId: account.id,
+        child: const HomePage()));
+      await tester.pumpAndSettle();
+    }
+
+    final unsupportedFeatureLevel = kMinOfficiallySupportedZulipFeatureLevel - 1;
+    final unsupportedVersion = '3.0';
+
+    testWidgets('not shown when server is at supported feature level', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: kMinOfficiallySupportedZulipFeatureLevel,
+        zulipVersion: kMinOfficiallySupportedZulipVersion);
+      check(find.textContaining('which is unsupported')).findsNothing();
+    });
+
+    testWidgets('shown for administrator when server is below supported feature level', (tester) async {
+      final adminUser = eg.user(role: UserRole.administrator);
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion,
+        selfUser: adminUser);
+      check(find.text('${eg.realmUrl} is running Zulip Server $unsupportedVersion,'
+        ' which is unsupported. Please upgrade your server as soon as possible.')).findsOne();
+    });
+
+    testWidgets('shown for owner when server is below supported feature level', (tester) async {
+      final ownerUser = eg.user(role: UserRole.owner);
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion,
+        selfUser: ownerUser);
+      check(find.text('${eg.realmUrl} is running Zulip Server $unsupportedVersion,'
+        ' which is unsupported. Please upgrade your server as soon as possible.')).findsOne();
+    });
+
+    testWidgets('shown for member when server is below supported feature level', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion);
+      check(find.text('${eg.realmUrl} is running Zulip Server $unsupportedVersion,'
+        ' which is unsupported. Please contact your server administrator about upgrading.')).findsOne();
+    });
+
+    testWidgets('dismiss hides banner for rest of session', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion);
+      check(find.textContaining('which is unsupported')).findsOne();
+      await tester.tap(find.text('Dismiss'));
+      await tester.pump();
+      check(find.textContaining('which is unsupported')).findsNothing();
+    });
+
+    testWidgets('learn more opens kServerSupportDocUrl', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion);
+      await tester.tap(find.text('Learn more'));
+      final expectedMode = switch (defaultTargetPlatform) {
+        TargetPlatform.android => LaunchMode.inAppBrowserView,
+        TargetPlatform.iOS =>     LaunchMode.externalApplication,
+        _ => throw StateError('attempted to test with $defaultTargetPlatform'),
+      };
+      check(testBinding.takeLaunchUrlCalls()).single
+        .equals((url: kServerSupportDocUrl, mode: expectedMode));
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+  });
 }

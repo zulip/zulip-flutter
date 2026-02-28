@@ -995,6 +995,30 @@
   "@serverUrlValidationErrorUnsupportedScheme": {
     "description": "Error message when URL has an unsupported scheme."
   },
+  "serverCompatBannerAdminMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. Please upgrade your server as soon as possible.",
+  "@serverCompatBannerAdminMessage": {
+    "description": "Banner message shown to server admins when the server version is no longer offcialy supported.",
+    "placeholders": {
+      "url": {"type": "String", "example": "http://chat.example.com/"},
+      "zulipVersion": {"type": "String", "example": "9.0"}
+    }
+  },
+  "serverCompatBannerUserMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. Please contact your server administrator about upgrading.",
+  "@serverCompatBannerUserMessage": {
+    "description": "Banner message shown to non-admin users when the server version is no longer offcialy supported.",
+    "placeholders": {
+      "url": {"type": "String", "example": "http://chat.example.com/"},
+      "zulipVersion": {"type": "String", "example": "9.0"}
+    }
+  },
+  "serverCompatBannerDismissLabel": "Dismiss",
+  "@serverCompatBannerDismissLabel": {
+    "description": "Label for the button that dismisses the server compatibility warning banner."
+  },
+  "serverCompatBannerLearnMoreLabel": "Learn more",
+  "@serverCompatBannerLearnMoreLabel": {
+    "description": "Label for the button in the server compatibility warning banner that opens the support policy doc."
+  },
   "spoilerDefaultHeaderText": "Spoiler",
   "@spoilerDefaultHeaderText": {
     "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
