@@ -134,10 +134,51 @@ void main() {
     doTest('email support@ with details of the issue^', null);
     doTest('email support@^ with details of the issue', null);
 
-    doTest('Ask @**Chris Bobbe**^', null); doTest('Ask @_**Chris Bobbe**^', null);
-    doTest('Ask @**Chris Bobbe^**', null); doTest('Ask @_**Chris Bobbe^**', null);
-    doTest('Ask @**Chris^ Bobbe**', null); doTest('Ask @_**Chris^ Bobbe**', null);
-    doTest('Ask @**^Chris Bobbe**', null); doTest('Ask @_**^Chris Bobbe**', null);
+    // Accept syntax like "@**foo**" (as from the user finishing an autocomplete
+    // and then scrolling back to edit it), but leave the starting "**" and ending
+    // "**" out of the query.
+    doTest('Ask @**Chris Bobbe**^', null);
+    doTest('Ask @_**Chris Bobbe**^', null);
+    doTest('Ask ~@**Chris Bobbe^**', mention('Chris Bobbe'));
+    doTest('Ask ~@_**Chris Bobbe^**', silentMention('Chris Bobbe'));
+    doTest('Ask ~@**Chris^ Bobbe**', mention('Chris'));
+    doTest('Ask ~@_**Chris^ Bobbe**', silentMention('Chris'));
+    doTest('Ask ~@**^Chris Bobbe**', mention(''));
+    doTest('Ask ~@_**^Chris Bobbe**', silentMention(''));
+
+    // Accept syntax like "@**foo" (as from the user finishing an autocomplete
+    // and then hitting backspace to edit it), but leave the "**" out of the query.
+    doTest('Ask ~@**Chris Bobbe^', mention('Chris Bobbe'));
+    doTest('Ask ~@_**Chris Bobbe^', silentMention('Chris Bobbe'));
+    doTest('Ask ~@**Chris^ Bobbe', mention('Chris'));
+    doTest('Ask ~@_**Chris^ Bobbe', silentMention('Chris'));
+    doTest('Ask ~@**^Chris Bobbe', mention(''));
+    doTest('Ask ~@_**^Chris Bobbe', silentMention(''));
+
+    // "*" inside the string should be valid.
+    doTest('Ask ~@**Chr*is^', mention('Chr*is'));
+    doTest('Ask ~@_**Chr*is^', silentMention('Chr*is'));
+
+    // "*" at the very end of the string should be valid.
+    doTest('Ask ~@**Chris*^', mention('Chris*'));
+    doTest('Ask ~@_**Chris*^', silentMention('Chris*'));
+
+    doTest('Ask @** ^', null);
+    doTest('Ask @_** ^', null);
+    doTest('Ask @** Chris^', null);
+
+    // Tests for `fullNameAndEmailCharExclusions`
+    doTest('Ask @**Chris`^', null);
+    doTest('Ask @**Chris`Bobbe^', null);
+    doTest('Ask @**Chris\\^', null);
+    doTest('Ask @**Chris\\Bobbe^', null);
+    doTest('Ask @**Chris>^', null);
+    doTest('Ask @**Chris>Bobbe^', null);
+    doTest('Ask @**Chris"^', null);
+    doTest('Ask @**Chris"Bobbe^', null);
+
+    // "**" are not allowed inside the query.
+    doTest('Ask @**Chris**Bobbe^', null);
 
     doTest('`@chris^', null); doTest('`@_chris^', null);
 
