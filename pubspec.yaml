@@ -55,6 +55,7 @@ dependencies:
   package_info_plus: ^9.0.0
   path: ^1.8.3
   path_provider: ^2.0.13
+  path_provider_foundation: ^2.6.0
   share_plus: ^12.0.0
   share_plus_platform_interface: ^6.0.0
   sqlite3: ^2.4.0

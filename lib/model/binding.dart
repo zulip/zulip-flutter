@@ -12,6 +12,7 @@ import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
 import '../host/android_intents.dart' as android_intents_pigeon;
 import '../host/android_notifications.dart';
+import '../host/ios_notifications.g.dart';
 import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
 import 'store.dart';
@@ -186,6 +187,8 @@ abstract class ZulipBinding {
 
   Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents;
 
+  void setupIosNotifFlutterApi(IosNotifFlutterApi api);
+
   /// Pick files from the media library, via package:file_picker.
   ///
   /// This wraps [file_picker.pickFiles].
@@ -215,6 +218,9 @@ abstract class ZulipBinding {
   ///   https://developer.apple.com/documentation/uikit/uiapplication/1623070-idletimerdisabled
   ///   https://github.com/fluttercommunity/wakelock_plus/blob/5ca5243e7894830ce289fc367bc5fdec27c7f0cf/wakelock_plus/ios/Classes/WakelockPlusPlugin.m
   Future<void> toggleWakelock({required bool enable});
+
+  /// The iOS App Group identifier specified in the Xcode config.
+  static const iosAppGroupIdentifier = 'group.zulip.test';
 }
 
 /// Like [device_info_plus.BaseDeviceInfo], but without things we don't use.
@@ -497,6 +503,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents => android_intents_pigeon.androidIntentEvents();
+
+  @override
+  void setupIosNotifFlutterApi(IosNotifFlutterApi api) => IosNotifFlutterApi.setUp(api);
 
   @override
   Future<file_picker.FilePickerResult?> pickFiles({
