@@ -464,6 +464,7 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.firstMessageId: 'first_message_id',
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
+  ChannelPropertyName.topicsPolicy: 'topics_policy',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
   ChannelPropertyName.folderId: 'folder_id',
   ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
