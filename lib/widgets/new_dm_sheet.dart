@@ -395,6 +395,8 @@ class _NewDmUserListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final user = store.getUser(userId);
+    final pronouns = user != null ? store.primaryPronounsFor(user) : null;
     return Material(
       clipBehavior: Clip.antiAlias,
       borderRadius: BorderRadius.circular(10),
@@ -424,6 +426,9 @@ class _NewDmUserListItem extends StatelessWidget {
                 TextSpan(text: store.userDisplayName(userId), children: [
                   UserStatusEmoji.asWidgetSpan(userId: userId, fontSize: 17,
                     textScaler: MediaQuery.textScalerOf(context)),
+                  if (pronouns != null) TextSpan(text: ' ($pronouns)',
+                    style: TextStyle(
+                      color: designVariables.contextMenuItemMeta)),
                 ]),
                 style: TextStyle(
                   fontSize: 17,

@@ -337,6 +337,81 @@ void main() {
         debugNetworkImageHttpClientProvider = null;
       });
 
+      testWidgets('show pronouns in sublabel when available', (tester) async {
+        final user = eg.user(fullName: 'User One', deliveryEmail: null,
+          profileData: {
+            0: ProfileFieldUserData(value: 'he/him', renderedValue: null),
+          });
+        final composeInputFinder = await setupToComposeInput(tester,
+          users: [user]);
+        await store.handleEvent(CustomProfileFieldsEvent(id: 0, fields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+
+        // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @user ');
+        await tester.enterText(composeInputFinder, 'hello @user o');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkUserShown(user, expected: true);
+        check(find.text('(he/him)')).findsOne();
+        check(findLabelsForItem(
+          itemFinder: find.text(user.fullName))).findsExactly(2);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('show pronouns with email in sublabel', (tester) async {
+        final user = eg.user(fullName: 'User One',
+          deliveryEmail: 'email@example.com',
+          profileData: {
+            0: ProfileFieldUserData(value: 'she/her', renderedValue: null),
+          });
+        final composeInputFinder = await setupToComposeInput(tester,
+          users: [user]);
+        await store.handleEvent(CustomProfileFieldsEvent(id: 0, fields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+
+        // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @user ');
+        await tester.enterText(composeInputFinder, 'hello @user o');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkUserShown(user, expected: true);
+        check(find.textContaining('(she/her)')).findsOne();
+        check(find.textContaining('email@example.com')).findsOne();
+        check(findLabelsForItem(
+          itemFinder: find.text(user.fullName))).findsExactly(2);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('no pronouns shown when pronoun field is empty', (tester) async {
+        final user = eg.user(fullName: 'User One', deliveryEmail: null,
+          profileData: {
+            0: ProfileFieldUserData(value: '', renderedValue: null),
+          });
+        final composeInputFinder = await setupToComposeInput(tester,
+          users: [user]);
+        await store.handleEvent(CustomProfileFieldsEvent(id: 0, fields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+
+        // TODO(#226): Remove this extra edit when this bug is fixed.
+        await tester.enterText(composeInputFinder, 'hello @user ');
+        await tester.enterText(composeInputFinder, 'hello @user o');
+        await tester.pumpAndSettle(); // async computation; options appear
+
+        checkUserShown(user, expected: true);
+        check(find.textContaining('(')).findsNothing();
+        // No sublabel at all when both pronouns and email are absent.
+        check(findLabelsForItem(
+          itemFinder: find.text(user.fullName))).findsOne();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
       testWidgets('show sublabel for wildcard mention items', (tester) async {
         final composeInputFinder = await setupToComposeInput(tester,
           narrow: const ChannelNarrow(1));
