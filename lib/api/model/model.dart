@@ -56,6 +56,26 @@ class GroupSettingValueNameless extends GroupSettingValue {
   Map<String, dynamic> toJson() => _$GroupSettingValueNamelessToJson(this);
 }
 
+/// As in [InitialSnapshot.realmAvailableVideoChatProviders].
+///
+/// For docs, search for "realm_available_video_chat_providers:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmAvailableVideoChatProviders {
+  final String name;
+  final int id;
+
+  RealmAvailableVideoChatProviders({
+    required this.name,
+    required this.id,
+  });
+
+  factory RealmAvailableVideoChatProviders.fromJson(Map<String, dynamic> json) =>
+    _$RealmAvailableVideoChatProvidersFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmAvailableVideoChatProvidersToJson(this);
+}
+
 /// As in [InitialSnapshot.customProfileFields].
 ///
 /// For docs, search for "custom_profile_fields:"
@@ -405,6 +425,28 @@ enum Emojiset {
     .map((key, value) => MapEntry(value, key));
 
   String toJson() => _$EmojisetEnumMap[this]!;
+}
+
+/// As in [InitialSnapshot.realmVideoChatProvider].
+///
+/// For docs, search for "realm_video_chat_provider:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonEnum(fieldRename: FieldRename.snake, valueField: "apiValue")
+enum RealmVideoChatProvider {
+  none(apiValue: 0),
+  jitsiMeet(apiValue: 1),
+  zoomUserOAuth(apiValue: 3),
+  bigBlueButton(apiValue: 4),
+  zoomServerToServerOAuth(apiValue: 5),
+  unknown(apiValue: null);
+
+  const RealmVideoChatProvider({
+    required this.apiValue,
+  });
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
 }
 
 /// As in [InitialSnapshot.realmUserGroups] or [UserGroupAddEvent].

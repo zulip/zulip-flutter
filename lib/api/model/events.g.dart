@@ -1028,6 +1028,19 @@ const _$ReactionTypeEnumMap = {
   ReactionType.zulipExtraEmoji: 'zulip_extra_emoji',
 };
 
+HasZoomTokenEvent _$HasZoomTokenEventFromJson(Map<String, dynamic> json) =>
+    HasZoomTokenEvent(
+      id: (json['id'] as num).toInt(),
+      value: json['value'] as bool,
+    );
+
+Map<String, dynamic> _$HasZoomTokenEventToJson(HasZoomTokenEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'value': instance.value,
+    };
+
 HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
     HeartbeatEvent(id: (json['id'] as num).toInt());
 

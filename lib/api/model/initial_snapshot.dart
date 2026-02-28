@@ -78,6 +78,8 @@ class InitialSnapshot {
 
   final List<UserTopicItem> userTopics;
 
+  final bool hasZoomToken;
+
   final GroupSettingValue? realmCanDeleteAnyMessageGroup; // TODO(server-10)
 
   final GroupSettingValue? realmCanDeleteOwnMessageGroup; // TODO(server-10)
@@ -98,6 +100,10 @@ class InitialSnapshot {
 
   final String realmName;
 
+  final RealmVideoChatProvider realmVideoChatProvider;
+
+  final String? realmJitsiServerUrl; // TODO(server-8)
+
   /// The number of days until a user's account is treated as a full member.
   ///
   /// Search for "realm_waiting_period_threshold" in https://zulip.com/api/register-queue.
@@ -115,9 +121,13 @@ class InitialSnapshot {
 
   final Uri realmIconUrl;
 
+  final Map<String, RealmAvailableVideoChatProviders> realmAvailableVideoChatProviders;
+
   final bool realmPresenceDisabled;
 
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;
+
+  final String? jitsiServerUrl; // TODO(server-8): Can ignore this deprecated field
 
   final int maxFileUploadSizeMib;
 
@@ -125,6 +135,8 @@ class InitialSnapshot {
   final List<ThumbnailFormat> serverThumbnailFormats;
 
   final Uri serverEmojiDataUrl;
+
+  final String? serverJitsiServerUrl; // TODO(server-8)
 
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
 
@@ -188,23 +200,29 @@ class InitialSnapshot {
     required this.userStatuses,
     required this.userSettings,
     required this.userTopics,
+    required this.hasZoomToken,
     required this.realmCanDeleteAnyMessageGroup,
     required this.realmCanDeleteOwnMessageGroup,
     required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
     required this.realmMandatoryTopics,
     required this.realmName,
+    required this.realmVideoChatProvider,
+    required this.realmJitsiServerUrl,
     required this.realmWaitingPeriodThreshold,
     required this.realmMessageContentDeleteLimitSeconds,
     required this.realmAllowMessageEditing,
     required this.realmMessageContentEditLimitSeconds,
     required this.realmEnableReadReceipts,
     required this.realmIconUrl,
+    required this.realmAvailableVideoChatProviders,
     required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
+    required this.jitsiServerUrl,
     required this.maxFileUploadSizeMib,
     required this.serverThumbnailFormats,
     required this.serverEmojiDataUrl,
+    required this.serverJitsiServerUrl,
     required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
     required this.realmNonActiveUsers,

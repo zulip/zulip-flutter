@@ -7,10 +7,12 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
+import '../api/route/video_call.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
@@ -1034,6 +1036,219 @@ Future<void> _uploadFiles({
   }
 }
 
+class ComposeCall {
+  static final Map<String, Future<void> Function()> _zoomTokenCallbacks = {};
+  static void clearZoomCallbacks(int? editMessageId) {
+    final key = editMessageId?.toString() ?? '';
+    _zoomTokenCallbacks.remove(key);
+  }
+
+  static Future<void> handleHasZoomTokenEvent() async {
+    final callbacks = Map<String, Future<void> Function()>.from(_zoomTokenCallbacks);
+    _zoomTokenCallbacks.clear();
+    for (final callback in callbacks.values) {
+      await callback();
+    }
+  }
+
+  static int generateRandomId(int min, int max) {
+    return min + (DateTime.now().microsecondsSinceEpoch % (max - min));
+  }
+}
+
+class _AddComposeCallUrlButton extends StatefulWidget {
+  const _AddComposeCallUrlButton({
+    required this.controller,
+    required this.enabled,
+    required this.isVideoCall,
+  });
+  final ComposeBoxController controller;
+  final bool enabled;
+  final bool isVideoCall;
+
+  @override
+  State<_AddComposeCallUrlButton> createState() => _AddComposeCallUrlButtonState();
+}
+
+class _AddComposeCallUrlButtonState extends State<_AddComposeCallUrlButton> {
+
+  static String getJitsiServerUrl(PerAccountStore store) {
+    return store.realmJitsiServerUrl ?? store.serverJitsiServerUrl ??
+      store.jitsiServerUrl ?? 'https://meet.jit.si';
+  }
+
+  Future<void> _openZoomOAuthWindow() async {
+    final store = PerAccountStoreWidget.of(context);
+    final url = store.realmUrl.resolve('/calls/zoom/register');
+
+    await launchUrl(url, mode: LaunchMode.platformDefault);
+  }
+
+  void _insertCallUrl(String url, String visibleText) {
+    final placeholder = inlineLink(visibleText, url);
+    final contentController = widget.controller.content;
+    final insertionRange = contentController.insertionIndex();
+    contentController.value = contentController.value.replaced(insertionRange, '$placeholder\n\n');
+    widget.controller.contentFocusNode.requestFocus();
+  }
+
+  void _handleJitsiCall({
+    required ComposeContentController contentController,
+    required bool isAudioCall,
+  }) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalization = ZulipLocalizations.of(context);
+    final videoCallId = ComposeCall.generateRandomId(100000000000000, 999999999999999);
+    final jitsiServerUrl = getJitsiServerUrl(store);
+    final videoCallLink = '$jitsiServerUrl/$videoCallId';
+
+    if (!isAudioCall) {
+      _insertCallUrl('$videoCallLink#config.startWithVideoMuted=false',
+        zulipLocalization.composeBoxVideoCallLinkText);
+    } else {
+      _insertCallUrl('$videoCallLink#config.startWithVideoMuted=true',
+        zulipLocalization.composeBoxVoiceCallLinkText);
+    }
+
+  }
+
+  Future<void> _createBigBlueButtonCall ({
+    required ComposeContentController contentController,
+    required bool voiceOnly,
+  }) async {
+    final zulipLocalization = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    try {
+      final connection = store.connection;
+      final result = await createBigBlueButtonCall(
+        connection, meetingName: "Null", //TODO: Fetch message stream title
+        voiceOnly: voiceOnly);
+
+      if (!voiceOnly) {
+        _insertCallUrl(result.url, zulipLocalization.composeBoxVideoCallLinkText);
+      } else {
+        _insertCallUrl(result.url, zulipLocalization.composeBoxVoiceCallLinkText);
+      }
+    } on ApiRequestException catch (e) {
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      final message = switch (e) {
+        ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+        _ => e.message,
+      };
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorCouldNotAppendCallUrl,
+        message: message);
+      return;
+    }
+  }
+
+  Future<void> handleZoomCall({
+    required ComposeContentController contentController,
+    required bool isVideoCall,
+    required bool isServerToServer,
+    int? editMessageId,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    final key = editMessageId?.toString() ?? '';
+    ComposeCall.clearZoomCallbacks(editMessageId);
+    Future<void> prepareZoomCall() async {
+      final zulipLocalization = ZulipLocalizations.of(context);
+      final store = PerAccountStoreWidget.of(context);
+      try {
+        final connection = store.connection;
+        final result = await createZoomCall(connection, isVideoCall: isVideoCall);
+
+        if (isVideoCall) {
+          _insertCallUrl(result.url, zulipLocalization.composeBoxVideoCallLinkText);
+        } else {
+          _insertCallUrl(result.url, zulipLocalization.composeBoxVoiceCallLinkText);
+        }
+
+      } on ApiRequestException catch (e) {
+        if (!mounted) return;
+        store.hasZoomToken = false;
+        ComposeCall.clearZoomCallbacks(editMessageId);
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        final message = switch (e) {
+          ZulipApiException() => zulipLocalizations.errorServerMessage(e.message),
+          _ => e.message,
+        };
+        showErrorDialog(context: context,
+          title: zulipLocalizations.errorCouldNotAppendCallUrl,
+          message: message);
+        return;
+      }
+    }
+
+    if (store.hasZoomToken || isServerToServer) {
+      await prepareZoomCall();
+    } else {
+      ComposeCall._zoomTokenCallbacks[key] = prepareZoomCall;
+      await _openZoomOAuthWindow();
+    }
+  }
+
+  Future<void> generateComposeCallUrl({
+    required ComposeContentController contentController,
+    required bool isAudioCall,
+    int? editMessageId,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    final realmAvailableVideoChatProviders = store.realmAvailableVideoChatProviders;
+    final realmVideoChatProvider = store.realmVideoChatProvider;
+
+    final providerIsZoom = realmAvailableVideoChatProviders['zoom'] != null &&
+      realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['zoom']!.id;
+    final providerIsZoomServerToServer =
+      realmAvailableVideoChatProviders['zoom_server_to_server'] != null &&
+        realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['zoom_server_to_server']!.id;
+
+    if (providerIsZoom || providerIsZoomServerToServer) {
+      await handleZoomCall(
+        contentController: contentController,
+        isVideoCall: !isAudioCall,
+        isServerToServer: providerIsZoomServerToServer,
+      );
+    } else if (realmAvailableVideoChatProviders['big_blue_button'] != null &&
+        realmVideoChatProvider.apiValue == realmAvailableVideoChatProviders['big_blue_button']!.id) {
+      await _createBigBlueButtonCall(
+        contentController: contentController,
+        voiceOnly: isAudioCall,
+      );
+    } else {
+      _handleJitsiCall(
+        contentController: contentController,
+        isAudioCall: isAudioCall,
+      );
+    }
+  }
+
+
+  Future<void> _handlePress(BuildContext context) async {
+    final contentController = widget.controller.content;
+    await generateComposeCallUrl(contentController: contentController,
+      isAudioCall: !widget.isVideoCall, editMessageId: null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: widget.isVideoCall
+          ? Icon(ZulipIcons.video, color: designVariables.foreground.withFadedAlpha(0.5))
+          : Icon(ZulipIcons.voice, color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: widget.isVideoCall
+          ? zulipLocalizations.composeBoxAddVideoCallTooltip
+          : zulipLocalizations.composeBoxAddVoiceCallTooltip,
+        onPressed: widget.enabled ? () => _handlePress(context) : null));
+  }
+}
+
 abstract class _AttachUploadsButton extends StatelessWidget {
   const _AttachUploadsButton({required this.controller, required this.enabled});
 
@@ -1489,6 +1704,8 @@ abstract class _ComposeBoxBody extends StatelessWidget {
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      _AddComposeCallUrlButton(controller: controller, enabled: composeButtonsEnabled, isVideoCall: true),
+      _AddComposeCallUrlButton(controller: controller, enabled: composeButtonsEnabled, isVideoCall: false),
     ];
 
     final topicInput = buildTopicInput();
