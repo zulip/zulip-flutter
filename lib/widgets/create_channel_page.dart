@@ -122,7 +122,7 @@ class _CreateChannelPageState extends State<CreateChannelPage> {
               ),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                value: privacy,
+                initialValue: privacy,
                 decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: const [
                   DropdownMenuItem(value: "Public", child: Text("Public")),
