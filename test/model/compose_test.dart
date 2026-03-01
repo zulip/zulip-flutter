@@ -379,8 +379,13 @@ hello
   test('inlineLink', () {
     check(inlineLink('CZO', 'https://chat.zulip.org/')).equals('[CZO](https://chat.zulip.org/)');
     check(inlineLink('Uploading file.txt…', '')).equals('[Uploading file.txt…]()');
-    check(inlineLink('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png'))
-      .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+  });
+
+  test('inlineImageOrAudio', () {
+    check(inlineImageOrAudio('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png'))
+      .equals('![IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+    check(inlineImageOrAudio('foo_bar.mp3', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/foo_bar.mp3'))
+      .equals('![foo_bar.mp3](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/foo_bar.mp3)');
   });
 
   test('quoteAndReply / quoteAndReplyPlaceholder', () async {

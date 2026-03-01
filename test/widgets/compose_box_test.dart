@@ -1165,7 +1165,7 @@ void main() {
         checkNoDialog(tester);
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+          .equals('see image: ![Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1181,7 +1181,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1213,7 +1213,7 @@ void main() {
         checkNoDialog(tester);
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+          .equals('see image: ![Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1229,7 +1229,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1314,7 +1314,7 @@ void main() {
 
         await tester.pump();
         check(controller!.content.text)
-          .equals('see image: [Uploading test.gif…]()\n\n');
+          .equals('see image: ![Uploading test.gif…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1330,7 +1330,7 @@ void main() {
 
         await tester.pump(Duration.zero);
         check(controller!.content.text)
-          .equals('see image: [test.gif]($uploadUrl)\n\n');
+          .equals('see image: ![test.gif]($uploadUrl)\n\n');
         checkAppearsLoading(tester, false);
       });
 
