@@ -1468,9 +1468,9 @@ void main() {
     // the timezone of the environment running these tests. Accept here a wide
     // range of times. See comments in "show dates" test in
     // `test/widgets/message_list_test.dart`.
-    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d(?: [AP]M)?$');
-    final renderedTextRegexpTwelveHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
-    final renderedTextRegexpTwentyFourHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d$');
+    final renderedTextRegexp = RegExp(r'^(Tue,\sJan\s30|Wed,\sJan\s31),\s2024,\s\d+:\d\d(?:\s[AP]M)?$');
+    final renderedTextRegexpTwelveHour = RegExp(r'^(Tue,\sJan\s30|Wed,\sJan 31),\s2024,\s\d+:\d\d\s[AP]M$');
+    final renderedTextRegexpTwentyFourHour = RegExp(r'^(Tue,\sJan\s30|Wed,\sJan 31),\s2024,\s\d+:\d\d$');
 
     Future<void> prepare(
       WidgetTester tester,

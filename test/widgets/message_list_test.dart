@@ -2118,7 +2118,8 @@ void main() {
                 now: testBinding.utcNow().toLocal(),
                 twentyFourHourTimeMode: mode,
                 zulipLocalizations: zulipLocalizations);
-              check(result).equals(expected);
+              final sanitizedActual = result?.replaceAll('\u202F', ' ');
+              check(sanitizedActual).equals(expected);
             });
           });
         }

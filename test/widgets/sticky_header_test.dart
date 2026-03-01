@@ -123,7 +123,7 @@ void main() {
       return Directionality(textDirection: TextDirection.ltr,
         child: StickyHeaderListView.builder(
           dragStartBehavior: DragStartBehavior.down,
-          cacheExtent: 0,
+          scrollCacheExtent: const ScrollCacheExtent.pixels(0),
           itemCount: 10, itemBuilder: itemBuilder));
     }
 

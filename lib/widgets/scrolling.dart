@@ -362,7 +362,7 @@ class MessageListScrollView extends CustomScrollView {
     super.scrollBehavior,
     // super.shrinkWrap, // omitted, always false
     super.center,
-    super.cacheExtent,
+    super.scrollCacheExtent,
     super.slivers,
     super.semanticChildCount,
     super.dragStartBehavior,
@@ -380,7 +380,7 @@ class MessageListScrollView extends CustomScrollView {
       axisDirection: axisDirection,
       offset: offset,
       slivers: slivers,
-      cacheExtent: cacheExtent,
+      scrollCacheExtent: scrollCacheExtent,
       center: center,
       clipBehavior: clipBehavior,
       paintOrder: paintOrder,
@@ -396,8 +396,7 @@ class MessageListViewport extends Viewport {
     super.crossAxisDirection,
     required super.offset,
     super.center,
-    super.cacheExtent,
-    super.cacheExtentStyle,
+    super.scrollCacheExtent,
     super.slivers,
     super.clipBehavior,
     required super.paintOrder,
@@ -410,8 +409,7 @@ class MessageListViewport extends Viewport {
       crossAxisDirection: crossAxisDirection
         ?? Viewport.getDefaultCrossAxisDirection(context, axisDirection),
       offset: offset,
-      cacheExtent: cacheExtent,
-      cacheExtentStyle: cacheExtentStyle,
+      scrollCacheExtent: scrollCacheExtent,
       clipBehavior: clipBehavior,
       paintOrder: paintOrder,
     );
@@ -429,8 +427,7 @@ class RenderMessageListViewport extends RenderViewport {
     required super.offset,
     super.children,
     super.center,
-    super.cacheExtent,
-    super.cacheExtentStyle,
+    super.scrollCacheExtent,
     super.clipBehavior,
     required super.paintOrder,
   });
@@ -574,9 +571,9 @@ class RenderMessageListViewport extends RenderViewport {
       mainAxisExtent,
     );
 
-    _calculatedCacheExtent = switch (cacheExtentStyle) {
-      CacheExtentStyle.pixel => cacheExtent,
-      CacheExtentStyle.viewport => mainAxisExtent * cacheExtent!,
+    _calculatedCacheExtent = switch (scrollCacheExtent.style) {
+      CacheExtentStyle.pixel => scrollCacheExtent.value,
+      CacheExtentStyle.viewport => mainAxisExtent * scrollCacheExtent.value,
     };
 
     final double fullCacheExtent = mainAxisExtent + 2 * _calculatedCacheExtent!;

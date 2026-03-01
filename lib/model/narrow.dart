@@ -165,10 +165,9 @@ class DmNarrow extends Narrow implements SendableNarrow {
   ///
   /// For consuming data that follows a different convention,
   /// see other constructors.
-  DmNarrow({required this.allRecipientIds, required int selfUserId})
+  DmNarrow({required this.allRecipientIds, required this._selfUserId})
     : assert(isSortedWithoutDuplicates(allRecipientIds)),
-      assert(allRecipientIds.contains(selfUserId)),
-      _selfUserId = selfUserId;
+      assert(allRecipientIds.contains(_selfUserId));
 
   /// A [DmNarrow] for self plus the given zero-or-more other users.
   ///

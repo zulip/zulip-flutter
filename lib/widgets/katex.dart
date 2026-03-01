@@ -294,9 +294,13 @@ class RenderNegativePadding extends RenderShiftedBox {
     required EdgeInsetsGeometry padding,
     TextDirection? textDirection,
     RenderBox? child,
-  }) : assert(!padding.isNonNegative),
-       _textDirection = textDirection,
-       _padding = padding,
+  }) : this._(padding: padding, textDirection: textDirection, child: child);
+
+  RenderNegativePadding._({
+    required this._padding,
+    this._textDirection,
+    RenderBox? child,
+  }) : assert(!_padding.isNonNegative),
        super(child);
 
   EdgeInsets? _resolvedPaddingCache;

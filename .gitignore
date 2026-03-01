@@ -56,3 +56,9 @@ app.*.map.json
 
 # Old scaffolding hack
 lib/credential_fixture.dart
+
+# FVM Version Cache
+.fvm/
+.idea/
+.vscode/
+.fvmrc
