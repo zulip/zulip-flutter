@@ -602,6 +602,18 @@
   "@composeBoxAttachFromCameraTooltip": {
     "description": "Tooltip for compose box icon to attach an image from the camera to the message."
   },
+  "composeBoxAttachGlobalTimeTooltip": "Insert global time",
+  "@composeBoxAttachGlobalTimeTooltip": {
+    "description": "Tooltip for compose box icon to insert a global time timestamp to the message."
+  },
+  "composeBoxGlobalTimeDatePickerHelpText": "Select date",
+  "@composeBoxGlobalTimeDatePickerHelpText": {
+    "description": "Help text shown in the date picker when selecting a date for global time insertion."
+  },
+  "composeBoxGlobalTimeTimePickerHelpText": "Select time",
+  "@composeBoxGlobalTimeTimePickerHelpText": {
+    "description": "Help text shown in the time picker when selecting a time for global time insertion."
+  },
   "composeBoxGenericContentHint": "Type a message",
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."

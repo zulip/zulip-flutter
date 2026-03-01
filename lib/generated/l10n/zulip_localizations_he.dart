@@ -510,6 +510,15 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Take a photo';
 
   @override
+  String get composeBoxAttachGlobalTimeTooltip => 'Insert global time';
+
+  @override
+  String get composeBoxGlobalTimeDatePickerHelpText => 'Select date';
+
+  @override
+  String get composeBoxGlobalTimeTimePickerHelpText => 'Select time';
+
+  @override
   String get composeBoxGenericContentHint => 'Type a message';
 
   @override
