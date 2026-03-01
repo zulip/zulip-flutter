@@ -256,6 +256,14 @@ String channelLink(ZulipStream channel, {required PerAccountStore store}) {
 String inlineLink(String visibleText, String destination) {
   return '[$visibleText]($destination)';
 }
+/// https://spec.commonmark.org/0.30/#image-description
+///
+/// Zulip uses the Markdown image syntax (`![](...)`) for inline images and
+/// inline media such as audio. This emits that syntax for [visibleText]
+/// and [destination].
+String inlineImageOrAudio(String visibleText, String destination) {
+  return '![$visibleText]($destination)';
+}
 
 /// What we show while fetching the target message's raw Markdown.
 ///
