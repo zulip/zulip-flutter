@@ -363,8 +363,7 @@ class AutocompleteViewManager {
 abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends ChangeNotifier {
   /// Construct a view-model for an autocomplete interaction,
   /// and begin the search for the initial query.
-  AutocompleteView({required this.store, required QueryT query})
-      : _query = query {
+  AutocompleteView({required this.store, required this._query}) {
     _startSearch();
     store.autocompleteViewManager.registerAutocomplete(this);
   }

@@ -609,9 +609,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   MessageListView._({
     required this.store,
-    required Narrow narrow,
-    required Anchor anchor,
-  }) : _narrow = narrow, _anchor = anchor;
+    required this._narrow,
+    required this._anchor,
+  });
 
   final PerAccountStore store;
 

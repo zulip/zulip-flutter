@@ -258,11 +258,11 @@ enum IntGlobalSetting {
 /// an appropriate instance of this class.
 class GlobalSettingsStore extends ChangeNotifier {
   GlobalSettingsStore({
-    required GlobalStoreBackend backend,
-    required GlobalSettingsData data,
-    required Map<BoolGlobalSetting, bool> boolData,
-    required Map<IntGlobalSetting, int> intData,
-  }) : _backend = backend, _data = data, _boolData = boolData, _intData = intData;
+    required this._backend,
+    required this._data,
+    required this._boolData,
+    required this._intData,
+  });
 
   static final List<BoolGlobalSetting> experimentalFeatureFlags =
     BoolGlobalSetting.values.where((setting) =>
