@@ -1,11 +1,40 @@
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:json_annotation/json_annotation.dart';
 
 import 'model/model.dart';
 
 part 'notifications.g.dart';
 
-/// Parsed version of an FCM message, of any type.
+/// An FCM message whose contents are encrypted end-to-end from the Zulip server.
+///
+/// Once decrypted, the contents will become an [FcmMessage].
+/// See there also for background on FCM and FCM messages.
+///
+/// API docs:
+///   https://zulip.com/api/mobile-notifications#data-sent-to-fcm
+@JsonSerializable(fieldRename: FieldRename.snake)
+class EncryptedFcmMessage {
+  @_IntConverter()
+  final int pushKeyId;
+
+  @JsonKey(fromJson: base64Decode, toJson: base64Encode)
+  final Uint8List encryptedData;
+
+  EncryptedFcmMessage({required this.pushKeyId, required this.encryptedData});
+
+  factory EncryptedFcmMessage.fromJson(Map<String, dynamic> json) =>
+    _$EncryptedFcmMessageFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EncryptedFcmMessageToJson(this);
+}
+
+/// Parsed version of an FCM message, of any plaintext type.
+///
+/// This represents the data either decrypted from an [EncryptedFcmMessage],
+/// or (TODO(server-12)) delivered in plaintext directly as an FCM payload.
 ///
 /// For partial API docs, see:
 ///   https://zulip.com/api/mobile-notifications

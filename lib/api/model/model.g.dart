@@ -112,6 +112,25 @@ Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
       'author_id': instance.authorId,
     };
 
+ClientDevice _$ClientDeviceFromJson(Map<String, dynamic> json) => ClientDevice(
+  pushKeyId: (json['push_key_id'] as num?)?.toInt(),
+  pushTokenId: json['push_token_id'] as String?,
+  pendingPushTokenId: json['pending_push_token_id'] as String?,
+  pushTokenLastUpdatedTimestamp:
+      (json['push_token_last_updated_timestamp'] as num?)?.toInt(),
+  pushRegistrationErrorCode: json['push_registration_error_code'] as String?,
+);
+
+Map<String, dynamic> _$ClientDeviceToJson(
+  ClientDevice instance,
+) => <String, dynamic>{
+  'push_key_id': instance.pushKeyId,
+  'push_token_id': instance.pushTokenId,
+  'pending_push_token_id': instance.pendingPushTokenId,
+  'push_token_last_updated_timestamp': instance.pushTokenLastUpdatedTimestamp,
+  'push_registration_error_code': instance.pushRegistrationErrorCode,
+};
+
 UserGroup _$UserGroupFromJson(Map<String, dynamic> json) => UserGroup(
   id: (json['id'] as num).toInt(),
   members: (json['members'] as List<dynamic>)
