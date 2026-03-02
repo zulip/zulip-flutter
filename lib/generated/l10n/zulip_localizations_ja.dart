@@ -1013,6 +1013,15 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
       '下のボタンを使用して、統合フィードまたはチャンネル一覧を表示します。';
 
   @override
+  String get pinnedChannelsFolderName => 'Pinned channels';
+
+  @override
+  String get otherChannelsFolderName => 'Other channels';
+
+  @override
+  String get unknownChannelFolderName => '(unknown channel folder)';
+
+  @override
   String get recentDmConversationsPageTitle => 'ダイレクトメッセージ';
 
   @override

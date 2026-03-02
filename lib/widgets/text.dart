@@ -695,3 +695,33 @@ InlineSpan channelTopicLabelSpan({
     ],
   ]);
 }
+
+/// Wrap [text] in full-width parens if the language is Chinese, Japanese, or Korean,
+/// else with ASCII parens and optional ASCII space(s),
+/// and write the result to [stringBuffer].
+///
+/// Examples of possible output:
+///   "（資料夾）"
+///   " (folder)"
+///   "(folder) "
+///   " (folder) "
+///
+/// Returns [stringBuffer] for convenience.
+StringBuffer writeInLocalizedParens(
+  BuildContext context,
+  StringBuffer stringBuffer,
+  String text, {
+  bool addSpaceBeforeIfNotCjk = false,
+  bool addSpaceAfterIfNotCjk = false,
+}) {
+  final languageCode = Localizations.localeOf(context).languageCode;
+  switch (languageCode) {
+    case 'zh' || 'ja' || 'ko':
+      stringBuffer.write('（$text）'); // \uff08 and \uff09, full width parens
+    default:
+      if (addSpaceBeforeIfNotCjk) stringBuffer.write(' ');
+      stringBuffer.write('($text)');
+      if (addSpaceAfterIfNotCjk) stringBuffer.write(' ');
+  }
+  return stringBuffer;
+}

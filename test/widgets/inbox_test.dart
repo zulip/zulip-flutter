@@ -59,6 +59,7 @@ void main() {
   Future<void> setupPage(WidgetTester tester, {
     List<ZulipStream>? streams,
     List<Subscription>? subscriptions,
+    List<ChannelFolder>? channelFolders,
     List<User>? users,
     required List<Message> unreadMessages,
     List<Message>? otherMessages,
@@ -70,6 +71,7 @@ void main() {
 
     await store.addStreams(streams ?? []);
     await store.addSubscriptions(subscriptions ?? []);
+    await store.addChannelFolders(channelFolders ?? []);
     await store.addUsers(users ?? [eg.selfUser]);
 
     for (final message in unreadMessages) {
@@ -120,52 +122,14 @@ void main() {
       ]);
   }
 
-  // TODO instead of .first, could look for both the row in the list *and*
-  //   in the sticky-header position, or at least target one or the other
-  //   intentionally.
-  final findAllDmsHeader = find.byType(InboxAllDmsHeaderItem).first;
+  void checkFolderHeader(String label) {
+    check(find.widgetWithText(InboxFolderHeaderItem, label.toUpperCase()))
+      .findsOne();
+  }
 
-  /// Check details of the "Direct messages" header.
-  ///
-  /// For [findSectionContent], optionally pass a [Finder]
-  /// that will find some of the section's content if it is uncollapsed.
-  /// It will be expected to find something or nothing,
-  /// depending on [expectCollapsed].
-  void checkAllDmsHeader(WidgetTester tester, {
-    Color? expectedBackgroundColor,
-    bool? expectAtSignIcon,
-    bool? expectCollapsed,
-    Finder? findSectionContent,
-  }) {
-    check(findAllDmsHeader).findsOne();
-
-    if (expectAtSignIcon != null) {
-      check(find.descendant(of: findAllDmsHeader, matching: find.byIcon(ZulipIcons.at_sign)))
-        .findsExactly(expectAtSignIcon ? 1 : 0);
-    }
-
-    if (expectCollapsed != null) {
-      check(find.descendant(
-        of: findAllDmsHeader,
-        matching: find.byIcon(
-          expectCollapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down))).findsOne();
-
-      final renderObject = tester.renderObject<RenderBox>(findAllDmsHeader);
-      final paintBounds = renderObject.paintBounds;
-
-      // `paints` isn't a [Matcher] so we wrap it with `equals`;
-      // awkward but it works
-      check(renderObject).legacyMatcher(equals(paints..rrect(
-        rrect: RRect.fromRectAndRadius(paintBounds, Radius.zero),
-        style: .fill,
-        color: expectCollapsed
-          ? Colors.white
-          : const HSLColor.fromAHSL(1, 46, 0.35, 0.93).toColor())));
-
-      if (findSectionContent != null) {
-        check(findSectionContent).findsExactly(expectCollapsed ? 0 : 1);
-      }
-    }
+  void checkNoFolderHeader(String label) {
+    check(find.widgetWithText(InboxFolderHeaderItem, label.toUpperCase()))
+      .findsNothing();
   }
 
   void checkDm(Pattern expectLabelContains, {
@@ -192,7 +156,7 @@ void main() {
   //   in the sticky-header position, or at least target one or the other
   //   intentionally.
   Finder findChannelHeader(int channelId) => find.byWidgetPredicate((widget) =>
-    widget is InboxChannelHeaderItem && widget.channelId == channelId).first;
+    widget is InboxChannelHeaderItem && widget.subscription.streamId == channelId).first;
 
   /// Check details of a channel header.
   ///
@@ -204,6 +168,7 @@ void main() {
     bool? expectAtSignIcon,
     bool? expectCollapsed,
     Finder? findSectionContent,
+    bool? expectFolderName,
   }) {
     final findHeader = findChannelHeader(subscription.streamId);
     final element = tester.element(findHeader);
@@ -250,6 +215,11 @@ void main() {
         check(findSectionContent).findsExactly(expectCollapsed ? 0 : 1);
       }
     }
+
+    if (expectFolderName != null) {
+      check((element.widget as InboxChannelHeaderItem).showChannelFolderName)
+        .equals(expectFolderName);
+    }
   }
 
   void checkTopic(String topicDisplayName, {
@@ -284,9 +254,193 @@ void main() {
       check(find.textContaining('There are no unread messages in your inbox.')).findsOne();
     });
 
-    // TODO more checks: ordering, etc.
     testWidgets('page builds; not empty', (tester) async {
       await setupVarious(tester);
+    });
+
+    group('channel sorting', () {
+      testWidgets('channels with names starting with an emoji sort before others', (tester) async {
+        final channelBeta   = eg.stream(name: 'Beta Stream');
+        final channelRocket = eg.stream(name: '🚀 Rocket Stream');
+        final channelAlpha  = eg.stream(name: 'Alpha Stream');
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [channelBeta, channelRocket, channelAlpha],
+          subscriptions: [
+            eg.subscription(channelBeta),
+            eg.subscription(channelRocket),
+            eg.subscription(channelAlpha),
+          ],
+          unreadMessages: [
+            // Add an unread DM to shift the channel headers downward,
+            // preventing a channel header being duplicated in the widget tree
+            // as a sticky header.
+            eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+
+            eg.streamMessage(stream: channelBeta),
+            eg.streamMessage(stream: channelRocket),
+            eg.streamMessage(stream: channelAlpha),
+          ]);
+
+        final listedChannelIds =
+          tester.widgetList<InboxChannelHeaderItem>(find.byType(InboxChannelHeaderItem))
+            .map((item) => item.subscription.streamId).toList();
+        check(listedChannelIds).deepEquals([
+          channelRocket.streamId,
+          channelAlpha.streamId,
+          channelBeta.streamId,
+        ]);
+      });
+    });
+
+    group('folder headers', () {
+      testWidgets('DMs header', (tester) async {
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser])]);
+        checkFolderHeader('Direct messages');
+      });
+
+      testWidgets('only pinned channels: shows pinned header, no other header', (tester) async {
+        final channel = eg.stream();
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel, pinToTop: true)],
+          unreadMessages: [eg.streamMessage(stream: channel)]);
+        checkFolderHeader('Pinned channels');
+        checkNoFolderHeader('Other channels');
+      });
+
+      testWidgets('only unpinned channels: shows other header, no pinned header', (tester) async {
+        final channel = eg.stream();
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel, pinToTop: false)],
+          unreadMessages: [eg.streamMessage(stream: channel)]);
+        checkNoFolderHeader('Pinned channels');
+        checkFolderHeader('Other channels');
+      });
+
+      testWidgets('both pinned and unpinned channels: shows both headers', (tester) async {
+        final pinned = eg.stream();
+        final unpinned = eg.stream();
+        await setupPage(tester,
+          streams: [pinned, unpinned],
+          subscriptions: [
+            eg.subscription(pinned, pinToTop: true),
+            eg.subscription(unpinned, pinToTop: false),
+          ],
+          unreadMessages: [
+            eg.streamMessage(stream: pinned),
+            eg.streamMessage(stream: unpinned),
+          ]);
+        checkFolderHeader('Pinned channels');
+        checkFolderHeader('Other channels');
+      });
+
+      testWidgets('channel in a realm folder: shows folder name as header', (tester) async {
+        final folder = eg.channelFolder(name: 'Engineering');
+        final channel = eg.stream(folderId: folder.id);
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel)],
+          channelFolders: [folder],
+          unreadMessages: [eg.streamMessage(stream: channel)]);
+        checkFolderHeader('Engineering');
+        checkNoFolderHeader('Pinned channels');
+        checkNoFolderHeader('Other channels');
+      });
+
+      testWidgets('channels in different realm folders: each gets its own header', (tester) async {
+        final folder1 = eg.channelFolder(name: 'Engineering', order: 0);
+        final folder2 = eg.channelFolder(name: 'Marketing', order: 1);
+        final channel1 = eg.stream(folderId: folder1.id);
+        final channel2 = eg.stream(folderId: folder2.id);
+        await setupPage(tester,
+          streams: [channel1, channel2],
+          subscriptions: [
+            eg.subscription(channel1),
+            eg.subscription(channel2),
+          ],
+          channelFolders: [folder1, folder2],
+          unreadMessages: [
+            eg.streamMessage(stream: channel1),
+            eg.streamMessage(stream: channel2),
+          ]);
+        checkFolderHeader('Engineering');
+        checkFolderHeader('Marketing');
+      });
+
+      testWidgets('mix of pinned, realm folder, and other channels', (tester) async {
+        final folder = eg.channelFolder(name: 'Design');
+        final pinned = eg.stream();
+        final inFolder = eg.stream(folderId: folder.id);
+        final other = eg.stream();
+        await setupPage(tester,
+          streams: [pinned, inFolder, other],
+          subscriptions: [
+            eg.subscription(pinned, pinToTop: true),
+            eg.subscription(inFolder),
+            eg.subscription(other),
+          ],
+          channelFolders: [folder],
+          unreadMessages: [
+            eg.streamMessage(stream: pinned),
+            eg.streamMessage(stream: inFolder),
+            eg.streamMessage(stream: other),
+          ]);
+        checkFolderHeader('Pinned channels');
+        checkFolderHeader('Design');
+        checkFolderHeader('Other channels');
+      });
+
+      testWidgets('pinned channel in a realm folder: goes under pinned, not the folder', (tester) async {
+        final folder = eg.channelFolder(name: 'Engineering');
+        final channel = eg.stream(folderId: folder.id);
+        await setupPage(tester,
+          streams: [channel],
+          subscriptions: [eg.subscription(channel, pinToTop: true)],
+          channelFolders: [folder],
+          unreadMessages: [eg.streamMessage(stream: channel)]);
+        checkFolderHeader('Pinned channels');
+        checkNoFolderHeader('Engineering');
+      });
+
+      testWidgets('DMs, pinned, realm folders in order, other', (tester) async {
+        final folder1 = eg.channelFolder(name: 'Zebra', order: 1);
+        final folder2 = eg.channelFolder(name: 'Alpha', order: 0);
+        final pinned = eg.stream();
+        final inFolder1 = eg.stream(folderId: folder1.id);
+        final inFolder2 = eg.stream(folderId: folder2.id);
+        final other = eg.stream();
+        await setupPage(tester,
+          users: [eg.selfUser, eg.otherUser],
+          streams: [pinned, inFolder1, inFolder2, other],
+          subscriptions: [
+            eg.subscription(pinned, pinToTop: true),
+            eg.subscription(inFolder1),
+            eg.subscription(inFolder2),
+            eg.subscription(other),
+          ],
+          channelFolders: [folder1, folder2],
+          unreadMessages: [
+            eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+            eg.streamMessage(stream: pinned),
+            eg.streamMessage(stream: inFolder1),
+            eg.streamMessage(stream: inFolder2),
+            eg.streamMessage(stream: other),
+          ]);
+
+        final headers = tester.widgetList<InboxFolderHeaderItem>(
+          find.byType(InboxFolderHeaderItem)).toList();
+        check(headers.map((h) => h.label)).deepEquals([
+          'Direct messages',
+          'Pinned channels',
+          'Alpha',
+          'Zebra',
+          'Other channels',
+        ]);
+      });
     });
 
     testWidgets('UnreadCountBadge text color for a channel', (tester) async {
@@ -395,7 +549,7 @@ void main() {
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
             flags: [MessageFlag.mentioned])]);
 
-        checkAllDmsHeader(tester, expectAtSignIcon: true);
+        checkFolderHeader('Direct messages');
         checkDm(eg.otherUser.fullName, expectAtSignIcon: true);
       });
 
@@ -405,7 +559,7 @@ void main() {
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
             flags: [])]);
 
-        checkAllDmsHeader(tester, expectAtSignIcon: false);
+        checkFolderHeader('Direct messages');
         checkDm(eg.otherUser.fullName, expectAtSignIcon: false);
       });
     });
@@ -485,64 +639,6 @@ void main() {
     });
 
     group('collapsing', () {
-      group('all-DMs section', () {
-        Future<void> tapCollapseIcon(WidgetTester tester) async {
-          checkAllDmsHeader(tester);
-          await tester.tap(find.descendant(
-            of: findAllDmsHeader,
-            matching: find.byWidgetPredicate((widget) =>
-              widget is Icon
-              && (widget.icon == ZulipIcons.arrow_down
-                  || widget.icon == ZulipIcons.arrow_right))));
-          await tester.pump();
-        }
-
-        testWidgets('appearance', (tester) async {
-          await setupVarious(tester);
-
-          final findSectionContent = find.text(eg.otherUser.fullName);
-
-          checkAllDmsHeader(tester,
-            expectCollapsed: false, findSectionContent: findSectionContent);
-          await tapCollapseIcon(tester);
-          checkAllDmsHeader(tester,
-            expectCollapsed: true, findSectionContent: findSectionContent);
-          await tapCollapseIcon(tester);
-          checkAllDmsHeader(tester,
-            expectCollapsed: false, findSectionContent: findSectionContent);
-        });
-
-        testWidgets('collapse all-DMs section when partially offscreen: '
-          'header remains sticky at top', (tester) async {
-          await setupVarious(tester);
-
-          final listFinder = find.byType(Scrollable);
-          final dmFinder = find.text(eg.otherUser.fullName).hitTestable();
-
-          // Scroll part of [_AllDmsSection] offscreen.
-          await dragUntilInvisible(
-            tester, dmFinder, listFinder, const Offset(0, -50));
-
-          // Check that the header is present (which must therefore
-          // be as a sticky header).
-          checkAllDmsHeader(tester, expectCollapsed: false);
-
-          await tapCollapseIcon(tester);
-
-          // Check that the header is still visible even after
-          // collapsing the section.
-          checkAllDmsHeader(tester, expectCollapsed: true);
-        });
-
-        // TODO check it remains collapsed even if you scroll far away and back
-
-        // TODO check that it's always uncollapsed when it appears after being
-        //   absent, even if it was collapsed the last time it was present.
-        //   (Could test multiple triggers for its reappearance: it could
-        //   reappear because a new unread arrived, but with #296 it could also
-        //   reappear because of a change in muted-users state.)
-      });
-
       group('stream section', () {
         Future<void> tapCollapseIcon(WidgetTester tester, Subscription subscription) async {
           checkChannelHeader(tester, subscription);
@@ -610,7 +706,9 @@ void main() {
 
           // Check that the header is present (which must therefore
           // be as a sticky header).
-          checkChannelHeader(tester, subscription, expectCollapsed: false);
+          checkChannelHeader(tester, subscription,
+            expectCollapsed: false,
+            expectFolderName: true);
 
           await tapCollapseIcon(tester, subscription);
 

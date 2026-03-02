@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import 'realm.dart';
 import 'store.dart';
 import 'user.dart';
@@ -62,21 +63,6 @@ mixin ChannelStore on UserStore {
   //    as invalid. See: https://github.com/dart-lang/sdk/issues/61246
   // ignore: valid_regexps
   static final _startsWithEmojiRegex = RegExp(r'^\p{Emoji}', unicode: true);
-
-  /// A compare function for [ChannelFolder]s, using [ChannelFolder.order].
-  ///
-  /// Channels without [ChannelFolder.order] will come first,
-  /// sorted alphabetically.
-  // TODO(server-11) Once [ChannelFolder.order] is required,
-  //   remove alphabetical sorting.
-  static int compareChannelFolders(ChannelFolder a, ChannelFolder b) {
-    return switch ((a.order, b.order)) {
-      (null,   null) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-      (null,  int()) => -1,
-      (int(),  null) => 1,
-      (int a, int b) => a.compareTo(b),
-    };
-  }
 
   /// The visibility policy that the self-user has for the given topic.
   ///
@@ -179,6 +165,54 @@ mixin ChannelStore on UserStore {
     }
   }
 
+  /// The channel folder of [channelId],
+  /// including the "PINNED" or "OTHER" pseudo-channels (e.g. for the inbox).
+  UiChannelFolder uiChannelFolder(int channelId) =>
+    switch (streams[channelId]) {
+      Subscription(:final pinToTop) when pinToTop =>
+        UiChannelFolderPseudoPinned(),
+      ZulipStream(:final folderId) when folderId != null =>
+        UiChannelFolderRealmFolder(id: folderId),
+      _ => UiChannelFolderPseudoOther(),
+    };
+
+  /// A compare function for [UiChannelFolder]s,
+  /// using [ChannelFolder.order] for realm channel folders.
+  ///
+  /// Puts "PINNED CHANNELS" first,
+  /// then realm channel folders by [ChannelFolder.order]
+  /// (or alphabetically if that's absent),
+  /// then "OTHER CHANNELS".
+  // TODO(server-11) Once [ChannelFolder.order] is required,
+  //   remove alphabetical sorting and update dartdoc.
+  int compareUiChannelFolders(UiChannelFolder a, UiChannelFolder b) {
+    switch ((a, b)) {
+      case (UiChannelFolderPseudoPinned(), _): return -1;
+      case (_, UiChannelFolderPseudoPinned()): return 1;
+      case (UiChannelFolderPseudoOther(), _): return 1;
+      case (_, UiChannelFolderPseudoOther()): return -1;
+
+      case (
+        UiChannelFolderRealmFolder(id: final idA),
+        UiChannelFolderRealmFolder(id: final idB),
+      ): {
+        final folderA = channelFolders[idA];
+        final folderB = channelFolders[idB];
+        if (folderA == null || folderB == null) { // TODO(log)
+          assert(false);
+          return 0;
+        }
+
+        return switch ((folderA.order, folderB.order)) {
+          (null,   null) => folderA.name.toLowerCase().compareTo(folderB.name.toLowerCase()),
+          (null,  int()) => -1,
+          (int(),  null) => 1,
+          (int a, int b) => a.compareTo(b),
+        };
+      }
+    }
+  }
+
   bool selfHasContentAccess(ZulipStream channel) {
     // Compare web's stream_data.has_content_access.
     if (channel.isWebPublic) return true;
@@ -270,6 +304,73 @@ enum UserTopicVisibilityEffect {
       _             => UserTopicVisibilityEffect.none,
     };
   }
+}
+
+/// A realm-level channel folder or the "PINNED" or "OTHER" channel folder.
+///
+/// See the Help Center doc:
+///   https://zulip.com/help/channel-folders
+sealed class UiChannelFolder {
+  const UiChannelFolder();
+
+  /// This folder's name, not yet UPPERCASED for the UI.
+  String name({
+    required ChannelStore store,
+    required ZulipLocalizations zulipLocalizations,
+  });
+}
+
+class UiChannelFolderPseudoPinned extends UiChannelFolder {
+  @override
+  String name({required store, required zulipLocalizations}) =>
+    zulipLocalizations.pinnedChannelsFolderName;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! UiChannelFolderPseudoPinned) return false;
+    // Conceptually there's only one value of this type.
+    return true;
+  }
+
+  @override
+  int get hashCode => 'UiChannelFolderPseudoPinned'.hashCode;
+}
+
+class UiChannelFolderPseudoOther extends UiChannelFolder {
+  @override
+  String name({required store, required zulipLocalizations}) =>
+    zulipLocalizations.otherChannelsFolderName;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! UiChannelFolderPseudoOther) return false;
+    // Conceptually there's only one value of this type.
+    return true;
+  }
+
+  @override
+  int get hashCode => 'UiChannelFolderPseudoOther'.hashCode;
+}
+
+class UiChannelFolderRealmFolder extends UiChannelFolder {
+  const UiChannelFolderRealmFolder({required this.id});
+
+  final int id;
+
+  @override
+  String name({required store, required zulipLocalizations}) {
+    final folder = store.channelFolders[id];
+    return folder?.name ?? zulipLocalizations.unknownChannelFolderName;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! UiChannelFolderRealmFolder) return false;
+    return id == other.id;
+  }
+
+  @override
+  int get hashCode => Object.hash('UiChannelFolderRealmFolder', id);
 }
 
 mixin ProxyChannelStore on ChannelStore {

@@ -1037,6 +1037,15 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
       'Use the buttons below to view the combined feed or list of channels.';
 
   @override
+  String get pinnedChannelsFolderName => 'Pinned channels';
+
+  @override
+  String get otherChannelsFolderName => 'Other channels';
+
+  @override
+  String get unknownChannelFolderName => '(unknown channel folder)';
+
+  @override
   String get recentDmConversationsPageTitle => 'Direct messages';
 
   @override

@@ -92,19 +92,38 @@ void main() {
     });
   });
 
-  group('channelFolderComparator', () {
-    final folder1 = eg.channelFolder(id: 1, order: null, name: 'M');
-    final folder2 = eg.channelFolder(id: 2, order: null, name: 'n');
-    final folder3 = eg.channelFolder(id: 3, order: 2, name: 'a');
-    final folder4 = eg.channelFolder(id: 4, order: 0, name: 'b');
-    final folder5 = eg.channelFolder(id: 5, order: 1, name: 'c');
+  test('compareUiChannelFolders', () async {
+    final store = eg.store();
 
-    final store = eg.store(initialSnapshot: eg.initialSnapshot(
-      channelFolders: [folder1, folder2, folder3, folder4, folder5]));
+    final folder1 = eg.channelFolder(order: null, name: 'M');
+    final folder2 = eg.channelFolder(order: null, name: 'n');
+    final folder3 = eg.channelFolder(order: 2,    name: 'a');
+    final folder4 = eg.channelFolder(order: 0,    name: 'b');
+    final folder5 = eg.channelFolder(order: 1,    name: 'c');
 
-    final sorted = store.channelFolders.values.toList()
-      .sorted(ChannelStore.compareChannelFolders);
-    check(sorted).deepEquals([folder1, folder2, folder4, folder5, folder3]);
+    await store.addChannelFolders([folder1, folder2, folder3, folder4, folder5]);
+
+    final unsorted = <UiChannelFolder>[
+      UiChannelFolderRealmFolder(id: folder1.id),
+      UiChannelFolderRealmFolder(id: folder2.id),
+      UiChannelFolderRealmFolder(id: folder3.id),
+      UiChannelFolderRealmFolder(id: folder4.id),
+      UiChannelFolderRealmFolder(id: folder5.id),
+      UiChannelFolderPseudoOther(),
+      UiChannelFolderPseudoPinned(),
+    ];
+
+    final sorted = unsorted.toList()
+      .sorted((a, b) => store.compareUiChannelFolders(a, b));
+    check(sorted).deepEquals([
+      UiChannelFolderPseudoPinned(),
+      UiChannelFolderRealmFolder(id: folder1.id),
+      UiChannelFolderRealmFolder(id: folder2.id),
+      UiChannelFolderRealmFolder(id: folder4.id),
+      UiChannelFolderRealmFolder(id: folder5.id),
+      UiChannelFolderRealmFolder(id: folder3.id),
+      UiChannelFolderPseudoOther(),
+    ]);
   });
 
   group('SubscriptionEvent', () {
