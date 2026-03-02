@@ -104,9 +104,6 @@ abstract class GlobalStore extends ChangeNotifier {
   /// subscribes to changes in the [GlobalSettingsStore].
   final GlobalSettingsStore settings;
 
-  /// A cache of the [Accounts] table in the underlying data store.
-  final Map<int, Account> _accounts;
-
   /// Construct a new [ApiConnection], real or fake as appropriate.
   ///
   /// Where a per-account store is available, use [PerAccountStore.connection].
@@ -124,6 +121,10 @@ abstract class GlobalStore extends ChangeNotifier {
       realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
       email: account.email, apiKey: account.apiKey);
   }
+
+  //|//////////////////////////////////////////////////////////////
+  // The per-account stores.
+  //
 
   final Map<int, PerAccountStore> _perAccountStores = {};
 
@@ -256,6 +257,13 @@ abstract class GlobalStore extends ChangeNotifier {
   ///
   /// This method should be called only by [loadPerAccount].
   Future<PerAccountStore> doLoadPerAccount(int accountId);
+
+  //|//////////////////////////////////////////////////////////////
+  // The accounts.  TODO(store) move this to its own substore; cf GlobalSettingsStore
+  //
+
+  /// A cache of the [Accounts] table in the underlying data store.
+  final Map<int, Account> _accounts;
 
   // Just the Iterables, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
@@ -428,6 +436,10 @@ abstract class GlobalStore extends ChangeNotifier {
 
   /// Remove an account from the underlying data store.
   Future<void> doRemoveAccount(int accountId);
+
+  //
+  // End of data.
+  //|//////////////////////////////////////////////////////////////
 
   @override
   String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
