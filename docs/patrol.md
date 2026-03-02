@@ -46,7 +46,7 @@ but by default it runs all our Patrol tests.
 Upstream docs: https://patrol.leancode.co/cli-commands/test
 
 
-### Refinements
+### Tip: specify the device
 
 By default `patrol develop` and `patrol test` will prompt
 to ask which device to use.
@@ -56,11 +56,41 @@ with `-d`.  For example:
 $ patrol develop -d emulator-5554 -t patrol_test/example_test.dart
 ```
 
+
+### Be aware the app will get uninstalled
+
 Both `patrol develop` and `patrol test` will uninstall the app
 in order to then install the test app.
 This may be inconvenient if using a device where you also actually
 use the app, because it will lose your accounts and settings.
 TODO: use a different app ID for Patrol vs. the app.
+
+
+## Troubleshooting
+
+### Later tests may or may not share state from previous
+
+The documented, normal behavior of `patrol test` or `patrol develop`
+is that it installs the app once and then runs all the test cases.
+This means that any state left behind by early tests will remain as
+later tests are running.
+
+As a result, each test should generally clean up any state it touches,
+just like in our normal Flutter tests.
+
+Conversely, it may sometimes be convenient to exploit this behavior
+by having an early test case leave behind some state that a later test
+will make use of.
+Unfortunately for that approach, this behavior seems to be
+inconsistent: sometimes `patrol test` instead
+[uninstalls and reinstalls][] the app between test cases.
+It's not clear just what circumstances that happens in.
+It's therefore best to avoid relying on any shared state:
+instead, if the setup in an early test is useful for later tests,
+pull it out into a helper function, invoke that function from each
+test that needs it, and have each test clean up its state as usual.
+
+[uninstalls and reinstalls]: https://github.com/zulip/zulip-flutter/pull/2171#discussion_r2853854928
 
 
 ## One-time setup

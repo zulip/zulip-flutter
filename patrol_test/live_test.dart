@@ -62,6 +62,14 @@ void main() {
 
   patrolTest('notification', ($) async {
     // Already logged in by the test above; no need to set up the account again.
+    //
+    // ... At least that's how the Patrol docs say it should behave,
+    // and how it does often behave.  But sometimes `patrol test` instead
+    // uninstalls and reinstalls the app between test cases:
+    //   https://github.com/zulip/zulip-flutter/pull/2171#discussion_r2853854928
+    // We could work around that by repeating the login steps here.
+    // We'll introduce an easier way to do setup in an upcoming PR,
+    // which will also solve this problem.
 
     addTearDown(ZulipApp.debugReset);
     await $.pumpWidgetAndSettle(ZulipApp());
