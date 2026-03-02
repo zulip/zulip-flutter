@@ -2123,11 +2123,12 @@ void main() {
         String timestampStr,
         String? expectedTwelveHour,
         String? expectedTwentyFourHour,
+        String? expectedLocaleDefault,
       )> cases, {
       DateTime? now,
     }) {
       now ??= DateTime.parse("2023-01-10 12:00");
-      for (final (timestampStr, expectedTwelveHour, expectedTwentyFourHour) in cases) {
+      for (final (timestampStr, expectedTwelveHour, expectedTwentyFourHour, expectedLocaleDefault) in cases) {
         for (final mode in TwentyFourHourTimeMode.values) {
           final expected = switch (mode) {
             TwentyFourHourTimeMode.twelveHour => expectedTwelveHour,
@@ -2135,7 +2136,7 @@ void main() {
             // This expectation will hold as long as we're always using the
             // default locale, en_US, which uses the twelve-hour format.
             // TODO(#1727) test with other locales
-            TwentyFourHourTimeMode.localeDefault => expectedTwelveHour,
+            TwentyFourHourTimeMode.localeDefault => expectedLocaleDefault,
           };
 
           test('${style.name} in ${mode.name}: $timestampStr returns $expected', () {
@@ -2160,35 +2161,46 @@ void main() {
     for (final style in MessageTimestampStyle.values) {
       switch (style) {
         case MessageTimestampStyle.none:
-          doTests(style, [('2023-01-10 12:00', null, null)]);
+          doTests(style, [('2023-01-10 12:00', null, null, null)]);
         case MessageTimestampStyle.dateOnlyRelative:
           final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
           doTests(style,
             now: DateTime.parse("2023-01-10 12:00"),
             [
-              ("2023-01-10 12:00", zulipLocalizations.today,     zulipLocalizations.today),
-              ("2023-01-10 00:00", zulipLocalizations.today,     zulipLocalizations.today),
-              ("2023-01-10 23:59", zulipLocalizations.today,     zulipLocalizations.today),
-              ("2023-01-09 23:59", zulipLocalizations.yesterday, zulipLocalizations.yesterday),
-              ("2023-01-09 00:00", zulipLocalizations.yesterday, zulipLocalizations.yesterday),
-              ("2023-01-08 00:00", "Jan 8", "Jan 8"),
-              ("2022-12-31 00:00", "Dec 31, 2022", "Dec 31, 2022"),
+              ("2023-01-10 12:00", zulipLocalizations.today,     zulipLocalizations.today,     zulipLocalizations.today),
+              ("2023-01-10 00:00", zulipLocalizations.today,     zulipLocalizations.today,     zulipLocalizations.today),
+              ("2023-01-10 23:59", zulipLocalizations.today,     zulipLocalizations.today,     zulipLocalizations.today),
+              ("2023-01-09 23:59", zulipLocalizations.yesterday, zulipLocalizations.yesterday, zulipLocalizations.yesterday),
+              ("2023-01-09 00:00", zulipLocalizations.yesterday, zulipLocalizations.yesterday, zulipLocalizations.yesterday),
+              ("2023-01-08 00:00", "Jan 8", "Jan 8", "Jan 8"),
+              ("2022-12-31 00:00", "Dec 31, 2022", "Dec 31, 2022", "Dec 31, 2022"),
               // Future times
-              ("2023-01-10 19:00", zulipLocalizations.today, zulipLocalizations.today),
-              ("2023-01-11 00:00", "Jan 11, 2023", "Jan 11, 2023"),
+              ("2023-01-10 19:00", zulipLocalizations.today, zulipLocalizations.today, zulipLocalizations.today),
+              ("2023-01-11 00:00", "Jan 11, 2023", "Jan 11, 2023", "Jan 11, 2023"),
             ]);
         case MessageTimestampStyle.timeOnly:
-          doTests(style, [('2023-01-10 12:00', '12:00 PM', '12:00')]);
+          doTests(style, [(
+            '2023-01-10 12:00',
+            '12:00 PM',
+            '12:00',
+            // Since https://github.com/flutter/flutter/commit/3ea161909,
+            // DateFormat with 'j'-prefix pattern (what
+            // TwentyFourHourTimeMode.localeDefault uses) emits U+202F (NARROW
+            // NO-BREAK SPACE) character as a separator between time and it's
+            // period (AM/PM), instead of the space character.
+            '12:00\u{202F}PM')]);
         case MessageTimestampStyle.lightbox:
           doTests(style,
             [('2023-01-10 12:00',
               'Jan 10, 2023 12:00:00 PM',
-              'Jan 10, 2023 12:00:00')]);
+              'Jan 10, 2023 12:00:00',
+              'Jan 10, 2023 12:00:00\u{202F}PM')]);
         case MessageTimestampStyle.full:
           doTests(style,
             [('2023-01-10 12:00',
               'Jan 10, 2023 12:00 PM',
-              'Jan 10, 2023 12:00')]);
+              'Jan 10, 2023 12:00',
+              'Jan 10, 2023 12:00\u{202F}PM')]);
       }
     }
   });
