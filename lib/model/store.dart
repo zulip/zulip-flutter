@@ -107,8 +107,6 @@ abstract class GlobalStore extends ChangeNotifier {
   /// A cache of the [Accounts] table in the underlying data store.
   final Map<int, Account> _accounts;
 
-  // TODO push token, and other data corresponding to GlobalSessionState
-
   /// Construct a new [ApiConnection], real or fake as appropriate.
   ///
   /// Where a per-account store is available, use [PerAccountStore.connection].
