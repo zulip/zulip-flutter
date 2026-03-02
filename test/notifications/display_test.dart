@@ -110,6 +110,8 @@ void main() {
 
   Future<void> addAccount(Account account) async {
     await testBinding.globalStore.add(account, eg.initialSnapshot());
+    await testBinding.globalStore.pushKeys.perAccount(account.id).insertPushKey(
+      eg.pushKey(account: account).toCompanion(false));
   }
 
   Future<void> init({bool addSelfAccount = true}) async {

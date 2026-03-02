@@ -156,6 +156,9 @@ void main() {
       NotificationService.debugBackgroundIsolateIsLive = false;
       await runWithHttpClient(NotificationService.instance.start);
 
+      await testBinding.globalStore.pushKeys.perAccount(eg.selfAccount.id).insertPushKey(
+        eg.pushKey(account: eg.selfAccount).toCompanion(false));
+
       // Create a notification to check that it's removed after logout
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       testBinding.firebaseMessaging.onMessage.add(
