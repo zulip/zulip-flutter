@@ -104,3 +104,30 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
 
 - After every edit, run the Flutter analyzer to catch issues early.
   Use this command: `flutter analyze --no-pub 2>&1 | head -20`
+
+
+## Using Git
+
+- **Use `@` instead of `HEAD`** —
+  there may be a stray file named `HEAD`,
+  which causes `fatal: ambiguous argument 'HEAD'` errors.
+
+- **Always `git add` specific new files** —
+  never use `git add -A` or `git add .`.
+  The worktree can pick up stray files.
+  For adding changes to all existing files, use `git add -u`.
+
+- **Use plain single-quotes for commit messages** —
+  write `git commit -m 'message'`, not heredoc `$(cat <<'EOF'...)`.
+  Command substitution `$(...)` triggers a permission prompt.
+
+  If the message itself contains a single quote,
+  a single quote can be expressed inside a Bash single-quoted string
+  with the five characters `'"'"'`.
+
+- **Use `git cherry-pick` for rewriting history** —
+  never use `git rebase -i`, as it
+  requires an editor, which triggers permission prompts.
+  Instead, use `git cherry-pick`
+  (with `--no-commit` when modifications are needed)
+  to replay commits.
