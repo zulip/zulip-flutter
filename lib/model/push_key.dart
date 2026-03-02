@@ -172,7 +172,7 @@ class PushKeyStore {
     }
 
     // Step 2: Send new key to the server.
-    // This is done separately, in [PushDeviceManager._registerToken]. // TODO(#1764)
+    // This is done separately, in [PushDeviceManager._registerToken].
 
     // Step 3: Mark superseded keys as superseded.
     // 3a: A key is superseded when the server acks a newer key.

@@ -73,6 +73,7 @@ class PushRegistration {
   final PushTokenKind tokenKind;
   final String token;
   final int timestamp;
+  // final String? iosAppId; // TODO(#1764)
 
   PushRegistration({
     required this.tokenKind,

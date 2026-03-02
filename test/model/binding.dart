@@ -453,7 +453,57 @@ class FakeSodiumSecureKey extends Fake implements sodium.SecureKey {
 
 class FakeSodiumCrypto extends Fake implements sodium.Crypto {
   @override
+  sodium.Box get box => FakeSodiumBox();
+
+  @override
   sodium.SecretBox get secretBox => FakeSodiumSecretBox();
+}
+
+class FakeSodiumBox extends Fake implements sodium.Box {
+  @override
+  Uint8List seal({required Uint8List message, required Uint8List publicKey}) {
+    return Uint8List.fromList([
+      ..._prefix,
+      ...message,
+      ..._infix,
+      ...publicKey,
+      ..._suffix,
+    ]);
+  }
+
+  static final _prefix = utf8.encode('sealed, don\'t tamper: [');
+  static final _infix  = utf8.encode(']; eyes only: [');
+  static final _suffix = utf8.encode(']');
+
+  @override
+  Uint8List sealOpen({
+    required Uint8List cipherText,
+    required Uint8List publicKey,
+    required sodium.SecureKey secretKey,
+  }) {
+    // Ignores [secretKey].
+    int offset = 0;
+    Uint8List take(int length) =>
+        Uint8List.sublistView(cipherText, offset, offset += length);
+
+    void checkMatch(List<int> piece, [int? length]) {
+      length ??= piece.length;
+      if (!take(length).equals(piece)) throw Exception('invalid ciphertext');
+    }
+
+    final messageLength = cipherText.length
+      - (_prefix.length + _infix.length + 32 + _suffix.length);
+    if (messageLength < 0) throw Exception('invalid ciphertext');
+
+    checkMatch(_prefix);
+    final result = take(messageLength);
+    checkMatch(_infix);
+    checkMatch(publicKey, 32);
+    checkMatch(_suffix);
+    assert(offset == cipherText.length);
+
+    return result;
+  }
 }
 
 class FakeSodiumSecretBox extends Fake implements sodium.SecretBox {
