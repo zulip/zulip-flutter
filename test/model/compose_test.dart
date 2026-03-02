@@ -6,9 +6,12 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
+import 'binding.dart';
 import 'test_store.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('wrapWithBacktickFence', () {
     /// Check `wrapWithBacktickFence` on example input and expected output.
     ///

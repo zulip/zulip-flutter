@@ -115,7 +115,8 @@ void main() {
         // request for the token is still pending.
         testBinding.firebaseMessagingInitialToken = '012abc';
         testBinding.packageInfoResult = eg.packageInfo(packageName: 'com.zulip.flutter');
-        final startFuture = NotificationService.instance.start();
+        final startFuture = Future<void>.delayed(Duration(milliseconds: 100))
+          .then((_) => NotificationService.instance.start());
 
         // TODO this test is a bit brittle in its interaction with asynchrony;
         //   to fix, probably extend TestZulipBinding to control when getToken finishes.
@@ -186,4 +187,6 @@ void main() {
       }));
     });
   });
+
+  // For tests of _maybeRotatePushKeys and its call sites, see push_key_test.dart.
 }

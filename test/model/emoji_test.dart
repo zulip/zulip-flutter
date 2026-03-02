@@ -8,8 +8,11 @@ import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
+import 'binding.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   PerAccountStore prepare({
     Map<String, RealmEmojiItem> realmEmoji = const {},
     bool addServerDataForPopular = true,
