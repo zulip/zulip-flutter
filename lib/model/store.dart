@@ -1092,7 +1092,7 @@ class LiveGlobalStore extends GlobalStore {
     // we'd invest in this area more.  For example we'd try doing these
     // in parallel, or deferring some to be concurrent with loading server data.
     final stopwatch = Stopwatch()..start();
-    final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
+    final db = AppDatabase(NativeDatabase.createInBackground(await dbFile()));
     final t1 = stopwatch.elapsed;
     final globalSettings = await db.getGlobalSettings();
     final t2 = stopwatch.elapsed;
@@ -1119,7 +1119,8 @@ class LiveGlobalStore extends GlobalStore {
   }
 
   /// The file path to use for the app database.
-  static Future<File> _dbFile() async {
+  @visibleForTesting
+  static Future<File> dbFile() async {
     // What directory should we use?
     //   path_provider's getApplicationSupportDirectory:
     //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()

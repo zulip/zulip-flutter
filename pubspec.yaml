@@ -103,6 +103,7 @@ dev_dependencies:
   ini: ^2.1.0
   json_serializable: ^6.5.4
   legacy_checks: ^0.1.0
+  patrol: ^4.1.1
   pigeon: ^26.0.0
   stack_trace: ^1.11.1
   test: ^1.23.1
@@ -225,3 +226,12 @@ flutter:
         - asset: assets/icons/ZulipIcons.ttf
 
     # If adding a font, remember to account for its license in lib/licenses.dart.
+
+patrol:
+  # For what this section actually does for us, see this bit of docs:
+  #   https://patrol.leancode.co/documentation/native/advanced#patrol-section-in-pubspecyaml
+  app_name: Zulip
+  android:
+    package_name: com.zulipmobile
+  ios:
+    bundle_id: org.zulip.Zulip
