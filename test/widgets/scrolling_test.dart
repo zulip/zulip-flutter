@@ -152,7 +152,7 @@ void main() {
           controller: controller,
           // The tiny cacheExtent causes each layout round to only reach
           // the first item it expects will go beyond the viewport.
-          cacheExtent: 1.0, // in (logical) pixels!
+          scrollCacheExtent: const .pixels(1.0),
           center: const ValueKey('center'),
           slivers: [
             SliverToBoxAdapter(
