@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
@@ -53,6 +56,11 @@ class NotificationService {
   ///  * Upstream docs on FCM registration tokens in general:
   ///    https://firebase.google.com/docs/cloud-messaging/manage-tokens
   ValueNotifier<String?> token = ValueNotifier(null);
+
+  static String computeTokenId(String token) {
+    final hash = sha256.convert(token.codeUnits).bytes;
+    return base64Encode(hash.slice(0, 8));
+  }
 
   Future<void> start() async {
     await NotificationOpenService.instance.start();
@@ -206,6 +214,7 @@ class NotificationService {
   }
 
   static void _onRemoteMessage(FirebaseRemoteMessage message) async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
     final origData = message.data;
 
     EncryptedFcmMessage? parsed;
@@ -261,6 +270,17 @@ class NotificationService {
     // to the user if notifications keep showing up after they've logged out.
     // (Also alarming: it suggests the logout didn't fully work.)
     if (account == null) {
+      return;
+    }
+
+    assert(defaultTargetPlatform == TargetPlatform.android);
+    if (account.zulipFeatureLevel >= 468) {
+      // The server is new enough for E2EE notifications, but this is a legacy
+      // plaintext notification.  It's normal to potentially get these when
+      // either client or server is first upgraded to add E2EE support, because
+      // the two subsystems register for push notifications independently.
+      // Just ignore the legacy notification;  // TODO(log)
+      // we'll deal separately (TODO(#1764)) with getting the server to stop sending them.
       return;
     }
 
