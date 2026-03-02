@@ -64,6 +64,14 @@ mixin _ApiConnectionsMixin on GlobalStore {
   }
 }
 
+/// A Drift database instance that knows our schema,
+/// but doesn't connect to any actual database, even fake or temporary.
+///
+/// This is useful because it enables the use of the `mapFromCompanion`
+/// methods.  See upstream discussion:
+///   https://github.com/simolus3/drift/issues/3761
+final _bogusDb = AppDatabase(LazyDatabase(() => throw 'used bogus DB'));
+
 class _TestGlobalStoreBackend implements GlobalStoreBackend {
   @override
   Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
@@ -79,17 +87,25 @@ class _TestGlobalStoreBackend implements GlobalStoreBackend {
   Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value) async {
     // Nothing to do.
   }
+
+  @override
+  Future<PushKey> doInsertPushKey(PushKeysCompanion data) async {
+    // TODO detect duplicate push keys here?
+    return await _bogusDb.pushKeys.mapFromCompanion(data, _bogusDb);
+  }
+
+  @override
+  Future<void> doUpdatePushKey(int pushKeyId, PushKeysCompanion data) async {
+    // Nothing to do.
+  }
+
+  @override
+  Future<void> doRemovePushKey(int pushKeyId) async {
+    // Nothing to do.
+  }
 }
 
 mixin _DatabaseMixin on GlobalStore {
-  /// A Drift database instance that knows our schema,
-  /// but doesn't connect to any actual database, even fake or temporary.
-  ///
-  /// This is useful because it enables the use of the `mapFromCompanion`
-  /// methods.  See upstream discussion:
-  ///   https://github.com/simolus3/drift/issues/3761
-  static final _bogusDb = AppDatabase(LazyDatabase(() => throw 'used bogus DB'));
-
   int _nextAccountId = 1;
 
   @override
@@ -156,10 +172,12 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
     Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
+    Iterable<PushKey>? pushKeys,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
          intGlobalSettings: intGlobalSettings ?? {},
+         pushKeys: pushKeys ?? [],
        );
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
@@ -254,10 +272,12 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
     Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
+    Iterable<PushKey>? pushKeys,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
          intGlobalSettings: intGlobalSettings ?? {},
+         pushKeys: pushKeys ?? [],
        );
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.
