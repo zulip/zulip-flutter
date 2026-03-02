@@ -15,7 +15,7 @@ import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
-import 'package:zulip/model/push_device.dart';
+import 'package:zulip/model/push_key.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 
@@ -425,7 +425,7 @@ final Account thirdAccount = account(
 Uint8List _pushKeyKey() {
   final start = Random().nextInt(256);
   return Uint8List.fromList([
-    PushDeviceManager.pushKeyTagSecretbox,
+    PushKeyStore.pushKeyTagSecretbox,
     ...Iterable.generate(32, (i) => (start + i) % 256),
   ]);
 }
