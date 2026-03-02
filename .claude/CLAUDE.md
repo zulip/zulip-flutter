@@ -10,13 +10,13 @@ Zulip Flutter — the official Zulip mobile app for Android and iOS, built with 
 
 ```bash
 # Run unit tests
-flutter test
+flutter test --no-pub
 
 # Run a specific test file
-flutter test test/foo/bar_test.dart
+flutter test --no-pub test/foo/bar_test.dart
 
 # Run a specific test by name
-flutter test test/foo/bar_test.dart --name 'some test name'
+flutter test --no-pub test/foo/bar_test.dart --name 'some test name'
 
 # Static analysis (type-checking + linting)
 flutter analyze --no-pub
@@ -89,6 +89,15 @@ Uses Drift ORM with SQLite. Schema changes require running `tools/check --fix dr
 ### Design
 
 UI designs come from Figma (linked in issues). Match colors, padding, and font sizes exactly. Use `DesignVariables` and `ContentTheme` for theme values.
+
+
+## Debugging test failures
+
+- Full `flutter test` takes ~60s. Capture output to a temp file on the first run;
+  don't re-run the full suite just to find the failure details.
+- Once the failing test file is identified, re-run just that file (~3-5s).
+- For localized failures (one test, one file), read the test and source directly
+  rather than spawning broad codebase searches.
 
 
 ## Developing changes
