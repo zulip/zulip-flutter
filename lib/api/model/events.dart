@@ -123,6 +123,20 @@ class UnexpectedEvent extends Event {
   Map<String, dynamic> toJson() => json;
 }
 
+/// A Zulip event of type `realm`.
+///
+/// The corresponding API docs are in several places for
+/// different values of `op`; see subclasses.
+sealed class RealmEvent extends Event {
+  @override
+  @JsonKey(includeToJson: true)
+  String get type => 'realm';
+
+  String get op;
+
+  RealmEvent({required super.id});
+}
+
 /// A Zulip event of type `realm_emoji` with op `update`:
 ///   https://zulip.com/api/get-events#realm_emoji-update
 @JsonSerializable(fieldRename: FieldRename.snake)
