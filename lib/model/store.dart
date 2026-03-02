@@ -528,6 +528,10 @@ abstract class PerAccountStoreBase {
   ///
   /// For the corresponding [User] object, see [UserStore.selfUser].
   int get selfUserId => core.selfUserId;
+
+  Future<void> updateAccount(AccountsCompanion data) async {
+    await _globalStore.updateAccount(accountId, data);
+  }
 }
 
 const _tryResolveUrl = tryResolveUrl;
@@ -628,7 +632,8 @@ class PerAccountStore extends PerAccountStoreBase with
       emoji: EmojiStoreImpl(core: core,
         allRealmEmoji: initialSnapshot.realmEmoji),
       userSettings: initialSnapshot.userSettings,
-      pushDevices: PushDeviceManager(core: core),
+      pushDevices: PushDeviceManager(core: core,
+        devices: initialSnapshot.devices ?? {}),
       savedSnippets: SavedSnippetStoreImpl(core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? []),
       typingNotifier: TypingNotifier(realm: realm),
@@ -863,6 +868,11 @@ class PerAccountStore extends PerAccountStoreBase with
           case UserSettingName.presenceEnabled:
             userSettings.presenceEnabled           = event.value as bool;
         }
+        notifyListeners();
+
+      case DeviceEvent():
+        assert(debugLog("server event: device"));
+        pushDevices.handleDeviceEvent(event);
         notifyListeners();
 
       case CustomProfileFieldsEvent():

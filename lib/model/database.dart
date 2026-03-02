@@ -149,6 +149,20 @@ class Accounts extends Table {
   /// It never changes for a given account.
   Column<int>    get userId => integer()();
 
+  /// The ID of this client device as logged into this account.
+  ///
+  /// This comes from [registerClientDevice] and corresponds to
+  /// a device ID in [InitialSnapshot.devices].
+  ///
+  /// Once this is no longer null, it never again changes for
+  /// a given account record.
+  ///
+  /// This is null if the server is old (TODO(server-12))
+  /// and lacks the concept of device ID,
+  /// as well as when the client has only recently upgraded from a
+  /// version that lacked this column and has not yet populated it.
+  Column<int>    get deviceId => integer().nullable()();
+
   Column<String> get email => text()();
   Column<String> get apiKey => text()();
 
@@ -176,15 +190,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   // When updating the schema:
-  //  * Make the change in the table classes, and bump latestSchemaVersion.
-  //  * Export the new schema and generate test migrations with drift:
-  //    $ tools/check --fix drift
-  //    and generate database code with build_runner.
-  //    See ../../README.md#generated-files for more
-  //    information on using the build_runner.
-  //  * Write a migration in `_migrationSteps` below.
+  //  * Make the change in the table classes.
+  //  * Bump latestSchemaVersion.
+  //  * Updated generated code for the new schema:
+  //    $ tools/check --fix build_runner drift
+  //  * Fix resulting analyzer errors; in particular,
+  //    write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 12; // See note.
+  static const int latestSchemaVersion = 13; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -282,6 +295,9 @@ class AppDatabase extends _$AppDatabase {
     from11To12: (Migrator m, Schema12 schema) async {
       await m.addColumn(schema.accounts, schema.accounts.realmName);
       await m.addColumn(schema.accounts, schema.accounts.realmIcon);
+    },
+    from12To13: (m, schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.deviceId);
     },
   );
 

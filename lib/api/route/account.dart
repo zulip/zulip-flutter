@@ -32,3 +32,22 @@ class FetchApiKeyResult {
 
   Map<String, dynamic> toJson() => _$FetchApiKeyResultToJson(this);
 }
+
+/// https://zulip.com/api/register-client-device
+Future<RegisterClientDeviceResult> registerClientDevice(ApiConnection connection) {
+  return connection.post('registerClientDevice', RegisterClientDeviceResult.fromJson, 'register_client_device', {});
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RegisterClientDeviceResult {
+  final int deviceId;
+
+  RegisterClientDeviceResult({
+    required this.deviceId,
+  });
+
+  factory RegisterClientDeviceResult.fromJson(Map<String, dynamic> json) =>
+    _$RegisterClientDeviceResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RegisterClientDeviceResultToJson(this);
+}

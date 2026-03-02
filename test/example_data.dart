@@ -95,8 +95,8 @@ Uri get _realmUrl => realmUrl;
 final Uri realmIcon = Uri.parse('/user_avatars/2/realm/icon.png?version=3');
 Uri get _realmIcon => realmIcon;
 
-const String recentZulipVersion = '9.0';
-const int recentZulipFeatureLevel = 382;
+const String recentZulipVersion = '11.0';
+const int recentZulipFeatureLevel = 468;
 const int futureZulipFeatureLevel = 9999;
 const int ancientZulipFeatureLevel = kMinSupportedZulipFeatureLevel - 1;
 
@@ -333,6 +333,7 @@ Account account({
     email: email,
     apiKey: apiKey ?? 'aeouasdf',
     userId: user.userId,
+    deviceId: 12345,
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
     zulipVersion: zulipVersion ?? recentZulipVersion,
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
@@ -1353,6 +1354,7 @@ InitialSnapshot initialSnapshot({
   Map<int, UserStatusChange>? userStatuses,
   UserSettings? userSettings,
   List<UserTopicItem>? userTopics,
+  Map<int, ClientDevice>? devices,
   GroupSettingValue? realmCanDeleteAnyMessageGroup,
   GroupSettingValue? realmCanDeleteOwnMessageGroup,
   RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
@@ -1414,6 +1416,7 @@ InitialSnapshot initialSnapshot({
     userStatuses: userStatuses ?? {},
     userSettings: userSettings ?? _userSettings(),
     userTopics: userTopics ?? [],
+    devices: devices ?? {},
     // no default; allow `null` to simulate servers without this
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
