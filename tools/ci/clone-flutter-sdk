@@ -22,13 +22,3 @@ echo "$flutter_tree"/bin >> "$GITHUB_PATH"
 #   https://github.com/flutter/flutter/issues/160626
 # TODO(upstream): make workaround unneeded
 git -C "$flutter_tree" update-ref refs/remotes/origin/master origin/main
-
-# TODO(#2139): Temporarily pin the Flutter SDK in CI to use the same version
-# in pubspec.yaml. Because currently there are multiple issues,
-# see:
-#   https://github.com/zulip/zulip-flutter/pull/2129#issuecomment-3878692297
-#   https://github.com/zulip/zulip-flutter/pull/2129#issuecomment-3879280784
-#   https://github.com/zulip/zulip-flutter/issues/2139#issuecomment-3895207862
-flutter_commit=
-pubspec_flutter_version || exit 1
-git -C "$flutter_tree" reset --hard "$flutter_commit"
