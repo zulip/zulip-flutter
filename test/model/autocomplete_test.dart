@@ -21,6 +21,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
+import 'binding.dart';
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
@@ -29,6 +30,8 @@ typedef MarkedTextParse = ({int? expectedSyntaxStart, TextEditingValue value});
 final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   MarkedTextParse parseMarkedText(String markedText) {
     final TextSelection selection;
     int? expectedSyntaxStart;

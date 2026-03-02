@@ -7,8 +7,11 @@ import 'package:zulip/model/realm.dart';
 import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
+import 'binding.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   test('processTopicLikeServer', () {
     final emptyTopicDisplayName = eg.defaultRealmEmptyTopicDisplayName;
 

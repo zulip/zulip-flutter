@@ -19,6 +19,11 @@ class PushDeviceManager extends PerAccountStoreBase {
     required super.core,
     required this._devices,
   }) {
+    _init();
+  }
+
+  void _init() async {
+    await _maybeRotatePushKeys();
     _registerTokenAndSubscribe();
   }
 
@@ -53,6 +58,9 @@ class PushDeviceManager extends PerAccountStoreBase {
   /// This is an entry in [devices].
   ClientDevice? get thisDevice => _devices[account.deviceId];
 
+  bool get _e2eeAvailable => zulipFeatureLevel >= 468 // TODO(server-12)
+    && defaultTargetPlatform == TargetPlatform.android; // TODO(#1764)
+
   void handleDeviceEvent(DeviceEvent event) {
     switch (event) {
       case DeviceAddEvent():
@@ -73,6 +81,7 @@ class PushDeviceManager extends PerAccountStoreBase {
 
         if (event.pushKeyId case final v?) {
           device.pushKeyId = v.value;
+          _maybeRotatePushKeys();
         }
         if (event.pushTokenId case final v?) {
           device.pushTokenId = v.value;
@@ -87,6 +96,17 @@ class PushDeviceManager extends PerAccountStoreBase {
           device.pushRegistrationErrorCode = v.value;
         }
     }
+  }
+
+  Future<void> _maybeRotatePushKeys() async {
+    if (!_e2eeAvailable) {
+      // Forget any existing push keys.  (It's unlikely any exist,
+      // but possible if the server has been downgraded.)
+      await pushKeys.removePushKeys();
+      return;
+    }
+
+    await pushKeys.maybeRotatePushKeys(ackedPushKeyId: thisDevice?.pushKeyId);
   }
 
   /// Send this client's notification token to the server, now and if it changes.
@@ -140,6 +160,7 @@ class PushDeviceManager extends PerAccountStoreBase {
   /// when this instance was constructed,
   /// and therefore no effect outside of debug mode.
   Future<void> debugUnpauseRegisterToken() async {
+    await Future<void>.delayed(Duration.zero); // TODO hack to get past _maybeRotateKeys
     _debugRegisterTokenProceed!.complete();
     await _debugRegisterTokenCompleted!.future;
   }

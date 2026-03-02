@@ -8,12 +8,15 @@ import 'package:zulip/model/user.dart';
 
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import 'binding.dart';
 import 'test_store.dart';
 
 typedef StatusData = (String? statusText, String? emojiName, String? emojiCode,
   String? reactionType);
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('userDisplayName', () {
     test('on a known user', () async {
       final user = eg.user(fullName: 'Some User');

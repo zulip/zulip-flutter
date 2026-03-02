@@ -5,10 +5,13 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/recent_dm_conversations.dart';
 
 import '../example_data.dart' as eg;
+import 'binding.dart';
 import 'recent_dm_conversations_checks.dart';
 import 'store_checks.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('RecentDmConversationsView', () {
     /// Get a [DmNarrow] from a list of recipient IDs excluding self.
     DmNarrow key(Iterable<int> userIds) {
