@@ -2212,10 +2212,15 @@ enum MessageTimestampStyle {
     }
   }
 
-  static final _timeFormat12 =                       DateFormat('h:mm aa');
+  // Since https://github.com/flutter/flutter/commit/3ea161909,
+  // DateFormat with 'j'-prefix pattern (used by locale default patterns below)
+  // emits U+202F (NARROW NO-BREAK SPACE) character as a separator between time
+  // and its period (AM/PM), instead of the space character.
+  // So, do the same for other 12-hour formats here.
+  static final _timeFormat12 =                       DateFormat('h:mm\u{202F}aa');
   static final _timeFormat24 =                       DateFormat('Hm');
   static final _timeFormatLocaleDefault =            DateFormat('jm');
-  static final _timeFormat12WithSeconds =            DateFormat('h:mm:ss aa');
+  static final _timeFormat12WithSeconds =            DateFormat('h:mm:ss\u{202F}aa');
   static final _timeFormat24WithSeconds =            DateFormat('Hms');
   static final _timeFormatLocaleDefaultWithSeconds = DateFormat('jms');
 

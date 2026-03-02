@@ -392,12 +392,12 @@ void main() {
       await setupPage(tester, message: message, thumbnailUrl: null, users: [sender]);
       check(store.getUser(sender.userId)).isNotNull();
 
-      checkAppBarNameAndDate(tester, 'Old name', 'Jul 23, 2024 11:12:24 PM');
+      checkAppBarNameAndDate(tester, 'Old name', 'Jul 23, 2024 11:12:24\u{202F}PM');
 
       await store.handleEvent(RealmUserUpdateEvent(id: 1,
         userId: sender.userId, fullName: 'New name'));
       await tester.pump();
-      checkAppBarNameAndDate(tester, 'New name', 'Jul 23, 2024 11:12:24 PM');
+      checkAppBarNameAndDate(tester, 'New name', 'Jul 23, 2024 11:12:24\u{202F}PM');
 
       debugNetworkImageHttpClientProvider = null;
     });
@@ -410,7 +410,7 @@ void main() {
       await setupPage(tester, message: message, thumbnailUrl: null, users: []);
       check(store.getUser(sender.userId)).isNull();
 
-      checkAppBarNameAndDate(tester, 'Sender name', 'Jul 23, 2024 11:12:24 PM');
+      checkAppBarNameAndDate(tester, 'Sender name', 'Jul 23, 2024 11:12:24\u{202F}PM');
 
       debugNetworkImageHttpClientProvider = null;
     });

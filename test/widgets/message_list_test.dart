@@ -2178,16 +2178,16 @@ void main() {
               ("2023-01-11 00:00", "Jan 11, 2023", "Jan 11, 2023"),
             ]);
         case MessageTimestampStyle.timeOnly:
-          doTests(style, [('2023-01-10 12:00', '12:00 PM', '12:00')]);
+          doTests(style, [('2023-01-10 12:00', '12:00\u{202F}PM', '12:00')]);
         case MessageTimestampStyle.lightbox:
           doTests(style,
             [('2023-01-10 12:00',
-              'Jan 10, 2023 12:00:00 PM',
+              'Jan 10, 2023 12:00:00\u{202F}PM',
               'Jan 10, 2023 12:00:00')]);
         case MessageTimestampStyle.full:
           doTests(style,
             [('2023-01-10 12:00',
-              'Jan 10, 2023 12:00 PM',
+              'Jan 10, 2023 12:00\u{202F}PM',
               'Jan 10, 2023 12:00')]);
       }
     }

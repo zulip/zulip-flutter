@@ -1360,8 +1360,13 @@ class GlobalTime extends StatelessWidget {
   final GlobalTimeNode node;
   final TextStyle ambientTextStyle;
 
+  // Since https://github.com/flutter/flutter/commit/3ea161909,
+  // DateFormat with 'j'-prefix pattern (used by locale default pattern below)
+  // emits U+202F (NARROW NO-BREAK SPACE) character as a separator between time
+  // and its period (AM/PM), instead of the space character.
+  // So, do the same for 12-hour format here.
   static final _format12 =
-    intl.DateFormat('EEE, MMM d, y').addPattern('h:mm aa', ', ');
+    intl.DateFormat('EEE, MMM d, y').addPattern('h:mm\u{202F}aa', ', ');
   static final _format24 =
     intl.DateFormat('EEE, MMM d, y').addPattern('Hm', ', ');
   static final _formatLocaleDefault =
