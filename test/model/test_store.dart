@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -81,6 +82,14 @@ class _TestGlobalStoreBackend implements GlobalStoreBackend {
 }
 
 mixin _DatabaseMixin on GlobalStore {
+  /// A Drift database instance that knows our schema,
+  /// but doesn't connect to any actual database, even fake or temporary.
+  ///
+  /// This is useful because it enables the use of the `mapFromCompanion`
+  /// methods.  See upstream discussion:
+  ///   https://github.com/simolus3/drift/issues/3761
+  static final _bogusDb = AppDatabase(LazyDatabase(() => throw 'used bogus DB'));
+
   int _nextAccountId = 1;
 
   @override
@@ -96,20 +105,11 @@ mixin _DatabaseMixin on GlobalStore {
       throw AccountAlreadyExistsException();
     }
 
-    final accountId = data.id.present ? data.id.value : _nextAccountId++;
-    return Account(
-      id: accountId,
-      realmUrl: data.realmUrl.value,
-      realmName: data.realmName.value,
-      realmIcon: data.realmIcon.value,
-      userId: data.userId.value,
-      email: data.email.value,
-      apiKey: data.apiKey.value,
-      zulipFeatureLevel: data.zulipFeatureLevel.value,
-      zulipVersion: data.zulipVersion.value,
-      zulipMergeBase: data.zulipMergeBase.value,
-      ackedPushToken: data.ackedPushToken.value,
-    );
+    if (!data.id.present) {
+      data = data.copyWith(id: Value(_nextAccountId++));
+    }
+
+    return await _bogusDb.accounts.mapFromCompanion(data, _bogusDb);
   }
 
   @override
