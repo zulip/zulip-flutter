@@ -5,8 +5,10 @@ import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
 import '../api/route/settings.dart';
+import '../api/route/users.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
+import '../model/actions.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
@@ -118,6 +120,7 @@ class ProfilePage extends StatelessWidget {
           _SetStatusButton(),
           if (!store.realmPresenceDisabled)
             _InvisibleModeToggle(),
+          _DeactivateAccountButton(),
         ]),
         const SizedBox(height: 16),
       ],
@@ -308,6 +311,102 @@ class _InvisibleModeToggle extends StatelessWidget {
         label: zulipLocalizations.invisibleMode,
         onPressed: () => handleRequestNewValue(!value),
         toggle: Toggle(value: value, onChanged: handleRequestNewValue)));
+  }
+}
+
+class _DeactivateAccountButton extends StatelessWidget {
+  const _DeactivateAccountButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ZulipMenuItemButton(
+      style: ZulipMenuItemButtonStyle.list,
+      label: 'Deactivate account',
+      icon: ZulipIcons.chevron_right,
+      onPressed: () async {
+        final zulipLocalizations = ZulipLocalizations.of(context);
+        final store = PerAccountStoreWidget.of(context);
+        final globalStore = GlobalStoreWidget.of(context);
+
+        final selfUser = store.selfUser;
+        final activeOwnerCount = store.allUsers
+          .where((user) => user.isActive && user.role == UserRole.owner)
+          .length;
+        final isSelfActiveOwner =
+          selfUser.isActive && selfUser.role == UserRole.owner;
+
+        if (isSelfActiveOwner && activeOwnerCount == 1) {
+          await showDialog<void>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text(zulipLocalizations.errorDialogTitle),
+                content: const Text(
+                  'If you are the only owner in the organization, you cannot deactivate your account. You will need to add another owner first.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(zulipLocalizations.dialogClose),
+                  ),
+                ],
+              );
+            },
+          );
+          return;
+        }
+
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Deactivate account'),
+              content: const Text(
+                'By deactivating your account, you will be logged out immediately.\n'
+                '\n'
+                'Note that any bots that you maintain will be disabled.\n'
+                '\n'
+                'Are you sure you want to deactivate your account?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(zulipLocalizations.dialogCancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Confirm'),
+                ),
+              ],
+            );
+          },
+        );
+        if (confirmed != true) return;
+
+        try {
+          await deactivateOwnUser(store.connection);
+        } catch (e) {
+          await showDialog<void>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text(zulipLocalizations.errorDialogTitle),
+                content: Text(e.toString()),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(zulipLocalizations.dialogClose),
+                  ),
+                ],
+              );
+            },
+          );
+          return;
+        }
+
+        await logOutAccount(globalStore, store.accountId);
+      },
+    );
   }
 }
 

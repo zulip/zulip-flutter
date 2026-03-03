@@ -50,6 +50,11 @@ Future<void> updateStatus(ApiConnection connection, {
   });
 }
 
+/// https://zulip.com/api/deactivate-own-user
+Future<void> deactivateOwnUser(ApiConnection connection) {
+  return connection.delete('deactivateOwnUser', (_) {}, 'users/me', {});
+}
+
 /// https://zulip.com/api/update-presence
 ///
 /// Passes true for `slim_presence` to avoid getting an ancient data format
