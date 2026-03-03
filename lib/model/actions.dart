@@ -25,6 +25,8 @@ Future<void> unregisterToken(GlobalStore globalStore, int accountId) async {
   final account = globalStore.getAccount(accountId);
   if (account == null) return; // TODO(log)
 
+  if (!account.possibleLegacyPushToken) return;
+
   // We don't know for sure what push token the server might have registered
   // for this device.  (That's fixed in the new push-registration protocol,
   // used for E2EE notifications.)  But the most likely candidate is the token

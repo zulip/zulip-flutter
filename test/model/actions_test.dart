@@ -45,10 +45,12 @@ void main() {
     return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
   }
 
-  Future<void> prepare() async {
+  Future<void> prepare({bool possibleLegacyPushToken = false}) async {
+    final account = eg.selfAccount.copyWith(
+      possibleLegacyPushToken: possibleLegacyPushToken);
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    await testBinding.globalStore.add(account, eg.initialSnapshot());
+    store = await testBinding.globalStore.perAccount(account.id);
     connection = store.connection as FakeApiConnection;
   }
 
@@ -100,6 +102,25 @@ void main() {
       NotificationService.instance.token = ValueNotifier('asdf');
 
       check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
+      final newConnection = separateConnection();
+
+      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+      check(newConnection.takeRequests()).isEmpty();
+      check(testBinding.globalStore.takeDoRemoveAccountCalls())
+        .single.equals(eg.selfAccount.id);
+
+      async.elapse(TestGlobalStore.removeAccountDuration);
+      await future;
+      check(testBinding.globalStore).accountIds.isEmpty();
+      check(connection.isOpen).isFalse();
+    }));
+
+    test('unregister token, if possibleLegacyPushToken', () => awaitFakeAsync((async) async {
+      await prepare(possibleLegacyPushToken: true);
+      addTearDown(NotificationService.debugReset);
+      NotificationService.instance.token = ValueNotifier('asdf');
+
+      check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
       const unregisterDelay = Duration(seconds: 5);
       assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
       final newConnection = separateConnection()
@@ -122,8 +143,8 @@ void main() {
       check(newConnection.isOpen).isFalse();
     }));
 
-    test('unregister request has an error', () => awaitFakeAsync((async) async {
-      await prepare();
+    test('unregister request has an error: remove account anyway', () => awaitFakeAsync((async) async {
+      await prepare(possibleLegacyPushToken: true);
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier('asdf');
 
@@ -177,7 +198,7 @@ void main() {
 
   group('unregisterToken', () {
     testAndroidIos('smoke, happy path', () => awaitFakeAsync((async) async {
-      await prepare();
+      await prepare(possibleLegacyPushToken: true);
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier('asdf');
 
@@ -190,8 +211,20 @@ void main() {
       check(newConnection.isOpen).isFalse();
     }));
 
-    test('no error if current token missing', () => awaitFakeAsync((async) async {
-      await prepare();
+    test('if not possibleLegacyPushToken, do nothing', () => awaitFakeAsync((async) async {
+      await prepare(possibleLegacyPushToken: false);
+      addTearDown(NotificationService.debugReset);
+      NotificationService.instance.token = ValueNotifier('asdf');
+
+      final newConnection = separateConnection();
+      final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
+      async.flushTimers();
+      await future;
+      check(newConnection.takeRequests()).isEmpty();
+    }));
+
+    test('if current token missing, do nothing (and no error)', () => awaitFakeAsync((async) async {
+      await prepare(possibleLegacyPushToken: true);
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier(null);
 
@@ -203,7 +236,7 @@ void main() {
     }));
 
     test('connection closed if request errors', () => awaitFakeAsync((async) async {
-      await prepare();
+      await prepare(possibleLegacyPushToken: true);
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier('asdf');
 
