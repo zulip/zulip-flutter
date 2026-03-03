@@ -821,6 +821,12 @@
       <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/packages/integration_test/integration_test_macos/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/packages/integration_test/integration_test_macos/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/packages/integration_test/integration_test_macos/build" />
+      <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/bin/cache/pkg/flutter_gpu/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/bin/cache/pkg/flutter_gpu/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/bin/cache/pkg/flutter_gpu/build" />
+      <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/bin/cache/pkg/sky_engine/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/bin/cache/pkg/sky_engine/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/.fvm/versions/main/bin/cache/pkg/sky_engine/build" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Dart SDK" level="project" />

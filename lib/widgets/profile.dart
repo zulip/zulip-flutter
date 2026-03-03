@@ -386,6 +386,7 @@ class _DeactivateAccountButton extends StatelessWidget {
         try {
           await deactivateOwnUser(store.connection);
         } catch (e) {
+          if (!context.mounted) return;
           await showDialog<void>(
             context: context,
             builder: (context) {
