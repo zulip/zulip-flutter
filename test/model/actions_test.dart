@@ -96,6 +96,19 @@ void main() {
     };
   }
 
+  Condition<Object?> isUnregisterDeviceRequest({
+    int? expectedDeviceId,
+  }) {
+    return (it) {
+      final subject = it.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/remove_client_device');
+      if (expectedDeviceId != null) {
+        subject.bodyFields.deepEquals({'device_id': expectedDeviceId.toString()});
+      }
+    };
+  }
+
   void checkSingleUnregisterRequest(
     FakeApiConnection connection, {
     String? expectedToken,
@@ -212,50 +225,83 @@ void main() {
       NotificationService.instance.token = ValueNotifier('asdf');
 
       final newConnection = separateConnection()
+        ..prepare(json: {'msg': '', 'result': 'success'})
         ..prepare(json: {'msg': '', 'result': 'success'});
       final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
       async.elapse(Duration.zero);
       await future;
-      checkSingleUnregisterRequest(newConnection, expectedToken: 'asdf');
+      check(newConnection.takeRequests()).deepEquals([
+        isUnregisterTokenRequest(expectedToken: 'asdf'),
+        isUnregisterDeviceRequest(expectedDeviceId: eg.selfAccount.deviceId),
+      ]);
       check(newConnection.isOpen).isFalse();
     }));
 
-    test('if not possibleLegacyPushToken, do nothing', () => awaitFakeAsync((async) async {
+    test('if not possibleLegacyPushToken, no token request', () => awaitFakeAsync((async) async {
       await prepare(possibleLegacyPushToken: false);
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier('asdf');
 
-      final newConnection = separateConnection();
+      final newConnection = separateConnection()
+        ..prepare(json: {'msg': '', 'result': 'success'});
       final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
       async.flushTimers();
       await future;
-      check(newConnection.takeRequests()).isEmpty();
+      check(newConnection.takeRequests()).deepEquals([
+        isUnregisterDeviceRequest(),
+      ]);
     }));
 
-    test('if current token missing, do nothing (and no error)', () => awaitFakeAsync((async) async {
+    test('if current token missing, no token request (and no error)', () => awaitFakeAsync((async) async {
       await prepare(possibleLegacyPushToken: true);
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier(null);
 
-      final newConnection = separateConnection();
+      final newConnection = separateConnection()
+        ..prepare(json: {'msg': '', 'result': 'success'});
       final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
       async.flushTimers();
       await future;
-      check(newConnection.takeRequests()).isEmpty();
+      check(newConnection.takeRequests()).deepEquals([
+        isUnregisterDeviceRequest(),
+      ]);
     }));
 
-    test('connection closed if request errors', () => awaitFakeAsync((async) async {
+    test('if no deviceId, no device request (and no error)', () => awaitFakeAsync((async) async {
+      final account = eg.selfAccount.copyWith(
+        deviceId: Value(null), possibleLegacyPushToken: true);
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+
+      addTearDown(NotificationService.debugReset);
+      NotificationService.instance.token = ValueNotifier('asdf');
+
+      final newConnection = separateConnection()
+        ..prepare(json: {'msg': '', 'result': 'success'});
+      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
+      async.flushTimers();
+      await future;
+      check(newConnection.takeRequests()).deepEquals([
+        isUnregisterTokenRequest(),
+      ]);
+    }));
+
+    test('even if requests error, both happen and connection closed', () => awaitFakeAsync((async) async {
       await prepare(possibleLegacyPushToken: true);
       addTearDown(NotificationService.debugReset);
       NotificationService.instance.token = ValueNotifier('asdf');
 
       final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
+        ..prepare(apiException: exception)
         ..prepare(apiException: exception);
       final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
       async.elapse(Duration.zero);
       await future;
-      checkSingleUnregisterRequest(newConnection, expectedToken: 'asdf');
+      check(newConnection.takeRequests()).deepEquals([
+        isUnregisterTokenRequest(),
+        isUnregisterDeviceRequest(),
+      ]);
       check(newConnection.isOpen).isFalse();
     }));
   });

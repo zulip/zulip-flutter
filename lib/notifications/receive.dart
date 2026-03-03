@@ -222,7 +222,8 @@ class NotificationService {
     if (pushKey == null) {
       // Not a key we have; nothing we can do with this notification-message.
       // This can happen if it's addressed to an account that's been logged out.
-      // TODO(#1764) try to unregister on logout (though this will still sometimes happen)
+      // (On logout we try to unregister the device, but that can fail if the
+      // device isn't able to reach the server at that time.)
       return;
     }
     final account = globalStore.getAccount(pushKey.accountId)!;
