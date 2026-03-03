@@ -17,6 +17,8 @@ import Flutter
 
     let controller = window?.rootViewController as! FlutterViewController
 
+    IosNativeHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: IosNativeHostApiImpl())
+
     // Retrieve the remote notification payload from launch options;
     // this will be null if the launch wasn't triggered by a notification.
     let notificationPayload = launchOptions?[.remoteNotification] as? [AnyHashable : Any]
@@ -67,5 +69,15 @@ class NotificationTapEventListener: NotificationTapEventsStreamHandler {
 
   func onNotificationTapEvent(payload: [AnyHashable : Any]) {
     eventSink?.success(IosNotificationTapEvent(payload: payload))
+  }
+}
+
+private class IosNativeHostApiImpl: IosNativeHostApi {
+  func setExcludedFromBackup(filePath: String) throws {
+    var resourceValues = URLResourceValues()
+    resourceValues.isExcludedFromBackup = true
+
+    var url = URL(fileURLWithPath: filePath, isDirectory: false)
+    try url.setResourceValues(resourceValues)
   }
 }
