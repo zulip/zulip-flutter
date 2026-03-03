@@ -274,6 +274,44 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Échec de la suppression du message';
 
   @override
+  String get actionSheetOptionReportMessage => 'Report message';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
+  String get reportMessageDialogTitle => 'Report a message';
+
+  @override
+  String get reportMessageDialogDescription =>
+      'Your report will be sent to the private moderation requests channel for this organization.';
+
+  @override
+  String get reportMessageReasonLabel =>
+      'What\'s the problem with this message?';
+
+  @override
+  String get reportMessageReasonSpam => 'Spam';
+
+  @override
+  String get reportMessageReasonHarassment => 'Harassment';
+
+  @override
+  String get reportMessageReasonInappropriate => 'Inappropriate content';
+
+  @override
+  String get reportMessageReasonNorms => 'Violates community norms';
+
+  @override
+  String get reportMessageReasonOther => 'Other reason';
+
+  @override
+  String get reportMessageDetailsLabel => 'Can you provide more details?';
+
+  @override
+  String get reportMessageSubmitButton => 'Submit';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead =>
       'Marquer la conversation comme lu';
 

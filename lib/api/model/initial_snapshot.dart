@@ -115,6 +115,11 @@ class InitialSnapshot {
 
   final bool realmEnableReadReceipts;
 
+  /// The channel ID for moderation requests, or null if not configured.
+  ///
+  /// When set, users can report messages which are sent to this private channel.
+  final int? realmModerationRequestChannelId;
+
   final Uri realmIconUrl;
 
   final bool realmPresenceDisabled;
@@ -202,6 +207,7 @@ class InitialSnapshot {
     required this.realmAllowMessageEditing,
     required this.realmMessageContentEditLimitSeconds,
     required this.realmEnableReadReceipts,
+    required this.realmModerationRequestChannelId,
     required this.realmIconUrl,
     required this.realmPresenceDisabled,
     required this.realmDefaultExternalAccounts,
