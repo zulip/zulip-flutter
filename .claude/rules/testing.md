@@ -300,6 +300,18 @@ checkNoDialog(tester);
 - Long argument lists break with each named argument on its own line, but short calls stay on one line.
 - `late` variables are used at the group level for shared state that gets assigned in setup helpers. `final` is used within test bodies for immutable test data.
 
+
+## Writing tests for a given piece of code
+
+- **When writing tests for a change, verify they actually test it.**
+  After writing tests for a commit, check: would these tests fail if
+  the commit's changes were reverted?
+  If not, the tests don't cover the commit.
+
+- **When a test is specifically about some property, pass it explicitly**
+  even if it matches the default — this documents the test's intent.
+
+
 ## Regression tests
 
 When a test is a regression test for a specific bug, add a comment linking to the issue:
