@@ -51,3 +51,13 @@ class RegisterClientDeviceResult {
 
   Map<String, dynamic> toJson() => _$RegisterClientDeviceResultToJson(this);
 }
+
+/// https://zulip.com/api/remove-client-device
+Future<void> removeClientDevice(ApiConnection connection, {
+  required int deviceId,
+}) {
+  assert(connection.zulipFeatureLevel! >= 470); // TODO(server-12)
+  return connection.post('removeClientDevice', (_) {}, 'remove_client_device', {
+    'device_id': deviceId,
+  });
+}
