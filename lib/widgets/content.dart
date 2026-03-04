@@ -1235,8 +1235,7 @@ class Mention extends StatelessWidget {
         // (The parser on creating a MentionNode has a TODO to check that.)
         linkRecognizers: null,
 
-        // TODO(#647) when self-user is non-silently mentioned, make bold, and:
-        // TODO(#646) distinguish font color between direct and wildcard mentions
+        // TODO(#647) when self-user is mentioned, make bold, and change font color.
         style: ambientTextStyle,
 
         nodes: nodes));
