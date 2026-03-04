@@ -2072,7 +2072,9 @@ class SenderRow extends StatelessWidget {
     // and we show a sender row in at least one place outside the message list
     // (the message action sheet).
     if (revealedMutedMessagesState == null) return false;
-    return !revealedMutedMessagesState.isMutedMessageRevealed(message.id);
+    // Always show sender as muted if user is muted, regardless of message reveal state.
+    // Revealing the message only affects content visibility, not sender identity masking.
+    return true;
   }
 
   @override
@@ -2327,28 +2329,34 @@ class MessageWithPossibleSender extends StatelessWidget {
         || KeywordSearchNarrow() => true,
     };
 
-    final showAsMuted = store.isUserMuted(message.senderId)
-      && !MessageListPage.maybeRevealedMutedMessagesOf(context)!
-                         .isMutedMessageRevealed(message.id);
+    // Wrap message rendering in ListenableBuilder to ensure rebuild when
+    // store's muted users state changes (fixing issue: message list doesn't
+    // refresh after muting a user).
+    return ListenableBuilder(
+      listenable: store,
+      builder: (BuildContext context, Widget? child) {
+        final revealedMutedMessagesState = MessageListPage.maybeRevealedMutedMessagesOf(context);
+        final showAsMuted = store.isUserMuted(message.senderId)
+          && (revealedMutedMessagesState == null || !revealedMutedMessagesState.isMutedMessageRevealed(message.id));
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: tapOpensConversation
-        ? () => unawaited(Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
-              // TODO(#1655) "this view does not mark messages as read on scroll"
-              initAnchorMessageId: message.id)))
-        : null,
-      onLongPress: showAsMuted
-        ? null // TODO write a test for this
-        : () => showMessageActionSheet(context: context, message: message),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Column(children: [
-          if (item.showSender)
-            SenderRow(message: message,
-              timestampStyle: MessageTimestampStyle.timeOnly),
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: tapOpensConversation
+            ? () => unawaited(Navigator.push(context,
+                MessageListPage.buildRoute(context: context,
+                  narrow: SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
+                  // TODO(#1655) "this view does not mark messages as read on scroll"
+                  initAnchorMessageId: message.id)))
+            : null,
+          onLongPress: showAsMuted
+            ? null // TODO write a test for this
+            : () => showMessageActionSheet(context: context, message: message),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Column(children: [
+              if (item.showSender)
+                SenderRow(message: message,
+                  timestampStyle: MessageTimestampStyle.timeOnly),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
@@ -2392,6 +2400,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                 child: star),
             ]),
         ])));
+      });
   }
 }
 
