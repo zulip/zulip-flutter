@@ -127,6 +127,15 @@ class ContentExample {
     '<p><span class="silent user-mention" data-user-id="2187">Greg Price</span></p>',
     const UserMentionNode(nodes: [TextNode('Greg Price')], isSilent: true, userId: 2187));
 
+  // No silent version of this form, because silent mentions were new
+  // in zulip/zulip#11221, long after this legacy form was removed.
+  static final legacyUserMention = ContentExample.inline(
+    'legacy user @-mention',
+    "@**Greg Price**", // (before 2017-01)
+    expectedText: '@Greg Price',
+    '<p><span class="user-mention" data-user-email="email@example.com">@Greg Price</span></p>',
+    const UserMentionNode(nodes: [TextNode('@Greg Price')], isSilent: false, userId: null));
+
   static final groupMentionPlain = ContentExample.inline(
     'plain group @-mention',
     "@*test-empty*",
@@ -1867,6 +1876,8 @@ void main() async {
     testParseExample(ContentExample.userMentionPlain);
     testParseExample(ContentExample.userMentionSilent);
     testParseExample(ContentExample.userMentionSilentClassOrderReversed);
+
+    testParseExample(ContentExample.legacyUserMention);
 
     testParseExample(ContentExample.groupMentionPlain);
     testParseExample(ContentExample.groupMentionSilent);

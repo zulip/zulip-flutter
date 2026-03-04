@@ -987,6 +987,8 @@ void main() {
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.userMentionSilentClassOrderReversed,
       wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.legacyUserMention,
+      wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionPlain,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionSilent,
