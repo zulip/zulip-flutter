@@ -81,6 +81,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Direktnachricht senden';
 
   @override
+  String get profileButtonMuteUser => 'Mute user';
+
+  @override
+  String get profileButtonUnmuteUser => 'Unmute user';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'Nutzerprofil kann nicht angezeigt werden.';
 

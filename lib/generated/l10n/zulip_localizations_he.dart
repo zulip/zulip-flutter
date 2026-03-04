@@ -81,6 +81,12 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'שלח הודעה ישירה';
 
   @override
+  String get profileButtonMuteUser => 'Mute user';
+
+  @override
+  String get profileButtonUnmuteUser => 'Unmute user';
+
+  @override
   String get errorCouldNotShowUserProfile => 'לא ניתן להציג פרופיל משתמש.';
 
   @override

@@ -82,6 +82,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Надіслати особисте повідомлення';
 
   @override
+  String get profileButtonMuteUser => 'Mute user';
+
+  @override
+  String get profileButtonUnmuteUser => 'Unmute user';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'Не вдалося показати профіль користувача.';
 

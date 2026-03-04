@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
 import '../api/route/settings.dart';
+import '../api/route/users.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
@@ -132,10 +133,26 @@ class ProfilePage extends StatelessWidget {
         label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
     ];
 
+    final isMuted = store.isUserMuted(userId);
     return Scaffold(
       appBar: ZulipAppBar(
         // TODO write a test where the user is muted
-        title: Text(store.userDisplayName(userId, replaceIfMuted: false))),
+        title: Text(store.userDisplayName(userId, replaceIfMuted: false)),
+        actions: userId != store.selfUserId ? [
+          TextButton(
+            onPressed: () async {
+              if (isMuted) {
+                await unmuteUser(store.connection, mutedUserId: userId);
+              } else {
+                await muteUser(store.connection, mutedUserId: userId);
+              }
+            },
+            child: Text(isMuted
+              ? zulipLocalizations.profileButtonUnmuteUser
+              : zulipLocalizations.profileButtonMuteUser),
+          ),
+        ] : null,
+      ),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(

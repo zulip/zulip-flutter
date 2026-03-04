@@ -282,6 +282,18 @@ abstract class ZulipLocalizations {
   /// **'Send direct message'**
   String get profileButtonSendDirectMessage;
 
+  /// Label for button in profile screen to mute the shown user.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute user'**
+  String get profileButtonMuteUser;
+
+  /// Label for button in profile screen to unmute the shown user.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute user'**
+  String get profileButtonUnmuteUser;
+
   /// Message that appears on the user profile page when the profile cannot be shown.
   ///
   /// In en, this message translates to:
