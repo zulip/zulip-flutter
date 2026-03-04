@@ -103,8 +103,6 @@ class PushDeviceManager extends PerAccountStoreBase {
   /// Send this client's notification token to the server, now and if it changes.
   // TODO(#322) save acked token, to dedupe updating it on the server
   // TODO(#323) track the addFcmToken/etc request, warn if not succeeding
-  // TODO it would be nice to register the token before even registerQueue:
-  //   https://github.com/zulip/zulip-flutter/pull/325#discussion_r1365982807
   void _registerTokenAndSubscribe() async {
     _debugMaybePause();
     if (_debugRegisterTokenProceed != null) {
