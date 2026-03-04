@@ -985,9 +985,13 @@ void main() {
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.userMentionSilent,
       wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.userMentionSilentClassOrderReversed,
+      wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionPlain,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionSilent,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.groupMentionSilentClassOrderReversed,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.channelWildcardMentionPlain,
       wrapWithPerAccountStoreWidget: true);
