@@ -1220,6 +1220,7 @@ class Mention extends StatelessWidget {
           nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
         }
       case UserMentionNode(userId: null):
+      case WildcardMentionNode():
     }
 
     return Container(

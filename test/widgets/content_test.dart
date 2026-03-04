@@ -1104,8 +1104,8 @@ void main() {
       testWidgets('falls back to original text when userId is null', (tester) async {
         await prepare(
           tester: tester,
-          html: '<p><span class="user-mention channel-wildcard-mention" data-user-id="*">@all</span></p>');
-        check(find.text('@all')).findsOne();
+          html: '<p><span class="user-mention" data-user-email="email@example.com">@Greg Price</span></p>');
+        check(find.text('@Greg Price')).findsOne();
       });
 
       testWidgets('handles silent mentions correctly', (tester) async {

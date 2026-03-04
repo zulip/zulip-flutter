@@ -1097,8 +1097,8 @@ class UserMentionNode extends MentionNode {
 
   /// The ID of the user being mentioned.
   ///
-  /// This is null for wildcard mentions
-  /// or when the user ID is unavailable in the HTML (e.g., legacy mentions).
+  /// This is null when the user ID is unavailable in the HTML,
+  /// e.g., when the mention is a legacy user mention.
   final int? userId;
 
   @override
@@ -1129,7 +1129,13 @@ class UserGroupMentionNode extends MentionNode {
   }
 }
 
-// TODO(#646) add WildcardMentionNode
+class WildcardMentionNode extends MentionNode {
+  const WildcardMentionNode({
+    super.debugHtmlNode,
+    required super.nodes,
+    required super.isSilent,
+  });
+}
 
 sealed class EmojiNode extends InlineContentNode {
   const EmojiNode({super.debugHtmlNode});
@@ -1369,29 +1375,35 @@ class _ZulipInlineContentParser {
     //   tighter on a MentionNode's contents overall.
     final nodes = parseInlineContentList(element.nodes);
 
-    if (mentionType case 'user-group-mention') {
-      final userGroupId = int.tryParse(
-        element.attributes['data-user-group-id'] ?? '',
-        radix: 10);
-      if (userGroupId == null) {
+    switch ((mentionType, element.attributes['data-user-id'])) {
+      case ('user-group-mention', _):
+        final userGroupId = int.tryParse(
+          element.attributes['data-user-group-id'] ?? '',
+          radix: 10);
+        if (userGroupId == null) {
+          return null;
+        }
+        return UserGroupMentionNode(
+          nodes: nodes,
+          isSilent: isSilent,
+          userGroupId: userGroupId,
+          debugHtmlNode: debugHtmlNode);
+      case ('topic-mention', _):
+      case ('user-mention', _) when hasChannelWildcardClass:
+      case ('user-mention', '*'): // legacy channel wildcard
+        return WildcardMentionNode(
+          nodes: nodes,
+          isSilent: isSilent,
+          debugHtmlNode: debugHtmlNode);
+      case ('user-mention', final userIdString):
+        final userId = int.tryParse(userIdString ?? '', radix: 10);
+        return UserMentionNode(
+          nodes: nodes,
+          isSilent: isSilent,
+          userId: userId,
+          debugHtmlNode: debugHtmlNode);
+      case _:
         return null;
-      }
-      return UserGroupMentionNode(
-        nodes: nodes,
-        isSilent: isSilent,
-        userGroupId: userGroupId,
-        debugHtmlNode: debugHtmlNode);
-    } else {
-      final userId = switch (element.attributes['data-user-id']) {
-        // For legacy or wildcard mentions.
-        null || '*' => null,
-        final userIdString => int.tryParse(userIdString, radix: 10),
-      };
-      return UserMentionNode(
-        nodes: nodes,
-        isSilent: isSilent,
-        userId: userId,
-        debugHtmlNode: debugHtmlNode);
     }
   }
 
