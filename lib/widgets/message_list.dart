@@ -2072,9 +2072,7 @@ class SenderRow extends StatelessWidget {
     // and we show a sender row in at least one place outside the message list
     // (the message action sheet).
     if (revealedMutedMessagesState == null) return false;
-    // Always show sender as muted if user is muted, regardless of message reveal state.
-    // Revealing the message only affects content visibility, not sender identity masking.
-    return true;
+    return !revealedMutedMessagesState.isMutedMessageRevealed(message.id);
   }
 
   @override
