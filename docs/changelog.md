@@ -2,6 +2,78 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* You can now reach the search page from the inbox
+  and the combined feed pages. (#1854)
+* You can now pin/unpin channels. (#1942)
+* (Android) Fixed a bug where sometimes opening a notification
+  wouldn't navigate to the conversation. (#1567)
+* (Android) We now show your organization's name instead of its URL
+  in notifications. (#570)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* CI:
+  * Split Android build into a separate job to save time getting a result
+    from the rest of our suites. (#2145)
+  * In `test` suite output, show only failing tests, not passing. (#2141)
+  * Pin Flutter to the version we use in release, temporarily. (#2140)
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #2103: Flutter upgrade.
+  * #2102
+  * #2096: fix #1339. Fixed bug where event-queue retry loop would
+    break if app in background overnight.
+  * #2087: fix #1258. Handle user renames in rendering @-mentions.
+  * #2070: fix a latent RTL bug in autocomplete results.
+  * #2123: fix #1942. Add "Pin to top" / "Unpin from top" button to the
+    channel action sheet.
+  * #2124
+  * #1954: fix #1953. Removed 100ms delay before touch feedback
+    in some places.
+  * #2120: fix part of #537. Fixed glitches in the Inbox with VoiceOver.
+  * #2131
+  * #2133: Update translations from Weblate.
+  * #2138
+  * #2140
+  * #2141
+  * #2043: fix #1567. Fixed a bug on Android where sometimes
+    opening a notification wouldn't navigate to the conversation.
+  * #2142
+  * #2143
+  * #2144
+  * #2135
+  * #2145
+  * #2134
+  * #2129: Flutter and package upgrades.
+  * #2119: fix #1259. Handle user-group renames in rendering @-mentions.
+  * #2136: fix #570. On Android, use org name instead of URL as
+    notification group summary.
+  * #2155
+  * #1882: fix #1558. When we can't load a user's avatar,
+    show a generic placeholder.
+  * #2125: fix #894. Handle flags for @-topic mentions.
+    (NFC with current servers; we expect these from future servers.)
+  * #2090: fix #2088. Fix some bugs where topics were treated
+    case-sensitively when they should not be.
+  * #2148: fix #2132. Make some tab labels shorter.
+  * #2160: fix the Android part of #2158. On Android, exclude all data
+    from backups.
+  * #2147
+  * #2180
+  * #2175: fix #1260. Show translated user-facing strings for @-mentions
+    of system groups.
+  * #2171: Set up Patrol for integration tests.
+  * #2176
+  * #2164: fix #1854. Add search button to inbox and combined feed.
+  * #2196
+  * #2157
+  * #2207
+  * #2195: fix #2158. Exclude the database file from iOS backup.
+
 
 ## 30.0.270 (2026-01-26)
 
