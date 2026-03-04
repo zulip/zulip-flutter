@@ -95,3 +95,17 @@ class UpdatePresenceResult {
 
   Map<String, dynamic> toJson() => _$UpdatePresenceResultToJson(this);
 }
+
+/// https://zulip.com/api/mute-user
+Future<void> muteUser(ApiConnection connection, {
+  required int mutedUserId,
+}) {
+  return connection.post('muteUser', (_) {}, 'users/me/muted_users/$mutedUserId', {});
+}
+
+/// https://zulip.com/api/unmute-user
+Future<void> unmuteUser(ApiConnection connection, {
+  required int mutedUserId,
+}) {
+  return connection.delete('unmuteUser', (_) {}, 'users/me/muted_users/$mutedUserId', {});
+}
