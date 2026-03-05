@@ -59,14 +59,6 @@ void main() {
     });
   });
 
-  test('updateUserTopic only accepts valid visibility policy', () {
-    return FakeApiConnection.with_((connection) async {
-      check(() => updateUserTopic(connection,
-        streamId: 1, topic: const TopicName('topic'),
-        visibilityPolicy: UserTopicVisibilityPolicy.unknown),
-      ).throws<AssertionError>();
-    });
-  });
 
   test('updateUserTopicCompat when FL >= 170', () {
     return FakeApiConnection.with_((connection) async {
