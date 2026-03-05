@@ -710,7 +710,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final streamName = store.streams[widget.narrow.streamId]?.name
+    final streamName = store.streams[widget.narrow.channelId]?.name
       ?? zulipLocalizations.unknownChannelName;
     final hintTopic = _hintTopic();
     final hintDestination = hintTopic == null
@@ -722,7 +722,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
     return _TypingNotifier(
-      destination: TopicNarrow(widget.narrow.streamId,
+      destination: TopicNarrow(widget.narrow.channelId,
         TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
       child: _ContentInput(
@@ -883,9 +883,9 @@ class _FixedDestinationContentInput extends StatelessWidget {
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch (narrow) {
-      case TopicNarrow(:final streamId, :final topic):
+      case TopicNarrow(:final channelId, :final topic):
         final store = PerAccountStoreWidget.of(context);
-        final streamName = store.streams[streamId]?.name
+        final streamName = store.streams[channelId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
           // No i18n of this use of "#" and ">" string; those are part of how
@@ -1530,7 +1530,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   final StreamComposeBoxController controller;
 
   @override Widget buildTopicInput() => _TopicInput(
-    streamId: narrow.streamId,
+    streamId: narrow.channelId,
     controller: controller,
   );
 
@@ -1544,7 +1544,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => StreamDestination(
-      narrow.streamId, TopicName(controller.topic.textNormalized)),
+      narrow.channelId, TopicName(controller.topic.textNormalized)),
   );
 }
 
@@ -2233,9 +2233,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch (widget.narrow) {
-      case ChannelNarrow(:final streamId):
-      case TopicNarrow(:final streamId):
-        final channel = store.streams[streamId];
+      case ChannelNarrow(:final channelId):
+      case TopicNarrow(:final channelId):
+        final channel = store.streams[channelId];
         if (channel == null || !store.selfHasContentAccess(channel)) {
           return _Banner(
             intent: _BannerIntent.info,
@@ -2261,7 +2261,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
                 intent: _BannerIntent.warning,
                 label: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend,
                 useSmallerText: true,
-                trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+                trailing: _UnsubscribedChannelBannerTrailing(channelId: channelId));
         }
 
       case DmNarrow(:final otherRecipientIds):
@@ -2305,19 +2305,19 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
     final narrow = widget.narrow;
     switch (narrow) {
-      case ChannelNarrow(:final streamId):
-      case TopicNarrow(:final streamId):
-        final channel = store.streams[streamId];
+      case ChannelNarrow(:final channelId):
+      case TopicNarrow(:final channelId):
+        final channel = store.streams[channelId];
         // (If the channel is unknown, we should have already decided
         // what to show.)
         assert(channel != null);
-        final subscription = store.subscriptions[streamId];
+        final subscription = store.subscriptions[channelId];
         if (channel != null && subscription == null) {
           banner = _Banner(
             intent: _BannerIntent.warning,
             label: zulipLocalizations.composeBoxBannerLabelUnsubscribed,
             useSmallerText: true,
-            trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+            trailing: _UnsubscribedChannelBannerTrailing(channelId: channelId));
         }
 
       case DmNarrow():

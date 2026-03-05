@@ -228,7 +228,7 @@ void main() {
         foundOldest: true,
         messages: narrow is ChannelNarrow
           ? () {
-              assert(channel != null && channel.streamId == narrow.streamId);
+              assert(channel != null && channel.streamId == narrow.channelId);
               // Include one message so that we don't auto-focus the topic input,
               // which would trigger a topic-list fetch for topic autocomplete.
               // That's helpful for the test that opens the topic-list page.
@@ -414,7 +414,7 @@ void main() {
       testWidgets('channel not subscribed, with content access', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        await store.removeSubscription(narrow.streamId);
+        await store.removeSubscription(narrow.channelId);
         check(store.selfHasContentAccess(someChannel)).isTrue();
         await showFromMsglistAppBar(tester, narrow: narrow);
         checkButton('Subscribe');
@@ -438,7 +438,7 @@ void main() {
       testWidgets('channel subscribed', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        check(store.subscriptions[narrow.streamId]).isNotNull();
+        check(store.subscriptions[narrow.channelId]).isNotNull();
         await showFromMsglistAppBar(tester, narrow: narrow);
         checkNoButton('Subscribe');
       });
@@ -446,7 +446,7 @@ void main() {
       testWidgets('smoke', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        await store.removeSubscription(narrow.streamId);
+        await store.removeSubscription(narrow.channelId);
         await showFromMsglistAppBar(tester, narrow: narrow);
 
         connection.prepare(json: {});
@@ -640,7 +640,7 @@ void main() {
       testWidgets('channel subscribed, not pinned', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        check(store.subscriptions[narrow.streamId]).isNotNull()
+        check(store.subscriptions[narrow.channelId]).isNotNull()
           .pinToTop.isFalse();
         await showFromMsglistAppBar(tester, narrow: narrow);
         checkButton('Pin to top');
@@ -652,7 +652,7 @@ void main() {
         await store.removeSubscription(someChannel.streamId);
         await store.addSubscription(eg.subscription(someChannel, pinToTop: true));
         final narrow = ChannelNarrow(someChannel.streamId);
-        check(store.subscriptions[narrow.streamId]).isNotNull()
+        check(store.subscriptions[narrow.channelId]).isNotNull()
           .pinToTop.isTrue();
         await showFromMsglistAppBar(tester, narrow: narrow);
         checkNoButton('Pin to top');
@@ -662,7 +662,7 @@ void main() {
       testWidgets('channel not subscribed', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        await store.removeSubscription(narrow.streamId);
+        await store.removeSubscription(narrow.channelId);
         await showFromMsglistAppBar(tester, narrow: narrow);
         checkNoButton('Pin to top');
         checkNoButton('Unpin from top');
@@ -721,7 +721,7 @@ void main() {
       testWidgets('channel subscribed', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        check(store.subscriptions[narrow.streamId]).isNotNull();
+        check(store.subscriptions[narrow.channelId]).isNotNull();
         await showFromMsglistAppBar(tester, narrow: narrow);
         checkButton('Unsubscribe');
       });
@@ -729,7 +729,7 @@ void main() {
       testWidgets('channel not subscribed', (tester) async {
         await prepare();
         final narrow = ChannelNarrow(someChannel.streamId);
-        await store.removeSubscription(narrow.streamId);
+        await store.removeSubscription(narrow.channelId);
         await showFromMsglistAppBar(tester, narrow: narrow);
         checkNoButton('Unsubscribe');
       });

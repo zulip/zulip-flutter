@@ -611,7 +611,7 @@ void main() {
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()
-            ..streamId.equals(1)
+            ..channelId.equals(1)
             ..topic.equals(TopicName('topic A')));
       });
     });
@@ -687,7 +687,7 @@ void main() {
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()
-            ..streamId.equals(1)
+            ..channelId.equals(1)
             ..topic.equals(eg.t('topic A')));
       });
 

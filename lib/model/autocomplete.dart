@@ -564,9 +564,9 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     TopicName? topic;
     switch (narrow) {
       case ChannelNarrow():
-        streamId = narrow.streamId;
+        streamId = narrow.channelId;
       case TopicNarrow():
-        streamId = narrow.streamId;
+        streamId = narrow.channelId;
         topic = narrow.topic;
       case DmNarrow():
         break;
@@ -1365,9 +1365,10 @@ class ChannelLinkAutocompleteView extends AutocompleteView<ChannelLinkAutocomple
 
     int? channelId;
     switch (narrow) {
-      case ChannelNarrow(:var streamId):
-      case TopicNarrow(:var streamId):
-        channelId = streamId;
+      case ChannelNarrow():
+        channelId = narrow.channelId;
+      case TopicNarrow():
+        channelId = narrow.channelId;
       case DmNarrow():
         break;
       case CombinedFeedNarrow():

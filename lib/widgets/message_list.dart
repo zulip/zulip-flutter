@@ -452,9 +452,9 @@ abstract class _MessageListAppBar {
       case KeywordSearchNarrow():
         appBarBackgroundColor = null; // i.e., inherit
 
-      case ChannelNarrow(:final streamId):
-      case TopicNarrow(:final streamId):
-        final subscription = store.subscriptions[streamId];
+      case ChannelNarrow(:final channelId):
+      case TopicNarrow(:final channelId):
+        final subscription = store.subscriptions[channelId];
         appBarBackgroundColor =
           colorSwatchFor(context, subscription).barBackground;
         // All recipient headers will match this color; remove distracting line
@@ -482,16 +482,16 @@ abstract class _MessageListAppBar {
       case KeywordSearchNarrow():
       case DmNarrow():
         break;
-      case ChannelNarrow(:final streamId):
-        actions.add(_TopicListButton(streamId: streamId));
-      case TopicNarrow(:final streamId):
+      case ChannelNarrow(:final channelId):
+        actions.add(_TopicListButton(streamId: channelId));
+      case TopicNarrow(:final channelId):
         actions.add(IconButton(
           icon: const Icon(ZulipIcons.message_feed),
           tooltip: zulipLocalizations.channelFeedButtonTooltip,
           onPressed: () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: ChannelNarrow(streamId)))));
-        actions.add(_TopicListButton(streamId: streamId));
+              narrow: ChannelNarrow(channelId)))));
+        actions.add(_TopicListButton(streamId: channelId));
     }
 
     return ZulipAppBar(
@@ -634,9 +634,9 @@ class MessageListAppBarTitle extends StatelessWidget {
       case StarredMessagesNarrow():
         return Text(zulipLocalizations.starredMessagesPageTitle);
 
-      case ChannelNarrow(:var streamId):
+      case ChannelNarrow(:var channelId):
         final store = PerAccountStoreWidget.of(context);
-        final stream = store.streams[streamId];
+        final stream = store.streams[channelId];
         final alignment = willCenterTitle
           ? Alignment.center
           : AlignmentDirectional.centerStart;
@@ -645,14 +645,14 @@ class MessageListAppBarTitle extends StatelessWidget {
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onLongPress: () {
-              showChannelActionSheet(context, channelId: streamId);
+              showChannelActionSheet(context, channelId: channelId);
             },
             child: Align(alignment: alignment,
               child: _buildStreamRow(context, stream: stream))));
 
-      case TopicNarrow(:var streamId, :var topic):
+      case TopicNarrow(:var channelId, :var topic):
         final store = PerAccountStoreWidget.of(context);
-        final stream = store.streams[streamId];
+        final stream = store.streams[channelId];
         final alignment = willCenterTitle
           ? Alignment.center
           : AlignmentDirectional.centerStart;
@@ -662,7 +662,7 @@ class MessageListAppBarTitle extends StatelessWidget {
             GestureDetector(
               behavior: HitTestBehavior.translucent,
               onLongPress: () {
-                showChannelActionSheet(context, channelId: streamId);
+                showChannelActionSheet(context, channelId: channelId);
               },
               child: Align(alignment: alignment,
                 child: _buildStreamRow(context, stream: stream))),
@@ -678,7 +678,7 @@ class MessageListAppBarTitle extends StatelessWidget {
                 // act on anyway.
                 assert(someMessage == null || narrow.containsMessage(someMessage)!);
                 showTopicActionSheet(context,
-                  channelId: streamId,
+                  channelId: channelId,
                   topic: topic,
                   someMessageIdInTopic: someMessage?.id);
               },
@@ -865,7 +865,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     var narrow = widget.narrow;
     if (narrow is TopicNarrow) {
       // Normalize topic name.  See #1717.
-      narrow = TopicNarrow(narrow.streamId,
+      narrow = TopicNarrow(narrow.channelId,
         store.processTopicLikeServer(narrow.topic),
         with_: narrow.with_);
       if (narrow != widget.narrow) {
@@ -1313,8 +1313,8 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListCombinedFeed);
 
-      case ChannelNarrow(:final streamId) || TopicNarrow(:final streamId):
-        final channel = store.streams[streamId];
+      case ChannelNarrow(:final channelId) || TopicNarrow(:final channelId):
+        final channel = store.streams[channelId];
         if (channel == null) {
           return PageBodyEmptyContentPlaceholder(
             header: zulipLocalizations.emptyMessageListChannelUnavailable);

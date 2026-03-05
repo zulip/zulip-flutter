@@ -387,7 +387,7 @@ class NotificationOpenPayload {
         'realm_url': realmUrl.toString(),
         'user_id': userId.toString(),
         ...(switch (narrow) {
-          TopicNarrow(streamId: var channelId, :var topic) => {
+          TopicNarrow(channelId: var channelId, :var topic) => {
             'narrow_type': 'topic',
             'channel_id': channelId.toString(),
             'topic': topic.apiName,

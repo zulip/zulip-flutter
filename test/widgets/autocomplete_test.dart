@@ -65,12 +65,12 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   switch(narrow) {
     case DmNarrow():
       message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
-    case ChannelNarrow(:final streamId):
-      final stream = eg.stream(streamId: streamId);
+    case ChannelNarrow(:final channelId):
+      final stream = eg.stream(streamId: channelId);
       message = eg.streamMessage(stream: stream);
       await store.addStream(stream);
-    case TopicNarrow(:final streamId, :final topic):
-      final stream = eg.stream(streamId: streamId);
+    case TopicNarrow(:final channelId, :final topic):
+      final stream = eg.stream(streamId: channelId);
       message = eg.streamMessage(stream: stream, topic: topic.apiName);
       await store.addStream(stream);
     default: throw StateError('unexpected narrow type');
