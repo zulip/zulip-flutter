@@ -483,7 +483,7 @@ abstract class _MessageListAppBar {
       case DmNarrow():
         break;
       case ChannelNarrow(:final channelId):
-        actions.add(_TopicListButton(streamId: channelId));
+        actions.add(_TopicListButton(channelId: channelId));
       case TopicNarrow(:final channelId):
         actions.add(IconButton(
           icon: const Icon(ZulipIcons.message_feed),
@@ -491,7 +491,7 @@ abstract class _MessageListAppBar {
           onPressed: () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
               narrow: ChannelNarrow(channelId)))));
-        actions.add(_TopicListButton(streamId: channelId));
+        actions.add(_TopicListButton(channelId: channelId));
     }
 
     return ZulipAppBar(
@@ -541,9 +541,9 @@ class _RevealedMutedMessagesProvider extends InheritedNotifier<RevealedMutedMess
 }
 
 class _TopicListButton extends StatelessWidget {
-  const _TopicListButton({required this.streamId});
+  const _TopicListButton({required this.channelId});
 
-  final int streamId;
+  final int channelId;
 
   @override
   Widget build(BuildContext context) {
@@ -553,7 +553,7 @@ class _TopicListButton extends StatelessWidget {
       tooltip: zulipLocalizations.topicsButtonTooltip,
       onPressed: () => Navigator.push(context,
         TopicListPage.buildRoute(context: context,
-          streamId: streamId)));
+          channelId: channelId)));
   }
 }
 

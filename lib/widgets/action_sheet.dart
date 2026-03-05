@@ -612,7 +612,7 @@ class TopicListButton extends ActionSheetMenuItemButton {
   @override
   void onPressed() {
     Navigator.push(pageContext,
-      TopicListPage.buildRoute(context: pageContext, streamId: channelId));
+      TopicListPage.buildRoute(context: pageContext, channelId: channelId));
   }
 }
 
