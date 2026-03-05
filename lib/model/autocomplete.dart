@@ -1231,20 +1231,20 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   TopicAutocompleteView._({
     required super.store,
     required super.query,
-    required this.streamId,
+    required this.channelId,
   });
 
   factory TopicAutocompleteView.init({
     required PerAccountStore store,
-    required int streamId,
+    required int channelId,
     required TopicAutocompleteQuery query,
   }) {
-    return TopicAutocompleteView._(store: store, streamId: streamId, query: query)
+    return TopicAutocompleteView._(store: store, channelId: channelId, query: query)
       .._fetch();
   }
 
   /// The channel/stream the eventual message will be sent to.
-  final int streamId;
+  final int channelId;
 
   Iterable<TopicName> _topics = [];
 
@@ -1255,7 +1255,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// fetched topics.
   Future<void> _fetch() async {
     // TODO: handle fetch failure
-    _topics = (await store.topics.getChannelTopics(streamId)).map((e) => e.name);
+    _topics = (await store.topics.getChannelTopics(channelId)).map((e) => e.name);
     return _startSearch();
   }
 

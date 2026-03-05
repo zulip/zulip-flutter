@@ -739,9 +739,9 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 }
 
 class _TopicInput extends StatefulWidget {
-  const _TopicInput({required this.streamId, required this.controller});
+  const _TopicInput({required this.channelId, required this.controller});
 
-  final int streamId;
+  final int channelId;
   final StreamComposeBoxController controller;
 
   @override
@@ -864,7 +864,7 @@ class _TopicInputState extends State<_TopicInput> {
         width: 1,
         color: designVariables.foreground.withFadedAlpha(0.2)))),
       child: TopicAutocomplete(
-        streamId: widget.streamId,
+        channelId: widget.channelId,
         controller: widget.controller.topic,
         focusNode: widget.controller.topicFocusNode,
         contentFocusNode: widget.controller.contentFocusNode,
@@ -1536,7 +1536,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   final StreamComposeBoxController controller;
 
   @override Widget buildTopicInput() => _TopicInput(
-    streamId: narrow.channelId,
+    channelId: narrow.channelId,
     controller: controller,
   );
 
