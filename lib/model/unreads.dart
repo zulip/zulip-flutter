@@ -201,20 +201,20 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   /// For a count that's appropriate in UI contexts that are not already
   /// focused on this channel, see [countInChannel].
   // TODO(#370): maintain this count incrementally, rather than recomputing from scratch
-  int countInChannelNarrow(int streamId) {
-    final topics = streams[streamId];
+  int countInChannelNarrow(int channelId) {
+    final topics = streams[channelId];
     if (topics == null) return 0;
     int c = 0;
     for (final entry in topics.entries) {
-      if (channelStore.isTopicVisibleInStream(streamId, entry.key)) {
+      if (channelStore.isTopicVisibleInStream(channelId, entry.key)) {
         c = c + entry.value.length;
       }
     }
     return c;
   }
 
-  int countInTopicNarrow(int streamId, TopicName topic) {
-    final topics = streams[streamId];
+  int countInTopicNarrow(int channelId, TopicName topic) {
+    final topics = streams[channelId];
     return topics?[topic]?.length ?? 0;
   }
 
@@ -596,8 +596,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     }
   }
 
-  void _removeAllInStreamTopic(Set<int> incomingMessageIds, int streamId, TopicName topic) {
-    final topics = streams[streamId];
+  void _removeAllInStreamTopic(Set<int> incomingMessageIds, int channelId, TopicName topic) {
+    final topics = streams[channelId];
     if (topics == null) return;
     final messageIds = topics[topic];
     if (messageIds == null) return;
@@ -607,7 +607,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     if (messageIds.isEmpty) {
       topics.remove(topic);
       if (topics.isEmpty) {
-        streams.remove(streamId);
+        streams.remove(channelId);
       }
     }
   }
