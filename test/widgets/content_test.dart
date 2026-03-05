@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -1071,6 +1072,44 @@ void main() {
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
     //    expectedWght: 800, // [etc.]
+
+    group('pill color', () {
+      Future<void> checkPillColor(WidgetTester tester, {
+        required String html,
+        required Color Function(ContentTheme) expectColor,
+      }) async {
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          plainContent(html));
+
+        final renderObject = tester.renderObject<RenderBox>(find.byType(Mention));
+        final paintBounds = renderObject.paintBounds;
+        final contentTheme = ContentTheme.of(tester.element(find.byType(Mention)));
+
+        check(renderObject).legacyMatcher(equals(paints..rrect(
+          rrect: RRect.fromRectAndRadius(paintBounds, const Radius.circular(3)),
+          style: .fill,
+          color: expectColor(contentTheme))));
+      }
+
+      testWidgets('user mention', (tester) async {
+        await checkPillColor(tester,
+          html: ContentExample.userMentionPlain.html,
+          expectColor: (theme) => theme.colorDirectMentionBackground);
+      });
+
+      testWidgets('user group mention', (tester) async {
+        await checkPillColor(tester,
+          html: ContentExample.groupMentionPlain.html,
+          expectColor: (theme) => theme.colorGroupMentionBackground);
+      });
+
+      testWidgets('wildcard mention', (tester) async {
+        await checkPillColor(tester,
+          html: ContentExample.channelWildcardMentionPlain.html,
+          expectColor: (theme) => theme.colorGroupMentionBackground);
+      });
+    });
 
     group('user mention dynamic name resolution', () {
       Future<void> prepare({
