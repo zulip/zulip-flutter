@@ -133,16 +133,16 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'チャンネルからの退出に失敗しました';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => '上部に固定';
 
   @override
-  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+  String get actionSheetOptionUnpinChannel => '上部に固定を解除';
 
   @override
-  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+  String get errorPinChannelFailedTitle => 'チャンネルの固定に失敗しました';
 
   @override
-  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+  String get errorUnpinChannelFailedTitle => 'チャンネルの固定解除に失敗しました';
 
   @override
   String get actionSheetOptionMuteTopic => 'トピックをミュート';
@@ -1016,7 +1016,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'ダイレクトメッセージ';
 
   @override
-  String get recentDmConversationsPageShortLabel => 'DMs';
+  String get recentDmConversationsPageShortLabel => 'DM';
 
   @override
   String get recentDmConversationsSectionHeader => 'ダイレクトメッセージ';
@@ -1143,31 +1143,31 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'トピック参加者に通知';
 
   @override
-  String get systemGroupNameEveryoneOnInternet => 'Everyone on the internet';
+  String get systemGroupNameEveryoneOnInternet => 'インターネット上の全員';
 
   @override
-  String get systemGroupNameEveryone => 'Everyone including guests';
+  String get systemGroupNameEveryone => 'ゲストを含む全員';
 
   @override
-  String get systemGroupNameMembers => 'Everyone except guests';
+  String get systemGroupNameMembers => 'ゲストを除く全員';
 
   @override
-  String get systemGroupNameFullMembers => 'Full members';
+  String get systemGroupNameFullMembers => 'フルメンバー';
 
   @override
-  String get systemGroupNameModerators => 'Moderators';
+  String get systemGroupNameModerators => 'モデレーター';
 
   @override
-  String get systemGroupNameAdministrators => 'Administrators';
+  String get systemGroupNameAdministrators => '管理者';
 
   @override
-  String get systemGroupNameOwners => 'Owners';
+  String get systemGroupNameOwners => 'オーナー';
 
   @override
-  String get systemGroupNameNobody => 'Nobody';
+  String get systemGroupNameNobody => 'なし';
 
   @override
-  String get navBarFeedLabel => 'Feed';
+  String get navBarFeedLabel => 'フィード';
 
   @override
   String get navBarMenuLabel => 'メニュー';

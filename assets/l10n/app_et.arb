@@ -1,1 +1,292 @@
-{}
+{
+  "@aboutPageAppVersion": {
+    "description": "Label for Zulip app version in About Zulip page"
+  },
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "@appVersionUnknownPlaceholder": {
+    "description": "Placeholder to show in place of the app version when it is unknown."
+  },
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
+  },
+  "@composeBoxBannerButtonCancel": {
+    "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
+  "@composeBoxBannerButtonSave": {
+    "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
+  "@composeBoxSendTooltip": {
+    "description": "Tooltip for send button in compose box."
+  },
+  "@composeBoxTopicHintText": {
+    "description": "Hint text for topic input widget in compose box."
+  },
+  "@deleteMessageConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@dialogCancel": {
+    "description": "Button label in dialogs to cancel."
+  },
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
+  "@dialogContinue": {
+    "description": "Button label in dialogs to proceed."
+  },
+  "@discardDraftConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
+  "@errorDialogContinue": {
+    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
+  },
+  "@errorDialogTitle": {
+    "description": "Generic title for error dialog."
+  },
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
+  "@loginErrorMissingPassword": {
+    "description": "Error message when an empty password was provided."
+  },
+  "@loginHidePassword": {
+    "description": "Icon label for button to hide password in input form."
+  },
+  "@loginMethodDivider": {
+    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
+  },
+  "@loginPasswordLabel": {
+    "description": "Label for password input field."
+  },
+  "@loginUsernameLabel": {
+    "description": "Label for input when a username is required to log in."
+  },
+  "@markReadOnScrollSettingAlways": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "@markReadOnScrollSettingNever": {
+    "description": "Label for a value of setting controlling which message-list views should mark read on scroll."
+  },
+  "@mentionsPageTitle": {
+    "description": "Page title for the 'Mentions' message view."
+  },
+  "@messageIsEditedLabel": {
+    "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@messageIsMovedLabel": {
+    "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@navBarMenuLabel": {
+    "description": "Label for the Menu button on the bottom navigation bar."
+  },
+  "@newDmSheetComposeButtonLabel": {
+    "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
+  },
+  "@notifSelfUser": {
+    "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "@pinnedSubscriptionsLabel": {
+    "description": "Label for the list of pinned subscribed channels."
+  },
+  "@pollVoterNames": {
+    "description": "The list of people who voted for a poll option, wrapped in parentheses.",
+    "placeholders": {
+      "voterNames": {
+        "example": "Alice, Bob, Chad",
+        "type": "String"
+      }
+    }
+  },
+  "@preparingEditMessageContentInput": {
+    "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "@reactedEmojiSelfUser": {
+    "description": "Display name for the user themself, to show on an emoji reaction added by the user."
+  },
+  "@reactionChipsLabel": {
+    "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
+  },
+  "@searchMessagesClearButtonTooltip": {
+    "description": "Tooltip for the 'x' button in the search text field."
+  },
+  "@searchMessagesHintText": {
+    "description": "Hint text for the message search text field."
+  },
+  "@searchMessagesPageTitle": {
+    "description": "Page title for the 'Search' message view."
+  },
+  "@snackBarDetails": {
+    "description": "Button label for snack bar button that opens a dialog with more details."
+  },
+  "@spoilerDefaultHeaderText": {
+    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
+  },
+  "@statusButtonLabelStatusSet": {
+    "description": "The status button label in self-user profile page when status is set."
+  },
+  "@statusClearButtonLabel": {
+    "description": "Label for the button that clears the user status, in 'Set status' page."
+  },
+  "@statusSaveButtonLabel": {
+    "description": "Label for the button that saves the user status, in 'Set status' page."
+  },
+  "@themeSettingDark": {
+    "description": "Label for dark theme setting."
+  },
+  "@themeSettingLight": {
+    "description": "Label for light theme setting."
+  },
+  "@themeSettingSystem": {
+    "description": "Label for system theme setting."
+  },
+  "@themeSettingTitle": {
+    "description": "Title for theme setting. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@today": {
+    "description": "Term to use to reference the current day."
+  },
+  "@topicsButtonTooltip": {
+    "description": "Tooltip for button to navigate to topic-list page."
+  },
+  "@unpinnedSubscriptionsLabel": {
+    "description": "Label for the list of unpinned subscribed channels."
+  },
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@userIdle": {
+    "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
+  },
+  "@userRoleAdministrator": {
+    "description": "Label for UserRole.administrator"
+  },
+  "@userRoleGuest": {
+    "description": "Label for UserRole.guest"
+  },
+  "@userRoleMember": {
+    "description": "Label for UserRole.member"
+  },
+  "@userRoleModerator": {
+    "description": "Label for UserRole.moderator"
+  },
+  "@userRoleOwner": {
+    "description": "Label for UserRole.owner"
+  },
+  "@userRoleUnknown": {
+    "description": "Label for UserRole.unknown"
+  },
+  "@userStatusBusy": {
+    "description": "A suggested user status text, 'Busy'."
+  },
+  "@userStatusCommuting": {
+    "description": "A suggested user status text, 'Commuting'."
+  },
+  "@userStatusVacationing": {
+    "description": "A suggested user status text, 'Vacationing'."
+  },
+  "@wildcardMentionAll": {
+    "description": "Text for \"@all\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "@wildcardMentionChannel": {
+    "description": "Text for \"@channel\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "@wildcardMentionEveryone": {
+    "description": "Text for \"@everyone\" wildcard-mention autocomplete option when writing a channel or DM message."
+  },
+  "@wildcardMentionTopic": {
+    "description": "Text for \"@topic\" wildcard-mention autocomplete option when writing a channel message."
+  },
+  "@yesterday": {
+    "description": "Term to use to reference the previous day."
+  },
+  "@zulipAppTitle": {
+    "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
+  },
+  "aboutPageAppVersion": "Rakenduse versioon",
+  "aboutPageOpenSourceLicenses": "Avatud lähtekoodiga tarkvara litsentsid",
+  "aboutPageTapToView": "Vaatamiseks klõpsa",
+  "aboutPageTitle": "Zulipi teave",
+  "appVersionUnknownPlaceholder": "(…)",
+  "channelsPageTitle": "Kanalid",
+  "composeBoxBannerButtonCancel": "Katkesta",
+  "composeBoxBannerButtonRefresh": "Värskenda andmeid",
+  "composeBoxBannerButtonSave": "Salvesta",
+  "composeBoxBannerButtonSubscribe": "Telli",
+  "composeBoxSendTooltip": "Saada",
+  "composeBoxTopicHintText": "Teema",
+  "deleteMessageConfirmationDialogConfirmButton": "Kustuta",
+  "dialogCancel": "Katkesta",
+  "dialogClose": "Sulge",
+  "dialogContinue": "Jätka",
+  "discardDraftConfirmationDialogConfirmButton": "Loobu",
+  "emojiReactionsMore": "näita veel",
+  "errorDialogContinue": "Sobib",
+  "errorDialogTitle": "Viga",
+  "inboxPageTitle": "Sisendkaust",
+  "loginErrorMissingPassword": "Palun sisesta oma salasõna.",
+  "loginHidePassword": "Peida salasõna",
+  "loginMethodDivider": "VÕI",
+  "loginPasswordLabel": "Salasõna",
+  "loginUsernameLabel": "Kasutajanimi",
+  "markReadOnScrollSettingAlways": "Alati",
+  "markReadOnScrollSettingNever": "Mitte kunagi",
+  "mentionsPageTitle": "Mainimised",
+  "messageIsEditedLabel": "MUUDETUD",
+  "messageIsMovedLabel": "TEISALDATUD",
+  "navBarMenuLabel": "Menüü",
+  "newDmSheetComposeButtonLabel": "Koosta sõnum",
+  "notifSelfUser": "Sina",
+  "pinnedSubscriptionsLabel": "Esiletõstetud",
+  "pollVoterNames": "({voterNames})",
+  "preparingEditMessageContentInput": "Valmistun…",
+  "reactedEmojiSelfUser": "Sina",
+  "reactionChipsLabel": "Reageerimised",
+  "searchMessagesClearButtonTooltip": "Tühjenda",
+  "searchMessagesHintText": "Otsi",
+  "searchMessagesPageTitle": "Otsing",
+  "snackBarDetails": "Üksikasjad",
+  "spoilerDefaultHeaderText": "Spoiler",
+  "statusButtonLabelStatusSet": "Olek",
+  "statusClearButtonLabel": "Tühjenda",
+  "statusSaveButtonLabel": "Salvesta",
+  "themeSettingDark": "Tume kujundus",
+  "themeSettingLight": "Hele kujundus",
+  "themeSettingSystem": "Süsteemi kujundus",
+  "themeSettingTitle": "KUJUNDUS",
+  "today": "Täna",
+  "topicsButtonTooltip": "Teemad",
+  "unpinnedSubscriptionsLabel": "Pole esiletõstetud",
+  "upgradeWelcomeDialogTitle": "Tere tulemast kasutama uut Zulipi rakendust!",
+  "userIdle": "Jõude",
+  "userRoleAdministrator": "Peakasutaja",
+  "userRoleGuest": "Külaline",
+  "userRoleMember": "Liige",
+  "userRoleModerator": "Moderaator",
+  "userRoleOwner": "Omanik",
+  "userRoleUnknown": "Teadmata",
+  "userStatusBusy": "Hõivatud",
+  "userStatusCommuting": "Liikumas ühest kohast teise",
+  "userStatusVacationing": "Puhkusel",
+  "wildcardMentionAll": "kõik",
+  "wildcardMentionChannel": "kanal",
+  "wildcardMentionEveryone": "kogu seltskond",
+  "wildcardMentionTopic": "teema",
+  "yesterday": "Eile",
+  "zulipAppTitle": "Zulip"
+}

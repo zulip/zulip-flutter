@@ -1068,7 +1068,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'Личные сообщения';
 
   @override
-  String get recentDmConversationsPageShortLabel => 'DMs';
+  String get recentDmConversationsPageShortLabel => 'ЛС';
 
   @override
   String get recentDmConversationsSectionHeader => 'Личные сообщения';
@@ -1199,31 +1199,31 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Оповестить тему';
 
   @override
-  String get systemGroupNameEveryoneOnInternet => 'Everyone on the internet';
+  String get systemGroupNameEveryoneOnInternet => 'Все пользователи интернета';
 
   @override
-  String get systemGroupNameEveryone => 'Everyone including guests';
+  String get systemGroupNameEveryone => 'Все, включая гостей';
 
   @override
-  String get systemGroupNameMembers => 'Everyone except guests';
+  String get systemGroupNameMembers => 'Все, кроме гостей';
 
   @override
-  String get systemGroupNameFullMembers => 'Full members';
+  String get systemGroupNameFullMembers => 'Полноправные участники';
 
   @override
-  String get systemGroupNameModerators => 'Moderators';
+  String get systemGroupNameModerators => 'Модераторы';
 
   @override
-  String get systemGroupNameAdministrators => 'Administrators';
+  String get systemGroupNameAdministrators => 'Администраторы';
 
   @override
-  String get systemGroupNameOwners => 'Owners';
+  String get systemGroupNameOwners => 'Владельцы';
 
   @override
-  String get systemGroupNameNobody => 'Nobody';
+  String get systemGroupNameNobody => 'Никто';
 
   @override
-  String get navBarFeedLabel => 'Feed';
+  String get navBarFeedLabel => 'Лента';
 
   @override
   String get navBarMenuLabel => 'Меню';
@@ -1347,7 +1347,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get mutedUser => 'Заглушенный пользователь';
 
   @override
-  String get scrollToBottomTooltip => 'Пролистать вниз';
+  String get scrollToBottomTooltip => 'Прокрутить вниз';
 
   @override
   String get appVersionUnknownPlaceholder => '(…)';

@@ -888,6 +888,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navBarFeedLabel": {
+    "description": "Label for the Feed button on the bottom navigation bar."
+  },
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
   },
@@ -1015,6 +1018,9 @@
   },
   "@recentDmConversationsEmptyPlaceholderMessage": {
     "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsPageShortLabel": {
+    "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1155,6 +1161,30 @@
   },
   "@switchAccountButtonTooltip": {
     "description": "Tooltip message for main-menu button leading to the choose-account page."
+  },
+  "@systemGroupNameAdministrators": {
+    "description": "Display name for the system group that includes all users with at least the administrator role."
+  },
+  "@systemGroupNameEveryone": {
+    "description": "Display name for the system group that includes all users including guests."
+  },
+  "@systemGroupNameEveryoneOnInternet": {
+    "description": "Display name for the system group that includes everyone on the internet."
+  },
+  "@systemGroupNameFullMembers": {
+    "description": "Display name for the system group that includes all full members of the organization."
+  },
+  "@systemGroupNameMembers": {
+    "description": "Display name for the system group that includes all users excluding guests."
+  },
+  "@systemGroupNameModerators": {
+    "description": "Display name for the system group that includes all users with at least the moderator role."
+  },
+  "@systemGroupNameNobody": {
+    "description": "Display name for the system group that includes nobody."
+  },
+  "@systemGroupNameOwners": {
+    "description": "Display name for the system group that includes all users with the owner role."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -1597,6 +1627,7 @@
   "messageListGroupYouWithYourself": "Сообщения с собой",
   "messageNotSentLabel": "СООБЩЕНИЕ НЕ ОТПРАВЛЕНО",
   "mutedUser": "Заглушенный пользователь",
+  "navBarFeedLabel": "Лента",
   "navBarMenuLabel": "Меню",
   "navButtonAllChannels": "Все каналы",
   "newDmFabButtonLabel": "Новое ЛС",
@@ -1627,12 +1658,13 @@
   "reactionChipsLabel": "Реакции",
   "recentDmConversationsEmptyPlaceholderHeader": "У вас пока нет личных сообщений!",
   "recentDmConversationsEmptyPlaceholderMessage": "Почему бы не начать общение?",
+  "recentDmConversationsPageShortLabel": "ЛС",
   "recentDmConversationsPageTitle": "Личные сообщения",
   "recentDmConversationsSectionHeader": "Личные сообщения",
   "revealButtonLabel": "Показать сообщение",
   "savingMessageEditFailedLabel": "ПРАВКИ НЕ СОХРАНЕНЫ",
   "savingMessageEditLabel": "ЗАПИСЬ ПРАВОК…",
-  "scrollToBottomTooltip": "Пролистать вниз",
+  "scrollToBottomTooltip": "Прокрутить вниз",
   "searchMessagesClearButtonTooltip": "Очистить",
   "searchMessagesHintText": "Поиск",
   "searchMessagesPageTitle": "Поиск",
@@ -1663,6 +1695,14 @@
   "successMessageTextCopied": "Текст сообщения скопирован",
   "successTopicLinkCopied": "Ссылка на тему скопирована",
   "switchAccountButtonTooltip": "Сменить учетную запись",
+  "systemGroupNameAdministrators": "Администраторы",
+  "systemGroupNameEveryone": "Все, включая гостей",
+  "systemGroupNameEveryoneOnInternet": "Все пользователи интернета",
+  "systemGroupNameFullMembers": "Полноправные участники",
+  "systemGroupNameMembers": "Все, кроме гостей",
+  "systemGroupNameModerators": "Модераторы",
+  "systemGroupNameNobody": "Никто",
+  "systemGroupNameOwners": "Владельцы",
   "themeSettingDark": "Темный",
   "themeSettingLight": "Светлый",
   "themeSettingSystem": "Системный",

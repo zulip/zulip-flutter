@@ -1216,7 +1216,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get systemGroupNameOwners => 'Owners';
 
   @override
-  String get systemGroupNameNobody => 'Nobody';
+  String get systemGroupNameNobody => 'Niemand';
 
   @override
   String get navBarFeedLabel => 'Feed';

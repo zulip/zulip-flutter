@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
   },
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
@@ -501,6 +507,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
@@ -565,6 +574,9 @@
   },
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
@@ -1239,6 +1251,7 @@
   "actionSheetOptionMarkChannelAsRead": "标记频道为已读",
   "actionSheetOptionMarkTopicAsRead": "将话题标为已读",
   "actionSheetOptionMuteTopic": "静音话题",
+  "actionSheetOptionPinChannel": "置顶",
   "actionSheetOptionQuoteMessage": "引用消息",
   "actionSheetOptionResolveTopic": "标记为已解决",
   "actionSheetOptionSeeWhoReacted": "查看谁做出了表情符号回应",
@@ -1247,6 +1260,7 @@
   "actionSheetOptionSubscribe": "订阅",
   "actionSheetOptionUnfollowTopic": "取消关注话题",
   "actionSheetOptionUnmuteTopic": "取消静音话题",
+  "actionSheetOptionUnpinChannel": "去掉置顶",
   "actionSheetOptionUnresolveTopic": "标记为未解决",
   "actionSheetOptionUnstarMessage": "取消星标消息标记",
   "actionSheetOptionUnsubscribe": "取消订阅",
@@ -1343,6 +1357,7 @@
   "errorNetworkRequestFailed": "网络请求失败",
   "errorNotificationOpenAccountNotFound": "未能找到关联该消息提醒的账号。",
   "errorNotificationOpenTitle": "未能打开消息提醒",
+  "errorPinChannelFailedTitle": "置顶频道失败",
   "errorQuotationFailed": "未能引用消息",
   "errorReactionAddingFailedTitle": "未能添加表情符号",
   "errorReactionRemovingFailedTitle": "未能移除表情符号",
@@ -1356,6 +1371,7 @@
   "errorStarMessageFailedTitle": "未能添加星标消息标记",
   "errorUnfollowTopicFailed": "未能取消关注话题",
   "errorUnmuteTopicFailed": "未能取消静音话题",
+  "errorUnpinChannelFailedTitle": "取消置顶频道失败",
   "errorUnresolveTopicFailedTitle": "未能将话题标记为未解决",
   "errorUnstarMessageFailedTitle": "未能取消星标消息标记",
   "errorVideoPlayerFailed": "未能播放视频。",

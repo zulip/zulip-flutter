@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
   },
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
@@ -597,6 +603,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
@@ -661,6 +670,9 @@
   },
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
@@ -1377,6 +1389,7 @@
   "actionSheetOptionMarkChannelAsRead": "標註頻道為已讀",
   "actionSheetOptionMarkTopicAsRead": "標註話題為已讀",
   "actionSheetOptionMuteTopic": "靜音話題",
+  "actionSheetOptionPinChannel": "釘到最上面",
   "actionSheetOptionQuoteMessage": "引述訊息",
   "actionSheetOptionResolveTopic": "標註為已解決",
   "actionSheetOptionSeeWhoReacted": "查看誰有回應",
@@ -1385,6 +1398,7 @@
   "actionSheetOptionSubscribe": "訂閱",
   "actionSheetOptionUnfollowTopic": "取消跟隨話題",
   "actionSheetOptionUnmuteTopic": "取消靜音話題",
+  "actionSheetOptionUnpinChannel": "取消最上面的釘選",
   "actionSheetOptionUnresolveTopic": "標註為未解決",
   "actionSheetOptionUnstarMessage": "取消收藏訊息",
   "actionSheetOptionUnsubscribe": "取消訂閱",
@@ -1505,6 +1519,7 @@
   "errorNetworkRequestFailed": "網路請求失敗",
   "errorNotificationOpenAccountNotFound": "找不到與此通知相關聯的帳號。",
   "errorNotificationOpenTitle": "無法開啟通知",
+  "errorPinChannelFailedTitle": "釘選頻道失敗",
   "errorQuotationFailed": "引述失敗",
   "errorReactionAddingFailedTitle": "新增表情反應失敗",
   "errorReactionRemovingFailedTitle": "移除表情反應失敗",
@@ -1518,6 +1533,7 @@
   "errorStarMessageFailedTitle": "無法收藏訊息",
   "errorUnfollowTopicFailed": "無法取消跟隨話題",
   "errorUnmuteTopicFailed": "無法取消靜音話題",
+  "errorUnpinChannelFailedTitle": "取消釘選頻道失敗",
   "errorUnresolveTopicFailedTitle": "無法標註話題為未解決",
   "errorUnstarMessageFailedTitle": "無法取消收藏訊息",
   "errorVideoPlayerFailed": "無法播放影片。",
