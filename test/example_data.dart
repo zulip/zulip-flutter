@@ -379,7 +379,7 @@ class _ImmutableUser extends User {
   @override set deliveryEmail(_) => throw _error;
   @override set email(_) => throw _error;
   @override set fullName(_) => throw _error;
-  // dateJoined already immutable
+  @override set dateJoined(_) => throw _error;
   @override set isActive(_) => throw _error;
   // isBot already immutable
   // botType already immutable
