@@ -1342,7 +1342,7 @@ void main() {
 
     final view = TopicAutocompleteView.init(
       store: store,
-      streamId: eg.stream().streamId,
+      channelId: eg.stream().streamId,
       query: TopicAutocompleteQuery('Third'));
     bool done = false;
     view.addListener(() { done = true; });
@@ -1363,7 +1363,7 @@ void main() {
 
     final view = TopicAutocompleteView.init(
       store: store,
-      streamId: eg.stream().streamId,
+      channelId: eg.stream().streamId,
       query: TopicAutocompleteQuery('te'));
     bool done = false;
     view.addListener(() { done = true; });
@@ -1381,7 +1381,7 @@ void main() {
     final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'mobile releases');
 
     connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
-    final view1 = TopicAutocompleteView.init(store: store, streamId: 1000,
+    final view1 = TopicAutocompleteView.init(store: store, channelId: 1000,
       query: TopicAutocompleteQuery(''));
     bool done = false;
     view1.addListener(() { done = true; });
@@ -1403,7 +1403,7 @@ void main() {
     view1.dispose();
 
     // No need to prepare a response as there will be no request made.
-    final view2 = TopicAutocompleteView.init(store: store, streamId: 1000,
+    final view2 = TopicAutocompleteView.init(store: store, channelId: 1000,
       query: TopicAutocompleteQuery('mobile'));
     done = false;
     view2.addListener(() { done = true; });
