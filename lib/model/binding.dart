@@ -399,6 +399,23 @@ class LiveZulipBinding extends ZulipBinding {
   }
   bool _debugCalledGetGlobalStoreUniquely = false;
 
+  @visibleForTesting
+  void debugResetStore() {
+    assert(!(_globalStoreFuture != null && _globalStore == null),
+      // If we proceeded naively without this check, then the previous
+      // LiveGlobalStore.load().then(…) could clobber _globalStore later.
+      // If necessary, we could add some logic to support canceling/ignoring
+      // that previous call.
+      "attempted debugResetStore while in the middle of loading store");
+    _globalStore?.dispose();
+    _globalStore = null;
+    _globalStoreFuture = null;
+    assert(() {
+     _debugCalledGetGlobalStoreUniquely = false;
+      return true;
+    }());
+  }
+
   @override
   Future<bool> canLaunchUrl(Uri url) => url_launcher.canLaunchUrl(url);
 
