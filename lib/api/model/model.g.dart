@@ -163,7 +163,11 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   dateJoined: json['date_joined'] as String,
   isActive: json['is_active'] as bool,
   isBot: json['is_bot'] as bool,
-  botType: (json['bot_type'] as num?)?.toInt(),
+  botType: $enumDecodeNullable(
+    _$UserBotTypeEnumMap,
+    json['bot_type'],
+    unknownValue: UserBotType.unknown,
+  ),
   botOwnerId: (json['bot_owner_id'] as num?)?.toInt(),
   role: $enumDecode(
     _$UserRoleEnumMap,
@@ -202,6 +206,14 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
     (k, e) => MapEntry(k.toString(), e),
   ),
   'is_system_bot': instance.isSystemBot,
+};
+
+const _$UserBotTypeEnumMap = {
+  UserBotType.generic: 1,
+  UserBotType.webhookIncoming: 2,
+  UserBotType.webhookOutgoing: 3,
+  UserBotType.embedded: 4,
+  UserBotType.unknown: null,
 };
 
 const _$UserRoleEnumMap = {
@@ -558,6 +570,18 @@ const _$EmojisetEnumMap = {
   Emojiset.twitter: 'twitter',
   Emojiset.text: 'text',
   Emojiset.unknown: 'unknown',
+};
+
+const _$RealmPropertyEnumMap = {
+  RealmProperty.mediaPreviewSize: 'media_preview_size',
+  RealmProperty.unknown: 'unknown',
+};
+
+const _$RealmMediaPreviewSizeEnumMap = {
+  RealmMediaPreviewSize.small: 100,
+  RealmMediaPreviewSize.medium: 150,
+  RealmMediaPreviewSize.large: 200,
+  RealmMediaPreviewSize.unknown: null,
 };
 
 const _$PresenceStatusEnumMap = {
