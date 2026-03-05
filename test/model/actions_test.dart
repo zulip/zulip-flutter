@@ -83,16 +83,25 @@ void main() {
     };
   }
 
+  Condition<Object?> isUnregisterTokenRequest({
+    String? expectedToken,
+  }) {
+    return (it) {
+      final subject = it.isA<http.Request>()
+        ..method.equals('DELETE')
+        ..url.path.equals(unregisterApiPathForPlatform(defaultTargetPlatform));
+      if (expectedToken != null) {
+        subject.bodyFields.deepEquals({'token': expectedToken});
+      }
+    };
+  }
+
   void checkSingleUnregisterRequest(
     FakeApiConnection connection, {
     String? expectedToken,
   }) {
-    final subject = check(connection.takeRequests()).single.isA<http.Request>()
-      ..method.equals('DELETE')
-      ..url.path.equals(unregisterApiPathForPlatform(defaultTargetPlatform));
-    if (expectedToken != null) {
-      subject.bodyFields.deepEquals({'token': expectedToken});
-    }
+    check(connection.takeRequests()).single
+      .which(isUnregisterTokenRequest(expectedToken: expectedToken));
   }
 
   group('logOutAccount', () {
@@ -196,7 +205,7 @@ void main() {
     }));
   });
 
-  group('unregisterToken', () {
+  group('unregisterDevice', () {
     testAndroidIos('smoke, happy path', () => awaitFakeAsync((async) async {
       await prepare(possibleLegacyPushToken: true);
       addTearDown(NotificationService.debugReset);
@@ -204,7 +213,7 @@ void main() {
 
       final newConnection = separateConnection()
         ..prepare(json: {'msg': '', 'result': 'success'});
-      final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
+      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
       async.elapse(Duration.zero);
       await future;
       checkSingleUnregisterRequest(newConnection, expectedToken: 'asdf');
@@ -217,7 +226,7 @@ void main() {
       NotificationService.instance.token = ValueNotifier('asdf');
 
       final newConnection = separateConnection();
-      final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
+      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
       async.flushTimers();
       await future;
       check(newConnection.takeRequests()).isEmpty();
@@ -229,7 +238,7 @@ void main() {
       NotificationService.instance.token = ValueNotifier(null);
 
       final newConnection = separateConnection();
-      final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
+      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
       async.flushTimers();
       await future;
       check(newConnection.takeRequests()).isEmpty();
@@ -243,7 +252,7 @@ void main() {
       final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
       final newConnection = separateConnection()
         ..prepare(apiException: exception);
-      final future = unregisterToken(testBinding.globalStore, eg.selfAccount.id);
+      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
       async.elapse(Duration.zero);
       await future;
       checkSingleUnregisterRequest(newConnection, expectedToken: 'asdf');

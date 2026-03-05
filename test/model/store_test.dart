@@ -192,6 +192,7 @@ void main() {
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls())
       .single.equals(eg.selfAccount.id);
@@ -213,6 +214,7 @@ void main() {
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls())
       .single.equals(eg.selfAccount.id);
@@ -236,6 +238,7 @@ void main() {
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 
@@ -260,6 +263,7 @@ void main() {
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 
@@ -283,6 +287,7 @@ void main() {
     check(connection.takeRequests()).length.equals(1); // register request
 
     assert(TestGlobalStore.removeAccountDuration < Duration(milliseconds: 500));
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls())
       .single.equals(eg.selfAccount.id);
@@ -1190,6 +1195,7 @@ void main() {
           json: eg.initialSnapshot().toJson());
       });
 
+      globalStore.clearCachedApiConnections();
       await logOutAccount(globalStore, eg.selfAccount.id);
       check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 
