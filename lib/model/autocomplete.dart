@@ -560,13 +560,13 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     // See also [MentionAutocompleteQuery._rankUserResult];
     // that ranking takes precedence over this.
 
-    int? streamId;
+    int? channelId;
     TopicName? topic;
     switch (narrow) {
       case ChannelNarrow():
-        streamId = narrow.channelId;
+        channelId = narrow.channelId;
       case TopicNarrow():
-        streamId = narrow.channelId;
+        channelId = narrow.channelId;
         topic = narrow.topic;
       case DmNarrow():
         break;
@@ -577,20 +577,20 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
     return (userA, userB) => _compareByRelevance(userA, userB,
-      streamId: streamId, topic: topic,
+      channelId: channelId, topic: topic,
       store: store);
   }
 
   static int _compareByRelevance(User userA, User userB, {
-    required int? streamId,
+    required int? channelId,
     required TopicName? topic,
     required PerAccountStore store,
   }) {
     // TODO(#618): give preference to subscribed users first
 
-    if (streamId != null) {
+    if (channelId != null) {
       final recencyResult = compareByRecency(userA, userB,
-        streamId: streamId,
+        streamId: channelId,
         topic: topic,
         store: store);
       if (recencyResult != 0) return recencyResult;
