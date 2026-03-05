@@ -487,7 +487,7 @@ class User {
   String? deliveryEmail;
   String email;
   String fullName;
-  final String dateJoined;
+  String dateJoined;
   bool isActive; // Really sometimes absent in /register, but we normalize that away; see [InitialSnapshot.realmUsers].
   // bool isOwner; // obsoleted by [role]; ignore
   // bool isAdmin; // obsoleted by [role]; ignore
