@@ -583,13 +583,13 @@ void main() {
         final realTopic = topic == null ? null : TopicName(topic);
         final getRecencyInTopic = realTopic == null ? null
           : store.recentSenders.latestMessageIdBySenderInTopic(
-              streamId: stream.streamId, topic: realTopic);
+              channelId: stream.streamId, topic: realTopic);
         final resultAB = MentionAutocompleteView.compareByRecency(userA, userB,
-          streamId: stream.streamId,
+          channelId: stream.streamId,
           getRecencyInTopic: getRecencyInTopic,
           store: store);
         final resultBA = MentionAutocompleteView.compareByRecency(userB, userA,
-          streamId: stream.streamId,
+          channelId: stream.streamId,
           getRecencyInTopic: getRecencyInTopic,
           store: store);
         switch (resultAB) {

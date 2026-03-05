@@ -559,13 +559,13 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     // See also [MentionAutocompleteQuery._rankUserResult];
     // that ranking takes precedence over this.
 
-    int? streamId;
+    int? channelId;
     TopicName? topic;
     switch (narrow) {
       case ChannelNarrow():
-        streamId = narrow.channelId;
+        channelId = narrow.channelId;
       case TopicNarrow():
-        streamId = narrow.channelId;
+        channelId = narrow.channelId;
         topic = narrow.topic;
       case DmNarrow():
         break;
@@ -578,27 +578,27 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
 
     // The [TopicKeyedMap] lookup calls [TopicName.canonicalize] each time,
     // so do it once here rather than O(n log n) times in the sort.
-    final getRecencyInTopic = (streamId != null && topic != null)
+    final getRecencyInTopic = (channelId != null && topic != null)
       ? store.recentSenders.latestMessageIdBySenderInTopic(
-          streamId: streamId, topic: topic)
+          channelId: channelId, topic: topic)
       : null;
 
     return (userA, userB) => _compareByRelevance(userA, userB,
-      streamId: streamId,
+      channelId: channelId,
       getRecencyInTopic: getRecencyInTopic,
       store: store);
   }
 
   static int _compareByRelevance(User userA, User userB, {
-    required int? streamId,
+    required int? channelId,
     required int? Function(int senderId)? getRecencyInTopic,
     required PerAccountStore store,
   }) {
     // TODO(#618): give preference to subscribed users first
 
-    if (streamId != null) {
+    if (channelId != null) {
       final recencyResult = compareByRecency(userA, userB,
-        streamId: streamId,
+        channelId: channelId,
         getRecencyInTopic: getRecencyInTopic,
         store: store);
       if (recencyResult != 0) return recencyResult;
@@ -620,7 +620,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   ///
   /// If [getRecencyInTopic] is not provided,
   /// or neither user has sent messages in the topic,
-  /// then checks for the activity in the channel with [streamId].
+  /// then checks for the activity in the channel with [channelId].
   ///
   /// Returns a negative number if [userA] has more recent activity than [userB],
   /// returns a positive number if [userB] has more recent activity than [userA],
@@ -629,7 +629,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   /// See [RecentSenders.latestMessageIdBySenderInTopic].
   @visibleForTesting
   static int compareByRecency(User userA, User userB, {
-    required int streamId,
+    required int channelId,
     required int? Function(int senderId)? getRecencyInTopic,
     required PerAccountStore store,
   }) {
@@ -641,10 +641,10 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     }
 
     return -compareRecentMessageIds(
-      store.recentSenders.latestMessageIdOfSenderInStream(
-        streamId: streamId, senderId: userA.userId),
-      store.recentSenders.latestMessageIdOfSenderInStream(
-        streamId: streamId, senderId: userB.userId));
+      store.recentSenders.latestMessageIdOfSenderInChannel(
+        channelId: channelId, senderId: userA.userId),
+      store.recentSenders.latestMessageIdOfSenderInChannel(
+        channelId: channelId, senderId: userB.userId));
   }
 
   /// Determines which of the two users is more recent in DM conversations.
