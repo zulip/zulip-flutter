@@ -91,6 +91,9 @@ enum FetchingStatus {
   /// The model has made a `fetchInitial` request, which hasn't succeeded.
   fetchInitial,
 
+  /// The model made a `fetchInitial` request which failed.
+  fetchInitialError,
+
   /// The model made a successful `fetchInitial` request,
   /// and has no outstanding requests or backoff.
   idle,
@@ -146,7 +149,9 @@ mixin _MessageSequence {
   /// This allows the UI to distinguish "still working on fetching messages"
   /// from "there are in fact no messages here".
   bool get fetched => switch (_status) {
-    FetchingStatus.unstarted || FetchingStatus.fetchInitial => false,
+    FetchingStatus.unstarted
+      || FetchingStatus.fetchInitial
+      || FetchingStatus.fetchInitialError => false,
     _ => true,
   };
 
@@ -178,6 +183,10 @@ mixin _MessageSequence {
   FetchingStatus _status = FetchingStatus.unstarted;
 
   BackoffMachine? _fetchBackoffMachine;
+
+  /// The error from a failed [fetchInitial] request, if any.
+  Object? get fetchInitialError => _fetchInitialError;
+  Object? _fetchInitialError;
 
   /// The parsed message contents, as a list parallel to [messages].
   ///
@@ -410,6 +419,7 @@ mixin _MessageSequence {
     _haveNewest = false;
     _status = FetchingStatus.unstarted;
     _fetchBackoffMachine = null;
+    _fetchInitialError = null;
     contents.clear();
     items.clear();
     middleItem = 0;
@@ -826,15 +836,24 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
 
     _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
+    _fetchInitialError = null;
     // TODO schedule all this in another isolate
     final generation = this.generation;
-    final result = await getMessages(store.connection,
-      narrow: narrow.apiEncode(),
-      anchor: anchor,
-      numBefore: kMessageListFetchBatchSize,
-      numAfter: kMessageListFetchBatchSize,
-      allowEmptyTopicName: true,
-    );
+    final GetMessagesResult result;
+    try {
+      result = await getMessages(store.connection,
+        narrow: narrow.apiEncode(),
+        anchor: anchor,
+        numBefore: kMessageListFetchBatchSize,
+        numAfter: kMessageListFetchBatchSize,
+        allowEmptyTopicName: true,
+      );
+    } catch (e) {
+      if (this.generation > generation) return;
+      _fetchInitialError = e;
+      _setStatus(FetchingStatus.fetchInitialError, was: FetchingStatus.fetchInitial);
+      return;
+    }
     if (this.generation > generation) return;
 
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
@@ -865,6 +884,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
 
     _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchInitial);
+  }
+
+  /// Retry fetching messages after a [fetchInitial] failure.
+  ///
+  /// This should only be called when the status is [FetchingStatus.fetchInitialError].
+  void retryFetchInitial() {
+    assert(_status == FetchingStatus.fetchInitialError);
+    _status = FetchingStatus.unstarted;
+    _fetchInitialError = null;
+    fetchInitial();
   }
 
   /// Update [narrow] for the result of a "with" narrow (topic permalink) fetch.

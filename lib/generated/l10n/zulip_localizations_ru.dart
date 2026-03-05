@@ -302,6 +302,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Не удалось извлечь источник сообщения.';
 
   @override
+  String get errorCouldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get tryAgainButton => 'Try again';
+
+  @override
   String get errorCouldNotAccessUploadedFileTitle =>
       'Не удалось получить доступ к загруженному файлу';
 
