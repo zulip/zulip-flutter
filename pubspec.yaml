@@ -228,6 +228,8 @@ flutter:
     # If adding a font, remember to account for its license in lib/licenses.dart.
 
 patrol:
+  # For what this section actually does for us, see this bit of docs:
+  #   https://patrol.leancode.co/documentation/native/advanced#patrol-section-in-pubspecyaml
   app_name: Zulip
   android:
     package_name: com.zulipmobile

@@ -19,6 +19,10 @@ try {
     keystoreProperties = null
 }
 
+// True just if this build is for a Patrol integration test.
+// TODO(patrol): it'd be nice to have a cleaner way to detect this
+def forPatrol = project.hasProperty('target') && project.property('target').contains('/patrol_test/')
+
 android {
     namespace "com.zulip.flutter"
 
@@ -31,6 +35,15 @@ android {
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    androidComponents {
+        if (forPatrol) {
+            // When building the app for Patrol, include the Patrol-specific manifest.
+            onVariants(selector().all()) {
+                sources.manifests.addStaticManifestFile('src/patrol/AndroidManifest.xml')
+            }
+        }
     }
 
     defaultConfig {

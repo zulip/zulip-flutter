@@ -35,7 +35,8 @@ TestZulipBinding get testBinding => TestZulipBinding.instance;
 ///
 /// The global store returned by [getGlobalStore], and consequently by
 /// [GlobalStoreWidget.of] in application code, will be a [TestGlobalStore].
-class TestZulipBinding extends ZulipBinding {
+class TestZulipBinding extends ZulipBinding
+    with TestBindingBase, TestZulipStoreBinding, TestZulipDeviceBinding {
   /// Initialize the binding if necessary, and ensure it is a [TestZulipBinding].
   ///
   /// This method is idempotent; calling it repeatedly simply returns the
@@ -60,25 +61,29 @@ class TestZulipBinding extends ZulipBinding {
     _instance = this;
   }
 
+  @override
+  void reset() {
+    ZulipApp.debugReset();
+    super.reset();
+  }
+}
+
+mixin TestBindingBase {
   /// Reset all test data to a clean state.
   ///
   /// Tests that mount a [GlobalStoreWidget], or invoke a Flutter plugin,
   /// or access [globalStore] or other methods on this class,
   /// should clean up by calling this method.  Typically this is done using
   /// [addTearDown], like `addTearDown(testBinding.reset);`.
+  @mustCallSuper
+  void reset() {}
+}
+
+mixin TestZulipStoreBinding on ZulipBinding, TestBindingBase {
+  @override
   void reset() {
-    ZulipApp.debugReset();
     _resetStore();
-    _resetCanLaunchUrl();
-    _resetLaunchUrl();
-    _resetCloseInAppWebView();
-    _resetDeviceInfo();
-    _resetPackageInfo();
-    _resetFirebase();
-    _resetNotifications();
-    _resetPickFiles();
-    _resetPickImage();
-    _resetWakelock();
+    super.reset();
   }
 
   /// The current global store offered to a [GlobalStoreWidget].
@@ -133,6 +138,23 @@ class TestZulipBinding extends ZulipBinding {
       return true;
     }());
     return getGlobalStore();
+  }
+}
+
+mixin TestZulipDeviceBinding on ZulipBinding, TestBindingBase {
+  @override
+  void reset() {
+    _resetCanLaunchUrl();
+    _resetLaunchUrl();
+    _resetCloseInAppWebView();
+    _resetDeviceInfo();
+    _resetPackageInfo();
+    _resetFirebase();
+    _resetNotifications();
+    _resetPickFiles();
+    _resetPickImage();
+    _resetWakelock();
+    super.reset();
   }
 
   /// The value that `ZulipBinding.instance.canLaunchUrl()` should return.
