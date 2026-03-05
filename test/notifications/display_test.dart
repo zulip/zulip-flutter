@@ -108,9 +108,9 @@ MessageFcmMessage messageFcmMessage(
     "sender_full_name": zulipMessage.senderFullName.toString(),
 
     ...(switch (narrow) {
-      TopicNarrow(:var streamId, :var topic) => {
+      TopicNarrow(:var channelId, :var topic) => {
         "recipient_type": "stream",
-        "stream_id": streamId.toString(),
+        "stream_id": channelId.toString(),
         "stream": ?streamName,
         "topic": topic,
       },

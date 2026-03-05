@@ -1283,7 +1283,7 @@ TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
     case TopicNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
         messageType: MessageType.stream,
-        streamId: narrow.streamId,
+        streamId: narrow.channelId,
         topic: narrow.topic,
         recipientIds: null);
     case DmNarrow():

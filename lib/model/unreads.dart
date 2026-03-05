@@ -269,9 +269,9 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
       case CombinedFeedNarrow():
         return countInCombinedFeedNarrow();
       case ChannelNarrow():
-        return countInChannelNarrow(narrow.streamId);
+        return countInChannelNarrow(narrow.channelId);
       case TopicNarrow():
-        return countInTopicNarrow(narrow.streamId, narrow.topic);
+        return countInTopicNarrow(narrow.channelId, narrow.topic);
       case DmNarrow():
         return countInDmNarrow(narrow);
       case MentionsNarrow():
@@ -582,7 +582,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
           if (expectOnlyDms) {
             // TODO(log)?
           }
-          _removeAllInStreamTopic(ids, narrow.streamId, narrow.topic);
+          _removeAllInStreamTopic(ids, narrow.channelId, narrow.topic);
         case DmNarrow():
           final messageIds = dms[narrow];
           if (messageIds == null) return;

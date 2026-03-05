@@ -70,10 +70,10 @@ void main() {
   }) async {
     streams ??= subscriptions;
 
-    if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
-      final channel = streams.firstWhereOrNull((s) => s.streamId == streamId);
+    if (narrow case ChannelNarrow(:var channelId) || TopicNarrow(:var channelId)) {
+      final channel = streams.firstWhereOrNull((s) => s.streamId == channelId);
       assert(channel != null,
-        'Add a channel with "streamId" the same as of $narrow.streamId to the store.');
+        'Add a channel with "streamId" the same as of $narrow.channelId to the store.');
       if (narrow is ChannelNarrow) {
         // By default, bypass the complexity where the topic input is autofocused
         // on an empty fetch, by making the fetch not empty. (In particular that
@@ -132,7 +132,7 @@ void main() {
     await tester.enterText(topicInputFinder, topic);
     check(connection.takeRequests()).single
       ..method.equals('GET')
-      ..url.path.equals('/api/v1/users/me/${narrow.streamId}/topics');
+      ..url.path.equals('/api/v1/users/me/${narrow.channelId}/topics');
   }
 
   /// A [Finder] for the content input.
@@ -798,7 +798,7 @@ void main() {
 
     testWidgets('smoke ChannelNarrow', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
-      final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
+      final destinationNarrow = eg.topicNarrow(narrow.channelId, 'test topic');
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)]);
       await enterTopic(tester, narrow: narrow, topic: 'test topic');
@@ -870,7 +870,7 @@ void main() {
 
     testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
-      final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
+      final destinationNarrow = eg.topicNarrow(narrow.channelId, 'test topic');
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)]);
       await enterTopic(tester, narrow: narrow, topic: 'test topic');
