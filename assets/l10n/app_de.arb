@@ -167,6 +167,12 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelDeactivatedDmRecipient": {
+    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
   },
@@ -383,12 +389,6 @@
   },
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
-  },
-  "@composeBoxBannerLabelCannotSendInChannel": {
-    "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
-  },
-  "@composeBoxBannerLabelDeactivatedDmRecipient": {
-    "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
@@ -1117,6 +1117,9 @@
   "@switchAccountButtonTooltip": {
     "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
+  "@systemGroupNameNobody": {
+    "description": "Display name for the system group that includes nobody."
+  },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
   },
@@ -1387,6 +1390,8 @@
   "composeBoxBannerButtonRefresh": "Auffrischen",
   "composeBoxBannerButtonSave": "Speichern",
   "composeBoxBannerButtonSubscribe": "Abonnieren",
+  "composeBoxBannerLabelCannotSendInChannel": "Du hast keine Berechtigung in diesen Kanal zu schreiben.",
+  "composeBoxBannerLabelDeactivatedDmRecipient": "Du kannst keine Nachrichten an deaktivierte Nutzer senden.",
   "composeBoxBannerLabelEditMessage": "Nachricht bearbeiten",
   "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Neue Nachrichten werden nicht automatisch angezeigt.",
   "composeBoxChannelContentHint": "Nachricht an {destination}",
@@ -1438,8 +1443,6 @@
   "emptyMessageListStarredMessage": "<z-link>Markieren</z-link> ist eine gute Möglichkeit, wichtige Nachrichten wie Aufgaben, die du später erledigen möchtest, oder nützliche Referenzen nicht zu verlieren. Um eine Nachricht zu markieren, tippe sie lange an und tippe danach auf \"{button}\".",
   "errorAccountLoggedIn": "Der Account {email} auf {server} ist bereits in deiner Account-Liste.",
   "errorAccountLoggedInTitle": "Account bereits angemeldet",
-  "composeBoxBannerLabelCannotSendInChannel": "Du hast keine Berechtigung in diesen Kanal zu schreiben.",
-  "composeBoxBannerLabelDeactivatedDmRecipient": "Du kannst keine Nachrichten an deaktivierte Nutzer senden.",
   "errorConnectingToServerDetails": "Fehler beim Verbinden mit Zulip auf {serverUrl}. Wird wiederholt:\n\n{error}",
   "errorConnectingToServerShort": "Fehler beim Verbinden mit Zulip. Wiederhole…",
   "errorContentNotInsertedTitle": "Inhalt nicht eingefügt",
@@ -1613,6 +1616,7 @@
   "successMessageTextCopied": "Nachrichtentext kopiert",
   "successTopicLinkCopied": "Link zum Thema kopiert",
   "switchAccountButtonTooltip": "Konto wechseln",
+  "systemGroupNameNobody": "Niemand",
   "themeSettingDark": "Dunkel",
   "themeSettingLight": "Hell",
   "themeSettingSystem": "System",

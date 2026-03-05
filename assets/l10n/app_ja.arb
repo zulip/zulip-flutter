@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
   },
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
@@ -591,6 +597,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
@@ -655,6 +664,9 @@
   },
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
@@ -870,6 +882,9 @@
   "@mutedUser": {
     "description": "Text to display in place of a muted user's name."
   },
+  "@navBarFeedLabel": {
+    "description": "Label for the Feed button on the bottom navigation bar."
+  },
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
   },
@@ -994,6 +1009,9 @@
   },
   "@recentDmConversationsEmptyPlaceholderMessage": {
     "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsPageShortLabel": {
+    "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1134,6 +1152,30 @@
   },
   "@switchAccountButtonTooltip": {
     "description": "Tooltip message for main-menu button leading to the choose-account page."
+  },
+  "@systemGroupNameAdministrators": {
+    "description": "Display name for the system group that includes all users with at least the administrator role."
+  },
+  "@systemGroupNameEveryone": {
+    "description": "Display name for the system group that includes all users including guests."
+  },
+  "@systemGroupNameEveryoneOnInternet": {
+    "description": "Display name for the system group that includes everyone on the internet."
+  },
+  "@systemGroupNameFullMembers": {
+    "description": "Display name for the system group that includes all full members of the organization."
+  },
+  "@systemGroupNameMembers": {
+    "description": "Display name for the system group that includes all users excluding guests."
+  },
+  "@systemGroupNameModerators": {
+    "description": "Display name for the system group that includes all users with at least the moderator role."
+  },
+  "@systemGroupNameNobody": {
+    "description": "Display name for the system group that includes nobody."
+  },
+  "@systemGroupNameOwners": {
+    "description": "Display name for the system group that includes all users with the owner role."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -1353,6 +1395,7 @@
   "actionSheetOptionMarkChannelAsRead": "チャンネルを既読にする",
   "actionSheetOptionMarkTopicAsRead": "トピックを既読にする",
   "actionSheetOptionMuteTopic": "トピックをミュート",
+  "actionSheetOptionPinChannel": "上部に固定",
   "actionSheetOptionQuoteMessage": "メッセージを引用",
   "actionSheetOptionResolveTopic": "解決済みにする",
   "actionSheetOptionSeeWhoReacted": "リアクションした人を見る",
@@ -1361,6 +1404,7 @@
   "actionSheetOptionSubscribe": "チャンネルに参加",
   "actionSheetOptionUnfollowTopic": "トピックのフォローを解除",
   "actionSheetOptionUnmuteTopic": "トピックのミュートを解除",
+  "actionSheetOptionUnpinChannel": "上部に固定を解除",
   "actionSheetOptionUnresolveTopic": "未解決にする",
   "actionSheetOptionUnstarMessage": "メッセージのスターを外す",
   "actionSheetOptionUnsubscribe": "チャンネルから退出",
@@ -1481,6 +1525,7 @@
   "errorNetworkRequestFailed": "ネットワークエラーが発生しました",
   "errorNotificationOpenAccountNotFound": "この通知に関連付けられたアカウントが見つかりませんでした。",
   "errorNotificationOpenTitle": "通知を開けませんでした",
+  "errorPinChannelFailedTitle": "チャンネルの固定に失敗しました",
   "errorQuotationFailed": "引用できませんでした",
   "errorReactionAddingFailedTitle": "リアクションを追加できませんでした",
   "errorReactionRemovingFailedTitle": "リアクションを削除できませんでした",
@@ -1494,6 +1539,7 @@
   "errorStarMessageFailedTitle": "メッセージにスターを付けられませんでした",
   "errorUnfollowTopicFailed": "トピックのフォロー解除ができませんでした",
   "errorUnmuteTopicFailed": "トピックのミュート解除ができませんでした",
+  "errorUnpinChannelFailedTitle": "チャンネルの固定解除に失敗しました",
   "errorUnresolveTopicFailedTitle": "トピックを未解決にできませんでした",
   "errorUnstarMessageFailedTitle": "メッセージのスターを外せませんでした",
   "errorVideoPlayerFailed": "動画を再生できません。",
@@ -1554,6 +1600,7 @@
   "messageListGroupYouWithYourself": "自分とのメッセージ",
   "messageNotSentLabel": "メッセージ未送信",
   "mutedUser": "ミュート中のユーザー",
+  "navBarFeedLabel": "フィード",
   "navBarMenuLabel": "メニュー",
   "navButtonAllChannels": "全てのチャンネル",
   "newDmFabButtonLabel": "新しいDM",
@@ -1584,6 +1631,7 @@
   "reactionChipsLabel": "リアクション",
   "recentDmConversationsEmptyPlaceholderHeader": "ダイレクトメッセージはまだありません！",
   "recentDmConversationsEmptyPlaceholderMessage": "会話を始めてみませんか？",
+  "recentDmConversationsPageShortLabel": "DM",
   "recentDmConversationsPageTitle": "ダイレクトメッセージ",
   "recentDmConversationsSectionHeader": "ダイレクトメッセージ",
   "revealButtonLabel": "メッセージを表示",
@@ -1620,6 +1668,14 @@
   "successMessageTextCopied": "メッセージ本文をコピーしました",
   "successTopicLinkCopied": "トピックのリンクをコピーしました",
   "switchAccountButtonTooltip": "アカウントを切り替える",
+  "systemGroupNameAdministrators": "管理者",
+  "systemGroupNameEveryone": "ゲストを含む全員",
+  "systemGroupNameEveryoneOnInternet": "インターネット上の全員",
+  "systemGroupNameFullMembers": "フルメンバー",
+  "systemGroupNameMembers": "ゲストを除く全員",
+  "systemGroupNameModerators": "モデレーター",
+  "systemGroupNameNobody": "なし",
+  "systemGroupNameOwners": "オーナー",
   "themeSettingDark": "ダークテーマ",
   "themeSettingLight": "ライトテーマ",
   "themeSettingSystem": "自動テーマ",
