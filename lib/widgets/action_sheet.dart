@@ -960,7 +960,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
     try {
       await updateUserTopicCompat(
         PerAccountStoreWidget.of(pageContext).connection,
-        streamId: narrow.channelId,
+        channelId: narrow.channelId,
         topic: narrow.topic,
         visibilityPolicy: newVisibilityPolicy);
     } catch (e) {
