@@ -18,8 +18,8 @@ set -euo pipefail
 
 this_dir=${BASH_SOURCE[0]%/*}
 
-# shellcheck source=tools/lib/ensure-coreutils.sh
-. "${this_dir}"/lib/ensure-coreutils.sh
+# shellcheck source=tools/lib/ensure-shell-deps.sh
+. "${this_dir}"/lib/ensure-shell-deps.sh
 
 # shellcheck source=tools/lib/git.sh
 . "${this_dir}"/lib/git.sh

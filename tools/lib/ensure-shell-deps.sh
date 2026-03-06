@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 #
 # Usage:
-#   . ensure-coreutils.sh
+#   . ensure-shell-deps.sh
 #
 # Ensures GNU coreutils are available in PATH.
 # May add to PATH, or exit with a message to stderr.
