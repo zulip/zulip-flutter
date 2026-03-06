@@ -51,11 +51,15 @@ API route tests don't need this — they use `FakeApiConnection.with_` directly.
 
 ### `group()` and `test()` naming
 
-Descriptions are **short fragments** (not sentences), lowercase, no trailing period:
+Descriptions are **short fragments** (not sentences), lowercase, no trailing period.
+Use bare imperative verbs, not third-person: "generate key", not "generates key".
+For negative cases, use "no" prefix: "no delete non-superseded keys", "no re-mark already-superseded keys".
+Example:
 ```dart
-group('handleMessageEvent', () {
-  test('smoke', () { ... });
-  test('with starred flag', () { ... });
+group('generate new key', () {
+  test('generate key when no keys exist', () { ... });
+  test('generate key when latest is old enough', () { ... });
+  test('no new key when latest is recent', () { ... });
 });
 ```
 
@@ -85,6 +89,13 @@ Key pre-built User objects: `eg.selfUser`, `eg.otherUser`, `eg.thirdUser`.
 Key pre-built Account objects: `eg.selfAccount`, `eg.otherAccount`.
 
 IDs are generally auto-generated with random gaps (never sequential) to avoid tests accidentally depending on specific ID values.
+
+When there isn't already a suitable builder function in
+`test/example_data.dart`, add one.
+Make as many of the function's parameters optional as possible,
+choosing defaults that are boring and representative so that
+tests that aren't about any given field don't need to
+say anything about it that field.
 
 ### Setting up stores
 
@@ -149,6 +160,25 @@ group('my feature', () {
 });
 ```
 
+If every test calls a setup helper then immediately does the same follow-up step (e.g., `async.flushMicrotasks()`), fold that step into the helper.
+
+For a local helper function, keep the doc comment very short or leave it out.
+Don't document every parameter when names are self-explanatory.
+
+### Local fixture helpers
+
+When many tests in a group create similar fixtures varying only a few fields, extract a local helper:
+```dart
+PushKey mkKey(int createdTimestamp, {int? supersededTimestamp}) {
+  return eg.pushKey(
+    account: eg.selfAccount,
+    createdTimestamp: createdTimestamp,
+    supersededTimestamp: supersededTimestamp,
+  );
+}
+```
+This keeps test bodies focused on what varies.
+
 ## Assertions with `package:checks`
 
 All assertions use `package:checks`. Never use `expect()` or matchers.
@@ -162,6 +192,17 @@ check(value).isTrue();
 check(list).isEmpty();
 check(list).length.equals(3);
 ```
+
+For nullable values you know are non-null, use `check(value!)` with `!` to access properties directly, rather than `check(value).isNotNull()`:
+```dart
+// Compact — use when confident value is non-null:
+check(getPushKeyById(id)!).supersededTimestamp.equals(now);
+// Longer — use only when non-null check is part of the point of the test:
+check(getPushKeyById(id)).isNotNull().supersededTimestamp.equals(now);
+```
+
+Don't use `isA<T>()` when the subject type is already `T?`;
+use the simpler `isNotNull()`, if not `!`.
 
 ### Cascading property checks
 
@@ -299,6 +340,18 @@ checkNoDialog(tester);
   ```
 - Long argument lists break with each named argument on its own line, but short calls stay on one line.
 - `late` variables are used at the group level for shared state that gets assigned in setup helpers. `final` is used within test bodies for immutable test data.
+- Place checks immediately after the action that sets up the situation they check — no blank lines in between:
+  ```dart
+  initStore(async, pushKeys: [oldKey, newKey],
+    ackedPushKeyId: newKey.pushKeyId);
+  check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.equals(now);
+  ```
+- Keep `awaitFakeAsync` on the same line as `test(`:
+  ```dart
+  test('generate key when no keys exist', () => awaitFakeAsync((async) async {
+    ...
+  }));
+  ```
 
 
 ## Writing tests for a given piece of code
@@ -310,6 +363,28 @@ checkNoDialog(tester);
 
 - **When a test is specifically about some property, pass it explicitly**
   even if it matches the default — this documents the test's intent.
+
+- **Don't write redundant tests.** One boundary test is enough — don't also
+  add a "well within the range" test that covers the same code path.
+  Don't write "all steps together" integration tests when each step
+  is already individually tested,
+  unless the steps interact with each other
+  (in which case test the specific interaction).
+
+- **Use realistic values.** Time offsets and other data in tests
+  should reflect realistic scenarios, not arbitrary small numbers.
+
+- Avoid a name that's just a number, like `thirtyDays`.
+  Instead, define a meaningful constant like `const secondsPerDay = 86400`
+  and write `30 * secondsPerDay`.
+
+- **Keep comments minimal.** Don't write comments that restate what the code
+  does ("// The old key is now superseded" before `.supersededTimestamp.equals(now)`).
+  Use comments only for context not obvious from the code itself
+  (e.g., "// A device-update event acks the new key." before a `handleEvent` call).
+
+- **Only include relevant setup.** Don't add teardowns, debug flags, or
+  other setup that isn't needed for the logic being tested.
 
 
 ## Regression tests
