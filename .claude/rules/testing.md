@@ -207,8 +207,8 @@ check(list).length.equals(3);
 ```
 
 Keep non-null checks simple.
-When you know the value is non-null
-and that's not the point of the test, use `!`:
+When you know the value is non-null and that's
+not the point of the test, use `!` (inside the parens):
 `check(value!).isNotEmpty();`.
 When the null check is part of what the test is testing,
 use `isNotNull`:
