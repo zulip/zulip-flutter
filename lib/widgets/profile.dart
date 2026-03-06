@@ -122,7 +122,7 @@ class ProfilePage extends StatelessWidget {
         const SizedBox(height: 16),
       ],
 
-      _ProfileDataTable(profileData: user.profileData),
+      _ProfileDataTable(user: user),
       const SizedBox(height: 16),
       FilledButton.icon(
         onPressed: () => Navigator.push(context,
@@ -344,9 +344,9 @@ String roleToLabel(UserRole role, ZulipLocalizations zulipLocalizations) {
 }
 
 class _ProfileDataTable extends StatelessWidget {
-  const _ProfileDataTable({required this.profileData});
+  const _ProfileDataTable({required this.user});
 
-  final Map<int, ProfileFieldUserData>? profileData;
+  final User user;
 
   static T? _tryDecode<T, U>(T Function(U) fromJson, String data) {
     try {
@@ -413,12 +413,12 @@ class _ProfileDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    if (profileData == null) return const SizedBox.shrink();
 
     List<Widget> items = [];
 
+    final profileData = user.profileData;
     for (final realmField in store.customProfileFields) {
-      final profileField = profileData![realmField.id];
+      final profileField = profileData?[realmField.id];
       if (profileField == null) continue;
       final widget = _buildCustomProfileFieldValue(context, profileField.value, realmField);
       if (widget == null) continue; // TODO(log)
