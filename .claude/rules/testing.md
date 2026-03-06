@@ -18,6 +18,11 @@ Companion files use naming conventions:
 - `*_test.dart` — test files
 - `*_checks.dart` — custom `package:checks` extensions for a domain
 
+Tests belong in the file corresponding to where the **logic** lives,
+not where the call site or trigger is.
+For example, for logic that lives in `push_key.dart` but is triggered
+from `push_device.dart`, the tests go in `push_key_test.dart`.
+
 ## Imports
 
 **Non-widget tests** import `package:test/scaffolding.dart` (for `test`, `group`).
@@ -87,8 +92,16 @@ final snapshot = eg.initialSnapshot(streams: [stream]);
 
 Key pre-built User objects: `eg.selfUser`, `eg.otherUser`, `eg.thirdUser`.
 Key pre-built Account objects: `eg.selfAccount`, `eg.otherAccount`.
+These are just pre-made calls to `eg.user()` and `eg.account()`.
 
-IDs are generally auto-generated with random gaps (never sequential) to avoid tests accidentally depending on specific ID values.
+IDs are generally auto-generated with distinct values
+on each call to a builder function.
+So for example `eg.account(user: eg.selfUser)` will have a different
+account ID from `eg.selfAccount`.
+
+The auto-generated IDs are random but increasing.
+So e.g. three calls to `eg.dmMessage` will have increasing message IDs,
+just like three real messages sent in that order.
 
 When there isn't already a suitable builder function in
 `test/example_data.dart`, add one.
@@ -355,6 +368,19 @@ checkNoDialog(tester);
 
 
 ## Writing tests for a given piece of code
+
+- **Study existing tests first.** Before writing tests, read how
+  nearby existing tests exercise the same or similar code.
+  Understand the entry points, test file organization, and helper
+  patterns before writing any test code.
+
+- **Test through the normal entry points, not internal methods.**
+  Except for getters and read-only methods,
+  most methods on substores are internal implementation details;
+  the external interface is to create a store and handle events.
+  Even when testing a substore mutator method like `handleFooEvent`,
+  don't call it directly;
+  stick to `eg.initialSnapshot` and `store.handleEvent`.
 
 - **When writing tests for a change, verify they actually test it.**
   After writing tests for a commit, check: would these tests fail if
