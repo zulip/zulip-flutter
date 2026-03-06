@@ -206,16 +206,14 @@ check(list).isEmpty();
 check(list).length.equals(3);
 ```
 
-For nullable values you know are non-null, use `check(value!)` with `!` to access properties directly, rather than `check(value).isNotNull()`:
-```dart
-// Compact — use when confident value is non-null:
-check(getPushKeyById(id)!).supersededTimestamp.equals(now);
-// Longer — use only when non-null check is part of the point of the test:
-check(getPushKeyById(id)).isNotNull().supersededTimestamp.equals(now);
-```
-
-Don't use `isA<T>()` when the subject type is already `T?`;
-use the simpler `isNotNull()`, if not `!`.
+Keep non-null checks simple.
+When you know the value is non-null
+and that's not the point of the test, use `!`:
+`check(value!).isNotEmpty();`.
+When the null check is part of what the test is testing,
+use `isNotNull`:
+`check(value).isNotNull().isNotEmpty();`.
+Don't use `isA<T>()` for just a null check.
 
 ### Cascading property checks
 
