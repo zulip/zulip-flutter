@@ -753,12 +753,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorContentToInsertIsEmpty => '挿入しようとしたファイルが空、またはアクセスできません。';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url で動作している Zulip Server $zulipVersion はサポート対象外です。サポートされる最小バージョンは Zulip Server $minSupportedZulipVersion です。';
+    return '$url で動作している Zulip Server $zulipVersion はサポート対象外です。サポートされる最小バージョンは Zulip Server $minAllowedZulipVersion です。';
   }
 
   @override

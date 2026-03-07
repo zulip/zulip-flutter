@@ -627,10 +627,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -1514,7 +1514,7 @@
   "errorRequestFailed": "Помилка мережевого запиту: статус HTTP {httpStatus}",
   "errorResolveTopicFailedTitle": "Не вдалося позначити тему як вирішену",
   "errorServerMessage": "Сервер сказав:\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} використовує Zulip Server {zulipVersion}, який не підтримується. Мінімальною підтримуваною версією є Zulip Server {minSupportedZulipVersion}.",
+  "errorServerVersionNotAllowedMessage": "{url} використовує Zulip Server {zulipVersion}, який не підтримується. Мінімальною підтримуваною версією є Zulip Server {minAllowedZulipVersion}.",
   "errorSharingAccountNotLoggedIn": "Немає облікового запису, в який ви ввійшли. Будь ласка, увійдіть в обліковий запис і спробуйте ще раз..",
   "errorSharingFailed": "Поширення не вдалося",
   "errorSharingTitle": "Не вдалося поділитися контентом",

@@ -540,10 +540,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -1364,7 +1364,7 @@
   "errorRequestFailed": "网络请求失败；HTTP 状态码 {httpStatus}",
   "errorResolveTopicFailedTitle": "未能将话题标记为解决",
   "errorServerMessage": "服务器：\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} 运行的 Zulip 服务器版本 {zulipVersion} 过低。该客户端只支持 {minSupportedZulipVersion} 及以后的服务器版本。",
+  "errorServerVersionNotAllowedMessage": "{url} 运行的 Zulip 服务器版本 {zulipVersion} 过低。该客户端只支持 {minAllowedZulipVersion} 及以后的服务器版本。",
   "errorSharingAccountNotLoggedIn": "尚未登录任何账号。请登录账号后再次尝试。",
   "errorSharingFailed": "分享失败",
   "errorSharingTitle": "分享内容失败",
