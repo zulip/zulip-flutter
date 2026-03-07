@@ -1412,14 +1412,14 @@ abstract class ZulipLocalizations {
   /// **'The file to be inserted is empty or cannot be accessed.'**
   String get errorContentToInsertIsEmpty;
 
-  /// Error message in the dialog for when the Zulip Server version is unsupported.
+  /// Error message in the dialog for when the Zulip Server version is not allowed.
   ///
   /// In en, this message translates to:
-  /// **'{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minSupportedZulipVersion}.'**
-  String errorServerVersionUnsupportedMessage(
+  /// **'{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minAllowedZulipVersion}.'**
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   );
 
   /// Error message in the dialog for invalid API key.

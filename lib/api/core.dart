@@ -12,16 +12,16 @@ import 'exception.dart';
 
 /// The Zulip Server version below which we should refuse to connect.
 ///
-/// When updating this, also update [kMinSupportedZulipFeatureLevel]
+/// When updating this, also update [kMinAllowedZulipFeatureLevel]
 /// and the README.
 // TODO(#1838) address all TODO(server-7)
-const kMinSupportedZulipVersion = '7.0';
+const kMinAllowedZulipVersion = '7.0';
 
-/// The Zulip feature level reserved for the [kMinSupportedZulipVersion] release.
+/// The Zulip feature level reserved for the [kMinAllowedZulipVersion] release.
 ///
 /// For this value, see the API changelog:
 ///   https://zulip.com/api/changelog
-const kMinSupportedZulipFeatureLevel = 185;
+const kMinAllowedZulipFeatureLevel = 185;
 
 /// The doc stating our oldest supported server version.
 // TODO: Instead, link to new Help Center doc once we have it:

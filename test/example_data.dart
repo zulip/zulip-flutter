@@ -98,7 +98,7 @@ Uri get _realmIcon => realmIcon;
 const String recentZulipVersion = '11.0';
 const int recentZulipFeatureLevel = 468;
 const int futureZulipFeatureLevel = 9999;
-const int ancientZulipFeatureLevel = kMinSupportedZulipFeatureLevel - 1;
+const int ancientZulipFeatureLevel = kMinAllowedZulipFeatureLevel - 1;
 
 GetServerSettingsResult serverSettings({
   Map<String, bool>? authenticationMethods,
