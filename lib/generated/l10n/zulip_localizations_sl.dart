@@ -815,12 +815,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Datoteka za vstavljanje je prazna ali nedostopna.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url uporablja strežnik Zulip $zulipVersion, ki ni podprt. Najnižja podprta različica je strežnik Zulip $minSupportedZulipVersion.';
+    return '$url uporablja strežnik Zulip $zulipVersion, ki ni podprt. Najnižja podprta različica je strežnik Zulip $minAllowedZulipVersion.';
   }
 
   @override

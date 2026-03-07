@@ -819,12 +819,12 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Le fichier à insérer est vide ou ne peut pas être récupéré.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url exploite Zulip Server en version $zulipVersion, qui n\'est pas supportée. La version minimum supportée est Zulip Server $minSupportedZulipVersion.';
+    return '$url exploite Zulip Server en version $zulipVersion, qui n\'est pas supportée. La version minimum supportée est Zulip Server $minAllowedZulipVersion.';
   }
 
   @override

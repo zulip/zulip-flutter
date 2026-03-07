@@ -806,12 +806,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Файл, який потрібно вставити, порожній або до нього немає доступу.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url використовує Zulip Server $zulipVersion, який не підтримується. Мінімальною підтримуваною версією є Zulip Server $minSupportedZulipVersion.';
+    return '$url використовує Zulip Server $zulipVersion, який не підтримується. Мінімальною підтримуваною версією є Zulip Server $minAllowedZulipVersion.';
   }
 
   @override

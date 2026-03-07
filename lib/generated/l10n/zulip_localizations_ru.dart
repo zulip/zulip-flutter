@@ -808,12 +808,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Файл для вставки пустой, или к нему нет доступа.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url использует Zulip Server $zulipVersion, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server $minSupportedZulipVersion.';
+    return '$url использует Zulip Server $zulipVersion, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server $minAllowedZulipVersion.';
   }
 
   @override

@@ -805,12 +805,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Plik do dodania jest pusty lub nie ma do niego dostępu.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url uruchamia Zulip Server $zulipVersion, który nie jest obsługiwany. Minimalna obsługiwana wersja to Zulip Server $minSupportedZulipVersion.';
+    return '$url uruchamia Zulip Server $zulipVersion, który nie jest obsługiwany. Minimalna obsługiwana wersja to Zulip Server $minAllowedZulipVersion.';
   }
 
   @override

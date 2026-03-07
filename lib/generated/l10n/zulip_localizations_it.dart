@@ -809,12 +809,12 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Il file da inserire è vuoto o non è accessibile.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url sta usando Zulip Server $zulipVersion, che non è supportato. La versione minima supportata è Zulip Server $minSupportedZulipVersion.';
+    return '$url sta usando Zulip Server $zulipVersion, che non è supportato. La versione minima supportata è Zulip Server $minAllowedZulipVersion.';
   }
 
   @override

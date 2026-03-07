@@ -630,10 +630,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -1532,7 +1532,7 @@
   "errorRequestFailed": "ネットワークリクエストに失敗しました：HTTP ステータス {httpStatus}",
   "errorResolveTopicFailedTitle": "トピックを解決済みにできませんでした",
   "errorServerMessage": "サーバーからの応答：\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} で動作している Zulip Server {zulipVersion} はサポート対象外です。サポートされる最小バージョンは Zulip Server {minSupportedZulipVersion} です。",
+  "errorServerVersionNotAllowedMessage": "{url} で動作している Zulip Server {zulipVersion} はサポート対象外です。サポートされる最小バージョンは Zulip Server {minAllowedZulipVersion} です。",
   "errorSharingAccountNotLoggedIn": "ログインしていません。アカウントにログインしてから、もう一度お試しください。",
   "errorSharingFailed": "共有に失敗しました",
   "errorSharingTitle": "コンテンツを共有できませんでした",

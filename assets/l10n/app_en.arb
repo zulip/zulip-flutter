@@ -952,13 +952,13 @@
   "@errorContentToInsertIsEmpty": {
     "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
   },
-  "errorServerVersionUnsupportedMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minSupportedZulipVersion}.",
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "errorServerVersionNotAllowedMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minAllowedZulipVersion}.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
       "url": {"type": "String", "example": "http://chat.example.com/"},
       "zulipVersion": {"type": "String", "example": "3.2"},
-      "minSupportedZulipVersion": {"type": "String", "example": "4.0"}
+      "minAllowedZulipVersion": {"type": "String", "example": "4.0"}
     }
   },
   "errorInvalidApiKeyMessage": "Your account at {url} could not be authenticated. Please try logging in again or use another account.",

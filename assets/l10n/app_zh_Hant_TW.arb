@@ -636,10 +636,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -1526,7 +1526,7 @@
   "errorRequestFailed": "網路請求失敗：HTTP 狀態碼為 {httpStatus}",
   "errorResolveTopicFailedTitle": "無法標註話題為已解決",
   "errorServerMessage": "伺服器回應：\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} 執行的 Zulip Server 為 {zulipVersion}，此版本已不受支援。最低支援版本為 Zulip Server {minSupportedZulipVersion}。",
+  "errorServerVersionNotAllowedMessage": "{url} 執行的 Zulip Server 為 {zulipVersion}，此版本已不受支援。最低支援版本為 Zulip Server {minAllowedZulipVersion}。",
   "errorSharingAccountNotLoggedIn": "尚未登入任何帳號。請登入帳號後再試一次。",
   "errorSharingFailed": "分享失敗",
   "errorSharingTitle": "分享內容失敗",

@@ -810,12 +810,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Die einzufügende Datei ist leer oder kann nicht geöffnet werden.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url nutzt Zulip Server $zulipVersion, welche nicht unterstützt wird. Die unterstützte Mindestversion ist Zulip Server $minSupportedZulipVersion.';
+    return '$url nutzt Zulip Server $zulipVersion, welche nicht unterstützt wird. Die unterstützte Mindestversion ist Zulip Server $minAllowedZulipVersion.';
   }
 
   @override
