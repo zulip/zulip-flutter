@@ -195,19 +195,31 @@ testWidgets('description', (tester) async {
 ### Setup helper functions
 
 When several tests share setup logic,
-extract a helper function at the group level:
+extract a helper function at the group level.
+
+Often this helper will set `late` variables to share the
+`PerAccountStore`, `FakeApiConnection`, and sometimes other data,
+for the test cases to access.  For example:
+
 ```dart
 group('my feature', () {
+  late PerAccountStore store;
+  late FakeApiConnection connection;
+
   Future<void> prepare(WidgetTester tester, {
     required List<ZulipStream> channels,
   }) async {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(...));
+    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    connection = store.connection as FakeApiConnection;
     // ...
   }
 
   testWidgets('empty list', (tester) async {
-    await prepare(tester, channels: []);
+    await prepare(tester, channels: []); // set up data
+    await store.handleEvent(...); // now use the store
+    connection.prepare(...); // and use the connection
     // ...
   });
 });
@@ -411,10 +423,6 @@ checkNoDialog(tester);
 
 - Long argument lists break with each named argument on its own line,
   but short calls stay on one line.
-
-- `late` variables are used at the group level for shared state
-  that gets assigned in setup helpers.
-  `final` is used within test bodies for immutable test data.
 
 - Place checks immediately after the action that sets up
   the situation they check — no blank lines in between:
