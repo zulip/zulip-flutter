@@ -170,6 +170,27 @@ These helpers internally dispatch the appropriate events to the store.
 Use `store.handleEvent` directly when there isn't a relevant extension helper.
 
 
+### API requests
+
+When tests need to prepare API responses or inspect requests,
+use `connection.prepare()` and `connection.takeRequests()`,
+which are methods on `FakeApiConnection`:
+
+```dart
+connection.prepare(json: someResult.toJson());
+// ... trigger action that makes API call ...
+check(connection.takeRequests()).single.isA<http.Request>()
+  ..method.equals('POST')
+  ..url.path.equals('/api/v1/some_endpoint');
+```
+
+The `connection.prepare` method takes other options too.
+To make the request fail, pass `httpException` or `apiException`
+instead of `json`.
+To make the request take time to finish, pass `delay`, and then use
+either `awaitFakeAsync` or `testWidgets` to manipulate time.
+
+
 ### Setting up widget tests
 
 Widget tests follow this pattern:
@@ -431,13 +452,15 @@ Avoid tester.pumpAndSettle().
 
 
 ### Verifying API requests from widgets
+
+After a gesture like `tester.tap`, use `tester.pump`
+to give the widget a chance to handle the gesture:
 ```dart
 connection.prepare(json: {});  // prepare response before the action
 await tester.tap(find.text('Submit'));
 await tester.pump();
-check(connection.lastRequest).isA<http.Request>()
-  ..method.equals('POST')
-  ..url.path.equals('/api/v1/messages');
+check(connection.takeRequests()).isA<http.Request>()
+  // ...
 ```
 
 
