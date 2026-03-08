@@ -123,9 +123,9 @@ tests that aren't about any given field don't need to
 say anything about it that field.
 
 
-### Setting up stores
+### Setting up a store
 
-For model tests, use `eg.store()`:
+In model tests, create a fresh per-account store with `eg.store()`:
 ```dart
 final store = eg.store(initialSnapshot: eg.initialSnapshot(
   streams: [stream1, stream2],
@@ -133,8 +133,32 @@ final store = eg.store(initialSnapshot: eg.initialSnapshot(
 ));
 ```
 
-Then add data incrementally with extension helpers
-from `test/model/test_store.dart`:
+When control over the global store is needed,
+create one with `eg.globalStore()`.
+Then use `TestGlobalStore.add` to set up a per-account store there,
+and `GlobalStore.perAccount` to retrieve it:
+```dart
+  final globalStore = eg.globalStore(accounts: [eg.selfAccount]);
+  await globalStore.add(eg.selfAccount, eg.initialSnapshot(...));
+  final store = await globalStore.perAccount(eg.selfAccount.id);
+```
+
+In widget tests, use `testBinding.globalStore` to access
+the same global store that widgets will see,
+and create per-account stores there:
+```dart
+testWidgets('description', (tester) async {
+  addTearDown(testBinding.reset);
+  await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(...));
+  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+```
+Always call `addTearDown(testBinding.reset)` in tests that use `testBinding`.
+
+
+### Adding data to a store
+
+After creating a per-account store, add data incrementally
+with extension helpers from `test/model/test_store.dart`:
 ```dart
 await store.addUser(user);
 await store.addStream(stream);
@@ -153,8 +177,8 @@ Widget tests follow this pattern:
 testWidgets('description', (tester) async {
   addTearDown(testBinding.reset);
   await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(...));
-  store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-  connection = store.connection as FakeApiConnection;
+  final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+  final connection = store.connection as FakeApiConnection;
 
   // Add data to store
   await store.addStream(stream);
@@ -166,8 +190,6 @@ testWidgets('description', (tester) async {
   await tester.pump();
 });
 ```
-
-Always call `addTearDown(testBinding.reset)` in tests that use `testBinding`.
 
 
 ### Setup helper functions
