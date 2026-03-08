@@ -249,6 +249,41 @@ PushKey mkKey(int createdTimestamp, {int? supersededTimestamp}) {
 This keeps test bodies focused on what varies.
 
 
+### Controlling time and async with `awaitFakeAsync`
+
+When testing non-widgets code that uses any of the following:
+* timers;
+* time-based logic;
+* asynchronous tasks which are unawaited in the code
+  (so a caller can't simply `await` to wait for them to finish);
+
+then wrap the test in `awaitFakeAsync`.
+Keep it on the same line as `test(`:
+```dart
+test('register on startup', () => awaitFakeAsync((async) async {
+  prepareStore();
+  connection.prepare(json: {});
+  await model.debugUnpauseRegisterToken();
+  async.flushMicrotasks();
+  check(connection.takeRequests()).single.isA<http.Request>();
+}));
+```
+
+Call `async.flushMicrotasks()` to process pending asynchronous tasks
+that aren't waiting for any time to pass,
+or `async.elapse(duration)` to advance the fake clock and run timers.
+
+Widgets tests don't need `awaitFakeAsync`
+because `testWidgets` already provides fake async.
+In widgets tests, use `tester.pump` instead of `flushMicrotasks` or `elapse`.
+
+When the steps in the code can happen in different orders
+depending on external factors like how long an API request takes,
+the code's tests should make sure to exercise different orderings.
+For example, to control when an API request finishes in a test,
+use `connection.prepare(delay: Duration(...), ...)`.
+
+
 ## Assertions with `package:checks`
 
 All assertions use `package:checks`.
@@ -438,13 +473,6 @@ checkNoDialog(tester);
   initStore(async, pushKeys: [oldKey, newKey],
     ackedPushKeyId: newKey.pushKeyId);
   check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.equals(now);
-  ```
-
-- Keep `awaitFakeAsync` on the same line as `test(`:
-  ```dart
-  test('generate key when no keys exist', () => awaitFakeAsync((async) async {
-    ...
-  }));
   ```
 
 
