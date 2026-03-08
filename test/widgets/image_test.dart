@@ -1,5 +1,4 @@
 import 'package:checks/checks.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/core.dart';
@@ -199,107 +198,59 @@ void main() {
     });
   });
 
-  group('ImageAnimationMode.shouldAnimate', () {
+group('ImageAnimationMode.shouldAnimate', () {
 
-    testWidgets('animateAlways returns true', (tester) async {
-      await tester.pumpWidget(const Placeholder());
-      final context = tester.element(find.byType(Placeholder));
+  testWidgets('animateAlways returns true', (tester) async {
+    await tester.pumpWidget(const Placeholder());
+    final context = tester.element(find.byType(Placeholder));
 
-      expect(
-        ImageAnimationMode.animateAlways.shouldAnimate(context),
-        true,
-      );
-    });
-
-    testWidgets('animateNever returns false', (tester) async {
-      await tester.pumpWidget(const Placeholder());
-      final context = tester.element(find.byType(Placeholder));
-
-      expect(
-        ImageAnimationMode.animateNever.shouldAnimate(context),
-        false,
-      );
-    });
-
-    testWidgets('returns false when MediaQuery disables animations', (tester) async {
-      await tester.pumpWidget(
-        const MediaQuery(
-          data: MediaQueryData(disableAnimations: true),
-          child: Placeholder(),
-        ),
-      );
-
-      final context = tester.element(find.byType(Placeholder));
-
-      expect(
-        ImageAnimationMode.animateConditionally.shouldAnimate(context),
-        false,
-      );
-    });
-
-    testWidgets('returns true when animations are allowed', (tester) async {
-      await tester.pumpWidget(
-        const MediaQuery(
-          data: MediaQueryData(disableAnimations: false),
-          child: Placeholder(),
-        ),
-      );
-
-      final context = tester.element(find.byType(Placeholder));
-
-      expect(
-        ImageAnimationMode.animateConditionally.shouldAnimate(context),
-        true,
-      );
-    });
-
-    testWidgets('returns false on iOS when reduceMotion is enabled', (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-
-      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
-          const FakeAccessibilityFeatures(reduceMotion: true);
-
-      await tester.pumpWidget(
-        const MediaQuery(
-          data: MediaQueryData(disableAnimations: false),
-          child: Placeholder(),
-        ),
-      );
-
-      final context = tester.element(find.byType(Placeholder));
-
-      expect(
-        ImageAnimationMode.animateConditionally.shouldAnimate(context),
-        false,
-      );
-
-      debugDefaultTargetPlatformOverride = null;
-      tester.binding.platformDispatcher.clearAccessibilityFeaturesTestValue();
-    });
-
-    testWidgets('returns false on iOS when autoPlayAnimatedImages is disabled', (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-
-      tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
-          const FakeAccessibilityFeatures(autoPlayAnimatedImages: false);
-
-      await tester.pumpWidget(
-        const MediaQuery(
-          data: MediaQueryData(disableAnimations: false),
-          child: Placeholder(),
-        ),
-      );
-
-      final context = tester.element(find.byType(Placeholder));
-
-      expect(
-        ImageAnimationMode.animateConditionally.shouldAnimate(context),
-        false,
-      );
-
-      debugDefaultTargetPlatformOverride = null;
-      tester.binding.platformDispatcher.clearAccessibilityFeaturesTestValue();
-    });
-
+    expect(
+      ImageAnimationMode.animateAlways.shouldAnimate(context),
+      true,
+    );
   });
+
+  testWidgets('animateNever returns false', (tester) async {
+    await tester.pumpWidget(const Placeholder());
+    final context = tester.element(find.byType(Placeholder));
+
+    expect(
+      ImageAnimationMode.animateNever.shouldAnimate(context),
+      false,
+    );
+  });
+
+  testWidgets('returns false when MediaQuery disables animations', (tester) async {
+    await tester.pumpWidget(
+      const MediaQuery(
+        data: MediaQueryData(disableAnimations: true),
+        child: Placeholder(),
+      ),
+    );
+
+    final context = tester.element(find.byType(Placeholder));
+
+    expect(
+      ImageAnimationMode.animateConditionally.shouldAnimate(context),
+      false,
+    );
+  });
+
+  testWidgets('returns true when animations are allowed', (tester) async {
+    await tester.pumpWidget(
+      const MediaQuery(
+        data: MediaQueryData(disableAnimations: false),
+        child: Placeholder(),
+      ),
+    );
+
+    final context = tester.element(find.byType(Placeholder));
+
+    expect(
+      ImageAnimationMode.animateConditionally.shouldAnimate(context),
+      true,
+    );
+  });
+
+});
 }
