@@ -50,7 +50,8 @@ class TopicListPage extends StatelessWidget {
             onPressed: () => Navigator.push(context,
               MessageListPage.buildRoute(context: context,
                 narrow: ChannelNarrow(streamId)))),
-        ]),
+        ],
+        showRealmIcon: false),
       body: _TopicList(streamId: streamId)));
   }
 }

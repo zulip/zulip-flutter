@@ -3,12 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
+import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/profile.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import 'test_app.dart';
 
 void main() {
@@ -93,7 +96,8 @@ void main() {
             buildTitle: (willCenterTitle) {
               result = willCenterTitle;
               return const Text('a');
-            }))));
+            },
+            showRealmIcon: false))));
 
       await tester.pumpWidget(widget);
       await tester.pump(); // global store
@@ -156,5 +160,73 @@ void main() {
 
     doTest('ios, two actions but param true', true, platform: iOS, paramValue: true, actions: twoButtons);
     doTest('ios, two actions but theme true', true, platform: iOS, themeValue: true, actions: twoButtons);
+  });
+
+  group('realm icon', () {
+    Future<void> setupPage(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      prepareBoringImageHttpClient();
+
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: Builder(builder: (context) => Scaffold(
+          appBar: ZulipAppBar(
+            showRealmIcon: true,
+            buildTitle: (_) => const Text('Inbox'))))));
+
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('shows realm icon when showRealmIcon is true', (tester) async {
+      await setupPage(tester);
+
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage))).findsOne();
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('no realm icon when showRealmIcon is false', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: Builder(builder: (context) => Scaffold(
+          appBar: ZulipAppBar(
+            buildTitle: (_) => const Text('Inbox'),
+            showRealmIcon: false)))));
+
+      await tester.pump();
+      await tester.pump();
+
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage))).findsNothing();
+    });
+
+    testWidgets('realm icon tap navigates to ChooseAccountPage', (tester) async {
+      await setupPage(tester);
+
+      await tester.tap(find.byType(RealmContentNetworkImage));
+      await tester.pumpAndSettle();
+
+      check(find.byType(ChooseAccountPage)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('appbar height unaffected by loading indicator', (tester) async {
+      await setupPage(tester);
+
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final rectBefore = tester.getRect(find.byType(ZulipAppBar));
+
+      store.isRecoveringEventStream = true;
+      await tester.pump();
+
+      check(tester.getRect(find.byType(ZulipAppBar))).equals(rectBefore);
+      debugNetworkImageHttpClientProvider = null;
+    });
   });
 }
