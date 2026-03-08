@@ -122,6 +122,7 @@ class _HomePageState extends State<HomePage> {
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
           child: Text(_currentTabTitle)),
+        showRealmIcon: true,
         actions: _currentTabAppBarActions),
       body: Semantics(
         role: SemanticsRole.tabPanel,

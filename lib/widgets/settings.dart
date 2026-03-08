@@ -19,7 +19,8 @@ class SettingsPage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
       appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.settingsPageTitle)),
+        title: Text(zulipLocalizations.settingsPageTitle),
+        showRealmIcon: false),
       body: ListView(children: [
         const _ThemeSetting(),
         const _BrowserPreferenceSetting(),
