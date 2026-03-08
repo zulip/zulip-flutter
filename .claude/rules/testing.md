@@ -352,17 +352,14 @@ check(store).savedSnippets.length.equals(2);
 
 ### Change notification
 
-Track listener calls to verify notification behavior:
-```dart
-int notifiedCount = 0;
-model.addListener(() { notifiedCount++; });
+When testing a substore which is a ChangeNotifier,
+be sure to test the notification behavior:
+listeners are notified when they should be,
+and not when they shouldn't.
 
-await store.handleEvent(someEvent);
-check(notifiedCount).equals(1);  // was notified
-
-await store.handleEvent(irrelevantEvent);
-check(notifiedCount).equals(1);  // was NOT notified again
-```
+For writing such a test, use the `checkNotified` pattern.
+See the helpers named `checkNotified` and `checkNotNotified`
+in existing test files.
 
 
 ## Widget interaction testing
