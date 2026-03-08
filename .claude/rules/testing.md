@@ -23,6 +23,7 @@ not where the call site or trigger is.
 For example, for logic that lives in `push_key.dart` but is triggered
 from `push_device.dart`, the tests go in `push_key_test.dart`.
 
+
 ## Imports
 
 **Non-widget tests** import `package:test/scaffolding.dart` (for `test`, `group`).
@@ -40,6 +41,7 @@ Import order follows groups separated by blank lines:
 2. `package:` imports (alphabetical)
 3. Relative imports (test helpers, checks files; alphabetical)
 
+
 ## Test structure
 
 ### `main()` function
@@ -53,6 +55,7 @@ void main() {
 ```
 
 API route tests don't need this — they use `FakeApiConnection.with_` directly.
+
 
 ### `group()` and `test()` naming
 
@@ -68,22 +71,31 @@ group('generate new key', () {
 });
 ```
 
-Tests are typically nested under 1–2 levels of groups. The top level groups by feature or method name; deeper levels group by subcategory or edge case.
+Tests are typically nested under 1–2 levels of groups.
+The top level groups by feature or method name;
+deeper levels group by subcategory or edge case.
+
 
 ### `test()` vs `testWidgets()`
 
 Use `test()` for model tests, API tests, and anything without a widget tree.
 Use `testWidgets()` only when the test pumps widgets via `WidgetTester`.
 
+
 ### Async
 
-Tests are `async` when they call async functions (store methods, API calls). Tests that are purely synchronous omit `async`.
+Tests are `async` when they call async functions (store methods, API calls).
+Tests that are purely synchronous omit `async`.
+
 
 ## Test data setup
 
 ### `test/example_data.dart` (the `eg` module)
 
-All test fixtures come from builder functions in this file, accessed via the `eg` alias. Builders use optional named parameters with sensible defaults:
+All test fixtures come from builder functions in this file,
+accessed via the `eg` alias.
+Builders use optional named parameters with sensible defaults:
+
 ```dart
 final stream = eg.stream(name: 'my-channel');
 final message = eg.streamMessage(stream: stream, sender: eg.otherUser);
@@ -110,6 +122,7 @@ choosing defaults that are boring and representative so that
 tests that aren't about any given field don't need to
 say anything about it that field.
 
+
 ### Setting up stores
 
 For model tests, use `eg.store()`:
@@ -120,7 +133,8 @@ final store = eg.store(initialSnapshot: eg.initialSnapshot(
 ));
 ```
 
-Then add data incrementally with extension helpers from `test/model/test_store.dart`:
+Then add data incrementally with extension helpers
+from `test/model/test_store.dart`:
 ```dart
 await store.addUser(user);
 await store.addStream(stream);
@@ -128,7 +142,9 @@ await store.addSubscription(eg.subscription(stream));
 await store.addMessage(message);
 ```
 
-These helpers internally dispatch the appropriate events to the store. Use `store.handleEvent` directly when there isn't a relevant extension helper.
+These helpers internally dispatch the appropriate events to the store.
+Use `store.handleEvent` directly when there isn't a relevant extension helper.
+
 
 ### Setting up widget tests
 
@@ -153,9 +169,11 @@ testWidgets('description', (tester) async {
 
 Always call `addTearDown(testBinding.reset)` in tests that use `testBinding`.
 
+
 ### Setup helper functions
 
-When several tests share setup logic, extract a helper function at the group level:
+When several tests share setup logic,
+extract a helper function at the group level:
 ```dart
 group('my feature', () {
   Future<void> prepare(WidgetTester tester, {
@@ -173,14 +191,18 @@ group('my feature', () {
 });
 ```
 
-If every test calls a setup helper then immediately does the same follow-up step (e.g., `async.flushMicrotasks()`), fold that step into the helper.
+If every test calls a setup helper then immediately does
+the same follow-up step (e.g., `async.flushMicrotasks()`),
+fold that step into the helper.
 
 For a local helper function, keep the doc comment very short or leave it out.
 Don't document every parameter when names are self-explanatory.
 
+
 ### Local fixture helpers
 
-When many tests in a group create similar fixtures varying only a few fields, extract a local helper:
+When many tests in a group create similar fixtures
+varying only a few fields, extract a local helper:
 ```dart
 PushKey mkKey(int createdTimestamp, {int? supersededTimestamp}) {
   return eg.pushKey(
@@ -192,9 +214,12 @@ PushKey mkKey(int createdTimestamp, {int? supersededTimestamp}) {
 ```
 This keeps test bodies focused on what varies.
 
+
 ## Assertions with `package:checks`
 
-All assertions use `package:checks`. Never use `expect()` or matchers.
+All assertions use `package:checks`.
+Never use `expect()` or matchers.
+
 
 ### Basic checks
 ```dart
@@ -215,6 +240,7 @@ use `isNotNull`:
 `check(value).isNotNull().isNotEmpty();`.
 Don't use `isA<T>()` for just a null check.
 
+
 ### Cascading property checks
 
 Use Dart's cascade operator (`..`) to check multiple properties:
@@ -225,9 +251,11 @@ check(store).savedSnippets.values.single
   ..content.equals('bar content');
 ```
 
+
 ### Collection checks with conditions
 
-Use `deepEquals` with `Condition<Object?>` lists for ordered collection assertions:
+Use `deepEquals` with `Condition<Object?>` lists for
+ordered collection assertions:
 ```dart
 check(store).savedSnippets.values.deepEquals(<Condition<Object?>>[
   (it) => it.isA<SavedSnippet>().id.equals(101),
@@ -236,6 +264,7 @@ check(store).savedSnippets.values.deepEquals(<Condition<Object?>>[
 ]);
 ```
 
+
 ### Finder checks
 
 For widget tests, check finders directly:
@@ -243,6 +272,7 @@ For widget tests, check finders directly:
 check(find.byType(MyWidget)).findsOne();
 check(find.text('hello')).findsNothing();
 ```
+
 
 ### Check extensions (`*_checks.dart` files)
 
@@ -254,7 +284,9 @@ extension SavedSnippetChecks on Subject<SavedSnippet> {
 }
 ```
 
-The extension is named `{TypeName}Checks`, on `Subject<TypeName>`. Each property is a getter using `has()` with a description string matching the field name.
+The extension is named `{TypeName}Checks`, on `Subject<TypeName>`.
+Each property is a getter using `has()` with a description string matching the field name.
+
 
 ## API route tests
 
@@ -275,12 +307,14 @@ test('smoke', () {
 });
 ```
 
-Note `return FakeApiConnection.with_(...)` — the future is returned from the test, not awaited at the top level.
+Note `return FakeApiConnection.with_(...)` — the future is
+returned from the test, not awaited at the top level.
 
 For testing behavior on specific server versions, pass `zulipFeatureLevel`:
 ```dart
 FakeApiConnection.with_(zulipFeatureLevel: 247, (connection) async { ... });
 ```
+
 
 ## Model/store tests
 
@@ -292,6 +326,7 @@ await store.handleEvent(SavedSnippetsAddEvent(id: 1,
   savedSnippet: eg.savedSnippet(id: 102)));
 check(store).savedSnippets.length.equals(2);
 ```
+
 
 ### Change notification
 
@@ -307,6 +342,7 @@ await store.handleEvent(irrelevantEvent);
 check(notifiedCount).equals(1);  // was NOT notified again
 ```
 
+
 ## Widget interaction testing
 
 ### Simulating user actions
@@ -319,6 +355,7 @@ await tester.pump();  // process one frame
 
 Avoid tester.pumpAndSettle().
 
+
 ### Verifying API requests from widgets
 ```dart
 connection.prepare(json: {});  // prepare response before the action
@@ -328,6 +365,7 @@ check(connection.lastRequest).isA<http.Request>()
   ..method.equals('POST')
   ..url.path.equals('/api/v1/messages');
 ```
+
 
 ### Dialog assertions
 
@@ -340,23 +378,33 @@ await tester.pump();
 checkNoDialog(tester);
 ```
 
+
 ## Formatting
 
 - Follow the same indentation and style as the production code (no `dart format`).
+
 - Multi-line cascade checks are indented two spaces from the `check(...)` call:
   ```dart
   check(connection.takeRequests()).single.isA<http.Request>()
     ..method.equals('POST')
     ..url.path.equals('/api/v1/messages');
   ```
-- Long argument lists break with each named argument on its own line, but short calls stay on one line.
-- `late` variables are used at the group level for shared state that gets assigned in setup helpers. `final` is used within test bodies for immutable test data.
-- Place checks immediately after the action that sets up the situation they check — no blank lines in between:
+
+- Long argument lists break with each named argument on its own line,
+  but short calls stay on one line.
+
+- `late` variables are used at the group level for shared state
+  that gets assigned in setup helpers.
+  `final` is used within test bodies for immutable test data.
+
+- Place checks immediately after the action that sets up
+  the situation they check — no blank lines in between:
   ```dart
   initStore(async, pushKeys: [oldKey, newKey],
     ackedPushKeyId: newKey.pushKeyId);
   check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.equals(now);
   ```
+
 - Keep `awaitFakeAsync` on the same line as `test(`:
   ```dart
   test('generate key when no keys exist', () => awaitFakeAsync((async) async {
@@ -402,8 +450,9 @@ checkNoDialog(tester);
   Instead, define a meaningful constant like `const secondsPerDay = 86400`
   and write `30 * secondsPerDay`.
 
-- **Keep comments minimal.** Don't write comments that restate what the code
-  does ("// The old key is now superseded" before `.supersededTimestamp.equals(now)`).
+- **Keep comments minimal.**
+  Don't write comments that restate what the code does
+  ("// The old key is now superseded" before `.supersededTimestamp.equals(now)`).
   Use comments only for context not obvious from the code itself
   (e.g., "// A device-update event acks the new key." before a `handleEvent` call).
 
@@ -413,7 +462,8 @@ checkNoDialog(tester);
 
 ## Regression tests
 
-When a test is a regression test for a specific bug, add a comment linking to the issue:
+When a test is a regression test for a specific bug,
+add a comment linking to the issue:
 ```dart
 test('unsubscribed then subscribed by events', () async {
   // Regression test for: https://github.com/zulip/zulip-flutter/issues/...
