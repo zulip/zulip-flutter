@@ -17,6 +17,7 @@ import 'login.dart';
 import 'page.dart';
 import 'store.dart';
 import 'theme.dart';
+import 'user.dart';
 
 class ZulipApp extends StatefulWidget {
   const ZulipApp({super.key, this.navigatorObservers});
@@ -411,6 +412,7 @@ class ChooseAccountPage extends StatelessWidget {
   Widget _buildAccountItem(
     BuildContext context, {
     required int accountId,
+    required Uri? realmIconUrl,
     required Widget title,
     Widget? subtitle,
   }) {
@@ -421,6 +423,14 @@ class ChooseAccountPage extends StatelessWidget {
     return Card(
       clipBehavior: Clip.hardEdge,
       child: ListTile(
+        leading: realmIconUrl == null ? null : AvatarShape(
+          size: 32,
+          borderRadius: 4,
+          child: Image.network(
+            realmIconUrl.toString(),
+            filterQuality: FilterQuality.medium,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => const SizedBox.shrink())),
         title: title,
         subtitle: subtitle,
         tileColor: colorScheme.secondaryContainer,
@@ -494,7 +504,9 @@ class ChooseAccountPage extends StatelessWidget {
                     for (final (:accountId, :account) in globalStore.accountEntries)
                       _buildAccountItem(context,
                         accountId: accountId,
-                        title: Text(account.realmUrl.toString()),
+                        realmIconUrl: account.realmIcon == null ? null
+                          : account.realmUrl.resolveUri(account.realmIcon!),
+                        title: Text(account.realmName ?? account.realmUrl.toString()),
                         subtitle: Text(account.email)),
                   ]))),
                 const SizedBox(height: 12),

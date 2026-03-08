@@ -224,13 +224,15 @@ void main() {
         final id = i+1;
         return eg.account(
           id: id,
+          realmUrl: Uri.parse('https://example-$id.com'),
+          realmName: 'Realm $id',
           user: eg.user(fullName: 'User $id', email: 'user$id@example'),
           apiKey: 'user${id}apikey',
         );
       });
     }
 
-    Finder findAccount(Account account) => find.text(account.email).hitTestable();
+    Finder findAccount(Account account) => find.text(account.realmName ?? account.realmUrl.toString()).hitTestable();
 
     Finder findButton<T extends ButtonStyleButton>({required String withText}) {
       return find
@@ -366,12 +368,55 @@ void main() {
       check(testBinding.globalStore).lastVisitedAccount.equals(eg.otherAccount);
     });
 
+    testWidgets('shows icon image when realmIcon is non-null', (tester) async {
+      final account = eg.account(
+        user: eg.user(),
+        realmIcon: Uri.parse('https://example.com/icon.png'),
+        realmName: 'Example Realm');
+      await setupChooseAccountPage(tester, accounts: [account]);
+
+      check(find.byType(Image).evaluate()).isNotEmpty();
+      check(find.image(NetworkImage(account.realmIcon.toString())).evaluate()).isNotEmpty();
+    });
+
+    testWidgets('shows realm name when realmName is non-null', (tester) async {
+      final account = eg.account(
+        user: eg.user(),
+        realmName: 'Example Realm',
+        realmUrl: Uri.parse('https://example.com'));
+      await setupChooseAccountPage(tester, accounts: [account]);
+
+      check(find.text(account.realmName!).evaluate()).isNotEmpty();
+    });
+
+    testWidgets('fallback: shows URL when realmName is null, no image when realmIcon is null', (tester) async {
+      final realmUrl = Uri.parse('https://example.com');
+      // Not using eg.account here because it provides default values for realmName and realmIcon,
+      // even when explicitly set to null. Using Account() directly to test the fallback behavior
+      // when realmName and realmIcon are null.
+      final account = Account(
+        id: 1000,
+        realmUrl: realmUrl,
+        realmName: null,
+        realmIcon:null,
+        email: "test@example.com",
+        apiKey: 'aeouasdf',
+        userId: eg.user().userId,
+        zulipFeatureLevel: 468,
+        zulipVersion: '11.0',
+        possibleLegacyPushToken: false);
+      await setupChooseAccountPage(tester, accounts: [account]);
+
+      check(find.text(account.realmUrl.toString()).evaluate()).isNotEmpty();
+      check(find.byType(Image).evaluate()).isEmpty();
+    });
+
     group('log out', () {
       Future<(Widget, Widget)> prepare(WidgetTester tester, {required Account account}) async {
         await setupChooseAccountPage(tester, accounts: [account]);
 
         final findThreeDotsButton = find.descendant(
-          of: find.widgetWithText(Card, eg.selfAccount.realmUrl.toString()),
+          of: find.widgetWithText(Card, eg.selfAccount.realmName ?? eg.selfAccount.realmUrl.toString()),
           matching: find.byIcon(Icons.adaptive.more));
 
         await tester.tap(findThreeDotsButton);
