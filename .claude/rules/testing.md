@@ -195,7 +195,7 @@ testWidgets('description', (tester) async {
 ### Setup helper functions
 
 When several tests share setup logic,
-extract a helper function at the group level.
+extract a helper function at the group level or top level.
 
 Often this helper will set `late` variables to share the
 `PerAccountStore`, `FakeApiConnection`, and sometimes other data,
@@ -235,7 +235,7 @@ Don't document every parameter when names are self-explanatory.
 
 ### Local fixture helpers
 
-When many tests in a group create similar fixtures
+When many tests in a group or a file create similar fixtures
 varying only a few fields, extract a local helper:
 ```dart
 PushKey mkKey(int createdTimestamp, {int? supersededTimestamp}) {
@@ -252,7 +252,7 @@ This keeps test bodies focused on what varies.
 ## Assertions with `package:checks`
 
 All assertions use `package:checks`.
-Never use `expect()` or matchers.
+Never use `expect()`.
 
 
 ### Basic checks
@@ -265,13 +265,19 @@ check(list).isEmpty();
 check(list).length.equals(3);
 ```
 
+
+### Non-null checks
+
 Keep non-null checks simple.
+
 When you know the value is non-null and that's
 not the point of the test, use `!` (inside the parens):
 `check(value!).isNotEmpty();`.
+
 When the null check is part of what the test is testing,
 use `isNotNull`:
 `check(value).isNotNull().isNotEmpty();`.
+
 Don't use `isA<T>()` for just a null check.
 
 
@@ -288,8 +294,8 @@ check(store).savedSnippets.values.single
 
 ### Collection checks with conditions
 
-Use `deepEquals` with `Condition<Object?>` lists for
-ordered collection assertions:
+Use `deepEquals` with a `Condition<Object?>` list for
+checking details of each element in a list or other iterable:
 ```dart
 check(store).savedSnippets.values.deepEquals(<Condition<Object?>>[
   (it) => it.isA<SavedSnippet>().id.equals(101),
@@ -308,9 +314,9 @@ check(find.text('hello')).findsNothing();
 ```
 
 
-### Check extensions (`*_checks.dart` files)
+### Checks-extensions (`*_checks.dart` files)
 
-Custom check extensions expose typed property access via `has()`:
+Custom checks-extensions expose typed property access via `has()`:
 ```dart
 extension SavedSnippetChecks on Subject<SavedSnippet> {
   Subject<int> get id => has((x) => x.id, 'id');
@@ -319,7 +325,9 @@ extension SavedSnippetChecks on Subject<SavedSnippet> {
 ```
 
 The extension is named `{TypeName}Checks`, on `Subject<TypeName>`.
-Each property is a getter using `has()` with a description string matching the field name.
+Each property is a getter using `has()` with a name string matching the field name.
+
+Whenever a checks-extension doesn't yet exist, go ahead and add it.
 
 
 ## API route tests
@@ -476,12 +484,6 @@ checkNoDialog(tester);
 - Avoid a name that's just a number, like `thirtyDays`.
   Instead, define a meaningful constant like `const secondsPerDay = 86400`
   and write `30 * secondsPerDay`.
-
-- **Keep comments minimal.**
-  Don't write comments that restate what the code does
-  ("// The old key is now superseded" before `.supersededTimestamp.equals(now)`).
-  Use comments only for context not obvious from the code itself
-  (e.g., "// A device-update event acks the new key." before a `handleEvent` call).
 
 - **Only include relevant setup.** Don't add teardowns, debug flags, or
   other setup that isn't needed for the logic being tested.

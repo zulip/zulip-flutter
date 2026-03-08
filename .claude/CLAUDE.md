@@ -108,6 +108,15 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Stick to the issue's spec and the API docs.
 
 
+## Writing clear code
+
+- **Keep comments minimal.**
+  Don't write comments that restate what the code does
+  ("// The old key is now superseded" on `.supersededTimestamp.equals(now)`).
+  Use comments only for context not obvious from the code itself
+  (e.g., "// A device-update event acks the new key." before a `handleEvent` call).
+
+
 ## Using Git
 
 - **Use `@` instead of `HEAD`** —
