@@ -494,9 +494,10 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
             child: TextField(
               controller: _controller,
               autofocus: true,
+              style: filledInputTextStyle(designVariables),
               decoration: baseFilledInputDecoration(designVariables)
                 .copyWith(hintText: zulipLocalizations.emojiPickerSearchEmoji),
-              style: const TextStyle(fontSize: 19, height: 26 / 19)))),
+            ))),
           TextButton(
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(
