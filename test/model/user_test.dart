@@ -84,6 +84,18 @@ void main() {
         deliveryEmail: const JsonNullable('c@mail.example')));
       check(getUser()).deliveryEmail.equals('c@mail.example');
     });
+
+    test('dateJoined', () async {
+      final user = eg.user(dateJoined: '2024-01-01T00:00:00+00:00');
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        realmUsers: [eg.selfUser, user]));
+
+      User getUser() => store.getUser(user.userId)!;
+
+      await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+        dateJoined: '2024-06-15T12:00:00+00:00'));
+      check(getUser()).dateJoined.equals('2024-06-15T12:00:00+00:00');
+    });
   });
 
   testWidgets('UserStatusEvent', (tester) async {
