@@ -234,7 +234,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
                   maxLength: 60,
                   cursorColor: designVariables.textInput,
                   textCapitalization: TextCapitalization.sentences,
-                  style: TextStyle(fontSize: 19, height: 24 / 19),
+                  style: filledInputTextStyle(designVariables),
                   decoration: baseFilledInputDecoration(designVariables)
                     .copyWith(
                       // TODO: display a counter as suggested in CZO discussion:
