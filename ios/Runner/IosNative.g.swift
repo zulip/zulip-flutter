@@ -71,6 +71,9 @@ class IosNativePigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
 protocol IosNativeHostApi {
   /// Sets UrlResourceValues.isExcludedFromBackup for the given file path.
   ///
+  /// The file at this path must already exist,
+  /// and be a regular file (not a directory).
+  ///
   /// See doc:
   ///   https://developer.apple.com/documentation/foundation/urlresourcevalues/isexcludedfrombackup
   ///   https://developer.apple.com/documentation/foundation/optimizing-your-app-s-data-for-icloud-backup
@@ -84,6 +87,9 @@ class IosNativeHostApiSetup {
   static func setUp(binaryMessenger: FlutterBinaryMessenger, api: IosNativeHostApi?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
     /// Sets UrlResourceValues.isExcludedFromBackup for the given file path.
+    ///
+    /// The file at this path must already exist,
+    /// and be a regular file (not a directory).
     ///
     /// See doc:
     ///   https://developer.apple.com/documentation/foundation/urlresourcevalues/isexcludedfrombackup
