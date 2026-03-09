@@ -495,6 +495,52 @@ void main () {
       });
     });
 
+    group('_ChannelsButton counter', () {
+      final findButton = find.byWidgetPredicate((widget) =>
+        widget is MenuButton && widget.icon == ZulipIcons.hash_italic);
+
+      testWidgets('no badge when no unread channel messages', (tester) async {
+        await prepare(tester);
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.byType(CounterBadge))).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('shows unread channel message count', (tester) async {
+        await prepare(tester);
+        await addUnreadStreamMessage();
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.text('1'))).findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('does not count DM unreads', (tester) async {
+        await prepare(tester);
+        final dmMessage = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+        await store.addMessage(dmMessage);
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.byType(CounterBadge))).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
+
+    group('_CombinedFeedButton', () {
+      final findButton = find.byWidgetPredicate((widget) =>
+        widget is MenuButton && widget.icon == ZulipIcons.message_feed);
+
+      testWidgets('no counter badge', (tester) async {
+        await prepare(tester);
+        await addUnreadStreamMessage();
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.byType(CounterBadge))).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
+
     group('_DirectMessagesButton counter', () {
       final findButton = find.byWidgetPredicate((widget) =>
         widget is MenuButton && widget.icon == ZulipIcons.two_person);
