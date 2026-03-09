@@ -280,6 +280,7 @@ User user({
   String? email,
   String? fullName,
   String? dateJoined,
+  bool? isImportedStub,
   bool? isActive,
   bool? isBot,
   int? botOwnerId,
@@ -295,6 +296,7 @@ User user({
     email: email ?? deliveryEmail ?? 'user$effectiveUserId@${realmUrl.host}',
     fullName: fullName ?? 'A user', // TODO generate example names
     dateJoined: dateJoined ?? '2024-02-24T11:18+00:00',
+    isImportedStub: isImportedStub ?? false,
     isActive: isActive ?? true,
     isBot: isBot ?? false,
     botType: null,
@@ -356,6 +358,7 @@ class _ImmutableUser extends User {
     email: user.email,
     fullName: user.fullName,
     dateJoined: user.dateJoined,
+    isImportedStub: user.isImportedStub,
     isActive: user.isActive,
     isBot: user.isBot,
     botType: user.botType,
@@ -380,6 +383,7 @@ class _ImmutableUser extends User {
   @override set email(_) => throw _error;
   @override set fullName(_) => throw _error;
   @override set dateJoined(_) => throw _error;
+  @override set isImportedStub(_) => throw _error;
   @override set isActive(_) => throw _error;
   // isBot already immutable
   // botType already immutable
