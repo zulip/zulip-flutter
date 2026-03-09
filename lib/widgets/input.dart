@@ -48,6 +48,9 @@ TextStyle filledInputTextStyle(DesignVariables designVariables) => TextStyle(
   //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10806-25228&m=dev
   fontSize: 19,
   height: 26 / 19,
+
+  // https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10867-99284&m=dev
+  color: designVariables.textInput,
 );
 
 /// A space to use for [InputDecoration.helperText] so the layout doesn't jump.

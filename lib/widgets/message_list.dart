@@ -767,8 +767,7 @@ class _SearchBarState extends State<_SearchBar> {
       autofocus: true,
       onSubmitted: _handleSubmitted,
       cursorColor: designVariables.textInput,
-      style: filledInputTextStyle(designVariables)
-        .copyWith(color: designVariables.textInput),
+      style: filledInputTextStyle(designVariables),
       textInputAction: TextInputAction.search,
       decoration: baseFilledInputDecoration(designVariables)
         .copyWith(
