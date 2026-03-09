@@ -746,7 +746,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Account hinzufügen';
 
   @override
-  String get loginServerUrlLabel => 'Deine Zulip Server URL';
+  String get loginRealmUrlLabel => 'Your Zulip organization URL';
 
   @override
   String get loginHidePassword => 'Passwort verstecken';

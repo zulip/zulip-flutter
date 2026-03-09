@@ -740,7 +740,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Добавление учетной записи';
 
   @override
-  String get loginServerUrlLabel => 'URL вашего сервера Zulip';
+  String get loginRealmUrlLabel => 'Your Zulip organization URL';
 
   @override
   String get loginHidePassword => 'Скрыть пароль';

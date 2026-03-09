@@ -709,7 +709,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'アカウントを追加';
 
   @override
-  String get loginServerUrlLabel => 'Zulip サーバーのURL';
+  String get loginRealmUrlLabel => 'Your Zulip organization URL';
 
   @override
   String get loginHidePassword => 'パスワードを非表示';
