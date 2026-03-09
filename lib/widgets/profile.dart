@@ -413,8 +413,29 @@ class _ProfileDataTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     List<Widget> items = [];
+
+    final date = DateTime.tryParse(user.dateJoined);
+    if (date != null) {
+      final localDate = date.toLocal();
+      final formattedDate = DateFormat.yMMMd().format(localDate);
+      final label = user.isImportedStub
+        ? zulipLocalizations.profileDateImportedLabel
+        : zulipLocalizations.profileDateJoinedLabel;
+      items.add(Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: localizedTextBaseline(context),
+        children: [
+          SizedBox(width: 100,
+            child: Text(style: _TextStyles.customProfileFieldLabel(context),
+              label)),
+          const SizedBox(width: 8),
+          Flexible(child: _TextWidget(text: formattedDate)),
+        ]));
+      items.add(const SizedBox(height: 8));
+    }
 
     final profileData = user.profileData;
     for (final realmField in store.customProfileFields) {
