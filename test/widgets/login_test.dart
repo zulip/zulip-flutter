@@ -215,6 +215,13 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    final googleAuthMethod = ExternalAuthenticationMethod(
+      name: 'google',
+      displayName: 'Google',
+      displayIcon: eg.realmUrl.resolve('/static/images/authentication_backends/googl_e-icon.png').toString(),
+      loginUrl: '/accounts/login/social/google',
+      signupUrl: '/accounts/register/social/google');
+
     final findUsernameInput = find.byWidgetPredicate((widget) =>
       widget is TextField
       && (widget.autofillHints ?? []).contains(AutofillHints.email));
@@ -369,15 +376,8 @@ void main() {
 
     group('web auth', () {
       testWidgets('basic happy case', (tester) async {
-        final method = ExternalAuthenticationMethod(
-          name: 'google',
-          displayName: 'Google',
-          displayIcon: eg.realmUrl.resolve('/static/images/authentication_backends/googl_e-icon.png').toString(),
-          loginUrl: '/accounts/login/social/google',
-          signupUrl: '/accounts/register/social/google',
-        );
         final serverSettings = eg.serverSettings(
-          externalAuthenticationMethods: [method]);
+          externalAuthenticationMethods: [googleAuthMethod]);
         prepareBoringImageHttpClient(); // icon on social-auth button
         await prepare(tester, serverSettings);
         takeStartingRoutes();
@@ -388,7 +388,7 @@ void main() {
         LoginPage.debugOtpOverride = otp;
         await tester.tap(find.textContaining('Google'));
 
-        final expectedUrl = eg.realmUrl.resolve(method.loginUrl)
+        final expectedUrl = eg.realmUrl.resolve(googleAuthMethod.loginUrl)
           .replace(queryParameters: {'mobile_flow_otp': otp});
         check(testBinding.takeLaunchUrlCalls())
           .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
