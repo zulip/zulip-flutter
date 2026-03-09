@@ -264,6 +264,7 @@ class UserStoreImpl extends HasRealmStore with UserStore {
         if (event.newEmail != null)       user.email          = event.newEmail!;
         if (event.isActive != null)       user.isActive       = event.isActive!;
         if (event.dateJoined != null)     user.dateJoined     = event.dateJoined!;
+        if (event.isImportedStub != null) user.isImportedStub = event.isImportedStub!;
         if (event.customProfileField != null) {
           final profileData = (user.profileData ??= {});
           final update = event.customProfileField!;

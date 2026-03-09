@@ -401,6 +401,10 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
         ),
   newEmail: RealmUserUpdateEvent._readFromPerson(json, 'new_email') as String?,
   isActive: RealmUserUpdateEvent._readFromPerson(json, 'is_active') as bool?,
+  dateJoined:
+      RealmUserUpdateEvent._readFromPerson(json, 'date_joined') as String?,
+  isImportedStub:
+      RealmUserUpdateEvent._readFromPerson(json, 'is_imported_stub') as bool?,
 );
 
 Map<String, dynamic> _$RealmUserUpdateEventToJson(
@@ -424,6 +428,8 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
   'custom_profile_field': instance.customProfileField,
   'new_email': instance.newEmail,
   'is_active': instance.isActive,
+  'date_joined': instance.dateJoined,
+  'is_imported_stub': instance.isImportedStub,
 };
 
 const _$UserRoleEnumMap = {
