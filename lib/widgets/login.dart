@@ -259,7 +259,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   .copyWith(
                     // TODO(#2183) follow design for label text
                     //   (or don't use it here?)
-                    labelText: zulipLocalizations.loginServerUrlLabel,
+                    labelText: zulipLocalizations.loginRealmUrlLabel,
                     errorText: errorText,
                     helperText: kLayoutPinningHelperText,
                     hintText: AddAccountPage._serverUrlHint,

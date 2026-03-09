@@ -1340,11 +1340,11 @@ abstract class ZulipLocalizations {
   /// **'Add an account'**
   String get loginAddAnAccountPageTitle;
 
-  /// Label in login page for Zulip server URL entry.
+  /// Label in login page for Zulip realm/org URL entry.
   ///
   /// In en, this message translates to:
-  /// **'Your Zulip server URL'**
-  String get loginServerUrlLabel;
+  /// **'Your Zulip organization URL'**
+  String get loginRealmUrlLabel;
 
   /// Icon label for button to hide password in input form.
   ///

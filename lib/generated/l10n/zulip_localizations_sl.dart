@@ -751,7 +751,7 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Dodaj račun';
 
   @override
-  String get loginServerUrlLabel => 'URL strežnika Zulip';
+  String get loginRealmUrlLabel => 'Your Zulip organization URL';
 
   @override
   String get loginHidePassword => 'Skrij geslo';
