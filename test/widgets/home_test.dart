@@ -12,6 +12,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/about_zulip.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
+import 'package:zulip/widgets/counter_badge.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
@@ -212,6 +213,13 @@ void main () {
       prepareBoringImageHttpClient();
     });
 
+    Future<void> addUnreadStreamMessage({List<MessageFlag> flags = const []}) async {
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await store.addMessage(eg.streamMessage(stream: stream, flags: flags));
+    }
+
     Future<void> tapOpenMenuAndAwait(WidgetTester tester) async {
       final topRouteBeforePress = topRoute;
       await tester.tap(find.byIcon(ZulipIcons.menu));
@@ -389,29 +397,125 @@ void main () {
       debugNetworkImageHttpClientProvider = null;
     });
 
-    testWidgets('_StarredMessagesButton', (tester) async {
+    group('_InboxButton counter', () {
+      final findButton = find.byWidgetPredicate((widget) =>
+        widget is MenuButton && widget.icon == ZulipIcons.inbox);
+
+      testWidgets('no badge when no unreads', (tester) async {
+        await prepare(tester);
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.byType(CounterBadge))).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('shows unread count', (tester) async {
+        await prepare(tester);
+        await addUnreadStreamMessage();
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.text('1'))).findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
+
+    group('_MentionsButton counter', () {
+      final findButton = find.byWidgetPredicate((widget) =>
+        widget is MenuButton && widget.icon == ZulipIcons.at_sign);
+
+      testWidgets('no badge when no unread mentions', (tester) async {
+        await prepare(tester);
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.byType(CounterBadge))).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('shows unread mentions count', (tester) async {
+        await prepare(tester);
+        await addUnreadStreamMessage(flags: [MessageFlag.mentioned]);
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.text('1'))).findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
+
+    group('_StarredMessagesButton', () {
       final findButton = find.byWidgetPredicate((widget) =>
         widget is MenuButton && widget.icon == ZulipIcons.star);
 
-      await prepare(tester);
-      final message = eg.streamMessage();
-      await store.addMessage(message);
-      await store.handleEvent(UpdateMessageFlagsAddEvent(
-        id: 1, flag: MessageFlag.starred, messages: [message.id], all: false));
+      testWidgets('no badge when starredMessageCounts is false', (tester) async {
+        await prepare(tester);
+        await store.handleEvent(UserSettingsUpdateEvent(
+          id: 1,
+          property: UserSettingName.starredMessageCounts,
+          value: false));
 
-      await tapOpenMenuAndAwait(tester);
-      check(find.descendant(of: findButton, matching: find.text('1'))).findsOne();
+        final message = eg.streamMessage();
+        await store.addMessage(message);
+        await store.handleEvent(UpdateMessageFlagsAddEvent(
+          id: 1, flag: MessageFlag.starred, messages: [message.id], all: false));
 
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true,
-        messages: [
-          Message.fromJson((deepToJson(message) as Map<String, dynamic>)
-                              ..['flags'] = ['starred'])
-        ]).toJson());
-      await tapButtonAndAwaitTransition(tester, findButton);
-      check(find.byType(MessageListPage)).findsOne();
-      check(find.text('Starred messages')).findsOne();
-      debugNetworkImageHttpClientProvider = null;
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.byType(CounterBadge))).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('shows count when starredMessageCounts is true', (tester) async {
+        await prepare(tester);
+        final message = eg.streamMessage();
+        await store.addMessage(message);
+        await store.handleEvent(UpdateMessageFlagsAddEvent(
+          id: 1, flag: MessageFlag.starred, messages: [message.id], all: false));
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(of: findButton, matching: find.text('1'))).findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('navigates to starred messages', (tester) async {
+        await prepare(tester);
+        final message = eg.streamMessage();
+        await store.addMessage(message);
+        await store.handleEvent(UpdateMessageFlagsAddEvent(
+          id: 1, flag: MessageFlag.starred, messages: [message.id], all: false));
+
+        await tapOpenMenuAndAwait(tester);
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true,
+          messages: [
+            Message.fromJson((deepToJson(message) as Map<String, dynamic>)
+                                ..['flags'] = ['starred'])
+          ]).toJson());
+        await tapButtonAndAwaitTransition(tester, findButton);
+        check(find.byType(MessageListPage)).findsOne();
+        check(find.text('Starred messages')).findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
+
+    group('_DirectMessagesButton counter', () {
+      final findButton = find.byWidgetPredicate((widget) =>
+        widget is MenuButton && widget.icon == ZulipIcons.two_person);
+
+      testWidgets('no badge when no unread DMs', (tester) async {
+        await prepare(tester);
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.byType(CounterBadge))).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('shows unread DM count', (tester) async {
+        await prepare(tester);
+        final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
+        await store.addMessage(message);
+        await tapOpenMenuAndAwait(tester);
+        check(find.descendant(
+          of: findButton, matching: find.text('1'))).findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
 
     testWidgets('_MyProfileButton', (tester) async {
