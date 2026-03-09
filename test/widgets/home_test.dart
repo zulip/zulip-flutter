@@ -208,6 +208,10 @@ void main () {
     final channelsMenuIconFinder = find.byIcon(ZulipIcons.hash_italic);
     final combinedFeedMenuIconFinder = find.byIcon(ZulipIcons.message_feed);
 
+    setUp(() {
+      prepareBoringImageHttpClient();
+    });
+
     Future<void> tapOpenMenuAndAwait(WidgetTester tester) async {
       final topRouteBeforePress = topRoute;
       await tester.tap(find.byIcon(ZulipIcons.menu));
@@ -280,7 +284,6 @@ void main () {
     }
 
     testWidgets('buttons are 44px tall', (tester) async {
-      prepareBoringImageHttpClient();
       await prepare(tester);
 
       await tapOpenMenuAndAwait(tester);
@@ -299,7 +302,6 @@ void main () {
     });
 
     testWidgets('navigation states reflect on navigation bar menu buttons', (tester) async {
-      prepareBoringImageHttpClient();
       await prepare(tester);
 
       await tapOpenMenuAndAwait(tester);
@@ -317,7 +319,6 @@ void main () {
     });
 
     testWidgets('navigation bar menu buttons control navigation states', (tester) async {
-      prepareBoringImageHttpClient();
       await prepare(tester);
 
       await tapOpenMenuAndAwait(tester);
@@ -337,7 +338,6 @@ void main () {
     });
 
     testWidgets('navigation bar menu buttons dismiss the menu', (tester) async {
-      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, channelsMenuIconFinder);
@@ -345,7 +345,6 @@ void main () {
     });
 
     testWidgets('close button dismisses the menu', (tester) async {
-      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.text('Close'));
@@ -353,7 +352,6 @@ void main () {
     });
 
     testWidgets('menu buttons dismiss the menu', (tester) async {
-      prepareBoringImageHttpClient();
       addTearDown(testBinding.reset);
       topRoute = null;
       previousTopRoute = null;
@@ -384,7 +382,6 @@ void main () {
     });
 
     testWidgets('_MainMenuHeader', (tester) async {
-      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.arrow_left_right));
@@ -393,8 +390,6 @@ void main () {
     });
 
     testWidgets('_StarredMessagesButton', (tester) async {
-      prepareBoringImageHttpClient();
-
       final findButton = find.byWidgetPredicate((widget) =>
         widget is MenuButton && widget.icon == ZulipIcons.star);
 
@@ -420,7 +415,6 @@ void main () {
     });
 
     testWidgets('_MyProfileButton', (tester) async {
-      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.text('My profile'));
@@ -430,7 +424,6 @@ void main () {
     });
 
     testWidgets('_AboutZulipButton', (tester) async {
-      prepareBoringImageHttpClient();
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tester.ensureVisible(find.byIcon(ZulipIcons.info));
