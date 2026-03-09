@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
@@ -361,6 +362,43 @@ void main() {
       // TODO test _getUserId case
       // TODO test handling failure in fetchApiKey request
       // TODO test _inProgress logic
+    });
+
+    group('email auth visibility', () {
+      testWidgets('hides username/password fields and login button', (tester) async {
+        final serverSettings = eg.serverSettings(emailAuthEnabled: false);
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsNothing();
+        check(findPasswordInput).findsNothing();
+        check(findSubmitButton).findsNothing();
+      });
+
+      testWidgets('shows external auth methods without divider', (tester) async {
+        prepareBoringImageHttpClient(); // icon on social-auth button
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          externalAuthenticationMethods: [googleAuthMethod]);
+        await prepare(tester, serverSettings);
+        check(find.textContaining('Google')).findsOne();
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        check(find.bySemanticsLabel(zulipLocalizations.loginMethodDividerSemanticLabel)).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('shows divider when email auth enabled with external methods', (tester) async {
+        prepareBoringImageHttpClient(); // icon on social-auth button
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: true,
+          externalAuthenticationMethods: [googleAuthMethod]);
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsOne();
+        check(findPasswordInput).findsOne();
+        check(findSubmitButton).findsOne();
+        check(find.textContaining('Google')).findsOne();
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        check(find.bySemanticsLabel(zulipLocalizations.loginMethodDividerSemanticLabel)).findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
 
     group('web auth', () {
