@@ -647,6 +647,86 @@ void main () {
     });
   });
 
+  group('PressableOpacity', () {
+    Future<void> prepareButton(
+      WidgetTester tester, {
+      required VoidCallback onTap,
+      required Widget child,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: PressableOpacity(
+                onTap: onTap,
+                child: child)))));
+    }
+
+    testWidgets('opacity changes to 0.5 when pressed', (tester) async {
+      int tapCount = 0;
+
+      await prepareButton(
+        tester,
+        onTap: () => tapCount++,
+        child: const SizedBox(
+          width: 100,
+          height: 100,
+          child: Text('Test')));
+
+      final animatedOpacityFinder = find.byType(AnimatedOpacity);
+      var widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(1.0);
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Test')));
+      await tester.pump();
+      widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(0.5);
+
+      await gesture.up();
+      await tester.pump();
+      widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(1.0);
+    });
+
+    testWidgets('onTap callback is invoked when tapped', (tester) async {
+      int tapCount = 0;
+
+      await prepareButton(
+        tester,
+        onTap: () => tapCount++,
+        child: const SizedBox(
+          width: 100,
+          height: 100,
+          child: Text('Tap Me')));
+
+      await tester.tap(find.text('Tap Me'));
+      await tester.pump();
+      check(tapCount).equals(1);
+    });
+
+    testWidgets('opacity is restored when tap is cancelled', (tester) async {
+      await prepareButton(
+        tester,
+        onTap: () {},
+        child: const SizedBox(
+          width: 100,
+          height: 100,
+          child: Text('Test')));
+
+      final animatedOpacityFinder = find.byType(AnimatedOpacity);
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Test')));
+      await tester.pump();
+      var widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(0.5);
+
+      await gesture.cancel();
+      await tester.pump();
+      widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(1.0);
+    });
+  });
+
   testWidgets('logging out while still loading', (tester) async {
     // Regression test for: https://github.com/zulip/zulip-flutter/issues/1219
     addTearDown(testBinding.reset);
