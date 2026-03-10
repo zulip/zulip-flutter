@@ -772,12 +772,12 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
       'The file to be inserted is empty or cannot be accessed.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minSupportedZulipVersion.';
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minAllowedZulipVersion.';
   }
 
   @override
@@ -822,6 +822,22 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   @override
   String get serverUrlValidationErrorUnsupportedScheme =>
       'The server URL must start with http:// or https://.';
+
+  @override
+  String serverCompatBannerAdminMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+  }
+
+  @override
+  String serverCompatBannerUserMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+  }
+
+  @override
+  String get serverCompatBannerDismissLabel => 'Dismiss';
+
+  @override
+  String get serverCompatBannerLearnMoreLabel => 'Learn more';
 
   @override
   String get spoilerDefaultHeaderText => 'Spoiler';
@@ -1962,12 +1978,12 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get errorContentToInsertIsEmpty => '要插入的文件为空或无法访问。';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url 运行的 Zulip 服务器版本 $zulipVersion 过低。该客户端只支持 $minSupportedZulipVersion 及以后的服务器版本。';
+    return '$url 运行的 Zulip 服务器版本 $zulipVersion 过低。该客户端只支持 $minAllowedZulipVersion 及以后的服务器版本。';
   }
 
   @override
@@ -3140,12 +3156,12 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get errorContentToInsertIsEmpty => '要插入的檔案為空或無法存取。';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url 執行的 Zulip Server 為 $zulipVersion，此版本已不受支援。最低支援版本為 Zulip Server $minSupportedZulipVersion。';
+    return '$url 執行的 Zulip Server 為 $zulipVersion，此版本已不受支援。最低支援版本為 Zulip Server $minAllowedZulipVersion。';
   }
 
   @override

@@ -636,10 +636,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -1529,7 +1529,7 @@
   "errorRequestFailed": "Сбой сетевого запроса: HTTP-статус {httpStatus}",
   "errorResolveTopicFailedTitle": "Не удалось отметить тему как решенную",
   "errorServerMessage": "Ответ сервера:\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} использует Zulip Server {zulipVersion}, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server {minSupportedZulipVersion}.",
+  "errorServerVersionNotAllowedMessage": "{url} использует Zulip Server {zulipVersion}, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server {minAllowedZulipVersion}.",
   "errorSharingAccountNotLoggedIn": "Не выполнен вход с учетной записью. Пожалуйста, войдите в систему и повторите попытку.",
   "errorSharingFailed": "Не удалось поделиться",
   "errorSharingTitle": "Не удалось поделиться содержанием",

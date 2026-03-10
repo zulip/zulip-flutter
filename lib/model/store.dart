@@ -237,13 +237,13 @@ abstract class GlobalStore extends ChangeNotifier {
       assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       switch (e) {
-        case ServerVersionUnsupportedException():
+        case ServerVersionNotAllowedException():
           reportErrorToUserModally(
             zulipLocalizations.errorCouldNotConnectTitle,
-            message: zulipLocalizations.errorServerVersionUnsupportedMessage(
+            message: zulipLocalizations.errorServerVersionNotAllowedMessage(
               account!.realmUrl.toString(),
               e.data.zulipVersion,
-              kMinSupportedZulipVersion),
+              kMinAllowedZulipVersion),
             learnMoreButtonUrl: kServerSupportDocUrl);
           // The important thing is to tear down per-account UI,
           // and logOutAccount conveniently handles that already.
@@ -379,7 +379,7 @@ abstract class GlobalStore extends ChangeNotifier {
   /// The caller is responsible for checking if the returned
   /// [GetServerSettingsResult] represents a supported version, by
   /// parsing it via [ZulipVersionData.fromServerSettings] and checking
-  /// [ZulipVersionData.isUnsupported].
+  /// [ZulipVersionData.isNotAllowed].
   Future<GetServerSettingsResult> fetchServerSettings(Uri realmUrl) async {
     final connection = apiConnection(
       realmUrl: realmUrl,
@@ -388,8 +388,8 @@ abstract class GlobalStore extends ChangeNotifier {
       return await getServerSettings(connection);
     } on MalformedServerResponseException catch (e) {
       final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e);
-      if (zulipVersionData != null && zulipVersionData.isUnsupported) {
-        throw ServerVersionUnsupportedException(zulipVersionData);
+      if (zulipVersionData != null && zulipVersionData.isNotAllowed) {
+        throw ServerVersionNotAllowedException(zulipVersionData);
       }
       rethrow;
     } finally {
@@ -1324,9 +1324,9 @@ class UpdateMachine {
     try {
       initialSnapshot = await _registerQueueWithRetry(connection,
         stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
-    } on ServerVersionUnsupportedException catch (e) {
+    } on ServerVersionNotAllowedException catch (e) {
       // `!` is OK because _registerQueueWithRetry would have thrown a
-      // not-ServerVersionUnsupportedException if no account
+      // not-ServerVersionNotAllowedException if no account
       final account = globalStore.getAccount(accountId)!;
       if (!e.data.matchesAccount(account)) {
         await globalStore.updateZulipVersionData(accountId, e.data);
@@ -1388,8 +1388,8 @@ class UpdateMachine {
         switch (e) {
           case MalformedServerResponseException()
             when (zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e))
-              ?.isUnsupported == true:
-            throw ServerVersionUnsupportedException(zulipVersionData!);
+              ?.isNotAllowed == true:
+            throw ServerVersionNotAllowedException(zulipVersionData!);
           case HttpException(httpStatus: 401):
             // We cannot recover from this error through retrying.
             // Leave it to [GlobalStore.loadPerAccount].
@@ -1421,8 +1421,8 @@ class UpdateMachine {
       if (result != null) {
         stopAndThrowIfNoAccount();
         final zulipVersionData = ZulipVersionData.fromInitialSnapshot(result);
-        if (zulipVersionData.isUnsupported) {
-          throw ServerVersionUnsupportedException(zulipVersionData);
+        if (zulipVersionData.isNotAllowed) {
+          throw ServerVersionNotAllowedException(zulipVersionData);
         }
         return result;
       }

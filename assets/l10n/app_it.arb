@@ -489,10 +489,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -1186,7 +1186,7 @@
   "errorRequestFailed": "Richiesta di rete non riuscita: stato HTTP {httpStatus}",
   "errorResolveTopicFailedTitle": "Impossibile contrassegnare l'argomento come risolto",
   "errorServerMessage": "Il server ha detto:\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} sta usando Zulip Server {zulipVersion}, che non è supportato. La versione minima supportata è Zulip Server {minSupportedZulipVersion}.",
+  "errorServerVersionNotAllowedMessage": "{url} sta usando Zulip Server {zulipVersion}, che non è supportato. La versione minima supportata è Zulip Server {minAllowedZulipVersion}.",
   "errorSharingFailed": "Condivisione fallita",
   "errorStarMessageFailedTitle": "Impossibile contrassegnare il messaggio come speciale",
   "errorUnfollowTopicFailed": "Impossibile smettere di seguire l'argomento",
