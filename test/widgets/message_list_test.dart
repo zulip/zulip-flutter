@@ -303,6 +303,20 @@ void main() {
           .equals(ChannelNarrow(channel.streamId));
     });
 
+    testWidgets('hide topic-list action icon when channel is general-chat-only', (tester) async {
+      final channel = eg.stream(name: 'General chat', topicsPolicy: TopicsPolicy.emptyTopicOnly);
+
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        messages: [eg.streamMessage(stream: channel, topic: '')],
+        subscriptions: [eg.subscription(channel)]);
+
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.topics)),
+      ).findsNothing();
+    });
+
     testWidgets('has topic-list action for topic narrows', (tester) async {
       final channel = eg.stream(name: 'channel foo');
       await setupMessageListPage(tester,
@@ -320,6 +334,20 @@ void main() {
         of: find.byType(TopicListPage),
         matching: find.text('channel foo')),
       ).findsOne();
+    });
+
+    testWidgets("hide message-feed action icon when channel is general-chat-only", (tester) async{
+      final channel = eg.stream(name: 'General chat', topicsPolicy: TopicsPolicy.emptyTopicOnly);
+
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        messages: [eg.streamMessage(stream: channel, topic: '')],
+        subscriptions: [eg.subscription(channel)]);
+
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.message_feed)),
+      ).findsNothing();
     });
 
     testWidgets('show topic visibility policy for topic narrows', (tester) async {
