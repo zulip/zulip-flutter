@@ -4,3 +4,5 @@
 // This should match the value in ios/Podfile
 // and MinimumOSVersion in ios/Flutter/AppFrameworkInfo.plist.
 IPHONEOS_DEPLOYMENT_TARGET=15.0
+
+DEVELOPMENT_TEAM=66KHCWMEYB
