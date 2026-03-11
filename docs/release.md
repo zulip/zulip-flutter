@@ -351,15 +351,12 @@ which it's very important to handle securely.
 
 [app signing key]: https://developer.android.com/studio/publish/app-signing#secure_key
 
-(This setup is similar to what we used for the legacy mobile app,
-but the key is a fresh one.)
-
 * Get the keystore file, and the keystore properties file.
   An existing/previous release manager can send these to you,
   encrypted to your PGP key.
 
   * Never make an unencrypted version visible to the network or to a
-    cloud service (including Zulip).
+    cloud service (including Zulip and iCloud Drive).
 
 * Put the release-signing keystore, PGP-encrypted to yourself,
   at `android/release.keystore.pgp`.
@@ -388,9 +385,9 @@ keyPassword=*****
   can be edited to refer to a new cert.
 
   To create these, see <https://developer.apple.com/account/resources>.
-  Or for a bit more automation: go in Xcode to Settings -> Accounts
-  -> (your Apple ID) -> "Kandra Labs, Inc.".  Hit the "add" icon,
-  and choose "Apple Distribution", to create a key and cert.
+  Or for a bit more automation: go in Xcode to Settings -> Apple Accounts ->
+  (your Apple ID) -> "Kandra Labs, Inc." -> Manage Certificates.
+  Hit the "add" icon, and choose "Apple Distribution", to create a key and cert.
   Then use the website only to create or edit the profile.
 
 * For iOS uploads, you'll want the Transporter app — it's published by
