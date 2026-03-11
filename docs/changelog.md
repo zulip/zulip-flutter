@@ -11,6 +11,8 @@
   wouldn't navigate to the conversation. (#1567)
 * (Android) We now show your organization's name instead of its URL
   in notifications. (#570)
+* (Android) Start getting end-to-end encrypted notifications from new
+  servers. (#1764)
 * Too many other improvements and fixes to describe them all here.
 
 
@@ -20,7 +22,8 @@
   * Split Android build into a separate job to save time getting a result
     from the rest of our suites. (#2145)
   * In `test` suite output, show only failing tests, not passing. (#2141)
-  * Pin Flutter to the version we use in release, temporarily. (#2140)
+  * (Pinned -- #2140 -- then unpinned -- #2191 -- Flutter to the version
+    we use in release).
 
 * Merge log: PRs, with fixed issues and user-visible changes.
   * #2103: Flutter upgrade.
@@ -38,7 +41,7 @@
   * #2131
   * #2133: Update translations from Weblate.
   * #2138
-  * #2140
+  * #2140: Pin Flutter to the version we use in release, temporarily.
   * #2141
   * #2043: fix #1567. Fixed a bug on Android where sometimes
     opening a notification wouldn't navigate to the conversation.
@@ -73,6 +76,23 @@
   * #2157
   * #2207
   * #2195: fix #2158. Exclude the database file from iOS backup.
+  * #2198
+  * #2210
+  * #2181: Register device with server, toward E2EE notifications
+    (`registerClientDevice`).
+  * #2193
+  * #2194: Decrypt E2EE notifications!
+  * #2211: Unregister device (for E2EE notifications) on logout;
+    make unregister-legacy-token request just when we might have
+    registered it before.
+  * #2212
+  * #2191: Flutter and package upgrades, and revert pinning
+    Flutter version in CI to the version we use in release.
+  * #2213: fix most of #1764; fix #322. Register for E2EE notifications
+    on Android!
+  * #2190
+  * #1269: fix #1175. In autocomplete, we now reset the scroll position
+    as the query changes.
 
 
 ## 30.0.270 (2026-01-26)
