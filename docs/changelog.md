@@ -4,15 +4,15 @@
 
 ### Highlights for users
 
-* You can now reach the search page from the inbox
-  and the combined feed pages. (#1854)
-* You can now pin/unpin channels. (#1942)
+* (Android) Start getting end-to-end encrypted notifications from new
+  servers. (#1764)
+* You can now reach the search page directly from the inbox
+  or the combined feed. (#1854)
+* You can now pin and unpin channels. (#1942)
 * (Android) Fixed a bug where sometimes opening a notification
   wouldn't navigate to the conversation. (#1567)
 * (Android) We now show your organization's name instead of its URL
   in notifications. (#570)
-* (Android) Start getting end-to-end encrypted notifications from new
-  servers. (#1764)
 * Too many other improvements and fixes to describe them all here.
 
 
