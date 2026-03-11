@@ -85,7 +85,7 @@ void main() {
     messages ??= [];
     selfUser ??= eg.selfUser;
     zulipFeatureLevel ??= eg.futureZulipFeatureLevel;
-    final selfAccount = eg.account(user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
+    final selfAccount = eg.account(user: selfUser);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
       realmUsers: [selfUser, ...otherUsers],
       streams: streams,

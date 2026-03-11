@@ -161,8 +161,12 @@ void main() {
     return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
   }
 
-  Future<void> addAccount(Account account) async {
-    await testBinding.globalStore.add(account, eg.initialSnapshot());
+  Future<void> addAccount(Account account, {
+    int? zulipFeatureLevel,
+  }) async {
+    final initialSnapshot = eg.initialSnapshot(
+      zulipFeatureLevel: zulipFeatureLevel);
+    await testBinding.globalStore.add(account, initialSnapshot);
     await testBinding.globalStore.pushKeys.perAccount(account.id).insertPushKey(
       eg.pushKey(account: account).toCompanion(false));
   }
@@ -585,11 +589,30 @@ void main() {
 
     test('stream message, legacy plaintext', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init(addSelfAccount: false);
-      await addAccount(eg.selfAccount);
+      await addAccount(eg.selfAccount, zulipFeatureLevel: 468 - 1);
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
       await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
         encrypted: false,
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > ${message.topic}',
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
+    })));
+
+    test('stream message, ignore legacy plaintext on new server', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      final message = eg.streamMessage(stream: stream);
+      final data = messageFcmMessage(message, streamName: stream.name);
+
+      // A legacy plaintext notification arrives; we ignore it.
+      await receiveFcmMessage(async, data, encrypted: false);
+      check(testBinding.androidNotificationHost.takeNotifyCalls()).isEmpty();
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      // The same notification payload arrives encrypted; we handle it as usual.
+      await receiveFcmMessage(async, data);
+      checkNotification(data, messageStyleMessages: [data],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
@@ -1016,7 +1039,7 @@ void main() {
 
     test('remove: smoke; legacy plaintext', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init(addSelfAccount: false);
-      await addAccount(eg.selfAccount);
+      await addAccount(eg.selfAccount, zulipFeatureLevel: 468 - 1);
       final message = eg.streamMessage();
       final data = messageFcmMessage(message);
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';

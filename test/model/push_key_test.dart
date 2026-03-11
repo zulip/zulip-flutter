@@ -1,11 +1,17 @@
 import 'package:checks/checks.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:fake_async/fake_async.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
+import '../fake_async.dart';
 import 'binding.dart';
 import 'store_checks.dart';
+import 'test_store.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -139,5 +145,183 @@ void main() {
     check(globalModel.getPushKeyById(pushKey1.pushKeyId))
       ..equals(pushKey1)
       ..isNotNull().supersededTimestamp.isNull();
+  });
+
+  group('maybeRotatePushKeys', () {
+    late TestGlobalStore globalStore;
+    late PerAccountStore store;
+
+    /// Set up the store, ultimately calling [PushKeyStore.maybeRotatePushKeys].
+    Future<void> initStore(FakeAsync async, {
+      List<PushKey>? pushKeys,
+      int? ackedPushKeyId,
+      int? zulipFeatureLevel,
+    }) async {
+      globalStore = eg.globalStore(pushKeys: pushKeys);
+      await globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        zulipFeatureLevel: zulipFeatureLevel,
+        devices: {
+          eg.selfAccount.deviceId!: eg.clientDevice(pushKeyId: ackedPushKeyId),
+        }));
+      store = await globalStore.perAccount(eg.selfAccount.id);
+      async.flushMicrotasks(); // let `maybeRotatePushKeys` complete
+    }
+
+    PushKey mkKey(int createdTimestamp, {int? supersededTimestamp}) {
+      return eg.pushKey(
+        account: eg.selfAccount,
+        createdTimestamp: createdTimestamp,
+        supersededTimestamp: supersededTimestamp,
+      );
+    }
+
+    PushKey? getPushKeyById(int id) => globalStore.pushKeys.getPushKeyById(id);
+
+    const secondsPerDay = 86400;
+
+    group('generate new key', () {
+      test('generate key when no keys exist', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        await initStore(async);
+        check(store.pushKeys.latestPushKey).isNotNull()
+          .createdTimestamp.equals(now);
+      }));
+
+      test('generate key when latest is old enough', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 30 * secondsPerDay);
+        await initStore(async, pushKeys: [oldKey]);
+        check(store.pushKeys.latestPushKey).isNotNull()
+          .createdTimestamp.equals(now);
+        // The old key is still there.
+        check(getPushKeyById(oldKey.pushKeyId)).isNotNull()
+          ..equals(oldKey)
+          ..createdTimestamp.equals(now - 30 * secondsPerDay);
+      }));
+
+      test('no new key when latest is recent', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final key = mkKey(now - 15 * secondsPerDay);
+        await initStore(async, pushKeys: [key]);
+        check(store.pushKeys.latestPushKey).equals(key);
+      }));
+
+      test('on iOS, generate no key', () => awaitFakeAsync((async) async {
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        await initStore(async);
+        check(store.pushKeys.latestPushKey).isNull();
+      }));
+
+      test('on old server, generate no key', () => awaitFakeAsync((async) async {
+        await initStore(async, zulipFeatureLevel: 468 - 1);
+        check(store.pushKeys.latestPushKey).isNull();
+      }));
+
+      test('on old server, delete any existing keys', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final key = mkKey(now - secondsPerDay);
+        await initStore(async, zulipFeatureLevel: 468 - 1, pushKeys: [key]);
+        check(store.pushKeys.latestPushKey).isNull();
+        check(getPushKeyById(key.pushKeyId)).isNull();
+      }));
+    });
+
+    group('mark superseded keys', () {
+      test('mark older keys when server has acked newer key', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 32 * secondsPerDay);
+        final newKey = mkKey(now - 2 * secondsPerDay);
+        await initStore(async, pushKeys: [oldKey, newKey],
+          ackedPushKeyId: newKey.pushKeyId);
+        check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.equals(now);
+        check(getPushKeyById(newKey.pushKeyId)!).supersededTimestamp.isNull();
+      }));
+
+      test('act on device event', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 31 * secondsPerDay);
+        final newKey = mkKey(now - secondsPerDay);
+        await initStore(async, pushKeys: [oldKey, newKey]);
+        check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.isNull();
+
+        // A device-update event acks the new key.
+        await store.handleEvent(eg.deviceUpdateEvent(store.account.deviceId!,
+          pushKeyId: JsonNullable(newKey.pushKeyId)));
+        async.flushMicrotasks();
+        // The older key is superseded.
+        check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.equals(now);
+        check(getPushKeyById(newKey.pushKeyId)!).supersededTimestamp.isNull();
+      }));
+
+      test('no re-mark already-superseded keys on acked new key', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 32 * secondsPerDay,
+          supersededTimestamp: now - secondsPerDay);
+        final newKey = mkKey(now - 2 * secondsPerDay);
+        await initStore(async, pushKeys: [oldKey, newKey],
+          ackedPushKeyId: newKey.pushKeyId);
+        // The already-superseded key keeps its original timestamp.
+        check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.equals(now - secondsPerDay);
+      }));
+
+      test('mark older keys when newer key already old', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 32 * secondsPerDay);
+        final newKey = mkKey(now - 16 * secondsPerDay);
+        await initStore(async, pushKeys: [oldKey, newKey]);
+        check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.equals(now);
+        check(getPushKeyById(newKey.pushKeyId)!).supersededTimestamp.isNull();
+      }));
+
+      test('no re-mark already-superseded keys on old new key', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 32 * secondsPerDay,
+          supersededTimestamp: now - secondsPerDay);
+        final newKey = mkKey(now - 16 * secondsPerDay);
+        await initStore(async, pushKeys: [oldKey, newKey],
+          ackedPushKeyId: newKey.pushKeyId);
+        // The already-superseded key keeps its original timestamp.
+        check(getPushKeyById(oldKey.pushKeyId)!)
+          .supersededTimestamp.equals(now - secondsPerDay);
+      }));
+
+      test('no superseding when newer key is new and unacked', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 32 * secondsPerDay);
+        final newKey = mkKey(now - 2 * secondsPerDay);
+        await initStore(async, pushKeys: [oldKey, newKey]);
+        check(getPushKeyById(oldKey.pushKeyId)!).supersededTimestamp.isNull();
+        check(getPushKeyById(newKey.pushKeyId)!).supersededTimestamp.isNull();
+      }));
+    });
+
+    group('delete obsolete keys', () {
+      test('delete key superseded for long enough', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 32 * secondsPerDay,
+          supersededTimestamp: now - 30 * secondsPerDay);
+        final currentKey = mkKey(now - 31 * secondsPerDay);
+        await initStore(async, pushKeys: [oldKey, currentKey]);
+        check(getPushKeyById(oldKey.pushKeyId)).isNull();
+        check(getPushKeyById(currentKey.pushKeyId)).isNotNull();
+      }));
+
+      test('no delete key more recently superseded', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final oldKey = mkKey(now - 32 * secondsPerDay,
+          supersededTimestamp: now - 30 * secondsPerDay + 1);
+        final currentKey = mkKey(now - 31 * secondsPerDay);
+        await initStore(async, pushKeys: [oldKey, currentKey]);
+        check(getPushKeyById(oldKey.pushKeyId)).isNotNull();
+      }));
+
+      test('no delete non-superseded keys', () => awaitFakeAsync((async) async {
+        final now = testBinding.utcNow().millisecondsSinceEpoch ~/ 1000;
+        final key = mkKey(now - 32 * secondsPerDay);
+        await initStore(async, pushKeys: [key]);
+        check(getPushKeyById(key.pushKeyId)!).supersededTimestamp.isNull();
+      }));
+    });
   });
 }

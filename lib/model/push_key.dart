@@ -1,8 +1,10 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
 
+import '../api/model/model.dart';
 import 'binding.dart';
 import 'database.dart';
 import 'store.dart';
@@ -137,6 +139,117 @@ class PushKeyStore {
     await _globalPushKeys._removePushKey(pushKeyId);
     _pushKeys.remove(pushKeyId);
   }
+
+  /// Remove all this account's push keys from the store.
+  Future<void> removePushKeys() async {
+    for (final key in _pushKeys.values.toList()) {
+      await removePushKey(key.pushKeyId);
+    }
+  }
+
+  /// See if it's time to perform any of the steps of rotating push keys,
+  /// and do those.
+  Future<void> maybeRotatePushKeys({required int? ackedPushKeyId}) async {
+    final now = ZulipBinding.instance.utcNow();
+    final nowTimestamp = now.millisecondsSinceEpoch ~/ 1000;
+
+    // For a given rotation of the keys, each of these steps will happen
+    // in a separate call to this function.
+
+    // Step 1: Generate a new key.
+    final latestPushKey = this.latestPushKey;
+    if (latestPushKey == null
+        || now.difference(dateTimeFromTimestamp(latestPushKey.createdTimestamp))
+           >= _keyRotationInterval) {
+      // We either have no push key yet for this account,
+      // or it's time to rotate the push key.  Make a new one.
+      await insertPushKey(PushKeysCompanion.insert(
+        pushKeyId: generatePushKeyId(),
+        pushKey: generatePushKey(),
+        accountId: accountId,
+        createdTimestamp: nowTimestamp,
+      ));
+    }
+
+    // Step 2: Send new key to the server.
+    // This is done separately, in [PushDeviceManager._registerToken].
+
+    // Step 3: Mark superseded keys as superseded.
+    // 3a: A key is superseded when the server acks a newer key.
+    // (The ack might come in either an event or a later initial snapshot,
+    // which is why we handle it here.)
+    final ackedKey = _pushKeys.values.where((k) => k.pushKeyId == ackedPushKeyId)
+      .singleOrNull;
+    if (ackedKey != null) {
+      for (final oldKey in _pushKeys.values.where((k) =>
+             k.createdTimestamp < ackedKey.createdTimestamp
+             && k.supersededTimestamp == null).toList()) {
+        await updatePushKey(oldKey.pushKeyId, PushKeysCompanion(
+          supersededTimestamp: drift.Value(nowTimestamp)));
+      }
+    }
+
+    // 3b: A key is also superseded when a newer key has existed long enough.
+    // (This way, even if the server has notifications disabled and so
+    // refuses to accept new keys, we eventually delete old keys.)
+    final newestOldKey = maxBy(
+      _pushKeys.values.where((k) =>
+        now.difference(dateTimeFromTimestamp(k.createdTimestamp))
+        >= _autoSupersedeDuration),
+      (k) => k.createdTimestamp);
+    if (newestOldKey != null) {
+      for (final oldKey in _pushKeys.values.where((k) =>
+             k.createdTimestamp < newestOldKey.createdTimestamp
+             && k.supersededTimestamp == null).toList()) {
+        await updatePushKey(oldKey.pushKeyId, PushKeysCompanion(
+          supersededTimestamp: drift.Value(nowTimestamp)));
+      }
+    }
+
+    // Step 4: Delete obsolete keys: those superseded far enough in the past.
+    for (final obsoleteKey in _pushKeys.values.where((k) =>
+           k.supersededTimestamp != null
+           && now.difference(dateTimeFromTimestamp(k.supersededTimestamp!))
+              >= _oldKeyRetentionDuration).toList()) {
+      await removePushKey(obsoleteKey.pushKeyId);
+    }
+  }
+
+  /// The age at which a push key should be replaced with a new one.
+  ///
+  /// Rotating the push key allows both the client and the server to
+  /// eventually delete the old key (though see [_oldKeyRetentionDuration]),
+  /// which is helpful in case of a later compromise of either client or server.
+  static const _keyRotationInterval = Duration(days: 30);
+
+  /// The age of a new push key at which to call old keys superseded,
+  /// even if the server hasn't acknowledged the new key.
+  ///
+  /// This exists to ensure old keys are eventually deleted
+  /// (at least provided the app is getting occasionally opened).
+  ///
+  /// This value is meant to be long enough that it will rarely apply unless
+  /// the server can't be reached at all, or doesn't support notifications,
+  /// and so in either case the old key is unlikely to be useful.
+  /// In addition, after being marked superseded, the old key will
+  /// be kept for [_oldKeyRetentionDuration] thereafter.
+  static const _autoSupersedeDuration = Duration(days: 15);
+
+  /// The length of time we want to retain a superseded push key.
+  ///
+  /// After a push key is superseded by a new key, there might still be
+  /// notifications in flight that the server sent with the old key.
+  ///
+  /// We keep the old key around as long as it might still be possible
+  /// for some such notifications to be delivered.
+  //
+  // FCM may store a notification-message up to 28 days while it retries
+  // delivering it to the device:
+  //   https://firebase.google.com/docs/cloud-messaging/customize-messages/setting-message-lifespan
+  //
+  // APNs may do so for up to 30 days:
+  //   https://developer.apple.com/documentation/usernotifications/viewing-the-status-of-push-notifications-using-metrics-and-apns#Interpret-data-about-stored-notifications
+  static const _oldKeyRetentionDuration = Duration(days: 30);
 
   /// Generate a suitable value to pass as `pushKeyId` to [registerPushDevice].
   static int generatePushKeyId() {

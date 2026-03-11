@@ -1507,3 +1507,11 @@ enum PropagateMode {
   static final _byRawString = _$PropagateModeEnumMap
     .map((key, value) => MapEntry(value, key));
 }
+
+/// The [DateTime] corresponding to a UNIX timestamp, in UTC seconds.
+///
+/// The input format here is the form typically used in the Zulip API
+/// for representing a timestamp.
+DateTime dateTimeFromTimestamp(int timestamp) {
+  return DateTime.fromMillisecondsSinceEpoch(1000 * timestamp);
+}

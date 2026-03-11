@@ -12,6 +12,7 @@ import 'package:zulip/model/unreads.dart';
 
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
+import 'binding.dart';
 import 'test_store.dart';
 import 'unreads_checks.dart';
 
@@ -28,6 +29,8 @@ void checkInvariants(Unreads model) {
 }
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   // These variables are the common state operated on by each test.
   // Each test case calls [prepare] to initialize them.
   late Unreads model;

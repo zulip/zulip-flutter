@@ -8,6 +8,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
+import 'binding.dart';
 import 'test_store.dart';
 
 // Using Set instead of List in to avoid any duplicated test urls.
@@ -35,6 +36,8 @@ Future<PerAccountStore> setupStore({
 }
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('narrowLink', () {
     test('CombinedFeedNarrow', () {
       final store = eg.store();
