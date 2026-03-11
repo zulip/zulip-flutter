@@ -62,10 +62,9 @@ class StickyHeaderItem extends SingleChildRenderObjectWidget {
 /// The render object configured by a [StickyHeaderItem].
 class RenderStickyHeaderItem extends RenderProxyBox {
   RenderStickyHeaderItem({
-    required bool allowOverflow,
-    required Widget header,
-  }) : _allowOverflow = allowOverflow,
-       _header = header;
+    required this._allowOverflow,
+    required this._header,
+  });
 
   bool get allowOverflow => _allowOverflow;
   bool _allowOverflow;
@@ -132,7 +131,7 @@ class StickyHeaderListView extends BoxScrollView {
     bool addAutomaticKeepAlives = true,
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
-    super.cacheExtent,
+    super.scrollCacheExtent,
     List<Widget> children = const <Widget>[],
     int? semanticChildCount,
     super.dragStartBehavior,
@@ -166,7 +165,7 @@ class StickyHeaderListView extends BoxScrollView {
     bool addAutomaticKeepAlives = true,
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
-    super.cacheExtent,
+    super.scrollCacheExtent,
     int? semanticChildCount,
     super.dragStartBehavior,
     super.keyboardDismissBehavior,
@@ -204,7 +203,7 @@ class StickyHeaderListView extends BoxScrollView {
     bool addAutomaticKeepAlives = true,
     bool addRepaintBoundaries = true,
     bool addSemanticIndexes = true,
-    super.cacheExtent,
+    super.scrollCacheExtent,
     super.dragStartBehavior,
     super.keyboardDismissBehavior,
     super.restorationId,
@@ -252,7 +251,7 @@ class StickyHeaderListView extends BoxScrollView {
     super.shrinkWrap,
     super.padding,
     required this.childrenDelegate,
-    super.cacheExtent,
+    super.scrollCacheExtent,
     super.semanticChildCount,
     super.dragStartBehavior,
     super.keyboardDismissBehavior,
@@ -468,8 +467,8 @@ class _SliverStickyHeaderListElement extends RenderObjectElement {
 
 class _RenderSliverStickyHeaderList extends RenderSliver with RenderSliverHelpers {
   _RenderSliverStickyHeaderList({
-    required _SliverStickyHeaderListElement element,
-  }) : _element = element;
+    required this._element,
+  });
 
   final _SliverStickyHeaderListElement _element;
 

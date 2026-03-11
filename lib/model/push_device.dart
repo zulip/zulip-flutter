@@ -17,8 +17,8 @@ import 'store.dart';
 class PushDeviceManager extends PerAccountStoreBase {
   PushDeviceManager({
     required super.core,
-    required Map<int, ClientDevice> devices,
-  }) : _devices = devices {
+    required this._devices,
+  }) {
     _registerTokenAndSubscribe();
   }
 

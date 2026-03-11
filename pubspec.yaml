@@ -14,8 +14,8 @@ environment:
   # We use a recent version of Flutter from its main channel, and
   # the corresponding recent version of the Dart SDK.
   # Feel free to update these regularly; see README.md for instructions.
-  sdk: '>=3.12.0-128.0.dev <4.0.0'
-  flutter: '>=3.42.0-1.0.pre-36'  # f3a64931b166cb42b822c3f51d89a7f95f277e7d
+  sdk: '>=3.12.0-198.0.dev <4.0.0'
+  flutter: '>=3.42.0-1.0.pre-347'  # a567e329b090226c160c60464fba46e798973cb7
 
 # To update dependencies, see instructions in README.md.
 dependencies:
@@ -59,7 +59,7 @@ dependencies:
   share_plus_platform_interface: ^6.0.0
   sodium_libs: ^3.4.6+4
   sqlite3: ^2.4.0
-  sqlite3_flutter_libs: ^0.5.13
+  sqlite3_flutter_libs: 0.5.41
   unorm_dart: ^0.3.1+1
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"

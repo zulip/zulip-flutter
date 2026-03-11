@@ -1468,8 +1468,14 @@ void main() {
     // the timezone of the environment running these tests. Accept here a wide
     // range of times. See comments in "show dates" test in
     // `test/widgets/message_list_test.dart`.
-    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d(?: [AP]M)?$');
-    final renderedTextRegexpTwelveHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
+    //
+    // Since https://github.com/flutter/flutter/commit/3ea161909, DateFormat
+    // with 'j'-prefix pattern (what TwentyFourHourTimeMode.localeDefault uses)
+    // emits U+202F (NARROW NO-BREAK SPACE) character as a separator between
+    // time and it's period (AM/PM), instead of the space character. So, the
+    // patterns below use `\s` to handle both space and NNBSP characters.
+    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d(?:\s[AP]M)?$');
+    final renderedTextRegexpTwelveHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d\s[AP]M$');
     final renderedTextRegexpTwentyFourHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d$');
 
     Future<void> prepare(
