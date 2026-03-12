@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.271 (2026-03-11)
+
 ### Highlights for users
 
 * (Android) Start getting end-to-end encrypted notifications from new
