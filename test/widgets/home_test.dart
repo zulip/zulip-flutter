@@ -14,6 +14,7 @@ import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -436,6 +437,31 @@ void main () {
       await tester.ensureVisible(find.byIcon(ZulipIcons.info));
       await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.info));
       check(find.byType(AboutZulipPage)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('_RealmIcon', () {
+    testWidgets('realm icon is shown in app bar', (tester) async {
+      prepareBoringImageHttpClient();
+      await prepare(tester);
+
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage))).findsOne();
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('tapping realm icon navigates to choose-account page', (tester) async {
+      prepareBoringImageHttpClient();
+      await prepare(tester);
+
+      await tester.tap(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage)));
+      await tester.pumpAndSettle();
+
+      check(find.byType(ChooseAccountPage)).findsOne();
       debugNetworkImageHttpClientProvider = null;
     });
   });

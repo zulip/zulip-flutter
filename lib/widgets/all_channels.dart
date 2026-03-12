@@ -40,7 +40,8 @@ class AllChannelsPage extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
       appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.allChannelsPageTitle)),
+        title: Text(zulipLocalizations.allChannelsPageTitle),
+        showRealmIcon: false),
       body: AllChannelsPageBody());
   }
 }

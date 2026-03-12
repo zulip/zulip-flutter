@@ -122,6 +122,7 @@ class _HomePageState extends State<HomePage> {
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
           child: Text(_currentTabTitle)),
+        showRealmIcon: true,
         actions: _currentTabAppBarActions),
       body: Semantics(
         role: SemanticsRole.tabPanel,
@@ -445,14 +446,6 @@ class _MainMenuHeader extends StatefulWidget {
 }
 
 class _MainMenuHeaderState extends State<_MainMenuHeader> {
-  bool _isPressed = false;
-
-  void _setIsPressed(bool isPressed) {
-    setState(() {
-      _isPressed = isPressed;
-    });
-  }
-
   void _handleSwitchAccount(BuildContext context) {
     Navigator.pop(context); // Close the main menu.
     Navigator.push(context,
@@ -467,40 +460,33 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
 
     return Tooltip(
       message: zulipLocalizations.switchAccountButtonTooltip,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: PressableOpacity(
         onTap: () => _handleSwitchAccount(context),
-        onTapDown: (_) => _setIsPressed(true),
-        onTapUp: (_) => _setIsPressed(false),
-        onTapCancel: () => _setIsPressed(false),
-        child: AnimatedOpacity(
-          opacity: _isPressed ? 0.5 : 1,
-          duration: const Duration(milliseconds: 100),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
-            child: Row(spacing: 12, children: [
-              Flexible(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(spacing: 8, children: [
-                  AvatarShape(
-                    size: 28,
-                    borderRadius: 4,
-                    child: RealmContentNetworkImage(
-                      store.resolvedRealmIcon,
-                      filterQuality: FilterQuality.medium,
-                      fit: BoxFit.cover)),
-                  Flexible(child: Text(store.realmName,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: designVariables.title,
-                      fontSize: 20,
-                      height: 24 / 20,
-                    ).merge(weightVariableTextStyle(context, wght: 600)))),
-                ]))),
-              Icon(ZulipIcons.arrow_left_right,
-                color: designVariables.icon,
-                size: 24),
-            ])))));
+        child: Padding(
+          padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
+          child: Row(spacing: 12, children: [
+            Flexible(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(spacing: 8, children: [
+                AvatarShape(
+                  size: 28,
+                  borderRadius: 4,
+                  child: RealmContentNetworkImage(
+                    store.resolvedRealmIcon,
+                    filterQuality: FilterQuality.medium,
+                    fit: BoxFit.cover)),
+                Flexible(child: Text(store.realmName,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: designVariables.title,
+                    fontSize: 20,
+                    height: 24 / 20,
+                  ).merge(weightVariableTextStyle(context, wght: 600)))),
+              ]))),
+            Icon(ZulipIcons.arrow_left_right,
+              color: designVariables.icon,
+              size: 24),
+          ]))));
   }
 }
 
@@ -848,5 +834,47 @@ class _AboutZulipButton extends MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(AboutZulipPage.buildRoute(context));
+  }
+}
+
+/// A widget that fades to half opacity while pressed, then restores on release.
+///
+/// Wrap the tappable content with this widget instead of using
+/// [GestureDetector] and [AnimatedOpacity] separately.
+class PressableOpacity extends StatefulWidget {
+  const PressableOpacity({
+    super.key,
+    required this.onTap,
+    required this.child,
+  });
+
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  State<PressableOpacity> createState() => _PressableOpacityState();
+}
+
+class _PressableOpacityState extends State<PressableOpacity> {
+  bool _isPressed = false;
+
+  void _setIsPressed(bool isPressed) {
+    setState(() {
+      _isPressed = isPressed;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap,
+      onTapDown: (_) => _setIsPressed(true),
+      onTapUp: (_) => _setIsPressed(false),
+      onTapCancel: () => _setIsPressed(false),
+      child: AnimatedOpacity(
+        opacity: _isPressed ? 0.5 : 1,
+        duration: const Duration(milliseconds: 100),
+        child: widget.child));
   }
 }
