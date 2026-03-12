@@ -84,7 +84,7 @@ mixin ChannelStore on UserStore {
   /// and is mainly used in the implementation of other [ChannelStore] methods.
   ///
   /// For policies directly applicable in the UI, see
-  /// [isTopicVisibleInStream] and [isTopicVisible].
+  /// [isTopicVisibleInChannel] and [isTopicVisible].
   ///
   /// Topics are treated case-insensitively; see [TopicName.isSameAs].
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic);
@@ -99,31 +99,31 @@ mixin ChannelStore on UserStore {
   @visibleForTesting
   Map<int, Map<TopicName, UserTopicVisibilityPolicy>> get debugTopicVisibility;
 
-  /// Whether this topic should appear when already focusing on its stream.
+  /// Whether this topic should appear when already focusing on its channel.
   ///
   /// This is determined purely by the user's visibility policy for the topic.
   ///
   /// This function is appropriate for muting calculations in UI contexts that
-  /// are already specific to a stream: for example the stream's unread count,
-  /// or the message list in the stream's narrow.
+  /// are already specific to a channel: for example the channel's unread count,
+  /// or the message list in the channel's narrow.
   ///
-  /// For UI contexts that are not specific to a particular stream, see
+  /// For UI contexts that are not specific to a particular channel, see
   /// [isTopicVisible].
-  bool isTopicVisibleInStream(int streamId, TopicName topic) {
-    return _isTopicVisibleInStream(topicVisibilityPolicy(streamId, topic));
+  bool isTopicVisibleInChannel(int channelId, TopicName topic) {
+    return _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic));
   }
 
-  /// Whether the given event will change the result of [isTopicVisibleInStream]
-  /// for its stream and topic, compared to the current state.
-  UserTopicVisibilityEffect willChangeIfTopicVisibleInStream(UserTopicEvent event) {
-    final streamId = event.streamId;
+  /// Whether the given event will change the result of [isTopicVisibleInChannel]
+  /// for its channel and topic, compared to the current state.
+  UserTopicVisibilityEffect topicEventWillAffectIfTopicVisibleInChannel(UserTopicEvent event) {
+    final channelId = event.streamId;
     final topic = event.topicName;
     return UserTopicVisibilityEffect._fromBeforeAfter(
-      _isTopicVisibleInStream(topicVisibilityPolicy(streamId, topic)),
-      _isTopicVisibleInStream(event.visibilityPolicy));
+      _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic)),
+      _isTopicVisibleInChannel(event.visibilityPolicy));
   }
 
-  static bool _isTopicVisibleInStream(UserTopicVisibilityPolicy policy) {
+  static bool _isTopicVisibleInChannel(UserTopicVisibilityPolicy policy) {
     switch (policy) {
       case UserTopicVisibilityPolicy.none:
         return true;
@@ -139,31 +139,31 @@ mixin ChannelStore on UserStore {
   }
 
   /// Whether this topic should appear when not specifically focusing
-  /// on this stream.
+  /// on this channel.
   ///
-  /// This takes into account the user's visibility policy for the stream
+  /// This takes into account the user's visibility policy for the channel
   /// overall, as well as their policy for this topic.
   ///
-  /// For UI contexts that are specific to a particular stream, see
-  /// [isTopicVisibleInStream].
-  bool isTopicVisible(int streamId, TopicName topic) {
-    return _isTopicVisible(streamId, topicVisibilityPolicy(streamId, topic));
+  /// For UI contexts that are specific to a particular channel, see
+  /// [isTopicVisibleInChannel].
+  bool isTopicVisible(int channelId, TopicName topic) {
+    return _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic));
   }
 
   /// Whether the given event will change the result of [isTopicVisible]
-  /// for its stream and topic, compared to the current state.
-  UserTopicVisibilityEffect willChangeIfTopicVisible(UserTopicEvent event) {
-    final streamId = event.streamId;
+  /// for its channel and topic, compared to the current state.
+  UserTopicVisibilityEffect topicEventWillAffectIfTopicVisible(UserTopicEvent event) {
+    final channelId = event.streamId;
     final topic = event.topicName;
     return UserTopicVisibilityEffect._fromBeforeAfter(
-      _isTopicVisible(streamId, topicVisibilityPolicy(streamId, topic)),
-      _isTopicVisible(streamId, event.visibilityPolicy));
+      _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic)),
+      _isTopicVisible(channelId, event.visibilityPolicy));
   }
 
-  bool _isTopicVisible(int streamId, UserTopicVisibilityPolicy policy) {
+  bool _isTopicVisible(int channelId, UserTopicVisibilityPolicy policy) {
     switch (policy) {
       case UserTopicVisibilityPolicy.none:
-        switch (subscriptions[streamId]?.isMuted) {
+        switch (subscriptions[channelId]?.isMuted) {
           case false: return true;
           case true:  return false;
           case null:  return false; // not subscribed; treat like muted
@@ -251,7 +251,7 @@ mixin ChannelStore on UserStore {
 }
 
 /// Whether and how a given [UserTopicEvent] will affect the results
-/// that [ChannelStore.isTopicVisible] or [ChannelStore.isTopicVisibleInStream]
+/// that [ChannelStore.isTopicVisible] or [ChannelStore.isTopicVisibleInChannel]
 /// would give for some messages.
 enum UserTopicVisibilityEffect {
   /// The event will have no effect on the visibility results.
