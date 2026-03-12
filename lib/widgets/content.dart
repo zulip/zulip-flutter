@@ -407,14 +407,21 @@ class Paragraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isEmojiParagraph = node.isEmojiParagraph;
+
     // Empty paragraph winds up with zero height.
     // The paragraph has vertical CSS margins, but those have no effect.
     if (node.nodes.isEmpty) return const SizedBox();
 
-    final text = _buildBlockInlineContainer(
-      node: node,
-      style: DefaultTextStyle.of(context).style,
-    );
+    final style = isEmojiParagraph
+      ? DefaultTextStyle.of(context).style.copyWith(fontSize: kBaseFontSize * 2.0)
+      : DefaultTextStyle.of(context).style;
+    final text = isEmojiParagraph
+      ? DefaultTextStyle.merge(
+          child: _buildBlockInlineContainer(node: node, style: style),
+          style: TextStyle(fontSize: kBaseFontSize * 2.0))
+      : _buildBlockInlineContainer(node: node, style: style);
+
 
     // If the paragraph didn't actually have a `p` element in the HTML,
     // then apply no margins.  (For example, these are seen in list items.)
@@ -1015,7 +1022,8 @@ class InlineContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(_builder.build(context), textAlign: textAlign);
+    return Text.rich(_builder.build(context), textAlign: textAlign,
+      strutStyle: StrutStyle(fontSize: style.fontSize, height: style.height));
   }
 }
 
@@ -1107,7 +1115,7 @@ class _InlineContentBuilder {
 
       case ImageEmojiNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: MessageImageEmoji(node: node));
+          child: MessageImageEmoji(node: node, ambientTextStyle: widget.style));
 
       case InlineImageNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
@@ -1264,22 +1272,25 @@ class Mention extends StatelessWidget {
 }
 
 class MessageImageEmoji extends StatelessWidget {
-  const MessageImageEmoji({super.key, required this.node});
+  const MessageImageEmoji({super.key, required this.node, required this.ambientTextStyle});
 
   final ImageEmojiNode node;
+  final TextStyle ambientTextStyle;
 
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.src);
+    final fontSize = ambientTextStyle.fontSize ?? kBaseFontSize;
 
-    const size = 20.0;
+    // Font size gets doubled when an emoji is inside an EmojiParagraph
+    final size = 20.0 * (fontSize > kBaseFontSize ? 2.0 : 1.0);
 
     return Stack(
       alignment: Alignment.center,
       clipBehavior: Clip.none,
       children: [
-        const SizedBox(width: size, height: kBaseFontSize),
+        SizedBox(width: size, height: fontSize),
         Positioned(
           // Web's css makes this seem like it should be -0.5, but that looks
           // too low.
