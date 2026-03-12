@@ -569,6 +569,8 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   @JsonKey(readValue: _readFromPerson) final RealmUserUpdateCustomProfileField? customProfileField;
   @JsonKey(readValue: _readFromPerson) final String? newEmail;
   @JsonKey(readValue: _readFromPerson) final bool? isActive;
+  @JsonKey(readValue: _readFromPerson) final String? dateJoined;
+  @JsonKey(readValue: _readFromPerson) final bool? isImportedStub;
 
   static Object? _readFromPerson(Map<dynamic, dynamic> json, String key) {
     return (json['person'] as Map<String, dynamic>)[key];
@@ -602,6 +604,8 @@ class RealmUserUpdateEvent extends RealmUserEvent {
     this.customProfileField,
     this.newEmail,
     this.isActive,
+    this.dateJoined,
+    this.isImportedStub,
   });
 
   factory RealmUserUpdateEvent.fromJson(Map<String, dynamic> json) =>

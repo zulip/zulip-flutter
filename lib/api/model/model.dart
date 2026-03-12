@@ -487,7 +487,9 @@ class User {
   String? deliveryEmail;
   String email;
   String fullName;
-  final String dateJoined;
+  String dateJoined;
+  @JsonKey(defaultValue: false)
+  bool isImportedStub; // TODO(server-12)
   bool isActive; // Really sometimes absent in /register, but we normalize that away; see [InitialSnapshot.realmUsers].
   // bool isOwner; // obsoleted by [role]; ignore
   // bool isAdmin; // obsoleted by [role]; ignore
@@ -527,6 +529,7 @@ class User {
     required this.email,
     required this.fullName,
     required this.dateJoined,
+    required this.isImportedStub,
     required this.isActive,
     required this.isBot,
     required this.botType,

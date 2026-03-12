@@ -201,6 +201,28 @@ void main() {
     });
   });
 
+  group('date joined in profile data table', () {
+    // The date is formatted in the user's local timezone, which we can't
+    // control in tests; accept outputs for any possible timezone.
+    // See comments in "show dates" test in message_list_test.dart.
+
+    testWidgets('shows date joined label and date', (tester) async {
+      final user = eg.user(dateJoined: '2024-02-24T11:18:00+00:00');
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+      check(find.text('Date joined')).findsOne();
+      check(find.textContaining(RegExp('Feb 2[34], 2024'))).findsOne();
+    });
+
+    testWidgets('shows imported on label when isImportedStub', (tester) async {
+      final user = eg.user(
+        dateJoined: '2024-02-24T11:18:00+00:00',
+        isImportedStub: true);
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+      check(find.text('Imported on')).findsOne();
+      check(find.textContaining(RegExp('Feb 2[34], 2024'))).findsOne();
+    });
+  });
+
   group('custom profile fields', () {
     testWidgets('page builds; profile page renders with profileData', (tester) async {
       await setupPage(tester,
