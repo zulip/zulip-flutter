@@ -260,7 +260,7 @@ void main() {
       void testInsertPadded(String description, String valueBefore, String textToInsert, String expectedValue) {
         test(description, () {
           store = eg.store();
-          final controller = ComposeContentController(store: store);
+          final controller = ComposeContentController(store: store, narrow: ChannelNarrow(1));
           controller.value = parseMarkedText(valueBefore);
           controller.insertPadded(textToInsert);
           check(controller.value).equals(parseMarkedText(expectedValue));
@@ -342,7 +342,7 @@ void main() {
 
       testWidgets('requireNotEmpty: true (default)', (tester) async {
         store = eg.store();
-        controller = ComposeContentController(store: store);
+        controller = ComposeContentController(store: store, narrow: ChannelNarrow(1));
         addTearDown(controller.dispose);
         checkCountsAsEmpty('', true);
         checkCountsAsEmpty(' ', true);
@@ -351,7 +351,8 @@ void main() {
 
       testWidgets('requireNotEmpty: false', (tester) async {
         store = eg.store();
-        controller = ComposeContentController(store: store, requireNotEmpty: false);
+        controller = ComposeContentController(store: store, narrow: ChannelNarrow(1),
+          requireNotEmpty: false);
         addTearDown(controller.dispose);
         checkCountsAsEmpty('', false);
         checkCountsAsEmpty(' ', false);
