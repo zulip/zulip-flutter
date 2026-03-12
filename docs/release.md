@@ -44,6 +44,11 @@ If you're reading this page for the first time, see the sections on
   flutter build appbundle -Psigned && flutter build apk -Psigned
   ```
 
+  Look for these at `build/app/outputs/bundle/release/app-release.aab`
+  and `build/app/outputs/apk/release/app-release.apk` respectively.
+  Check their creation dates (`ls -la`) to avoid accidentally re-uploading
+  the previous release.
+
 * Upload the AAB to Google Play via the "Create new release" button
   at the top of the
   [Release > Testing > Internal testing][play-internaltesting]
@@ -129,13 +134,15 @@ If you're reading this page for the first time, see the sections on
 
   * After the build reaches alpha, you can add it to TestFlight so it
     goes to our beta users.  Go in App Store Connect to [TestFlight >
-    Testers & Groups > External Testers][asc-external],
+    Testers > "External Testers" (left sidebar) > Builds (tab)][asc-external],
     and hit the "+" icon at the top of the list of builds to enter a
     modal dialog.
 
-    * For the "What to Test" notes, see remark above about release notes.
+    * For the "What to Test" notes, start with `tools/format-changelog user`.
+      Edit as needed to resolve "(Android)" and "(iOS)" labels
+      and for formatting.
 
-  * The same External Testers page should now show the build in status
+  * The same "External Testers" > Builds page should now show the build in status
     "Waiting for Review".  This typically comes back the next morning,
     California time.  If successful, the app is out in beta!
 
