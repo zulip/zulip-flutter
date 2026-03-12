@@ -211,26 +211,32 @@ class ContentExample {
     '<p><span class="silent topic-mention">topic</span></p>',
     const UserMentionNode(nodes: [TextNode('topic')], isSilent: true, userId: null));
 
-  static final emojiUnicode = ContentExample.inline(
+  static final emojiUnicode = ContentExample(
     'Unicode emoji, encoded in span element',
     ":thumbs_up:",
     expectedText: '\u{1f44d}', // "👍"
     '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'));
+    [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')]),
+    ],
+  );
 
-  static final emojiUnicodeClassesFlipped = ContentExample.inline(
+  static final emojiUnicodeClassesFlipped = ContentExample(
     'Unicode emoji, encoded in span element, class order reversed',
     null, // ":thumbs_up:" (hypothetical server variation)
     expectedText: '\u{1f44d}', // "👍"
     '<p><span aria-label="thumbs up" class="emoji-1f44d emoji" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'));
+     [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')]),
+     ],
+  );
 
-  static final emojiUnicodeMultiCodepoint = ContentExample.inline(
+  static final emojiUnicodeMultiCodepoint = ContentExample(
     'Unicode emoji, encoded in span element, multiple codepoints',
     ":transgender_flag:",
     expectedText: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}', // "🏳️‍⚧️"
     '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}'));
+    [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}')]),
+    ],
+  );
 
   static final emojiUnicodeLiteral = ContentExample.inline(
     'Unicode emoji, not encoded in span element',
@@ -239,26 +245,165 @@ class ContentExample {
     '<p>\u{1fabf}</p>',
     const TextNode('\u{1fabf}'));
 
-  static final emojiCustom = ContentExample.inline(
+  static final emojiUnicodeWithText = ContentExample(
+    'Unicode emoji joined with text',
+    'foo :thumbs_up:',
+    expectedText: 'foo \u{1f44d}', // "👍"
+    '<p>foo '
+        '<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    [ParagraphNode(links: null, isEmojiParagraph: false, nodes: [
+      TextNode('foo '),
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')],
+    )],
+  );
+
+  static final emojiUnicodeRepeated = ContentExample(
+    'Repeated unicode emojis',
+    ':thumbs_up: :thumbs_up:',
+    expectedText: '\u{1f44d} \u{1f44d}', // "👍"
+    '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span>'
+        ' '
+        '<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'),
+      TextNode(' '),
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')],
+    )],
+  );
+
+  static final emojiUnicodeNewlineSpaced = ContentExample(
+    'Unicode emojis spaced by newline',
+    ':thumbs_up:\n:thumbs_up:',
+    expectedText: '\u{1f44d}\n\u{1f44d}', // "👍"
+    '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span><br/>'
+        '<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    [ParagraphNode(links: null, nodes: [
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'),
+      LineBreakInlineNode(),
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')],
+    )],
+  );
+
+  static final emojiUnicodeInDifferentParaEmoji = ContentExample(
+    'Multiple Unicode emoji paragraph',
+    ':thumbs_up:\n\n:thumbs_up:',
+    expectedText: '\u{1f44d}\n\u{1f44d}', // "👍"
+    '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>'
+        '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    [ParagraphNode(links: null, nodes: [UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')]),
+    ParagraphNode(links: null, nodes: [UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')]),
+    ],
+  );
+
+  static final emojiUnicodeInDifferentParaText = ContentExample(
+    'Unicode emoji paragraph followed by a text paragraph',
+    ':thumbs_up:\n\nfoo',
+    expectedText: '\u{1f44d}\nfoo', // "👍"
+    '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>'
+        '<p>foo</p>',
+    [ParagraphNode(links: null, nodes: [UnicodeEmojiNode(emojiUnicode: '\u{1f44d}')]),
+    ParagraphNode(links: null, nodes: [TextNode('foo')]),
+    ],
+  );
+
+  static final emojiCustom = ContentExample(
     'custom emoji',
     ":flutter:",
     '<p><img alt=":flutter:" class="emoji" src="/user_avatars/2/emoji/images/204.png" title="flutter"></p>',
-    const ImageEmojiNode(
-      src: '/user_avatars/2/emoji/images/204.png', alt: ':flutter:'));
+    [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [ImageEmojiNode(
+      src: '/user_avatars/2/emoji/images/204.png', alt: ':flutter:')],
+    )],
+  );
 
-  static final emojiCustomInvalidUrl = ContentExample.inline(
+  static final emojiCustomInvalidUrl = ContentExample(
     'custom emoji with invalid URL',
     null, // hypothetical, to test for a risk of crashing
     '<p><img alt=":invalid:" class="emoji" src="::not a URL::" title="invalid"></p>',
-    const ImageEmojiNode(
-      src: '::not a URL::', alt: ':invalid:'));
+    [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [ImageEmojiNode(
+      src: '::not a URL::', alt: ':invalid:')],
+    )],
+  );
 
-  static final emojiZulipExtra = ContentExample.inline(
+  static final emojiZulipExtra = ContentExample(
     'Zulip extra emoji',
     ":zulip:",
     '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
-    const ImageEmojiNode(
-      src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
+    [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [ImageEmojiNode(
+      src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:')],
+    )],
+  );
+
+  static final emojiZulipExtraWithText = ContentExample(
+    'Zulip extra emoji with text',
+    "foo :zulip:",
+    '<p>foo '
+        '<img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
+    [ParagraphNode(links: null, nodes: [
+      TextNode('foo '),
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:')],
+    )],
+  );
+
+  static final emojiZulipExtraRepeated = ContentExample(
+    'Repeated zulip extra emoji',
+    ":zulip: :zulip:",
+    '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip">'
+        ' '
+        '<img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
+    [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'),
+      TextNode(' '),
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:')],
+    )],
+  );
+
+  static final emojiZulipExtraNewlineSpaced = ContentExample(
+    'Zulip extra emojis with a newline in between',
+    ":zulip:\n:zulip:",
+    '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"><br/>'
+        '<img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
+    [ParagraphNode(links: null, nodes: [
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'),
+      LineBreakInlineNode(),
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'),
+    ])],
+  );
+
+  static final emojiZulipExtraInDifferentParaEmoji = ContentExample(
+    'Multiple Zulip extra emoji paragraphs',
+    ":zulip:\n\n:zulip:",
+    '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>'
+        '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
+    [ParagraphNode(links: null, nodes: [
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:')]),
+    ParagraphNode(links: null, nodes: [
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:')]),
+    ],
+  );
+
+  static final emojiZulipExtraInDifferentParaText = ContentExample(
+    'Zulip extra emoji paragraph followed by a text paragraph',
+    ":zulip:\n\nfoo",
+    '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>'
+        '<p>foo</p>',
+    [ParagraphNode(links: null, nodes: [
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:')]),
+      ParagraphNode(links: null, nodes: [TextNode('foo')]),
+    ],
+  );
+
+  static final emojiZulipExtraWithUnicodeEmoji = ContentExample(
+    'Zulip extra emoji with Unicode emoji',
+    ":zulip: \u{1f44d}",
+    '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip">'
+        ' '
+        '<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
+    [ParagraphNode(links: null, isEmojiParagraph: true, nodes: [
+      ImageEmojiNode(src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'),
+      TextNode(' '),
+      UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'),
+    ])],
+  );
 
   static final inlineImage = ContentExample.inline(
     'inline image',
@@ -1889,9 +2034,20 @@ void main() async {
   testParseExample(ContentExample.emojiUnicodeClassesFlipped);
   testParseExample(ContentExample.emojiUnicodeMultiCodepoint);
   testParseExample(ContentExample.emojiUnicodeLiteral);
+  testParseExample(ContentExample.emojiUnicodeWithText);
+  testParseExample(ContentExample.emojiUnicodeRepeated);
+  testParseExample(ContentExample.emojiUnicodeNewlineSpaced);
+  testParseExample(ContentExample.emojiUnicodeInDifferentParaEmoji);
+  testParseExample(ContentExample.emojiUnicodeInDifferentParaText);
   testParseExample(ContentExample.emojiCustom);
   testParseExample(ContentExample.emojiCustomInvalidUrl);
   testParseExample(ContentExample.emojiZulipExtra);
+  testParseExample(ContentExample.emojiZulipExtraWithText);
+  testParseExample(ContentExample.emojiZulipExtraRepeated);
+  testParseExample(ContentExample.emojiZulipExtraNewlineSpaced);
+  testParseExample(ContentExample.emojiZulipExtraInDifferentParaEmoji);
+  testParseExample(ContentExample.emojiZulipExtraInDifferentParaText);
+  testParseExample(ContentExample.emojiZulipExtraWithUnicodeEmoji);
 
   testParseExample(ContentExample.inlineImage);
   testParseExample(ContentExample.inlineImageLoading);
