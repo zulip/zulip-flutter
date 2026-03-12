@@ -1022,7 +1022,8 @@ class InlineContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(_builder.build(context), textAlign: textAlign);
+    return Text.rich(_builder.build(context), textAlign: textAlign,
+      strutStyle: StrutStyle(fontSize: style.fontSize, height: style.height));
   }
 }
 
