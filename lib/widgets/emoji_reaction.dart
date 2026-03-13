@@ -15,6 +15,7 @@ import 'color.dart';
 import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
+import 'input.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'store.dart';
@@ -493,16 +494,10 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
             child: TextField(
               controller: _controller,
               autofocus: true,
-              decoration: InputDecoration(
-                hintText: zulipLocalizations.emojiPickerSearchEmoji,
-                contentPadding: const EdgeInsetsDirectional.only(start: 10, top: 6),
-                filled: true,
-                fillColor: designVariables.bgSearchInput,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none),
-                hintStyle: TextStyle(color: designVariables.textMessage)),
-              style: const TextStyle(fontSize: 19, height: 26 / 19)))),
+              style: filledInputTextStyle(designVariables),
+              decoration: baseFilledInputDecoration(designVariables)
+                .copyWith(hintText: zulipLocalizations.emojiPickerSearchEmoji),
+            ))),
           TextButton(
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(

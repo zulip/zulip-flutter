@@ -726,7 +726,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Add an account';
 
   @override
-  String get loginServerUrlLabel => 'Your Zulip server URL';
+  String get loginRealmUrlLabel => 'Your Zulip organization URL';
 
   @override
   String get loginHidePassword => 'Hide password';
@@ -1936,9 +1936,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get loginAddAnAccountPageTitle => '添加账号';
 
   @override
-  String get loginServerUrlLabel => 'Zulip 服务器网址';
-
-  @override
   String get loginHidePassword => '隐藏密码';
 
   @override
@@ -3118,9 +3115,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get loginAddAnAccountPageTitle => '增添帳號';
-
-  @override
-  String get loginServerUrlLabel => '您的 Zulip 伺服器網址';
 
   @override
   String get loginHidePassword => '隱藏密碼';

@@ -12,6 +12,7 @@ import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'image.dart';
 import 'inset_shadow.dart';
+import 'input.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -231,28 +232,14 @@ class _SetStatusPageState extends State<SetStatusPage> {
                   // The limit on the size of the status text is 60 characters.
                   // See: https://zulip.com/api/update-status#parameter-status_text
                   maxLength: 60,
-                  cursorColor: designVariables.textInput,
                   textCapitalization: TextCapitalization.sentences,
-                  style: TextStyle(fontSize: 19, height: 24 / 19),
-                  decoration: InputDecoration(
-                    // TODO: display a counter as suggested in CZO discussion:
-                    //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/Set.20user.20status/near/2224549
-                    counterText: '',
-                    hintText: zulipLocalizations.statusTextHint,
-                    hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 8,
-                      // Subtracting 4 pixels to account for the internal
-                      // 4-pixel horizontal padding.
-                      horizontal: 10 - 4,
-                    ),
-                    filled: true,
-                    fillColor: designVariables.bgSearchInput,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    )))),
+                  style: filledInputTextStyle(designVariables),
+                  decoration: baseFilledInputDecoration(designVariables)
+                    .copyWith(
+                      // TODO: display a counter as suggested in CZO discussion:
+                      //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/Set.20user.20status/near/2224549
+                      counterText: '',
+                      hintText: zulipLocalizations.statusTextHint))),
               ]),
           ),
           Expanded(child: InsetShadowBox(
