@@ -376,3 +376,46 @@ class UserStatusEmoji extends StatelessWidget {
 
 /// The position of the status emoji span relative to another text span.
 enum StatusEmojiPosition { before, after }
+
+/// A "chip" representing a user, with avatar/presence and display name.
+class UserChip extends StatelessWidget {
+  const UserChip({
+    super.key,
+    required this.userId,
+    required this.onTap,
+  });
+
+  final int userId;
+  final void Function() onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final clampedTextScaler = MediaQuery.textScalerOf(context)
+      .clamp(maxScaleFactor: 1.5);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: designVariables.bgMenuButtonSelected,
+          borderRadius: BorderRadius.circular(3)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Avatar(userId: userId, size: clampedTextScaler.scale(22), borderRadius: 3),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(5, 3, 4, 3),
+              child: Text(store.userDisplayName(userId),
+                textScaler: clampedTextScaler,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 16 / 16,
+                  color: designVariables.labelMenuButton)))),
+          UserStatusEmoji(userId: userId, size: 16,
+            padding: EdgeInsetsDirectional.only(end: 4)),
+        ])));
+  }
+}
