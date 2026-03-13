@@ -113,6 +113,10 @@ dev_dependencies:
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 flutter:
+  config:
+    # TODO(#2218) re-enable
+    enable-swift-package-manager: false
+
   generate: true
   uses-material-design: true
 
