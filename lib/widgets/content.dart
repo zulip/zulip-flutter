@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -641,7 +642,10 @@ class MessageImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Image(node: node, size: MessageMediaContainer.size,
+    final store = PerAccountStoreWidget.of(context);
+    final sizeMultiplier = store.realmMediaPreviewSize.multiplier;
+
+    return _Image(node: node, size: MessageMediaContainer.baseSize * sizeMultiplier,
       buildContainer: (onTap, child) {
         return MessageMediaContainer(onTap: onTap, child: child);
       });
@@ -718,10 +722,16 @@ class MessageMediaContainer extends StatelessWidget {
   final Widget? child;
 
   /// The container's size, in logical pixels.
-  static const size = Size(150, 100);
+  static const baseSize = Size(150, 100);
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final sizeMultiplier = store.realmMediaPreviewSize.multiplier;
+
+    if (kDebugMode) {
+      print("Multiplier :$sizeMultiplier");
+    }
     return GestureDetector(
       onTap: onTap,
       child: UnconstrainedBox(
@@ -735,7 +745,7 @@ class MessageMediaContainer extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(1),
               child: SizedBox.fromSize(
-                size: size,
+                size: baseSize * sizeMultiplier,
                 child: child))))));
   }
 }
@@ -1319,17 +1329,19 @@ class InlineImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final sizeMultiplier = store.realmMediaPreviewSize.multiplier;
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
 
     // Follow web's max-height behavior (10em);
     // see image_box_em in web/src/postprocess_content.ts.
-    final maxHeight = ambientTextStyle.fontSize! * 10;
+    final maxHeight = ambientTextStyle.fontSize! * 10 * sizeMultiplier;
 
     final imageSize = (node.originalWidth != null && node.originalHeight != null)
-      ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio
+      ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio * sizeMultiplier
       // Layout plan when original dimensions are unknown:
       // a [MessageMediaContainer]-sized and -colored rectangle.
-      : MessageMediaContainer.size;
+      : MessageMediaContainer.baseSize * sizeMultiplier;
 
     // (a) Don't let tall, thin images take up too much vertical space,
     //     which could be annoying to scroll through. And:
@@ -1341,6 +1353,10 @@ class InlineImage extends StatelessWidget {
     //       https://chat.zulip.org/#narrow/channel/101-design/topic/Inline.20images.20blown.20up.20and.20blurry/near/2346831
     final size = BoxConstraints(maxHeight: maxHeight)
       .constrainSizeAndAttemptToPreserveAspectRatio(imageSize);
+
+    if (kDebugMode) {
+      print("Mutliplier: $sizeMultiplier, imageSize: $size");
+    }
 
     Widget child = _Image(node: node, size: size,
       buildContainer: (onTap, child) {

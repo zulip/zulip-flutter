@@ -365,9 +365,7 @@ enum TwentyFourHourTimeMode {
   // TODO(#1727) actually follow this
   // Not sent by current servers, but planned when most client installs accept it:
   //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/.60user_settings.2Etwenty_four_hour_time.60/near/2220696
-  // TODO(server-future) Write down what server N starts sending null;
-  //   adjust the comment; leave a TODO(server-N) to delete the comment
-  localeDefault(apiValue: null),
+  localeDefault(apiValue: null), // TODO(server-11)
   ;
 
   const TwentyFourHourTimeMode({required this.apiValue});
@@ -493,7 +491,8 @@ class User {
   // bool isAdmin; // obsoleted by [role]; ignore
   // bool isGuest; // obsoleted by [role]; ignore
   final bool isBot;
-  final int? botType; // TODO enum
+  @JsonKey(unknownEnumValue: UserBotType.unknown)
+  final UserBotType? botType;
   int? botOwnerId;
   @JsonKey(unknownEnumValue: UserRole.unknown)
   UserRole role;
@@ -587,6 +586,65 @@ enum UserRole{
     // Roles with more privilege have lower [apiValue].
     return apiValue! <= threshold.apiValue!;
   }
+}
+
+/// As in [User.botType].
+@JsonEnum(valueField: 'apiValue')
+enum UserBotType {
+  generic(apiValue: 1),
+  webhookIncoming(apiValue: 2),
+  webhookOutgoing(apiValue: 3),
+  embedded(apiValue: 4),
+  unknown(apiValue: null);
+
+  const UserBotType({
+    required this.apiValue,
+  });
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
+}
+
+/// The name of a property in [RealmUpdateDictData].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum RealmProperty {
+  // TODO: Add more properties here
+  mediaPreviewSize,
+  unknown;
+
+  String toJson() => _$RealmPropertyEnumMap[this]!;
+
+  static RealmProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
+
+  static final _byRawString = _$RealmPropertyEnumMap
+      .map((key, value) => MapEntry(value, key));
+}
+
+/// A value from [InitialSnapshot.realmMediaPreviewSize].
+///
+/// For docs, search for "realm_media_preview_size"
+/// in <https://zulip.com/api/register-queue>
+@JsonEnum(valueField: 'apiValue', alwaysCreate: true)
+enum RealmMediaPreviewSize {
+  small(apiValue: 100), // default value
+  medium(apiValue: 150),
+  large(apiValue: 200),
+  unknown(apiValue: null);
+
+  const RealmMediaPreviewSize({
+    required this.apiValue,
+  });
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
+
+  static RealmMediaPreviewSize? fromApiValue(int value) => _byApiValue[value] ?? RealmMediaPreviewSize.small;
+
+  // _$…EnumMap is thanks to `alwaysCreate: true`
+  static final _byApiValue = _$RealmMediaPreviewSizeEnumMap
+      .map((key, value) => MapEntry(value, key));
 }
 
 /// A value in [InitialSnapshot.presences].

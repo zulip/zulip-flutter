@@ -56,6 +56,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   GroupSettingValue? get realmCanDeleteAnyMessageGroup; // TODO(server-10)
   GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
   bool get realmEnableReadReceipts;
+  RealmMediaPreviewSize? get realmMediaPreviewSize; // TODO(server-12)
   bool get realmMandatoryTopics;
   int get maxFileUploadSizeMib;
   int? get realmMessageContentDeleteLimitSeconds;
@@ -205,6 +206,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
   @override
+  RealmMediaPreviewSize? get realmMediaPreviewSize => realmStore.realmMediaPreviewSize;
+  @override
   RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy => realmStore.realmDeleteOwnMessagePolicy;
   @override
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
@@ -265,6 +268,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmPresenceDisabled = initialSnapshot.realmPresenceDisabled,
     realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
+    realmMediaPreviewSize = initialSnapshot.realmMediaPreviewSize,
     realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
@@ -432,6 +436,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
   @override
+  RealmMediaPreviewSize? realmMediaPreviewSize;
+  @override
   final RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy;
 
   @override
@@ -487,6 +493,34 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   void handleCustomProfileFieldsEvent(CustomProfileFieldsEvent event) {
     customProfileFields = _sortCustomProfileFields(event.fields);
+  }
+
+  void handleRealmEvent(RealmEvent event) {
+    if (event is RealmUpdateEvent) {
+      RealmUpdateDictData? data;
+      switch(event.property) {
+        case RealmProperty.mediaPreviewSize:
+          data = RealmUpdateDictData(mediaPreviewSize: event.value as RealmMediaPreviewSize?);
+          break;
+        case RealmProperty.unknown:
+          break;
+      }
+
+      if(data != null) {
+        event = RealmUpdateDictEvent(
+          id: event.id,
+          property: "default", // Should be always "default"
+          data: data);
+      }
+    }
+
+    switch(event) {
+      case RealmUpdateDictEvent():
+        if(event.data.mediaPreviewSize != null)  realmMediaPreviewSize = event.data.mediaPreviewSize!;
+
+      case RealmUpdateEvent():
+        return;
+    }
   }
 
   void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {

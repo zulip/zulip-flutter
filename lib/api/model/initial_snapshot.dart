@@ -96,6 +96,8 @@ class InitialSnapshot {
   /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
 
+  final RealmMediaPreviewSize? realmMediaPreviewSize; // TODO(server-12)
+
   final bool realmMandatoryTopics;
 
   final String realmName;
@@ -199,6 +201,7 @@ class InitialSnapshot {
     required this.realmCanDeleteOwnMessageGroup,
     required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
+    required this.realmMediaPreviewSize,
     required this.realmMandatoryTopics,
     required this.realmName,
     required this.realmWaitingPeriodThreshold,
