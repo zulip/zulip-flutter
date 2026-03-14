@@ -411,6 +411,36 @@ void main() {
       check(find.byType(Image).evaluate()).isEmpty();
     });
 
+    testWidgets('shows email when multiple accounts on same realm', (tester) async {
+      final account1 = eg.account(
+        id: 1,
+        realmUrl: Uri.parse('https://example.com'),
+        user: eg.user());
+      final account2 = eg.account(
+        id: 2,
+        realmUrl: Uri.parse('https://example.com'),
+        user: eg.user());
+      await setupChooseAccountPage(tester, accounts: [account1, account2]);
+
+      check(find.text(account1.email).evaluate()).length.equals(1);
+      check(find.text(account2.email).evaluate()).length.equals(1);
+    });
+
+    testWidgets('does not show email when accounts are on different realms', (tester) async {
+      final account1 = eg.account(
+        id: 1,
+        realmUrl: Uri.parse('https://realm1.example.com'),
+        user: eg.user());
+      final account2 = eg.account(
+        id: 2,
+        realmUrl: Uri.parse('https://realm2.example.com'),
+        user: eg.user());
+      await setupChooseAccountPage(tester, accounts: [account1, account2]);
+
+      check(find.text(account1.email).evaluate()).isEmpty();
+      check(find.text(account2.email).evaluate()).isEmpty();
+    });
+
     group('log out', () {
       Future<(Widget, Widget)> prepare(WidgetTester tester, {required Account account}) async {
         await setupChooseAccountPage(tester, accounts: [account]);
