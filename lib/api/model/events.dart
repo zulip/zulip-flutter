@@ -50,6 +50,7 @@ sealed class Event {
         }
       case 'realm':
         switch (json['op'] as String) {
+          case 'update': return RealmUpdateEvent.fromJson(json);
           case 'update_dict': return RealmUpdateDictEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
@@ -141,6 +142,43 @@ sealed class RealmEvent extends Event {
   String get op;
 
   RealmEvent({required super.id});
+}
+
+/// A Zulip event of type `realm` with op `update`:
+/// https://chat.zulip.org/api/get-events#realm-update
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmUpdateEvent extends RealmEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update';
+
+  @JsonKey(unknownEnumValue: RealmProperty.unknown)
+  final RealmProperty property;
+
+  @JsonKey(readValue: _readValue)
+  final Object? value;
+
+  static Object? _readValue(Map<dynamic, dynamic> json, String key) {
+    final value = json['value'];
+    switch (RealmProperty.fromRawString(json['property'] as String)) {
+      case RealmProperty.mediaPreviewSize:
+        return RealmMediaPreviewSize.fromApiValue(value as int);
+      case RealmProperty.unknown:
+        return null;
+    }
+  }
+
+  RealmUpdateEvent({
+    required super.id,
+    required this.property,
+    required this.value,
+  });
+
+  factory RealmUpdateEvent.fromJson(Map<String, dynamic> json) =>
+      _$RealmUpdateEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmUpdateEventToJson(this);
 }
 
 /// A Zulip event of type `realm` with op `update_dict`:

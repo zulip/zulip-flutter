@@ -8,6 +8,31 @@ part of 'events.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+RealmUpdateEvent _$RealmUpdateEventFromJson(Map<String, dynamic> json) =>
+    RealmUpdateEvent(
+      id: (json['id'] as num).toInt(),
+      property: $enumDecode(
+        _$RealmPropertyEnumMap,
+        json['property'],
+        unknownValue: RealmProperty.unknown,
+      ),
+      value: RealmUpdateEvent._readValue(json, 'value'),
+    );
+
+Map<String, dynamic> _$RealmUpdateEventToJson(RealmUpdateEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'property': instance.property,
+      'value': instance.value,
+    };
+
+const _$RealmPropertyEnumMap = {
+  RealmProperty.mediaPreviewSize: 'media_preview_size',
+  RealmProperty.unknown: 'unknown',
+};
+
 RealmUpdateDictEvent _$RealmUpdateDictEventFromJson(
   Map<String, dynamic> json,
 ) => RealmUpdateDictEvent(
@@ -28,7 +53,7 @@ Map<String, dynamic> _$RealmUpdateDictEventToJson(
 
 RealmUpdateDictData _$RealmUpdateDictDataFromJson(Map<String, dynamic> json) =>
     RealmUpdateDictData(
-      mediaPreviewSize: $enumDecode(
+      mediaPreviewSize: $enumDecodeNullable(
         _$RealmMediaPreviewSizeEnumMap,
         json['media_preview_size'],
       ),

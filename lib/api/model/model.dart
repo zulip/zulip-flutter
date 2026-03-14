@@ -606,6 +606,21 @@ enum UserBotType {
   int? toJson() => apiValue;
 }
 
+/// The name of a property in [RealmUpdateDictData].
+@JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
+enum RealmProperty {
+  // TODO: Add more properties here
+  mediaPreviewSize,
+  unknown;
+
+  String toJson() => _$RealmPropertyEnumMap[this]!;
+
+  static RealmProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
+
+  static final _byRawString = _$RealmPropertyEnumMap
+      .map((key, value) => MapEntry(value, key));
+}
+
 /// A value from [InitialSnapshot.realmMediaPreviewSize].
 ///
 /// For docs, search for "realm_media_preview_size"
