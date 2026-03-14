@@ -482,6 +482,12 @@ class ChooseAccountPage extends StatelessWidget {
     // > close button.
     final hasBackButton = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
 
+    final realmUrlCounts = <Uri, int>{};
+    for (final account in globalStore.accounts) {
+      realmUrlCounts[account.realmUrl] =
+        (realmUrlCounts[account.realmUrl] ?? 0) + 1;
+    }
+
     return MenuButtonTheme(
       data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
         backgroundColor: colorScheme.secondaryContainer,
@@ -506,7 +512,9 @@ class ChooseAccountPage extends StatelessWidget {
                         realmIconUrl: account.realmIcon == null ? null
                           : account.realmUrl.resolveUri(account.realmIcon!),
                         title: Text(account.realmName ?? account.realmUrl.toString()),
-                        subtitle: Text(account.email)),
+                        subtitle: (realmUrlCounts[account.realmUrl]! > 1)
+                          ? Text(account.email)
+                          : null),
                   ]))),
                 const SizedBox(height: 12),
                 ElevatedButton(
