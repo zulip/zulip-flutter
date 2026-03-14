@@ -18,6 +18,7 @@ import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../host/ios_native.g.dart';
 import '../log.dart';
+import '../widgets/compose_box.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
@@ -668,6 +669,7 @@ class PerAccountStore extends PerAccountStoreBase with
       userSettings: initialSnapshot.userSettings,
       pushDevices: PushDeviceManager(core: core,
         devices: initialSnapshot.devices ?? {}),
+      hasZoomToken: initialSnapshot.hasZoomToken,
       savedSnippets: SavedSnippetStoreImpl(core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? []),
       typingNotifier: TypingNotifier(realm: realm),
@@ -693,6 +695,7 @@ class PerAccountStore extends PerAccountStoreBase with
     required this._realm,
     required this._emoji,
     required this.userSettings,
+    required this.hasZoomToken,
     required this.pushDevices,
     required this._savedSnippets,
     required this.typingNotifier,
@@ -759,6 +762,8 @@ class PerAccountStore extends PerAccountStoreBase with
   // Data attached to the self-account on the realm.
 
   final UserSettings userSettings;
+
+  bool hasZoomToken;
 
   final PushDeviceManager pushDevices;
 
@@ -902,6 +907,15 @@ class PerAccountStore extends PerAccountStoreBase with
         assert(debugLog("server event: device"));
         pushDevices.handleDeviceEvent(event);
         notifyListeners();
+
+      case HasZoomTokenEvent():
+        assert(debugLog("server event: has_zoom_token"));
+        final hasZoomTokenUpdated = event.value;
+        if (hasZoomToken != hasZoomTokenUpdated) {
+          hasZoomToken = hasZoomTokenUpdated;
+          if(hasZoomToken) await ComposeCall.handleHasZoomTokenEvent();
+          notifyListeners();
+        }
 
       case CustomProfileFieldsEvent():
         assert(debugLog("server event: custom_profile_fields"));
