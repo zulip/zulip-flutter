@@ -497,7 +497,7 @@ void showChannelActionSheet(BuildContext context, {
 
   final messageListPageNarrow = messageListPageState?.narrow;
   final isOnChannelFeed = messageListPageNarrow is ChannelNarrow
-    && messageListPageNarrow.streamId == channelId;
+    && messageListPageNarrow.channelId == channelId;
 
   final unreadCount = store.unreads.countInChannelNarrow(channelId);
   final channel = store.streams[channelId];
@@ -612,7 +612,7 @@ class TopicListButton extends ActionSheetMenuItemButton {
   @override
   void onPressed() {
     Navigator.push(pageContext,
-      TopicListPage.buildRoute(context: pageContext, streamId: channelId));
+      TopicListPage.buildRoute(context: pageContext, channelId: channelId));
   }
 }
 
@@ -960,7 +960,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
     try {
       await updateUserTopicCompat(
         PerAccountStoreWidget.of(pageContext).connection,
-        streamId: narrow.streamId,
+        channelId: narrow.channelId,
         topic: narrow.topic,
         visibilityPolicy: newVisibilityPolicy);
     } catch (e) {

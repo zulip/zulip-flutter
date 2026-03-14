@@ -52,7 +52,7 @@ void main() {
     connection.prepare(json: GetChannelTopicsResult(topics: topics).toJson());
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
-      child: TopicListPage(streamId: channel.streamId)));
+      child: TopicListPage(channelId: channel.streamId)));
     await tester.pump();
     await tester.pump(Duration.zero);
     check(connection.takeRequests()).single.isA<http.Request>()
@@ -72,7 +72,7 @@ void main() {
         json: GetChannelTopicsResult(topics: []).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
-        child: TopicListPage(streamId: channel.streamId)));
+        child: TopicListPage(channelId: channel.streamId)));
       await tester.pump();
       await tester.pump(Duration.zero);
       check(find.widgetWithText(ZulipAppBar, '(unknown channel)')).findsOne();
@@ -116,7 +116,7 @@ void main() {
     );
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
-      child: TopicListPage(streamId: channel.streamId)));
+      child: TopicListPage(channelId: channel.streamId)));
     await tester.pump();
     check(find.byType(CircularProgressIndicator)).findsOne();
 
