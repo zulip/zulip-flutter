@@ -918,6 +918,9 @@ class PerAccountStore extends PerAccountStoreBase with
         }
         notifyListeners();
 
+      case RealmUpdateDictEvent():
+        assert(debugLog("server event: realm_update_dict"));
+
       case RealmUserAddEvent():
         assert(debugLog("server event: realm_user/add"));
         _users.handleRealmUserEvent(event);

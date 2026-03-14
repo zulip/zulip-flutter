@@ -48,6 +48,12 @@ sealed class Event {
           case 'remove': return UserGroupRemoveEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
+      case 'realm':
+        switch (json['op'] as String) {
+          case 'update_dict': return RealmUpdateDictEvent.fromJson(json);
+          default: return UnexpectedEvent.fromJson(json);
+        }
+
       case 'realm_user':
         switch (json['op'] as String) {
           case 'add': return RealmUserAddEvent.fromJson(json);
@@ -135,6 +141,45 @@ sealed class RealmEvent extends Event {
   String get op;
 
   RealmEvent({required super.id});
+}
+
+/// A Zulip event of type `realm` with op `update_dict`:
+/// https://chat.zulip.org/api/get-events#realm-update_dict
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmUpdateDictEvent extends RealmEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update_dict';
+
+  final String property;
+
+  final RealmUpdateDictData data;
+
+  RealmUpdateDictEvent({
+    required super.id,
+    required this.property,
+    required this.data
+  });
+
+  factory RealmUpdateDictEvent.fromJson(Map<String, dynamic> json) =>
+      _$RealmUpdateDictEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmUpdateDictEventToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmUpdateDictData {
+  final RealmMediaPreviewSize? mediaPreviewSize; // TODO(server-12)
+
+  RealmUpdateDictData({
+    required this.mediaPreviewSize,
+  });
+
+  factory RealmUpdateDictData.fromJson(Map<String, dynamic> json) =>
+    _$RealmUpdateDictDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmUpdateDictDataToJson(this);
 }
 
 /// A Zulip event of type `realm_emoji` with op `update`:
