@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
@@ -215,6 +216,13 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    final googleAuthMethod = ExternalAuthenticationMethod(
+      name: 'google',
+      displayName: 'Google',
+      displayIcon: eg.realmUrl.resolve('/static/images/authentication_backends/googl_e-icon.png').toString(),
+      loginUrl: '/accounts/login/social/google',
+      signupUrl: '/accounts/register/social/google');
+
     final findUsernameInput = find.byWidgetPredicate((widget) =>
       widget is TextField
       && (widget.autofillHints ?? []).contains(AutofillHints.email));
@@ -367,17 +375,47 @@ void main() {
       // TODO test _inProgress logic
     });
 
+    group('email auth visibility', () {
+      testWidgets('hides username/password fields and login button', (tester) async {
+        final serverSettings = eg.serverSettings(emailAuthEnabled: false);
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsNothing();
+        check(findPasswordInput).findsNothing();
+        check(findSubmitButton).findsNothing();
+      });
+
+      testWidgets('shows external auth methods without divider', (tester) async {
+        prepareBoringImageHttpClient(); // icon on social-auth button
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          externalAuthenticationMethods: [googleAuthMethod]);
+        await prepare(tester, serverSettings);
+        check(find.textContaining('Google')).findsOne();
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        check(find.bySemanticsLabel(zulipLocalizations.loginMethodDividerSemanticLabel)).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('shows divider when email auth enabled with external methods', (tester) async {
+        prepareBoringImageHttpClient(); // icon on social-auth button
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: true,
+          externalAuthenticationMethods: [googleAuthMethod]);
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsOne();
+        check(findPasswordInput).findsOne();
+        check(findSubmitButton).findsOne();
+        check(find.textContaining('Google')).findsOne();
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        check(find.bySemanticsLabel(zulipLocalizations.loginMethodDividerSemanticLabel)).findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
+
     group('web auth', () {
       testWidgets('basic happy case', (tester) async {
-        final method = ExternalAuthenticationMethod(
-          name: 'google',
-          displayName: 'Google',
-          displayIcon: eg.realmUrl.resolve('/static/images/authentication_backends/googl_e-icon.png').toString(),
-          loginUrl: '/accounts/login/social/google',
-          signupUrl: '/accounts/register/social/google',
-        );
         final serverSettings = eg.serverSettings(
-          externalAuthenticationMethods: [method]);
+          externalAuthenticationMethods: [googleAuthMethod]);
         prepareBoringImageHttpClient(); // icon on social-auth button
         await prepare(tester, serverSettings);
         takeStartingRoutes();
@@ -388,7 +426,7 @@ void main() {
         LoginPage.debugOtpOverride = otp;
         await tester.tap(find.textContaining('Google'));
 
-        final expectedUrl = eg.realmUrl.resolve(method.loginUrl)
+        final expectedUrl = eg.realmUrl.resolve(googleAuthMethod.loginUrl)
           .replace(queryParameters: {'mobile_flow_otp': otp});
         check(testBinding.takeLaunchUrlCalls())
           .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
