@@ -495,6 +495,34 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     customProfileFields = _sortCustomProfileFields(event.fields);
   }
 
+  void handleRealmEvent(RealmEvent event) {
+    if (event is RealmUpdateEvent) {
+      RealmUpdateDictData? data;
+      switch(event.property) {
+        case RealmProperty.mediaPreviewSize:
+          data = RealmUpdateDictData(mediaPreviewSize: event.value as RealmMediaPreviewSize?);
+          break;
+        case RealmProperty.unknown:
+          break;
+      }
+
+      if(data != null) {
+        event = RealmUpdateDictEvent(
+          id: event.id,
+          property: "default", // Should be always "default"
+          data: data);
+      }
+    }
+
+    switch(event) {
+      case RealmUpdateDictEvent():
+        if(event.data.mediaPreviewSize != null)  realmMediaPreviewSize = event.data.mediaPreviewSize!;
+
+      case RealmUpdateEvent():
+        return;
+    }
+  }
+
   void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
     // Compare [UserStoreImpl.handleRealmUserEvent].
     if (event.userId == selfUserId) {
