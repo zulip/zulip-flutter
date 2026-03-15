@@ -1488,6 +1488,30 @@ abstract class ZulipLocalizations {
   /// **'The server URL must start with http:// or https://.'**
   String get serverUrlValidationErrorUnsupportedScheme;
 
+  /// Banner message shown to server admins when the server version is no longer offcialy supported.
+  ///
+  /// In en, this message translates to:
+  /// **'{url} is running Zulip Server {zulipVersion}, which is unsupported. Please upgrade your server as soon as possible.'**
+  String serverCompatBannerAdminMessage(String url, String zulipVersion);
+
+  /// Banner message shown to non-admin users when the server version is no longer offcialy supported.
+  ///
+  /// In en, this message translates to:
+  /// **'{url} is running Zulip Server {zulipVersion}, which is unsupported. Please contact your server administrator about upgrading.'**
+  String serverCompatBannerUserMessage(String url, String zulipVersion);
+
+  /// Label for the button that dismisses the server compatibility warning banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get serverCompatBannerDismissLabel;
+
+  /// Label for the button in the server compatibility warning banner that opens the support policy doc.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn more'**
+  String get serverCompatBannerLearnMoreLabel;
+
   /// The default header text in a spoiler block ( https://zulip.com/help/spoilers ).
   ///
   /// In en, this message translates to:
