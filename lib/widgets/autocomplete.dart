@@ -119,6 +119,8 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
     return RawAutocomplete<ResultT>(
       textEditingController: widget.controller,
       focusNode: widget.focusNode,
@@ -140,15 +142,21 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
         return Align(
           alignment: AlignmentDirectional.bottomStart,
           child: Material(
-            elevation: 4.0,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300), // TODO not hard-coded
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: _resultsToDisplay.length,
-                itemBuilder: _buildItem))));
+            color: designVariables.contextMenuBg,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(6)),
+              side: BorderSide(color: designVariables.contextMenuBorder)),
+            elevation: 4.0, // TODO tune the shadow effect
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300), // TODO not hard-coded
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  itemCount: _resultsToDisplay.length,
+                  itemBuilder: _buildItem)))));
       },
       // RawAutocomplete passes these when it calls fieldViewBuilder:
       //   TextEditingController textEditingController,
