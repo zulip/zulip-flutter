@@ -495,21 +495,43 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
 
   @override
   Widget buildItem(BuildContext context, int index, TopicAutocompleteResult option) {
-    final Widget child;
+    // See Figma:
+    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=7953-30436&m=dev
+
+    final designVariables = DesignVariables.of(context);
+
+    TextStyle style = TextStyle(
+      fontSize: 17,
+      height: 20 / 17,
+    ).merge(weightVariableTextStyle(context, wght: 500));
+
+    final String text;
     if (option.topic.displayName == null) {
       final store = PerAccountStoreWidget.of(context);
-      child = Text(store.realmEmptyTopicDisplayName,
-        style: const TextStyle(fontStyle: FontStyle.italic));
+      text = store.realmEmptyTopicDisplayName;
+      style = style.copyWith(fontStyle: FontStyle.italic);
     } else {
-      child = Text(option.topic.displayName!);
+      text = option.topic.displayName!;
     }
 
     return InkWell(
       onTap: () {
         _onTapOption(context, option);
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: child));
+      highlightColor: designVariables.editorButtonPressedBg,
+      splashFactory: NoSplash.splashFactory,
+      borderRadius: BorderRadius.circular(5),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: 44),
+        child: Padding(
+          // (2px vertical padding not in Figma, to handle larger text-size setting)
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 2, 10, 2),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+              text)))));
   }
 }
