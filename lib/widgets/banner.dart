@@ -15,9 +15,10 @@ class ZulipBanner extends StatelessWidget {
     required this.intent,
     required this.label,
     this.useSmallerText = false,
-    this.trailing,
+    this.actions,
     this.padEnd = true, // ignore: unused_element_parameter
-  });
+    this.actionsOnNewLine = false,
+  }) : assert(!actionsOnNewLine || actions != null);
 
   final ZulipBannerIntent intent;
   final String label;
@@ -27,10 +28,10 @@ class ZulipBanner extends StatelessWidget {
   /// When [label] is so long
   /// that it doesn't fit on a single line in common device configurations,
   /// consider passing `true` for this,
-  /// and consider shrinking [trailing], e.g. with [ZulipWebUiKitButton.size].
+  /// and consider shrinking [actions], e.g. with [ZulipWebUiKitButton.size].
   final bool useSmallerText;
 
-  /// An optional trailing element.
+  /// An optional actions element.
   ///
   /// It should include vertical but not horizontal outer padding
   /// for spacing/positioning.
@@ -45,16 +46,21 @@ class ZulipBanner extends StatelessWidget {
   // 24px square with 8px touchable padding in all directions?
   // and `padEnd: false`; see Figma:
   //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=4031-17029&m=dev
-  final Widget? trailing;
+  final Widget? actions;
 
   /// Whether to apply `end: 8` in [SafeArea.minimum].
   ///
-  /// Pass `false` when the [trailing] element
+  /// Pass `false` when the [actions] element
   /// is meant to abut the edge of the screen
   /// in the common case that there are no horizontal device insets.
   ///
   /// Defaults to `true`.
   final bool padEnd;
+
+  /// Whether to show [actions] on a new line.
+  ///
+  /// Defaults to `false`.
+  final bool actionsOnNewLine;
 
   @override
   Widget build(BuildContext context) {
@@ -87,19 +93,26 @@ class ZulipBanner extends StatelessWidget {
           .resolve(Directionality.of(context)),
         child: Padding(
           padding: const EdgeInsetsDirectional.only(start: 8),
-          child: Row(
+          child: Column(
             children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  child: Text(
-                    style: labelTextStyle,
-                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-                    label))),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                trailing!,
-              ],
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 9, bottom: actionsOnNewLine ? 0 : 9),
+                      child: Text(
+                        style: labelTextStyle,
+                        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+                        label))),
+                  if (!actionsOnNewLine && actions != null) ...[
+                    const SizedBox(width: 8),
+                    actions!,
+                  ],
+                ]),
+              if (actionsOnNewLine)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: actions),
             ]))));
   }
 }

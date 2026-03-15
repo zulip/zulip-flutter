@@ -1751,8 +1751,8 @@ class EditMessageComposeBoxController extends ComposeBoxController {
 }
 
 
-class _UnsubscribedChannelBannerTrailing extends StatelessWidget {
-  const _UnsubscribedChannelBannerTrailing({required this.channelId});
+class _UnsubscribedChannelBannerActions extends StatelessWidget {
+  const _UnsubscribedChannelBannerActions({required this.channelId});
 
   final int channelId;
 
@@ -1785,8 +1785,8 @@ class _UnsubscribedChannelBannerTrailing extends StatelessWidget {
   }
 }
 
-class _EditMessageBannerTrailing extends StatelessWidget {
-  const _EditMessageBannerTrailing({required this.composeBoxState});
+class _EditMessageBannerActions extends StatelessWidget {
+  const _EditMessageBannerActions({required this.composeBoxState});
 
   final ComposeBoxState composeBoxState;
 
@@ -2160,7 +2160,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
                 intent: ZulipBannerIntent.warning,
                 label: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend,
                 useSmallerText: true,
-                trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+                actions: _UnsubscribedChannelBannerActions(channelId: streamId));
         }
 
       case DmNarrow(:final otherRecipientIds):
@@ -2216,7 +2216,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
             intent: ZulipBannerIntent.warning,
             label: zulipLocalizations.composeBoxBannerLabelUnsubscribed,
             useSmallerText: true,
-            trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+            actions: _UnsubscribedChannelBannerActions(channelId: streamId));
         }
 
       case DmNarrow():
@@ -2241,7 +2241,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         banner = ZulipBanner(
           intent: ZulipBannerIntent.info,
           label: zulipLocalizations.composeBoxBannerLabelEditMessage,
-          trailing: _EditMessageBannerTrailing(composeBoxState: this));
+          actions: _EditMessageBannerActions(composeBoxState: this));
       }
     }
 
