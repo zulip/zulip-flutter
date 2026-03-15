@@ -3424,6 +3424,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get recentDmConversationsPageTitle => '私人訊息';
 
   @override
+  String get recentDmConversationsPageShortLabel => '私訊';
+
+  @override
   String get recentDmConversationsSectionHeader => '私人訊息';
 
   @override
@@ -3545,6 +3548,9 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get wildcardMentionTopicDescription => '通知話題';
+
+  @override
+  String get navBarFeedLabel => '動態';
 
   @override
   String get navBarMenuLabel => '功能表';

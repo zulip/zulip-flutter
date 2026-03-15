@@ -888,6 +888,9 @@
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
+  "@navBarFeedLabel": {
+    "description": "Label for the Feed button on the bottom navigation bar."
+  },
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
   },
@@ -1015,6 +1018,9 @@
   },
   "@recentDmConversationsEmptyPlaceholderMessage": {
     "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsPageShortLabel": {
+    "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1594,6 +1600,7 @@
   "messageListGroupYouWithYourself": "與自己的訊息",
   "messageNotSentLabel": "訊息未送出",
   "mutedUser": "已靜音的使用者",
+  "navBarFeedLabel": "動態",
   "navBarMenuLabel": "功能表",
   "navButtonAllChannels": "所有頻道",
   "newDmFabButtonLabel": "新增私訊",
@@ -1624,6 +1631,7 @@
   "reactionChipsLabel": "反應",
   "recentDmConversationsEmptyPlaceholderHeader": "您尚未有任何私人訊息！",
   "recentDmConversationsEmptyPlaceholderMessage": "要不要開始一段對話呢？",
+  "recentDmConversationsPageShortLabel": "私訊",
   "recentDmConversationsPageTitle": "私人訊息",
   "recentDmConversationsSectionHeader": "私人訊息",
   "revealButtonLabel": "顯示訊息",
