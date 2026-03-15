@@ -35,6 +35,9 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
     switch ((attention, intent)) {
+      // An ad hoc case for the "Reveal message" button
+      // on a message from a muted sender:
+      //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6092-50786&m=dev
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
         return WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(0.3),
@@ -54,6 +57,17 @@ class ZulipWebUiKitButton extends StatelessWidget {
           WidgetState.pressed: designVariables.btnBgAttHighIntWarningActive,
           ~WidgetState.pressed: designVariables.btnBgAttHighIntWarningNormal,
         });
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+        return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive,
+          ~WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive.withAlpha(0),
+        });
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+        return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.btnBgAttMediumIntDangerActive,
+          ~WidgetState.pressed: designVariables.btnBgAttMediumIntDangerNormal,
+        });
+      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
         throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
@@ -71,6 +85,9 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
   Color _labelColor(DesignVariables designVariables) {
     switch ((attention, intent)) {
+      // An ad hoc case for the "Reveal message" button
+      // on a message from a muted sender:
+      //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6092-50786&m=dev
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
         // TODO nit: don't fade in pressed state
         return designVariables.neutralButtonLabel.withFadedAlpha(0.85);
@@ -82,6 +99,11 @@ class ZulipWebUiKitButton extends StatelessWidget {
         return designVariables.btnLabelAttMediumIntWarning;
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
         return designVariables.btnLabelAttHighIntWarning;
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+        return designVariables.btnLabelAttLowIntDanger;
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+        return designVariables.btnLabelAttMediumIntDanger;
+      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
         throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
@@ -201,21 +223,20 @@ class ZulipWebUiKitButton extends StatelessWidget {
   }
 }
 
+// TODO Rename fields and corresponding colors to visual variants
+// For the implementation in web app, see:
+//   https://github.com/zulip/zulip/pull/37424
 enum ZulipWebUiKitButtonAttention {
   high,
   medium,
   // low,
-
-  /// An ad hoc value for the "Reveal message" button
-  /// on a message from a muted sender:
-  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6092-50786&m=dev
   minimal,
 }
 
 enum ZulipWebUiKitButtonIntent {
   neutral,
   warning,
-  // danger,
+  danger,
   info,
   // success,
   // brand,
