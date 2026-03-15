@@ -427,6 +427,44 @@ void main() {
           }
         }
       }
+
+      test('null visibility_policy returns .none effect (stream not muted)', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1));
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+
+        final event = eg.userTopicEvent(stream1.streamId, 'topic', null);
+        check(store.willChangeIfTopicVisibleInStream(event))
+          .equals(UserTopicVisibilityEffect.none);
+        check(store.willChangeIfTopicVisible(event))
+          .equals(UserTopicVisibilityEffect.none);
+      });
+
+      test('null visibility_policy returns .none effect (stream muted)', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1, isMuted: true));
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
+
+        final event = eg.userTopicEvent(stream1.streamId, 'topic', null);
+        check(store.willChangeIfTopicVisibleInStream(event))
+          .equals(UserTopicVisibilityEffect.none);
+        check(store.willChangeIfTopicVisible(event))
+          .equals(UserTopicVisibilityEffect.none);
+      });
+
+      test('null visibility_policy on non-existent topic returns .none', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1));
+
+        final event = eg.userTopicEvent(stream1.streamId, 'topic', null);
+        check(store.willChangeIfTopicVisibleInStream(event))
+          .equals(UserTopicVisibilityEffect.none);
+        check(store.willChangeIfTopicVisible(event))
+          .equals(UserTopicVisibilityEffect.none);
+      });
     });
 
     void compareTopicVisibility(PerAccountStore store, List<UserTopicItem> expected) {
@@ -443,7 +481,7 @@ void main() {
         userTopics: [
           eg.userTopicItem(stream1, 'topic 1', UserTopicVisibilityPolicy.muted),
           eg.userTopicItem(stream1, 'topic 2', UserTopicVisibilityPolicy.unmuted),
-          eg.userTopicItem(stream2, 'topic 3', UserTopicVisibilityPolicy.unknown),
+          eg.userTopicItem(stream2, 'topic 3', null),
           eg.userTopicItem(stream2, 'topic 4', UserTopicVisibilityPolicy.followed),
         ]));
       check(store.debugTopicVisibility).deepEquals({
@@ -515,8 +553,50 @@ void main() {
         final store = eg.store();
         await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
         // case-insensitivity
-        await store.setUserTopic(stream1, 'ToPiC', UserTopicVisibilityPolicy.unknown);
+        await store.setUserTopic(stream1, 'ToPiC', null);
         compareTopicVisibility(store, [
+        ]);
+      });
+
+      test('null visibility_policy event with existing topic removes it', () async {
+        final store = eg.store();
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.muted);
+        check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
+          .equals(UserTopicVisibilityPolicy.muted);
+
+        await store.setUserTopic(stream1, 'topic', null);
+        compareTopicVisibility(store, []);
+        check(store.topicVisibilityPolicy(stream1.streamId, eg.t('topic')))
+          .equals(UserTopicVisibilityPolicy.none);
+      });
+
+      test('null visibility_policy event with no existing topic does nothing', () async {
+        final store = eg.store();
+        await store.setUserTopic(stream1, 'topic', null);
+        compareTopicVisibility(store, []);
+      });
+
+      test('null visibility_policy removes last topic in stream', () async {
+        final store = eg.store();
+        await store.setUserTopic(stream1, 'topic', UserTopicVisibilityPolicy.followed);
+        check(store.debugTopicVisibility).deepEquals({
+          stream1.streamId: {
+            'topic': UserTopicVisibilityPolicy.followed,
+          }
+        });
+
+        await store.setUserTopic(stream1, 'topic', null);
+        check(store.debugTopicVisibility).deepEquals({});
+      });
+
+      test('null visibility_policy with other topics in stream', () async {
+        final store = eg.store();
+        await store.setUserTopic(stream1, 'topic1', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream1, 'topic2', UserTopicVisibilityPolicy.followed);
+
+        await store.setUserTopic(stream1, 'topic1', null);
+        compareTopicVisibility(store, [
+          eg.userTopicItem(stream1, 'topic2', UserTopicVisibilityPolicy.followed),
         ]);
       });
     });

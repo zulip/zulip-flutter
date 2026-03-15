@@ -45,6 +45,16 @@ mixin ChannelStore on UserStore {
   /// All the channel folders, including archived ones, indexed by ID.
   Map<int, ChannelFolder> get channelFolders;
 
+  static bool _warnInvalidVisibilityPolicy(
+      UserTopicVisibilityPolicy? visibilityPolicy
+      ) {
+    if (visibilityPolicy == null) {
+      // Not a value we expect. Keep it out of our data structures. // TODO(log)
+      return true;
+    }
+    return false;
+  }
+
   static int compareChannelsByName(ZulipStream a, ZulipStream b) {
     // A user gave feedback wanting zulip-flutter to match web in putting
     // emoji-prefixed channels first; see #1202.
@@ -118,9 +128,14 @@ mixin ChannelStore on UserStore {
   UserTopicVisibilityEffect willChangeIfTopicVisibleInStream(UserTopicEvent event) {
     final streamId = event.streamId;
     final topic = event.topicName;
+    final UserTopicVisibilityPolicy? visibilityPolicy = event.visibilityPolicy;
+    if (ChannelStore._warnInvalidVisibilityPolicy(visibilityPolicy)) {
+      return UserTopicVisibilityEffect.none;
+    }
+    final UserTopicVisibilityPolicy policy = visibilityPolicy!;
     return UserTopicVisibilityEffect._fromBeforeAfter(
       _isTopicVisibleInStream(topicVisibilityPolicy(streamId, topic)),
-      _isTopicVisibleInStream(event.visibilityPolicy));
+      _isTopicVisibleInStream(policy));
   }
 
   static bool _isTopicVisibleInStream(UserTopicVisibilityPolicy policy) {
@@ -131,9 +146,6 @@ mixin ChannelStore on UserStore {
         return false;
       case UserTopicVisibilityPolicy.unmuted:
       case UserTopicVisibilityPolicy.followed:
-        return true;
-      case UserTopicVisibilityPolicy.unknown:
-        assert(false);
         return true;
     }
   }
@@ -155,9 +167,14 @@ mixin ChannelStore on UserStore {
   UserTopicVisibilityEffect willChangeIfTopicVisible(UserTopicEvent event) {
     final streamId = event.streamId;
     final topic = event.topicName;
+    final UserTopicVisibilityPolicy? visibilityPolicy = event.visibilityPolicy;
+    if (ChannelStore._warnInvalidVisibilityPolicy(visibilityPolicy)) {
+      return UserTopicVisibilityEffect.none;
+    }
+    final UserTopicVisibilityPolicy policy = visibilityPolicy!;
     return UserTopicVisibilityEffect._fromBeforeAfter(
       _isTopicVisible(streamId, topicVisibilityPolicy(streamId, topic)),
-      _isTopicVisible(streamId, event.visibilityPolicy));
+      _isTopicVisible(streamId, policy));
   }
 
   bool _isTopicVisible(int streamId, UserTopicVisibilityPolicy policy) {
@@ -172,9 +189,6 @@ mixin ChannelStore on UserStore {
         return false;
       case UserTopicVisibilityPolicy.unmuted:
       case UserTopicVisibilityPolicy.followed:
-        return true;
-      case UserTopicVisibilityPolicy.unknown:
-        assert(false);
         return true;
     }
   }
@@ -332,12 +346,13 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
 
     final topicVisibility = <int, TopicKeyedMap<UserTopicVisibilityPolicy>>{};
     for (final item in initialSnapshot.userTopics) {
-      if (_warnInvalidVisibilityPolicy(item.visibilityPolicy)) {
-        // Not a value we expect. Keep it out of our data structures. // TODO(log)
+      final UserTopicVisibilityPolicy? visibilityPolicy = item.visibilityPolicy;
+      if (ChannelStore._warnInvalidVisibilityPolicy(visibilityPolicy)) {
         continue;
       }
+      final UserTopicVisibilityPolicy policy = visibilityPolicy!;
       final forStream = topicVisibility.putIfAbsent(item.streamId, () => makeTopicKeyedMap());
-      forStream[item.topicName] = item.visibilityPolicy;
+      forStream[item.topicName] = policy;
     }
 
     return ChannelStoreImpl._(
@@ -378,13 +393,6 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
     return topicVisibility[streamId]?[topic] ?? UserTopicVisibilityPolicy.none;
   }
 
-  static bool _warnInvalidVisibilityPolicy(UserTopicVisibilityPolicy visibilityPolicy) {
-    if (visibilityPolicy == UserTopicVisibilityPolicy.unknown) {
-      // Not a value we expect. Keep it out of our data structures. // TODO(log)
-      return true;
-    }
-    return false;
-  }
 
   void handleChannelEvent(ChannelEvent event) {
     switch (event) {
@@ -558,13 +566,18 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
   }
 
   void handleUserTopicEvent(UserTopicEvent event) {
-    UserTopicVisibilityPolicy visibilityPolicy = event.visibilityPolicy;
-    if (_warnInvalidVisibilityPolicy(visibilityPolicy)) {
-      visibilityPolicy = UserTopicVisibilityPolicy.none;
+    final UserTopicVisibilityPolicy? visibilityPolicy = event.visibilityPolicy;
+    if (ChannelStore._warnInvalidVisibilityPolicy(visibilityPolicy)) {
+      final forStream = topicVisibility[event.streamId];
+      if (forStream == null) return;
+      forStream.remove(event.topicName);
+      if (forStream.isEmpty) {
+        topicVisibility.remove(event.streamId);
+      }
+      return;
     }
-    if (visibilityPolicy == UserTopicVisibilityPolicy.none) {
-      // This is the "zero value" for this type, which our data structure
-      // represents by leaving the topic out entirely.
+    final UserTopicVisibilityPolicy policy = visibilityPolicy!;
+    if (policy == UserTopicVisibilityPolicy.none) {
       final forStream = topicVisibility[event.streamId];
       if (forStream == null) return;
       forStream.remove(event.topicName);
@@ -573,7 +586,7 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
       }
     } else {
       final forStream = topicVisibility.putIfAbsent(event.streamId, () => makeTopicKeyedMap());
-      forStream[event.topicName] = visibilityPolicy;
+      forStream[event.topicName] = policy;
     }
   }
 }
