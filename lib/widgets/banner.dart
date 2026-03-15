@@ -14,6 +14,7 @@ class ZulipBanner extends StatelessWidget {
     this.useSmallerText = false,
     this.trailing,
     this.padEnd = true, // ignore: unused_element_parameter
+    this.bottom,
   });
 
   final ZulipBannerIntent intent;
@@ -53,6 +54,13 @@ class ZulipBanner extends StatelessWidget {
   /// Defaults to `true`.
   final bool padEnd;
 
+  /// An optional bottom element.
+  ///
+  /// It should include vertical but not horizontal outer padding
+  /// for spacing/positioning, and an interactive element's touchable area
+  /// should have height at least 44px, same as [trailing].
+  final Widget? bottom;
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -84,19 +92,28 @@ class ZulipBanner extends StatelessWidget {
           .resolve(Directionality.of(context)),
         child: Padding(
           padding: const EdgeInsetsDirectional.only(start: 8),
-          child: Row(
+          child: Column(
             children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  child: Text(
-                    style: labelTextStyle,
-                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-                    label))),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                trailing!,
-              ],
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: (bottom == null)
+                        ? const EdgeInsets.symmetric(vertical: 9)
+                        : const EdgeInsets.only(top: 9),
+                      child: Text(
+                        style: labelTextStyle,
+                        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+                        label))),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 8),
+                    trailing!,
+                  ],
+                ]),
+              if (bottom != null)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: bottom),
             ]))));
   }
 }
