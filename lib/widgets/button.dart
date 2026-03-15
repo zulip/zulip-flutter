@@ -40,9 +40,11 @@ class ZulipWebUiKitButton extends StatelessWidget {
           WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(0.3),
           ~WidgetState.pressed: designVariables.neutralButtonBg.withAlpha(0),
         });
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
         throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
         return WidgetStateColor.fromMap({
@@ -54,7 +56,21 @@ class ZulipWebUiKitButton extends StatelessWidget {
           WidgetState.pressed: designVariables.btnBgAttHighIntWarningActive,
           ~WidgetState.pressed: designVariables.btnBgAttHighIntWarningNormal,
         });
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+        throw UnimplementedError();
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
+        return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive,
+          ~WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive.withAlpha(0),
+        });
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+        return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.btnBgAttMediumIntDangerActive,
+          ~WidgetState.pressed: designVariables.btnBgAttMediumIntDangerNormal,
+        });
+      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
         throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
         return WidgetStateColor.fromMap({
@@ -74,15 +90,25 @@ class ZulipWebUiKitButton extends StatelessWidget {
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
         // TODO nit: don't fade in pressed state
         return designVariables.neutralButtonLabel.withFadedAlpha(0.85);
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
         throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
         return designVariables.btnLabelAttMediumIntWarning;
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
         return designVariables.btnLabelAttHighIntWarning;
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+        throw UnimplementedError();
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
+        return designVariables.btnLabelAttLowIntDanger;
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+        return designVariables.btnLabelAttMediumIntDanger;
+      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
         throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
         return designVariables.btnLabelAttMediumIntInfo;
@@ -117,6 +143,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
   BorderSide _borderSide(DesignVariables designVariables) {
     switch (attention) {
       case ZulipWebUiKitButtonAttention.minimal:
+      case ZulipWebUiKitButtonAttention.low:
         return BorderSide.none;
       case ZulipWebUiKitButtonAttention.medium:
         // TODO inner shadow effect like `box-shadow: inset`, following Figma;
@@ -201,10 +228,16 @@ class ZulipWebUiKitButton extends StatelessWidget {
   }
 }
 
+// TODO follow web's rename of "attention" to "variant":
+//   low, medium, high -> text, subtle, solid
+// See web PR:
+//   https://github.com/zulip/zulip/pull/37424
+// and discussion:
+//   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/Design.20of.20banner.20for.20unsupported.20server/near/2412680
 enum ZulipWebUiKitButtonAttention {
   high,
   medium,
-  // low,
+  low,
 
   /// An ad hoc value for the "Reveal message" button
   /// on a message from a muted sender:
@@ -215,7 +248,7 @@ enum ZulipWebUiKitButtonAttention {
 enum ZulipWebUiKitButtonIntent {
   neutral,
   warning,
-  // danger,
+  danger,
   info,
   // success,
   // brand,

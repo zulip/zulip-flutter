@@ -160,6 +160,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnBgAttHighIntInfoNormal: const Color(0xff3c6bff),
     btnBgAttHighIntWarningActive: const Color(0xffeba002),
     btnBgAttHighIntWarningNormal: const Color(0xfffebe3d),
+    btnBgAttLowIntDangerActive: const Color(0xffc0070a).withValues(alpha: 0.13),
+    btnBgAttMediumIntDangerActive: const Color(0xffe1392e).withValues(alpha: 0.23),
+    btnBgAttMediumIntDangerNormal: const Color(0xffe1392e).withValues(alpha: 0.13),
     btnBgAttMediumIntInfoActive: const Color(0xff3c6bff).withValues(alpha: 0.22),
     btnBgAttMediumIntInfoNormal: const Color(0xff3c6bff).withValues(alpha: 0.12),
     btnBgAttMediumIntWarningActive: const Color(0xffeba001).withValues(alpha: 0.28),
@@ -265,6 +268,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnBgAttHighIntInfoNormal: const Color(0xff1e41d3),
     btnBgAttHighIntWarningActive: const Color(0xffdb920d),
     btnBgAttHighIntWarningNormal: const Color(0xffdb920d),
+    btnBgAttLowIntDangerActive: const Color(0xfff34c3e).withValues(alpha: 0.17),
+    btnBgAttMediumIntDangerActive: const Color(0xfffd5f50).withValues(alpha: 0.12),
+    btnBgAttMediumIntDangerNormal: const Color(0xfffd5f50).withValues(alpha: 0.12),
     btnBgAttMediumIntInfoActive: const Color(0xff97b6fe).withValues(alpha: 0.12),
     btnBgAttMediumIntInfoNormal: const Color(0xff97b6fe).withValues(alpha: 0.12),
     btnBgAttMediumIntWarningActive: const Color(0xffdb920d).withValues(alpha: 0.12),
@@ -379,6 +385,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.btnBgAttHighIntInfoNormal,
     required this.btnBgAttHighIntWarningActive,
     required this.btnBgAttHighIntWarningNormal,
+    required this.btnBgAttLowIntDangerActive,
+    required this.btnBgAttMediumIntDangerActive,
+    required this.btnBgAttMediumIntDangerNormal,
     required this.btnBgAttMediumIntInfoActive,
     required this.btnBgAttMediumIntInfoNormal,
     required this.btnBgAttMediumIntWarningActive,
@@ -485,6 +494,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color btnBgAttHighIntInfoNormal;
   final Color btnBgAttHighIntWarningActive;
   final Color btnBgAttHighIntWarningNormal;
+  final Color btnBgAttLowIntDangerActive;
+  final Color btnBgAttMediumIntDangerActive;
+  final Color btnBgAttMediumIntDangerNormal;
   final Color btnBgAttMediumIntInfoActive;
   final Color btnBgAttMediumIntInfoNormal;
   final Color btnBgAttMediumIntWarningActive;
@@ -585,6 +597,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? btnBgAttHighIntInfoNormal,
     Color? btnBgAttHighIntWarningActive,
     Color? btnBgAttHighIntWarningNormal,
+    Color? btnBgAttLowIntDangerActive,
+    Color? btnBgAttMediumIntDangerActive,
+    Color? btnBgAttMediumIntDangerNormal,
     Color? btnBgAttMediumIntInfoActive,
     Color? btnBgAttMediumIntInfoNormal,
     Color? btnBgAttMediumIntWarningActive,
@@ -680,6 +695,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnBgAttHighIntInfoNormal: btnBgAttHighIntInfoNormal ?? this.btnBgAttHighIntInfoNormal,
       btnBgAttHighIntWarningActive: btnBgAttHighIntWarningActive ?? this.btnBgAttHighIntWarningActive,
       btnBgAttHighIntWarningNormal: btnBgAttHighIntWarningNormal ?? this.btnBgAttHighIntWarningNormal,
+      btnBgAttLowIntDangerActive: btnBgAttLowIntDangerActive ?? this.btnBgAttLowIntDangerActive,
+      btnBgAttMediumIntDangerActive: btnBgAttMediumIntDangerActive ?? this.btnBgAttMediumIntDangerActive,
+      btnBgAttMediumIntDangerNormal: btnBgAttMediumIntDangerNormal ?? this.btnBgAttMediumIntDangerNormal,
       btnBgAttMediumIntInfoActive: btnBgAttMediumIntInfoActive ?? this.btnBgAttMediumIntInfoActive,
       btnBgAttMediumIntInfoNormal: btnBgAttMediumIntInfoNormal ?? this.btnBgAttMediumIntInfoNormal,
       btnBgAttMediumIntWarningActive: btnBgAttMediumIntWarningActive ?? this.btnBgAttMediumIntWarningActive,
@@ -782,6 +800,9 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnBgAttHighIntInfoNormal: Color.lerp(btnBgAttHighIntInfoNormal, other.btnBgAttHighIntInfoNormal, t)!,
       btnBgAttHighIntWarningActive: Color.lerp(btnBgAttHighIntWarningActive, other.btnBgAttHighIntWarningActive, t)!,
       btnBgAttHighIntWarningNormal: Color.lerp(btnBgAttHighIntWarningNormal, other.btnBgAttHighIntWarningNormal, t)!,
+      btnBgAttLowIntDangerActive: Color.lerp(btnBgAttLowIntDangerActive, other.btnBgAttLowIntDangerActive, t)!,
+      btnBgAttMediumIntDangerActive: Color.lerp(btnBgAttMediumIntDangerActive, other.btnBgAttMediumIntDangerActive, t)!,
+      btnBgAttMediumIntDangerNormal: Color.lerp(btnBgAttMediumIntDangerNormal, other.btnBgAttMediumIntDangerNormal, t)!,
       btnBgAttMediumIntInfoActive: Color.lerp(btnBgAttMediumIntInfoActive, other.btnBgAttMediumIntInfoActive, t)!,
       btnBgAttMediumIntInfoNormal: Color.lerp(btnBgAttMediumIntInfoNormal, other.btnBgAttMediumIntInfoNormal, t)!,
       btnBgAttMediumIntWarningActive: Color.lerp(btnBgAttMediumIntWarningActive, other.btnBgAttMediumIntWarningActive, t)!,
