@@ -154,10 +154,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnBgVarSolidIntInfoNormal: const Color(0xff3c6bff),
     btnBgVarSolidIntWarningActive: const Color(0xffeba002),
     btnBgVarSolidIntWarningNormal: const Color(0xfffebe3d),
+    btnBgVarSubtleIntDangerActive: const Color(0xffe1392e).withValues(alpha: 0.23),
+    btnBgVarSubtleIntDangerNormal: const Color(0xffe1392e).withValues(alpha: 0.13),
     btnBgVarSubtleIntInfoActive: const Color(0xff3c6bff).withValues(alpha: 0.22),
     btnBgVarSubtleIntInfoNormal: const Color(0xff3c6bff).withValues(alpha: 0.12),
     btnBgVarSubtleIntWarningActive: const Color(0xffeba001).withValues(alpha: 0.28),
     btnBgVarSubtleIntWarningNormal: const Color(0xffeba002).withValues(alpha: 0.18),
+    btnBgVarTextIntDangerActive: const Color(0xffc0070a).withValues(alpha: 0.13),
     btnLabelVarSolid: const Color(0xffffffff),
     btnLabelVarSolidIntWarning: const Color(0xff000000).withValues(alpha: 0.88),
     btnLabelVarTextIntDanger: const Color(0xffc0070a),
@@ -257,10 +260,13 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnBgVarSolidIntInfoNormal: const Color(0xff1e41d3),
     btnBgVarSolidIntWarningActive: const Color(0xffdb920d),
     btnBgVarSolidIntWarningNormal: const Color(0xffdb920d),
+    btnBgVarSubtleIntDangerActive: const Color(0xffe1392e).withValues(alpha: 0.12),
+    btnBgVarSubtleIntDangerNormal: const Color(0xfffd5f50).withValues(alpha: 0.12),
     btnBgVarSubtleIntInfoActive: const Color(0xff97b6fe).withValues(alpha: 0.12),
     btnBgVarSubtleIntInfoNormal: const Color(0xff97b6fe).withValues(alpha: 0.12),
     btnBgVarSubtleIntWarningActive: const Color(0xffdb920d).withValues(alpha: 0.12),
     btnBgVarSubtleIntWarningNormal: const Color(0xffdb920d).withValues(alpha: 0.12),
+    btnBgVarTextIntDangerActive: const Color(0xfff34c3e).withValues(alpha: 0.17),
     btnLabelVarSolid: const Color(0xffffffff).withValues(alpha: 0.85),
     btnLabelVarSolidIntWarning: const Color(0xff000000).withValues(alpha: 0.90),
     btnLabelVarTextIntDanger: const Color(0xffff8b7c),
@@ -371,8 +377,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.btnBgVarSolidIntWarningNormal,
     required this.btnBgVarSubtleIntInfoActive,
     required this.btnBgVarSubtleIntInfoNormal,
+    required this.btnBgVarSubtleIntDangerActive,
+    required this.btnBgVarSubtleIntDangerNormal,
     required this.btnBgVarSubtleIntWarningActive,
     required this.btnBgVarSubtleIntWarningNormal,
+    required this.btnBgVarTextIntDangerActive,
     required this.btnLabelVarSolid,
     required this.btnLabelVarSolidIntWarning,
     required this.btnLabelVarTextIntDanger,
@@ -475,8 +484,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color btnBgVarSolidIntWarningNormal;
   final Color btnBgVarSubtleIntInfoActive;
   final Color btnBgVarSubtleIntInfoNormal;
+  final Color btnBgVarSubtleIntDangerActive;
+  final Color btnBgVarSubtleIntDangerNormal;
   final Color btnBgVarSubtleIntWarningActive;
   final Color btnBgVarSubtleIntWarningNormal;
+  final Color btnBgVarTextIntDangerActive;
   final Color btnLabelVarSolid;
   final Color btnLabelVarSolidIntWarning;
   final Color btnLabelVarTextIntDanger;
@@ -573,8 +585,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? btnBgVarSolidIntWarningNormal,
     Color? btnBgVarSubtleIntInfoActive,
     Color? btnBgVarSubtleIntInfoNormal,
+    Color? btnBgVarSubtleIntDangerActive,
+    Color? btnBgVarSubtleIntDangerNormal,
     Color? btnBgVarSubtleIntWarningActive,
     Color? btnBgVarSubtleIntWarningNormal,
+    Color? btnBgVarTextIntDangerActive,
     Color? btnLabelVarSolid,
     Color? btnLabelVarSolidIntWarning,
     Color? btnLabelVarTextIntDanger,
@@ -666,8 +681,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnBgVarSolidIntWarningNormal: btnBgVarSolidIntWarningNormal ?? this.btnBgVarSolidIntWarningNormal,
       btnBgVarSubtleIntInfoActive: btnBgVarSubtleIntInfoActive ?? this.btnBgVarSubtleIntInfoActive,
       btnBgVarSubtleIntInfoNormal: btnBgVarSubtleIntInfoNormal ?? this.btnBgVarSubtleIntInfoNormal,
+      btnBgVarSubtleIntDangerActive: btnBgVarSubtleIntDangerActive ?? this.btnBgVarSubtleIntDangerActive,
+      btnBgVarSubtleIntDangerNormal: btnBgVarSubtleIntDangerNormal ?? this.btnBgVarSubtleIntDangerNormal,
       btnBgVarSubtleIntWarningActive: btnBgVarSubtleIntWarningActive ?? this.btnBgVarSubtleIntWarningActive,
       btnBgVarSubtleIntWarningNormal: btnBgVarSubtleIntWarningNormal ?? this.btnBgVarSubtleIntWarningNormal,
+      btnBgVarTextIntDangerActive: btnBgVarTextIntDangerActive ?? this.btnBgVarTextIntDangerActive,
       btnLabelVarSolid: btnLabelVarSolid ?? this.btnLabelVarSolid,
       btnLabelVarSolidIntWarning: btnLabelVarSolidIntWarning ?? this.btnLabelVarSolidIntWarning,
       btnLabelVarTextIntDanger: btnLabelVarTextIntDanger ?? this.btnLabelVarTextIntDanger,
@@ -766,8 +784,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnBgVarSolidIntWarningNormal: Color.lerp(btnBgVarSolidIntWarningNormal, other.btnBgVarSolidIntWarningNormal, t)!,
       btnBgVarSubtleIntInfoActive: Color.lerp(btnBgVarSubtleIntInfoActive, other.btnBgVarSubtleIntInfoActive, t)!,
       btnBgVarSubtleIntInfoNormal: Color.lerp(btnBgVarSubtleIntInfoNormal, other.btnBgVarSubtleIntInfoNormal, t)!,
+      btnBgVarSubtleIntDangerActive: Color.lerp(btnBgVarSubtleIntDangerActive, other.btnBgVarSubtleIntDangerActive, t)!,
+      btnBgVarSubtleIntDangerNormal: Color.lerp(btnBgVarSubtleIntDangerNormal, other.btnBgVarSubtleIntDangerNormal, t)!,
       btnBgVarSubtleIntWarningActive: Color.lerp(btnBgVarSubtleIntWarningActive, other.btnBgVarSubtleIntWarningActive, t)!,
       btnBgVarSubtleIntWarningNormal: Color.lerp(btnBgVarSubtleIntWarningNormal, other.btnBgVarSubtleIntWarningNormal, t)!,
+      btnBgVarTextIntDangerActive: Color.lerp(btnBgVarTextIntDangerActive, other.btnBgVarTextIntDangerActive, t)!,
       btnLabelVarSolid: Color.lerp(btnLabelVarSolid, other.btnLabelVarSolid, t)!,
       btnLabelVarSolidIntWarning: Color.lerp(btnLabelVarSolidIntWarning, other.btnLabelVarSolidIntWarning, t)!,
       btnLabelVarTextIntDanger: Color.lerp(btnLabelVarTextIntDanger, other.btnLabelVarTextIntDanger, t)!,
