@@ -6,6 +6,7 @@ import '../model/database.dart';
 import '../model/settings.dart';
 import '../model/store.dart';
 import 'page.dart';
+import 'skeleton.dart';
 
 /// Provides access to the app's data.
 ///
@@ -355,7 +356,7 @@ class LoadingPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
+    return Center(child: SizedBox(width: 40, height: 40, child: SkeletonLoader(shape: BoxShape.circle)));
   }
 }
 

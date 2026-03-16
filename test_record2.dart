@@ -1,0 +1,1 @@
+import 'package:record/record.dart'; void main() async { AudioRecorder r = AudioRecorder(); await r.hasPermission(); await r.start(const RecordConfig(), path: 'path'); await r.pause(); await r.resume(); await r.stop(); }  

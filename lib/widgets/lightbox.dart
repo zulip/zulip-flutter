@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +15,7 @@ import 'actions.dart';
 import 'content.dart';
 import 'dialog.dart';
 import 'image.dart';
+import 'skeleton.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
@@ -428,40 +432,53 @@ class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl
       ? _sliderValue
       : widget.controller.value.position;
 
-    return Row(children: [
-      VideoDurationLabel(currentPosition,
-        semanticsLabel: zulipLocalizations.lightboxVideoCurrentPosition),
-      Expanded(
-        child: Slider(
-          value: currentPosition.inMilliseconds.toDouble(),
-          max: widget.controller.value.duration.inMilliseconds.toDouble(),
-          activeColor: Colors.white,
-          onChangeStart: (value) {
-            setState(() {
-              _sliderValue = Duration(milliseconds: value.toInt());
-              _isSliderDragging = true;
-            });
-          },
-          onChanged: (value) {
-            setState(() {
-              _sliderValue = Duration(milliseconds: value.toInt());
-            });
-          },
-          onChangeEnd: (value) async {
-            final durationValue = Duration(milliseconds: value.toInt());
-            await widget.controller.seekTo(durationValue);
-            if (mounted) {
-              setState(() {
-                _sliderValue = durationValue;
-                _isSliderDragging = false;
-              });
-            }
-          },
+    return Row(
+      children: [
+        VideoDurationLabel(
+          currentPosition,
+          semanticsLabel: zulipLocalizations.lightboxVideoCurrentPosition,
         ),
-      ),
-      VideoDurationLabel(widget.controller.value.duration,
-        semanticsLabel: zulipLocalizations.lightboxVideoDuration),
-    ]);
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: Colors.white,
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.25),
+              thumbColor: Colors.white,
+              overlayColor: Colors.white.withValues(alpha: 0.2),
+            ),
+            child: Slider(
+              value: currentPosition.inMilliseconds.toDouble(),
+              max: widget.controller.value.duration.inMilliseconds.toDouble(),
+              onChangeStart: (value) {
+                setState(() {
+                  _sliderValue = Duration(milliseconds: value.toInt());
+                  _isSliderDragging = true;
+                });
+              },
+              onChanged: (value) {
+                setState(() {
+                  _sliderValue = Duration(milliseconds: value.toInt());
+                });
+              },
+              onChangeEnd: (value) async {
+                final durationValue = Duration(milliseconds: value.toInt());
+                await widget.controller.seekTo(durationValue);
+                if (mounted) {
+                  setState(() {
+                    _sliderValue = durationValue;
+                    _isSliderDragging = false;
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+        VideoDurationLabel(
+          widget.controller.value.duration,
+          semanticsLabel: zulipLocalizations.lightboxVideoDuration,
+        ),
+      ],
+    );
   }
 }
 
@@ -555,28 +572,82 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
 
   Widget? _buildBottomAppBar(BuildContext context, Color color, double elevation) {
     if (_controller == null) return null;
-    return BottomAppBar(
-      height: 150,
-      color: color,
-      elevation: elevation,
-      child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-        _VideoPositionSliderControl(controller: _controller!),
-        IconButton(
-          onPressed: () {
-            if (_controller!.value.isPlaying) {
-              _controller!.pause();
-            } else {
-              _controller!.play();
-            }
-          },
-          icon: Icon(
-            _controller!.value.isPlaying
-              ? Icons.pause_circle_rounded
-              : Icons.play_circle_rounded,
-            size: 50,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.4),
+              // border: Border.all(color: Colors.white.withValues(alpha: 0.25)), // Border removed
+              borderRadius: BorderRadius.circular(20),
+            ),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _VideoPositionSliderControl(controller: _controller!),
+                const SizedBox(height: 8),
+                ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.15),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          if (_controller!.value.isPlaying) {
+                            _controller!.pause();
+                          } else {
+                            _controller!.play();
+                          }
+                        },
+                        icon: Icon(
+                          _controller!.value.isPlaying
+                            ? Icons.pause_circle_rounded
+                            : Icons.play_circle_rounded,
+                          size: 44,
+                          color: Colors.white,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints.tightFor(width: 56, height: 56),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _controller!.value.volume == 0 ? Icons.volume_off : Icons.volume_up,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          if (_controller!.value.volume == 0) {
+                            _controller!.setVolume(1.0);
+                          } else {
+                            _controller!.setVolume(0.0);
+                          }
+                        });
+                      },
+                    ),
+                    // Download icon removed
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ]),
+      ),
     );
   }
 
@@ -595,10 +666,11 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
                 aspectRatio: _controller!.value.aspectRatio,
                 child: VideoPlayer(_controller!)),
             if (_controller == null || !_controller!.value.isInitialized || _controller!.value.isBuffering)
-              const SizedBox(
+              SkeletonLoader(
                 width: 32,
                 height: 32,
-                child: CircularProgressIndicator(color: Colors.white)),
+                shape: BoxShape.circle,
+              ),
             ]))));
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -20,6 +21,7 @@ import 'page.dart';
 import 'profile.dart';
 import 'recent_dm_conversations.dart';
 import 'settings.dart';
+import 'skeleton.dart';
 import 'store.dart';
 import 'subscription_list.dart';
 import 'text.dart';
@@ -105,6 +107,7 @@ class _HomePageState extends State<HomePage> {
       case .directMessages:
         return null;
     }
+    return null;
   }
 
   @override
@@ -117,6 +120,7 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
+      extendBody: true,
       appBar: ZulipAppBar(titleSpacing: 16,
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
@@ -163,43 +167,67 @@ class _BottomNavBar extends StatelessWidget {
     // TODO(a11y): add tooltips for these buttons
     final navigationBarButtons = [
       _button(tab: _HomePageTab.inbox,
-        icon: ZulipIcons.inbox,
+        icon: Icons.inbox_rounded,
         label: zulipLocalizations.inboxPageTitle),
-      _NavigationBarButton(icon: ZulipIcons.message_feed,
+      _NavigationBarButton(icon: Icons.forum_rounded,
         label: zulipLocalizations.navBarFeedLabel,
         selected: false,
         onPressed: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
             narrow: const CombinedFeedNarrow()))),
       _button(tab: _HomePageTab.channels,
-        icon: ZulipIcons.hash_italic,
+        icon: Icons.tag_rounded,
         label: zulipLocalizations.channelsPageTitle),
       // TODO(#1094): Users
       _button(tab: _HomePageTab.directMessages,
-        icon: ZulipIcons.two_person,
+        icon: Icons.people_rounded,
         label: zulipLocalizations.recentDmConversationsPageShortLabel),
-      _NavigationBarButton(icon: ZulipIcons.menu,
+      _NavigationBarButton(icon: Icons.menu_rounded,
         label: zulipLocalizations.navBarMenuLabel,
         selected: false,
         onPressed: () => _showMainMenu(context, tabNotifier: tabNotifier)),
     ];
 
-    Widget result = DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar)),
-        color: designVariables.bgBotBar),
-      child: SafeArea(
-        child: Center(
-          heightFactor: 1,
-          child: ConstrainedBox(
-            // TODO(design): determine a suitable max width for bottom nav bar
-            constraints: const BoxConstraints(maxWidth: 600, minHeight: 48),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final navigationBarButton in navigationBarButtons)
-                  Expanded(child: navigationBarButton),
-              ])))));
+    Widget result = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: designVariables.bgBotBar.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(
+                color: Colors.black.withValues(alpha: 0.1),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0066FF).withValues(alpha: 0.1),
+                  blurRadius: 15,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: ConstrainedBox(
+                // TODO(design): determine a suitable max width for bottom nav bar
+                constraints: const BoxConstraints(maxWidth: 600, minHeight: 64),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: navigationBarButtons,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
 
     result = Semantics(
       container: true,
@@ -266,7 +294,35 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: List.generate(8, (index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 24.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonLoader(width: 40, height: 40, borderRadius: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SkeletonLoader(width: 120, height: 16, borderRadius: 4),
+                              const SizedBox(height: 8),
+                              SkeletonLoader(width: double.infinity, height: 14, borderRadius: 4),
+                              const SizedBox(height: 4),
+                              SkeletonLoader(width: MediaQuery.sizeOf(context).width * 0.4, height: 14, borderRadius: 4),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+                ),
+              ),
+            ),
             Visibility(
               visible: showTryAnotherAccount,
               maintainSize: true,
@@ -305,36 +361,77 @@ class _NavigationBarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final color = selected ? designVariables.iconSelected : designVariables.icon;
+    final color = selected ? Colors.black : designVariables.icon;
 
-    Widget result = AnimatedScaleOnPress(
-      scaleEnd: 0.875,
-      duration: const Duration(milliseconds: 100),
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-          // TODO(#417): Disable splash effects for all buttons globally.
-          splashFactory: NoSplash.splashFactory,
-          highlightColor: designVariables.navigationButtonBg,
-          onTap: onPressed,
-          child: Padding(
-            // (Added 3px horizontal padding not present in Figma, to make the
-            // text wrap before getting too close to the button's edge, which is
-            // visible on tap-down.)
-            padding: const EdgeInsets.fromLTRB(3, 6, 3, 3),
-            child: Column(
-              spacing: 3,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 24, color: color),
-                Flexible(
-                  child: Text(
-                    label,
-                    style: TextStyle(fontSize: 12, color: color, height: 12 / 12),
-                    textAlign: TextAlign.center,
-                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5))),
-              ])))));
+    Widget result = Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(30),
+        // TODO(#417): Disable splash effects for all buttons globally.
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: designVariables.navigationButtonBg,
+        onTap: onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.symmetric(
+            horizontal: selected ? 16 : 12,
+            vertical: 10,
+          ),
+          decoration: BoxDecoration(
+            color: selected ? null : Colors.transparent,
+            gradient: selected
+                ? const LinearGradient(
+                    colors: [Colors.white, Color(0xFF687FE5)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  )
+                : null,
+            borderRadius: BorderRadius.circular(30),
+            border: selected
+                ? Border.all(color: Colors.black.withValues(alpha: 0.1), width: 1)
+                : null,
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF0066FF).withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 24, color: color),
+              ClipRect(
+                child: AnimatedSize(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.centerLeft,
+                  child: selected
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: color,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.clip,
+                        ),
+                      )
+                    : const SizedBox(width: 0, height: 20),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
 
     result = MergeSemantics(
       child: Semantics(
@@ -358,17 +455,11 @@ void _showMainMenu(BuildContext context, {
   final accountId = PerAccountStoreWidget.accountIdOf(context);
   showModalBottomSheet<void>(
     context: context,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
     clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
-    // TODO: Fix the issue that the color does not respond when the theme
-    //   changes, because `designVariables` was retrieved from a gesture handler,
-    //   not a build method.  Discussion and screenshots:
-    //     https://github.com/zulip/zulip-flutter/pull/1076/files#r1872659043
-    backgroundColor: designVariables.bgBotBar,
+    backgroundColor: Colors.transparent,
+    elevation: 0,
     builder: (BuildContext _) {
       return PerAccountStoreWidget(
         accountId: accountId,
@@ -415,25 +506,49 @@ class _MainMenu extends StatelessWidget {
 
     return SafeArea(
       minimum: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _MainMenuHeader(),
-          Flexible(child: InsetShadowBox(
-            top: 8, bottom: 8,
-            color: designVariables.bgBotBar,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              child: Column(children: menuItems)))),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: AnimatedScaleOnPress(
-              scaleEnd: 0.95,
-              duration: Duration(milliseconds: 100),
-              child: BottomSheetDismissButton(
-                style: BottomSheetDismissButtonStyle.close))),
-        ]));
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF222222).withValues(alpha: 0.9)
+                  : designVariables.bgBotBar.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.05),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _MainMenuHeader(),
+                  Flexible(child: InsetShadowBox(
+                    top: 8, bottom: 8,
+                    color: Colors.transparent,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      child: Column(children: menuItems)))),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: AnimatedScaleOnPress(
+                      scaleEnd: 0.95,
+                      duration: Duration(milliseconds: 100),
+                      child: BottomSheetDismissButton(
+                        style: BottomSheetDismissButtonStyle.close))),
+                  const SizedBox(height: 8),
+                ]),
+            ),
+          ),
+        ),
+      ));
   }
 }
 
@@ -526,8 +641,11 @@ abstract class MenuButton extends StatelessWidget {
   Widget buildLeading(BuildContext context) {
     assert(icon != null);
     final designVariables = DesignVariables.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Icon(icon, size: _iconSize,
-      color: selected ? designVariables.iconSelected : designVariables.icon);
+      color: selected 
+        ? (isDark ? Colors.white : Colors.black) 
+        : designVariables.icon);
   }
 
   Widget? buildTrailing(BuildContext context) => null;
@@ -547,58 +665,88 @@ abstract class MenuButton extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    // Make [TextButton] set 44 instead of 48 for the height.
-    final visualDensity = VisualDensity(vertical: -1);
-    // A value that [TextButton] adds to some of its layout parameters;
-    // we can cancel out those adjustments by subtracting it.
-    final densityVerticalAdjustment = visualDensity.baseSizeAdjustment.dy;
-
-    final borderSideSelected = BorderSide(width: 1,
-      strokeAlign: BorderSide.strokeAlignOutside,
-      color: designVariables.borderMenuButtonSelected);
-    final buttonStyle = TextButton.styleFrom(
-      // Make the button 44px instead of 48px tall, to match the Figma.
-      visualDensity: visualDensity,
-      padding: EdgeInsets.symmetric(
-        vertical: 10 - densityVerticalAdjustment, horizontal: 8),
-      foregroundColor: designVariables.labelMenuButton,
-      // This has a default behavior of affecting the background color of the
-      // button for states including "hovered", "focused" and "pressed".
-      // Make this transparent so that we can have full control of these colors.
-      overlayColor: Colors.transparent,
-      splashFactory: NoSplash.splashFactory,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ).copyWith(
-      backgroundColor: WidgetStateColor.fromMap({
-        WidgetState.hovered: designVariables.bgMenuButtonActive.withFadedAlpha(0.5),
-        WidgetState.focused: designVariables.bgMenuButtonActive,
-        WidgetState.pressed: designVariables.bgMenuButtonActive,
-        WidgetState.any:
-          selected ? designVariables.bgMenuButtonSelected : Colors.transparent,
-      }),
-      side: WidgetStateBorderSide.fromMap({
-        WidgetState.pressed: null,
-        ~WidgetState.pressed: selected ? borderSideSelected : null,
-      }));
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final trailing = buildTrailing(context);
 
     return AnimatedScaleOnPress(
-      duration: const Duration(milliseconds: 100),
-      scaleEnd: 0.95,
-      child: TextButton(
-        onPressed: () => _handlePress(context),
-        style: buttonStyle,
-        child: Row(spacing: 8, children: [
-          SizedBox.square(dimension: _iconSize,
-            child: buildLeading(context)),
-          Expanded(child: Text(label(zulipLocalizations),
-            // TODO(design): determine if we prefer to wrap
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 19, height: 23 / 19)
-              .merge(weightVariableTextStyle(context, wght: selected ? 600 : 400)))),
-          ?trailing,
-        ])));
+      duration: const Duration(milliseconds: 150),
+      scaleEnd: 0.92,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _handlePress(context),
+            borderRadius: BorderRadius.circular(16),
+            highlightColor: designVariables.bgMenuButtonActive.withValues(alpha: 0.3),
+            splashColor: const Color(0xFF0066FF).withValues(alpha: 0.1),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.transparent,
+                gradient: selected
+                    ? LinearGradient(
+                        colors: isDark 
+                          ? [Colors.white.withValues(alpha: 0.1), const Color(0xFF687FE5).withValues(alpha: 0.5)]
+                          : [Colors.white, const Color(0xFF687FE5)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      )
+                    : null,
+                border: selected
+                    ? Border.all(
+                        color: isDark 
+                          ? Colors.white.withValues(alpha: 0.1) 
+                          : Colors.black.withValues(alpha: 0.1), 
+                        width: 1)
+                    : Border.all(color: Colors.transparent, width: 1),
+                boxShadow: selected
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF0066FF).withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Row(spacing: 12, children: [
+                SizedBox.square(
+                  dimension: _iconSize,
+                  child: AnimatedScale(
+                    scale: selected ? 0.95 : 1.0,
+                    duration: const Duration(milliseconds: 250),
+                    child: buildLeading(context),
+                  ),
+                ),
+                Expanded(
+                  child: AnimatedScale(
+                    scale: selected ? 0.95 : 1.0,
+                    alignment: Alignment.centerLeft,
+                    duration: const Duration(milliseconds: 250),
+                    child: Text(
+                      label(zulipLocalizations),
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 18,
+                        height: 22 / 18,
+                        color: selected 
+                          ? (isDark ? Colors.white : Colors.black) 
+                          : designVariables.labelMenuButton,
+                      ).merge(weightVariableTextStyle(context, wght: selected ? 600 : 500)),
+                    ),
+                  ),
+                ),
+                if (trailing != null) trailing,
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

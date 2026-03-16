@@ -149,7 +149,7 @@ class AvatarShape extends StatelessWidget {
     Widget result = SizedBox.square(
       dimension: size,
       child: ClipRRect(
-        borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
+        borderRadius: BorderRadius.all(Radius.circular(size / 2)),
         clipBehavior: Clip.antiAlias,
         child: child));
 

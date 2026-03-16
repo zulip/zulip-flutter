@@ -3,8 +3,10 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  audioplayers_windows
   file_selector_windows
   firebase_core
+  record_windows
   share_plus
   sodium_libs
   sqlite3_flutter_libs

@@ -3,7 +3,9 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  audioplayers_linux
   file_selector_linux
+  record_linux
   sodium_libs
   sqlite3_flutter_libs
   url_launcher_linux
