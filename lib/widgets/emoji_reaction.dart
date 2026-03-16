@@ -103,56 +103,61 @@ class ReactionChip extends StatelessWidget {
       : designVariables.foreground.withValues(alpha: 0.75);
     final backgroundColor = isMe ? theme.bgSelected : theme.bgUnselected;
 
-    return InkWell(
-      onTap: () {
-        final candidate = EmojiCandidate(
-          emojiType: reactionWithVotes.reactionType,
-          emojiCode: reactionWithVotes.emojiCode,
-          emojiName: reactionWithVotes.emojiName,
-          emojiDisplay: emojiDisplay,
-          aliases: [], // Not needed for toggle
-        );
-        doAddOrRemoveReaction(
-          context: context,
-          doRemoveReaction: isMe,
-          messageId: messageId,
-          emoji: candidate,
-          errorDialogTitle: isMe
-            ? zulipLocalizations.errorReactionRemovingFailedTitle
-            : zulipLocalizations.errorReactionAddingFailedTitle,
-        );
-      },
-      onLongPress: () {
-        showViewReactionsSheet(context, messageId: messageId);
-      },
-      borderRadius: BorderRadius.circular(100),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(
-            color: isMe ? Colors.transparent : designVariables.borderBar,
-            width: 1,
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: () {
+          final candidate = EmojiCandidate(
+            emojiType: reactionWithVotes.reactionType,
+            emojiCode: reactionWithVotes.emojiCode,
+            emojiName: reactionWithVotes.emojiName,
+            emojiDisplay: emojiDisplay,
+            aliases: [], // Not needed for toggle
+          );
+          doAddOrRemoveReaction(
+            context: context,
+            doRemoveReaction: isMe,
+            messageId: messageId,
+            emoji: candidate,
+            errorDialogTitle: isMe
+              ? zulipLocalizations.errorReactionRemovingFailedTitle
+              : zulipLocalizations.errorReactionAddingFailedTitle,
+          );
+        },
+        onLongPress: () {
+          showViewReactionsSheet(context, messageId: messageId);
+        },
+        borderRadius: BorderRadius.circular(100),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: isMe ? Colors.transparent : designVariables.borderBar,
+              width: 1,
+            ),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            EmojiWidget(
-              emojiDisplay: emojiDisplay,
-              squareDimension: 16, // Small size for chip
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                EmojiWidget(
+                  emojiDisplay: emojiDisplay,
+                  squareDimension: 16, // Small size for chip
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 14,
+                    height: 1, // Tight height
+                  ).merge(weightVariableTextStyle(context, wght: isMe ? 600 : 400)),
+                ),
+              ],
             ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 14,
-                height: 1, // Tight height
-              ).merge(weightVariableTextStyle(context, wght: isMe ? 600 : 400)),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -220,13 +225,16 @@ class EmojiPickerListEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Center(
-        child: EmojiWidget(
-          emojiDisplay: emoji.emojiDisplay,
-          squareDimension: 32,
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Center(
+          child: EmojiWidget(
+            emojiDisplay: emoji.emojiDisplay,
+            squareDimension: 32,
+          ),
         ),
       ),
     );

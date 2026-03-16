@@ -89,7 +89,7 @@ void main() {
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       navigatorObservers: [transitionDurationObserver],
       child: Center(
-        child: ColoredBox(
+        child: Material(
           color: Colors.white,
           child: SizedBox(
             width: width,
