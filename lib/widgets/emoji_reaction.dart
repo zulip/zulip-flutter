@@ -147,13 +147,18 @@ class ReactionChip extends StatelessWidget {
                   squareDimension: 16, // Small size for chip
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 14,
-                    height: 1, // Tight height
-                  ).merge(weightVariableTextStyle(context, wght: isMe ? 600 : 400)),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 14,
+                      height: 1, // Tight height
+                    ).merge(weightVariableTextStyle(context, wght: isMe ? 600 : 400)),
+                  ),
                 ),
               ],
             ),
