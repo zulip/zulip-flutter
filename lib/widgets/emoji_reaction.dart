@@ -208,6 +208,31 @@ Future<EmojiCandidate?> showEmojiPickerSheet({
   );
 }
 
+class EmojiPickerListEntry extends StatelessWidget {
+  const EmojiPickerListEntry({
+    super.key,
+    required this.emoji,
+    required this.onTap,
+  });
+
+  final EmojiCandidate emoji;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Center(
+        child: EmojiWidget(
+          emojiDisplay: emoji.emojiDisplay,
+          squareDimension: 32,
+        ),
+      ),
+    );
+  }
+}
+
 @visibleForTesting
 class EmojiPicker extends StatefulWidget {
   const EmojiPicker({super.key, required this.pageContext});
@@ -314,17 +339,11 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
             itemCount: _resultsToDisplay.length,
             itemBuilder: (context, index) {
               final result = _resultsToDisplay[index];
-              return InkWell(
+              return EmojiPickerListEntry(
+                emoji: result.candidate,
                 onTap: () {
                   Navigator.pop(context, result.candidate);
                 },
-                borderRadius: BorderRadius.circular(8),
-                child: Center(
-                  child: EmojiWidget(
-                    emojiDisplay: result.candidate.emojiDisplay,
-                    squareDimension: 32,
-                  ),
-                ),
               );
             },
           ),

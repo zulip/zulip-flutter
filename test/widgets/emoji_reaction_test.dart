@@ -17,6 +17,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/action_sheet.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';

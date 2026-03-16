@@ -601,7 +601,7 @@ void showViewReactionsSheet(BuildContext pageContext, {required int messageId}) 
                   ),
                 ],
               ),
-              child: _ViewReactionsSheetContent(messageId: messageId),
+              child: ViewReactions(messageId: messageId),
             ),
           ),
         ),
@@ -610,16 +610,16 @@ void showViewReactionsSheet(BuildContext pageContext, {required int messageId}) 
   );
 }
 
-class _ViewReactionsSheetContent extends StatefulWidget {
-  const _ViewReactionsSheetContent({required this.messageId});
+class ViewReactions extends StatefulWidget {
+  const ViewReactions({super.key, required this.messageId});
 
   final int messageId;
 
   @override
-  State<_ViewReactionsSheetContent> createState() => _ViewReactionsSheetContentState();
+  State<ViewReactions> createState() => _ViewReactionsState();
 }
 
-class _ViewReactionsSheetContentState extends State<_ViewReactionsSheetContent> {
+class _ViewReactionsState extends State<ViewReactions> {
   String selectedEmojiCode = '';
 
   @override
