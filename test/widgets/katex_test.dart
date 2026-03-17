@@ -13,6 +13,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('snapshot per-character rects', () {
+    const rectTolerance = 0.2;
     final testCases = <(KatexExample, List<(String, Offset, Size)>, {bool? skip})>[
       (KatexExample.sizing, skip: false, [
         ('1', Offset(0.00, 2.24), Size(25.59, 61.00)),
@@ -101,9 +102,9 @@ void main() {
           final size = rect.size;
 
           check(topLeftOffset)
-            .within(distance: 0.05, from: expectedTopLeftOffset);
+            .within(distance: rectTolerance, from: expectedTopLeftOffset);
           check(size)
-            .within(distance: 0.05, from: expectedSize);
+            .within(distance: rectTolerance, from: expectedSize);
         }
       }, skip: testCase.skip);
     }

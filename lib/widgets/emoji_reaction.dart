@@ -28,18 +28,23 @@ class ReactionChipsList extends StatelessWidget {
     }
 
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
-    return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: reactions.aggregated.map((reactionWithVotes) {
-        return ReactionChip(
-          store: store,
-          messageId: messageId,
-          reactionWithVotes: reactionWithVotes,
-        );
-      }).toList(),
+    return Semantics(
+      container: true,
+      label: zulipLocalizations.reactionChipsLabel,
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: reactions.aggregated.map((reactionWithVotes) {
+          return ReactionChip(
+            store: store,
+            messageId: messageId,
+            reactionWithVotes: reactionWithVotes,
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -74,7 +79,7 @@ class ReactionChip extends StatelessWidget {
     );
 
     // Determine label text
-    String labelSelector() {
+    String votesLabelSelector() {
       if (store.userSettings.displayEmojiReactionUsers) {
         // Show names if count <= 3 (example threshold, could be different)
         // The test doesn't specify exact number but says "show names when few"
@@ -94,71 +99,82 @@ class ReactionChip extends StatelessWidget {
       return reactionWithVotes.userIds.length.toString();
     }
 
-    final label = labelSelector();
+    final votesLabel = votesLabelSelector();
+    final semanticsLabel = zulipLocalizations.reactionChipLabel(
+      reactionWithVotes.emojiName,
+      votesLabel,
+    );
 
     final color = isMe
       ? designVariables.foreground
       : designVariables.foreground.withValues(alpha: 0.75);
     final backgroundColor = isMe ? theme.bgSelected : theme.bgUnselected;
 
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: () {
-          final candidate = EmojiCandidate(
-            emojiType: reactionWithVotes.reactionType,
-            emojiCode: reactionWithVotes.emojiCode,
-            emojiName: reactionWithVotes.emojiName,
-            emojiDisplay: emojiDisplay,
-            aliases: [], // Not needed for toggle
-          );
-          doAddOrRemoveReaction(
-            context: context,
-            doRemoveReaction: isMe,
-            messageId: messageId,
-            emoji: candidate,
-            errorDialogTitle: isMe
-              ? zulipLocalizations.errorReactionRemovingFailedTitle
-              : zulipLocalizations.errorReactionAddingFailedTitle,
-          );
-        },
-        onLongPress: () {
-          showViewReactionsSheet(context, messageId: messageId);
-        },
-        borderRadius: BorderRadius.circular(100),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(100),
-            border: Border.all(
-              color: isMe ? Colors.transparent : designVariables.borderBar,
-              width: 1,
+    return Semantics(
+      label: semanticsLabel,
+      button: true,
+      selected: isMe,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () {
+            final candidate = EmojiCandidate(
+              emojiType: reactionWithVotes.reactionType,
+              emojiCode: reactionWithVotes.emojiCode,
+              emojiName: reactionWithVotes.emojiName,
+              emojiDisplay: emojiDisplay,
+              aliases: [], // Not needed for toggle
+            );
+            doAddOrRemoveReaction(
+              context: context,
+              doRemoveReaction: isMe,
+              messageId: messageId,
+              emoji: candidate,
+              errorDialogTitle: isMe
+                ? zulipLocalizations.errorReactionRemovingFailedTitle
+                : zulipLocalizations.errorReactionAddingFailedTitle,
+            );
+          },
+          onLongPress: () {
+            showViewReactionsSheet(context,
+              messageId: messageId,
+              initialReaction: reactionWithVotes);
+          },
+          borderRadius: BorderRadius.circular(100),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: isMe ? Colors.transparent : designVariables.borderBar,
+                width: 1,
+              ),
             ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                EmojiWidget(
-                  emojiDisplay: emojiDisplay,
-                  squareDimension: 16, // Small size for chip
-                ),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 14,
-                      height: 1, // Tight height
-                    ).merge(weightVariableTextStyle(context, wght: isMe ? 600 : 400)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  EmojiWidget(
+                    emojiDisplay: emojiDisplay,
+                    squareDimension: 16, // Small size for chip
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      votesLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 14,
+                        height: 1, // Tight height
+                      ).merge(weightVariableTextStyle(context, wght: isMe ? 600 : 400)),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -275,12 +291,14 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
   @override
   void dispose() {
     _viewModel?.removeListener(_updateResults);
+    _viewModel?.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   void _initViewModel() {
     _viewModel?.removeListener(_updateResults);
+    _viewModel?.dispose();
     final store = PerAccountStoreWidget.of(context);
     final query = EmojiAutocompleteQuery(_controller.text);
     _viewModel = EmojiAutocompleteView.init(

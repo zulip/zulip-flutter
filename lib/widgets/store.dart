@@ -372,6 +372,7 @@ class LoadingPlaceholder extends StatelessWidget {
 /// Use this mixin, overriding [onNewStore], to do that concisely.
 mixin PerAccountStoreAwareStateMixin<T extends StatefulWidget> on State<T> {
   PerAccountStore? _store;
+  bool _isActive = true;
 
   /// Called when there is a new ambient [PerAccountStore].
   ///
@@ -386,9 +387,22 @@ mixin PerAccountStoreAwareStateMixin<T extends StatefulWidget> on State<T> {
   void onNewStore();
 
   @override
+  void activate() {
+    _isActive = true;
+    super.activate();
+  }
+
+  @override
+  void deactivate() {
+    _isActive = false;
+    super.deactivate();
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
+    if (!_isActive) return;
     final storeNow = PerAccountStoreWidget.of(context);
     if (_store != storeNow) {
       _store = storeNow;

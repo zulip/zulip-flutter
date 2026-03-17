@@ -17,6 +17,7 @@ import '../model/content.dart';
 import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
+import '../model/store.dart';
 import 'actions.dart';
 import 'button.dart';
 import 'compose_box.dart';
@@ -562,7 +563,10 @@ Future<void> doAddOrRemoveReaction({
 }
 
 /// Opens a bottom sheet showing who reacted with each emoji to a message.
-void showViewReactionsSheet(BuildContext pageContext, {required int messageId}) {
+void showViewReactionsSheet(BuildContext pageContext, {
+  required int messageId,
+  ReactionWithVotes? initialReaction,
+}) {
   final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
 
   showModalBottomSheet<void>(
@@ -600,7 +604,10 @@ void showViewReactionsSheet(BuildContext pageContext, {required int messageId}) 
                   ),
                 ],
               ),
-              child: ViewReactions(messageId: messageId),
+              child: ViewReactions(
+                messageId: messageId,
+                initialReaction: initialReaction,
+              ),
             ),
           ),
         ),
@@ -610,26 +617,36 @@ void showViewReactionsSheet(BuildContext pageContext, {required int messageId}) 
 }
 
 class ViewReactions extends StatefulWidget {
-  const ViewReactions({super.key, required this.messageId});
+  const ViewReactions({super.key, required this.messageId, this.initialReaction});
 
   final int messageId;
+  final ReactionWithVotes? initialReaction;
 
   @override
   State<ViewReactions> createState() => _ViewReactionsState();
 }
 
 class _ViewReactionsState extends State<ViewReactions> {
-  String selectedEmojiCode = '';
+  int? _initialTabIndex;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (selectedEmojiCode.isEmpty) {
-      final store = PerAccountStoreWidget.of(context);
-      final message = store.messages[widget.messageId];
-      final firstReaction = message?.reactions?.aggregated.firstOrNull;
-      selectedEmojiCode = firstReaction?.emojiCode ?? '';
-    }
+    if (_initialTabIndex != null) return;
+    final store = PerAccountStoreWidget.of(context);
+    final reactions = store.messages[widget.messageId]?.reactions?.aggregated
+      ?? const <ReactionWithVotes>[];
+    _initialTabIndex = _computeInitialTabIndex(reactions);
+  }
+
+  int _computeInitialTabIndex(List<ReactionWithVotes> reactions) {
+    final initialReaction = widget.initialReaction;
+    if (initialReaction == null) return 0;
+
+    final index = reactions.indexWhere((reaction) =>
+      reaction.reactionType == initialReaction.reactionType
+      && reaction.emojiCode == initialReaction.emojiCode);
+    return index >= 0 ? index : 0;
   }
 
   @override
@@ -637,89 +654,132 @@ class _ViewReactionsState extends State<ViewReactions> {
     final store = PerAccountStoreWidget.of(context);
     final message = store.messages[widget.messageId];
     final reactions = message?.reactions;
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     if (reactions == null || reactions.aggregated.isEmpty) {
       return BottomSheetEmptyContentPlaceholder(
-        message: ZulipLocalizations.of(context).seeWhoReactedSheetNoReactions,
+        message: zulipLocalizations.seeWhoReactedSheetNoReactions,
       );
     }
 
-    final reactionsByCode = <String, ReactionWithVotes>{};
-    for (final reaction in reactions.aggregated) {
-      reactionsByCode[reaction.emojiCode] = reaction;
-    }
+    final tabIndex = _initialTabIndex
+      ?? _computeInitialTabIndex(reactions.aggregated);
 
-    final allUserReactions = <({int userId, ReactionWithVotes reaction})>[];
-    for (final reaction in reactions.aggregated) {
-      for (final userId in reaction.userIds) {
-        allUserReactions.add((userId: userId, reaction: reaction));
-      }
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Subtle professional drag handle
-        Padding(
-          padding: const EdgeInsets.only(top: 14, bottom: 8),
-          child: Container(
-            width: 44,
-            height: 3,
-            decoration: BoxDecoration(
-              color: DesignVariables.of(context).icon.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(1.5),
+    return DefaultTabController(
+      length: reactions.aggregated.length,
+      initialIndex: tabIndex,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 14, bottom: 8),
+            child: Container(
+              width: 44,
+              height: 3,
+              decoration: BoxDecoration(
+                color: DesignVariables.of(context).icon.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(1.5),
+              ),
             ),
           ),
-        ),
-        BottomSheetHeader(
-          title: ZulipLocalizations.of(context)
-            .seeWhoReactedSheetHeaderLabel(reactions.total),
-        ),
-        Flexible(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * 0.5,
+          BottomSheetHeader(
+            title: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
+          ),
+          Semantics(
+            role: SemanticsRole.tabBar,
+            label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
+            child: TabBar(
+              isScrollable: true,
+              tabs: [
+                for (final reaction in reactions.aggregated)
+                  Tab(text: zulipLocalizations.seeWhoReactedSheetEmojiNameWithVoteCount(
+                    reaction.emojiName, reaction.userIds.length)),
+              ],
             ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: allUserReactions.length,
-              itemBuilder: (context, index) {
-                final userReaction = allUserReactions[index];
-                final user = store.getUser(userReaction.userId);
-                final designVariables = DesignVariables.of(context);
+          ),
+          Flexible(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.5,
+              ),
+              child: TabBarView(
+                children: [
+                  for (final reaction in reactions.aggregated)
+                    _ViewReactionsUserList(
+                      reaction: reaction,
+                      store: store,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Avatar(userId: userReaction.userId, size: 30, borderRadius: 15),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          user?.fullName ?? 'Unknown User',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: designVariables.labelMenuButton,
-                          ).merge(weightVariableTextStyle(context, wght: 500)),
-                        ),
-                      ),
-                      EmojiWidget(
-                        emojiDisplay: store.emojiDisplayFor(
-                          emojiType: userReaction.reaction.reactionType,
-                          emojiCode: userReaction.reaction.emojiCode,
-                          emojiName: userReaction.reaction.emojiName,
-                        ),
-                        squareDimension: 24,
-                      ),
-                    ],
+class _ViewReactionsUserList extends StatelessWidget {
+  const _ViewReactionsUserList({
+    required this.reaction,
+    required this.store,
+  });
+
+  final ReactionWithVotes reaction;
+  final PerAccountStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+    final userIds = reaction.userIds.sortedByCompare(
+      store.userDisplayName,
+      (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
+    );
+
+    return Semantics(
+      role: SemanticsRole.tabPanel,
+      label: zulipLocalizations.seeWhoReactedSheetUserListLabel(
+        reaction.emojiName,
+        reaction.userIds.length,
+      ),
+      container: true,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: userIds.length,
+        itemBuilder: (context, index) {
+          final userId = userIds[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Avatar(userId: userId, size: 30, borderRadius: 15),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    store.userDisplayName(userId),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: designVariables.labelMenuButton,
+                    ).merge(weightVariableTextStyle(context, wght: 500)),
                   ),
-                );
-              },
+                ),
+                EmojiWidget(
+                  emojiDisplay: store.emojiDisplayFor(
+                    emojiType: reaction.reactionType,
+                    emojiCode: reaction.emojiCode,
+                    emojiName: reaction.emojiName,
+                  ),
+                  squareDimension: 24,
+                ),
+              ],
             ),
-          ),
-        ),
-      ],
+          );
+        },
+      ),
     );
   }
 }

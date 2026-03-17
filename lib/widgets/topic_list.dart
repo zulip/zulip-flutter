@@ -88,6 +88,8 @@ class _TopicListAppBarTitle extends StatelessWidget {
           child: Icon(size: 18, icon, color: channelIconColor)),
         Flexible(child: Text(
           stream?.name ?? zulipLocalizations.unknownChannelName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 20,
             height: 30 / 20,
@@ -164,15 +166,15 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
   Widget build(BuildContext context) {
     final channelTopics = topicsModel!.channelTopics(widget.streamId);
     if (channelTopics == null) {
-      return Column(
-        children: [
-          const SizedBox(height: 16),
+      return ListView(
+        padding: const EdgeInsets.only(top: 16),
+        children: const [
           SizedBox(height: 40, child: SkeletonLoader(borderRadius: 8)),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           SizedBox(height: 40, child: SkeletonLoader(borderRadius: 8)),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           SizedBox(height: 40, child: SkeletonLoader(borderRadius: 8)),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           SizedBox(height: 40, child: SkeletonLoader(borderRadius: 8)),
         ],
       );

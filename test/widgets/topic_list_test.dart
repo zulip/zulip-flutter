@@ -11,6 +11,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/skeleton.dart';
 import 'package:zulip/widgets/topic_list.dart';
 
 import '../api/fake_api.dart';
@@ -118,10 +119,10 @@ void main() {
       accountId: eg.selfAccount.id,
       child: TopicListPage(streamId: channel.streamId)));
     await tester.pump();
-    check(find.byType(CircularProgressIndicator)).findsOne();
+    check(find.byType(SkeletonLoader)).findsExactly(4);
 
     await tester.pump(Duration(seconds: 1));
-    check(find.byType(CircularProgressIndicator)).findsNothing();
+    check(find.byType(SkeletonLoader)).findsNothing();
   });
 
   testWidgets('shows empty state when no topics', (tester) async {
