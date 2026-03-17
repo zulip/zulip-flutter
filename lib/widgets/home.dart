@@ -11,7 +11,6 @@ import 'action_sheet.dart';
 import 'app.dart';
 import 'app_bar.dart';
 import 'button.dart';
-import 'color.dart';
 import 'icons.dart';
 import 'image.dart';
 import 'inbox.dart';
@@ -107,7 +106,6 @@ class _HomePageState extends State<HomePage> {
       case .directMessages:
         return null;
     }
-    return null;
   }
 
   @override
@@ -451,7 +449,6 @@ class _NavigationBarButton extends StatelessWidget {
 void _showMainMenu(BuildContext context, {
   required ValueNotifier<_HomePageTab> tabNotifier,
 }) {
-  final designVariables = DesignVariables.of(context);
   final accountId = PerAccountStoreWidget.accountIdOf(context);
   showModalBottomSheet<void>(
     context: context,
@@ -648,7 +645,7 @@ abstract class MenuButton extends StatelessWidget {
         : designVariables.icon);
   }
 
-  Widget? buildTrailing(BuildContext context) => null;
+  List<Widget> buildTrailing(BuildContext context) => const [];
 
   void onPressed(BuildContext context);
 
@@ -740,7 +737,7 @@ abstract class MenuButton extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (trailing != null) trailing,
+                ...trailing,
               ]),
             ),
           ),
@@ -797,16 +794,18 @@ class _InboxButton extends _NavigationBarMenuButton {
   }
 
   @override
-  Widget? buildTrailing(BuildContext context) {
+  List<Widget> buildTrailing(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInCombinedFeedNarrow();
-    if (unreadCount == 0) return null;
-    return CounterBadge(
-      kind: CounterBadgeKind.unread,
-      style: CounterBadgeStyle.mainMenu,
-      count: unreadCount,
-      channelIdForBackground: null,
-    );
+    if (unreadCount == 0) return const [];
+    return [
+      CounterBadge(
+        kind: CounterBadgeKind.unread,
+        style: CounterBadgeStyle.mainMenu,
+        count: unreadCount,
+        channelIdForBackground: null,
+      ),
+    ];
   }
 
   @override
@@ -825,16 +824,18 @@ class _MentionsButton extends MenuButton {
   }
 
   @override
-  Widget? buildTrailing(BuildContext context) {
+  List<Widget> buildTrailing(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInMentionsNarrow();
-    if (unreadCount == 0) return null;
-    return CounterBadge(
-      kind: CounterBadgeKind.unread,
-      style: CounterBadgeStyle.mainMenu,
-      count: unreadCount,
-      channelIdForBackground: null,
-    );
+    if (unreadCount == 0) return const [];
+    return [
+      CounterBadge(
+        kind: CounterBadgeKind.unread,
+        style: CounterBadgeStyle.mainMenu,
+        count: unreadCount,
+        channelIdForBackground: null,
+      ),
+    ];
   }
 
   @override
@@ -856,15 +857,17 @@ class _StarredMessagesButton extends MenuButton {
   }
 
   @override
-  Widget? buildTrailing(BuildContext context) {
+  List<Widget> buildTrailing(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    if (!store.userSettings.starredMessageCounts) return null;
-    return CounterBadge(
-      kind: CounterBadgeKind.quantity,
-      style: CounterBadgeStyle.mainMenu,
-      count: store.starredMessages.length,
-      channelIdForBackground: null,
-    );
+    if (!store.userSettings.starredMessageCounts) return const [];
+    return [
+      CounterBadge(
+        kind: CounterBadgeKind.quantity,
+        style: CounterBadgeStyle.mainMenu,
+        count: store.starredMessages.length,
+        channelIdForBackground: null,
+      ),
+    ];
   }
 
   @override
@@ -919,16 +922,18 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
   }
 
   @override
-  Widget? buildTrailing(BuildContext context) {
+  List<Widget> buildTrailing(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final unreadCount = store.unreads.countInDms();
-    if (unreadCount == 0) return null;
-    return CounterBadge(
-      kind: CounterBadgeKind.unread,
-      style: CounterBadgeStyle.mainMenu,
-      count: unreadCount,
-      channelIdForBackground: null,
-    );
+    if (unreadCount == 0) return const [];
+    return [
+      CounterBadge(
+        kind: CounterBadgeKind.unread,
+        style: CounterBadgeStyle.mainMenu,
+        count: unreadCount,
+        channelIdForBackground: null,
+      ),
+    ];
   }
 
   @override

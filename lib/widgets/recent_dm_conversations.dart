@@ -262,9 +262,6 @@ class _NewDmButtonState extends State<_NewDmButton> {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final fabBgColor = _pressed
-      ? designVariables.fabBgPressed
-      : designVariables.fabBg;
     final fabLabelColor = _pressed
       ? designVariables.fabLabelPressed
       : designVariables.fabLabel;

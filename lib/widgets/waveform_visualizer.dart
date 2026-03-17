@@ -54,11 +54,11 @@ class WaveformVisualizer extends StatelessWidget {
   final double height;
 
   const WaveformVisualizer({
-    Key? key,
+    super.key,
     required this.amplitudes,
     this.waveColor,
     this.height = 60,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

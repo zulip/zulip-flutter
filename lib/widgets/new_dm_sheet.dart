@@ -5,7 +5,6 @@ import '../model/autocomplete.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
 import 'color.dart';
-import 'icons.dart';
 import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
@@ -268,8 +267,6 @@ class _NewDmSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
     return Container(
       constraints: const BoxConstraints(maxHeight: 140),
       decoration: BoxDecoration(

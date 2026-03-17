@@ -1445,6 +1445,8 @@ class _AttachFileButton extends _AttachUploadsButton {
   Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     final selection = await _showAttachmentMenu(context);
 
+    if (!context.mounted) return [];
+
     if (selection == null) return [];
 
     if (selection == 1) {
@@ -1683,6 +1685,7 @@ class _SendButtonState extends State<_SendButton> {
       return;
     }
 
+    if (!mounted) return;
     final store = PerAccountStoreWidget.of(context);
     if (
       destination is StreamDestination
@@ -1701,7 +1704,6 @@ class _SendButtonState extends State<_SendButton> {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final iconColor = Colors.white;
 
     return Container(
       width: 48,
@@ -1811,7 +1813,6 @@ abstract class _ComposeBoxBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-    final designVariables = DesignVariables.of(context);
 
     final inputThemeData = themeData.copyWith(
       inputDecorationTheme: const InputDecorationTheme(

@@ -95,7 +95,7 @@ class ProfilePage extends StatelessWidget {
             fontSize: nameStyle.fontSize!,
             textScaler: MediaQuery.textScalerOf(context),
           ),
-          TextSpan(text: ' ' + store.userDisplayName(userId, replaceIfMuted: false)),
+          TextSpan(text: ' ${store.userDisplayName(userId, replaceIfMuted: false)}'),
           if (userId != store.selfUserId) ...[
             const TextSpan(text: ' '),
             UserStatusEmoji.asWidgetSpan(

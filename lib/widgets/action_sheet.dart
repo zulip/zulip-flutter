@@ -19,7 +19,6 @@ import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import 'actions.dart';
 import 'button.dart';
-import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
 import 'dialog.dart';

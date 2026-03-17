@@ -1505,7 +1505,6 @@ class Mention extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final contentTheme = ContentTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     var nodes = node.nodes;
@@ -1531,12 +1530,6 @@ class Mention extends StatelessWidget {
       case UserMentionNode(userId: null):
       case WildcardMentionNode():
     }
-
-    final backgroundPillColor = switch (node) {
-      UserMentionNode() => contentTheme.colorDirectMentionBackground,
-      UserGroupMentionNode() || WildcardMentionNode()
-        => contentTheme.colorGroupMentionBackground,
-    };
 
     return Container(
       decoration: BoxDecoration(

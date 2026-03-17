@@ -1,1 +1,1 @@
-import 'package:record/record.dart'; void main() { AudioRecorder r = AudioRecorder(); }  
+import 'package:record/record.dart'; void main() { final _ = AudioRecorder(); }  
