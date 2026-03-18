@@ -2207,7 +2207,7 @@ void main() {
         connection.prepare(json: UpdateMessageResult().toJson());
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         checkRequest(messageId,
-          prevContent: 'foo', content: 'some new content[file.jpg](/path/file.jpg)');
+          prevContent: 'foo', content: 'some new content\n[file.jpg](/path/file.jpg)');
         await tester.pump(Duration.zero);
         checkNotInEditingMode(tester, narrow: narrow);
 
