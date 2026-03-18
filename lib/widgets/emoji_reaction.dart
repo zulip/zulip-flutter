@@ -427,13 +427,13 @@ class EmojiReactionTheme extends ThemeExtension<EmojiReactionTheme> {
   }
 
   @override
-  EmojiReactionTheme lerp(EmojiReactionTheme other, double t) {
-    if (identical(this, other)) {
+  EmojiReactionTheme lerp(ThemeExtension<EmojiReactionTheme>? other, double t) {
+    if (other is! EmojiReactionTheme) {
       return this;
     }
     return EmojiReactionTheme._(
-      bgSelected: Color.lerp(bgSelected, other.bgSelected, t)!,
-      bgUnselected: Color.lerp(bgUnselected, other.bgUnselected, t)!,
+      bgSelected: Color.lerp(bgSelected, other.bgSelected, t) ?? bgSelected,
+      bgUnselected: Color.lerp(bgUnselected, other.bgUnselected, t) ?? bgUnselected,
     );
   }
 }

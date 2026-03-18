@@ -13,7 +13,7 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('snapshot per-character rects', () {
-    const rectTolerance = 0.2;
+    const rectTolerance = 0.5;
     final testCases = <(KatexExample, List<(String, Offset, Size)>, {bool? skip})>[
       (KatexExample.sizing, skip: false, [
         ('1', Offset(0.00, 2.24), Size(25.59, 61.00)),

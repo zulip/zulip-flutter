@@ -34,6 +34,9 @@ void main() {
     List<StreamMessage>? messages,
   }) async {
     addTearDown(testBinding.reset);
+    tester.view.physicalSize = const Size(600, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;

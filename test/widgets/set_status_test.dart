@@ -423,6 +423,7 @@ void main() {
           });
         await testNavObserver.pumpPastTransition(tester);
         check(find.byType(ProfilePage)).findsOne();
+        await tester.pump(const Duration(milliseconds: 100));
       });
 
       testWidgets("error -> status info doesn't appears", (tester) async {

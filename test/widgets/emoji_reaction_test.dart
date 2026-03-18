@@ -337,10 +337,10 @@ void main() {
     ]);
 
     Color? backgroundColor(String emojiName) {
-      final material = tester.widget<Material>(find.descendant(
+      final ink = tester.widget<Ink>(find.descendant(
         of: find.bySemanticsLabel(RegExp(r'^' + RegExp.escape(emojiName) + r':\ ')),
-        matching: find.byType(Material)));
-      return material.color;
+        matching: find.byType(Ink)));
+      return (ink.decoration as BoxDecoration?)?.color;
     }
 
     check(backgroundColor('slight_smile')).isNotNull()

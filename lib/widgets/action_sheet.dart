@@ -685,17 +685,13 @@ class _ViewReactionsState extends State<ViewReactions> {
           BottomSheetHeader(
             title: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
           ),
-          Semantics(
-            role: SemanticsRole.tabBar,
-            label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
-            child: TabBar(
-              isScrollable: true,
-              tabs: [
-                for (final reaction in reactions.aggregated)
-                  Tab(text: zulipLocalizations.seeWhoReactedSheetEmojiNameWithVoteCount(
-                    reaction.emojiName, reaction.userIds.length)),
-              ],
-            ),
+          TabBar(
+            isScrollable: true,
+            tabs: [
+              for (final reaction in reactions.aggregated)
+                Tab(text: zulipLocalizations.seeWhoReactedSheetEmojiNameWithVoteCount(
+                  reaction.emojiName, reaction.userIds.length)),
+            ],
           ),
           Flexible(
             child: ConstrainedBox(
