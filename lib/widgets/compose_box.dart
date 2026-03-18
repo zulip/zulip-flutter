@@ -369,7 +369,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final prefixNewline = isCurrentLineEmpty ? '' : '\n';
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
-    value = value.replaced(i, '$prefixNewline$placeholder\n\n');
+    value = value.replaced(i, '$prefixNewline$placeholder\n');
     return tag;
   }
 
