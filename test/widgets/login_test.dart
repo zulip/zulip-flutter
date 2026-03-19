@@ -132,7 +132,7 @@ void main() {
       await attempt(tester, serverSettings.realmUrl, serverSettings.toJson());
       checkErrorDialog(tester,
         expectedTitle: 'Could not connect',
-        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinSupportedZulipVersion.');
+        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinAllowedZulipVersion.');
       // i.e., not the login route
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });
@@ -150,7 +150,7 @@ void main() {
       await attempt(tester, serverSettings.realmUrl, serverSettingsMalformedJson);
       checkErrorDialog(tester,
         expectedTitle: 'Could not connect',
-        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinSupportedZulipVersion.');
+        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinAllowedZulipVersion.');
       // i.e., not the login route
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });

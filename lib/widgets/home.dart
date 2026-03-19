@@ -3,12 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../api/core.dart';
+import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'action_sheet.dart';
+import 'actions.dart';
 import 'app.dart';
 import 'app_bar.dart';
+import 'banner.dart';
 import 'button.dart';
 import 'color.dart';
 import 'icons.dart';
@@ -59,6 +63,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final _tab = ValueNotifier(_HomePageTab.inbox);
+  bool _hasDismissedServerCompatBanner = false;
 
   @override
   void initState() {
@@ -116,6 +121,10 @@ class _HomePageState extends State<HomePage> {
       (_HomePageTab.directMessages, RecentDmConversationsPageBody()),
     ];
 
+    final store = PerAccountStoreWidget.of(context);
+    final showCompatBanner = !_hasDismissedServerCompatBanner
+      && store.zulipFeatureLevel < kMinSupportedZulipFeatureLevel;
+
     return Scaffold(
       appBar: ZulipAppBar(titleSpacing: 16,
         title: Semantics(
@@ -123,16 +132,28 @@ class _HomePageState extends State<HomePage> {
           namesRoute: true,
           child: Text(_currentTabTitle)),
         actions: _currentTabAppBarActions),
-      body: Semantics(
-        role: SemanticsRole.tabPanel,
-        identifier: HomePage.contentSemanticsIdentifier,
-        container: true,
-        explicitChildNodes: true,
-        child: Stack(
-          children: [
-            for (final (tab, body) in pageBodies)
-              Offstage(offstage: tab != _tab.value, child: body),
-          ])),
+      body: Column(
+        children: [
+          if (showCompatBanner) ...[
+            _ServerCompatBanner(
+              onDismiss: () => setState(() {
+                _hasDismissedServerCompatBanner = true;
+              })),
+            Divider(height: 1, thickness: 1,
+              color: DesignVariables.of(context).borderBar),
+          ],
+          Expanded(
+            child: Semantics(
+              role: SemanticsRole.tabPanel,
+              identifier: HomePage.contentSemanticsIdentifier,
+              container: true,
+              explicitChildNodes: true,
+              child: Stack(
+                children: [
+                  for (final (tab, body) in pageBodies)
+                    Offstage(offstage: tab != _tab.value, child: body),
+                ]))),
+        ]),
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
   }
 }
@@ -848,5 +869,39 @@ class _AboutZulipButton extends MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(AboutZulipPage.buildRoute(context));
+  }
+}
+
+class _ServerCompatBanner extends StatelessWidget {
+  const _ServerCompatBanner({required this.onDismiss});
+
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final isAtLeastAdmin = store.selfUser.role.isAtLeast(UserRole.administrator);
+    final label = isAtLeastAdmin
+      ? zulipLocalizations.serverCompatBannerAdminMessage(
+        store.account.realmUrl.toString(), store.zulipVersion)
+      : zulipLocalizations.serverCompatBannerUserMessage(
+        store.account.realmUrl.toString(), store.zulipVersion);
+    return ZulipBanner(
+      intent: ZulipBannerIntent.danger,
+      label: label,
+      useSmallerText: true,
+      bottom: Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
+        ZulipWebUiKitButton(
+          label: zulipLocalizations.serverCompatBannerLearnMoreLabel,
+          intent: ZulipWebUiKitButtonIntent.danger,
+          variant: ZulipWebUiKitButtonVariant.text,
+          onPressed: () => PlatformActions.launchUrl(context, kServerSupportDocUrl)),
+        ZulipWebUiKitButton(
+          label: zulipLocalizations.serverCompatBannerDismissLabel,
+          intent: ZulipWebUiKitButtonIntent.danger,
+          variant: ZulipWebUiKitButtonVariant.subtle,
+          onPressed: onDismiss),
+      ]));
   }
 }
