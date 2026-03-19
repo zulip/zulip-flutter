@@ -337,6 +337,45 @@ abstract final class ZulipAction {
     }
   }
 
+  /// Subscribe a user to a channel, showing feedback to the user on failure.
+  static Future<void> subscribeUserToChannel(BuildContext context, {
+    required int channelId,
+    required int userId,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    final channel = store.streams[channelId];
+    if (channel == null) return;
+
+    try {
+      await channels_api.subscribeToChannel(store.connection,
+        subscriptions: [channel.name],
+        principals: [userId]);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+        default:
+      }
+
+      final title = ZulipLocalizations.of(context).subscribeFailedTitle;
+      showErrorDialog(context: context, title: title, message: errorMessage);
+    }
+  }
+
+  /// Fetch the subscribers for a channel and store them in the store.
+  static Future<void> fetchChannelSubscribers(BuildContext context, {required int channelId}) async {
+    final store = PerAccountStoreWidget.of(context);
+    try {
+      final result = await channels_api.getChannelSubscribers(store.connection, channelId: channelId);
+      store.setSubscribers(channelId, result.subscribers.toSet());
+    } catch (e) {
+      // TODO(log)
+    }
+  }
+
   /// Unsubscribe from a channel, possibly after a confirmation dialog,
   /// showing an error dialog on failure.
   ///

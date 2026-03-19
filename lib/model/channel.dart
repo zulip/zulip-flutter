@@ -89,6 +89,12 @@ mixin ChannelStore on UserStore {
   /// Topics are treated case-insensitively; see [TopicName.isSameAs].
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic);
 
+  /// The user IDs of all users subscribed to the given channel, if known.
+  Set<int>? getSubscribersSync(int channelId);
+
+  /// Set the user IDs of all users subscribed to the given channel.
+  void setSubscribers(int channelId, Set<int> subscribers);
+
   /// The raw data structure underlying [topicVisibilityPolicy].
   ///
   /// This is sometimes convenient for checks in tests.
@@ -368,6 +374,17 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
   @override
   final Map<int, ChannelFolder> channelFolders;
 
+  final Map<int, Set<int>> _channelSubscribers = {};
+
+  @override
+  Set<int>? getSubscribersSync(int channelId) => _channelSubscribers[channelId];
+
+  @override
+  void setSubscribers(int channelId, Set<int> subscribers) {
+    _channelSubscribers[channelId] = subscribers;
+    notifyListeners();
+  }
+
   @override
   Map<int, TopicKeyedMap<UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
 
@@ -525,8 +542,20 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
         }
 
       case SubscriptionPeerAddEvent():
+        for (final streamId in event.streamIds) {
+          final subscribers = _channelSubscribers[streamId];
+          if (subscribers == null) continue;
+          subscribers.addAll(event.userIds);
+        }
+        notifyListeners();
+
       case SubscriptionPeerRemoveEvent():
-        // We don't currently store the data these would update; that's #374.
+        for (final streamId in event.streamIds) {
+          final subscribers = _channelSubscribers[streamId];
+          if (subscribers == null) continue;
+          subscribers.removeAll(event.userIds);
+        }
+        notifyListeners();
     }
   }
 

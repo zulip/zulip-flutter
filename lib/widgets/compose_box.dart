@@ -1886,6 +1886,41 @@ class _UnsubscribedChannelBannerTrailing extends StatelessWidget {
   }
 }
 
+class _MentionWarningBannerTrailing extends StatelessWidget {
+  const _MentionWarningBannerTrailing({
+    required this.channelId,
+    required this.userId,
+    required this.onDismiss,
+  });
+
+  final int channelId;
+  final int userId;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    // (A BuildContext that's expected to remain mounted until the whole page
+    // disappears, which may be long after the banner disappears.)
+    final pageContext = PageRoot.contextOf(context);
+
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    return Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [
+      ZulipWebUiKitButton(
+        label: zulipLocalizations.composeBoxMentionWarningButtonSubscribe,
+        size: .small,
+        intent: ZulipWebUiKitButtonIntent.warning,
+        attention: ZulipWebUiKitButtonAttention.high,
+        onPressed: () async {
+          await ZulipAction.subscribeUserToChannel(pageContext, channelId: channelId, userId: userId);
+        }),
+      IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: onDismiss,
+      ),
+    ]);
+  }
+}
+
 class _EditMessageBannerTrailing extends StatelessWidget {
   const _EditMessageBannerTrailing({required this.composeBoxState});
 
@@ -2039,6 +2074,59 @@ abstract class ComposeBoxState extends State<ComposeBox> {
 class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateMixin<ComposeBox> implements ComposeBoxState {
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
+
+  int? _mentionWarningUserId;
+  final Set<int> _dismissedMentionWarnings = {};
+
+  void _updateMentionWarning() {
+    final controller = _controller;
+    if (controller == null) return;
+
+    final narrow = widget.narrow;
+    if (narrow is! ChannelNarrow && narrow is! TopicNarrow) {
+      if (_mentionWarningUserId != null) {
+        setState(() => _mentionWarningUserId = null);
+      }
+      return;
+    }
+
+    final int streamId = switch (narrow) {
+      ChannelNarrow(:final streamId) => streamId,
+      TopicNarrow(:final streamId) => streamId,
+      _ => throw UnimplementedError(),
+    };
+
+    final store = PerAccountStoreWidget.of(context);
+    final subscribers = store.getSubscribersSync(streamId);
+
+    if (subscribers == null) {
+      // Trigger fetch but don't show warning yet.
+      ZulipAction.fetchChannelSubscribers(context, channelId: streamId);
+      if (_mentionWarningUserId != null) {
+        setState(() => _mentionWarningUserId = null);
+      }
+      return;
+    }
+
+    final text = controller.content.text;
+    // Regex matches non-silent mentions: @**Full Name|123**
+    // It avoids @_**Full Name|123** by checking that the preceding character is not '_'.
+    final mentionsRegex = RegExp(r'(?<!_)@\*\*[^*|]+\|([0-9]+)\*\*');
+    final matches = mentionsRegex.allMatches(text);
+
+    int? firstUnsubscribedUserId;
+    for (final match in matches) {
+      final userId = int.parse(match.group(1)!);
+      if (!subscribers.contains(userId) && !_dismissedMentionWarnings.contains(userId)) {
+        firstUnsubscribedUserId = userId;
+        break;
+      }
+    }
+
+    if (_mentionWarningUserId != firstUnsubscribedUserId) {
+      setState(() => _mentionWarningUserId = firstUnsubscribedUserId);
+    }
+  }
 
   @override
   void restoreMessageNotSent(int localMessageId) async {
@@ -2196,6 +2284,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       return;
     }
 
+    controller.content.removeListener(_updateMentionWarning);
     switch (controller) {
       case StreamComposeBoxController():
         controller.content.store = newStore;
@@ -2204,9 +2293,12 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case EditMessageComposeBoxController():
         controller.content.store = newStore;
     }
+    controller.content.addListener(_updateMentionWarning);
+    _updateMentionWarning();
   }
 
   void _setNewController(PerAccountStore store) {
+    _controller?.content.removeListener(_updateMentionWarning);
     _controller?.dispose(); // `?.` because this might be the first call
     switch (widget.narrow) {
       case ChannelNarrow():
@@ -2220,6 +2312,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case KeywordSearchNarrow():
         assert(false);
     }
+    _controller!.content.addListener(_updateMentionWarning);
   }
 
   @override
@@ -2318,6 +2411,22 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
             label: zulipLocalizations.composeBoxBannerLabelUnsubscribed,
             useSmallerText: true,
             trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+        } else if (_mentionWarningUserId != null) {
+          final user = store.getUser(_mentionWarningUserId!);
+          banner = _Banner(
+            intent: _BannerIntent.warning,
+            label: zulipLocalizations.composeBoxMentionWarning(user?.fullName ?? zulipLocalizations.unknownUserName),
+            useSmallerText: true,
+            trailing: _MentionWarningBannerTrailing(
+              channelId: streamId,
+              userId: _mentionWarningUserId!,
+              onDismiss: () {
+                setState(() {
+                  _dismissedMentionWarnings.add(_mentionWarningUserId!);
+                  _updateMentionWarning();
+                });
+              },
+            ));
         }
 
       case DmNarrow():

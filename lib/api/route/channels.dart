@@ -18,7 +18,7 @@ Future<void> subscribeToChannel(ApiConnection connection, {
 }) {
   return connection.post('subscribeToChannel', (_) {}, 'users/me/subscriptions', {
     'subscriptions': subscriptions.map((name) => {'name': name}).toList(),
-    'principals': ?principals,
+    'principals': principals,
   });
 }
 
@@ -36,7 +36,7 @@ Future<void> unsubscribeFromChannel(ApiConnection connection, {
 }) {
   return connection.delete('unsubscribeFromChannel', (_) {}, 'users/me/subscriptions', {
     'subscriptions': subscriptions,
-    'principals': ?principals,
+    'principals': principals,
   });
 }
 
@@ -141,4 +141,25 @@ Future<void> updateUserTopic(ApiConnection connection, {
     'topic': RawParameter(topic.apiName),
     'visibility_policy': visibilityPolicy,
   });
+}
+
+/// https://zulip.com/api/get-stream-subscribers
+Future<GetChannelSubscribersResult> getChannelSubscribers(ApiConnection connection, {
+  required int channelId,
+}) {
+  return connection.get('getChannelSubscribers', GetChannelSubscribersResult.fromJson, 'streams/$channelId/members', {});
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class GetChannelSubscribersResult {
+  final List<int> subscribers;
+
+  GetChannelSubscribersResult({
+    required this.subscribers,
+  });
+
+  factory GetChannelSubscribersResult.fromJson(Map<String, dynamic> json) =>
+    _$GetChannelSubscribersResultFromJson(json);
+
+  Map<String, dynamic> toJson() => _$GetChannelSubscribersResultToJson(this);
 }

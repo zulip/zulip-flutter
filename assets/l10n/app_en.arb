@@ -546,6 +546,20 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "composeBoxMentionWarning": "@{username} is not subscribed to this channel. They will not be notified unless you subscribe them.",
+  "@composeBoxMentionWarning": {
+    "description": "Label text for a compose-box banner when you mention an unsubscribed user.",
+    "placeholders": {
+      "username": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
+  "composeBoxMentionWarningButtonSubscribe": "Subscribe them",
+  "@composeBoxMentionWarningButtonSubscribe": {
+    "description": "Label text for the 'Subscribe them' button in the mention warning banner."
+  },
   "composeBoxBannerLabelEditMessage": "Edit message",
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."

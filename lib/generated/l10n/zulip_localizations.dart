@@ -896,6 +896,18 @@ abstract class ZulipLocalizations {
   /// **'Subscribe'**
   String get composeBoxBannerButtonSubscribe;
 
+  /// Label text for a compose-box banner when you mention an unsubscribed user.
+  ///
+  /// In en, this message translates to:
+  /// **'@{username} is not subscribed to this channel. They will not be notified unless you subscribe them.'**
+  String composeBoxMentionWarning(String username);
+
+  /// Label text for the 'Subscribe them' button in the mention warning banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe them'**
+  String get composeBoxMentionWarningButtonSubscribe;
+
   /// Label text for the compose-box banner when you are editing a message.
   ///
   /// In en, this message translates to:

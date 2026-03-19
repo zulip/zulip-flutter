@@ -456,6 +456,14 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get composeBoxBannerButtonSubscribe => '購読する';
 
   @override
+  String composeBoxMentionWarning(String username) {
+    return '@$username is not subscribed to this channel. They will not be notified unless you subscribe them.';
+  }
+
+  @override
+  String get composeBoxMentionWarningButtonSubscribe => 'Subscribe them';
+
+  @override
   String get composeBoxBannerLabelEditMessage => 'メッセージを編集';
 
   @override

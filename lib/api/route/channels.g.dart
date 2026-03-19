@@ -30,3 +30,15 @@ GetChannelTopicsEntry _$GetChannelTopicsEntryFromJson(
 Map<String, dynamic> _$GetChannelTopicsEntryToJson(
   GetChannelTopicsEntry instance,
 ) => <String, dynamic>{'max_id': instance.maxId, 'name': instance.name};
+
+GetChannelSubscribersResult _$GetChannelSubscribersResultFromJson(
+  Map<String, dynamic> json,
+) => GetChannelSubscribersResult(
+  subscribers: (json['subscribers'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
+);
+
+Map<String, dynamic> _$GetChannelSubscribersResultToJson(
+  GetChannelSubscribersResult instance,
+) => <String, dynamic>{'subscribers': instance.subscribers};
