@@ -20,4 +20,5 @@
 
   // Suppress the warnings that appear for TODOs throughout the codebase.
   "dart.showTodos": false,
+  "java.compile.nullAnalysis.mode": "automatic",
 }

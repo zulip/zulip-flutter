@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
-import 'action_sheet.dart';
 import 'app.dart';
 import 'app_bar.dart';
 import 'button.dart';
@@ -133,6 +132,7 @@ class _HomePageState extends State<HomePage> {
             for (final (tab, body) in pageBodies)
               Offstage(offstage: tab != _tab.value, child: body),
           ])),
+      drawer: _MainMenu(tabNotifier: _tab),
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
   }
 }
@@ -181,7 +181,7 @@ class _BottomNavBar extends StatelessWidget {
       _NavigationBarButton(icon: ZulipIcons.menu,
         label: zulipLocalizations.navBarMenuLabel,
         selected: false,
-        onPressed: () => _showMainMenu(context, tabNotifier: tabNotifier)),
+        onPressed: () => Scaffold.of(context).openDrawer()),
     ];
 
     Widget result = DecoratedBox(
@@ -351,30 +351,7 @@ class _NavigationBarButton extends StatelessWidget {
   }
 }
 
-void _showMainMenu(BuildContext context, {
-  required ValueNotifier<_HomePageTab> tabNotifier,
-}) {
-  final designVariables = DesignVariables.of(context);
-  final accountId = PerAccountStoreWidget.accountIdOf(context);
-  showModalBottomSheet<void>(
-    context: context,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-    clipBehavior: Clip.antiAlias,
-    useSafeArea: true,
-    isScrollControlled: true,
-    // TODO: Fix the issue that the color does not respond when the theme
-    //   changes, because `designVariables` was retrieved from a gesture handler,
-    //   not a build method.  Discussion and screenshots:
-    //     https://github.com/zulip/zulip-flutter/pull/1076/files#r1872659043
-    backgroundColor: designVariables.bgBotBar,
-    builder: (BuildContext _) {
-      return PerAccountStoreWidget(
-        accountId: accountId,
-        child: _MainMenu(tabNotifier: tabNotifier));
-    });
-}
+// _showMainMenu is no longer used; replaced by the drawer in HomePage.
 
 /// The main-menu sheet.
 ///
@@ -413,27 +390,20 @@ class _MainMenu extends StatelessWidget {
       // TODO(#1095): VersionInfo
     ];
 
-    return SafeArea(
-      minimum: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _MainMenuHeader(),
-          Flexible(child: InsetShadowBox(
-            top: 8, bottom: 8,
-            color: designVariables.bgBotBar,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              child: Column(children: menuItems)))),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: AnimatedScaleOnPress(
-              scaleEnd: 0.95,
-              duration: Duration(milliseconds: 100),
-              child: BottomSheetDismissButton(
-                style: BottomSheetDismissButtonStyle.close))),
-        ]));
+    return Drawer(
+      backgroundColor: designVariables.bgBotBar,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _MainMenuHeader(),
+            Expanded(child: InsetShadowBox(
+              top: 8, bottom: 8,
+              color: designVariables.bgBotBar,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                child: Column(children: menuItems)))),
+          ])));
   }
 }
 
