@@ -274,6 +274,13 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       : TextRange.collapsed(text.length);
   }
 
+  /// Gets the text on the line where [insertionIndex] is located.
+  String _getLineAtInsertion(TextRange insertionIndex) {
+    final beforeCursor = insertionIndex.textBefore(text);
+    final afterCursor = insertionIndex.textAfter(text);
+    return '${beforeCursor.split('\n').last}${afterCursor.split('\n').first}';
+  }
+
   /// Inserts [newText] in [text], setting off with an empty line before and after.
   ///
   /// Assumes [newText] is not empty and consists entirely of complete lines
@@ -357,9 +364,12 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     _nextUploadTag += 1;
     final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
     final placeholder = inlineLink(linkText, '');
+    final i = insertionIndex();
+    final isCurrentLineEmpty = _getLineAtInsertion(i).trim().isEmpty;
+    final prefixNewline = isCurrentLineEmpty ? '' : '\n';
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
-    value = value.replaced(insertionIndex(), '$placeholder\n\n');
+    value = value.replaced(i, '$prefixNewline$placeholder\n');
     return tag;
   }
 

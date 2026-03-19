@@ -1165,7 +1165,7 @@ void main() {
         checkNoDialog(tester);
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+          .equals('see image: \n[Uploading image.jpg…]()\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1181,7 +1181,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: \n[image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1213,7 +1213,7 @@ void main() {
         checkNoDialog(tester);
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+          .equals('see image: \n[Uploading image.jpg…]()\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1229,7 +1229,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: \n[image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1263,12 +1263,12 @@ void main() {
       await tester.tap(find.byIcon(ZulipIcons.image));
       await tester.pump();
       check(controller!.content.text)
-        .equals('[Uploading 한국어 파일.txt…]()\n\n');
+        .equals('[Uploading 한국어 파일.txt…]()\n');
 
       await tester.pump(Duration.zero);
       check(controller!.content.text)
         .equals('[한국어 파일.txt]('
-          '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt)\n\n');
+          '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt)\n');
     });
 
     group('attach from keyboard', () {
@@ -1314,7 +1314,7 @@ void main() {
 
         await tester.pump();
         check(controller!.content.text)
-          .equals('see image: [Uploading test.gif…]()\n\n');
+          .equals('see image: \n[Uploading test.gif…]()\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1330,7 +1330,7 @@ void main() {
 
         await tester.pump(Duration.zero);
         check(controller!.content.text)
-          .equals('see image: [test.gif]($uploadUrl)\n\n');
+          .equals('see image: \n[test.gif]($uploadUrl)\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -2207,7 +2207,7 @@ void main() {
         connection.prepare(json: UpdateMessageResult().toJson());
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         checkRequest(messageId,
-          prevContent: 'foo', content: 'some new content[file.jpg](/path/file.jpg)');
+          prevContent: 'foo', content: 'some new content\n[file.jpg](/path/file.jpg)');
         await tester.pump(Duration.zero);
         checkNotInEditingMode(tester, narrow: narrow);
 
