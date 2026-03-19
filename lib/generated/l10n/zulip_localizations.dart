@@ -1397,7 +1397,7 @@ abstract class ZulipLocalizations {
   /// Topic validation error when topic is required but was empty.
   ///
   /// In en, this message translates to:
-  /// **'Topics are required in this organization.'**
+  /// **'Topics are required in this channel.'**
   String get topicValidationErrorMandatoryButEmpty;
 
   /// Title for error dialog when an attempt to insert rich content failed.
