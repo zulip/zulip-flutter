@@ -19,12 +19,6 @@ import Flutter
 
     IosNativeHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: IosNativeHostApiImpl())
 
-    // Retrieve the remote notification payload from launch options;
-    // this will be null if the launch wasn't triggered by a notification.
-    let notificationPayload = launchOptions?[.remoteNotification] as? [AnyHashable : Any]
-    let api = NotificationHostApiImpl(notificationPayload.map { NotificationDataFromLaunch(payload: $0) })
-    NotificationHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: api)
-
     notificationTapEventListener = NotificationTapEventListener()
     NotificationTapEventsStreamHandler.register(with: controller.binaryMessenger, streamHandler: notificationTapEventListener!)
 
@@ -43,32 +37,6 @@ import Flutter
       notificationTapEventListener!.onNotificationTapEvent(payload: userInfo)
     }
     completionHandler()
-  }
-}
-
-private class NotificationHostApiImpl: NotificationHostApi {
-  private let maybeDataFromLaunch: NotificationDataFromLaunch?
-
-  init(_ maybeDataFromLaunch: NotificationDataFromLaunch?) {
-    self.maybeDataFromLaunch = maybeDataFromLaunch
-  }
-
-  func getNotificationDataFromLaunch() -> NotificationDataFromLaunch? {
-    maybeDataFromLaunch
-  }
-}
-
-// Adapted from Pigeon's Swift example for @EventChannelApi:
-//   https://github.com/flutter/packages/blob/2dff6213a/packages/pigeon/example/app/ios/Runner/AppDelegate.swift#L49-L74
-class NotificationTapEventListener: NotificationTapEventsStreamHandler {
-  var eventSink: PigeonEventSink<NotificationTapEvent>?
-
-  override func onListen(withArguments arguments: Any?, sink: PigeonEventSink<NotificationTapEvent>) {
-    eventSink = sink
-  }
-
-  func onNotificationTapEvent(payload: [AnyHashable : Any]) {
-    eventSink?.success(IosNotificationTapEvent(payload: payload))
   }
 }
 

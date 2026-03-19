@@ -14,26 +14,6 @@ import io.flutter.plugin.common.StandardMessageCodec
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 private object NotificationsPigeonUtils {
-
-  fun wrapResult(result: Any?): List<Any?> {
-    return listOf(result)
-  }
-
-  fun wrapError(exception: Throwable): List<Any?> {
-    return if (exception is FlutterError) {
-      listOf(
-        exception.code,
-        exception.message,
-        exception.details
-      )
-    } else {
-      listOf(
-        exception.javaClass.simpleName,
-        exception.toString(),
-        "Cause: " + exception.cause + ", Stacktrace: " + Log.getStackTraceString(exception)
-      )
-    }
-  }
   fun deepEquals(a: Any?, b: Any?): Boolean {
     if (a is ByteArray && b is ByteArray) {
         return a.contentEquals(b)
@@ -77,40 +57,6 @@ class FlutterError (
   override val message: String? = null,
   val details: Any? = null
 ) : Throwable()
-
-/** Generated class from Pigeon that represents data sent in messages. */
-data class NotificationDataFromLaunch (
-  /**
-   * The raw payload that is attached to the notification,
-   * holding the information required to carry out the navigation.
-   *
-   * See [NotificationHostApi.getNotificationDataFromLaunch].
-   */
-  val payload: Map<Any?, Any?>
-)
- {
-  companion object {
-    fun fromList(pigeonVar_list: List<Any?>): NotificationDataFromLaunch {
-      val payload = pigeonVar_list[0] as Map<Any?, Any?>
-      return NotificationDataFromLaunch(payload)
-    }
-  }
-  fun toList(): List<Any?> {
-    return listOf(
-      payload,
-    )
-  }
-  override fun equals(other: Any?): Boolean {
-    if (other !is NotificationDataFromLaunch) {
-      return false
-    }
-    if (this === other) {
-      return true
-    }
-    return NotificationsPigeonUtils.deepEquals(toList(), other.toList())  }
-
-  override fun hashCode(): Int = toList().hashCode()
-}
 
 /**
  * Generated class from Pigeon that represents data sent in messages.
@@ -203,15 +149,10 @@ private open class NotificationsPigeonCodec : StandardMessageCodec() {
     return when (type) {
       129.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          NotificationDataFromLaunch.fromList(it)
-        }
-      }
-      130.toByte() -> {
-        return (readValue(buffer) as? List<Any?>)?.let {
           IosNotificationTapEvent.fromList(it)
         }
       }
-      131.toByte() -> {
+      130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           AndroidNotificationTapEvent.fromList(it)
         }
@@ -221,16 +162,12 @@ private open class NotificationsPigeonCodec : StandardMessageCodec() {
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
     when (value) {
-      is NotificationDataFromLaunch -> {
+      is IosNotificationTapEvent -> {
         stream.write(129)
         writeValue(stream, value.toList())
       }
-      is IosNotificationTapEvent -> {
-        stream.write(130)
-        writeValue(stream, value.toList())
-      }
       is AndroidNotificationTapEvent -> {
-        stream.write(131)
+        stream.write(130)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -240,46 +177,6 @@ private open class NotificationsPigeonCodec : StandardMessageCodec() {
 
 val NotificationsPigeonMethodCodec = StandardMethodCodec(NotificationsPigeonCodec())
 
-/** Generated interface from Pigeon that represents a handler of messages from Flutter. */
-interface NotificationHostApi {
-  /**
-   * Retrieves notification data if the app was launched by tapping on a notification.
-   *
-   * Returns `launchOptions.remoteNotification`,
-   * which is the raw APNs data dictionary
-   * if the app launch was opened by a notification tap,
-   * else null. See Apple doc:
-   *   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
-   */
-  fun getNotificationDataFromLaunch(): NotificationDataFromLaunch?
-
-  companion object {
-    /** The codec used by NotificationHostApi. */
-    val codec: MessageCodec<Any?> by lazy {
-      NotificationsPigeonCodec()
-    }
-    /** Sets up an instance of `NotificationHostApi` to handle messages through the `binaryMessenger`. */
-    @JvmOverloads
-    fun setUp(binaryMessenger: BinaryMessenger, api: NotificationHostApi?, messageChannelSuffix: String = "") {
-      val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.NotificationHostApi.getNotificationDataFromLaunch$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { _, reply ->
-            val wrapped: List<Any?> = try {
-              listOf(api.getNotificationDataFromLaunch())
-            } catch (exception: Throwable) {
-              NotificationsPigeonUtils.wrapError(exception)
-            }
-            reply.reply(wrapped)
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-    }
-  }
-}
 
 private class NotificationsPigeonStreamHandler<T>(
     val wrapper: NotificationsPigeonEventChannelWrapper<T>

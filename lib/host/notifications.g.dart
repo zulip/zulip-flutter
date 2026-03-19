@@ -7,32 +7,6 @@ import 'dart:typed_data' show Float64List, Int32List, Int64List, Uint8List;
 
 import 'package:flutter/foundation.dart' show ReadBuffer, WriteBuffer;
 import 'package:flutter/services.dart';
-
-Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
-}) {
-  if (replyList == null) {
-    throw PlatformException(
-      code: 'channel-error',
-      message: 'Unable to establish connection on channel: "$channelName".',
-    );
-  } else if (replyList.length > 1) {
-    throw PlatformException(
-      code: replyList[0]! as String,
-      message: replyList[1] as String?,
-      details: replyList[2],
-    );
-  } else if (!isNullValid && (replyList.isNotEmpty && replyList[0] == null)) {
-    throw PlatformException(
-      code: 'null-error',
-      message: 'Host platform returned null value for non-null return value.',
-    );
-  }
-  return replyList.firstOrNull;
-}
-
 bool _deepEquals(Object? a, Object? b) {
   if (a is List && b is List) {
     return a.length == b.length &&
@@ -47,51 +21,6 @@ bool _deepEquals(Object? a, Object? b) {
   return a == b;
 }
 
-
-class NotificationDataFromLaunch {
-  NotificationDataFromLaunch({
-    required this.payload,
-  });
-
-  /// The raw payload that is attached to the notification,
-  /// holding the information required to carry out the navigation.
-  ///
-  /// See [NotificationHostApi.getNotificationDataFromLaunch].
-  Map<Object?, Object?> payload;
-
-  List<Object?> _toList() {
-    return <Object?>[
-      payload,
-    ];
-  }
-
-  Object encode() {
-    return _toList();  }
-
-  static NotificationDataFromLaunch decode(Object result) {
-    result as List<Object?>;
-    return NotificationDataFromLaunch(
-      payload: (result[0] as Map<Object?, Object?>?)!.cast<Object?, Object?>(),
-    );
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  bool operator ==(Object other) {
-    if (other is! NotificationDataFromLaunch || other.runtimeType != runtimeType) {
-      return false;
-    }
-    if (identical(this, other)) {
-      return true;
-    }
-    return _deepEquals(encode(), other.encode());
-  }
-
-  @override
-  // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
-}
 
 sealed class NotificationTapEvent {
 }
@@ -202,14 +131,11 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is NotificationDataFromLaunch) {
+    }    else if (value is IosNotificationTapEvent) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    }    else if (value is IosNotificationTapEvent) {
-      buffer.putUint8(130);
-      writeValue(buffer, value.encode());
     }    else if (value is AndroidNotificationTapEvent) {
-      buffer.putUint8(131);
+      buffer.putUint8(130);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -220,10 +146,8 @@ class _PigeonCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 129:
-        return NotificationDataFromLaunch.decode(readValue(buffer)!);
-      case 130:
         return IosNotificationTapEvent.decode(readValue(buffer)!);
-      case 131:
+      case 130:
         return AndroidNotificationTapEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -232,46 +156,6 @@ class _PigeonCodec extends StandardMessageCodec {
 }
 
 const StandardMethodCodec pigeonMethodCodec = StandardMethodCodec(_PigeonCodec());
-
-class NotificationHostApi {
-  /// Constructor for [NotificationHostApi].  The [binaryMessenger] named argument is
-  /// available for dependency injection.  If it is left null, the default
-  /// BinaryMessenger will be used which routes to the host platform.
-  NotificationHostApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
-  final BinaryMessenger? pigeonVar_binaryMessenger;
-
-  static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
-
-  final String pigeonVar_messageChannelSuffix;
-
-  /// Retrieves notification data if the app was launched by tapping on a notification.
-  ///
-  /// Returns `launchOptions.remoteNotification`,
-  /// which is the raw APNs data dictionary
-  /// if the app launch was opened by a notification tap,
-  /// else null. See Apple doc:
-  ///   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
-  Future<NotificationDataFromLaunch?> getNotificationDataFromLaunch() async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.NotificationHostApi.getNotificationDataFromLaunch$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-    return pigeonVar_replyValue as NotificationDataFromLaunch?;
-  }
-}
 
 /// An event stream that emits a notification payload
 /// when a notification is tapped.
