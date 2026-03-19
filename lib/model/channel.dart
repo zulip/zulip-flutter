@@ -212,6 +212,20 @@ mixin ChannelStore on UserStore {
     }
   }
 
+  ChannelTopicsPolicy effectiveTopicsPolicy(int channelId) {
+    final channelTopicsPolicy = streams[channelId]?.topicsPolicy;
+
+    if (channelTopicsPolicy case .inherit || null) {
+      final realmTopicsPolicy = this.realmTopicsPolicy
+        ?? (realmMandatoryTopics!
+              ? .disableEmptyTopic
+              : .allowEmptyTopic);
+      return ChannelTopicsPolicy.forRealmPolicy(realmTopicsPolicy);
+    }
+
+    return channelTopicsPolicy;
+  }
+
   bool selfHasContentAccess(ZulipStream channel) {
     // Compare web's stream_data.has_content_access.
     if (channel.isWebPublic) return true;
