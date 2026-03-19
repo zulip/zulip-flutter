@@ -1775,7 +1775,7 @@ class _UnsubscribedChannelBannerTrailing extends StatelessWidget {
         label: zulipLocalizations.composeBoxBannerButtonSubscribe,
         size: .small,
         intent: ZulipWebUiKitButtonIntent.warning,
-        attention: ZulipWebUiKitButtonAttention.high,
+        variant: ZulipWebUiKitButtonVariant.solid,
         onPressed: () async {
           await ZulipAction.subscribeToChannel(pageContext, channelId: channelId);
           if (!pageContext.mounted) return;
@@ -1869,7 +1869,7 @@ class _EditMessageBannerTrailing extends StatelessWidget {
       // TODO(#1481) disabled appearance when there are validation errors
       //   or the original raw content hasn't loaded yet
       ZulipWebUiKitButton(label: zulipLocalizations.composeBoxBannerButtonSave,
-        attention: ZulipWebUiKitButtonAttention.high,
+        variant: ZulipWebUiKitButtonVariant.solid,
         onPressed: () => _handleTapSave(context)),
     ]);
   }

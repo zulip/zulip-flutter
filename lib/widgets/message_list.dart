@@ -2372,7 +2372,7 @@ class MessageWithPossibleSender extends StatelessWidget {
                       icon: ZulipIcons.eye,
                       size: ZulipWebUiKitButtonSize.small,
                       intent: ZulipWebUiKitButtonIntent.neutral,
-                      attention: ZulipWebUiKitButtonAttention.minimal,
+                      variant: ZulipWebUiKitButtonVariant.text,
                       onPressed: () {
                         MessageListPage.ancestorOf(context).revealMutedMessage(message.id);
                       }))
@@ -2435,7 +2435,7 @@ class _EditMessageStatusRow extends StatelessWidget {
           children: [
             Text(
               style: baseTextStyle
-                .copyWith(color: designVariables.btnLabelAttLowIntInfo),
+                .copyWith(color: designVariables.btnLabelVarTextIntInfo),
               textAlign: TextAlign.end,
               zulipLocalizations.savingMessageEditLabel),
             // TODO instead place within bottom outer padding:
@@ -2452,7 +2452,7 @@ class _EditMessageStatusRow extends StatelessWidget {
           messageId: messageId,
           child: Text(
             style: baseTextStyle
-              .copyWith(color: designVariables.btnLabelAttLowIntDanger),
+              .copyWith(color: designVariables.btnLabelVarTextIntDanger),
             textAlign: TextAlign.end,
             zulipLocalizations.savingMessageEditFailedLabel))),
     };
@@ -2572,7 +2572,7 @@ class _OutboxMessageStatusRow extends StatelessWidget {
               zulipLocalizations.messageNotSentLabel,
               textAlign: TextAlign.end,
               style: TextStyle(
-                color: designVariables.btnLabelAttLowIntDanger,
+                color: designVariables.btnLabelVarTextIntDanger,
                 fontSize: 12,
                 height: 12 / 12,
                 letterSpacing: proportionalLetterSpacing(

@@ -69,9 +69,9 @@ class ZulipBanner extends StatelessWidget {
       ZulipBannerIntent.info =>
         (designVariables.bannerTextIntInfo, designVariables.bannerBgIntInfo),
       ZulipBannerIntent.warning =>
-        (designVariables.btnLabelAttMediumIntWarning, designVariables.bannerBgIntWarning),
+        (designVariables.btnLabelVarSubtleIntWarning, designVariables.bannerBgIntWarning),
       ZulipBannerIntent.danger =>
-        (designVariables.btnLabelAttMediumIntDanger, designVariables.bannerBgIntDanger),
+        (designVariables.btnLabelVarSubtleIntDanger, designVariables.bannerBgIntDanger),
     };
 
     final labelTextStyle = TextStyle(
