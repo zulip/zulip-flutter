@@ -172,54 +172,33 @@ void main() {
       }
     }
 
+    void scheduleNotificationTapEvent(
+      WidgetTester tester,
+      Account account,
+      Message message, {
+      bool encrypted = true,
+    }) {
+      final event = switch (defaultTargetPlatform) {
+        TargetPlatform.android => AndroidNotificationTapEvent(
+          dataUrl: notificationUrlForMessage(account, message).toString()),
+        TargetPlatform.iOS => IosNotificationTapEvent(
+          payload: messageApnsPayload(account, message, encrypted: encrypted)),
+        _ => throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"'),
+      };
+
+      // Set up an event to be emitted from
+      // `notificationPigeonApi.notificationTapEventsStream`.
+      testBinding.notificationPigeonApi.addNotificationTapEvent(event);
+    }
+
     Future<void> openNotification(
       WidgetTester tester,
       Account account,
       Message message, {
       bool encrypted = true,
     }) async {
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-          final intentDataUrl = notificationUrlForMessage(account, message);
-          testBinding.notificationPigeonApi.addNotificationTapEvent(
-            AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
-          await tester.idle(); // let navigateForNotification find navigator
-
-        case TargetPlatform.iOS:
-          final payload = messageApnsPayload(account, message, encrypted: encrypted);
-          testBinding.notificationPigeonApi.addNotificationTapEvent(
-            IosNotificationTapEvent(payload: payload));
-          await tester.idle(); // let navigateForNotification find navigator
-
-        default:
-          throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"');
-      }
-    }
-
-    void setupNotificationDataForLaunch(
-      WidgetTester tester,
-      Account account,
-      Message message, {
-      bool encrypted = true,
-    }) {
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-          // Set up an event to be emitted from
-          // `notificationPigeonApi.notificationTapEventsStream`.
-          final intentDataUrl = notificationUrlForMessage(account, message);
-          testBinding.notificationPigeonApi.addNotificationTapEvent(
-            AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
-
-        case TargetPlatform.iOS:
-          // Set up a value to return for
-          // `notificationPigeonApi.getNotificationDataFromLaunch`.
-          final payload = messageApnsPayload(account, message, encrypted: encrypted);
-          testBinding.notificationPigeonApi.setNotificationDataFromLaunch(
-            NotificationDataFromLaunch(payload: payload));
-
-        default:
-          throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"');
-      }
+      scheduleNotificationTapEvent(tester, account, message, encrypted: encrypted);
+      await tester.idle(); // let navigateForNotification find navigator
     }
 
     void takeHomePageReplacement(int accountId) {
@@ -381,7 +360,7 @@ void main() {
       addTearDown(testBinding.reset);
       final account = eg.selfAccount;
       final message = eg.streamMessage();
-      setupNotificationDataForLaunch(tester, account, message);
+      scheduleNotificationTapEvent(tester, account, message);
 
       // Now start the app.
       await testBinding.globalStore.add(account, eg.initialSnapshot());
@@ -398,7 +377,7 @@ void main() {
       addTearDown(testBinding.reset);
       final account = eg.selfAccount;
       final message = eg.streamMessage();
-      setupNotificationDataForLaunch(tester, account, message, encrypted: false);
+      scheduleNotificationTapEvent(tester, account, message, encrypted: false);
 
       // Now start the app.
       await testBinding.globalStore.add(account, eg.initialSnapshot());
@@ -420,7 +399,7 @@ void main() {
       await testBinding.globalStore.add(accountA, eg.initialSnapshot());
       await testBinding.globalStore.add(accountB, eg.initialSnapshot(
         realmUsers: [eg.otherUser]));
-      setupNotificationDataForLaunch(tester, accountB, message);
+      scheduleNotificationTapEvent(tester, accountB, message);
 
       await prepare(tester, early: true);
       check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
@@ -558,20 +537,14 @@ void main() {
           accountB, eg.initialSnapshot(realmUsers: [eg.otherUser]),
           markLastVisited: false);
         check(testBinding.globalStore).lastVisitedAccount.equals(accountA);
-        setupNotificationDataForLaunch(tester, accountB, message);
+        scheduleNotificationTapEvent(tester, accountB, message);
 
         await prepare(tester, early: true);
         check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
         await tester.pump();
-        if (defaultTargetPlatform == TargetPlatform.android) {
-          takeHomePageRouteForAccount(accountA.id); // initial account on launch
-          takeHomePageReplacement(accountB.id); // replaced by associated account
-        } else {
-          // On iOS, associated account is determined early while generating
-          // initial routes. See `_ZulipAppState._handleGenerateInitialRoutes`.
-          takeHomePageRouteForAccount(accountB.id);
-        }
+        takeHomePageRouteForAccount(accountA.id); // initial account on launch
+        takeHomePageReplacement(accountB.id); // replaced by associated account
         matchesNavigation(check(pushedRoutes).single, accountB, message);
         check(testBinding.globalStore).lastVisitedAccount.equals(accountB);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
