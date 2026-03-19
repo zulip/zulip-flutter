@@ -19,12 +19,6 @@ import Flutter
 
     IosNativeHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: IosNativeHostApiImpl())
 
-    // Retrieve the remote notification payload from launch options;
-    // this will be null if the launch wasn't triggered by a notification.
-    let notificationPayload = launchOptions?[.remoteNotification] as? [AnyHashable : Any]
-    let api = NotificationHostApiImpl(notificationPayload.map { NotificationDataFromLaunch(payload: $0) })
-    NotificationHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: api)
-
     notificationTapEventListener = NotificationTapEventListener()
     NotificationTapEventsStreamHandler.register(with: controller.binaryMessenger, streamHandler: notificationTapEventListener!)
 
@@ -43,18 +37,6 @@ import Flutter
       notificationTapEventListener!.onNotificationTapEvent(payload: userInfo)
     }
     completionHandler()
-  }
-}
-
-private class NotificationHostApiImpl: NotificationHostApi {
-  private let maybeDataFromLaunch: NotificationDataFromLaunch?
-
-  init(_ maybeDataFromLaunch: NotificationDataFromLaunch?) {
-    self.maybeDataFromLaunch = maybeDataFromLaunch
-  }
-
-  func getNotificationDataFromLaunch() -> NotificationDataFromLaunch? {
-    maybeDataFromLaunch
   }
 }
 

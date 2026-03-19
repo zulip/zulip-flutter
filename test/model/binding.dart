@@ -897,18 +897,6 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
 }
 
 class FakeNotificationPigeonApi implements NotificationPigeonApi {
-  NotificationDataFromLaunch? _notificationDataFromLaunch;
-
-  /// Populates the notification data for launch to be returned
-  /// by [getNotificationDataFromLaunch].
-  void setNotificationDataFromLaunch(NotificationDataFromLaunch? data) {
-    _notificationDataFromLaunch = data;
-  }
-
-  @override
-  Future<NotificationDataFromLaunch?> getNotificationDataFromLaunch() async =>
-    _notificationDataFromLaunch;
-
   final _notificationTapEventsStreamController =
     StreamController<NotificationTapEvent>();
 
