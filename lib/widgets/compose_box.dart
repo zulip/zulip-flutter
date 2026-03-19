@@ -155,12 +155,19 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController({super.text, required super.store}) {
+  ComposeTopicController({
+    super.text,
+    required super.store,
+    required this.channelId,
+  }) {
     _update();
   }
 
-  // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
-  bool get mandatory => store.realmMandatoryTopics;
+  final int channelId;
+
+  // TODO(#668): listen to [PerAccountStore] once we subscribe to topic policies.
+  bool get mandatory => store.effectiveTopicsPolicy(channelId)
+    == ChannelTopicsPolicy.disableEmptyTopic;
 
   @override int get maxLengthUnicodeCodePoints => store.maxTopicLength;
 
@@ -826,7 +833,7 @@ class _TopicInputState extends State<_TopicInput> {
     TextStyle hintStyle = topicTextStyle.copyWith(
       color: designVariables.textInput.withFadedAlpha(0.5));
 
-    if (store.realmMandatoryTopics) {
+    if (widget.controller.topic.mandatory) {
       // Something short and not distracting.
       hintText = zulipLocalizations.composeBoxTopicHintText;
     } else {
@@ -1697,8 +1704,8 @@ enum ComposeTopicInteractionStatus {
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  StreamComposeBoxController({required super.store})
-    : topic = ComposeTopicController(store: store);
+  StreamComposeBoxController({required super.store, required int channelId})
+    : topic = ComposeTopicController(store: store, channelId: channelId);
 
   final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
@@ -2225,8 +2232,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   void _setNewController(PerAccountStore store) {
     _controller?.dispose(); // `?.` because this might be the first call
     switch (widget.narrow) {
-      case ChannelNarrow():
-        _controller = StreamComposeBoxController(store: store);
+      case ChannelNarrow(:final channelId):
+        _controller = StreamComposeBoxController(store: store, channelId: channelId);
       case TopicNarrow():
       case DmNarrow():
         _controller = FixedDestinationComposeBoxController(store: store);

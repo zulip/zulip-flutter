@@ -812,6 +812,14 @@ enum ChannelTopicsPolicy {
   emptyTopicOnly,
   unknown;
 
+  /// The [ChannelTopicsPolicy] corresponding to the given [RealmTopicsPolicy].
+  static ChannelTopicsPolicy forRealmPolicy(RealmTopicsPolicy realmPolicy) =>
+    switch (realmPolicy) {
+      .allowEmptyTopic   => .allowEmptyTopic,
+      .disableEmptyTopic => .disableEmptyTopic,
+      .unknown           => .unknown,
+    };
+
   static ChannelTopicsPolicy fromApiValue(String value) => _byApiValue[value] ?? unknown;
 
   static final _byApiValue = _$ChannelTopicsPolicyEnumMap
