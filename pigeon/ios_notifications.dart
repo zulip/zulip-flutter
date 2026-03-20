@@ -22,6 +22,7 @@ class ImprovedNotificationContent {
   const ImprovedNotificationContent({
     required this.title,
     required this.body,
+    required this.userInfo,
   });
 
   /// The new title to use for the notification.
@@ -29,6 +30,8 @@ class ImprovedNotificationContent {
 
   /// The new body to use for the notification.
   final String body;
+
+  final Map<Object?, Object?> userInfo;
 }
 
 /// Exposes an API from Dart code which can be called from Swift code.

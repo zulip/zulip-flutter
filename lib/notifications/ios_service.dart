@@ -1,10 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../api/core.dart';
+import '../api/notifications.dart';
 import '../host/ios_notifications.g.dart';
 import '../model/binding.dart';
+import '../model/localizations.dart';
+import '../model/push_key.dart';
+import 'display.dart';
 
 import '../log.dart';
 
@@ -45,27 +48,72 @@ abstract class IosNotificationService {
 
 class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
   @override
-  Future<ImprovedNotificationContent> didReceivePushNotification(NotificationContent content) async {
-    assert(debugLog("_IosNotifFlutterApiImpl.didReceivePushNotification"));
-    assert(debugLog("content.payload=${jsonEncode(content.payload)}"));
+  Future<ImprovedNotificationContent> didReceivePushNotification(NotificationContent notifContent) async {
+    try {
+      return await _didReceivePushNotification(notifContent);
+    } catch (e, st) {
+      assert(debugLog("$e\n$st"));
+      rethrow;
+    }
+  }
 
-    final apsData = content.payload['aps'] as Map<Object?, Object?>;
-    final alertData = apsData['alert'] as Map<Object?, Object?>;
-    final title = alertData['title'] as String;
-    final body = alertData['body'] as String;
+  Future<ImprovedNotificationContent> _didReceivePushNotification(NotificationContent notifContent) async {
+    final parsed = EncryptedApnsPayload.fromJson(notifContent.payload.cast());
 
-    // This doesn't ultimately have any effect: it returns the same
-    // title and body that the notification already had, so nothing changes.
-    // Moreover this code doesn't run in the first place when talking to a
-    // normal Zulip server, because the non-E2EE APNs payloads
-    // don't contain the flag `'mutable-content': 1` and so
-    // don't trigger the NotificationService app extension.
-    //
-    // The purpose of this code is to be a checkpoint on the way to supporting
-    // E2EE notifications (#1764) and more generally client-side control over
-    // notification behavior (#1265).  It can be manually tested with
-    // a server-side edit to set the `mutable-content` flag, plus other steps:
-    //   https://github.com/zulip/zulip-flutter/pull/2156#pullrequestreview-4085925962
-    return ImprovedNotificationContent(title: title, body: body);
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final pushKey = globalStore.pushKeys.getPushKeyById(parsed.pushKeyId);
+    if (pushKey == null) {
+      // Not a key we have; nothing we can do with this notification-message.
+      // This can happen if it's addressed to an account that's been logged out.
+      // (On logout we try to unregister the device, but that can fail if the
+      // device isn't able to reach the server at that time.)
+      throw Exception(); // TODO(log)
+    }
+    final account = globalStore.getAccount(pushKey.accountId)!;
+
+    final plaintext = await PushKeyStore.decryptNotification(
+      pushKey.pushKey, parsed.encryptedData);
+    final rawData = jsonUtf8Decoder.convert(plaintext) as Map<String, dynamic>;
+    final data = NotifMessage.fromJson(rawData);
+    switch (data) {
+      case NotifMessageWithIdentity(): break;
+      case UnexpectedNotifMessage(): throw Exception(); // TODO(log)
+    }
+
+    if (!(account.realmUrl.origin == data.realmUrl.origin
+          && account.userId == data.userId)) {
+      throw Exception("bad notif payload: realm/userId fails to match push key");
+    }
+
+    return _onFcmMessage(data, notifContent);
+  }
+
+  Future<ImprovedNotificationContent> _onFcmMessage(
+    NotifMessageWithIdentity data,
+    NotificationContent notifContent,
+  ) async {
+    return switch (data) {
+      MessageNotifMessage() => _onMessageFcmMessage(data, notifContent),
+      RemoveNotifMessage() => throw Exception(), // TODO(log)
+    };
+  }
+
+  Future<ImprovedNotificationContent> _onMessageFcmMessage(
+    MessageNotifMessage data,
+    NotificationContent notifContent,
+  ) async {
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+    final title =
+      NotificationDisplayManager.titleForNotifMessage(data, zulipLocalizations);
+    final notificationUrl =
+      NotificationDisplayManager.notificationUrlForNotifMessage(data);
+
+    return ImprovedNotificationContent(
+      title: title,
+      body: data.content,
+      userInfo: {
+        ...notifContent.payload,
+        'notification_url': notificationUrl.toString(),
+      });
   }
 }
