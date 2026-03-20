@@ -595,10 +595,15 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
                 aspectRatio: _controller!.value.aspectRatio,
                 child: VideoPlayer(_controller!)),
             if (_controller == null || !_controller!.value.isInitialized || _controller!.value.isBuffering)
-              const SizedBox(
+              SizedBox(
                 width: 32,
                 height: 32,
-                child: CircularProgressIndicator(color: Colors.white)),
+                child: Semantics(
+                  label: 'Loading video',
+                  textDirection: TextDirection.ltr,
+                  container: true,
+                  liveRegion: true,
+                  child: CircularProgressIndicator(color: Colors.white))),
             ]))));
   }
 }
