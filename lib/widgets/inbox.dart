@@ -31,11 +31,15 @@ abstract class InboxPageState extends State<InboxPageBody> {
 
   void collapseStream(int streamId);
   void uncollapseStream(int streamId);
+
+  bool isFolderCollapsed(UiChannelFolder folder);
+  void toggleFolder(UiChannelFolder folder);
 }
 
 class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> implements InboxPageState{
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
+  final Set<UiChannelFolder> _collapsedFolders = {};
 
   @override
   bool get allDmsCollapsed => _allDmsCollapsed;
@@ -59,6 +63,22 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
   void uncollapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.remove(streamId);
+    });
+  }
+
+  @override
+  bool isFolderCollapsed(UiChannelFolder folder) {
+    return _collapsedFolders.contains(folder);
+  }
+
+  @override
+  void toggleFolder(UiChannelFolder folder) {
+    setState(() {
+      if (_collapsedFolders.contains(folder)) {
+        _collapsedFolders.remove(folder);
+      } else {
+        _collapsedFolders.add(folder);
+      }
     });
   }
 
@@ -121,7 +141,8 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     }
     if (dmItems.isNotEmpty) {
       items.add(_InboxListItemFolderHeader(
-        label: zulipLocalizations.recentDmConversationsSectionHeader));
+        label: zulipLocalizations.recentDmConversationsSectionHeader,
+        folder: null));
       items.addAll(dmItems);
     }
 
@@ -178,7 +199,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
     for (final folder in sortedFolders) {
       items.add(_InboxListItemFolderHeader(
-        label: folder.name(store: store, zulipLocalizations: zulipLocalizations)));
+        label: folder.name(store: store, zulipLocalizations: zulipLocalizations), folder: folder));
       final channelSections = channelSectionsByFolder[folder]!;
       channelSections.sort((a, b) {
         final subA = subscriptions[a.streamId]!;
@@ -203,10 +224,33 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
           final item = items[index];
           switch (item) {
             case _InboxListItemFolderHeader():
-              return InboxFolderHeaderItem(label: item.label);
+              final isCollapsed = item.folder != null
+                  ? isFolderCollapsed(item.folder!)
+                  : allDmsCollapsed;
+              return InboxFolderHeaderItem(
+                label: item.label,
+                collapsed: isCollapsed,
+                onTap: () {
+                  if (item.folder != null) {
+                    toggleFolder(item.folder!);
+                  } else {
+                    allDmsCollapsed = !allDmsCollapsed;
+                  }
+                },
+
+              );
+            // case _InboxListItemDmConversation(:final narrow, :final count, :final hasMention):
+            //   return InboxDmItem(narrow: narrow, count: count, hasMention: hasMention);
+            // case _InboxListItemChannelSection(:var streamId):
+            //   final collapsed = collapsedStreamIds.contains(streamId);
+            //   return _StreamSection(data: item, collapsed: collapsed, pageState: this);
+
             case _InboxListItemDmConversation(:final narrow, :final count, :final hasMention):
+              if (allDmsCollapsed) return const SizedBox.shrink();
               return InboxDmItem(narrow: narrow, count: count, hasMention: hasMention);
             case _InboxListItemChannelSection(:var streamId):
+              final folder = store.uiChannelFolder(streamId);
+              if (isFolderCollapsed(folder)) return const SizedBox.shrink();
               final collapsed = collapsedStreamIds.contains(streamId);
               return _StreamSection(data: item, collapsed: collapsed, pageState: this);
           }
@@ -219,10 +263,11 @@ sealed class _InboxListItem {
 }
 
 class _InboxListItemFolderHeader extends _InboxListItem {
-  const _InboxListItemFolderHeader({required this.label});
+  const _InboxListItemFolderHeader({required this.label, this.folder});
 
   /// The label for this folder, not yet uppercased.
   final String label;
+  final UiChannelFolder? folder;
 
   // TODO count, hasMention
 }
@@ -268,36 +313,90 @@ class InboxChannelSectionTopicData {
   });
 }
 
+// @visibleForTesting
+// class InboxFolderHeaderItem extends StatelessWidget {
+//   const InboxFolderHeaderItem({super.key, required this.label});
+//
+//   /// The label for this folder header, not yet uppercased.
+//   ///
+//   /// The implementation will call [String.toUpperCase] on this.
+//   final String label;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final designVariables = DesignVariables.of(context);
+//     Widget result = ColoredBox(
+//       color: designVariables.background, // TODO(design) check if this is the right variable
+//       child: Padding(
+//         padding: EdgeInsetsDirectional.fromSTEB(14, 8, 12, 8),
+//         child: Row(crossAxisAlignment: CrossAxisAlignment.center, spacing: 8, children: [
+//           Expanded(
+//             child: Text(
+//               style: TextStyle(
+//                 color: designVariables.folderText,
+//                 fontSize: 16,
+//                 height: 20 / 16,
+//                 letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
+//               ).merge(weightVariableTextStyle(context, wght: 600)),
+//               label.toUpperCase())),
+//         ])));
+//
+//     return Semantics(container: true,
+//       child: result);
+//   }
+// }
+
 @visibleForTesting
 class InboxFolderHeaderItem extends StatelessWidget {
-  const InboxFolderHeaderItem({super.key, required this.label});
+  const InboxFolderHeaderItem({
+    super.key,
+    required this.label,
+    required this.collapsed,
+    required this.onTap,
 
-  /// The label for this folder header, not yet uppercased.
-  ///
-  /// The implementation will call [String.toUpperCase] on this.
+  });
+
   final String label;
+  final bool collapsed;
+  final VoidCallback onTap;
+
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    Widget result = ColoredBox(
-      color: designVariables.background, // TODO(design) check if this is the right variable
-      child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(14, 8, 12, 8),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, spacing: 8, children: [
-          Expanded(
-            child: Text(
-              style: TextStyle(
-                color: designVariables.folderText,
-                fontSize: 16,
-                height: 20 / 16,
-                letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
-              ).merge(weightVariableTextStyle(context, wght: 600)),
-              label.toUpperCase())),
-        ])));
+    Widget result = Material(
+      color: designVariables.background,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(14, 8, 12, 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            spacing: 4,
+            children: [
+              Text(
+                style: TextStyle(
+                  color: designVariables.folderText,
+                  fontSize: 16,
+                  height: 20 / 16,
+                  letterSpacing: proportionalLetterSpacing(
+                      context, 0.02, baseFontSize: 16),
+                ).merge(weightVariableTextStyle(context, wght: 600)),
+                label.toUpperCase(),
+              ),
+              Icon(
+                size: 20,
+                color: designVariables.sectionCollapseIcon,
+                collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
 
-    return Semantics(container: true,
-      child: result);
+    return Semantics(container: true, child: result);
   }
 }
 
@@ -428,28 +527,42 @@ class InboxChannelHeaderItem extends StatelessWidget {
         onTap: _onCollapseButtonTap,
         onLongPress: _onLongPress,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsets.all(10),
-            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
-              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
-          Icon(size: 18,
-            color: collapsed
-              ? swatch.iconOnPlainBackground
-              : swatch.iconOnBarBackground,
-            iconDataForStream(subscription)),
-          const SizedBox(width: 5),
+          Padding(
+            padding: const EdgeInsets.only(left: 10.0, top: 10.0, bottom: 10.0),
+            child: Icon(size: 18,
+              color: collapsed
+                ? swatch.iconOnPlainBackground
+                : swatch.iconOnBarBackground,
+              iconDataForStream(subscription)),
+          ),
+          const SizedBox(width: 8),
           Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              subscription.name))),
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 4,
+                children: [
+                  Flexible(child: Text(
+                      style: TextStyle(
+                        fontSize: 17,
+                        height: (20 / 17),
+                        color: designVariables.labelMenuButton,
+                      ).merge(weightVariableTextStyle(context, wght: 600)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      subscription.name)),
+                  Icon(
+                    size: 18,
+                    color: collapsed
+                        ? swatch.iconOnPlainBackground
+                        : swatch.iconOnBarBackground,
+                    collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down,
+                  ),
+                ],
+              ))
+          ),
           const SizedBox(width: 12),
+
           if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
           Padding(padding: const EdgeInsetsDirectional.only(end: 16),
             child: CounterBadge(
@@ -457,7 +570,8 @@ class InboxChannelHeaderItem extends StatelessWidget {
               kind: CounterBadgeKind.unread,
               channelIdForBackground: subscription.streamId,
               count: count)),
-        ])));
+        ])
+      ));
 
     return Semantics(container: true,
       child: result);
