@@ -270,7 +270,6 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
               label: 'Loading app',
               textDirection: TextDirection.ltr,
               container: true,
-              liveRegion: true,
               child: const CircularProgressIndicator(),
             ),
             Visibility(
