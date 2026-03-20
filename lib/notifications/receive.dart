@@ -240,10 +240,10 @@ class NotificationService {
     final plaintext = await PushKeyStore.decryptNotification(
       pushKey.pushKey, parsed.encryptedData);
     final rawData = jsonUtf8Decoder.convert(plaintext) as Map<String, dynamic>;
-    final data = FcmMessage.fromJson(rawData);
+    final data = NotifMessage.fromJson(rawData);
     switch (data) {
-      case FcmMessageWithIdentity(): break;
-      case UnexpectedFcmMessage(): return; // TODO(log)
+      case NotifMessageWithIdentity(): break;
+      case UnexpectedNotifMessage(): return; // TODO(log)
     }
 
     if (!(account.realmUrl.origin == data.realmUrl.origin
@@ -251,14 +251,14 @@ class NotificationService {
       throw Exception("bad notif payload: realm/userId fails to match push key");
     }
 
-    NotificationDisplayManager.onFcmMessage(data, account);
+    NotificationDisplayManager.onNotifMessage(data, account);
   }
 
   static Future<void> _onPlaintextRemoteMessage(Map<String, dynamic> rawData) async {
-    final data = FcmMessage.fromJson(rawData);
+    final data = NotifMessage.fromJson(rawData);
     switch (data) {
-      case FcmMessageWithIdentity(): break;
-      case UnexpectedFcmMessage(): return; // TODO(log)
+      case NotifMessageWithIdentity(): break;
+      case UnexpectedNotifMessage(): return; // TODO(log)
     }
 
     final globalStore = await ZulipBinding.instance.getGlobalStore();
@@ -284,6 +284,6 @@ class NotificationService {
       return;
     }
 
-    NotificationDisplayManager.onFcmMessage(data, account);
+    NotificationDisplayManager.onNotifMessage(data, account);
   }
 }

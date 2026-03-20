@@ -147,14 +147,14 @@ void main() {
     }
 
     Uri androidNotificationUrlForMessage(Account account, Message message) {
-      final data = messageFcmMessage(message, account: account);
+      final data = messageNotifMessage(message, account: account);
       return NotificationOpenPayload(
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var channelId, :var topic) =>
+        NotifMessageChannelRecipient(:var channelId, :var topic) =>
           TopicNarrow(channelId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
+        NotifMessageDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
       }).buildAndroidNotificationUrl();
     }
