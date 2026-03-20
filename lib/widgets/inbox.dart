@@ -346,6 +346,7 @@ class InboxChannelSectionTopicData {
 //   }
 // }
 
+
 @visibleForTesting
 class InboxFolderHeaderItem extends StatelessWidget {
   const InboxFolderHeaderItem({
