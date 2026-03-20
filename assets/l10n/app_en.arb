@@ -1227,6 +1227,14 @@
   "@inboxEmptyPlaceholderMessage": {
     "description": "Additional centered text on the 'Inbox' page saying that there is no content to show."
   },
+  "pinnedChannelsFolderName": "Pinned channels",
+  "@pinnedChannelsFolderName": {
+    "description": "Label for the channel folder for pinned channels."
+  },
+  "otherChannelsFolderName": "Other channels",
+  "@otherChannelsFolderName": {
+    "description": "Label for the channel folder for other channels."
+  },
   "recentDmConversationsPageTitle": "Direct messages",
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
