@@ -64,6 +64,7 @@ class NotificationService: UNNotificationServiceExtension {
         if let body = improvedNotificationContent.body {
           bestAttemptContent.body = body
         }
+        bestAttemptContent.userInfo = improvedNotificationContent.userInfo as! [AnyHashable : Any]
         contentHandler(bestAttemptContent)
 
       case .failure(let error):

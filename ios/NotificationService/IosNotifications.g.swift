@@ -135,22 +135,26 @@ struct NotificationContent: Hashable {
 struct ImprovedNotificationContent: Hashable {
   var title: String
   var body: String? = nil
+  var userInfo: [AnyHashable?: Any?]
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> ImprovedNotificationContent? {
     let title = pigeonVar_list[0] as! String
     let body: String? = nilOrValue(pigeonVar_list[1])
+    let userInfo = pigeonVar_list[2] as! [AnyHashable?: Any?]
 
     return ImprovedNotificationContent(
       title: title,
-      body: body
+      body: body,
+      userInfo: userInfo
     )
   }
   func toList() -> [Any?] {
     return [
       title,
       body,
+      userInfo,
     ]
   }
   static func == (lhs: ImprovedNotificationContent, rhs: ImprovedNotificationContent) -> Bool {

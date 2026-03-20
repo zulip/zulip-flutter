@@ -19,10 +19,12 @@ class ImprovedNotificationContent {
   const ImprovedNotificationContent({
     required this.title,
     required this.body,
+    required this.userInfo,
   });
 
   final String title;
   final String? body;
+  final Map<Object?, Object?> userInfo;
 }
 
 @FlutterApi()

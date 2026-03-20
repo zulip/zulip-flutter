@@ -13,6 +13,7 @@ Map<String, dynamic> _$PushRegistrationToJson(PushRegistration instance) =>
       'token_kind': instance.tokenKind,
       'token': instance.token,
       'timestamp': instance.timestamp,
+      'ios_app_id': instance.iosAppId,
     };
 
 const _$PushTokenKindEnumMap = {

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
@@ -259,17 +260,7 @@ class NotificationDisplayManager {
     // changed, which is a rare edge case but probably good. The main effect is that
     // group-DM threads (pending #794) get titled with the latest sender, rather than
     // the first.
-    messagingStyle.conversationTitle = switch (data.recipient) {
-      NotifMessageChannelRecipient(:var channelName?, :var topic) =>
-        '#$channelName > ${topic.displayName}',
-      NotifMessageChannelRecipient(:var topic) =>
-        '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
-      NotifMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
-        zulipLocalizations.notifGroupDmConversationLabel(
-          data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
-      NotifMessageDmRecipient() =>
-        data.senderFullName,
-    };
+    messagingStyle.conversationTitle = titleForNotifMessage(data, zulipLocalizations);
 
     messagingStyle.messages.add(MessagingStyleMessage(
       text: data.content,
@@ -279,15 +270,7 @@ class NotificationDisplayManager {
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
-    final intentDataUrl = NotificationOpenPayload(
-      realmUrl: data.realmUrl,
-      userId: data.userId,
-      narrow: switch (data.recipient) {
-        NotifMessageChannelRecipient(:var channelId, :var topic) =>
-          TopicNarrow(channelId, topic),
-        NotifMessageDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildAndroidNotificationUrl();
+    final intentDataUrl = notificationUrlForNotifMessage(data);
 
     await _androidHost.notify(
       id: kNotificationId,
@@ -419,6 +402,32 @@ class NotificationDisplayManager {
       // child notifications are canceled programatically as done above.
       await _androidHost.cancel(tag: groupKey, id: kNotificationId);
     }
+  }
+
+  static String titleForNotifMessage(MessageNotifMessage data, ZulipLocalizations zulipLocalizations) {
+    return switch (data.recipient) {
+      NotifMessageChannelRecipient(:var channelName?, :var topic) =>
+        '#$channelName > ${topic.displayName}',
+      NotifMessageChannelRecipient(:var topic) =>
+        '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
+      NotifMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
+        zulipLocalizations.notifGroupDmConversationLabel(
+          data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
+      NotifMessageDmRecipient() =>
+        data.senderFullName,
+    };
+  }
+
+  static Uri notificationUrlForNotifMessage(MessageNotifMessage data) {
+    return NotificationOpenPayload(
+      realmUrl: data.realmUrl,
+      userId: data.userId,
+      narrow: switch (data.recipient) {
+        NotifMessageChannelRecipient(:var channelId, :var topic) =>
+          TopicNarrow(channelId, topic),
+        NotifMessageDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildNotificationUrl();
   }
 
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
