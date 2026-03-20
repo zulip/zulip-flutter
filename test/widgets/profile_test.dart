@@ -17,7 +17,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/remote_settings.dart';
 import 'package:zulip/widgets/profile.dart';
@@ -109,7 +109,7 @@ void main() {
     await tester.ensureVisible(targetWidget);
     await tester.tap(targetWidget);
     check(pushedRoutes).last.isA<WidgetRoute>().page
-      .isA<MessageListPage>()
+      .isA<MessageListBlockPage>()
       .initNarrow.equals(DmNarrow.withUser(1, selfUserId: eg.selfUser.userId));
   });
 

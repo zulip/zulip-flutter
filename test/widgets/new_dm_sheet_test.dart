@@ -6,7 +6,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app_bar.dart';
-import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/compose_box_block/compose_box_block.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
@@ -429,7 +429,7 @@ void main() {
       await tester.pumpAndSettle();
       check(find.widgetWithText(ZulipAppBar, expectedAppBarTitle)).findsOne();
 
-      check(find.byType(ComposeBox)).findsOne();
+      check(find.byType(ComposeBoxBlock)).findsOne();
     }
 
     testWidgets('navigates to self DM', (tester) async {

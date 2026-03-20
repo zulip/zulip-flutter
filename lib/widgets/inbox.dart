@@ -7,7 +7,7 @@ import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import 'message_list_block/message_list_block.dart';
 import 'page.dart';
 import 'sticky_header.dart';
 import 'store.dart';
@@ -436,7 +436,7 @@ class InboxDmItem extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
+            MessageListBlockPage.buildRoute(context: context, narrow: narrow));
         },
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -576,7 +576,7 @@ class InboxTopicItem extends StatelessWidget {
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
           Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
+            MessageListBlockPage.buildRoute(context: context, narrow: narrow));
         },
         onLongPress: () => showTopicActionSheet(context,
           channelId: streamId,

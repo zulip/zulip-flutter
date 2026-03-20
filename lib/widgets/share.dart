@@ -19,7 +19,7 @@ import 'dialog.dart';
 import 'home.dart';
 import 'icons.dart';
 import 'image.dart';
-import 'message_list.dart';
+import 'message_list_block/message_list_block.dart';
 import 'page.dart';
 import 'recent_dm_conversations.dart';
 import 'store.dart';
@@ -158,11 +158,11 @@ class ShareSheet extends StatelessWidget {
   }
 
   void _handleNarrowSelect(BuildContext context, Narrow narrow) {
-    final messageListPageKey = GlobalKey<MessageListPageState>();
+    final messageListPageKey = GlobalKey<MessageListBlockPageState>();
 
     // Push the message list page, replacing the share page.
     unawaited(Navigator.pushReplacement(context,
-      MessageListPage.buildRoute(
+      MessageListBlockPage.buildRoute(
         context: context,
         key: messageListPageKey,
         narrow: narrow)));

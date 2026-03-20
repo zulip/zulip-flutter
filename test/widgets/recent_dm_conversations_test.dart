@@ -11,7 +11,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
 import 'package:zulip/widgets/new_dm_sheet.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/recent_dm_conversations.dart';
@@ -484,7 +484,7 @@ void main() {
         // no `tester.pump`, to avoid having to mock API response for [MessageListPage]
 
         check(pushedRoutes).last.isA<WidgetRoute>().page
-          .isA<MessageListPage>()
+          .isA<MessageListBlockPage>()
           .initNarrow.equals(expectedNarrow);
       }
 

@@ -16,7 +16,7 @@ import 'button.dart';
 import 'content.dart';
 import 'icons.dart';
 import 'image.dart';
-import 'message_list.dart';
+import 'message_list_block/message_list_block.dart';
 import 'page.dart';
 import 'remote_settings.dart';
 import 'set_status.dart';
@@ -29,8 +29,9 @@ class _TextStyles {
   static const primaryFieldText = TextStyle(fontSize: 20);
 
   static TextStyle customProfileFieldLabel(BuildContext context) =>
-    const TextStyle(fontSize: 15)
-      .merge(weightVariableTextStyle(context, wght: 700));
+      const TextStyle(
+        fontSize: 15,
+      ).merge(weightVariableTextStyle(context, wght: 700));
 
   static const customProfileFieldText = TextStyle(fontSize: 15);
 }
@@ -40,10 +41,16 @@ class ProfilePage extends StatelessWidget {
 
   final int userId;
 
-  static AccountRoute<void> buildRoute({int? accountId, BuildContext? context,
-      required int userId}) {
-    return MaterialAccountWidgetRoute(accountId: accountId, context: context,
-      page: ProfilePage(userId: userId));
+  static AccountRoute<void> buildRoute({
+    int? accountId,
+    BuildContext? context,
+    required int userId,
+  }) {
+    return MaterialAccountWidgetRoute(
+      accountId: accountId,
+      context: context,
+      page: ProfilePage(userId: userId),
+    );
   }
 
   @override
@@ -55,8 +62,9 @@ class ProfilePage extends StatelessWidget {
       return const _ProfileErrorPage();
     }
 
-    final nameStyle = _TextStyles.primaryFieldText
-      .merge(weightVariableTextStyle(context, wght: 700));
+    final nameStyle = _TextStyles.primaryFieldText.merge(
+      weightVariableTextStyle(context, wght: 700),
+    );
 
     final userStatus = store.getUserStatus(userId);
 
@@ -72,70 +80,91 @@ class ProfilePage extends StatelessWidget {
           // we'll show it by the user's name instead.
           showPresence: false,
           replaceIfMuted: false,
-        )),
+        ),
+      ),
       const SizedBox(height: 16),
       Text.rich(
-        TextSpan(children: [
-          PresenceCircle.asWidgetSpan(
-            userId: userId,
-            fontSize: nameStyle.fontSize!,
-            textScaler: MediaQuery.textScalerOf(context),
-          ),
-          // TODO write a test where the user is muted; check this and avatar
-          TextSpan(text: store.userDisplayName(userId, replaceIfMuted: false)),
-          if (userId != store.selfUserId)
-            UserStatusEmoji.asWidgetSpan(
+        TextSpan(
+          children: [
+            PresenceCircle.asWidgetSpan(
               userId: userId,
               fontSize: nameStyle.fontSize!,
               textScaler: MediaQuery.textScalerOf(context),
-              animationMode: ImageAnimationMode.animateConditionally,
             ),
-        ]),
+            // TODO write a test where the user is muted; check this and avatar
+            TextSpan(
+              text: store.userDisplayName(userId, replaceIfMuted: false),
+            ),
+            if (userId != store.selfUserId)
+              UserStatusEmoji.asWidgetSpan(
+                userId: userId,
+                fontSize: nameStyle.fontSize!,
+                textScaler: MediaQuery.textScalerOf(context),
+                animationMode: ImageAnimationMode.animateConditionally,
+              ),
+          ],
+        ),
         textAlign: TextAlign.center,
-        style: nameStyle),
+        style: nameStyle,
+      ),
       if (userId != store.selfUserId && userStatus.text != null)
-        Text(userStatus.text!,
+        Text(
+          userStatus.text!,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18, height: 22 / 18,
-            color: DesignVariables.of(context).userStatusText)),
-      if (!user.isBot)
-        _LastActiveTime(userId: userId),
+          style: TextStyle(
+            fontSize: 18,
+            height: 22 / 18,
+            color: DesignVariables.of(context).userStatusText,
+          ),
+        ),
+      if (!user.isBot) _LastActiveTime(userId: userId),
 
       const SizedBox(height: 8),
       if (displayEmail != null)
-        Text(displayEmail,
+        Text(
+          displayEmail,
           textAlign: TextAlign.center,
-          style: _TextStyles.primaryFieldText),
-      Text(roleToLabel(user.role, zulipLocalizations),
+          style: _TextStyles.primaryFieldText,
+        ),
+      Text(
+        roleToLabel(user.role, zulipLocalizations),
         textAlign: TextAlign.center,
-        style: _TextStyles.primaryFieldText),
+        style: _TextStyles.primaryFieldText,
+      ),
+
       // TODO(#196) render active status
       // TODO(#292) render user local time
-
       if (userId == store.selfUserId) ...[
         const SizedBox(height: 16),
-        MenuButtonsShape(buttons: [
-          _SetStatusButton(),
-          if (!store.realmPresenceDisabled)
-            _InvisibleModeToggle(),
-        ]),
+        MenuButtonsShape(
+          buttons: [
+            _SetStatusButton(),
+            if (!store.realmPresenceDisabled) _InvisibleModeToggle(),
+          ],
+        ),
         const SizedBox(height: 16),
       ],
 
       _ProfileDataTable(profileData: user.profileData),
       const SizedBox(height: 16),
       FilledButton.icon(
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
+        onPressed: () => Navigator.push(
+          context,
+          MessageListBlockPage.buildRoute(
+            context: context,
+            narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId),
+          ),
+        ),
         icon: const Icon(Icons.email),
-        label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
+        label: Text(zulipLocalizations.profileButtonSendDirectMessage),
+      ),
     ];
 
     return Scaffold(
       appBar: ZulipAppBar(
         // TODO write a test where the user is muted
-        title: Text(store.userDisplayName(userId, replaceIfMuted: false))),
+        title: Text(store.userDisplayName(userId, replaceIfMuted: false)),
+      ),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
@@ -144,7 +173,13 @@ class ProfilePage extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: items))))));
+                children: items,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -157,7 +192,8 @@ class _LastActiveTime extends StatefulWidget {
   State<_LastActiveTime> createState() => _LastActiveTimeState();
 }
 
-class _LastActiveTimeState extends State<_LastActiveTime> with PerAccountStoreAwareStateMixin {
+class _LastActiveTimeState extends State<_LastActiveTime>
+    with PerAccountStoreAwareStateMixin {
   Presence? model;
 
   @override
@@ -188,12 +224,14 @@ class _LastActiveTimeState extends State<_LastActiveTime> with PerAccountStoreAw
     // TODO(#293), TODO(#891): auto-rebuild as relative time changes
     final nowDate = ZulipBinding.instance.utcNow();
 
-    final status = model!.presenceStatusForUser(widget.userId,
-      utcNow: nowDate);
+    final status = model!.presenceStatusForUser(widget.userId, utcNow: nowDate);
     switch (status) {
-      case PresenceStatus.active: return zulipLocalizations.userActiveNow;
-      case PresenceStatus.idle:   return zulipLocalizations.userIdle;
-      case null:                  break; // handle below
+      case PresenceStatus.active:
+        return zulipLocalizations.userActiveNow;
+      case PresenceStatus.idle:
+        return zulipLocalizations.userIdle;
+      case null:
+        break; // handle below
     }
 
     final timestamp = model!.userLastActive(widget.userId);
@@ -211,13 +249,19 @@ class _LastActiveTimeState extends State<_LastActiveTime> with PerAccountStoreAw
       return zulipLocalizations.userActiveHoursAgo(ageSeconds ~/ (60 * 60));
     }
 
-    final todayNoon = nowDate.toLocal()
-      .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+    final todayNoon = nowDate.toLocal().copyWith(
+      hour: 12,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+      microsecond: 0,
+    );
     final presenceNoon = DateTime.fromMillisecondsSinceEpoch(
-        timestamp * 1000, isUtc: false)
-      .copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0);
-    final ageCalendarDays = (todayNoon.difference(presenceNoon)
-      .inSeconds / (24 * 60 * 60)).round();
+      timestamp * 1000,
+      isUtc: false,
+    ).copyWith(hour: 12, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+    final ageCalendarDays =
+        (todayNoon.difference(presenceNoon).inSeconds / (24 * 60 * 60)).round();
     if (ageCalendarDays <= 0) {
       // The timestamp was at least 24 hours ago.
       // If it's somehow the same or a future calendar day, then this must be a
@@ -241,10 +285,15 @@ class _LastActiveTimeState extends State<_LastActiveTime> with PerAccountStoreAw
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return Text(_lastActiveText(zulipLocalizations),
+    return Text(
+      _lastActiveText(zulipLocalizations),
       textAlign: TextAlign.center,
-      style: TextStyle(fontSize: 18, height: 22 / 18,
-        color: DesignVariables.of(context).userStatusText));
+      style: TextStyle(
+        fontSize: 18,
+        height: 22 / 18,
+        color: DesignVariables.of(context).userStatusText,
+      ),
+    );
   }
 }
 
@@ -260,25 +309,33 @@ class _SetStatusButton extends StatelessWidget {
     return ZulipMenuItemButton(
       style: ZulipMenuItemButtonStyle.list,
       label: userStatus == UserStatus.zero
-        ? zulipLocalizations.statusButtonLabelStatusUnset
-        : zulipLocalizations.statusButtonLabelStatusSet,
-      subLabel: userStatus == UserStatus.zero ? null : TextSpan(children: [
-        UserStatusEmoji.asWidgetSpan(
-          userId: store.selfUserId,
-          fontSize: 16,
-          textScaler: MediaQuery.textScalerOf(context),
-          position: StatusEmojiPosition.before,
-          animationMode: ImageAnimationMode.animateConditionally,
-        ),
-        userStatus.text == null
-          ? TextSpan(text: zulipLocalizations.noStatusText,
-              style: TextStyle(fontStyle: FontStyle.italic))
-          : TextSpan(text: userStatus.text),
-      ]),
+          ? zulipLocalizations.statusButtonLabelStatusUnset
+          : zulipLocalizations.statusButtonLabelStatusSet,
+      subLabel: userStatus == UserStatus.zero
+          ? null
+          : TextSpan(
+              children: [
+                UserStatusEmoji.asWidgetSpan(
+                  userId: store.selfUserId,
+                  fontSize: 16,
+                  textScaler: MediaQuery.textScalerOf(context),
+                  position: StatusEmojiPosition.before,
+                  animationMode: ImageAnimationMode.animateConditionally,
+                ),
+                userStatus.text == null
+                    ? TextSpan(
+                        text: zulipLocalizations.noStatusText,
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                      )
+                    : TextSpan(text: userStatus.text),
+              ],
+            ),
       icon: ZulipIcons.chevron_right,
       onPressed: () {
-        Navigator.push(context, SetStatusPage.buildRoute(
-          context: context, oldStatus: userStatus));
+        Navigator.push(
+          context,
+          SetStatusPage.buildRoute(context: context, oldStatus: userStatus),
+        );
       },
     );
   }
@@ -296,18 +353,23 @@ class _InvisibleModeToggle extends StatelessWidget {
     // i.e., that presenceEnabled is false.
     return RemoteSettingBuilder<bool>(
       findValueInStore: (store) => !store.userSettings.presenceEnabled,
-      sendValueToServer: (value) => updateSettings(store.connection,
-        newSettings: {UserSettingName.presenceEnabled: !value}),
+      sendValueToServer: (value) => updateSettings(
+        store.connection,
+        newSettings: {UserSettingName.presenceEnabled: !value},
+      ),
       // TODO(#741) interpret API errors for user
       onError: (e, requestedValue) => reportErrorToUserBriefly(
         requestedValue
-          ? zulipLocalizations.turnOnInvisibleModeErrorTitle
-          : zulipLocalizations.turnOffInvisibleModeErrorTitle),
+            ? zulipLocalizations.turnOnInvisibleModeErrorTitle
+            : zulipLocalizations.turnOffInvisibleModeErrorTitle,
+      ),
       builder: (value, handleRequestNewValue) => ZulipMenuItemButton(
         style: ZulipMenuItemButtonStyle.list,
         label: zulipLocalizations.invisibleMode,
         onPressed: () => handleRequestNewValue(!value),
-        toggle: Toggle(value: value, onChanged: handleRequestNewValue)));
+        toggle: Toggle(value: value, onChanged: handleRequestNewValue),
+      ),
+    );
   }
 }
 
@@ -328,7 +390,11 @@ class _ProfileErrorPage extends StatelessWidget {
               const Icon(Icons.error),
               const SizedBox(width: 4),
               Text(zulipLocalizations.errorCouldNotShowUserProfile),
-            ]))));
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -358,7 +424,11 @@ class _ProfileDataTable extends StatelessWidget {
     }
   }
 
-  Widget? _buildCustomProfileFieldValue(BuildContext context, String value, CustomProfileField realmField) {
+  Widget? _buildCustomProfileFieldValue(
+    BuildContext context,
+    String value,
+    CustomProfileField realmField,
+  ) {
     final store = PerAccountStoreWidget.of(context);
 
     switch (realmField.type) {
@@ -366,16 +436,25 @@ class _ProfileDataTable extends StatelessWidget {
         return _LinkWidget(url: value, text: value);
 
       case CustomProfileFieldType.choice:
-        final choiceFieldData = _tryDecode(CustomProfileFieldChoiceDataItem.parseFieldDataChoices, realmField.fieldData);
+        final choiceFieldData = _tryDecode(
+          CustomProfileFieldChoiceDataItem.parseFieldDataChoices,
+          realmField.fieldData,
+        );
         if (choiceFieldData == null) return null;
         final choiceItem = choiceFieldData[value];
         return (choiceItem == null) ? null : _TextWidget(text: choiceItem.text);
 
       case CustomProfileFieldType.externalAccount:
-        final externalAccountFieldData = _tryDecode(CustomProfileFieldExternalAccountData.fromJson, realmField.fieldData);
+        final externalAccountFieldData = _tryDecode(
+          CustomProfileFieldExternalAccountData.fromJson,
+          realmField.fieldData,
+        );
         if (externalAccountFieldData == null) return null;
-        final urlPattern = externalAccountFieldData.urlPattern ??
-          store.realmDefaultExternalAccounts[externalAccountFieldData.subtype]?.urlPattern;
+        final urlPattern =
+            externalAccountFieldData.urlPattern ??
+            store
+                .realmDefaultExternalAccounts[externalAccountFieldData.subtype]
+                ?.urlPattern;
         if (urlPattern == null) return null;
         final url = urlPattern.replaceFirst('%(username)s', value);
         return _LinkWidget(url: url, text: value);
@@ -389,7 +468,10 @@ class _ProfileDataTable extends StatelessWidget {
         }, value);
         if (userIds == null) return null;
         return Column(
-          children: userIds.map((userId) => _UserWidget(userId: userId)).toList());
+          children: userIds
+              .map((userId) => _UserWidget(userId: userId))
+              .toList(),
+        );
 
       case CustomProfileFieldType.date:
         // TODO(server): The value's format is undocumented, but empirically
@@ -420,28 +502,36 @@ class _ProfileDataTable extends StatelessWidget {
     for (final realmField in store.customProfileFields) {
       final profileField = profileData![realmField.id];
       if (profileField == null) continue;
-      final widget = _buildCustomProfileFieldValue(context, profileField.value, realmField);
+      final widget = _buildCustomProfileFieldValue(
+        context,
+        profileField.value,
+        realmField,
+      );
       if (widget == null) continue; // TODO(log)
 
-      items.add(Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: localizedTextBaseline(context),
-        children: [
-          SizedBox(width: 100,
-            child: Text(style: _TextStyles.customProfileFieldLabel(context),
-              realmField.name)),
-          const SizedBox(width: 8),
-          Flexible(child: widget),
-        ]));
+      items.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: localizedTextBaseline(context),
+          children: [
+            SizedBox(
+              width: 100,
+              child: Text(
+                style: _TextStyles.customProfileFieldLabel(context),
+                realmField.name,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(child: widget),
+          ],
+        ),
+      );
       items.add(const SizedBox(height: 8));
     }
 
     if (items.isEmpty) return const SizedBox.shrink();
 
-    return Column(children: [
-      const SizedBox(height: 16),
-      ...items
-    ]);
+    return Column(children: [const SizedBox(height: 16), ...items]);
   }
 }
 
@@ -456,12 +546,14 @@ class _LinkWidget extends StatelessWidget {
     final linkNode = LinkNode(url: url, nodes: [TextNode(text)]);
     final paragraph = DefaultTextStyle(
       style: ContentTheme.of(context).textStylePlainParagraph,
-      child: Paragraph(node: ParagraphNode(nodes: [linkNode], links: [linkNode])));
+      child: Paragraph(
+        node: ParagraphNode(nodes: [linkNode], links: [linkNode]),
+      ),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: paragraph));
+      child: MouseRegion(cursor: SystemMouseCursors.click, child: paragraph),
+    );
   }
 }
 
@@ -474,7 +566,8 @@ class _TextWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Text(text, style: _TextStyles.customProfileFieldText));
+      child: Text(text, style: _TextStyles.customProfileFieldText),
+    );
   }
 }
 
@@ -487,18 +580,26 @@ class _UserWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     return InkWell(
-      onTap: () => Navigator.push(context,
-        ProfilePage.buildRoute(context: context,
-          userId: userId)),
+      onTap: () => Navigator.push(
+        context,
+        ProfilePage.buildRoute(context: context, userId: userId),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Row(children: [
-          // TODO(#196) render active status
-          Avatar(userId: userId, size: 32, borderRadius: 32 / 8),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(store.userDisplayName(userId),
-              style: _TextStyles.customProfileFieldText)),
-        ])));
+        child: Row(
+          children: [
+            // TODO(#196) render active status
+            Avatar(userId: userId, size: 32, borderRadius: 32 / 8),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                store.userDisplayName(userId),
+                style: _TextStyles.customProfileFieldText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

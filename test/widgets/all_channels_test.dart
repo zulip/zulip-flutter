@@ -12,7 +12,7 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/remote_settings.dart';
 import 'package:zulip/widgets/theme.dart';
@@ -230,7 +230,7 @@ void main() {
     await transitionDurationObserver.pumpPastTransition(tester);
 
     check(find.descendant(
-      of: find.byType(MessageListPage),
+      of: find.byType(MessageListBlockPage),
       matching: find.text('some-channel')),
     ).findsOne();
   });

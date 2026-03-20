@@ -9,7 +9,7 @@ import 'action_sheet.dart';
 import 'all_channels.dart';
 import 'button.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import 'message_list_block/message_list_block.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -85,7 +85,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
       onChannelSelect(narrow);
     } else {
       Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
+        MessageListBlockPage.buildRoute(context: context,
           narrow: narrow));
     }
   }

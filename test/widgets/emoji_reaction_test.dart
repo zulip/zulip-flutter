@@ -20,7 +20,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -38,7 +38,7 @@ import 'text_test.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
-  MessageListPage.debugEnableMarkReadOnScroll = false;
+  MessageListBlockPage.debugEnableMarkReadOnScroll = false;
 
   late PerAccountStore store;
   late FakeApiConnection connection;
@@ -422,7 +422,7 @@ void main() {
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-        child: MessageListPage(initNarrow: narrow)));
+        child: MessageListBlockPage(initNarrow: narrow)));
 
       store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
         ServerEmojiData(codeToNames: {
@@ -682,7 +682,7 @@ void main() {
         foundOldest: true, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
         navigatorObservers: [transitionDurationObserver],
-        child: MessageListPage(initNarrow: CombinedFeedNarrow())));
+        child: MessageListBlockPage(initNarrow: CombinedFeedNarrow())));
 
       store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
         ServerEmojiData(codeToNames: {

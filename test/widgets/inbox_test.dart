@@ -12,9 +12,9 @@ import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
 import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/counter_badge.dart';
-import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 
 import '../example_data.dart' as eg;
@@ -672,7 +672,7 @@ void main() {
       await tester.pump();
 
       check(pushedRoutes).single.isA<WidgetRoute>().page
-        .isA<MessageListPage>()
+        .isA<MessageListBlockPage>()
         .initNarrow.equals(KeywordSearchNarrow(''));
     });
   });

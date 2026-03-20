@@ -11,7 +11,7 @@ import 'actions.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import 'message_list_block/message_list_block.dart';
 import 'page.dart';
 import 'remote_settings.dart';
 import 'store.dart';
@@ -32,19 +32,20 @@ class AllChannelsPage extends StatelessWidget {
 
   static AccountRoute<void> buildRoute({required BuildContext context}) {
     return MaterialAccountWidgetRoute(
-      context: context, page: const AllChannelsPage());
+      context: context,
+      page: const AllChannelsPage(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
-      appBar: ZulipAppBar(
-        title: Text(zulipLocalizations.allChannelsPageTitle)),
-      body: AllChannelsPageBody());
+      appBar: ZulipAppBar(title: Text(zulipLocalizations.allChannelsPageTitle)),
+      body: AllChannelsPageBody(),
+    );
   }
 }
-
 
 class AllChannelsPageBody extends StatelessWidget {
   const AllChannelsPageBody({super.key});
@@ -56,7 +57,8 @@ class AllChannelsPageBody extends StatelessWidget {
 
     if (channels.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
-        header: zulipLocalizations.allChannelsEmptyPlaceholderHeader);
+        header: zulipLocalizations.allChannelsEmptyPlaceholderHeader,
+      );
     }
 
     final items = channels.values.toList();
@@ -69,18 +71,27 @@ class AllChannelsPageBody extends StatelessWidget {
         // the bottom inset will be consumed by a different sliver after this one
         removeBottom: true,
         child: SliverSafeArea(
-          minimum: EdgeInsetsDirectional.only(start: 8).resolve(Directionality.of(context)),
+          minimum: EdgeInsetsDirectional.only(
+            start: 8,
+          ).resolve(Directionality.of(context)),
           sliver: SliverList.builder(
             itemCount: items.length,
             itemBuilder: (context, i) =>
-              AllChannelsListEntry(channel: items[i])))));
+                AllChannelsListEntry(channel: items[i]),
+          ),
+        ),
+      ),
+    );
 
-    return CustomScrollView(slivers: [
-      sliverList,
-      SliverSafeArea(
-        // TODO(#1572) "New channel" button
-        sliver: SliverPadding(padding: EdgeInsets.zero)),
-    ]);
+    return CustomScrollView(
+      slivers: [
+        sliverList,
+        SliverSafeArea(
+          // TODO(#1572) "New channel" button
+          sliver: SliverPadding(padding: EdgeInsets.zero),
+        ),
+      ],
+    );
   }
 }
 
@@ -99,29 +110,50 @@ class AllChannelsListEntry extends StatelessWidget {
     final hasContentAccess = store.selfHasContentAccess(channel);
 
     return InkWell(
-      onTap: !hasContentAccess ? null : () => Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
-          narrow: ChannelNarrow(channel.streamId))),
-      onLongPress: () => showChannelActionSheet(context, channelId: channel.streamId),
-      child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
-        child: Padding(padding: const EdgeInsetsDirectional.only(start: 8, end: 12),
-          child: Row(spacing: 6, children: [
-            Icon(
-              size: 20,
-              color: colorSwatchFor(context, subscription).iconOnPlainBackground,
-              iconDataForStream(channel)),
-            Expanded(
-              child: Text(
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: designVariables.textMessage,
-                  fontSize: 17,
-                  height: 20 / 17,
-                ).merge(weightVariableTextStyle(context, wght: 600)),
-                channel.name)),
-            if (hasContentAccess) _SubscribeToggle(channel: channel),
-          ]))));
+      onTap: !hasContentAccess
+          ? null
+          : () => Navigator.push(
+              context,
+              MessageListBlockPage.buildRoute(
+                context: context,
+                narrow: ChannelNarrow(channel.streamId),
+              ),
+            ),
+      onLongPress: () =>
+          showChannelActionSheet(context, channelId: channel.streamId),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(start: 8, end: 12),
+          child: Row(
+            spacing: 6,
+            children: [
+              Icon(
+                size: 20,
+                color: colorSwatchFor(
+                  context,
+                  subscription,
+                ).iconOnPlainBackground,
+                iconDataForStream(channel),
+              ),
+              Expanded(
+                child: Text(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: designVariables.textMessage,
+                    fontSize: 17,
+                    height: 20 / 17,
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  channel.name,
+                ),
+              ),
+              if (hasContentAccess) _SubscribeToggle(channel: channel),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -136,24 +168,30 @@ class _SubscribeToggle extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
 
     return RemoteSettingBuilder<bool>(
-      findValueInStore: (store) => store.subscriptions.containsKey(channel.streamId),
+      findValueInStore: (store) =>
+          store.subscriptions.containsKey(channel.streamId),
       sendValueToServer: (value) async {
         if (value) {
-          await subscribeToChannel(store.connection,
-            subscriptions: [channel.name]);
+          await subscribeToChannel(
+            store.connection,
+            subscriptions: [channel.name],
+          );
         } else {
-          await ZulipAction.unsubscribeFromChannel(context,
+          await ZulipAction.unsubscribeFromChannel(
+            context,
             channelId: channel.streamId,
-            alwaysAsk: false);
+            alwaysAsk: false,
+          );
         }
       },
       // TODO(#741) interpret API errors for user
       onError: (e, requestedValue) => reportErrorToUserBriefly(
         requestedValue
-          ? zulipLocalizations.subscribeFailedTitle
-          : zulipLocalizations.unsubscribeFailedTitle),
-      builder: (value, handleRequestNewValue) => Toggle(
-        value: value,
-        onChanged: handleRequestNewValue));
+            ? zulipLocalizations.subscribeFailedTitle
+            : zulipLocalizations.unsubscribeFailedTitle,
+      ),
+      builder: (value, handleRequestNewValue) =>
+          Toggle(value: value, onChanged: handleRequestNewValue),
+    );
   }
 }

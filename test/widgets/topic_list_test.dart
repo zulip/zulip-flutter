@@ -10,7 +10,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
 import 'package:zulip/widgets/topic_list.dart';
 
 import '../api/fake_api.dart';
@@ -88,7 +88,7 @@ void main() {
       await tester.pump();
       await tester.pump(Duration.zero);
       check(find.descendant(
-        of: find.byType(MessageListPage),
+        of: find.byType(MessageListBlockPage),
         matching: find.text('channel foo')),
       ).findsOne();
     });
@@ -142,7 +142,7 @@ void main() {
       foundOldest: true, messages: []).toJson());
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
-      child: MessageListPage(initNarrow: ChannelNarrow(channel.streamId))));
+      child: MessageListBlockPage(initNarrow: ChannelNarrow(channel.streamId))));
     await tester.pump();
     connection.takeRequests();
 

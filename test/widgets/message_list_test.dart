@@ -29,10 +29,24 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/autocomplete.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/compose_box_block/compose_box_block.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/message_list_block/headers/dm_recipient_header.dart';
+import 'package:zulip/widgets/message_list_block/headers/stream_message_recipient_header.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
+import 'package:zulip/widgets/message_list_block/widgets/buttons/scroll_to_bottom_button.dart';
+import 'package:zulip/widgets/message_list_block/widgets/mark_as_read_widget.dart';
+import 'package:zulip/widgets/message_list_block/widgets/message_list/message/message_item.dart';
+import 'package:zulip/widgets/message_list_block/widgets/message_list/message/common_message/message_with_possible_sender.dart';
+import 'package:zulip/widgets/message_list_block/widgets/message_list/message/outbox_message/outbox_message_with_possible_sender.dart';
+import 'package:zulip/widgets/message_list_block/widgets/message_list/message_list.dart';
+import 'package:zulip/widgets/message_list_block/widgets/message_list_app_bar/message_list_app_bar_title.dart';
+import 'package:zulip/widgets/message_list_block/headers/recipient_header.dart';
+import 'package:zulip/widgets/message_list_block/widgets/sender_row.dart';
+import 'package:zulip/widgets/message_list_block/widgets/typing_status_widget.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/channel_colors.dart';
@@ -55,7 +69,7 @@ import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
-  MessageListPage.debugEnableMarkReadOnScroll = false;
+  MessageListBlockPage.debugEnableMarkReadOnScroll = false;
 
   late PerAccountStore store;
   late FakeApiConnection connection;
@@ -112,7 +126,7 @@ void main() {
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       skipAssertAccountExists: skipAssertAccountExists,
       navigatorObservers: navObservers,
-      child: MessageListPage(initNarrow: narrow)));
+      child: MessageListBlockPage(initNarrow: narrow)));
 
     if (skipPumpAndSettle) return;
     // global store, per-account store, and message list get loaded
@@ -142,16 +156,16 @@ void main() {
     testWidgets('ancestorOf finds page state from message', (tester) async {
       await setupMessageListPage(tester,
         messages: [eg.streamMessage(content: "<p>a message</p>")]);
-      final expectedState = tester.state<State>(find.byType(MessageListPage));
-      check(MessageListPage.ancestorOf(tester.element(find.text("a message"))))
-        .identicalTo(expectedState as MessageListPageState);
+      final expectedState = tester.state<State>(find.byType(MessageListBlockPage));
+      check(MessageListBlockPage.ancestorOf(tester.element(find.text("a message"))))
+        .identicalTo(expectedState as MessageListBlockPageState);
     });
 
     testWidgets('ancestorOf throws when not a descendant of MessageListPage', (tester) async {
       await setupMessageListPage(tester,
         messages: [eg.streamMessage(content: "<p>a message</p>")]);
       final element = tester.element(find.byType(PerAccountStoreWidget));
-      check(() => MessageListPage.ancestorOf(element))
+      check(() => MessageListBlockPage.ancestorOf(element))
         .throws<void>();
     });
 
@@ -160,7 +174,7 @@ void main() {
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
         subscriptions: [eg.subscription(stream)],
         messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
-      final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      final state = MessageListBlockPage.ancestorOf(tester.element(find.text("a message")));
       check(state.narrow).equals(ChannelNarrow(stream.streamId));
     });
 
@@ -176,7 +190,7 @@ void main() {
       await setupMessageListPage(tester, narrow: topicNarrow,
         subscriptions: [eg.subscription(stream)],
         messages: [message]);
-      final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      final state = MessageListBlockPage.ancestorOf(tester.element(find.text("a message")));
       // The page's narrow has been updated; the topic is "", not "general chat".
       check(state.narrow).equals(eg.topicNarrow(stream.streamId, ''));
     });
@@ -186,14 +200,14 @@ void main() {
       await setupMessageListPage(tester, narrow: ChannelNarrow(stream.streamId),
         subscriptions: [eg.subscription(stream)],
         messages: [eg.streamMessage(stream: stream, content: "<p>a message</p>")]);
-      final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      final state = MessageListBlockPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxState).isNotNull();
     });
 
     testWidgets('composeBoxState null when no compose box', (tester) async {
       await setupMessageListPage(tester, narrow: const CombinedFeedNarrow(),
         messages: [eg.streamMessage(content: "<p>a message</p>")]);
-      final state = MessageListPage.ancestorOf(tester.element(find.text("a message")));
+      final state = MessageListBlockPage.ancestorOf(tester.element(find.text("a message")));
       check(state.composeBoxState).isNull();
     });
 
@@ -298,7 +312,7 @@ void main() {
       // Tap button; it works.
       await tester.tap(find.byIcon(ZulipIcons.message_feed));
       check(pushedRoutes).single.isA<WidgetRoute>()
-        .page.isA<MessageListPage>().initNarrow
+        .page.isA<MessageListBlockPage>().initNarrow
           .equals(ChannelNarrow(channel.streamId));
     });
 
@@ -391,7 +405,7 @@ void main() {
       await tester.pump();
 
       check(pushedRoutes).single.isA<WidgetRoute>().page
-        .isA<MessageListPage>()
+        .isA<MessageListBlockPage>()
         .initNarrow.equals(KeywordSearchNarrow(''));
     });
 
@@ -669,7 +683,7 @@ void main() {
 
       // Verify this message list lacks a compose box.
       // (The original bug wouldn't reproduce with a compose box present.)
-      final state = MessageListPage.ancestorOf(tester.element(find.text("verb\natim")));
+      final state = MessageListBlockPage.ancestorOf(tester.element(find.text("verb\natim")));
       check(state.composeBoxState).isNull();
       // Also verify that the first message is in the top sliver.
       check(state.model!.middleMessage).equals(1);
@@ -690,7 +704,7 @@ void main() {
 
       // Verify this message list lacks a compose box.
       // (The original bug wouldn't reproduce with a compose box present.)
-      final state = MessageListPage.ancestorOf(tester.element(find.text("verb\natim")));
+      final state = MessageListBlockPage.ancestorOf(tester.element(find.text("verb\natim")));
       check(state.composeBoxState).isNull();
       // Also verify that the message is in the bottom sliver.
       check(state.model!.middleMessage).equals(0);
@@ -828,7 +842,7 @@ void main() {
       check(itemCount(tester)).equals(301);
 
       // Fling-scroll upward...
-      await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
+      await tester.fling(find.byType(MessageListBlockPage), const Offset(0, 300), 8000);
       await tester.pump();
 
       // ... and we should fetch more messages as we go.
@@ -847,7 +861,7 @@ void main() {
       check(itemCount(tester)).equals(101);
 
       // Fling-scroll upward...
-      await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
+      await tester.fling(find.byType(MessageListBlockPage), const Offset(0, 300), 8000);
       await tester.pump();
 
       // ... and we fetch more messages as we go.
@@ -882,7 +896,7 @@ void main() {
       check(itemCount(tester)).equals(402);
 
       // Fling-scroll upward...
-      await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
+      await tester.fling(find.byType(MessageListBlockPage), const Offset(0, 300), 8000);
       await tester.pump();
 
       // ... in particular past the message with a [CodeBlockNode]...
@@ -1941,7 +1955,7 @@ void main() {
           of: find.byType(StreamMessageRecipientHeader),
           matching: find.text(channel.name)));
         await tester.pump();
-        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListBlockPage>()
           .initNarrow.equals(ChannelNarrow(channel.streamId));
         await tester.pumpAndSettle();
       });
@@ -1967,7 +1981,7 @@ void main() {
           of: find.byType(StreamMessageRecipientHeader),
           matching: find.text('topic name')));
         await tester.pump();
-        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+        check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListBlockPage>()
           .initNarrow.equals(TopicNarrow.ofMessage(message));
         await tester.pumpAndSettle();
       });
@@ -2091,7 +2105,7 @@ void main() {
         foundOldest: true, messages: [dmMessage]).toJson());
       await tester.tap(find.byType(DmRecipientHeader));
       await tester.pump();
-      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListBlockPage>()
         .initNarrow.equals(DmNarrow.withUser(eg.otherUser.userId, selfUserId: eg.selfUser.userId));
       await tester.pumpAndSettle();
     });
@@ -2492,7 +2506,7 @@ void main() {
             final expectedNarrow = SendableNarrow.ofMessage(message, selfUserId: store.selfUserId);
 
             check(lastPushedRoute).isNotNull().isA<MaterialAccountWidgetRoute>()
-              .page.isA<MessageListPage>()
+              .page.isA<MessageListBlockPage>()
                 ..initNarrow.equals(expectedNarrow)
                 ..initAnchorMessageId.equals(message.id);
           } else {
@@ -2559,7 +2573,7 @@ void main() {
     }
 
     Future<void> checkTapRestoreMessage(WidgetTester tester) async {
-      final state = tester.state<ComposeBoxState>(find.byType(ComposeBox));
+      final state = tester.state<ComposeBoxBlockState>(find.byType(ComposeBoxBlock));
       check(store.outboxMessages).values.single;
       check(outboxMessageFinder).findsOne();
       check(messageNotSentFinder).findsOne();
@@ -2795,7 +2809,7 @@ void main() {
       // for prevContentSha256.
       checkEditNotInProgress(tester);
 
-      final state = MessageListPage.ancestorOf(tester.element(find.byType(MessageContent)));
+      final state = MessageListBlockPage.ancestorOf(tester.element(find.byType(MessageContent)));
       check(state.composeBoxState).isNotNull().controller
         .isA<EditMessageComposeBoxController>()
         .content.value.text.equals('bar');
@@ -2954,7 +2968,7 @@ void main() {
       await tester.tapAt(Offset(
         channelNameRect.center.dx, recipientHeaderRect.top + 1));
       await tester.pump();
-      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListBlockPage>()
         .initNarrow.equals(ChannelNarrow(channel.streamId));
       await tester.pumpAndSettle();
 
@@ -2970,7 +2984,7 @@ void main() {
       await tester.tapAt(Offset(
         channelNameRect.center.dx, recipientHeaderRect.bottom - 1));
       await tester.pump();
-      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListBlockPage>()
         .initNarrow.equals(ChannelNarrow(channel.streamId));
       await tester.pumpAndSettle();
     });
@@ -2991,7 +3005,7 @@ void main() {
       await tester.tapAt(Offset(
         topicNameRect.center.dx, recipientHeaderRect.top + 1));
       await tester.pump();
-      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListBlockPage>()
         .initNarrow.equals(TopicNarrow(channel.streamId, message.topic));
       await tester.pumpAndSettle();
 
@@ -3007,7 +3021,7 @@ void main() {
       await tester.tapAt(Offset(
         topicNameRect.center.dx, recipientHeaderRect.bottom - 1));
       await tester.pump();
-      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListBlockPage>()
         .initNarrow.equals(TopicNarrow(channel.streamId, message.topic));
       await tester.pumpAndSettle();
     });

@@ -19,7 +19,7 @@ import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/lightbox.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/text.dart';
 
@@ -1385,7 +1385,7 @@ void main() {
       await tapText(tester, find.text('stream'));
       check(testBinding.takeLaunchUrlCalls()).isEmpty();
       check(pushedRoutes).single.isA<WidgetRoute>()
-        .page.isA<MessageListPage>().initNarrow.equals(const ChannelNarrow(1));
+        .page.isA<MessageListBlockPage>().initNarrow.equals(const ChannelNarrow(1));
     });
 
     // TODO(#1570): test links with /near/ go to the specific message

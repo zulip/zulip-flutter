@@ -26,7 +26,10 @@ import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/compose_box_block/compose_box_block.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
+import 'package:zulip/widgets/message_list_block/widgets/message_list/message/common_message/message_with_possible_sender.dart';
+import 'package:zulip/widgets/message_list_block/widgets/message_list/message/outbox_message/outbox_message_with_possible_sender.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/theme.dart';
@@ -47,11 +50,11 @@ import 'test_app.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
-  MessageListPage.debugEnableMarkReadOnScroll = false;
+  MessageListBlockPage.debugEnableMarkReadOnScroll = false;
 
   late PerAccountStore store;
   late FakeApiConnection connection;
-  late ComposeBoxState state;
+  late ComposeBoxBlockState state;
 
   // Caution: when testing edit-message UI, this will often be stale;
   // read state.controller instead.
@@ -108,11 +111,11 @@ void main() {
       connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
     }
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
-      child: MessageListPage(initNarrow: narrow)));
+      child: MessageListBlockPage(initNarrow: narrow)));
     await tester.pumpAndSettle();
     connection.takeRequests();
 
-    state = tester.state<ComposeBoxState>(find.byType(ComposeBox));
+    state = tester.state<ComposeBoxBlockState>(find.byType(ComposeBoxBlock));
     controller = state.controller;
   }
 
@@ -853,7 +856,7 @@ void main() {
       await tester.pump();
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(MaterialAccountWidgetRoute(
-        accountId: selfAccount.id, page: ComposeBox(narrow: narrow))));
+        accountId: selfAccount.id, page: ComposeBoxBlock(narrow: narrow))));
       await tester.pumpAndSettle();
     }
 
@@ -1376,11 +1379,11 @@ void main() {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
     Finder inputFieldFinder() => find.descendant(
-      of: find.byType(ComposeBox),
+      of: find.byType(ComposeBoxBlock),
       matching: find.byType(TextField));
 
     Finder attachButtonFinder(IconData icon) => find.descendant(
-      of: find.byType(ComposeBox),
+      of: find.byType(ComposeBoxBlock),
       matching: find.widgetWithIcon(IconButton, icon));
 
     void checkComposeBoxParts({required bool areShown}) {
@@ -1592,7 +1595,7 @@ void main() {
           checkBannerWithLabel(isShown: true, canSendMessages
             ? zulipLocalizations.composeBoxBannerLabelUnsubscribed
             : zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend);
-          final model = MessageListPage.ancestorOf(state.context).model!;
+          final model = MessageListBlockPage.ancestorOf(state.context).model!;
           check(model)
             ..fetched.isTrue()..messages.length.equals(100);
 

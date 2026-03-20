@@ -10,7 +10,7 @@ import 'action_sheet.dart';
 import 'app_bar.dart';
 import 'color.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import 'message_list_block/message_list_block.dart';
 import 'page.dart';
 import 'store.dart';
 import 'text.dart';
@@ -48,7 +48,7 @@ class TopicListPage extends StatelessWidget {
             icon: const Icon(ZulipIcons.message_feed),
             tooltip: zulipLocalizations.channelFeedButtonTooltip,
             onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
+              MessageListBlockPage.buildRoute(context: context,
                 narrow: ChannelNarrow(streamId)))),
         ]),
       body: _TopicList(streamId: streamId)));
@@ -260,7 +260,7 @@ class _TopicItem extends StatelessWidget {
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
           Navigator.push(context,
-            MessageListPage.buildRoute(context: context, narrow: narrow));
+            MessageListBlockPage.buildRoute(context: context, narrow: narrow));
         },
         onLongPress: () => showTopicActionSheet(context,
           channelId: streamId,

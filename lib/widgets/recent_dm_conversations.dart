@@ -5,7 +5,7 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'icons.dart';
-import 'message_list.dart';
+import 'message_list_block/message_list_block.dart';
 import 'new_dm_sheet.dart';
 import 'page.dart';
 import 'store.dart';
@@ -73,7 +73,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
       onDmSelect(narrow);
     } else {
       Navigator.push(context,
-        MessageListPage.buildRoute(context: context,
+        MessageListBlockPage.buildRoute(context: context,
           narrow: narrow));
     }
   }
@@ -85,7 +85,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
       onDmSelect(narrow);
     } else {
       Navigator.pushReplacement(context,
-        MessageListPage.buildRoute(context: context,
+        MessageListBlockPage.buildRoute(context: context,
           narrow: narrow));
     }
   }

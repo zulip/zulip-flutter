@@ -15,7 +15,7 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/message_list_block/message_list_block.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/subscription_list.dart';
@@ -195,7 +195,7 @@ void main () {
       await tester.tap(find.byIcon(ZulipIcons.message_feed));
       await tester.pump();
       check(pushedRoutes).single.isA<WidgetRoute>().page
-        .isA<MessageListPage>()
+        .isA<MessageListBlockPage>()
         .initNarrow.equals(const CombinedFeedNarrow());
       await tester.pump(Duration.zero); // message-list fetch
     });
@@ -375,7 +375,7 @@ void main () {
       // When we go back to the home page, the menu sheet should be gone.
       final topBeforePop = topRoute;
       check(topBeforePop).isNotNull().isA<MaterialAccountWidgetRoute>()
-        .page.isA<MessageListPage>().initNarrow.equals(CombinedFeedNarrow());
+        .page.isA<MessageListBlockPage>().initNarrow.equals(CombinedFeedNarrow());
       (await ZulipApp.navigator).pop();
       await tester.pump((topBeforePop as TransitionRoute).reverseTransitionDuration);
 
@@ -414,7 +414,7 @@ void main () {
                               ..['flags'] = ['starred'])
         ]).toJson());
       await tapButtonAndAwaitTransition(tester, findButton);
-      check(find.byType(MessageListPage)).findsOne();
+      check(find.byType(MessageListBlockPage)).findsOne();
       check(find.text('Starred messages')).findsOne();
       debugNetworkImageHttpClientProvider = null;
     });

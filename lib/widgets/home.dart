@@ -15,7 +15,7 @@ import 'icons.dart';
 import 'image.dart';
 import 'inbox.dart';
 import 'inset_shadow.dart';
-import 'message_list.dart';
+import 'message_list_block/message_list_block.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'recent_dm_conversations.dart';
@@ -27,27 +27,26 @@ import 'theme.dart';
 import 'counter_badge.dart';
 import 'user.dart';
 
-enum _HomePageTab {
-  inbox,
-  channels,
-  directMessages,
-}
+enum _HomePageTab { inbox, channels, directMessages }
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   static AccountRoute<void> buildRoute({required int accountId}) {
-    return MaterialAccountWidgetRoute(accountId: accountId,
+    return MaterialAccountWidgetRoute(
+      accountId: accountId,
       loadingPlaceholderPage: _LoadingPlaceholderPage(accountId: accountId),
-      page: const HomePage());
+      page: const HomePage(),
+    );
   }
 
   /// Navigate to [HomePage], ensuring that its route is at the root level.
   static void navigate(BuildContext context, {required int accountId}) {
     final navigator = Navigator.of(context);
     navigator.popUntil((route) => route.isFirst);
-    unawaited(navigator.pushReplacement(
-      HomePage.buildRoute(accountId: accountId)));
+    unawaited(
+      navigator.pushReplacement(HomePage.buildRoute(accountId: accountId)),
+    );
   }
 
   static String contentSemanticsIdentifier = 'home-page-content';
@@ -80,7 +79,7 @@ class _HomePageState extends State<HomePage> {
 
   String get _currentTabTitle {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    switch(_tab.value) {
+    switch (_tab.value) {
       case _HomePageTab.inbox:
         return zulipLocalizations.inboxPageTitle;
       case _HomePageTab.channels:
@@ -91,15 +90,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<Widget>? get _currentTabAppBarActions {
-    switch(_tab.value) {
+    switch (_tab.value) {
       case .inbox:
         return [
           IconButton(
             icon: const Icon(ZulipIcons.search),
             tooltip: ZulipLocalizations.of(context).searchMessagesPageTitle,
-            onPressed: () => Navigator.push(context,
-              MessageListPage.buildRoute(context: context,
-                narrow: KeywordSearchNarrow('')))),
+            onPressed: () => Navigator.push(
+              context,
+              MessageListBlockPage.buildRoute(
+                context: context,
+                narrow: KeywordSearchNarrow(''),
+              ),
+            ),
+          ),
         ];
       case .channels:
       case .directMessages:
@@ -110,19 +114,22 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     const pageBodies = [
-      (_HomePageTab.inbox,          InboxPageBody()),
-      (_HomePageTab.channels,       SubscriptionListPageBody()),
+      (_HomePageTab.inbox, InboxPageBody()),
+      (_HomePageTab.channels, SubscriptionListPageBody()),
       // TODO(#1094): Users
       (_HomePageTab.directMessages, RecentDmConversationsPageBody()),
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(titleSpacing: 16,
+      appBar: ZulipAppBar(
+        titleSpacing: 16,
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
-          child: Text(_currentTabTitle)),
-        actions: _currentTabAppBarActions),
+          child: Text(_currentTabTitle),
+        ),
+        actions: _currentTabAppBarActions,
+      ),
       body: Semantics(
         role: SemanticsRole.tabPanel,
         identifier: HomePage.contentSemanticsIdentifier,
@@ -132,8 +139,11 @@ class _HomePageState extends State<HomePage> {
           children: [
             for (final (tab, body) in pageBodies)
               Offstage(offstage: tab != _tab.value, child: body),
-          ])),
-      bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
+          ],
+        ),
+      ),
+      bottomNavigationBar: _BottomNavBar(tabNotifier: _tab),
+    );
   }
 }
 
@@ -147,12 +157,14 @@ class _BottomNavBar extends StatelessWidget {
     required IconData icon,
     required String label,
   }) {
-    return _NavigationBarButton(icon: icon,
+    return _NavigationBarButton(
+      icon: icon,
       label: label,
       selected: tabNotifier.value == tab,
       onPressed: () {
         tabNotifier.value = tab;
-      });
+      },
+    );
   }
 
   @override
@@ -162,32 +174,47 @@ class _BottomNavBar extends StatelessWidget {
 
     // TODO(a11y): add tooltips for these buttons
     final navigationBarButtons = [
-      _button(tab: _HomePageTab.inbox,
+      _button(
+        tab: _HomePageTab.inbox,
         icon: ZulipIcons.inbox,
-        label: zulipLocalizations.inboxPageTitle),
-      _NavigationBarButton(icon: ZulipIcons.message_feed,
+        label: zulipLocalizations.inboxPageTitle,
+      ),
+      _NavigationBarButton(
+        icon: ZulipIcons.message_feed,
         label: zulipLocalizations.navBarFeedLabel,
         selected: false,
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: const CombinedFeedNarrow()))),
-      _button(tab: _HomePageTab.channels,
+        onPressed: () => Navigator.push(
+          context,
+          MessageListBlockPage.buildRoute(
+            context: context,
+            narrow: const CombinedFeedNarrow(),
+          ),
+        ),
+      ),
+      _button(
+        tab: _HomePageTab.channels,
         icon: ZulipIcons.hash_italic,
-        label: zulipLocalizations.channelsPageTitle),
+        label: zulipLocalizations.channelsPageTitle,
+      ),
       // TODO(#1094): Users
-      _button(tab: _HomePageTab.directMessages,
+      _button(
+        tab: _HomePageTab.directMessages,
         icon: ZulipIcons.two_person,
-        label: zulipLocalizations.recentDmConversationsPageShortLabel),
-      _NavigationBarButton(icon: ZulipIcons.menu,
+        label: zulipLocalizations.recentDmConversationsPageShortLabel,
+      ),
+      _NavigationBarButton(
+        icon: ZulipIcons.menu,
         label: zulipLocalizations.navBarMenuLabel,
         selected: false,
-        onPressed: () => _showMainMenu(context, tabNotifier: tabNotifier)),
+        onPressed: () => _showMainMenu(context, tabNotifier: tabNotifier),
+      ),
     ];
 
     Widget result = DecoratedBox(
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: designVariables.borderBar)),
-        color: designVariables.bgBotBar),
+        color: designVariables.bgBotBar,
+      ),
       child: SafeArea(
         child: Center(
           heightFactor: 1,
@@ -199,13 +226,19 @@ class _BottomNavBar extends StatelessWidget {
               children: [
                 for (final navigationBarButton in navigationBarButtons)
                   Expanded(child: navigationBarButton),
-              ])))));
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
 
     result = Semantics(
       container: true,
       explicitChildNodes: true,
       role: SemanticsRole.tabBar,
-      child: result);
+      child: result,
+    );
 
     return result;
   }
@@ -224,7 +257,8 @@ class _LoadingPlaceholderPage extends StatefulWidget {
   final int accountId;
 
   @override
-  State<_LoadingPlaceholderPage> createState() => _LoadingPlaceholderPageState();
+  State<_LoadingPlaceholderPage> createState() =>
+      _LoadingPlaceholderPageState();
 }
 
 class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
@@ -255,9 +289,7 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
     if (account == null) {
       // We should only reach this state very briefly.
       // See [_LoadingPlaceholderPage.accountId].
-      return Scaffold(
-        appBar: AppBar(),
-        body: const SizedBox.shrink());
+      return Scaffold(appBar: AppBar(), body: const SizedBox.shrink());
     }
 
     return Scaffold(
@@ -277,15 +309,28 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 16),
-                    Text(textAlign: TextAlign.center,
-                      zulipLocalizations.tryAnotherAccountMessage(account.realmUrl.toString())),
+                    Text(
+                      textAlign: TextAlign.center,
+                      zulipLocalizations.tryAnotherAccountMessage(
+                        account.realmUrl.toString(),
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     ElevatedButton(
-                      onPressed: () => Navigator.push(context,
-                        MaterialWidgetRoute(page: const ChooseAccountPage())),
-                      child: Text(zulipLocalizations.tryAnotherAccountButton)),
-                  ]))),
-          ])));
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialWidgetRoute(page: const ChooseAccountPage()),
+                      ),
+                      child: Text(zulipLocalizations.tryAnotherAccountButton),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -305,7 +350,9 @@ class _NavigationBarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final color = selected ? designVariables.iconSelected : designVariables.icon;
+    final color = selected
+        ? designVariables.iconSelected
+        : designVariables.icon;
 
     Widget result = AnimatedScaleOnPress(
       scaleEnd: 0.875,
@@ -331,10 +378,23 @@ class _NavigationBarButton extends StatelessWidget {
                 Flexible(
                   child: Text(
                     label,
-                    style: TextStyle(fontSize: 12, color: color, height: 12 / 12),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: color,
+                      height: 12 / 12,
+                    ),
                     textAlign: TextAlign.center,
-                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5))),
-              ])))));
+                    textScaler: MediaQuery.textScalerOf(
+                      context,
+                    ).clamp(maxScaleFactor: 1.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
 
     result = MergeSemantics(
       child: Semantics(
@@ -345,13 +405,16 @@ class _NavigationBarButton extends StatelessWidget {
         },
         selected: selected,
         onTap: onPressed,
-        child: result));
+        child: result,
+      ),
+    );
 
     return result;
   }
 }
 
-void _showMainMenu(BuildContext context, {
+void _showMainMenu(
+  BuildContext context, {
   required ValueNotifier<_HomePageTab> tabNotifier,
 }) {
   final designVariables = DesignVariables.of(context);
@@ -372,8 +435,10 @@ void _showMainMenu(BuildContext context, {
     builder: (BuildContext _) {
       return PerAccountStoreWidget(
         accountId: accountId,
-        child: _MainMenu(tabNotifier: tabNotifier));
-    });
+        child: _MainMenu(tabNotifier: tabNotifier),
+      );
+    },
+  );
 }
 
 /// The main-menu sheet.
@@ -381,9 +446,7 @@ void _showMainMenu(BuildContext context, {
 /// Figma link:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=143-10939&t=s7AS3nEgNgjyqHck-4
 class _MainMenu extends StatelessWidget {
-  const _MainMenu({
-    required this.tabNotifier,
-  });
+  const _MainMenu({required this.tabNotifier});
 
   final ValueNotifier<_HomePageTab> tabNotifier;
 
@@ -420,20 +483,30 @@ class _MainMenu extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _MainMenuHeader(),
-          Flexible(child: InsetShadowBox(
-            top: 8, bottom: 8,
-            color: designVariables.bgBotBar,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-              child: Column(children: menuItems)))),
+          Flexible(
+            child: InsetShadowBox(
+              top: 8,
+              bottom: 8,
+              color: designVariables.bgBotBar,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                child: Column(children: menuItems),
+              ),
+            ),
+          ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: AnimatedScaleOnPress(
               scaleEnd: 0.95,
               duration: Duration(milliseconds: 100),
               child: BottomSheetDismissButton(
-                style: BottomSheetDismissButtonStyle.close))),
-        ]));
+                style: BottomSheetDismissButtonStyle.close,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -455,8 +528,10 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
 
   void _handleSwitchAccount(BuildContext context) {
     Navigator.pop(context); // Close the main menu.
-    Navigator.push(context,
-      MaterialWidgetRoute(page: const ChooseAccountPage()));
+    Navigator.push(
+      context,
+      MaterialWidgetRoute(page: const ChooseAccountPage()),
+    );
   }
 
   @override
@@ -478,29 +553,53 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
           duration: const Duration(milliseconds: 100),
           child: Padding(
             padding: const EdgeInsets.only(top: 6, left: 12, right: 12),
-            child: Row(spacing: 12, children: [
-              Flexible(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(spacing: 8, children: [
-                  AvatarShape(
-                    size: 28,
-                    borderRadius: 4,
-                    child: RealmContentNetworkImage(
-                      store.resolvedRealmIcon,
-                      filterQuality: FilterQuality.medium,
-                      fit: BoxFit.cover)),
-                  Flexible(child: Text(store.realmName,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: designVariables.title,
-                      fontSize: 20,
-                      height: 24 / 20,
-                    ).merge(weightVariableTextStyle(context, wght: 600)))),
-                ]))),
-              Icon(ZulipIcons.arrow_left_right,
-                color: designVariables.icon,
-                size: 24),
-            ])))));
+            child: Row(
+              spacing: 12,
+              children: [
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        AvatarShape(
+                          size: 28,
+                          borderRadius: 4,
+                          child: RealmContentNetworkImage(
+                            store.resolvedRealmIcon,
+                            filterQuality: FilterQuality.medium,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            store.realmName,
+                            overflow: TextOverflow.ellipsis,
+                            style:
+                                TextStyle(
+                                  color: designVariables.title,
+                                  fontSize: 20,
+                                  height: 24 / 20,
+                                ).merge(
+                                  weightVariableTextStyle(context, wght: 600),
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Icon(
+                  ZulipIcons.arrow_left_right,
+                  color: designVariables.icon,
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -526,8 +625,11 @@ abstract class MenuButton extends StatelessWidget {
   Widget buildLeading(BuildContext context) {
     assert(icon != null);
     final designVariables = DesignVariables.of(context);
-    return Icon(icon, size: _iconSize,
-      color: selected ? designVariables.iconSelected : designVariables.icon);
+    return Icon(
+      icon,
+      size: _iconSize,
+      color: selected ? designVariables.iconSelected : designVariables.icon,
+    );
   }
 
   Widget? buildTrailing(BuildContext context) => null;
@@ -553,33 +655,43 @@ abstract class MenuButton extends StatelessWidget {
     // we can cancel out those adjustments by subtracting it.
     final densityVerticalAdjustment = visualDensity.baseSizeAdjustment.dy;
 
-    final borderSideSelected = BorderSide(width: 1,
+    final borderSideSelected = BorderSide(
+      width: 1,
       strokeAlign: BorderSide.strokeAlignOutside,
-      color: designVariables.borderMenuButtonSelected);
-    final buttonStyle = TextButton.styleFrom(
-      // Make the button 44px instead of 48px tall, to match the Figma.
-      visualDensity: visualDensity,
-      padding: EdgeInsets.symmetric(
-        vertical: 10 - densityVerticalAdjustment, horizontal: 8),
-      foregroundColor: designVariables.labelMenuButton,
-      // This has a default behavior of affecting the background color of the
-      // button for states including "hovered", "focused" and "pressed".
-      // Make this transparent so that we can have full control of these colors.
-      overlayColor: Colors.transparent,
-      splashFactory: NoSplash.splashFactory,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ).copyWith(
-      backgroundColor: WidgetStateColor.fromMap({
-        WidgetState.hovered: designVariables.bgMenuButtonActive.withFadedAlpha(0.5),
-        WidgetState.focused: designVariables.bgMenuButtonActive,
-        WidgetState.pressed: designVariables.bgMenuButtonActive,
-        WidgetState.any:
-          selected ? designVariables.bgMenuButtonSelected : Colors.transparent,
-      }),
-      side: WidgetStateBorderSide.fromMap({
-        WidgetState.pressed: null,
-        ~WidgetState.pressed: selected ? borderSideSelected : null,
-      }));
+      color: designVariables.borderMenuButtonSelected,
+    );
+    final buttonStyle =
+        TextButton.styleFrom(
+          // Make the button 44px instead of 48px tall, to match the Figma.
+          visualDensity: visualDensity,
+          padding: EdgeInsets.symmetric(
+            vertical: 10 - densityVerticalAdjustment,
+            horizontal: 8,
+          ),
+          foregroundColor: designVariables.labelMenuButton,
+          // This has a default behavior of affecting the background color of the
+          // button for states including "hovered", "focused" and "pressed".
+          // Make this transparent so that we can have full control of these colors.
+          overlayColor: Colors.transparent,
+          splashFactory: NoSplash.splashFactory,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ).copyWith(
+          backgroundColor: WidgetStateColor.fromMap({
+            WidgetState.hovered: designVariables.bgMenuButtonActive
+                .withFadedAlpha(0.5),
+            WidgetState.focused: designVariables.bgMenuButtonActive,
+            WidgetState.pressed: designVariables.bgMenuButtonActive,
+            WidgetState.any: selected
+                ? designVariables.bgMenuButtonSelected
+                : Colors.transparent,
+          }),
+          side: WidgetStateBorderSide.fromMap({
+            WidgetState.pressed: null,
+            ~WidgetState.pressed: selected ? borderSideSelected : null,
+          }),
+        );
 
     final trailing = buildTrailing(context);
 
@@ -589,16 +701,25 @@ abstract class MenuButton extends StatelessWidget {
       child: TextButton(
         onPressed: () => _handlePress(context),
         style: buttonStyle,
-        child: Row(spacing: 8, children: [
-          SizedBox.square(dimension: _iconSize,
-            child: buildLeading(context)),
-          Expanded(child: Text(label(zulipLocalizations),
-            // TODO(design): determine if we prefer to wrap
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 19, height: 23 / 19)
-              .merge(weightVariableTextStyle(context, wght: selected ? 600 : 400)))),
-          ?trailing,
-        ])));
+        child: Row(
+          spacing: 8,
+          children: [
+            SizedBox.square(dimension: _iconSize, child: buildLeading(context)),
+            Expanded(
+              child: Text(
+                label(zulipLocalizations),
+                // TODO(design): determine if we prefer to wrap
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 19, height: 23 / 19).merge(
+                  weightVariableTextStyle(context, wght: selected ? 600 : 400),
+                ),
+              ),
+            ),
+            ?trailing,
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -632,8 +753,12 @@ class _SearchButton extends MenuButton {
 
   @override
   void onPressed(BuildContext context) {
-    Navigator.of(context).push(MessageListPage.buildRoute(
-      context: context, narrow: KeywordSearchNarrow('')));
+    Navigator.of(context).push(
+      MessageListBlockPage.buildRoute(
+        context: context,
+        narrow: KeywordSearchNarrow(''),
+      ),
+    );
   }
 }
 
@@ -691,8 +816,12 @@ class _MentionsButton extends MenuButton {
 
   @override
   void onPressed(BuildContext context) {
-    Navigator.of(context).push(MessageListPage.buildRoute(
-      context: context, narrow: const MentionsNarrow()));
+    Navigator.of(context).push(
+      MessageListBlockPage.buildRoute(
+        context: context,
+        narrow: const MentionsNarrow(),
+      ),
+    );
   }
 }
 
@@ -721,8 +850,12 @@ class _StarredMessagesButton extends MenuButton {
 
   @override
   void onPressed(BuildContext context) {
-    Navigator.of(context).push(MessageListPage.buildRoute(
-      context: context, narrow: const StarredMessagesNarrow()));
+    Navigator.of(context).push(
+      MessageListBlockPage.buildRoute(
+        context: context,
+        narrow: const StarredMessagesNarrow(),
+      ),
+    );
   }
 }
 
@@ -739,8 +872,12 @@ class _CombinedFeedButton extends MenuButton {
 
   @override
   void onPressed(BuildContext context) {
-    Navigator.of(context).push(MessageListPage.buildRoute(
-      context: context, narrow: const CombinedFeedNarrow()));
+    Navigator.of(context).push(
+      MessageListBlockPage.buildRoute(
+        context: context,
+        narrow: const CombinedFeedNarrow(),
+      ),
+    );
   }
 }
 
@@ -812,8 +949,9 @@ class _MyProfileButton extends MenuButton {
   @override
   void onPressed(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    Navigator.of(context).push(
-      ProfilePage.buildRoute(context: context, userId: store.selfUserId));
+    Navigator.of(
+      context,
+    ).push(ProfilePage.buildRoute(context: context, userId: store.selfUserId));
   }
 }
 
