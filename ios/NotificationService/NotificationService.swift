@@ -44,6 +44,9 @@ class NotificationService: UNNotificationServiceExtension {
       return
     }
 
+    IosNativeHostApiSetup.setUp(
+      binaryMessenger: headlessEngine.binaryMessenger, api: IosNativeHostApiImpl())
+
     // Register Flutter plugins with the headless engine.
     GeneratedPluginRegistrant.register(with: headlessEngine)
 
