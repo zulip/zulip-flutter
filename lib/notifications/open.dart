@@ -229,6 +229,14 @@ class NotificationOpenService {
   ) {
     try {
       return NotificationOpenPayload.parseIosApnsPayload(payload);
+    } catch (e, st) {
+      assert(debugLog('$e\n$st'));
+      // Presumably a legacy, non-E2EE payload.
+    }
+
+    // TODO(server-12) simplify by removing legacy payload case.
+    try {
+      return NotificationOpenPayload.parseLegacyIosApnsPayload(payload);
     } on FormatException catch (e, st) {
       assert(debugLog('$e\n$st'));
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -270,6 +278,24 @@ class NotificationOpenPayload {
   /// Parses the iOS APNs payload and retrieves the information
   /// required for navigation.
   factory NotificationOpenPayload.parseIosApnsPayload(Map<Object?, Object?> payload) {
+    if (payload case {
+      // This is an internal entry added by the IosNotificationService
+      // (see lib/notifications/ios_service.dart).
+      'notification_url': final String notificationUrl,
+    }) {
+      final url = Uri.tryParse(notificationUrl);
+      if (url == null) throw const FormatException();
+
+      return NotificationOpenPayload.parseNotificationUrl(url);
+    } else {
+      // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
+      throw const FormatException();
+    }
+  }
+
+  /// Parses the legacy iOS APNs payload and retrieves the information
+  /// required for navigation.
+  factory NotificationOpenPayload.parseLegacyIosApnsPayload(Map<Object?, Object?> payload) {
     if (payload case {
       'zulip': {
         'user_id': final int userId,
@@ -330,9 +356,9 @@ class NotificationOpenPayload {
     }
   }
 
-  /// Parses the internal Android notification url, that was created using
-  /// [buildNotificationUrl], and retrieves the information required
-  /// for navigation.
+  /// Parses the internal notification url (on Android and iOS), that was
+  /// created using [buildNotificationUrl], and retrieves the information
+  /// required for navigation.
   factory NotificationOpenPayload.parseNotificationUrl(Uri url) {
     if (url case Uri(
       scheme: 'zulip',

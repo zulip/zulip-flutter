@@ -35,6 +35,29 @@ class EncryptedFcmMessage {
   Map<String, dynamic> toJson() => _$EncryptedFcmMessageToJson(this);
 }
 
+/// An APNs payload whose contents are encrypted end-to-end from the Zulip server.
+///
+/// Once decrypted, the contents will become a [NotifPayload].
+///
+/// API docs:
+///   https://zulip.com/api/mobile-notifications#data-sent-to-apns
+@JsonSerializable(fieldRename: FieldRename.snake)
+class EncryptedApnsPayload {
+  final int pushKeyId;
+
+  @JsonKey(fromJson: base64Decode, toJson: base64Encode)
+  final Uint8List encryptedData;
+
+  // final Map<String, dynamic> aps; // ignore; never used
+
+  EncryptedApnsPayload({required this.pushKeyId, required this.encryptedData});
+
+  factory EncryptedApnsPayload.fromJson(Map<String, dynamic> json) =>
+    _$EncryptedApnsPayloadFromJson(json);
+
+  Map<String, dynamic> toJson() => _$EncryptedApnsPayloadToJson(this);
+}
+
 //|//////////////////////////////////////////////////////////////
 // Types for parsing E2EE notification payloads.
 //
