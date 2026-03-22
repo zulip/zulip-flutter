@@ -575,14 +575,23 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       case KeywordSearchNarrow():
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
+
+    // The [TopicKeyedMap] lookup calls [TopicName.canonicalize] each time,
+    // so do it once here rather than O(n log n) times in the sort.
+    final getRecencyInTopic = (streamId != null && topic != null)
+      ? store.recentSenders.latestMessageIdBySenderInTopic(
+          streamId: streamId, topic: topic)
+      : null;
+
     return (userA, userB) => _compareByRelevance(userA, userB,
-      streamId: streamId, topic: topic,
+      streamId: streamId,
+      getRecencyInTopic: getRecencyInTopic,
       store: store);
   }
 
   static int _compareByRelevance(User userA, User userB, {
     required int? streamId,
-    required TopicName? topic,
+    required int? Function(int senderId)? getRecencyInTopic,
     required PerAccountStore store,
   }) {
     // TODO(#618): give preference to subscribed users first
@@ -590,7 +599,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     if (streamId != null) {
       final recencyResult = compareByRecency(userA, userB,
         streamId: streamId,
-        topic: topic,
+        getRecencyInTopic: getRecencyInTopic,
         store: store);
       if (recencyResult != 0) return recencyResult;
     }
@@ -604,36 +613,37 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   /// Determines which of the two users has more recent activity (messages sent
-  /// recently) in the topic/stream.
+  /// recently) in the given topic and/or channel.
   ///
-  /// First checks for the activity in [topic] if provided.
+  /// First checks for the activity in the topic using [getRecencyInTopic]
+  /// if provided.
   ///
-  /// If no [topic] is provided, or there is no activity in the topic at all,
-  /// then checks for the activity in the stream with [streamId].
+  /// If [getRecencyInTopic] is not provided,
+  /// or neither user has sent messages in the topic,
+  /// then checks for the activity in the channel with [streamId].
   ///
   /// Returns a negative number if [userA] has more recent activity than [userB],
   /// returns a positive number if [userB] has more recent activity than [userA],
   /// and returns `0` if both [userA] and [userB] have no activity at all.
+  ///
+  /// See [RecentSenders.latestMessageIdBySenderInTopic].
   @visibleForTesting
   static int compareByRecency(User userA, User userB, {
     required int streamId,
-    required TopicName? topic,
+    required int? Function(int senderId)? getRecencyInTopic,
     required PerAccountStore store,
   }) {
-    final recentSenders = store.recentSenders;
-    if (topic != null) {
+    if (getRecencyInTopic != null) {
       final result = -compareRecentMessageIds(
-        recentSenders.latestMessageIdOfSenderInTopic(
-          streamId: streamId, topic: topic, senderId: userA.userId),
-        recentSenders.latestMessageIdOfSenderInTopic(
-          streamId: streamId, topic: topic, senderId: userB.userId));
+        getRecencyInTopic(userA.userId),
+        getRecencyInTopic(userB.userId));
       if (result != 0) return result;
     }
 
     return -compareRecentMessageIds(
-      recentSenders.latestMessageIdOfSenderInStream(
+      store.recentSenders.latestMessageIdOfSenderInStream(
         streamId: streamId, senderId: userA.userId),
-      recentSenders.latestMessageIdOfSenderInStream(
+      store.recentSenders.latestMessageIdOfSenderInStream(
         streamId: streamId, senderId: userB.userId));
   }
 

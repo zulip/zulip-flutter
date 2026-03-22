@@ -30,11 +30,26 @@ class RecentSenders {
   /// or null if no such message is known.
   ///
   /// Topics are treated case-insensitively; see [TopicName.isSameAs].
+  ///
+  /// This makes a [TopicKeyedMap] lookup, which calls [TopicName.canonicalize].
+  /// Avoid calling this repeatedly many times (e.g. 1000s) for the same topic;
+  /// see [latestMessageIdBySenderInTopic].
   int? latestMessageIdOfSenderInTopic({
     required int streamId,
     required TopicName topic,
     required int senderId,
   }) => topicSenders[streamId]?[topic]?[senderId]?.maxId;
+
+  /// Like [latestMessageIdOfSenderInTopic], but returns a reusable function
+  /// for the given topic.
+  int? Function(int senderId)? latestMessageIdBySenderInTopic({
+    required int streamId,
+    required TopicName topic,
+  }) {
+    final senders = topicSenders[streamId]?[topic];
+    if (senders == null) return null;
+    return (senderId) => senders[senderId]?.maxId;
+  }
 
   /// Records the necessary data from a batch of just-fetched messages.
   ///
