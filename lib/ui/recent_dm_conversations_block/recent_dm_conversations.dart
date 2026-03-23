@@ -12,6 +12,7 @@ import 'widgets/recent_dm_conversations_item.dart';
 
 typedef OnDmSelectCallback = void Function(DmNarrow narrow);
 
+// Блок недавних сообщений (как я понял)
 class RecentDmConversationsPageBody extends StatefulWidget {
   const RecentDmConversationsPageBody({
     super.key,
