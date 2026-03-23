@@ -23,7 +23,7 @@ import '../message_list_block/message_list_block.dart';
 import 'page.dart';
 import '../recent_dm_conversations_block/recent_dm_conversations.dart';
 import 'store.dart';
-import '../subscription_list_block/subscription_list.dart';
+import '../subscription_list_block/subscription_list_block.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 import '../widgets/user.dart';

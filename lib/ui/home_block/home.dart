@@ -21,7 +21,7 @@ import '../profile_block/profile.dart';
 import '../recent_dm_conversations_block/recent_dm_conversations.dart';
 import '../settings_block/settings.dart';
 import '../utils/store.dart';
-import '../subscription_list_block/subscription_list.dart';
+import '../subscription_list_block/subscription_list_block.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 import '../widgets/counter_badge.dart';

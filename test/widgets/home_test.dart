@@ -18,7 +18,7 @@ import 'package:zulip/ui/inbox_block/inbox.dart';
 import 'package:zulip/ui/message_list_block/message_list_block.dart';
 import 'package:zulip/ui/utils/page.dart';
 import 'package:zulip/ui/profile_block/profile.dart';
-import 'package:zulip/ui/subscription_list_block/subscription_list.dart';
+import 'package:zulip/ui/subscription_list_block/subscription_list_block.dart';
 import 'package:zulip/ui/values/theme.dart';
 
 import '../api/fake_api.dart';
