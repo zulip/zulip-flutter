@@ -51,7 +51,7 @@ import 'package:zulip/ui/utils/page.dart';
 import 'package:zulip/ui/utils/store.dart';
 import 'package:zulip/ui/values/channel_colors.dart';
 import 'package:zulip/ui/values/theme.dart';
-import 'package:zulip/ui/topic_list_block/topic_list.dart';
+import 'package:zulip/ui/topic_list_block/topic_list_block.dart';
 import 'package:zulip/ui/widgets/user.dart';
 
 import '../api/fake_api.dart';

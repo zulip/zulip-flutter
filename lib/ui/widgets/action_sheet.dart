@@ -35,7 +35,7 @@ import 'read_receipts.dart';
 import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
-import '../topic_list_block/topic_list.dart';
+import '../topic_list_block/topic_list_block.dart';
 
 /// Show an action sheet with scrollable menu buttons
 /// and an optional scrollable header.

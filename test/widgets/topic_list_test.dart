@@ -11,7 +11,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/ui/widgets/app_bar.dart';
 import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/message_list_block/message_list_block.dart';
-import 'package:zulip/ui/topic_list_block/topic_list.dart';
+import 'package:zulip/ui/topic_list_block/topic_list_block.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

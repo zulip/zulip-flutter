@@ -38,7 +38,7 @@ import 'package:zulip/ui/message_list_block/widgets/message_list_app_bar/message
 import 'package:zulip/ui/message_list_block/headers/recipient_header.dart';
 import 'package:zulip/ui/widgets/read_receipts.dart';
 import 'package:zulip/ui/subscription_list_block/subscription_list.dart';
-import 'package:zulip/ui/topic_list_block/topic_list.dart';
+import 'package:zulip/ui/topic_list_block/topic_list_block.dart';
 import 'package:zulip/ui/widgets/user.dart';
 import '../api/fake_api.dart';
 
