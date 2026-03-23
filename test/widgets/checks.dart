@@ -5,7 +5,7 @@ import 'package:zulip/api/route/realm.dart';
 
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
-import 'package:zulip/ui/all_channels_block/all_channels.dart';
+import 'package:zulip/ui/all_channels_block/widgets/all_channels_list_entry.dart';
 import 'package:zulip/ui/widgets/button.dart';
 import 'package:zulip/ui/values/channel_colors.dart';
 import 'package:zulip/ui/compose_box_block/compose_box.dart';

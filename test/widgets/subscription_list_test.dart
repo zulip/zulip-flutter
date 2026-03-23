@@ -7,9 +7,9 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/ui/extensions/color.dart';
 import 'package:zulip/ui/home_block/home.dart';
+import 'package:zulip/ui/subscription_list_block/widgets/subscription_item.dart';
 import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/values/channel_colors.dart';
-import 'package:zulip/ui/subscription_list_block/subscription_list_block.dart';
 import 'package:zulip/ui/values/text.dart';
 import 'package:zulip/ui/widgets/counter_badge.dart';
 

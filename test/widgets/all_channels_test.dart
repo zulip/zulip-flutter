@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/ui/all_channels_block/all_channels.dart';
+import 'package:zulip/ui/all_channels_block/widgets/all_channels_list_entry.dart';
 import 'package:zulip/ui/widgets/app_bar.dart';
 import 'package:zulip/ui/widgets/button.dart';
 import 'package:zulip/ui/home_block/home.dart';
