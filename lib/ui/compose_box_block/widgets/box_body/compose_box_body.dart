@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/narrow.dart';
-import '../../../../utils/constants.dart';
+import '../../../values/constants.dart';
 import '../../compose_box.dart';
 import '../../../values/theme.dart';
 import '../buttons/attach_file_button.dart';

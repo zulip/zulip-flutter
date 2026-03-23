@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../some_features/store.dart';
+import '../utils/store.dart';
 
 /// A custom [AppBar] with a loading indicator.
 ///

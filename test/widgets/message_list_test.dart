@@ -47,8 +47,8 @@ import 'package:zulip/ui/message_list_block/widgets/message_list_app_bar/message
 import 'package:zulip/ui/message_list_block/headers/recipient_header.dart';
 import 'package:zulip/ui/message_list_block/widgets/sender_row.dart';
 import 'package:zulip/ui/message_list_block/widgets/typing_status_widget.dart';
-import 'package:zulip/ui/some_features/page.dart';
-import 'package:zulip/ui/some_features/store.dart';
+import 'package:zulip/ui/utils/page.dart';
+import 'package:zulip/ui/utils/store.dart';
 import 'package:zulip/ui/values/channel_colors.dart';
 import 'package:zulip/ui/values/theme.dart';
 import 'package:zulip/ui/topic_list_block/topic_list.dart';

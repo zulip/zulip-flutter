@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../utils/constants.dart';
+import '../../../values/constants.dart';
 import '../../../extensions/color.dart';
 import '../../compose_box.dart';
 import '../../../values/theme.dart';

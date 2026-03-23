@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
 import '../../model/binding.dart';
-import '../some_features/page.dart';
+import '../utils/page.dart';
 
 class AboutZulipPage extends StatefulWidget {
   const AboutZulipPage({super.key});

@@ -7,14 +7,14 @@ import '../../log.dart';
 import '../../model/channel.dart';
 import '../../model/narrow.dart';
 import '../widgets/action_sheet.dart';
-import '../some_features/actions.dart';
+import '../utils/actions.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/button.dart';
 import '../values/icons.dart';
 import '../message_list_block/message_list_block.dart';
-import '../some_features/page.dart';
-import '../some_features/remote_settings.dart';
-import '../some_features/store.dart';
+import '../utils/page.dart';
+import '../utils/remote_settings.dart';
+import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 

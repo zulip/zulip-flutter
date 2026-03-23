@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../some_features/actions.dart';
+import '../../../utils/actions.dart';
 import '../../../widgets/button.dart';
 import '../../../message_list_block/message_list_block.dart';
-import '../../../some_features/page.dart';
+import '../../../utils/page.dart';
 
 class UnsubscribedChannelBannerTrailing extends StatelessWidget {
   const UnsubscribedChannelBannerTrailing({super.key, required this.channelId});

@@ -16,8 +16,8 @@ import '../ui/app.dart';
 import '../ui/widgets/dialog.dart';
 import '../ui/home_block/home.dart';
 import '../ui/message_list_block/message_list_block.dart';
-import '../ui/some_features/page.dart';
-import '../ui/some_features/store.dart';
+import '../ui/utils/page.dart';
+import '../ui/utils/store.dart';
 
 NotificationPigeonApi get _notifPigeonApi =>
     ZulipBinding.instance.notificationPigeonApi;

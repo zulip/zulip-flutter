@@ -7,7 +7,7 @@ import '../../extensions/color.dart';
 import '../../values/icons.dart';
 import '../message_list.dart';
 import '../../profile_block/profile.dart';
-import '../../some_features/store.dart';
+import '../../utils/store.dart';
 import '../../values/text.dart';
 import '../../values/theme.dart';
 import '../../widgets/user.dart';

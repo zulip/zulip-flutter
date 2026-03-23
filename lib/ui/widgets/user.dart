@@ -7,7 +7,7 @@ import '../../model/presence.dart';
 import 'emoji.dart';
 import '../values/icons.dart';
 import 'image.dart';
-import '../some_features/store.dart';
+import '../utils/store.dart';
 import '../values/theme.dart';
 
 /// A rounded square with size [size] showing a user's avatar.

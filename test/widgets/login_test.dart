@@ -16,7 +16,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/ui/app.dart';
 import 'package:zulip/ui/home_block/home.dart';
 import 'package:zulip/ui/login_block/login.dart';
-import 'package:zulip/ui/some_features/page.dart';
+import 'package:zulip/ui/utils/page.dart';
 
 import '../api/fake_api.dart';
 import '../api/route/route_checks.dart';

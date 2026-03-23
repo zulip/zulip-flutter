@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import '../../api/model/model.dart';
 import '../../generated/l10n/zulip_localizations.dart';
 import 'icons.dart';
-import '../some_features/store.dart';
+import '../utils/store.dart';
 import 'theme.dart';
 
 /// An app-wide [Typography] for Zulip, customized from the Material default.

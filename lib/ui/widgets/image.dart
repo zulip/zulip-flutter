@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../../api/core.dart';
 import '../../api/model/initial_snapshot.dart';
 import '../../model/content.dart';
-import '../some_features/store.dart';
+import '../utils/store.dart';
 
 /// Like [Image.network], but includes [authHeader] if [src] is on-realm.
 ///

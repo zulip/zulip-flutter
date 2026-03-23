@@ -5,7 +5,7 @@ import '../../model/emoji.dart';
 import '../../model/store.dart';
 import 'emoji.dart';
 import '../values/icons.dart';
-import '../some_features/store.dart';
+import '../utils/store.dart';
 import '../../model/autocomplete.dart';
 import '../../model/compose.dart';
 import '../../model/narrow.dart';

@@ -16,11 +16,11 @@ import '../../log.dart';
 import '../../model/binding.dart';
 import '../../model/server_support.dart';
 import '../../model/store.dart';
-import '../../utils/constants.dart';
+import '../values/constants.dart';
 import '../widgets/dialog.dart';
 import '../home_block/home.dart';
-import '../some_features/page.dart';
-import '../some_features/store.dart';
+import '../utils/page.dart';
+import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 

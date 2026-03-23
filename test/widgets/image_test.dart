@@ -6,7 +6,7 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/ui/widgets/image.dart';
-import 'package:zulip/ui/some_features/store.dart';
+import 'package:zulip/ui/utils/store.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';

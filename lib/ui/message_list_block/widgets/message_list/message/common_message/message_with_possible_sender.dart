@@ -12,7 +12,7 @@ import '../../../../../content_block/content.dart';
 import '../../../../../widgets/emoji_reaction.dart';
 import '../../../../../values/icons.dart';
 import '../../../../message_list.dart';
-import '../../../../../some_features/store.dart';
+import '../../../../../utils/store.dart';
 import '../../../../../values/text.dart';
 import '../../../../../values/theme.dart';
 import '../../../../message_list_block.dart';

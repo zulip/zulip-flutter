@@ -7,7 +7,7 @@ import '../../../../model/narrow.dart';
 import '../../../widgets/action_sheet.dart';
 import '../../../extensions/color.dart';
 import '../../../values/icons.dart';
-import '../../../some_features/store.dart';
+import '../../../utils/store.dart';
 import '../../../values/text.dart';
 import '../../../values/theme.dart';
 import '../../message_list_block.dart';

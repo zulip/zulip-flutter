@@ -5,7 +5,7 @@ import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../widgets/autocomplete.dart';
 import '../../../extensions/color.dart';
 import '../../compose_box.dart';
-import '../../../some_features/store.dart';
+import '../../../utils/store.dart';
 import '../../../values/text.dart';
 import '../../../values/theme.dart';
 

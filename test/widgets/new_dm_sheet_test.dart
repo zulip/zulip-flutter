@@ -11,7 +11,7 @@ import 'package:zulip/ui/home_block/home.dart';
 import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/widgets/image.dart';
 import 'package:zulip/ui/widgets/new_dm_sheet.dart';
-import 'package:zulip/ui/some_features/store.dart';
+import 'package:zulip/ui/utils/store.dart';
 import 'package:zulip/ui/widgets/user.dart';
 
 import '../api/fake_api.dart';

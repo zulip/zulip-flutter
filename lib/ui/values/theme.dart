@@ -7,7 +7,7 @@ import '../content_block/content.dart';
 import '../widgets/emoji_reaction.dart';
 import '../message_list_block/message_list.dart';
 import 'channel_colors.dart';
-import '../some_features/store.dart';
+import '../utils/store.dart';
 import 'text.dart';
 
 ThemeData zulipThemeData(BuildContext context) {

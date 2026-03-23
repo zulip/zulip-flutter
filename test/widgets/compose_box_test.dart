@@ -30,7 +30,7 @@ import 'package:zulip/ui/compose_box_block/compose_box_block.dart';
 import 'package:zulip/ui/message_list_block/message_list_block.dart';
 import 'package:zulip/ui/message_list_block/widgets/message_list/message/common_message/message_with_possible_sender.dart';
 import 'package:zulip/ui/message_list_block/widgets/message_list/message/outbox_message/outbox_message_with_possible_sender.dart';
-import 'package:zulip/ui/some_features/page.dart';
+import 'package:zulip/ui/utils/page.dart';
 import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/values/theme.dart';
 

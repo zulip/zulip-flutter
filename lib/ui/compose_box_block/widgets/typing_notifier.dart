@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../model/narrow.dart';
 import '../compose_box.dart';
-import '../../some_features/store.dart';
+import '../../utils/store.dart';
 
 class TypingNotifier extends StatefulWidget {
   const TypingNotifier({

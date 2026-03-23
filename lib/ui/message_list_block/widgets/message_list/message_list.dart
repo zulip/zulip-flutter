@@ -8,7 +8,7 @@ import '../../../compose_box_block/compose_box_block.dart';
 import '../../message_list.dart';
 import '../../../widgets/scrolling.dart';
 import '../../../widgets/sticky_header.dart';
-import '../../../some_features/store.dart';
+import '../../../utils/store.dart';
 import '../../message_list_block.dart';
 import '../buttons/scroll_to_bottom_button.dart';
 import '../date_separator.dart';

@@ -14,8 +14,8 @@ import 'widgets/about_zulip.dart';
 import 'widgets/dialog.dart';
 import 'home_block/home.dart';
 import 'login_block/login.dart';
-import 'some_features/page.dart';
-import 'some_features/store.dart';
+import 'utils/page.dart';
+import 'utils/store.dart';
 import 'values/theme.dart';
 
 class ZulipApp extends StatefulWidget {

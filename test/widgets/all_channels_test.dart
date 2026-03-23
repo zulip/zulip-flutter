@@ -13,8 +13,8 @@ import 'package:zulip/ui/widgets/button.dart';
 import 'package:zulip/ui/home_block/home.dart';
 import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/message_list_block/message_list_block.dart';
-import 'package:zulip/ui/some_features/page.dart';
-import 'package:zulip/ui/some_features/remote_settings.dart';
+import 'package:zulip/ui/utils/page.dart';
+import 'package:zulip/ui/utils/remote_settings.dart';
 import 'package:zulip/ui/values/theme.dart';
 
 import '../api/fake_api.dart';

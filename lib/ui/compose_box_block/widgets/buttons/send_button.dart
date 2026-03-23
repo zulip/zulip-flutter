@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../../api/exception.dart';
 import '../../../../api/route/messages.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../utils/constants.dart';
+import '../../../values/constants.dart';
 import '../../../extensions/color.dart';
 import '../../compose_box.dart';
 import '../../../widgets/dialog.dart';
 import '../../../values/icons.dart';
 import '../../../message_list_block/message_list_block.dart';
-import '../../../some_features/store.dart';
+import '../../../utils/store.dart';
 import '../../../values/theme.dart';
 
 class SendButton extends StatefulWidget {

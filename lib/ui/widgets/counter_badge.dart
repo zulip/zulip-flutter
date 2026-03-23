@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../some_features/store.dart';
+import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 

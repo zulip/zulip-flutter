@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
-import 'package:zulip/ui/some_features/page.dart';
+import 'package:zulip/ui/utils/page.dart';
 import 'package:zulip/ui/settings_block/settings.dart';
-import 'package:zulip/ui/some_features/store.dart';
+import 'package:zulip/ui/utils/store.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';

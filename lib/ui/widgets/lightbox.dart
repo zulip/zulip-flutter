@@ -8,13 +8,13 @@ import '../../api/model/model.dart';
 import '../../generated/l10n/zulip_localizations.dart';
 import '../../log.dart';
 import '../../model/binding.dart';
-import '../some_features/actions.dart';
+import '../utils/actions.dart';
 import '../content_block/content.dart';
 import 'dialog.dart';
 import 'image.dart';
 import '../message_list_block/message_list.dart';
-import '../some_features/page.dart';
-import '../some_features/store.dart';
+import '../utils/page.dart';
+import '../utils/store.dart';
 import 'user.dart';
 import '../values/icons.dart';
 

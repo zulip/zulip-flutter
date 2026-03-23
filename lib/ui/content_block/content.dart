@@ -12,7 +12,7 @@ import '../../api/model/permission.dart';
 import '../../generated/l10n/zulip_localizations.dart';
 import '../../model/content.dart';
 import '../../model/internal_link.dart';
-import '../some_features/actions.dart';
+import '../utils/actions.dart';
 import '../values/code_block.dart';
 import '../widgets/dialog.dart';
 import '../values/icons.dart';
@@ -23,7 +23,7 @@ import '../widgets/lightbox.dart';
 import '../message_list_block/message_list_block.dart';
 import '../widgets/poll.dart';
 import '../widgets/scrolling.dart';
-import '../some_features/store.dart';
+import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 

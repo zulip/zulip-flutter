@@ -5,7 +5,7 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
 import '../../../model/typing_status.dart';
-import '../../some_features/store.dart';
+import '../../utils/store.dart';
 
 class TypingStatusWidget extends StatefulWidget {
   const TypingStatusWidget({super.key, required this.narrow});

@@ -8,7 +8,7 @@ import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/ui/app.dart';
 import 'package:zulip/ui/home_block/home.dart';
-import 'package:zulip/ui/some_features/page.dart';
+import 'package:zulip/ui/utils/page.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';

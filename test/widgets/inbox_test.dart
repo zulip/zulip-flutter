@@ -15,7 +15,7 @@ import 'package:zulip/ui/inbox_block/inbox.dart';
 import 'package:zulip/ui/message_list_block/message_list_block.dart';
 import 'package:zulip/ui/values/theme.dart';
 import 'package:zulip/ui/widgets/counter_badge.dart';
-import 'package:zulip/ui/some_features/page.dart';
+import 'package:zulip/ui/utils/page.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';

@@ -20,7 +20,7 @@ import 'package:zulip/ui/widgets/image.dart';
 import 'package:zulip/ui/widgets/katex.dart';
 import 'package:zulip/ui/widgets/lightbox.dart';
 import 'package:zulip/ui/message_list_block/message_list_block.dart';
-import 'package:zulip/ui/some_features/page.dart';
+import 'package:zulip/ui/utils/page.dart';
 import 'package:zulip/ui/values/text.dart';
 
 import '../api/fake_api.dart';

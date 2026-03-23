@@ -16,9 +16,9 @@ import 'package:zulip/ui/widgets/image.dart';
 import 'package:zulip/ui/widgets/lightbox.dart';
 import 'package:zulip/ui/login_block/login.dart';
 import 'package:zulip/ui/message_list_block/message_list_block.dart';
-import 'package:zulip/ui/some_features/page.dart';
+import 'package:zulip/ui/utils/page.dart';
 import 'package:zulip/ui/profile_block/profile.dart';
-import 'package:zulip/ui/some_features/store.dart';
+import 'package:zulip/ui/utils/store.dart';
 import 'package:zulip/ui/widgets/counter_badge.dart';
 import 'package:zulip/ui/widgets/user.dart';
 

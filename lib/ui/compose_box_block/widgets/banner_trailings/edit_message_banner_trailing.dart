@@ -8,8 +8,8 @@ import '../../../widgets/button.dart';
 import '../../compose_box.dart';
 import '../../../widgets/dialog.dart';
 import '../../../message_list_block/message_list_block.dart';
-import '../../../some_features/page.dart';
-import '../../../some_features/store.dart';
+import '../../../utils/page.dart';
+import '../../../utils/store.dart';
 import '../../compose_box_block.dart';
 
 class EditMessageBannerTrailing extends StatelessWidget {

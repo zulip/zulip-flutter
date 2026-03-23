@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
-import '../../../some_features/actions.dart';
-import '../../../some_features/page.dart';
-import '../../../some_features/store.dart';
+import '../../../utils/actions.dart';
+import '../../../utils/page.dart';
+import '../../../utils/store.dart';
 
 class EmptyMessageListPlaceholder extends StatelessWidget {
   const EmptyMessageListPlaceholder({super.key, required this.narrow});

@@ -12,7 +12,7 @@ import '../../model/compose.dart';
 import '../../model/store.dart';
 import 'compose_box_block.dart';
 import '../widgets/dialog.dart';
-import '../some_features/store.dart';
+import '../utils/store.dart';
 import '../values/theme.dart';
 
 /// Compose-box styles that differ between light and dark theme.

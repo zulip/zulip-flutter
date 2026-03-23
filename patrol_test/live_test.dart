@@ -12,7 +12,7 @@ import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/main.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/ui/app.dart';
-import 'package:zulip/ui/some_features/store.dart';
+import 'package:zulip/ui/utils/store.dart';
 
 import '../test/example_data.dart' as eg;
 
