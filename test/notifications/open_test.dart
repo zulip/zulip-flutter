@@ -37,12 +37,13 @@ Map<String, Object?> messageApnsPayload(
   Message zulipMessage, {
   String? streamName,
   Account? account,
+  String? title,
 }) {
   account ??= eg.selfAccount;
   return {
     "aps": {
       "alert": {
-        "title": "test",
+        "title": title ?? "test",
         "subtitle": "test",
         "body": zulipMessage.content,
       },
