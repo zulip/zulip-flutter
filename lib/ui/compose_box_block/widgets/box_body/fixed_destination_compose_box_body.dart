@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/narrow.dart';
-import '../../../compose_box.dart';
+import '../../compose_box.dart';
 import '../buttons/send_button.dart';
 import '../inputs/fixed_destination_content_input.dart';
 import 'compose_box_body.dart';

@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
 import '../../../model/unreads.dart';
-import '../../actions.dart';
-import '../../../utils/assets/icons.dart';
-import '../../message_list.dart';
-import '../../store.dart';
-import '../../text.dart';
+import '../../some_features/actions.dart';
+import '../../values/icons.dart';
+import '../message_list.dart';
+import '../../some_features/store.dart';
+import '../../values/text.dart';
 
 class MarkAsReadWidget extends StatefulWidget {
   const MarkAsReadWidget({super.key, required this.narrow});

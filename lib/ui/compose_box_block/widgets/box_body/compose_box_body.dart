@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../model/narrow.dart';
 import '../../../../utils/constants.dart';
-import '../../../compose_box.dart';
-import '../../../theme.dart';
+import '../../compose_box.dart';
+import '../../../values/theme.dart';
 import '../buttons/attach_file_button.dart';
 import '../buttons/attach_from_camera_button.dart';
 import '../buttons/attach_media_button.dart';

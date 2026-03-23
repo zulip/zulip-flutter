@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
-import '../../../utils/assets/icons.dart';
-import '../../theme.dart';
+import '../../values/icons.dart';
+import '../../values/theme.dart';
 
 class SearchBar extends StatefulWidget {
   const SearchBar({super.key, required this.onSubmitted});

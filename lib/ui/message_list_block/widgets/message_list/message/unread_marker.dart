@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../message_list.dart';
+import '../../../message_list.dart';
 
 /// Widget responsible for showing the read status of a message.
 class UnreadMarker extends StatelessWidget {

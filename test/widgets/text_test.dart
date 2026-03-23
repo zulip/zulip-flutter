@@ -3,7 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/ui/text.dart';
+import 'package:zulip/ui/values/text.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';

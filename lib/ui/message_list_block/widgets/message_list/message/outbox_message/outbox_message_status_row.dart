@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../../model/message.dart';
-import '../../../../../color.dart';
-import '../../../../../text.dart';
-import '../../../../../theme.dart';
+import '../../../../../extensions/color.dart';
+import '../../../../../values/text.dart';
+import '../../../../../values/theme.dart';
 import 'restore_outbox_message_gesture_detector.dart';
 
 class OutboxMessageStatusRow extends StatelessWidget {

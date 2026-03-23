@@ -8,9 +8,9 @@ import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/ui/app.dart';
-import 'package:zulip/ui/inbox.dart';
-import 'package:zulip/ui/page.dart';
-import 'package:zulip/ui/store.dart';
+import 'package:zulip/ui/inbox_block/inbox.dart';
+import 'package:zulip/ui/some_features/page.dart';
+import 'package:zulip/ui/some_features/store.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';

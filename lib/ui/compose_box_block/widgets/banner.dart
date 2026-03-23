@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../text.dart';
-import '../../theme.dart';
+import '../../values/text.dart';
+import '../../values/theme.dart';
 
 enum BannerIntent { info, warning, danger }
 

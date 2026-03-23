@@ -4,12 +4,12 @@ import '../../../../api/exception.dart';
 import '../../../../api/model/model.dart';
 import '../../../../api/route/messages.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../button.dart';
-import '../../../compose_box.dart';
-import '../../../dialog.dart';
+import '../../../widgets/button.dart';
+import '../../compose_box.dart';
+import '../../../widgets/dialog.dart';
 import '../../../message_list_block/message_list_block.dart';
-import '../../../page.dart';
-import '../../../store.dart';
+import '../../../some_features/page.dart';
+import '../../../some_features/store.dart';
 import '../../compose_box_block.dart';
 
 class EditMessageBannerTrailing extends StatelessWidget {

@@ -4,12 +4,12 @@ import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/message_list.dart';
 import '../../../../model/narrow.dart';
-import '../../../action_sheet.dart';
-import '../../../color.dart';
-import '../../../../utils/assets/icons.dart';
-import '../../../store.dart';
-import '../../../text.dart';
-import '../../../theme.dart';
+import '../../../widgets/action_sheet.dart';
+import '../../../extensions/color.dart';
+import '../../../values/icons.dart';
+import '../../../some_features/store.dart';
+import '../../../values/text.dart';
+import '../../../values/theme.dart';
 import '../../message_list_block.dart';
 import '../search_bar.dart';
 

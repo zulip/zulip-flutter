@@ -10,13 +10,13 @@ import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
 import '../notifications/open.dart';
-import 'about_zulip.dart';
-import 'dialog.dart';
-import 'home.dart';
-import 'login.dart';
-import 'page.dart';
-import 'store.dart';
-import 'theme.dart';
+import 'widgets/about_zulip.dart';
+import 'widgets/dialog.dart';
+import 'home_block/home.dart';
+import 'login_block/login.dart';
+import 'some_features/page.dart';
+import 'some_features/store.dart';
+import 'values/theme.dart';
 
 class ZulipApp extends StatefulWidget {
   const ZulipApp({super.key, this.navigatorObservers});

@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/store.dart';
-import '../../color.dart';
-import '../../../utils/assets/icons.dart';
-import '../../message_list.dart';
-import '../../profile.dart';
-import '../../store.dart';
-import '../../text.dart';
-import '../../theme.dart';
-import '../../user.dart';
+import '../../extensions/color.dart';
+import '../../values/icons.dart';
+import '../message_list.dart';
+import '../../profile_block/profile.dart';
+import '../../some_features/store.dart';
+import '../../values/text.dart';
+import '../../values/theme.dart';
+import '../../widgets/user.dart';
 import '../message_list_block.dart';
 
 class SenderRow extends StatelessWidget {

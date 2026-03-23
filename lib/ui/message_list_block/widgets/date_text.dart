@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/binding.dart';
-import '../../message_list.dart';
-import '../../store.dart';
+import '../message_list.dart';
+import '../../some_features/store.dart';
 
 class DateText extends StatelessWidget {
   const DateText({

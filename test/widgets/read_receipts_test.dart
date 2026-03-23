@@ -9,11 +9,11 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/ui/content.dart';
-import 'package:zulip/utils/assets/icons.dart';
+import 'package:zulip/ui/content_block/content.dart';
+import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/message_list_block/message_list_block.dart';
-import 'package:zulip/ui/profile.dart';
-import 'package:zulip/ui/read_receipts.dart';
+import 'package:zulip/ui/profile_block/profile.dart';
+import 'package:zulip/ui/widgets/read_receipts.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

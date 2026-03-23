@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../compose_box.dart';
-import '../theme.dart';
+import 'compose_box.dart';
+import '../values/theme.dart';
 
 class ComposeBoxContainer extends StatelessWidget {
   const ComposeBoxContainer({super.key, required this.body, this.banner})

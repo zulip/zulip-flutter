@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../utils/constants.dart';
-import '../../../color.dart';
-import '../../../compose_box.dart';
-import '../../../theme.dart';
+import '../../../extensions/color.dart';
+import '../../compose_box.dart';
+import '../../../values/theme.dart';
 
 abstract class AttachUploadsButton extends StatelessWidget {
   const AttachUploadsButton({

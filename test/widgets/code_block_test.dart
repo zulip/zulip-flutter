@@ -1,7 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/ui/code_block.dart';
+import 'package:zulip/ui/values/code_block.dart';
 
 import '../model/binding.dart';
 import 'test_app.dart';

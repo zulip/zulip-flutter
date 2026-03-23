@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../api/model/model.dart';
 import '../../../../api/route/messages.dart';
 import '../../../../model/narrow.dart';
-import '../../../compose_box.dart';
+import '../../compose_box.dart';
 import '../inputs/stream_content_input.dart';
 import '../inputs/topic_input.dart';
 import '../buttons/send_button.dart';

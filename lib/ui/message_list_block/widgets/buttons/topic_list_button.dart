@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../utils/assets/icons.dart';
-import '../../../topic_list.dart';
+import '../../../values/icons.dart';
+import '../../../topic_list_block/topic_list.dart';
 
 class TopicListButton extends StatelessWidget {
   const TopicListButton({super.key, required this.streamId});

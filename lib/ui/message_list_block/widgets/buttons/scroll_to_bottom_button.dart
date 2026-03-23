@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/message_list.dart';
-import '../../../scrolling.dart';
+import '../../../widgets/scrolling.dart';
 
 class ScrollToBottomButton extends StatelessWidget {
   const ScrollToBottomButton({

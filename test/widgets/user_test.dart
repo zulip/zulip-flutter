@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/utils/assets/icons.dart';
-import 'package:zulip/ui/image.dart';
-import 'package:zulip/ui/user.dart';
+import 'package:zulip/ui/values/icons.dart';
+import 'package:zulip/ui/widgets/image.dart';
+import 'package:zulip/ui/widgets/user.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';

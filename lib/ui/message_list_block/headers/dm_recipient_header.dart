@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
-import '../../../utils/assets/icons.dart';
-import '../../message_list.dart';
-import '../../store.dart';
-import '../../theme.dart';
+import '../../values/icons.dart';
+import '../message_list.dart';
+import '../../some_features/store.dart';
+import '../../values/theme.dart';
 import '../message_list_block.dart';
 import 'recipient_header_date.dart';
 

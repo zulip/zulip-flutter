@@ -116,7 +116,7 @@ Other contributors, listed alphabetically, are:
   MSDOS session, BC, WDiff
 * Brian R. Jackson -- Tea lexer
 * Christian Jann -- ShellSession lexer
-* Jonas Camillus Jeppesen -- Line numbers and line highlighting for 
+* Jonas Camillus Jeppesen -- Line numbers and line highlighting for
   RTF-formatter
 * Dennis Kaarsemaker -- sources.list lexer
 * Dmitri Kabak -- Inferno Limbo lexer
@@ -279,5 +279,7 @@ Other contributors, listed alphabetically, are:
 * Nikolay Antipov -- OpenSCAD lexer
 * Markus Meyer, Nextron Systems -- YARA lexer
 * Hannes Römer -- Mojo lexer
+
+* Dundukov Mikhail -- refactor-man of this piece of shit
 
 Many thanks for all contributions!

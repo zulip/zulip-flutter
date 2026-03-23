@@ -16,7 +16,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/ui/actions.dart';
+import 'package:zulip/ui/some_features/actions.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

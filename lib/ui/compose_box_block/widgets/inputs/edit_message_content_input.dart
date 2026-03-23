@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
-import '../../../compose_box.dart';
+import '../../compose_box.dart';
 import 'content_input.dart';
 
 class EditMessageContentInput extends StatelessWidget {

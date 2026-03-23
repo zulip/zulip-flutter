@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
-import '../../../compose_box.dart';
-import '../../../store.dart';
+import '../../compose_box.dart';
+import '../../../some_features/store.dart';
 import 'content_input.dart';
 import '../typing_notifier.dart';
 

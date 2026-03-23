@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../api/model/model.dart';
-import '../../theme.dart';
+import '../../values/theme.dart';
 import 'date_text.dart';
 
 class DateSeparator extends StatelessWidget {

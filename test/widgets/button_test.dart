@@ -5,8 +5,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:legacy_checks/legacy_checks.dart';
-import 'package:zulip/ui/button.dart';
-import 'package:zulip/utils/assets/icons.dart';
+import 'package:zulip/ui/widgets/button.dart';
+import 'package:zulip/ui/values/icons.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';

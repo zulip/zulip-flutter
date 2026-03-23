@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
-import 'package:zulip/ui/channel_colors.dart';
-import 'package:zulip/ui/counter_badge.dart';
+import 'package:zulip/ui/values/channel_colors.dart';
+import 'package:zulip/ui/widgets/counter_badge.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';

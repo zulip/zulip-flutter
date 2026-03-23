@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../autocomplete.dart';
-import '../../../color.dart';
-import '../../../compose_box.dart';
-import '../../../store.dart';
-import '../../../text.dart';
-import '../../../theme.dart';
+import '../../../widgets/autocomplete.dart';
+import '../../../extensions/color.dart';
+import '../../compose_box.dart';
+import '../../../some_features/store.dart';
+import '../../../values/text.dart';
+import '../../../values/theme.dart';
 
 class TopicInput extends StatefulWidget {
   const TopicInput({

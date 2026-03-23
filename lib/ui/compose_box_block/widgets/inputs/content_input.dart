@@ -3,12 +3,12 @@ import 'package:path/path.dart' as path;
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
-import '../../../autocomplete.dart';
-import '../../../color.dart';
-import '../../../compose_box.dart';
-import '../../../dialog.dart';
-import '../../../inset_shadow.dart';
-import '../../../theme.dart';
+import '../../../widgets/autocomplete.dart';
+import '../../../extensions/color.dart';
+import '../../compose_box.dart';
+import '../../../widgets/dialog.dart';
+import '../../../widgets/inset_shadow.dart';
+import '../../../values/theme.dart';
 
 class ContentInput extends StatelessWidget {
   const ContentInput({

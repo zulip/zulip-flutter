@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../../text.dart';
-import '../../../../../theme.dart';
+import '../../../../../values/text.dart';
+import '../../../../../values/theme.dart';
 import 'restore_edit_message_gesture_detector.dart';
 
 class EditMessageStatusRow extends StatelessWidget {

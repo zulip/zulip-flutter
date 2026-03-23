@@ -13,11 +13,11 @@ import '../model/binding.dart';
 import '../model/narrow.dart';
 import '../model/store.dart' show Account;
 import '../ui/app.dart';
-import '../ui/dialog.dart';
-import '../ui/home.dart';
+import '../ui/widgets/dialog.dart';
+import '../ui/home_block/home.dart';
 import '../ui/message_list_block/message_list_block.dart';
-import '../ui/page.dart';
-import '../ui/store.dart';
+import '../ui/some_features/page.dart';
+import '../ui/some_features/store.dart';
 
 NotificationPigeonApi get _notifPigeonApi =>
     ZulipBinding.instance.notificationPigeonApi;

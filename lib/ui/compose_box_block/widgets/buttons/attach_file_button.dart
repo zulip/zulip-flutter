@@ -7,9 +7,9 @@ import 'package:mime/mime.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/binding.dart';
-import '../../../compose_box.dart';
-import '../../../dialog.dart';
-import '../../../../utils/assets/icons.dart';
+import '../../compose_box.dart';
+import '../../../widgets/dialog.dart';
+import '../../../values/icons.dart';
 import 'attach_upload_button.dart';
 
 class AttachFileButton extends AttachUploadsButton {

@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/ui/katex.dart';
+import 'package:zulip/ui/widgets/katex.dart';
 
 import '../model/binding.dart';
 import '../model/katex_test.dart';

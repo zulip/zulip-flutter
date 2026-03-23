@@ -6,7 +6,7 @@ import 'log.dart';
 import 'model/binding.dart';
 import 'notifications/receive.dart';
 import 'ui/app.dart';
-import 'ui/share.dart';
+import 'ui/some_features/share.dart';
 
 void main() {
   mainInit();

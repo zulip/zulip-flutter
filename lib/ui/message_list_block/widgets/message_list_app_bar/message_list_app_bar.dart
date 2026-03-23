@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
-import '../../../app_bar.dart';
-import '../../../../utils/assets/icons.dart';
-import '../../../message_list.dart';
-import '../../../store.dart';
-import '../../../theme.dart';
+import '../../../widgets/app_bar.dart';
+import '../../../values/icons.dart';
+import '../../message_list.dart';
+import '../../../some_features/store.dart';
+import '../../../values/theme.dart';
 import '../../message_list_block.dart';
 import 'message_list_app_bar_title.dart';
 import '../buttons/topic_list_button.dart';

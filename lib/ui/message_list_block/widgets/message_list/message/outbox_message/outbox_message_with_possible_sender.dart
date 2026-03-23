@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../model/message.dart';
 import '../../../../../../model/message_list.dart';
-import '../../../../../content.dart';
-import '../../../../../message_list.dart';
+import '../../../../../content_block/content.dart';
+import '../../../../message_list.dart';
 import '../../../sender_row.dart';
 import 'outbox_message_status_row.dart';
 import 'restore_outbox_message_gesture_detector.dart';

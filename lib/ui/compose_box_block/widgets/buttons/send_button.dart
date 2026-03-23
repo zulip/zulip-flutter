@@ -4,13 +4,13 @@ import '../../../../api/exception.dart';
 import '../../../../api/route/messages.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../utils/constants.dart';
-import '../../../color.dart';
-import '../../../compose_box.dart';
-import '../../../dialog.dart';
-import '../../../../utils/assets/icons.dart';
+import '../../../extensions/color.dart';
+import '../../compose_box.dart';
+import '../../../widgets/dialog.dart';
+import '../../../values/icons.dart';
 import '../../../message_list_block/message_list_block.dart';
-import '../../../store.dart';
-import '../../../theme.dart';
+import '../../../some_features/store.dart';
+import '../../../values/theme.dart';
 
 class SendButton extends StatefulWidget {
   const SendButton({

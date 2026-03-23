@@ -12,8 +12,8 @@ import '../model/binding.dart';
 import '../model/localizations.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
-import '../ui/color.dart';
-import '../ui/theme.dart';
+import '../ui/extensions/color.dart';
+import '../ui/values/theme.dart';
 import 'open.dart';
 
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;

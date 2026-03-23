@@ -21,8 +21,8 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
-import 'package:zulip/ui/color.dart';
-import 'package:zulip/ui/theme.dart';
+import 'package:zulip/ui/extensions/color.dart';
+import 'package:zulip/ui/values/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
