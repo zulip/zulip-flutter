@@ -16,7 +16,7 @@ import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
 import '../utils/page.dart';
-import '../profile_block/profile.dart';
+import '../blocks/profile_block/profile.dart';
 import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';

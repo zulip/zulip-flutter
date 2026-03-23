@@ -6,7 +6,7 @@ import '../../generated/l10n/zulip_localizations.dart';
 import 'action_sheet.dart';
 import '../utils/actions.dart';
 import '../extensions/color.dart';
-import '../profile_block/profile.dart';
+import '../blocks/profile_block/profile.dart';
 import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';

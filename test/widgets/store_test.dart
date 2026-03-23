@@ -8,7 +8,7 @@ import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/ui/app.dart';
-import 'package:zulip/ui/inbox_block/inbox.dart';
+import 'package:zulip/ui/blocks/inbox_block/inbox.dart';
 import 'package:zulip/ui/utils/page.dart';
 import 'package:zulip/ui/utils/store.dart';
 

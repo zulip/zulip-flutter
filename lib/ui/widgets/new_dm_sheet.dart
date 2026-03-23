@@ -7,7 +7,7 @@ import '../../model/store.dart';
 import '../extensions/color.dart';
 import '../values/icons.dart';
 import '../utils/page.dart';
-import '../recent_dm_conversations_block/recent_dm_conversations.dart';
+import '../blocks/recent_dm_conversations_block/recent_dm_conversations.dart';
 import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';

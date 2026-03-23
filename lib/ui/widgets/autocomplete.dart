@@ -9,7 +9,7 @@ import '../utils/store.dart';
 import '../../model/autocomplete.dart';
 import '../../model/compose.dart';
 import '../../model/narrow.dart';
-import '../compose_box_block/compose_box.dart';
+import '../blocks/compose_box_block/compose_box.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 import 'user.dart';

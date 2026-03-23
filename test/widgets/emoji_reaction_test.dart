@@ -17,10 +17,10 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/ui/content_block/content.dart';
+import 'package:zulip/ui/blocks/content_block/content.dart';
 import 'package:zulip/ui/widgets/emoji_reaction.dart';
 import 'package:zulip/ui/values/icons.dart';
-import 'package:zulip/ui/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

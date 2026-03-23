@@ -14,8 +14,8 @@ import '../model/narrow.dart';
 import '../model/store.dart' show Account;
 import '../ui/app.dart';
 import '../ui/widgets/dialog.dart';
-import '../ui/home_block/home.dart';
-import '../ui/message_list_block/message_list_block.dart';
+import '../ui/blocks/home_block/home.dart';
+import '../ui/blocks/message_list_block/message_list_block.dart';
 import '../ui/utils/page.dart';
 import '../ui/utils/store.dart';
 

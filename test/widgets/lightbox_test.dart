@@ -16,8 +16,8 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/ui/app.dart';
 import 'package:zulip/ui/widgets/image.dart';
 import 'package:zulip/ui/widgets/lightbox.dart';
-import 'package:zulip/ui/message_list_block/headers/stream_message_recipient_header.dart';
-import 'package:zulip/ui/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/blocks/message_list_block/headers/stream_message_recipient_header.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
 import 'package:zulip/ui/widgets/user.dart';
 
 import '../api/fake_api.dart';

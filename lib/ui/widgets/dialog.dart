@@ -6,7 +6,7 @@ import '../../generated/l10n/zulip_localizations.dart';
 import '../../model/settings.dart';
 import '../utils/actions.dart';
 import '../app.dart';
-import '../content_block/content.dart';
+import '../blocks/content_block/content.dart';
 import '../utils/store.dart';
 
 /// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.

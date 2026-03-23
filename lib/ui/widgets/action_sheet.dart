@@ -20,22 +20,22 @@ import '../../model/narrow.dart';
 import '../utils/actions.dart';
 import 'button.dart';
 import '../extensions/color.dart';
-import '../compose_box_block/compose_box.dart';
-import '../content_block/content.dart';
+import '../blocks/compose_box_block/compose_box.dart';
+import '../blocks/content_block/content.dart';
 import 'dialog.dart';
 import 'emoji.dart';
 import 'emoji_reaction.dart';
 import '../values/icons.dart';
 import 'inset_shadow.dart';
-import '../message_list_block/message_list.dart';
-import '../message_list_block/message_list_block.dart';
-import '../message_list_block/widgets/sender_row.dart';
+import '../blocks/message_list_block/message_list.dart';
+import '../blocks/message_list_block/message_list_block.dart';
+import '../blocks/message_list_block/widgets/sender_row.dart';
 import '../utils/page.dart';
 import 'read_receipts.dart';
 import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
-import '../topic_list_block/topic_list_block.dart';
+import '../blocks/topic_list_block/topic_list_block.dart';
 
 /// Show an action sheet with scrollable menu buttons
 /// and an optional scrollable header.

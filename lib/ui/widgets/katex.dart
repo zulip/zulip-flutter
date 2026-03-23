@@ -6,7 +6,7 @@ import 'package:flutter/rendering.dart';
 
 import '../../model/content.dart';
 import '../../model/katex.dart';
-import '../content_block/content.dart';
+import '../blocks/content_block/content.dart';
 
 /// Creates a base text style for rendering KaTeX content.
 ///

@@ -15,11 +15,11 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/ui/app.dart';
-import 'package:zulip/ui/home_block/home.dart';
+import 'package:zulip/ui/blocks/home_block/home.dart';
 import 'package:zulip/ui/values/icons.dart';
-import 'package:zulip/ui/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
 import 'package:zulip/ui/utils/page.dart';
-import 'package:zulip/ui/topic_list_block/topic_list_block.dart';
+import 'package:zulip/ui/blocks/topic_list_block/topic_list_block.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

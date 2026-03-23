@@ -8,14 +8,14 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/ui/home_block/home.dart';
-import 'package:zulip/ui/recent_dm_conversations_block/widgets/recent_dm_conversations_item.dart';
+import 'package:zulip/ui/blocks/home_block/home.dart';
+import 'package:zulip/ui/blocks/recent_dm_conversations_block/widgets/recent_dm_conversations_item.dart';
 import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/widgets/image.dart';
-import 'package:zulip/ui/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
 import 'package:zulip/ui/widgets/new_dm_sheet.dart';
 import 'package:zulip/ui/utils/page.dart';
-import 'package:zulip/ui/recent_dm_conversations_block/recent_dm_conversations.dart';
+import 'package:zulip/ui/blocks/recent_dm_conversations_block/recent_dm_conversations.dart';
 import 'package:zulip/ui/widgets/user.dart';
 
 import '../example_data.dart' as eg;

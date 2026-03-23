@@ -14,13 +14,13 @@ import 'package:zulip/basic.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/ui/blocks/profile_block/profile.dart';
 import 'package:zulip/ui/widgets/button.dart';
 import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/widgets/image.dart';
-import 'package:zulip/ui/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
 import 'package:zulip/ui/utils/page.dart';
 import 'package:zulip/ui/utils/remote_settings.dart';
-import 'package:zulip/ui/profile_block/profile.dart';
 import 'package:zulip/ui/widgets/user.dart';
 
 import '../api/fake_api.dart';
