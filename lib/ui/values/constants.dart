@@ -19,3 +19,8 @@ const double kShortMessageHeight = 80;
 //   in the semantics tree. Empirically, it does: iOS VoiceOver's focus can land
 //   on it, and when it does, nothing gets read.
 const String kLayoutPinningHelperText = '\u200b';
+
+/// The font size for message content in a plain unstyled paragraph.
+const double kBaseFontSize = 17;
+
+const kInlineCodeFontSizeFactor = 0.825;

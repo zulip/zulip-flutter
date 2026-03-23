@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../model/code_block.dart';
-import '../content_block/content.dart';
+import 'constants.dart';
 import 'text.dart';
 
 /// [TextStyle]s used to render code blocks.

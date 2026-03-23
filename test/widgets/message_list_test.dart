@@ -25,6 +25,7 @@ import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/ui/content_block/widgets/code_block.dart';
 import 'package:zulip/ui/widgets/app_bar.dart';
 import 'package:zulip/ui/widgets/autocomplete.dart';
 import 'package:zulip/ui/extensions/color.dart';

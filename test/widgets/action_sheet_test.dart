@@ -21,6 +21,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/ui/content_block/widgets/mention.dart';
 import 'package:zulip/ui/widgets/action_sheet.dart';
 import 'package:zulip/ui/widgets/app_bar.dart';
 import 'package:zulip/ui/widgets/button.dart';
