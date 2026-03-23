@@ -5,8 +5,8 @@ import 'licenses.dart';
 import 'log.dart';
 import 'model/binding.dart';
 import 'notifications/receive.dart';
-import 'widgets/app.dart';
-import 'widgets/share.dart';
+import 'ui/app.dart';
+import 'ui/share.dart';
 
 void main() {
   mainInit();

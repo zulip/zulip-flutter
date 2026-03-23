@@ -14,12 +14,12 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
-import 'package:zulip/widgets/autocomplete.dart';
-import 'package:zulip/widgets/compose_box.dart';
-import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/message_list_block/message_list_block.dart';
-import 'package:zulip/widgets/user.dart';
+import 'package:zulip/ui/autocomplete.dart';
+import 'package:zulip/ui/compose_box.dart';
+import 'package:zulip/utils/assets/icons.dart';
+import 'package:zulip/ui/image.dart';
+import 'package:zulip/ui/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/user.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

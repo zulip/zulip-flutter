@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/poll.dart';
+import 'package:zulip/ui/poll.dart';
 
 import '../stdlib_checks.dart';
 import '../api/fake_api.dart';

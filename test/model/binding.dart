@@ -16,7 +16,7 @@ import 'package:zulip/host/android_notifications.dart';
 import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/app.dart';
+import 'package:zulip/ui/app.dart';
 
 import '../example_data.dart' as eg;
 import 'test_store.dart';

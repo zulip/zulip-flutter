@@ -12,12 +12,12 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/narrow.dart';
 import '../model/store.dart' show Account;
-import '../widgets/app.dart';
-import '../widgets/dialog.dart';
-import '../widgets/home.dart';
-import '../widgets/message_list_block/message_list_block.dart';
-import '../widgets/page.dart';
-import '../widgets/store.dart';
+import '../ui/app.dart';
+import '../ui/dialog.dart';
+import '../ui/home.dart';
+import '../ui/message_list_block/message_list_block.dart';
+import '../ui/page.dart';
+import '../ui/store.dart';
 
 NotificationPigeonApi get _notifPigeonApi =>
     ZulipBinding.instance.notificationPigeonApi;

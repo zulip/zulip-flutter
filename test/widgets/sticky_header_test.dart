@@ -7,7 +7,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/widgets/sticky_header.dart';
+import 'package:zulip/ui/sticky_header.dart';
 
 void main() {
   testWidgets('sticky headers: scroll up, headers overflow items, explicit version', (tester) async {

@@ -5,22 +5,22 @@ import 'package:zulip/api/route/realm.dart';
 
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
-import 'package:zulip/widgets/all_channels.dart';
-import 'package:zulip/widgets/button.dart';
-import 'package:zulip/widgets/channel_colors.dart';
-import 'package:zulip/widgets/compose_box.dart';
-import 'package:zulip/widgets/compose_box_block/compose_box_block.dart';
-import 'package:zulip/widgets/emoji.dart';
-import 'package:zulip/widgets/emoji_reaction.dart';
-import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/lightbox.dart';
-import 'package:zulip/widgets/login.dart';
-import 'package:zulip/widgets/message_list_block/message_list_block.dart';
-import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/profile.dart';
-import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/counter_badge.dart';
-import 'package:zulip/widgets/user.dart';
+import 'package:zulip/ui/all_channels.dart';
+import 'package:zulip/ui/button.dart';
+import 'package:zulip/ui/channel_colors.dart';
+import 'package:zulip/ui/compose_box.dart';
+import 'package:zulip/ui/compose_box_block/compose_box_block.dart';
+import 'package:zulip/ui/emoji.dart';
+import 'package:zulip/ui/emoji_reaction.dart';
+import 'package:zulip/ui/image.dart';
+import 'package:zulip/ui/lightbox.dart';
+import 'package:zulip/ui/login.dart';
+import 'package:zulip/ui/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/page.dart';
+import 'package:zulip/ui/profile.dart';
+import 'package:zulip/ui/store.dart';
+import 'package:zulip/ui/counter_badge.dart';
+import 'package:zulip/ui/user.dart';
 
 extension ChannelColorSwatchChecks on Subject<ChannelColorSwatch> {
   Subject<Color> get base => has((s) => s.base, 'base');

@@ -8,7 +8,7 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
-import '../widgets/compose_box.dart';
+import '../ui/compose_box.dart';
 import 'algorithms.dart';
 import 'channel.dart';
 import 'compose.dart';

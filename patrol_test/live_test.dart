@@ -11,8 +11,8 @@ import 'package:zulip/api/core.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/main.dart';
 import 'package:zulip/model/binding.dart';
-import 'package:zulip/widgets/app.dart';
-import 'package:zulip/widgets/store.dart';
+import 'package:zulip/ui/app.dart';
+import 'package:zulip/ui/store.dart';
 
 import '../test/example_data.dart' as eg;
 

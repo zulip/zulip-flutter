@@ -14,12 +14,12 @@ import 'package:zulip/model/push_device.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
-import 'package:zulip/widgets/app.dart';
-import 'package:zulip/widgets/home.dart';
-import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/message_list_block/message_list_block.dart';
-import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/topic_list.dart';
+import 'package:zulip/ui/app.dart';
+import 'package:zulip/ui/home.dart';
+import 'package:zulip/utils/assets/icons.dart';
+import 'package:zulip/ui/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/page.dart';
+import 'package:zulip/ui/topic_list.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

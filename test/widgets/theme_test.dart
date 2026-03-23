@@ -6,9 +6,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
-import 'package:zulip/widgets/channel_colors.dart';
-import 'package:zulip/widgets/text.dart';
-import 'package:zulip/widgets/theme.dart';
+import 'package:zulip/ui/channel_colors.dart';
+import 'package:zulip/ui/text.dart';
+import 'package:zulip/ui/theme.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';

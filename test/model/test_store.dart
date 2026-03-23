@@ -8,7 +8,7 @@ import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/receive.dart';
-import 'package:zulip/widgets/store.dart';
+import 'package:zulip/ui/store.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;

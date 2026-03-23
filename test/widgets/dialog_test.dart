@@ -5,8 +5,8 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/model/settings.dart';
-import 'package:zulip/widgets/app.dart';
-import 'package:zulip/widgets/dialog.dart';
+import 'package:zulip/ui/app.dart';
+import 'package:zulip/ui/dialog.dart';
 
 import '../model/binding.dart';
 import 'dialog_checks.dart';
