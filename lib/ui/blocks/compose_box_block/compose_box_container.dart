@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'compose_box.dart';
+import '../../themes/compose_box_theme.dart';
 import '../../values/theme.dart';
 
 class ComposeBoxContainer extends StatelessWidget {

@@ -23,6 +23,7 @@ import 'package:zulip/ui/blocks/content_block/widgets/mention.dart';
 import 'package:zulip/ui/blocks/content_block/widgets/message_image_emoji.dart';
 import 'package:zulip/ui/blocks/content_block/widgets/message_image_preview.dart';
 import 'package:zulip/ui/blocks/content_block/widgets/thematic_break.dart';
+import 'package:zulip/ui/themes/content_theme.dart';
 import 'package:zulip/ui/values/constants.dart';
 import 'package:zulip/ui/values/icons.dart';
 import 'package:zulip/ui/widgets/image.dart';

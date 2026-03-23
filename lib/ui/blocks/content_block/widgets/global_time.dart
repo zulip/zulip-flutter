@@ -3,10 +3,10 @@ import 'package:intl/intl.dart' as intl;
 
 import '../../../../api/model/model.dart';
 import '../../../../model/content.dart';
+import '../../../themes/content_theme.dart';
 import '../../../utils/store.dart';
 import '../../../values/constants.dart';
 import '../../../values/icons.dart';
-import '../content.dart';
 
 class GlobalTime extends StatelessWidget {
   const GlobalTime({

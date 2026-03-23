@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
 import '../../../../model/unreads.dart';
+import '../../../themes/message_list_theme.dart';
 import '../../../utils/actions.dart';
 import '../../../values/icons.dart';
-import '../message_list.dart';
 import '../../../utils/store.dart';
 import '../../../values/text.dart';
 

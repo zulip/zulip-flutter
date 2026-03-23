@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/content.dart';
+import '../../../themes/content_theme.dart';
 import '../../../widgets/scrolling.dart';
-import '../content.dart';
 
 class CodeBlock extends StatelessWidget {
   const CodeBlock({super.key, required this.node});

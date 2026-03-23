@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../content.dart';
+import '../../../themes/content_theme.dart';
 
 class ThematicBreak extends StatelessWidget {
   const ThematicBreak({super.key});

@@ -2,10 +2,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../model/content.dart';
+import '../../../themes/content_theme.dart';
 import '../../../values/constants.dart';
 import '../../../values/text.dart';
 import '../../../widgets/katex.dart';
-import '../content.dart';
 import 'global_time.dart';
 import 'helpers.dart';
 import 'inline_image.dart';

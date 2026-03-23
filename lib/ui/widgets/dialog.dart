@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
 import '../../model/settings.dart';
+import '../themes/content_theme.dart';
 import '../utils/actions.dart';
 import '../app.dart';
-import '../blocks/content_block/content.dart';
 import '../utils/store.dart';
 
 /// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.

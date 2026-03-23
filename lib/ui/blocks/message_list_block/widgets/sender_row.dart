@@ -4,6 +4,7 @@ import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/store.dart';
 import '../../../extensions/color.dart';
+import '../../../themes/message_list_theme.dart';
 import '../../../values/icons.dart';
 import '../message_list.dart';
 import '../../profile_block/profile.dart';

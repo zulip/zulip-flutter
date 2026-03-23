@@ -23,6 +23,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
 import 'package:zulip/ui/app.dart';
+import 'package:zulip/ui/themes/compose_box_theme.dart';
 import 'package:zulip/ui/widgets/button.dart';
 import 'package:zulip/ui/extensions/color.dart';
 import 'package:zulip/ui/blocks/compose_box_block/compose_box.dart';

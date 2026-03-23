@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/content.dart';
-import '../content.dart';
+import '../../../themes/content_theme.dart';
 import 'message_image_preview.dart';
 import 'message_media_container.dart';
 

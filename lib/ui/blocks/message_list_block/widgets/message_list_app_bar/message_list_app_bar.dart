@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../model/narrow.dart';
+import '../../../../themes/message_list_theme.dart';
 import '../../../../widgets/app_bar.dart';
 import '../../../../values/icons.dart';
-import '../../message_list.dart';
 import '../../../../utils/store.dart';
 import '../../../../values/theme.dart';
 import '../../message_list_block.dart';

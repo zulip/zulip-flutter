@@ -6,11 +6,11 @@ import 'package:html/dom.dart' as dom;
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/content.dart';
 import '../../../../model/internal_link.dart';
+import '../../../themes/content_theme.dart';
 import '../../message_list_block/message_list_block.dart';
 import '../../../utils/actions.dart';
 import '../../../utils/store.dart';
 import '../../../widgets/dialog.dart';
-import '../content.dart';
 import 'block_inline_container.dart';
 import 'inline_content.dart';
 

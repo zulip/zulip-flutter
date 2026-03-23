@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../content.dart';
+import '../../../themes/content_theme.dart';
 
 class MessageMediaContainer extends StatelessWidget {
   const MessageMediaContainer({

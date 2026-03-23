@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../../model/message.dart';
 import '../../../../../../../model/message_list.dart';
-import '../../../../../content_block/content.dart';
+import '../../../../../../themes/content_theme.dart';
 import '../../../../../content_block/widgets/block_content_list.dart';
 import '../../../../message_list.dart';
 import '../../../sender_row.dart';

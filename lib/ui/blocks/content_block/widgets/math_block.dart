@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/content.dart';
+import '../../../themes/content_theme.dart';
 import '../../../widgets/katex.dart';
 import '../../../widgets/scrolling.dart';
-import '../content.dart';
 import 'code_block.dart';
 
 class MathBlock extends StatelessWidget {

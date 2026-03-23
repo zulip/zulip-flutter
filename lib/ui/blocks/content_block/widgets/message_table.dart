@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/content.dart';
+import '../../../themes/content_theme.dart';
 import '../../../values/text.dart';
 import '../../../widgets/scrolling.dart';
-import '../content.dart';
 import 'helpers.dart';
 
 class MessageTable extends StatelessWidget {

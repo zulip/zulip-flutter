@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../../../model/content.dart';
+import '../../../themes/content_theme.dart';
 import '../../../utils/store.dart';
 import '../../../values/constants.dart';
 import '../../../values/theme.dart';
 import '../../../widgets/image.dart';
 import '../../../widgets/inset_shadow.dart';
-import '../content.dart';
 import 'helpers.dart';
 
 class WebsitePreview extends StatelessWidget {

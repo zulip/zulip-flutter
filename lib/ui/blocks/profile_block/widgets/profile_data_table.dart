@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../model/content.dart';
-import '../../content_block/content.dart';
+import '../../../themes/content_theme.dart';
 import '../../content_block/widgets/paragraph.dart';
 import '../../../utils/store.dart';
 import '../../../values/text.dart';

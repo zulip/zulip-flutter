@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../api/model/model.dart';
 import '../../model/settings.dart';
-import '../blocks/compose_box_block/compose_box.dart';
-import '../blocks/content_block/content.dart';
-import '../widgets/emoji_reaction.dart';
-import '../blocks/message_list_block/message_list.dart';
+import '../themes/compose_box_theme.dart';
+import '../themes/content_theme.dart';
+import '../themes/emoji_reaction_theme.dart';
+import '../themes/message_list_theme.dart';
 import 'channel_colors.dart';
 import '../utils/store.dart';
 import 'text.dart';

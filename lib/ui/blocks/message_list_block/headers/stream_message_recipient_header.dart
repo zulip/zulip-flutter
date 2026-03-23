@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
+import '../../../themes/message_list_theme.dart';
 import '../../../widgets/action_sheet.dart';
 import '../../../extensions/color.dart';
 import '../../../values/icons.dart';

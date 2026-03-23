@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../api/model/submessage.dart';
 import '../../api/route/submessage.dart';
 import '../../generated/l10n/zulip_localizations.dart';
-import '../blocks/content_block/content.dart';
+import '../themes/content_theme.dart';
 import '../utils/store.dart';
 import '../values/text.dart';
 

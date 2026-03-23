@@ -4,9 +4,9 @@ import '../../../../api/model/model.dart';
 import '../../../../api/model/permission.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/content.dart';
+import '../../../themes/content_theme.dart';
 import '../../../utils/store.dart';
 import '../../../values/constants.dart';
-import '../content.dart';
 import 'inline_content.dart';
 
 class Mention extends StatelessWidget {
