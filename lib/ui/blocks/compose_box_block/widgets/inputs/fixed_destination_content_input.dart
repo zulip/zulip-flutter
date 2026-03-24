@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../api/route/messages.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../model/narrow.dart';
 import '../../compose_box.dart';
@@ -12,10 +13,12 @@ class FixedDestinationContentInput extends StatelessWidget {
     super.key,
     required this.narrow,
     required this.controller,
+    required this.getDestination,
   });
 
   final SendableNarrow narrow;
   final FixedDestinationComposeBoxController controller;
+  final MessageDestination Function() getDestination;
 
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -61,6 +64,7 @@ class FixedDestinationContentInput extends StatelessWidget {
         narrow: narrow,
         controller: controller,
         hintText: _hintText(context),
+        getDestination: getDestination,
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../api/route/messages.dart';
 import '../../../../../model/narrow.dart';
 import '../../compose_box.dart';
 import '../inputs/edit_message_content_input.dart';
@@ -23,8 +24,12 @@ class EditMessageComposeBoxBody extends ComposeBoxBody {
   Widget? buildTopicInput() => null;
 
   @override
-  Widget buildContentInput() =>
-      EditMessageContentInput(narrow: narrow, controller: controller);
+  Widget buildContentInput() => EditMessageContentInput(
+    narrow: narrow,
+    controller: controller,
+    // TODO: удалить, тестовая заглушка
+    getDestination: () => DmDestination(userIds: []),
+  );
 
   @override
   bool getComposeButtonsEnabled(BuildContext context) =>

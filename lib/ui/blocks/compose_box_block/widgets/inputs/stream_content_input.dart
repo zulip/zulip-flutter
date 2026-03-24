@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../api/model/model.dart';
+import '../../../../../api/route/messages.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../model/narrow.dart';
 import '../../compose_box.dart';
@@ -13,10 +14,12 @@ class StreamContentInput extends StatefulWidget {
     super.key,
     required this.narrow,
     required this.controller,
+    required this.getDestination,
   });
 
   final ChannelNarrow narrow;
   final StreamComposeBoxController controller;
+  final MessageDestination Function() getDestination;
 
   @override
   State<StreamContentInput> createState() => _StreamContentInputState();
@@ -134,6 +137,7 @@ class _StreamContentInputState extends State<StreamContentInput> {
         hintText: zulipLocalizations.composeBoxChannelContentHint(
           hintDestination,
         ),
+        getDestination: widget.getDestination,
       ),
     );
   }

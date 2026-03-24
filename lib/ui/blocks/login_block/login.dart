@@ -353,8 +353,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (_otp == null) throw Error();
       final payload = WebAuthPayload.parse(url);
-      if (payload.realm.origin != widget.serverSettings.realmUrl.origin)
+      if (payload.realm.origin != widget.serverSettings.realmUrl.origin) {
         throw Error();
+      }
       final apiKey = payload.decodeApiKey(_otp!);
       await _tryInsertAccountAndNavigate(
         userId: payload.userId,

@@ -27,8 +27,14 @@ class StreamComposeBoxBody extends ComposeBoxBody {
       TopicInput(streamId: narrow.streamId, controller: controller);
 
   @override
-  Widget buildContentInput() =>
-      StreamContentInput(narrow: narrow, controller: controller);
+  Widget buildContentInput() => StreamContentInput(
+    narrow: narrow,
+    controller: controller,
+    getDestination: () => StreamDestination(
+      narrow.streamId,
+      TopicName(controller.topic.textNormalized),
+    ),
+  );
 
   @override
   bool getComposeButtonsEnabled(BuildContext context) => true;

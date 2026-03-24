@@ -27,8 +27,11 @@ class FixedDestinationComposeBoxBody extends ComposeBoxBody {
   Widget? buildTopicInput() => null;
 
   @override
-  Widget buildContentInput() =>
-      FixedDestinationContentInput(narrow: narrow, controller: controller);
+  Widget buildContentInput() => FixedDestinationContentInput(
+    narrow: narrow,
+    controller: controller,
+    getDestination: () => narrow.destination,
+  );
 
   @override
   bool getComposeButtonsEnabled(BuildContext context) => true;
