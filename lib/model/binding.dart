@@ -2,12 +2,9 @@ import 'dart:async';
 
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:file_picker/file_picker.dart' as file_picker;
-import 'package:firebase_core/firebase_core.dart' as firebase_core;
-import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
-import 'package:sodium_libs/sodium_libs.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
@@ -17,14 +14,12 @@ import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
 import 'store.dart';
 
-export 'package:file_picker/file_picker.dart' show FilePickerResult, FileType, PlatformFile;
+export 'package:file_picker/file_picker.dart'
+    show FilePickerResult, FileType, PlatformFile;
 export 'package:image_picker/image_picker.dart' show ImageSource, XFile;
 
 /// Alias for [url_launcher.LaunchMode].
 typedef UrlLaunchMode = url_launcher.LaunchMode;
-
-/// Alias for [firebase_messaging.RemoteMessage].
-typedef FirebaseRemoteMessage = firebase_messaging.RemoteMessage;
 
 /// A singleton service providing the app's data and use of Flutter plugins.
 ///
@@ -166,27 +161,6 @@ abstract class ZulipBinding {
   /// This is the value [packageInfo] resolved to,
   /// or null if that hasn't resolved yet.
   PackageInfo? get syncPackageInfo;
-
-  /// Get the singleton for `package:sodium_libs` aka libsodium,
-  /// used for cryptography.
-  ///
-  /// This wraps [SodiumInit.init].
-  Future<Sodium> sodiumInit();
-
-  /// Initialize Firebase, to use for notifications.
-  ///
-  /// This wraps [firebase_core.Firebase.initializeApp].
-  Future<void> firebaseInitializeApp({
-      required firebase_core.FirebaseOptions options});
-
-  /// Wraps [firebase_messaging.FirebaseMessaging.instance].
-  firebase_messaging.FirebaseMessaging get firebaseMessaging;
-
-  /// Wraps [firebase_messaging.FirebaseMessaging.onMessage].
-  Stream<firebase_messaging.RemoteMessage> get firebaseMessagingOnMessage;
-
-  /// Wraps [firebase_messaging.FirebaseMessaging.onBackgroundMessage].
-  void firebaseMessagingOnBackgroundMessage(firebase_messaging.BackgroundMessageHandler handler);
 
   /// Wraps the [AndroidNotificationHostApi] constructor.
   AndroidNotificationHostApi get androidNotificationHost;
@@ -346,15 +320,15 @@ class PackageInfo {
 class NotificationPigeonApi {
   final _hostApi = notif_pigeon.NotificationHostApi();
 
-  Future<notif_pigeon.NotificationDataFromLaunch?> getNotificationDataFromLaunch() =>
-    _hostApi.getNotificationDataFromLaunch();
+  Future<notif_pigeon.NotificationDataFromLaunch?>
+  getNotificationDataFromLaunch() => _hostApi.getNotificationDataFromLaunch();
 
   /// An event stream that emits a notification payload
   /// when a notification is tapped.
   ///
   /// For details, see [notif_pigeon.notificationTapEvents].
   Stream<notif_pigeon.NotificationTapEvent> notificationTapEventsStream() =>
-    notif_pigeon.notificationTapEvents();
+      notif_pigeon.notificationTapEvents();
 }
 
 /// A concrete binding for use in the live application.
@@ -394,8 +368,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
-    assert(debugRelaxGetGlobalStoreUniquely
-        || _debugEnforceGetGlobalStoreUniquely());
+    assert(
+      debugRelaxGetGlobalStoreUniquely || _debugEnforceGetGlobalStoreUniquely(),
+    );
     return getGlobalStore();
   }
 
@@ -404,6 +379,7 @@ class LiveZulipBinding extends ZulipBinding {
     assert(_debugCalledGetGlobalStoreUniquely = true);
     return true;
   }
+
   bool _debugCalledGetGlobalStoreUniquely = false;
 
   @override
@@ -445,16 +421,24 @@ class LiveZulipBinding extends ZulipBinding {
     try {
       final info = await device_info_plus.DeviceInfoPlugin().deviceInfo;
       _syncDeviceInfo = switch (info) {
-        device_info_plus.AndroidDeviceInfo() => AndroidDeviceInfo(release: info.version.release,
-                                                                  sdkInt: info.version.sdkInt),
-        device_info_plus.IosDeviceInfo()     => IosDeviceInfo(systemVersion: info.systemVersion),
-        device_info_plus.MacOsDeviceInfo()   => MacOsDeviceInfo(majorVersion: info.majorVersion,
-                                                                minorVersion: info.minorVersion,
-                                                                patchVersion: info.patchVersion),
+        device_info_plus.AndroidDeviceInfo() => AndroidDeviceInfo(
+          release: info.version.release,
+          sdkInt: info.version.sdkInt,
+        ),
+        device_info_plus.IosDeviceInfo() => IosDeviceInfo(
+          systemVersion: info.systemVersion,
+        ),
+        device_info_plus.MacOsDeviceInfo() => MacOsDeviceInfo(
+          majorVersion: info.majorVersion,
+          minorVersion: info.minorVersion,
+          patchVersion: info.patchVersion,
+        ),
         device_info_plus.WindowsDeviceInfo() => const WindowsDeviceInfo(),
-        device_info_plus.LinuxDeviceInfo()   => LinuxDeviceInfo(name: info.name,
-                                                                versionId: info.versionId),
-        _                                    => throw UnimplementedError(),
+        device_info_plus.LinuxDeviceInfo() => LinuxDeviceInfo(
+          name: info.name,
+          versionId: info.versionId,
+        ),
+        _ => throw UnimplementedError(),
       };
     } catch (e, st) {
       assert(debugLog('Failed to prefetch device info: $e\n$st')); // TODO(log)
@@ -485,37 +469,15 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<Sodium> sodiumInit() => SodiumInit.init();
-
-  @override
-  Future<void> firebaseInitializeApp({
-      required firebase_core.FirebaseOptions options}) {
-    return firebase_core.Firebase.initializeApp(options: options);
-  }
-
-  @override
-  firebase_messaging.FirebaseMessaging get firebaseMessaging {
-    return firebase_messaging.FirebaseMessaging.instance;
-  }
-
-  @override
-  Stream<firebase_messaging.RemoteMessage> get firebaseMessagingOnMessage {
-    return firebase_messaging.FirebaseMessaging.onMessage;
-  }
-
-  @override
-  void firebaseMessagingOnBackgroundMessage(firebase_messaging.BackgroundMessageHandler handler) {
-    firebase_messaging.FirebaseMessaging.onBackgroundMessage(handler);
-  }
-
-  @override
-  AndroidNotificationHostApi get androidNotificationHost => AndroidNotificationHostApi();
+  AndroidNotificationHostApi get androidNotificationHost =>
+      AndroidNotificationHostApi();
 
   @override
   NotificationPigeonApi get notificationPigeonApi => NotificationPigeonApi();
 
   @override
-  Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents => android_intents_pigeon.androidIntentEvents();
+  Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents =>
+      android_intents_pigeon.androidIntentEvents();
 
   @override
   Future<file_picker.FilePickerResult?> pickFiles({
@@ -535,8 +497,10 @@ class LiveZulipBinding extends ZulipBinding {
     required image_picker.ImageSource source,
     bool requestFullMetadata = true,
   }) async {
-    return image_picker.ImagePicker()
-      .pickImage(source: source, requestFullMetadata: requestFullMetadata);
+    return image_picker.ImagePicker().pickImage(
+      source: source,
+      requestFullMetadata: requestFullMetadata,
+    );
   }
 
   @override

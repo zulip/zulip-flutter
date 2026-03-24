@@ -26,8 +26,6 @@ import 'emoji.dart';
 import 'localizations.dart';
 import 'message.dart';
 import 'presence.dart';
-import 'push_device.dart';
-import 'push_key.dart';
 import 'realm.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
@@ -116,7 +114,6 @@ abstract class GlobalStore extends ChangeNotifier {
          boolData: boolGlobalSettings,
          intData: intGlobalSettings,
        ),
-       pushKeys = GlobalPushKeyStore(backend: backend, data: pushKeys),
        _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
   /// The store for the user's account-independent settings.
@@ -126,8 +123,6 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Consider using [GlobalStoreWidget.settingsOf], which automatically
   /// subscribes to changes in the [GlobalSettingsStore].
   final GlobalSettingsStore settings;
-
-  final GlobalPushKeyStore pushKeys;
 
   /// Construct a new [ApiConnection], real or fake as appropriate.
   ///
@@ -484,7 +479,6 @@ abstract class GlobalStore extends ChangeNotifier {
     _accounts.remove(accountId);
     _perAccountStores.remove(accountId)?.dispose();
     unawaited(_perAccountStoresLoading.remove(accountId));
-    pushKeys.removeAccount(accountId);
     notifyListeners();
   }
 
@@ -600,8 +594,6 @@ abstract class PerAccountStoreBase {
   Future<void> updateAccount(AccountsCompanion data) async {
     await _globalStore.updateAccount(accountId, data);
   }
-
-  PushKeyStore get pushKeys => _globalStore.pushKeys.perAccount(accountId);
 }
 
 const _tryResolveUrl = tryResolveUrl;
@@ -728,10 +720,6 @@ class PerAccountStore extends PerAccountStoreBase
         allRealmEmoji: initialSnapshot.realmEmoji,
       ),
       userSettings: initialSnapshot.userSettings,
-      pushDevices: PushDeviceManager(
-        core: core,
-        devices: initialSnapshot.devices ?? {},
-      ),
       savedSnippets: SavedSnippetStoreImpl(
         core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? [],
@@ -765,7 +753,6 @@ class PerAccountStore extends PerAccountStoreBase
     required this._realm,
     required this._emoji,
     required this.userSettings,
-    required this.pushDevices,
     required this._savedSnippets,
     required this.typingNotifier,
     required this._users,
@@ -831,8 +818,6 @@ class PerAccountStore extends PerAccountStoreBase
   // Data attached to the self-account on the realm.
 
   final UserSettings userSettings;
-
-  final PushDeviceManager pushDevices;
 
   @override
   Map<int, SavedSnippet> get savedSnippets => _savedSnippets.savedSnippets;
@@ -928,7 +913,6 @@ class PerAccountStore extends PerAccountStoreBase
     presence.dispose();
     typingStatus.dispose();
     typingNotifier.dispose();
-    pushDevices.dispose();
     updateMachine?.dispose();
     connection.close();
     _disposed = true;
@@ -978,7 +962,6 @@ class PerAccountStore extends PerAccountStoreBase
 
       case DeviceEvent():
         assert(debugLog("server event: device"));
-        pushDevices.handleDeviceEvent(event);
         notifyListeners();
 
       case CustomProfileFieldsEvent():
@@ -1074,11 +1057,13 @@ class PerAccountStore extends PerAccountStoreBase
         recentSenders.handleMessage(event.message); // TODO(#824)
         topics.handleMessageEvent(event);
 
-        if (!event.message.isMeMessage) {
-          LocalNotificationsService().showNotification(
-            title: event.message.senderFullName,
-            body: event.message.content,
-            groupKey: event.message.senderId.toString(),
+        if (event.message.isMeMessage) {
+          unawaited(
+            LocalNotificationsService().showNotification(
+              title: event.message.senderFullName,
+              body: event.message.content,
+              groupKey: event.message.senderId.toString(),
+            ),
           );
         }
       // When adding anything here (to handle [MessageEvent]),

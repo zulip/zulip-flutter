@@ -9,14 +9,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "92.0.0"
-  _flutterfire_internals:
-    dependency: transitive
-    description:
-      name: _flutterfire_internals
-      sha256: afe15ce18a287d2f89da95566e62892df339b1936bbe9b83587df45b944ee72a
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.67"
   analyzer:
     dependency: transitive
     description:
@@ -362,54 +354,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.3+5"
-  firebase_core:
-    dependency: "direct main"
-    description:
-      name: firebase_core
-      sha256: f0997fee80fbb6d2c658c5b88ae87ba1f9506b5b37126db64fc2e75d8e977fbb
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.5.0"
-  firebase_core_platform_interface:
-    dependency: transitive
-    description:
-      name: firebase_core_platform_interface
-      sha256: cccb4f572325dc14904c02fcc7db6323ad62ba02536833dddb5c02cac7341c64
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.0.2"
-  firebase_core_web:
-    dependency: transitive
-    description:
-      name: firebase_core_web
-      sha256: "856ca92bf2d75a63761286ab8e791bda3a85184c2b641764433b619647acfca6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.5.0"
-  firebase_messaging:
-    dependency: "direct main"
-    description:
-      name: firebase_messaging
-      sha256: bd17823b70e629877904d384841cda72ed2cc197517404c0c90da5c0ba786a8c
-      url: "https://pub.dev"
-    source: hosted
-    version: "16.1.2"
-  firebase_messaging_platform_interface:
-    dependency: transitive
-    description:
-      name: firebase_messaging_platform_interface
-      sha256: "550435235cc7d53683f32bf0762c28ef8cfc20a8d36318a033676ae09526d7fb"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.7.7"
-  firebase_messaging_web:
-    dependency: transitive
-    description:
-      name: firebase_messaging_web
-      sha256: "6b1b93ed90309fbce91c219e3cd32aa831e8eccaf4a61f3afaea1625479275d2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.1.3"
   fixnum:
     dependency: transitive
     description:
@@ -508,14 +452,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  freezed_annotation:
-    dependency: transitive
-    description:
-      name: freezed_annotation
-      sha256: "7294967ff0a6d98638e7acb774aac3af2550777accd8149c90af5b014e6d44d8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1043,22 +979,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  sodium:
-    dependency: transitive
-    description:
-      name: sodium
-      sha256: "515b86c186f4caca49051caf858d878ca7cc4ff4542411e9febb50654eac8a62"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.4.6"
-  sodium_libs:
-    dependency: "direct main"
-    description:
-      name: sodium_libs
-      sha256: f3f9c516b4183226b7a08ca43a765ebc9e02cfd92e46e8a6cc490f98ffe73052
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.4.6+4"
   source_gen:
     dependency: transitive
     description:
@@ -1163,14 +1083,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.1"
-  synchronized:
-    dependency: transitive
-    description:
-      name: synchronized
-      sha256: c254ade258ec8282947a0acbbc90b9575b4f19673533ee46f2f6e9b3aeefd7c0
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.4.0"
   term_glyph:
     dependency: transitive
     description:

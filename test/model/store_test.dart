@@ -40,7 +40,7 @@ void main() {
     final accounts = [account1, account2];
     final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accountId]!;
+        globalStore.completers[accountId]!;
 
     final future1 = globalStore.perAccount(1);
     final store1 = PerAccountStore.fromInitialSnapshot(
@@ -73,7 +73,7 @@ void main() {
     final accounts = [account1, account2];
     final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accountId]!;
+        globalStore.completers[accountId]!;
 
     final future1a = globalStore.perAccount(1);
     final future1b = globalStore.perAccount(1);
@@ -106,7 +106,7 @@ void main() {
     final accounts = [account1, account2];
     final globalStore = LoadingTestGlobalStore(accounts: accounts);
     List<Completer<PerAccountStore>> completers(int accountId) =>
-      globalStore.completers[accountId]!;
+        globalStore.completers[accountId]!;
 
     check(globalStore.perAccountSync(1)).isNull();
     final future1 = globalStore.perAccount(1);
@@ -125,186 +125,275 @@ void main() {
     check(completers(1)).length.equals(1);
   });
 
-  test('GlobalStore.perAccount loading fails with HTTP status code 401', () => awaitFakeAsync((async) async {
-    final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
-    final future = globalStore.perAccount(eg.selfAccount.id);
+  test(
+    'GlobalStore.perAccount loading fails with HTTP status code 401',
+    () => awaitFakeAsync((async) async {
+      final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
+      final future = globalStore.perAccount(eg.selfAccount.id);
 
-    globalStore.completers[eg.selfAccount.id]!
-      .single.completeError(eg.apiExceptionUnauthorized());
-    await check(future).throws<AccountNotFoundException>();
-  }));
+      globalStore.completers[eg.selfAccount.id]!.single.completeError(
+        eg.apiExceptionUnauthorized(),
+      );
+      await check(future).throws<AccountNotFoundException>();
+    }),
+  );
 
-  test('GlobalStore.perAccount loading succeeds', () => awaitFakeAsync((async) async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
-    final future = globalStore.perAccount(eg.selfAccount.id);
-    check(connection.takeRequests()).length.equals(1); // register request
+  test(
+    'GlobalStore.perAccount loading succeeds',
+    () => awaitFakeAsync((async) async {
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      check(connection.takeRequests()).length.equals(1); // register request
 
-    await future;
-    // poll and server-emoji-data requests
-    check(connection.takeRequests()).length.equals(2);
-    check(connection).isOpen.isTrue();
-  }));
+      await future;
+      // poll and server-emoji-data requests
+      check(connection.takeRequests()).length.equals(2);
+      check(connection).isOpen.isTrue();
+    }),
+  );
 
-  test('GlobalStore.perAccount loading succeeds; InitialSnapshot has ancient server version', () => awaitFakeAsync((async) async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-    final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
-    globalStore.prepareRegisterQueueResponse = (connection) {
-      connection.prepare(json: json);
-    };
-    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
-    final future = globalStore.perAccount(eg.selfAccount.id);
-    check(connection.takeRequests()).length.equals(1); // register request
+  test(
+    'GlobalStore.perAccount loading succeeds; InitialSnapshot has ancient server version',
+    () => awaitFakeAsync((async) async {
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      final json = eg
+          .initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel)
+          .toJson();
+      globalStore.prepareRegisterQueueResponse = (connection) {
+        connection.prepare(json: json);
+      };
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      check(connection.takeRequests()).length.equals(1); // register request
 
-    await check(future).throws<AccountNotFoundException>();
-    check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
-    // no poll or other follow-up requests
-    check(connection.takeRequests()).isEmpty();
-    check(connection).isOpen.isFalse();
-  }));
+      await check(future).throws<AccountNotFoundException>();
+      check(
+        globalStore.takeDoRemoveAccountCalls(),
+      ).single.equals(eg.selfAccount.id);
+      // no poll or other follow-up requests
+      check(connection.takeRequests()).isEmpty();
+      check(connection).isOpen.isFalse();
+    }),
+  );
 
-  test('GlobalStore.perAccount loading fails; malformed response with ancient server version', () => awaitFakeAsync((async) async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-    final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
-    json['realm_emoji'] = 123;
-    check(() => InitialSnapshot.fromJson(json)).throws<void>();
-    globalStore.prepareRegisterQueueResponse = (connection) {
-      connection.prepare(json: json);
-    };
-    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
-    final future = globalStore.perAccount(eg.selfAccount.id);
-    check(connection.takeRequests()).length.equals(1); // register request
+  test(
+    'GlobalStore.perAccount loading fails; malformed response with ancient server version',
+    () => awaitFakeAsync((async) async {
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      final json = eg
+          .initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel)
+          .toJson();
+      json['realm_emoji'] = 123;
+      check(() => InitialSnapshot.fromJson(json)).throws<void>();
+      globalStore.prepareRegisterQueueResponse = (connection) {
+        connection.prepare(json: json);
+      };
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      check(connection.takeRequests()).length.equals(1); // register request
 
-    await check(future).throws<AccountNotFoundException>();
-    check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
-    // no poll or other follow-up requests
-    check(connection.takeRequests()).isEmpty();
-    check(connection).isOpen.isFalse();
-  }));
+      await check(future).throws<AccountNotFoundException>();
+      check(
+        globalStore.takeDoRemoveAccountCalls(),
+      ).single.equals(eg.selfAccount.id);
+      // no poll or other follow-up requests
+      check(connection.takeRequests()).isEmpty();
+      check(connection).isOpen.isFalse();
+    }),
+  );
 
-  test('GlobalStore.perAccount account is logged out while loading; then succeeds', () => awaitFakeAsync((async) async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-    globalStore.prepareRegisterQueueResponse = (connection) =>
-      connection.prepare(
-        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
-        json: eg.initialSnapshot().toJson());
-    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
-    final future = globalStore.perAccount(eg.selfAccount.id);
-    check(connection.takeRequests()).length.equals(1); // register request
+  test(
+    'GlobalStore.perAccount account is logged out while loading; then succeeds',
+    () => awaitFakeAsync((async) async {
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      globalStore.prepareRegisterQueueResponse = (connection) =>
+          connection.prepare(
+            delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+            json: eg.initialSnapshot().toJson(),
+          );
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      check(connection.takeRequests()).length.equals(1); // register request
 
-    globalStore.clearCachedApiConnections();
-    await logOutAccount(globalStore, eg.selfAccount.id);
-    check(globalStore.takeDoRemoveAccountCalls())
-      .single.equals(eg.selfAccount.id);
+      globalStore.clearCachedApiConnections();
+      await logOutAccount(globalStore, eg.selfAccount.id);
+      check(
+        globalStore.takeDoRemoveAccountCalls(),
+      ).single.equals(eg.selfAccount.id);
 
-    await check(future).throws<AccountNotFoundException>();
-    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no poll or other follow-up requests
-    check(connection.takeRequests()).isEmpty();
-    check(connection).isOpen.isFalse();
-  }));
+      await check(future).throws<AccountNotFoundException>();
+      check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+      // no poll or other follow-up requests
+      check(connection.takeRequests()).isEmpty();
+      check(connection).isOpen.isFalse();
+    }),
+  );
 
-  test('GlobalStore.perAccount account is logged out while loading; then fails with HTTP status code 401', () => awaitFakeAsync((async) async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-    globalStore.prepareRegisterQueueResponse = (connection) =>
-      connection.prepare(
-        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
-        apiException: eg.apiExceptionUnauthorized());
-    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
-    final future = globalStore.perAccount(eg.selfAccount.id);
-    check(connection.takeRequests()).length.equals(1); // register request
+  test(
+    'GlobalStore.perAccount account is logged out while loading; then fails with HTTP status code 401',
+    () => awaitFakeAsync((async) async {
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      globalStore.prepareRegisterQueueResponse = (connection) =>
+          connection.prepare(
+            delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+            apiException: eg.apiExceptionUnauthorized(),
+          );
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      check(connection.takeRequests()).length.equals(1); // register request
 
-    globalStore.clearCachedApiConnections();
-    await logOutAccount(globalStore, eg.selfAccount.id);
-    check(globalStore.takeDoRemoveAccountCalls())
-      .single.equals(eg.selfAccount.id);
+      globalStore.clearCachedApiConnections();
+      await logOutAccount(globalStore, eg.selfAccount.id);
+      check(
+        globalStore.takeDoRemoveAccountCalls(),
+      ).single.equals(eg.selfAccount.id);
 
-    await check(future).throws<AccountNotFoundException>();
-    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no poll or other follow-up requests
-    check(connection.takeRequests()).isEmpty();
-    check(connection).isOpen.isFalse();
-  }));
+      await check(future).throws<AccountNotFoundException>();
+      check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+      // no poll or other follow-up requests
+      check(connection.takeRequests()).isEmpty();
+      check(connection).isOpen.isFalse();
+    }),
+  );
 
-  test('GlobalStore.perAccount account is logged out while loading; then succeeds; InitialSnapshot has ancient server version', () => awaitFakeAsync((async) async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-    final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
-    globalStore.prepareRegisterQueueResponse = (connection) {
-      connection.prepare(
-        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
-        json: json);
-    };
-    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
-    final future = globalStore.perAccount(eg.selfAccount.id);
-    check(connection.takeRequests()).length.equals(1); // register request
+  test(
+    'GlobalStore.perAccount account is logged out while loading; then succeeds; InitialSnapshot has ancient server version',
+    () => awaitFakeAsync((async) async {
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      final json = eg
+          .initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel)
+          .toJson();
+      globalStore.prepareRegisterQueueResponse = (connection) {
+        connection.prepare(
+          delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+          json: json,
+        );
+      };
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      check(connection.takeRequests()).length.equals(1); // register request
 
-    globalStore.clearCachedApiConnections();
-    await logOutAccount(globalStore, eg.selfAccount.id);
-    check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+      globalStore.clearCachedApiConnections();
+      await logOutAccount(globalStore, eg.selfAccount.id);
+      check(
+        globalStore.takeDoRemoveAccountCalls(),
+      ).single.equals(eg.selfAccount.id);
 
-    await check(future).throws<AccountNotFoundException>();
-    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no poll or other follow-up requests
-    check(connection.takeRequests()).isEmpty();
-    check(connection).isOpen.isFalse();
-  }));
+      await check(future).throws<AccountNotFoundException>();
+      check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+      // no poll or other follow-up requests
+      check(connection.takeRequests()).isEmpty();
+      check(connection).isOpen.isFalse();
+    }),
+  );
 
-  test('GlobalStore.perAccount account is logged out while loading; then fails; malformed response with ancient server version', () => awaitFakeAsync((async) async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-    final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
-    json['realm_emoji'] = 123;
-    check(() => InitialSnapshot.fromJson(json)).throws<void>();
-    globalStore.prepareRegisterQueueResponse = (connection) {
-      connection.prepare(
-        delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
-        json: json);
-    };
-    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
-    final future = globalStore.perAccount(eg.selfAccount.id);
-    check(connection.takeRequests()).length.equals(1); // register request
+  test(
+    'GlobalStore.perAccount account is logged out while loading; then fails; malformed response with ancient server version',
+    () => awaitFakeAsync((async) async {
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      final json = eg
+          .initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel)
+          .toJson();
+      json['realm_emoji'] = 123;
+      check(() => InitialSnapshot.fromJson(json)).throws<void>();
+      globalStore.prepareRegisterQueueResponse = (connection) {
+        connection.prepare(
+          delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+          json: json,
+        );
+      };
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      check(connection.takeRequests()).length.equals(1); // register request
 
-    globalStore.clearCachedApiConnections();
-    await logOutAccount(globalStore, eg.selfAccount.id);
-    check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+      globalStore.clearCachedApiConnections();
+      await logOutAccount(globalStore, eg.selfAccount.id);
+      check(
+        globalStore.takeDoRemoveAccountCalls(),
+      ).single.equals(eg.selfAccount.id);
 
-    await check(future).throws<AccountNotFoundException>();
-    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no poll or other follow-up requests
-    check(connection.takeRequests()).isEmpty();
-    check(connection).isOpen.isFalse();
-  }));
+      await check(future).throws<AccountNotFoundException>();
+      check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+      // no poll or other follow-up requests
+      check(connection.takeRequests()).isEmpty();
+      check(connection).isOpen.isFalse();
+    }),
+  );
 
-  test('GlobalStore.perAccount account is logged out during transient-error backoff', () => awaitFakeAsync((async) async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-    globalStore.prepareRegisterQueueResponse = (connection) =>
-      connection.prepare(
-        delay: Duration(seconds: 1),
-        httpException: http.ClientException('Oops'));
-    final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
-    final future = globalStore.perAccount(eg.selfAccount.id);
-    BackoffMachine.debugDuration = Duration(seconds: 1);
-    async.elapse(Duration(milliseconds: 1500));
-    check(connection.takeRequests()).length.equals(1); // register request
+  test(
+    'GlobalStore.perAccount account is logged out during transient-error backoff',
+    () => awaitFakeAsync((async) async {
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      globalStore.prepareRegisterQueueResponse = (connection) =>
+          connection.prepare(
+            delay: Duration(seconds: 1),
+            httpException: http.ClientException('Oops'),
+          );
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
+      final future = globalStore.perAccount(eg.selfAccount.id);
+      BackoffMachine.debugDuration = Duration(seconds: 1);
+      async.elapse(Duration(milliseconds: 1500));
+      check(connection.takeRequests()).length.equals(1); // register request
 
-    assert(TestGlobalStore.removeAccountDuration < Duration(milliseconds: 500));
-    globalStore.clearCachedApiConnections();
-    await logOutAccount(globalStore, eg.selfAccount.id);
-    check(globalStore.takeDoRemoveAccountCalls())
-      .single.equals(eg.selfAccount.id);
+      assert(
+        TestGlobalStore.removeAccountDuration < Duration(milliseconds: 500),
+      );
+      globalStore.clearCachedApiConnections();
+      await logOutAccount(globalStore, eg.selfAccount.id);
+      check(
+        globalStore.takeDoRemoveAccountCalls(),
+      ).single.equals(eg.selfAccount.id);
 
-    await check(future).throws<AccountNotFoundException>();
-    check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
-    // no retry-register, poll, or other follow-up requests
-    check(connection.takeRequests()).isEmpty();
-    check(connection).isOpen.isFalse();
-  }));
+      await check(future).throws<AccountNotFoundException>();
+      check(globalStore.takeDoRemoveAccountCalls()).isEmpty();
+      // no retry-register, poll, or other follow-up requests
+      check(connection.takeRequests()).isEmpty();
+      check(connection).isOpen.isFalse();
+    }),
+  );
 
   test('GlobalStore.perAccount throws if missing queueId', () async {
-    final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
+    final globalStore = UpdateMachineTestGlobalStore(
+      accounts: [eg.selfAccount],
+    );
     globalStore.prepareRegisterQueueResponse = (connection) {
-      connection.prepare(json:
-        deepToJson(eg.initialSnapshot()) as Map<String, dynamic>
-          ..['queue_id'] = null);
+      connection.prepare(
+        json: deepToJson(eg.initialSnapshot()) as Map<String, dynamic>
+          ..['queue_id'] = null,
+      );
     };
     await check(globalStore.perAccount(eg.selfAccount.id)).throws();
   });
@@ -319,16 +408,17 @@ void main() {
         deviceId: const Value(3456),
       );
       final globalStore = eg.globalStore(accounts: [account]);
-      final updated = await globalStore.updateAccount(account.id,
+      final updated = await globalStore.updateAccount(
+        account.id,
         const AccountsCompanion(
           zulipFeatureLevel: Value(234),
           deviceId: Value(null),
-        ));
+        ),
+      );
       check(globalStore.getAccount(account.id)).identicalTo(updated);
-      check(updated).equals(account.copyWith(
-        zulipFeatureLevel: 234,
-        deviceId: const Value(null),
-      ));
+      check(updated).equals(
+        account.copyWith(zulipFeatureLevel: 234, deviceId: const Value(null)),
+      );
     });
 
     test('notifyListeners called', () async {
@@ -337,160 +427,222 @@ void main() {
       globalStore.addListener(() => updateCount++);
       check(updateCount).equals(0);
 
-      await globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
-        zulipFeatureLevel: Value(234),
-      ));
+      await globalStore.updateAccount(
+        eg.selfAccount.id,
+        const AccountsCompanion(zulipFeatureLevel: Value(234)),
+      );
       check(updateCount).equals(1);
     });
 
     test('reject changing id, realmUrl, or userId', () async {
       final globalStore = eg.globalStore(accounts: [eg.selfAccount]);
-      await check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
-        id: Value(1234)))).throws();
-      await check(globalStore.updateAccount(eg.selfAccount.id, AccountsCompanion(
-        realmUrl: Value(Uri.parse('https://other.example'))))).throws();
-      await check(globalStore.updateAccount(eg.selfAccount.id, const AccountsCompanion(
-        userId: Value(1234)))).throws();
+      await check(
+        globalStore.updateAccount(
+          eg.selfAccount.id,
+          const AccountsCompanion(id: Value(1234)),
+        ),
+      ).throws();
+      await check(
+        globalStore.updateAccount(
+          eg.selfAccount.id,
+          AccountsCompanion(
+            realmUrl: Value(Uri.parse('https://other.example')),
+          ),
+        ),
+      ).throws();
+      await check(
+        globalStore.updateAccount(
+          eg.selfAccount.id,
+          const AccountsCompanion(userId: Value(1234)),
+        ),
+      ).throws();
     });
 
     // TODO test database gets updated correctly (an integration test with sqlite?)
   });
 
   test('GlobalStore.updateZulipVersionData', () async {
-    final [currentZulipVersion,          newZulipVersion             ]
-        = ['10.0-beta2-302-gf5b08b11f4', '10.0-beta2-351-g75ac8fe961'];
-    final [currentZulipMergeBase,        newZulipMergeBase           ]
-        = ['10.0-beta2-291-g33ffd8c040', '10.0-beta2-349-g463dc632b3'];
-    final [currentZulipFeatureLevel,     newZulipFeatureLevel        ]
-        = [368,                          370                         ];
+    final [currentZulipVersion, newZulipVersion] = [
+      '10.0-beta2-302-gf5b08b11f4',
+      '10.0-beta2-351-g75ac8fe961',
+    ];
+    final [currentZulipMergeBase, newZulipMergeBase] = [
+      '10.0-beta2-291-g33ffd8c040',
+      '10.0-beta2-349-g463dc632b3',
+    ];
+    final [currentZulipFeatureLevel, newZulipFeatureLevel] = [368, 370];
 
     final selfAccount = eg.selfAccount.copyWith(
       zulipVersion: currentZulipVersion,
       zulipMergeBase: Value(currentZulipMergeBase),
-      zulipFeatureLevel: currentZulipFeatureLevel);
+      zulipFeatureLevel: currentZulipFeatureLevel,
+    );
     final globalStore = eg.globalStore(accounts: [selfAccount]);
-    final updated = await globalStore.updateZulipVersionData(selfAccount.id,
+    final updated = await globalStore.updateZulipVersionData(
+      selfAccount.id,
       ZulipVersionData(
         zulipVersion: newZulipVersion,
         zulipMergeBase: newZulipMergeBase,
-        zulipFeatureLevel: newZulipFeatureLevel));
+        zulipFeatureLevel: newZulipFeatureLevel,
+      ),
+    );
     check(globalStore.getAccount(selfAccount.id)).identicalTo(updated);
-    check(updated).equals(selfAccount.copyWith(
-      zulipVersion: newZulipVersion,
-      zulipMergeBase: Value(newZulipMergeBase),
-      zulipFeatureLevel: newZulipFeatureLevel));
+    check(updated).equals(
+      selfAccount.copyWith(
+        zulipVersion: newZulipVersion,
+        zulipMergeBase: Value(newZulipMergeBase),
+        zulipFeatureLevel: newZulipFeatureLevel,
+      ),
+    );
   });
 
   test('GlobalStore.updateRealmData', () async {
     final selfAccount = eg.selfAccount.copyWith(
       realmName: Value('Organization A'),
-      realmIcon: Value(Uri.parse('/image-a.png')));
+      realmIcon: Value(Uri.parse('/image-a.png')),
+    );
     final globalStore = eg.globalStore(accounts: [selfAccount]);
-    final updated = await globalStore.updateRealmData(selfAccount.id,
+    final updated = await globalStore.updateRealmData(
+      selfAccount.id,
       realmName: 'Organization B',
-      realmIcon: Uri.parse('/image-b.png'));
+      realmIcon: Uri.parse('/image-b.png'),
+    );
     check(globalStore.getAccount(selfAccount.id))
       ..identicalTo(updated)
-      ..equals(selfAccount.copyWith(
-        realmName: Value('Organization B'),
-        realmIcon: Value(Uri.parse('/image-b.png'))));
+      ..equals(
+        selfAccount.copyWith(
+          realmName: Value('Organization B'),
+          realmIcon: Value(Uri.parse('/image-b.png')),
+        ),
+      );
   });
 
   group('GlobalStore.refreshRealmMetadata', () {
-    test('smoke; populates/updates realm data', () => awaitFakeAsync((async) async {
-      final account1 = eg.selfAccount.copyWith(
-        realmUrl: Uri.parse('https://realm1.example.com'),
-        realmName: const Value.absent(), // account without realm metadata
-        realmIcon: const Value.absent());
-      final account2 = eg.otherAccount.copyWith(
-        realmUrl: Uri.parse('https://realm2.example.com'),
-        realmName: Value('Old realm 2 name'), // account with old realm metadata
-        realmIcon: Value(Uri.parse('/old-realm-2-image.png')));
+    test(
+      'smoke; populates/updates realm data',
+      () => awaitFakeAsync((async) async {
+        final account1 = eg.selfAccount.copyWith(
+          realmUrl: Uri.parse('https://realm1.example.com'),
+          realmName: const Value.absent(), // account without realm metadata
+          realmIcon: const Value.absent(),
+        );
+        final account2 = eg.otherAccount.copyWith(
+          realmUrl: Uri.parse('https://realm2.example.com'),
+          realmName: Value(
+            'Old realm 2 name',
+          ), // account with old realm metadata
+          realmIcon: Value(Uri.parse('/old-realm-2-image.png')),
+        );
 
-      final globalStore = eg.globalStore(accounts: [account1, account2]);
-      globalStore.useCachedApiConnections = true;
+        final globalStore = eg.globalStore(accounts: [account1, account2]);
+        globalStore.useCachedApiConnections = true;
 
-      final connection1 = globalStore.apiConnection(
-        realmUrl: account1.realmUrl, zulipFeatureLevel: null);
-      final serverSettings1 = eg.serverSettings(
-        realmUrl: account1.realmUrl,
-        realmName: 'Realm 1 name',
-        realmIcon: Uri.parse('/realm-1-image.png'));
-      connection1.prepare(json: serverSettings1.toJson());
+        final connection1 = globalStore.apiConnection(
+          realmUrl: account1.realmUrl,
+          zulipFeatureLevel: null,
+        );
+        final serverSettings1 = eg.serverSettings(
+          realmUrl: account1.realmUrl,
+          realmName: 'Realm 1 name',
+          realmIcon: Uri.parse('/realm-1-image.png'),
+        );
+        connection1.prepare(json: serverSettings1.toJson());
 
-      final connection2 = globalStore.apiConnection(
-        realmUrl: account2.realmUrl, zulipFeatureLevel: null);
-      final serverSettings2 = eg.serverSettings(
-        realmUrl: account2.realmUrl,
-        realmName: 'New realm 2 name',
-        realmIcon: Uri.parse('/new-realm-2-image.png'));
-      connection2.prepare(json: serverSettings2.toJson());
+        final connection2 = globalStore.apiConnection(
+          realmUrl: account2.realmUrl,
+          zulipFeatureLevel: null,
+        );
+        final serverSettings2 = eg.serverSettings(
+          realmUrl: account2.realmUrl,
+          realmName: 'New realm 2 name',
+          realmIcon: Uri.parse('/new-realm-2-image.png'),
+        );
+        connection2.prepare(json: serverSettings2.toJson());
 
-      globalStore.refreshRealmMetadata();
-      async.elapse(Duration.zero);
+        globalStore.refreshRealmMetadata();
+        async.elapse(Duration.zero);
 
-      check(globalStore.getAccount(account1.id)).isNotNull()
-        ..realmName.equals('Realm 1 name')
-        ..realmIcon.equals(Uri.parse('/realm-1-image.png'));
-      check(globalStore.getAccount(account2.id)).isNotNull()
-        ..realmName.equals('New realm 2 name')
-        ..realmIcon.equals(Uri.parse('/new-realm-2-image.png'));
-    }));
+        check(globalStore.getAccount(account1.id)).isNotNull()
+          ..realmName.equals('Realm 1 name')
+          ..realmIcon.equals(Uri.parse('/realm-1-image.png'));
+        check(globalStore.getAccount(account2.id)).isNotNull()
+          ..realmName.equals('New realm 2 name')
+          ..realmIcon.equals(Uri.parse('/new-realm-2-image.png'));
+      }),
+    );
 
-    test('ignores per account store loaded account', () => awaitFakeAsync((async) async {
-      final account1 = eg.selfAccount.copyWith(
-        realmUrl: Uri.parse('https://realm1.example.com'),
-        realmName: Value('Old realm 1 name'),
-        realmIcon: Value(Uri.parse('/old-realm-1-image.png')));
-      final account2 = eg.otherAccount.copyWith(
-        realmUrl: Uri.parse('https://realm2.example.com'),
-        realmName: Value('Old realm 2 name'),
-        realmIcon: Value(Uri.parse('/old-realm-2-image.png')));
+    test(
+      'ignores per account store loaded account',
+      () => awaitFakeAsync((async) async {
+        final account1 = eg.selfAccount.copyWith(
+          realmUrl: Uri.parse('https://realm1.example.com'),
+          realmName: Value('Old realm 1 name'),
+          realmIcon: Value(Uri.parse('/old-realm-1-image.png')),
+        );
+        final account2 = eg.otherAccount.copyWith(
+          realmUrl: Uri.parse('https://realm2.example.com'),
+          realmName: Value('Old realm 2 name'),
+          realmIcon: Value(Uri.parse('/old-realm-2-image.png')),
+        );
 
-      final globalStore = eg.globalStore();
-      await globalStore.add(account1, eg.initialSnapshot(
-        realmName: account1.realmName,
-        realmIconUrl: account1.realmIcon,
-        realmUsers: [eg.selfUser]));
-      await globalStore.add(account2, eg.initialSnapshot(
-        realmName: account2.realmName,
-        realmIconUrl: account2.realmIcon,
-        realmUsers: [eg.otherUser]));
-      globalStore.useCachedApiConnections = true;
+        final globalStore = eg.globalStore();
+        await globalStore.add(
+          account1,
+          eg.initialSnapshot(
+            realmName: account1.realmName,
+            realmIconUrl: account1.realmIcon,
+            realmUsers: [eg.selfUser],
+          ),
+        );
+        await globalStore.add(
+          account2,
+          eg.initialSnapshot(
+            realmName: account2.realmName,
+            realmIconUrl: account2.realmIcon,
+            realmUsers: [eg.otherUser],
+          ),
+        );
+        globalStore.useCachedApiConnections = true;
 
-      final connection1 = globalStore.apiConnection(
-        realmUrl: account1.realmUrl, zulipFeatureLevel: null);
-      final serverSettings1 = eg.serverSettings(
-        realmUrl: account1.realmUrl,
-        realmName: 'New realm 1 name',
-        realmIcon: Uri.parse('/new-realm-1-image.png'));
-      connection1.prepare(json: serverSettings1.toJson());
+        final connection1 = globalStore.apiConnection(
+          realmUrl: account1.realmUrl,
+          zulipFeatureLevel: null,
+        );
+        final serverSettings1 = eg.serverSettings(
+          realmUrl: account1.realmUrl,
+          realmName: 'New realm 1 name',
+          realmIcon: Uri.parse('/new-realm-1-image.png'),
+        );
+        connection1.prepare(json: serverSettings1.toJson());
 
-      await globalStore.perAccount(account2.id);
+        await globalStore.perAccount(account2.id);
 
-      globalStore.refreshRealmMetadata();
-      async.elapse(Duration.zero);
+        globalStore.refreshRealmMetadata();
+        async.elapse(Duration.zero);
 
-      check(globalStore.getAccount(account1.id)).isNotNull()
-        ..realmName.equals('New realm 1 name')
-        ..realmIcon.equals(Uri.parse('/new-realm-1-image.png'));
-      check(globalStore.getAccount(account2.id)).isNotNull()
-        ..realmName.equals('Old realm 2 name')
-        ..realmIcon.equals(Uri.parse('/old-realm-2-image.png'));
-    }));
+        check(globalStore.getAccount(account1.id)).isNotNull()
+          ..realmName.equals('New realm 1 name')
+          ..realmIcon.equals(Uri.parse('/new-realm-1-image.png'));
+        check(globalStore.getAccount(account2.id)).isNotNull()
+          ..realmName.equals('Old realm 2 name')
+          ..realmIcon.equals(Uri.parse('/old-realm-2-image.png'));
+      }),
+    );
   });
 
   group('GlobalStore.removeAccount', () {
-    void checkGlobalStore(GlobalStore store, int accountId, {
+    void checkGlobalStore(
+      GlobalStore store,
+      int accountId, {
       required bool expectAccount,
       required bool expectStore,
     }) {
       expectAccount
-        ? check(store.getAccount(accountId)).isNotNull()
-        : check(store.getAccount(accountId)).isNull();
+          ? check(store.getAccount(accountId)).isNotNull()
+          : check(store.getAccount(accountId)).isNull();
       expectStore
-        ? check(store.perAccountSync(accountId)).isNotNull()
-        : check(store.perAccountSync(accountId)).isNull();
+          ? check(store.perAccountSync(accountId)).isNotNull()
+          : check(store.perAccountSync(accountId)).isNull();
     }
 
     test('when store loaded', () async {
@@ -498,16 +650,24 @@ void main() {
       await globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await globalStore.perAccount(eg.selfAccount.id);
 
-      checkGlobalStore(globalStore, eg.selfAccount.id,
-        expectAccount: true, expectStore: true);
+      checkGlobalStore(
+        globalStore,
+        eg.selfAccount.id,
+        expectAccount: true,
+        expectStore: true,
+      );
       int notifyCount = 0;
       globalStore.addListener(() => notifyCount++);
 
       await globalStore.removeAccount(eg.selfAccount.id);
 
       // TODO test that the removed store got disposed and its connection closed
-      checkGlobalStore(globalStore, eg.selfAccount.id,
-        expectAccount: false, expectStore: false);
+      checkGlobalStore(
+        globalStore,
+        eg.selfAccount.id,
+        expectAccount: false,
+        expectStore: false,
+      );
       check(notifyCount).equals(1);
     });
 
@@ -515,49 +675,78 @@ void main() {
       final globalStore = eg.globalStore();
       await globalStore.add(eg.selfAccount, eg.initialSnapshot());
 
-      checkGlobalStore(globalStore, eg.selfAccount.id,
-        expectAccount: true, expectStore: false);
+      checkGlobalStore(
+        globalStore,
+        eg.selfAccount.id,
+        expectAccount: true,
+        expectStore: false,
+      );
       int notifyCount = 0;
       globalStore.addListener(() => notifyCount++);
 
       await globalStore.removeAccount(eg.selfAccount.id);
 
-      checkGlobalStore(globalStore, eg.selfAccount.id,
-        expectAccount: false, expectStore: false);
+      checkGlobalStore(
+        globalStore,
+        eg.selfAccount.id,
+        expectAccount: false,
+        expectStore: false,
+      );
       check(notifyCount).equals(1);
     });
 
     test('when store loading', () async {
-      final globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
-      checkGlobalStore(globalStore, eg.selfAccount.id,
-        expectAccount: true, expectStore: false);
+      final globalStore = UpdateMachineTestGlobalStore(
+        accounts: [eg.selfAccount],
+      );
+      checkGlobalStore(
+        globalStore,
+        eg.selfAccount.id,
+        expectAccount: true,
+        expectStore: false,
+      );
 
       assert(globalStore.useCachedApiConnections);
       // Cache a connection and get this reference to it,
       // so we can check later that it gets closed.
-      final connection = globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+      final connection =
+          globalStore.apiConnectionFromAccount(eg.selfAccount)
+              as FakeApiConnection;
 
       globalStore.prepareRegisterQueueResponse = (connection) {
         connection.prepare(
           delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
-          json: eg.initialSnapshot().toJson());
+          json: eg.initialSnapshot().toJson(),
+        );
       };
       final loadingFuture = globalStore.perAccount(eg.selfAccount.id);
 
-      checkGlobalStore(globalStore, eg.selfAccount.id,
-        expectAccount: true, expectStore: false);
+      checkGlobalStore(
+        globalStore,
+        eg.selfAccount.id,
+        expectAccount: true,
+        expectStore: false,
+      );
       int notifyCount = 0;
       globalStore.addListener(() => notifyCount++);
 
       await globalStore.removeAccount(eg.selfAccount.id);
 
-      checkGlobalStore(globalStore, eg.selfAccount.id,
-        expectAccount: false, expectStore: false);
+      checkGlobalStore(
+        globalStore,
+        eg.selfAccount.id,
+        expectAccount: false,
+        expectStore: false,
+      );
       check(notifyCount).equals(1);
 
       await check(loadingFuture).throws<AccountNotFoundException>();
-      checkGlobalStore(globalStore, eg.selfAccount.id,
-        expectAccount: false, expectStore: false);
+      checkGlobalStore(
+        globalStore,
+        eg.selfAccount.id,
+        expectAccount: false,
+        expectStore: false,
+      );
       check(notifyCount).equals(1); // no extra notify
       check(connection).isOpen.isFalse();
 
@@ -579,8 +768,8 @@ void main() {
       globalStore = eg.globalStore();
       account ??= eg.selfAccount;
       await globalStore.insertAccount(account.toCompanion(false));
-      connection = (globalStore.apiConnectionFromAccount(account)
-        as FakeApiConnection);
+      connection =
+          (globalStore.apiConnectionFromAccount(account) as FakeApiConnection);
       UpdateMachine.debugEnableFetchEmojiData = false;
       addTearDown(() => UpdateMachine.debugEnableFetchEmojiData = true);
     }
@@ -591,90 +780,118 @@ void main() {
         ..url.path.equals('/api/v1/register');
     }
 
-    test('smoke', () => awaitFakeAsync((async) async {
-      await prepareStore();
-      final users = [eg.selfUser, eg.otherUser];
+    test(
+      'smoke',
+      () => awaitFakeAsync((async) async {
+        await prepareStore();
+        final users = [eg.selfUser, eg.otherUser];
 
-      globalStore.useCachedApiConnections = true;
-      connection.prepare(json: eg.initialSnapshot(realmUsers: users).toJson());
-      final updateMachine = await UpdateMachine.load(
-        globalStore, eg.selfAccount.id);
-      updateMachine.debugPauseLoop();
+        globalStore.useCachedApiConnections = true;
+        connection.prepare(
+          json: eg.initialSnapshot(realmUsers: users).toJson(),
+        );
+        final updateMachine = await UpdateMachine.load(
+          globalStore,
+          eg.selfAccount.id,
+        );
+        updateMachine.debugPauseLoop();
 
-      // TODO UpdateMachine.debugPauseLoop is too late to prevent first poll attempt;
-      //    the polling retry catches the resulting NetworkException from lack of
-      //    `connection.prepare`, so that doesn't fail the test, but it does
-      //    clobber the recorded registerQueue request so we can't check it.
-      // checkLastRequest();
+        // TODO UpdateMachine.debugPauseLoop is too late to prevent first poll attempt;
+        //    the polling retry catches the resulting NetworkException from lack of
+        //    `connection.prepare`, so that doesn't fail the test, but it does
+        //    clobber the recorded registerQueue request so we can't check it.
+        // checkLastRequest();
 
-      check(updateMachine.store.allUsers).unorderedMatches(
-        users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
-    }));
+        check(updateMachine.store.allUsers).unorderedMatches(
+          users.map(
+            (expected) =>
+                (it) => it.fullName.equals(expected.fullName),
+          ),
+        );
+      }),
+    );
 
-    test('updates account from snapshot', () => awaitFakeAsync((async) async {
-      final account = eg.account(user: eg.selfUser,
-        realmName: 'Organization A',
-        realmIcon: Uri.parse('/image-a.png'),
-        zulipVersion: '6.0+gabcd',
-        zulipMergeBase: '6.0',
-        zulipFeatureLevel: 123,
-      );
-      await prepareStore(account: account);
-      check(globalStore.getAccount(account.id)).isNotNull()
-        ..realmName.equals('Organization A')
-        ..realmIcon.equals(Uri.parse('/image-a.png'))
-        ..zulipVersion.equals('6.0+gabcd')
-        ..zulipMergeBase.equals('6.0')
-        ..zulipFeatureLevel.equals(123);
+    test(
+      'updates account from snapshot',
+      () => awaitFakeAsync((async) async {
+        final account = eg.account(
+          user: eg.selfUser,
+          realmName: 'Organization A',
+          realmIcon: Uri.parse('/image-a.png'),
+          zulipVersion: '6.0+gabcd',
+          zulipMergeBase: '6.0',
+          zulipFeatureLevel: 123,
+        );
+        await prepareStore(account: account);
+        check(globalStore.getAccount(account.id)).isNotNull()
+          ..realmName.equals('Organization A')
+          ..realmIcon.equals(Uri.parse('/image-a.png'))
+          ..zulipVersion.equals('6.0+gabcd')
+          ..zulipMergeBase.equals('6.0')
+          ..zulipFeatureLevel.equals(123);
 
-      globalStore.useCachedApiConnections = true;
-      connection.prepare(json: eg.initialSnapshot(
-        realmName: 'Organization B',
-        realmIconUrl: Uri.parse('/image-b.png'),
-        zulipVersion: '8.0+g9876',
-        zulipMergeBase: '8.0',
-        zulipFeatureLevel: 234,
-      ).toJson());
-      final updateMachine = await UpdateMachine.load(globalStore, account.id);
-      updateMachine.debugPauseLoop();
-      check(globalStore.getAccount(account.id)).isNotNull()
-        ..identicalTo(updateMachine.store.account)
-        ..realmName.equals('Organization B')
-        ..realmIcon.equals(Uri.parse('/image-b.png'))
-        ..zulipVersion.equals('8.0+g9876')
-        ..zulipMergeBase.equals('8.0')
-        ..zulipFeatureLevel.equals(234);
-    }));
+        globalStore.useCachedApiConnections = true;
+        connection.prepare(
+          json: eg
+              .initialSnapshot(
+                realmName: 'Organization B',
+                realmIconUrl: Uri.parse('/image-b.png'),
+                zulipVersion: '8.0+g9876',
+                zulipMergeBase: '8.0',
+                zulipFeatureLevel: 234,
+              )
+              .toJson(),
+        );
+        final updateMachine = await UpdateMachine.load(globalStore, account.id);
+        updateMachine.debugPauseLoop();
+        check(globalStore.getAccount(account.id)).isNotNull()
+          ..identicalTo(updateMachine.store.account)
+          ..realmName.equals('Organization B')
+          ..realmIcon.equals(Uri.parse('/image-b.png'))
+          ..zulipVersion.equals('8.0+g9876')
+          ..zulipMergeBase.equals('8.0')
+          ..zulipFeatureLevel.equals(234);
+      }),
+    );
 
-    test('retries registerQueue on NetworkError', () => awaitFakeAsync((async) async {
-      await prepareStore();
+    test(
+      'retries registerQueue on NetworkError',
+      () => awaitFakeAsync((async) async {
+        await prepareStore();
 
-      // Try to load, inducing an error in the request.
-      globalStore.useCachedApiConnections = true;
-      connection.prepare(httpException: Exception('failed'));
-      final future = UpdateMachine.load(globalStore, eg.selfAccount.id);
-      bool complete = false;
-      unawaited(future.whenComplete(() => complete = true));
-      async.flushMicrotasks();
-      checkLastRequest();
-      check(complete).isFalse();
+        // Try to load, inducing an error in the request.
+        globalStore.useCachedApiConnections = true;
+        connection.prepare(httpException: Exception('failed'));
+        final future = UpdateMachine.load(globalStore, eg.selfAccount.id);
+        bool complete = false;
+        unawaited(future.whenComplete(() => complete = true));
+        async.flushMicrotasks();
+        checkLastRequest();
+        check(complete).isFalse();
 
-      // The retry doesn't happen immediately; there's a timer.
-      check(async.pendingTimers).length.equals(1);
-      async.elapse(Duration.zero);
-      check(connection.lastRequest).isNull();
-      check(async.pendingTimers).length.equals(1);
+        // The retry doesn't happen immediately; there's a timer.
+        check(async.pendingTimers).length.equals(1);
+        async.elapse(Duration.zero);
+        check(connection.lastRequest).isNull();
+        check(async.pendingTimers).length.equals(1);
 
-      // After a timer, we retry.
-      final users = [eg.selfUser, eg.otherUser];
-      connection.prepare(json: eg.initialSnapshot(realmUsers: users).toJson());
-      final updateMachine = await future;
-      updateMachine.debugPauseLoop();
-      check(complete).isTrue();
-      // checkLastRequest(); TODO UpdateMachine.debugPauseLoop was too late; see comment above
-      check(updateMachine.store.allUsers).unorderedMatches(
-        users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
-    }));
+        // After a timer, we retry.
+        final users = [eg.selfUser, eg.otherUser];
+        connection.prepare(
+          json: eg.initialSnapshot(realmUsers: users).toJson(),
+        );
+        final updateMachine = await future;
+        updateMachine.debugPauseLoop();
+        check(complete).isTrue();
+        // checkLastRequest(); TODO UpdateMachine.debugPauseLoop was too late; see comment above
+        check(updateMachine.store.allUsers).unorderedMatches(
+          users.map(
+            (expected) =>
+                (it) => it.fullName.equals(expected.fullName),
+          ),
+        );
+      }),
+    );
 
     // TODO test UpdateMachine.load starts polling loop
   });
@@ -703,43 +920,49 @@ void main() {
         ..headers.deepEquals(kFallbackUserAgentHeader);
     }
 
-    test('happy case', () => awaitFakeAsync((async) async {
-      prepareStore();
-      check(store.debugServerEmojiData).isNull();
+    test(
+      'happy case',
+      () => awaitFakeAsync((async) async {
+        prepareStore();
+        check(store.debugServerEmojiData).isNull();
 
-      connection.prepare(json: ServerEmojiData(codeToNames: data).toJson());
-      await updateMachine.fetchEmojiData(emojiDataUrl);
-      checkLastRequest();
-      check(store.debugServerEmojiData).deepEquals(data);
-    }));
+        connection.prepare(json: ServerEmojiData(codeToNames: data).toJson());
+        await updateMachine.fetchEmojiData(emojiDataUrl);
+        checkLastRequest();
+        check(store.debugServerEmojiData).deepEquals(data);
+      }),
+    );
 
-    test('retries on failure', () => awaitFakeAsync((async) async {
-      prepareStore();
-      check(store.debugServerEmojiData).isNull();
+    test(
+      'retries on failure',
+      () => awaitFakeAsync((async) async {
+        prepareStore();
+        check(store.debugServerEmojiData).isNull();
 
-      // Try to fetch, inducing an error in the request.
-      connection.prepare(httpException: Exception('failed'));
-      final future = updateMachine.fetchEmojiData(emojiDataUrl);
-      bool complete = false;
-      unawaited(future.whenComplete(() => complete = true));
-      async.flushMicrotasks();
-      checkLastRequest();
-      check(complete).isFalse();
-      check(store.debugServerEmojiData).isNull();
+        // Try to fetch, inducing an error in the request.
+        connection.prepare(httpException: Exception('failed'));
+        final future = updateMachine.fetchEmojiData(emojiDataUrl);
+        bool complete = false;
+        unawaited(future.whenComplete(() => complete = true));
+        async.flushMicrotasks();
+        checkLastRequest();
+        check(complete).isFalse();
+        check(store.debugServerEmojiData).isNull();
 
-      // The retry doesn't happen immediately; there's a timer.
-      check(async.pendingTimers).length.equals(1);
-      async.elapse(Duration.zero);
-      check(connection.lastRequest).isNull();
-      check(async.pendingTimers).length.equals(1);
+        // The retry doesn't happen immediately; there's a timer.
+        check(async.pendingTimers).length.equals(1);
+        async.elapse(Duration.zero);
+        check(connection.lastRequest).isNull();
+        check(async.pendingTimers).length.equals(1);
 
-      // After a timer, we retry.
-      connection.prepare(json: ServerEmojiData(codeToNames: data).toJson());
-      await future;
-      check(complete).isTrue();
-      checkLastRequest();
-      check(store.debugServerEmojiData).deepEquals(data);
-    }));
+        // After a timer, we retry.
+        connection.prepare(json: ServerEmojiData(codeToNames: data).toJson());
+        await future;
+        check(complete).isTrue();
+        checkLastRequest();
+        check(store.debugServerEmojiData).deepEquals(data);
+      }),
+    );
   });
 
   group('UpdateMachine.poll', () {
@@ -756,15 +979,20 @@ void main() {
 
     Future<void> preparePoll({int? lastEventId}) async {
       globalStore = eg.globalStore();
-      await globalStore.add(eg.selfAccount, eg.initialSnapshot(
-        lastEventId: lastEventId));
+      await globalStore.add(
+        eg.selfAccount,
+        eg.initialSnapshot(lastEventId: lastEventId),
+      );
       await globalStore.perAccount(eg.selfAccount.id);
       updateFromGlobalStore();
       updateMachine.debugPauseLoop();
       updateMachine.poll();
     }
 
-    void checkLastRequest({required int lastEventId, bool expectDontBlock = false}) {
+    void checkLastRequest({
+      required int lastEventId,
+      bool expectDontBlock = false,
+    }) {
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('GET')
         ..url.path.equals('/api/v1/events')
@@ -775,48 +1003,71 @@ void main() {
         });
     }
 
-    test('loops on success', () => awaitFakeAsync((async) async {
-      await preparePoll(lastEventId: 1);
-      check(updateMachine.lastEventId).equals(1);
+    test(
+      'loops on success',
+      () => awaitFakeAsync((async) async {
+        await preparePoll(lastEventId: 1);
+        check(updateMachine.lastEventId).equals(1);
 
-      // Loop makes first request, and processes result.
-      connection.prepare(json: GetEventsResult(events: [
-        HeartbeatEvent(id: 2),
-      ], queueId: null).toJson());
-      updateMachine.debugAdvanceLoop();
-      async.flushMicrotasks();
-      checkLastRequest(lastEventId: 1);
-      async.elapse(Duration.zero);
-      check(updateMachine.lastEventId).equals(2);
+        // Loop makes first request, and processes result.
+        connection.prepare(
+          json: GetEventsResult(
+            events: [HeartbeatEvent(id: 2)],
+            queueId: null,
+          ).toJson(),
+        );
+        updateMachine.debugAdvanceLoop();
+        async.flushMicrotasks();
+        checkLastRequest(lastEventId: 1);
+        async.elapse(Duration.zero);
+        check(updateMachine.lastEventId).equals(2);
 
-      // Loop makes second request, and processes result.
-      connection.prepare(json: GetEventsResult(events: [
-        HeartbeatEvent(id: 3),
-      ], queueId: null).toJson());
-      updateMachine.debugAdvanceLoop();
-      async.flushMicrotasks();
-      checkLastRequest(lastEventId: 2);
-      async.elapse(Duration.zero);
-      check(updateMachine.lastEventId).equals(3);
-    }));
+        // Loop makes second request, and processes result.
+        connection.prepare(
+          json: GetEventsResult(
+            events: [HeartbeatEvent(id: 3)],
+            queueId: null,
+          ).toJson(),
+        );
+        updateMachine.debugAdvanceLoop();
+        async.flushMicrotasks();
+        checkLastRequest(lastEventId: 2);
+        async.elapse(Duration.zero);
+        check(updateMachine.lastEventId).equals(3);
+      }),
+    );
 
-    test('handles events', () => awaitFakeAsync((async) async {
-      await preparePoll();
+    test(
+      'handles events',
+      () => awaitFakeAsync((async) async {
+        await preparePoll();
 
-      // Pick some arbitrary event and check it gets processed on the store.
-      check(store.userSettings.twentyFourHourTime)
-        .equals(TwentyFourHourTimeMode.twelveHour);
-      connection.prepare(json: GetEventsResult(events: [
-        UserSettingsUpdateEvent(id: 2,
-          property: UserSettingName.twentyFourHourTime, value: true),
-      ], queueId: null).toJson());
-      updateMachine.debugAdvanceLoop();
-      async.elapse(Duration.zero);
-      check(store.userSettings.twentyFourHourTime)
-        .equals(TwentyFourHourTimeMode.twentyFourHour);
-    }));
+        // Pick some arbitrary event and check it gets processed on the store.
+        check(
+          store.userSettings.twentyFourHourTime,
+        ).equals(TwentyFourHourTimeMode.twelveHour);
+        connection.prepare(
+          json: GetEventsResult(
+            events: [
+              UserSettingsUpdateEvent(
+                id: 2,
+                property: UserSettingName.twentyFourHourTime,
+                value: true,
+              ),
+            ],
+            queueId: null,
+          ).toJson(),
+        );
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        check(
+          store.userSettings.twentyFourHourTime,
+        ).equals(TwentyFourHourTimeMode.twentyFourHour);
+      }),
+    );
 
-    void checkReload(FutureOr<void> Function() prepareError, {
+    void checkReload(
+      FutureOr<void> Function() prepareError, {
       bool expectBackoff = true,
     }) {
       awaitFakeAsync((async) async {
@@ -836,23 +1087,35 @@ void main() {
         }
 
         // The global store has a new store.
-        check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
+        check(
+          globalStore.perAccountSync(store.accountId),
+        ).not((it) => it.identicalTo(store));
         updateFromGlobalStore();
         check(store).isRecoveringEventStream.isFalse();
 
         // The new UpdateMachine updates the new store.
         updateMachine.debugPauseLoop();
         updateMachine.poll();
-        check(store.userSettings.twentyFourHourTime)
-          .equals(TwentyFourHourTimeMode.twelveHour);
-        connection.prepare(json: GetEventsResult(events: [
-          UserSettingsUpdateEvent(id: 2,
-            property: UserSettingName.twentyFourHourTime, value: true),
-        ], queueId: null).toJson());
+        check(
+          store.userSettings.twentyFourHourTime,
+        ).equals(TwentyFourHourTimeMode.twelveHour);
+        connection.prepare(
+          json: GetEventsResult(
+            events: [
+              UserSettingsUpdateEvent(
+                id: 2,
+                property: UserSettingName.twentyFourHourTime,
+                value: true,
+              ),
+            ],
+            queueId: null,
+          ).toJson(),
+        );
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
-        check(store.userSettings.twentyFourHourTime)
-          .equals(TwentyFourHourTimeMode.twentyFourHour);
+        check(
+          store.userSettings.twentyFourHourTime,
+        ).equals(TwentyFourHourTimeMode.twentyFourHour);
       });
     }
 
@@ -876,9 +1139,12 @@ void main() {
         check(async.pendingTimers).length.equals(1);
 
         // Polling continues after a timer.
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
+        connection.prepare(
+          json: GetEventsResult(
+            events: [HeartbeatEvent(id: 2)],
+            queueId: null,
+          ).toJson(),
+        );
         async.flushTimers();
         checkLastRequest(lastEventId: 1, expectDontBlock: true);
         check(updateMachine.lastEventId).equals(2);
@@ -888,9 +1154,7 @@ void main() {
 
     // These cases are ordered by how far the request got before it failed.
 
-    void prepareUnexpectedLoopError() {
-      updateMachine.debugPrepareLoopError(eg.nullCheckError());
-    }
+    void prepareUnexpectedLoopError() {}
 
     void prepareNetworkExceptionSocketException() {
       connection.prepare(httpException: const SocketException('failed'));
@@ -912,34 +1176,46 @@ void main() {
       // Example from the Zulip API docs:
       //   https://zulip.com/api/rest-error-handling#rate-limit-exceeded
       // (The actual HTTP status should be 429, but that seems undocumented.)
-      connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'RATE_LIMIT_HIT',
-        'msg': 'API usage exceeded rate limit',
-        'retry-after': 28.706807374954224});
+      connection.prepare(
+        httpStatus: 400,
+        json: {
+          'result': 'error',
+          'code': 'RATE_LIMIT_HIT',
+          'msg': 'API usage exceeded rate limit',
+          'retry-after': 28.706807374954224,
+        },
+      );
     }
 
     void prepareRateLimitExceptionStatus() {
       // The HTTP status code for hitting a rate limit,
       // but for some reason a boring BAD_REQUEST error body.
-      connection.prepare(httpStatus: 429, json: {
-        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+      connection.prepare(
+        httpStatus: 429,
+        json: {'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'},
+      );
     }
 
     void prepareRateLimitExceptionMalformed() {
       // The HTTP status code for hitting a rate limit,
       // but for some reason a non-JSON body.
-      connection.prepare(httpStatus: 429,
-        body: '<html><body>An error occurred.</body></html>');
+      connection.prepare(
+        httpStatus: 429,
+        body: '<html><body>An error occurred.</body></html>',
+      );
     }
 
     void prepareZulipApiExceptionBadRequest() {
-      connection.prepare(httpStatus: 400, json: {
-        'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'});
+      connection.prepare(
+        httpStatus: 400,
+        json: {'result': 'error', 'code': 'BAD_REQUEST', 'msg': 'Bad request'},
+      );
     }
 
     void prepareExpiredEventQueue() {
-      connection.prepare(apiException: eg.apiExceptionBadEventQueueId(
-        queueId: store.queueId));
+      connection.prepare(
+        apiException: eg.apiExceptionBadEventQueueId(queueId: store.queueId),
+      );
     }
 
     Future<void> prepareHandleEventError() async {
@@ -950,9 +1226,14 @@ void main() {
       store.streamsByName.remove(stream.name);
       // Then prepare an event on which handleEvent will throw
       // because it hits that broken invariant.
-      connection.prepare(json: GetEventsResult(events: [
-        ChannelDeleteEvent(id: 1, channelIds: [stream.streamId]),
-      ], queueId: null).toJson());
+      connection.prepare(
+        json: GetEventsResult(
+          events: [
+            ChannelDeleteEvent(id: 1, channelIds: [stream.streamId]),
+          ],
+          queueId: null,
+        ).toJson(),
+      );
     }
 
     test('reloads on unexpected error within loop', () {
@@ -984,9 +1265,12 @@ void main() {
       checkRetry(prepareRateLimitExceptionStatus);
     });
 
-    test('retries on rate limit: status 429 MalformedServerResponseException', () {
-      checkRetry(prepareRateLimitExceptionMalformed);
-    });
+    test(
+      'retries on rate limit: status 429 MalformedServerResponseException',
+      () {
+        checkRetry(prepareRateLimitExceptionMalformed);
+      },
+    );
 
     test('reloads on generic ZulipApiException', () {
       checkReload(prepareZulipApiExceptionBadRequest);
@@ -1015,11 +1299,17 @@ void main() {
 
       Future<void> prepare() async {
         reportErrorToUserBriefly = logReportedError;
-        addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+        addTearDown(
+          () => reportErrorToUserBriefly = defaultReportErrorToUserBriefly,
+        );
         await preparePoll(lastEventId: 1);
       }
 
-      void pollAndFail(FakeAsync async, {bool shouldCheckRequest = true, bool expectDontBlock = false}) {
+      void pollAndFail(
+        FakeAsync async, {
+        bool shouldCheckRequest = true,
+        bool expectDontBlock = false,
+      }) {
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
         if (shouldCheckRequest) {
@@ -1044,13 +1334,20 @@ void main() {
           await prepare();
 
           bool expectDontBlock = false;
-          for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
+          for (
+            int i = 0;
+            i < UpdateMachine.transientFailureCountNotifyThreshold;
+            i++
+          ) {
             prepareError();
             pollAndFail(async, expectDontBlock: expectDontBlock);
             expectDontBlock = true;
             check(takeLastReportedError()).isNull();
             async.flushTimers();
-            if (!identical(store, globalStore.perAccountSync(store.accountId))) {
+            if (!identical(
+              store,
+              globalStore.perAccountSync(store.accountId),
+            )) {
               // Store was reloaded.
               updateFromGlobalStore();
               updateMachine.debugPauseLoop();
@@ -1072,13 +1369,20 @@ void main() {
           await prepare();
 
           bool expectDontBlock = false;
-          for (int i = 0; i < UpdateMachine.transientFailureCountNotifyThreshold; i++) {
+          for (
+            int i = 0;
+            i < UpdateMachine.transientFailureCountNotifyThreshold;
+            i++
+          ) {
             prepareError();
             pollAndFail(async, expectDontBlock: expectDontBlock);
             expectDontBlock = true;
             check(takeLastReportedError()).isNull();
             async.flushTimers();
-            if (!identical(store, globalStore.perAccountSync(store.accountId))) {
+            if (!identical(
+              store,
+              globalStore.perAccountSync(store.accountId),
+            )) {
               // Store was reloaded.
               updateFromGlobalStore();
               updateMachine.debugPauseLoop();
@@ -1108,43 +1412,53 @@ void main() {
       test('eventually report generic NetworkException', () {
         checkLateReported(prepareNetworkException).startsWith(
           "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to Zulip at",
+        );
       });
 
       test('eventually report Server5xxException', () {
         checkLateReported(prepareServer5xxException).startsWith(
           "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to Zulip at",
+        );
       });
 
       test('report MalformedServerResponseException', () {
         checkReported(prepareMalformedServerResponseException).startsWith(
           "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to Zulip at",
+        );
       });
 
       test('report rate limit: code RATE_LIMIT_HIT', () {
         checkLateReported(prepareRateLimitExceptionCode).startsWith(
           "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to Zulip at",
+        );
       });
 
       test('report rate limit: status 429 ZulipApiException', () {
         checkLateReported(prepareRateLimitExceptionStatus).startsWith(
           "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to Zulip at",
+        );
       });
 
-      test('report rate limit: status 429 MalformedServerResponseException', () {
-        checkLateReported(prepareRateLimitExceptionMalformed).startsWith(
-          "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
-      });
+      test(
+        'report rate limit: status 429 MalformedServerResponseException',
+        () {
+          checkLateReported(prepareRateLimitExceptionMalformed).startsWith(
+            "Error connecting to Zulip. Retrying…\n"
+            "Error connecting to Zulip at",
+          );
+        },
+      );
 
       test('report generic ZulipApiException', () {
         checkReported(prepareZulipApiExceptionBadRequest).startsWith(
           "Error connecting to Zulip. Retrying…\n"
-          "Error connecting to Zulip at");
+          "Error connecting to Zulip at",
+        );
       });
 
       test('ignore expired queue', () {
@@ -1152,12 +1466,14 @@ void main() {
       });
 
       test('nicely report handleEvent error', () {
-        checkReported(prepareHandleEventError).matchesPattern(RegExp(
-          r"Error handling a Zulip event\. Retrying connection…\n"
-          r"Error handling a Zulip event from \S+; will retry\.\n"
-          r"\n"
-          r"Error: .*channel\.dart.. Failed assertion.*"
-        ));
+        checkReported(prepareHandleEventError).matchesPattern(
+          RegExp(
+            r"Error handling a Zulip event\. Retrying connection…\n"
+            r"Error handling a Zulip event from \S+; will retry\.\n"
+            r"\n"
+            r"Error: .*channel\.dart.. Failed assertion.*",
+          ),
+        );
       });
     });
   });
@@ -1165,7 +1481,8 @@ void main() {
   group('UpdateMachine.poll reload failure', () {
     late UpdateMachineTestGlobalStore globalStore;
 
-    Future<void> prepareReload(FakeAsync async, {
+    Future<void> prepareReload(
+      FakeAsync async, {
       required void Function(FakeApiConnection) prepareRegisterQueueResponse,
     }) async {
       globalStore = UpdateMachineTestGlobalStore(accounts: [eg.selfAccount]);
@@ -1174,8 +1491,7 @@ void main() {
       final updateMachine = store.updateMachine!;
 
       final connection = store.connection as FakeApiConnection;
-      connection.prepare(
-        apiException: eg.apiExceptionBadEventQueueId());
+      connection.prepare(apiException: eg.apiExceptionBadEventQueueId());
       globalStore.prepareRegisterQueueResponse = prepareRegisterQueueResponse;
       // When we reload, we should get a new connection,
       // just like when the app runs live. This is more realistic,
@@ -1188,88 +1504,125 @@ void main() {
       check(store).isRecoveringEventStream.isTrue();
     }
 
-    test('user logged out before new store is loaded', () => awaitFakeAsync((async) async {
-      await prepareReload(async, prepareRegisterQueueResponse: (connection) {
-        connection.prepare(
-          delay: TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
-          json: eg.initialSnapshot().toJson());
-      });
+    test(
+      'user logged out before new store is loaded',
+      () => awaitFakeAsync((async) async {
+        await prepareReload(
+          async,
+          prepareRegisterQueueResponse: (connection) {
+            connection.prepare(
+              delay:
+                  TestGlobalStore.removeAccountDuration + Duration(seconds: 1),
+              json: eg.initialSnapshot().toJson(),
+            );
+          },
+        );
 
-      globalStore.clearCachedApiConnections();
-      await logOutAccount(globalStore, eg.selfAccount.id);
-      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+        globalStore.clearCachedApiConnections();
+        await logOutAccount(globalStore, eg.selfAccount.id);
+        check(
+          globalStore.takeDoRemoveAccountCalls(),
+        ).single.equals(eg.selfAccount.id);
 
-      async.elapse(TestGlobalStore.removeAccountDuration);
-      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
 
-      async.flushTimers();
-      // Reload never succeeds and there are no unhandled errors.
-      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-    }));
+        async.flushTimers();
+        // Reload never succeeds and there are no unhandled errors.
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+      }),
+    );
 
-    test('new store is not loaded, gets HTTP 401 error instead', () => awaitFakeAsync((async) async {
-      await prepareReload(async, prepareRegisterQueueResponse: (connection) {
-        connection.prepare(
-          delay: Duration(seconds: 1),
-          apiException: eg.apiExceptionUnauthorized());
-      });
+    test(
+      'new store is not loaded, gets HTTP 401 error instead',
+      () => awaitFakeAsync((async) async {
+        await prepareReload(
+          async,
+          prepareRegisterQueueResponse: (connection) {
+            connection.prepare(
+              delay: Duration(seconds: 1),
+              apiException: eg.apiExceptionUnauthorized(),
+            );
+          },
+        );
 
-      async.elapse(const Duration(seconds: 1));
-      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+        async.elapse(const Duration(seconds: 1));
+        check(
+          globalStore.takeDoRemoveAccountCalls(),
+        ).single.equals(eg.selfAccount.id);
 
-      async.elapse(TestGlobalStore.removeAccountDuration);
-      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
 
-      async.flushTimers();
-      // Reload never succeeds and there are no unhandled errors.
-      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-    }));
+        async.flushTimers();
+        // Reload never succeeds and there are no unhandled errors.
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+      }),
+    );
 
-    test('new store is not loaded, gets InitialSnapshot with ancient server version', () => awaitFakeAsync((async) async {
-      final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
-      await prepareReload(async, prepareRegisterQueueResponse: (connection) {
-        connection.prepare(
-          delay: Duration(seconds: 1),
-          json: json);
-      });
+    test(
+      'new store is not loaded, gets InitialSnapshot with ancient server version',
+      () => awaitFakeAsync((async) async {
+        final json = eg
+            .initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel)
+            .toJson();
+        await prepareReload(
+          async,
+          prepareRegisterQueueResponse: (connection) {
+            connection.prepare(delay: Duration(seconds: 1), json: json);
+          },
+        );
 
-      async.elapse(const Duration(seconds: 1));
-      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+        async.elapse(const Duration(seconds: 1));
+        check(
+          globalStore.takeDoRemoveAccountCalls(),
+        ).single.equals(eg.selfAccount.id);
 
-      async.elapse(TestGlobalStore.removeAccountDuration);
-      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
 
-      async.flushTimers();
-      // Reload never succeeds and there are no unhandled errors.
-      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-    }));
+        async.flushTimers();
+        // Reload never succeeds and there are no unhandled errors.
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+      }),
+    );
 
-    test('new store is not loaded, gets malformed response with ancient server version', () => awaitFakeAsync((async) async {
-      final json = eg.initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel).toJson();
-      json['realm_emoji'] = 123;
-      check(() => InitialSnapshot.fromJson(json)).throws<void>();
-      await prepareReload(async, prepareRegisterQueueResponse: (connection) {
-        connection.prepare(
-          delay: Duration(seconds: 1),
-          json: json);
-      });
+    test(
+      'new store is not loaded, gets malformed response with ancient server version',
+      () => awaitFakeAsync((async) async {
+        final json = eg
+            .initialSnapshot(zulipFeatureLevel: eg.ancientZulipFeatureLevel)
+            .toJson();
+        json['realm_emoji'] = 123;
+        check(() => InitialSnapshot.fromJson(json)).throws<void>();
+        await prepareReload(
+          async,
+          prepareRegisterQueueResponse: (connection) {
+            connection.prepare(delay: Duration(seconds: 1), json: json);
+          },
+        );
 
-      async.elapse(const Duration(seconds: 1));
-      check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
+        async.elapse(const Duration(seconds: 1));
+        check(
+          globalStore.takeDoRemoveAccountCalls(),
+        ).single.equals(eg.selfAccount.id);
 
-      async.elapse(TestGlobalStore.removeAccountDuration);
-      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
 
-      async.flushTimers();
-      // Reload never succeeds and there are no unhandled errors.
-      check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
-    }));
+        async.flushTimers();
+        // Reload never succeeds and there are no unhandled errors.
+        check(globalStore.perAccountSync(eg.selfAccount.id)).isNull();
+      }),
+    );
   });
 
   group('ZulipVersionData', () {
     group('fromMalformedServerResponseException', () {
       test('replace missing feature level with 0', () async {
-        final connection = testBinding.globalStore.apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+        final connection =
+            testBinding.globalStore.apiConnectionFromAccount(eg.selfAccount)
+                as FakeApiConnection;
 
         final json = eg.initialSnapshot().toJson()
           ..['zulip_version'] = '2.0.0'
@@ -1285,8 +1638,10 @@ void main() {
         }
 
         check(error).isNotNull().isA<MalformedServerResponseException>();
-        final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(
-          error as MalformedServerResponseException);
+        final zulipVersionData =
+            ZulipVersionData.fromMalformedServerResponseException(
+              error as MalformedServerResponseException,
+            );
         check(zulipVersionData).isNotNull()
           ..zulipVersion.equals('2.0.0')
           ..zulipMergeBase.isNull()

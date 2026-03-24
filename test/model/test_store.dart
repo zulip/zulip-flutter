@@ -7,7 +7,6 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/ui/utils/store.dart';
 
 import '../api/fake_api.dart';
@@ -17,7 +16,8 @@ mixin _ApiConnectionsMixin on GlobalStore {
   final Map<
     ({Uri realmUrl, int? zulipFeatureLevel, String? email, String? apiKey}),
     FakeApiConnection
-  > _apiConnections = {};
+  >
+  _apiConnections = {};
 
   /// Whether [apiConnection] should return a cached connection.
   ///
@@ -48,10 +48,17 @@ mixin _ApiConnectionsMixin on GlobalStore {
   /// see [useCachedApiConnections].
   @override
   FakeApiConnection apiConnection({
-      required Uri realmUrl, required int? zulipFeatureLevel,
-      String? email, String? apiKey}) {
-    final key = (realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
-      email: email, apiKey: apiKey);
+    required Uri realmUrl,
+    required int? zulipFeatureLevel,
+    String? email,
+    String? apiKey,
+  }) {
+    final key = (
+      realmUrl: realmUrl,
+      zulipFeatureLevel: zulipFeatureLevel,
+      email: email,
+      apiKey: apiKey,
+    );
     if (useCachedApiConnections) {
       final connection = _apiConnections[key];
       if (connection != null && connection.isOpen) {
@@ -59,8 +66,11 @@ mixin _ApiConnectionsMixin on GlobalStore {
       }
     }
     return (_apiConnections[key] = FakeApiConnection(
-      realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
-      email: email, apiKey: apiKey));
+      realmUrl: realmUrl,
+      zulipFeatureLevel: zulipFeatureLevel,
+      email: email,
+      apiKey: apiKey,
+    ));
   }
 }
 
@@ -79,12 +89,18 @@ class _TestGlobalStoreBackend implements GlobalStoreBackend {
   }
 
   @override
-  Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value) async {
+  Future<void> doSetBoolGlobalSetting(
+    BoolGlobalSetting setting,
+    bool? value,
+  ) async {
     // Nothing to do.
   }
 
   @override
-  Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value) async {
+  Future<void> doSetIntGlobalSetting(
+    IntGlobalSetting setting,
+    int? value,
+  ) async {
     // Nothing to do.
   }
 
@@ -114,10 +130,12 @@ mixin _DatabaseMixin on GlobalStore {
     // we're not using a real database, this needs to be handled here.
     // See [AppDatabase.createAccount].
     // TODO: Ensure that parallel account insertions do not bypass this check.
-    if (accounts.any((account) =>
-          data.realmUrl.value == account.realmUrl
-          && (data.userId.value == account.userId
-              || data.email.value == account.email))) {
+    if (accounts.any(
+      (account) =>
+          data.realmUrl.value == account.realmUrl &&
+          (data.userId.value == account.userId ||
+              data.email.value == account.email),
+    )) {
       throw AccountAlreadyExistsException();
     }
 
@@ -139,6 +157,7 @@ mixin _DatabaseMixin on GlobalStore {
     _doRemoveAccountCalls = null;
     return result ?? [];
   }
+
   List<int>? _doRemoveAccountCalls;
 
   @override
@@ -166,14 +185,16 @@ mixin _DatabaseMixin on GlobalStore {
 ///   * [TestZulipBinding.globalStore], which provides one of these.
 ///   * [UpdateMachineTestGlobalStore], which prepares per-account data
 ///     using [UpdateMachine.load] (like [LiveGlobalStore] does).
-class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMixin {
+class TestGlobalStore extends GlobalStore
+    with _ApiConnectionsMixin, _DatabaseMixin {
   TestGlobalStore({
     GlobalSettingsData? globalSettings,
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
     Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
     Iterable<PushKey>? pushKeys,
-  }) : super(backend: _TestGlobalStoreBackend(),
+  }) : super(
+         backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
          intGlobalSettings: intGlobalSettings ?? {},
@@ -207,7 +228,9 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
     assert(initialSnapshot.zulipVersion == account.zulipVersion);
     assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
     if (initialSnapshot.zulipFeatureLevel != account.zulipFeatureLevel) {
-      account = account.copyWith(zulipFeatureLevel: initialSnapshot.zulipFeatureLevel);
+      account = account.copyWith(
+        zulipFeatureLevel: initialSnapshot.zulipFeatureLevel,
+      );
     }
     await insertAccount(account.toCompanion(false));
     assert(!_initialSnapshots.containsKey(account.id));
@@ -250,7 +273,9 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
       initialSnapshot: initialSnapshot,
     );
     UpdateMachine.fromInitialSnapshot(
-      store: store, initialSnapshot: initialSnapshot);
+      store: store,
+      initialSnapshot: initialSnapshot,
+    );
     return Future.value(store);
   }
 }
@@ -271,14 +296,16 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
 /// See also:
 ///   * [TestGlobalStore], which prepares per-account data
 ///     without using [UpdateMachine.load].
-class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMixin {
+class UpdateMachineTestGlobalStore extends GlobalStore
+    with _ApiConnectionsMixin, _DatabaseMixin {
   UpdateMachineTestGlobalStore({
     GlobalSettingsData? globalSettings,
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
     Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
     Iterable<PushKey>? pushKeys,
-  }) : super(backend: _TestGlobalStoreBackend(),
+  }) : super(
+         backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
          intGlobalSettings: intGlobalSettings ?? {},
@@ -287,11 +314,13 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.
   // Calling [clearCachedApiConnections] is permitted, though.
-  @override bool get useCachedApiConnections => true;
-  @override set useCachedApiConnections(bool value) =>
-    throw UnsupportedError(
-      'Setting UpdateMachineTestGlobalStore.useCachedApiConnections '
-      'is not supported.');
+  @override
+  bool get useCachedApiConnections => true;
+  @override
+  set useCachedApiConnections(bool value) => throw UnsupportedError(
+    'Setting UpdateMachineTestGlobalStore.useCachedApiConnections '
+    'is not supported.',
+  );
 
   void Function(FakeApiConnection)? prepareRegisterQueueResponse;
 
@@ -310,11 +339,14 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
     final connection = apiConnectionFromAccount(account!) as FakeApiConnection;
     (prepareRegisterQueueResponse ?? _prepareRegisterQueueSuccess)(connection);
     connection
-      ..prepare(json: GetEventsResult(events: [HeartbeatEvent(id: 2)], queueId: null).toJson())
+      ..prepare(
+        json: GetEventsResult(
+          events: [HeartbeatEvent(id: 2)],
+          queueId: null,
+        ).toJson(),
+      )
       ..prepare(json: ServerEmojiData(codeToNames: {}).toJson());
-    if (NotificationService.instance.token.value != null) {
-      connection.prepare(json: {}); // register-token
-    }
+
     final updateMachine = await UpdateMachine.load(this, accountId);
     updateMachine.debugPauseLoop();
     return updateMachine.store;
@@ -369,12 +401,15 @@ extension PerAccountStoreTestExtension on PerAccountStore {
     ChannelPropertyName property,
     Object? value,
   ) async {
-    await handleEvent(ChannelUpdateEvent(
-      id: 1,
-      streamId: channelId,
-      name: 'some channel name', // (not true, of course, but that's fine)
-      property: property,
-      value: value));
+    await handleEvent(
+      ChannelUpdateEvent(
+        id: 1,
+        streamId: channelId,
+        name: 'some channel name', // (not true, of course, but that's fine)
+        property: property,
+        value: value,
+      ),
+    );
   }
 
   Future<void> addSubscription(Subscription subscription) async {
@@ -382,7 +417,9 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> addSubscriptions(List<Subscription> subscriptions) async {
-    await handleEvent(SubscriptionAddEvent(id: 1, subscriptions: subscriptions));
+    await handleEvent(
+      SubscriptionAddEvent(id: 1, subscriptions: subscriptions),
+    );
   }
 
   Future<void> removeSubscription(int channelId) async {
@@ -394,11 +431,19 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> addChannelFolder(ChannelFolder channelFolder) async {
-    await handleEvent(ChannelFolderAddEvent(id: 1, channelFolder: channelFolder));
+    await handleEvent(
+      ChannelFolderAddEvent(id: 1, channelFolder: channelFolder),
+    );
   }
 
-  Future<void> setUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {
-    await handleEvent(eg.userTopicEvent(stream.streamId, topic, visibilityPolicy));
+  Future<void> setUserTopic(
+    ZulipStream stream,
+    String topic,
+    UserTopicVisibilityPolicy visibilityPolicy,
+  ) async {
+    await handleEvent(
+      eg.userTopicEvent(stream.streamId, topic, visibilityPolicy),
+    );
   }
 
   Future<void> addMessage(Message message) async {
