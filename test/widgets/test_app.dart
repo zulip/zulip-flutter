@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:zulip/generated/l10n/zulip_localizations.dart';
-import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/theme.dart';
+import 'package:zulip/ui/utils/page.dart';
+import 'package:zulip/ui/utils/store.dart';
+import 'package:zulip/ui/values/theme.dart';
 
 /// A lightweight mock of [ZulipApp], suitable for most widget tests.
 class TestZulipApp extends StatelessWidget {

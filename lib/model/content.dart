@@ -5,7 +5,7 @@ import 'package:html/parser.dart';
 
 import '../api/model/model.dart';
 import '../api/model/submessage.dart';
-import '../widgets/image.dart';
+import '../ui/widgets/image.dart';
 import 'code_block.dart';
 import 'katex.dart';
 

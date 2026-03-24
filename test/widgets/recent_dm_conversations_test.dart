@@ -8,14 +8,15 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/home.dart';
-import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/new_dm_sheet.dart';
-import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/recent_dm_conversations.dart';
-import 'package:zulip/widgets/user.dart';
+import 'package:zulip/ui/blocks/home_block/home.dart';
+import 'package:zulip/ui/blocks/recent_dm_conversations_block/widgets/recent_dm_conversations_item.dart';
+import 'package:zulip/ui/values/icons.dart';
+import 'package:zulip/ui/widgets/image.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/widgets/new_dm_sheet.dart';
+import 'package:zulip/ui/utils/page.dart';
+import 'package:zulip/ui/blocks/recent_dm_conversations_block/recent_dm_conversations.dart';
+import 'package:zulip/ui/widgets/user.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -484,7 +485,7 @@ void main() {
         // no `tester.pump`, to avoid having to mock API response for [MessageListPage]
 
         check(pushedRoutes).last.isA<WidgetRoute>().page
-          .isA<MessageListPage>()
+          .isA<MessageListBlockPage>()
           .initNarrow.equals(expectedNarrow);
       }
 

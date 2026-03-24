@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/model/settings.dart';
-import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/settings.dart';
-import 'package:zulip/widgets/store.dart';
+import 'package:zulip/ui/blocks/settings_block/widgets/mark_read_on_scroll_setting.dart';
+import 'package:zulip/ui/blocks/settings_block/widgets/visit_first_unread_setting.dart';
+import 'package:zulip/ui/utils/page.dart';
+import 'package:zulip/ui/blocks/settings_block/settings.dart';
+import 'package:zulip/ui/utils/store.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';

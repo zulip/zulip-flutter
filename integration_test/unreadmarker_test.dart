@@ -4,7 +4,7 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
 
 import '../test/api/fake_api.dart';
 import '../test/example_data.dart' as eg;
@@ -31,7 +31,7 @@ void main() {
       eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-      child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
+      child: const MessageListBlockPage(initNarrow: CombinedFeedNarrow())));
     await tester.pumpAndSettle();
     return messages;
   }

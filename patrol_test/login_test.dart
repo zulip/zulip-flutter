@@ -4,7 +4,7 @@ import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 import 'package:zulip/api/route/account.dart';
-import 'package:zulip/widgets/app.dart';
+import 'package:zulip/ui/app.dart';
 
 import '../test/example_data.dart' as eg;
 import '../test/model/binding.dart';

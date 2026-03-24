@@ -7,15 +7,18 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/app_bar.dart';
-import 'package:zulip/widgets/color.dart';
-import 'package:zulip/widgets/home.dart';
-import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/inbox.dart';
-import 'package:zulip/widgets/theme.dart';
-import 'package:zulip/widgets/counter_badge.dart';
-import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/page.dart';
+import 'package:zulip/ui/blocks/inbox_block/widgets/headers/inbox_all_dms_header_item.dart';
+import 'package:zulip/ui/blocks/inbox_block/widgets/headers/inbox_channel_header_item.dart';
+import 'package:zulip/ui/blocks/inbox_block/widgets/inbox_dm_item.dart';
+import 'package:zulip/ui/blocks/inbox_block/widgets/inbox_topic_item.dart';
+import 'package:zulip/ui/widgets/app_bar.dart';
+import 'package:zulip/ui/extensions/color.dart';
+import 'package:zulip/ui/blocks/home_block/home.dart';
+import 'package:zulip/ui/values/icons.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/values/theme.dart';
+import 'package:zulip/ui/widgets/counter_badge.dart';
+import 'package:zulip/ui/utils/page.dart';
 
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
@@ -672,7 +675,7 @@ void main() {
       await tester.pump();
 
       check(pushedRoutes).single.isA<WidgetRoute>().page
-        .isA<MessageListPage>()
+        .isA<MessageListBlockPage>()
         .initNarrow.equals(KeywordSearchNarrow(''));
     });
   });

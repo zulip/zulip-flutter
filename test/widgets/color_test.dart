@@ -2,7 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:test/scaffolding.dart';
-import 'package:zulip/widgets/color.dart';
+import 'package:zulip/ui/extensions/color.dart';
 
 void main() {
   group('ColorExtension', () {

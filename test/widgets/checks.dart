@@ -5,21 +5,22 @@ import 'package:zulip/api/route/realm.dart';
 
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
-import 'package:zulip/widgets/all_channels.dart';
-import 'package:zulip/widgets/button.dart';
-import 'package:zulip/widgets/channel_colors.dart';
-import 'package:zulip/widgets/compose_box.dart';
-import 'package:zulip/widgets/emoji.dart';
-import 'package:zulip/widgets/emoji_reaction.dart';
-import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/lightbox.dart';
-import 'package:zulip/widgets/login.dart';
-import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/profile.dart';
-import 'package:zulip/widgets/store.dart';
-import 'package:zulip/widgets/counter_badge.dart';
-import 'package:zulip/widgets/user.dart';
+import 'package:zulip/ui/blocks/all_channels_block/widgets/all_channels_list_entry.dart';
+import 'package:zulip/ui/widgets/button.dart';
+import 'package:zulip/ui/values/channel_colors.dart';
+import 'package:zulip/ui/blocks/compose_box_block/compose_box.dart';
+import 'package:zulip/ui/blocks/compose_box_block/compose_box_block.dart';
+import 'package:zulip/ui/widgets/emoji.dart';
+import 'package:zulip/ui/widgets/emoji_reaction.dart';
+import 'package:zulip/ui/widgets/image.dart';
+import 'package:zulip/ui/widgets/lightbox.dart';
+import 'package:zulip/ui/blocks/login_block/login.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/utils/page.dart';
+import 'package:zulip/ui/blocks/profile_block/profile.dart';
+import 'package:zulip/ui/utils/store.dart';
+import 'package:zulip/ui/widgets/counter_badge.dart';
+import 'package:zulip/ui/widgets/user.dart';
 
 extension ChannelColorSwatchChecks on Subject<ChannelColorSwatch> {
   Subject<Color> get base => has((s) => s.base, 'base');
@@ -29,7 +30,7 @@ extension ChannelColorSwatchChecks on Subject<ChannelColorSwatch> {
   Subject<Color> get barBackground => has((s) => s.barBackground, 'barBackground');
 }
 
-extension ComposeBoxStateChecks on Subject<ComposeBoxState> {
+extension ComposeBoxStateChecks on Subject<ComposeBoxBlockState> {
   Subject<ComposeBoxController> get controller => has((c) => c.controller, 'controller');
 }
 
@@ -67,7 +68,7 @@ extension AvatarShapeChecks on Subject<AvatarShape> {
   Subject<Widget> get child => has((i) => i.child, 'child');
 }
 
-extension MessageListPageChecks on Subject<MessageListPage> {
+extension MessageListPageChecks on Subject<MessageListBlockPage> {
   Subject<Narrow> get initNarrow => has((x) => x.initNarrow, 'initNarrow');
   Subject<int?> get initAnchorMessageId => has((x) => x.initAnchorMessageId, 'initAnchorMessageId');
 }

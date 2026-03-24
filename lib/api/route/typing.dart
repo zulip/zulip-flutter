@@ -26,5 +26,8 @@ Future<void> setTypingStatus(ApiConnection connection, {
         'type': RawParameter(supportsDirect ? 'direct' : 'private'),
         'to':   destination.userIds,
       });
+    case EditDestination():
+      // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }

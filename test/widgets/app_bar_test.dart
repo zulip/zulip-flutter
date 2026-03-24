@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/widgets/app_bar.dart';
-import 'package:zulip/widgets/profile.dart';
+import 'package:zulip/ui/blocks/profile_block/profile.dart';
+import 'package:zulip/ui/widgets/app_bar.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';

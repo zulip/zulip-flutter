@@ -7,15 +7,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/all_channels.dart';
-import 'package:zulip/widgets/app_bar.dart';
-import 'package:zulip/widgets/button.dart';
-import 'package:zulip/widgets/home.dart';
-import 'package:zulip/widgets/icons.dart';
-import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/page.dart';
-import 'package:zulip/widgets/remote_settings.dart';
-import 'package:zulip/widgets/theme.dart';
+import 'package:zulip/ui/blocks/all_channels_block/all_channels.dart';
+import 'package:zulip/ui/blocks/all_channels_block/widgets/all_channels_list_entry.dart';
+import 'package:zulip/ui/widgets/app_bar.dart';
+import 'package:zulip/ui/widgets/button.dart';
+import 'package:zulip/ui/blocks/home_block/home.dart';
+import 'package:zulip/ui/values/icons.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/utils/page.dart';
+import 'package:zulip/ui/utils/remote_settings.dart';
+import 'package:zulip/ui/values/theme.dart';
 
 import '../api/fake_api.dart';
 import '../api/model/model_checks.dart';
@@ -230,7 +231,7 @@ void main() {
     await transitionDurationObserver.pumpPastTransition(tester);
 
     check(find.descendant(
-      of: find.byType(MessageListPage),
+      of: find.byType(MessageListBlockPage),
       matching: find.text('some-channel')),
     ).findsOne();
   });

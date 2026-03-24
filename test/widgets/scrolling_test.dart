@@ -2,7 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zulip/widgets/scrolling.dart';
+import 'package:zulip/ui/widgets/scrolling.dart';
 
 import '../flutter_checks.dart';
 

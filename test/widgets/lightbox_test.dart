@@ -13,11 +13,12 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/app.dart';
-import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/lightbox.dart';
-import 'package:zulip/widgets/message_list.dart';
-import 'package:zulip/widgets/user.dart';
+import 'package:zulip/ui/app.dart';
+import 'package:zulip/ui/widgets/image.dart';
+import 'package:zulip/ui/widgets/lightbox.dart';
+import 'package:zulip/ui/blocks/message_list_block/headers/stream_message_recipient_header.dart';
+import 'package:zulip/ui/blocks/message_list_block/message_list_block.dart';
+import 'package:zulip/ui/widgets/user.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -202,7 +203,7 @@ class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
 
 void main() {
   TestZulipBinding.ensureInitialized();
-  MessageListPage.debugEnableMarkReadOnScroll = false;
+  MessageListBlockPage.debugEnableMarkReadOnScroll = false;
 
   late PerAccountStore store;
 
@@ -232,7 +233,7 @@ void main() {
       connection.prepare(json:
         eg.newestGetMessagesResult(foundOldest: true, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
-        child: MessageListPage(initNarrow: const CombinedFeedNarrow())));
+        child: MessageListBlockPage(initNarrow: const CombinedFeedNarrow())));
       await tester.pumpAndSettle();
     }
 

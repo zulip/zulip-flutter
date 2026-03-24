@@ -5,8 +5,8 @@ import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/store.dart';
+import 'package:zulip/ui/widgets/image.dart';
+import 'package:zulip/ui/utils/store.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';

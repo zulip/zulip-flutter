@@ -13,10 +13,10 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/widgets/app.dart';
-import 'package:zulip/widgets/home.dart';
-import 'package:zulip/widgets/login.dart';
-import 'package:zulip/widgets/page.dart';
+import 'package:zulip/ui/app.dart';
+import 'package:zulip/ui/blocks/home_block/home.dart';
+import 'package:zulip/ui/blocks/login_block/login.dart';
+import 'package:zulip/ui/utils/page.dart';
 
 import '../api/fake_api.dart';
 import '../api/route/route_checks.dart';

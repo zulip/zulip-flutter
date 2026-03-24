@@ -19,7 +19,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import '../widgets/sticky_header.dart';
+import '../ui/widgets/sticky_header.dart';
 
 /// Example page using [StickyHeaderListView] and [StickyHeaderItem] in a
 /// vertically-scrolling list.
