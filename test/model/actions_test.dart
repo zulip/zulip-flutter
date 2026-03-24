@@ -209,7 +209,7 @@ void main() {
       // Create a notification to check that it's removed after logout
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
       testBinding.firebaseMessaging.onMessage.add(
-        await encodeFcmMessage(messageFcmMessage(message)));
+        await encodeFcmMessage(messageNotifMessage(message)));
       async.flushMicrotasks();
       check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
 

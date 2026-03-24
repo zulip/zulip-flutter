@@ -139,7 +139,7 @@ void main() {
             if (token != null) ...[
               'token_kind', 'token_id',
               'bouncer_public_key', 'encrypted_push_registration',
-            ],
+            ]
           ]);
         if (key != null) {
           check(request).bodyFields
@@ -160,6 +160,9 @@ void main() {
               'token_kind': tokenKind,
               'token': token,
               'timestamp': testBinding.utcNow().millisecondsSinceEpoch ~/ 1000,
+              'ios_app_id': defaultTargetPlatform == TargetPlatform.iOS
+                ? (await testBinding.packageInfo)!.packageName
+                : null,
             });
         }
       }
@@ -179,9 +182,17 @@ void main() {
         }
       }
 
-      // TODO(#1764) run some of these tests for iOS too, once e2ee enabled there
+      void testIosAndAndroid(String description, dynamic Function() body) {
+        for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+          test('$platform: $description', () {
+            addTearDown(() => debugDefaultTargetPlatformOverride = null);
+            debugDefaultTargetPlatformOverride = platform;
+            body();
+          });
+        }
+      }
 
-      test('initial run: send key and token', () => awaitFakeAsync((async) async {
+      testIosAndAndroid('initial run: send key and token', () => awaitFakeAsync((async) async {
         await prepareToken(someToken);
         // Start with no key and no ClientDevice ack from the server.
         await prepareStore();
@@ -190,7 +201,7 @@ void main() {
         await checkRegister(async, key: key, token: someToken);
       }));
 
-      test('do nothing when all set', () => awaitFakeAsync((async) async {
+      testIosAndAndroid('do nothing when all set', () => awaitFakeAsync((async) async {
         await prepareToken(someToken);
         final pushKey = mkKey();
         await prepareStore(pushKeys: [pushKey],
@@ -198,14 +209,14 @@ void main() {
         await checkRegister(async, key: null, token: null);
       }));
 
-      test('have key but no ack: send key and token', () => awaitFakeAsync((async) async {
+      testIosAndAndroid('have key but no ack: send key and token', () => awaitFakeAsync((async) async {
         await prepareToken(someToken);
         final pushKey = mkKey();
         await prepareStore(pushKeys: [pushKey]);
         await checkRegister(async, key: pushKey, token: someToken);
       }));
 
-      test('update key on rotate', () => awaitFakeAsync((async) async {
+      testIosAndAndroid('update key on rotate', () => awaitFakeAsync((async) async {
         await prepareToken(someToken);
         // Start out registered, but with an old key.
         final oldKey = mkKey(age: 31 * Duration.secondsPerDay);
@@ -218,7 +229,7 @@ void main() {
         await checkRegister(async, key: newKey, token: null);
       }));
 
-      test('resend token on error', () => awaitFakeAsync((async) async {
+      testIosAndAndroid('resend token on error', () => awaitFakeAsync((async) async {
         await prepareToken(someToken);
         final pushKey = mkKey();
         await prepareStore(pushKeys: [pushKey],
@@ -227,7 +238,7 @@ void main() {
         await checkRegister(async, key: null, token: someToken);
       }));
 
-      test('update token when server has old token', () => awaitFakeAsync((async) async {
+      testIosAndAndroid('update token when server has old token', () => awaitFakeAsync((async) async {
         await prepareToken(someToken);
         final pushKey = mkKey();
         await prepareStore(pushKeys: [pushKey],
@@ -235,7 +246,7 @@ void main() {
         await checkRegister(async, key: null, token: someToken);
       }));
 
-      test('update token when server has old token pending', () => awaitFakeAsync((async) async {
+      testIosAndAndroid('update token when server has old token pending', () => awaitFakeAsync((async) async {
         await prepareToken(someToken);
         final pushKey = mkKey();
         await prepareStore(pushKeys: [pushKey],
@@ -246,7 +257,7 @@ void main() {
         await checkRegister(async, key: null, token: someToken);
       }));
 
-      test('resend token when old', () => awaitFakeAsync((async) async {
+      testIosAndAndroid('resend token when old', () => awaitFakeAsync((async) async {
         await prepareToken(someToken);
         final pushKey = mkKey();
         await prepareStore(pushKeys: [pushKey],
@@ -255,6 +266,7 @@ void main() {
         await checkRegister(async, key: null, token: someToken);
       }));
 
+      // TODO run this test on iOS too.
       test('update when token changes', () => awaitFakeAsync((async) async {
         // At startup, everything's up to date.
         await prepareToken(someToken);
@@ -270,6 +282,7 @@ void main() {
         await checkLastRequest(key: null, token: otherToken);
       }));
 
+      // TODO run this test on iOS too.
       test('token initially unknown; send when known', () => awaitFakeAsync((async) async {
         // This tests the case where the store is created while our
         // request for the token is still pending.
