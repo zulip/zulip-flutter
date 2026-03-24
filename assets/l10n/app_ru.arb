@@ -1489,7 +1489,7 @@
   "discardDraftConfirmationDialogTitle": "Отказаться от написанного сообщения?",
   "discardDraftForEditConfirmationDialogMessage": "При изменении сообщения текст из поля для редактирования удаляется.",
   "discardDraftForOutboxConfirmationDialogMessage": "При восстановлении неотправленного сообщения содержимое поля редактирования очищается.",
-  "dmsWithOthersPageTitle": "ЛС с {others}",
+  "dmsWithOthersPageTitle": "{others}",
   "dmsWithYourselfPageTitle": "ЛС с собой",
   "editAlreadyInProgressMessage": "Редактирование уже выполняется. Дождитесь завершения.",
   "editAlreadyInProgressTitle": "Редактирование недоступно",

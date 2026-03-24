@@ -1,15 +1,16 @@
-// Модуль локальных уведомлений для Flutter приложения
-// Поддерживает Android, iOS и macOS
-
+import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:math';
+import 'dart:typed_data'; // Для Int64List
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:html/parser.dart' show parse;
 
 class NotificationHelper {
   static int _idCounter = Random().nextInt(100000);
 
   static int generateId() {
     _idCounter = (_idCounter + 1) % 2147483647;
+    if (_idCounter == 0) _idCounter = 1;
     return _idCounter;
   }
 }
@@ -17,377 +18,312 @@ class NotificationHelper {
 class LocalNotificationsService {
   static final LocalNotificationsService _instance =
       LocalNotificationsService._internal();
+
   factory LocalNotificationsService() => _instance;
+
   LocalNotificationsService._internal();
 
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  late final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-  // Инициализация сервиса уведомлений
-  Future<void> init() async {
+  // Константы каналов
+  static const String _androidChannelId = 'high_importance_channel';
+  static const String _androidChannelName = 'Важные уведомления';
+  static const String _androidChannelDesc = 'Уведомления с высоким приоритетом';
+
+  /// Инициализация сервиса
+  Future<void> init({
+    void Function(NotificationResponse)? onSelectedNotification,
+  }) async {
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-    // Конфигурация для разных платформ
+    // Обработчик клика
+    if (onSelectedNotification != null) {
+      unawaited(
+        flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >()
+            ?.requestNotificationsPermission(),
+      );
+    }
+
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
+
+    const iosSettings = DarwinInitializationSettings(
+      requestSoundPermission: true,
+      requestBadgePermission: true,
+      requestAlertPermission: true,
+      requestProvisionalPermission: false,
+    );
+
+    const macOSSettings = DarwinInitializationSettings(
+      requestSoundPermission: true,
+      requestBadgePermission: true,
+      requestAlertPermission: true,
+    );
+
+    final settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+      macOS: macOSSettings,
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(
+      settings: settings,
+      onDidReceiveNotificationResponse: onSelectedNotification,
+      onDidReceiveBackgroundNotificationResponse: onSelectedNotification,
+    );
+
     if (Platform.isAndroid) {
-      await _initAndroid();
-    } else if (Platform.isIOS) {
-      await _initIOS();
-    } else if (Platform.isMacOS) {
-      await _initMacOS();
+      await _createAndroidChannel();
     }
   }
 
-  // Инициализация для Android
-  Future<void> _initAndroid() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+  Future<void> _createAndroidChannel() async {
+    final androidImpl = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
-    final InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+    if (androidImpl == null) return;
 
-    await flutterLocalNotificationsPlugin.initialize(
-      settings: initializationSettings,
+    const channel = AndroidNotificationChannel(
+      _androidChannelId,
+      _androidChannelName,
+      description: _androidChannelDesc,
+      importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+      // vibrationPattern можно задать здесь, но лучше в details для гибкости
     );
+
+    await androidImpl.createNotificationChannel(channel);
   }
 
-  // Инициализация для iOS
-  Future<void> _initIOS() async {
-    const IOSInitializationSettings initializationSettingsIOS =
-        IOSInitializationSettings(
-          requestSoundPermission: true,
-          requestBadgePermission: true,
-          requestAlertPermission: true,
-          // Добавляем поддержку background processing
-          requestProvisionalPermission: true,
-        );
-
-    final InitializationSettings initializationSettings =
-        InitializationSettings(iOS: initializationSettingsIOS);
-
-    await flutterLocalNotificationsPlugin.initialize(
-      settings: initializationSettings,
-    );
+  /// Удаление HTML-тегов из текста
+  String stripHtml(String html) {
+    final document = parse(html);
+    return document.body?.text.trim() ?? '';
   }
 
-  // Инициализация для macOS
-  Future<void> _initMacOS() async {
-    const DarwinInitializationSettings initializationSettingsMacOS =
-        DarwinInitializationSettings(
-          requestSoundPermission: true,
-          requestBadgePermission: true,
-          requestAlertPermission: true,
-        );
-
-    final InitializationSettings initializationSettings =
-        InitializationSettings(macOS: initializationSettingsMacOS);
-
-    await flutterLocalNotificationsPlugin.initialize(
-      settings: initializationSettings,
-    );
-  }
-
-  // Отображение уведомления
+  /// Показ уведомления (главный публичный метод)
   Future<void> showNotification({
     required String title,
     required String body,
     String? payload,
     String? icon,
+
+    // Группировка (Android)
     bool groupNotifications = false,
     String? groupKey,
     String? groupSummary,
+
+    // Звук и вибрация
     bool enableSound = true,
     bool enableVibration = true,
     String? soundName,
+    Int64List? vibrationPattern,
   }) async {
-    // Создание идентификатора уведомления
-    final int notificationId = NotificationHelper.generateId();
+    final notificationId = NotificationHelper.generateId();
+    final cleanBody = stripHtml(body);
 
-    // Платформо-специфичные настройки
     if (Platform.isAndroid) {
-      await _showAndroidNotification(
-        notificationId,
-        title,
-        body,
-        payload,
-        icon,
-        groupNotifications,
-        groupKey,
-        groupSummary,
-        enableSound,
-        enableVibration,
-        soundName,
+      return _showAndroid(
+        id: notificationId,
+        title: title,
+        body: cleanBody,
+        payload: payload,
+        icon: icon,
+        groupKey: groupNotifications ? groupKey : null,
+        groupSummary: groupSummary,
+        enableSound: enableSound,
+        enableVibration: enableVibration,
+        soundName: soundName,
+        vibrationPattern: vibrationPattern,
       );
     } else if (Platform.isIOS) {
-      await _showIOSNotification(
-        notificationId,
-        title,
-        body,
-        payload,
-        icon,
-        groupNotifications,
-        groupKey,
-        groupSummary,
-        enableSound,
-        enableVibration,
-        soundName,
+      return _showIOS(
+        id: notificationId,
+        title: title,
+        body: cleanBody,
+        payload: payload,
+        enableSound: enableSound,
+        soundName: soundName,
       );
     } else if (Platform.isMacOS) {
-      await _showMacOSNotification(
-        notificationId,
-        title,
-        body,
-        payload,
-        icon,
-        groupNotifications,
-        groupKey,
-        groupSummary,
-        enableSound,
-        enableVibration,
-        soundName,
+      return _showMacOS(
+        id: notificationId,
+        title: title,
+        body: cleanBody,
+        payload: payload,
+        enableSound: enableSound,
+        soundName: soundName,
       );
     }
   }
 
-  // Отображение уведомления для Android
-  Future<void> _showAndroidNotification(
-    int id,
-    String title,
-    String body,
+  /// Android: показ уведомления
+  Future<void> _showAndroid({
+    required int id,
+    required String title,
+    required String body,
     String? payload,
     String? icon,
-    bool groupNotifications,
     String? groupKey,
     String? groupSummary,
-    bool enableSound,
-    bool enableVibration,
-    String? soundName,
-  ) async {
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'high_importance_channel',
-      'High Importance Notifications',
-      description: 'This channel is used for important notifications',
-      importance: Importance.high,
-      enableVibration: true,
-    );
-
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(channel);
-
-    const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails(
-          'high_importance_channel',
-          'High Importance Notifications',
-          channelDescription:
-              'This channel is used for important notifications',
-          importance: Importance.high,
-          priority: Priority.high,
-          enableVibration: true,
-
-          // Иконка уведомления
-          icon: 'ic_notification',
-        );
-
-    await flutterLocalNotificationsPlugin.show(
-      id: id,
-      title: title,
-      body: body,
-      notificationDetails: NotificationDetails(
-        android: androidNotificationDetails,
-      ),
-      payload: payload,
-    );
-  }
-
-  // Отображение уведомления для iOS
-  Future<void> _showIOSNotification(
-    int id,
-    String title,
-    String body,
-    String? payload,
-    String? icon,
-    bool groupNotifications,
-    String? groupKey,
-    String? groupSummary,
-    bool enableSound,
-    bool enableVibration,
-    String? soundName,
-  ) async {
-    const NotificationDetails iosNotificationDetails = NotificationDetails(
-      iOS: DarwinNotificationDetails(
-        sound: 'default',
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        presentBanner: true,
-        // Добавляем поддержку категорий уведомлений для iOS
-        categoryIdentifier: 'ZULIP_NOTIFICATION_CATEGORY',
-      ),
-    );
-
-    await flutterLocalNotificationsPlugin.show(
-      id: id,
-      title: title,
-      body: body,
-      notificationDetails: iosNotificationDetails,
-      payload: payload,
-    );
-  }
-
-  // Отображение уведомления для macOS
-  Future<void> _showMacOSNotification(
-    int id,
-    String title,
-    String body,
-    String? payload,
-    String? icon,
-    bool groupNotifications,
-    String? groupKey,
-    String? groupSummary,
-    bool enableSound,
-    bool enableVibration,
-    String? soundName,
-  ) async {
-    const DarwinNotificationDetails macosNotificationDetails =
-        DarwinNotificationDetails(
-          sound: 'default',
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        );
-
-    await flutterLocalNotificationsPlugin.show(
-      id: id,
-      title: title,
-      body: body,
-      notificationDetails: NotificationDetails(macOS: macosNotificationDetails),
-      payload: payload,
-    );
-  }
-
-  // Настройка группировки уведомлений
-  Future<void> groupNotifications({
-    required String groupKey,
-    required String groupSummary,
-    List<String> notifications = const [],
-  }) async {
-    // Логика группировки уведомлений
-    if (Platform.isAndroid) {
-      await _groupAndroidNotifications(groupKey, groupSummary, notifications);
-    }
-  }
-
-  // Группировка уведомлений для Android
-  Future<void> _groupAndroidNotifications(
-    String groupKey,
-    String groupSummary,
-    List<String> notifications,
-  ) async {
-    // Для Android можно использовать группировку через channel
-    const AndroidNotificationChannel groupChannel = AndroidNotificationChannel(
-      'group_channel',
-      'Group Notifications',
-      description: 'Notifications grouped by sender',
-      importance: Importance.high,
-    );
-
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(groupChannel);
-  }
-
-  // Настройка звука и вибрации
-  Future<void> configureSoundAndVibration({
     required bool enableSound,
     required bool enableVibration,
     String? soundName,
-    List<int>? vibrationPattern,
+    Int64List? vibrationPattern,
   }) async {
-    // Настройка звука и вибрации для разных платформ
-    if (Platform.isAndroid) {
-      await _configureAndroidSoundAndVibration(
-        enableSound,
-        enableVibration,
-        soundName,
-        vibrationPattern,
-      );
-    } else if (Platform.isIOS) {
-      await _configureIOSSoundAndVibration(
-        enableSound,
-        enableVibration,
-        soundName,
-      );
-    } else if (Platform.isMacOS) {
-      await _configureMacOSSoundAndVibration(
-        enableSound,
-        enableVibration,
-        soundName,
-      );
-    }
+    // Паттерн вибрации по умолчанию: ждать 0мс, вибрировать 250мс, пауза 250мс, вибрировать 250мс
+    final effectiveVibration =
+        vibrationPattern ?? Int64List.fromList([0, 250, 250, 250]);
+
+    final androidDetails = AndroidNotificationDetails(
+      _androidChannelId,
+      _androidChannelName,
+      channelDescription: _androidChannelDesc,
+      importance: Importance.high,
+      priority: Priority.high,
+
+      // Иконка
+      icon: icon ?? 'ic_notification',
+
+      // Звук
+      playSound: enableSound,
+
+      // Вибрация
+      enableVibration: enableVibration,
+      vibrationPattern: enableVibration ? effectiveVibration : null,
+
+      // Группировка
+      groupKey: groupKey,
+      setAsGroupSummary: groupKey != null && groupSummary != null,
+      groupAlertBehavior: GroupAlertBehavior.all,
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(android: androidDetails),
+      payload: payload,
+    );
   }
 
-  // Настройка звука и вибрации для Android
-  Future<void> _configureAndroidSoundAndVibration(
-    bool enableSound,
-    bool enableVibration,
+  /// iOS: показ уведомления
+  Future<void> _showIOS({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+    required bool enableSound,
     String? soundName,
-    List<int>? vibrationPattern,
-  ) async {
-    // Реализация настройки звука и вибрации для Android
+  }) async {
+    final iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: enableSound,
+      presentBanner: true,
+      sound: enableSound
+          ? (soundName != null ? '$soundName.aiff' : 'default')
+          : null,
+      // Вибрация на iOS привязана к звуку и не настраивается отдельно
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(iOS: iosDetails),
+      payload: payload,
+    );
   }
 
-  // Настройка звука и вибрации для iOS
-  Future<void> _configureIOSSoundAndVibration(
-    bool enableSound,
-    bool enableVibration,
+  /// macOS: показ уведомления
+  Future<void> _showMacOS({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+    required bool enableSound,
     String? soundName,
-  ) async {
-    // Реализация настройки звука и вибрации для iOS
+  }) async {
+    final macosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: enableSound,
+      sound: enableSound
+          ? (soundName != null ? '$soundName.aiff' : 'default')
+          : null,
+    );
+
+    await flutterLocalNotificationsPlugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(macOS: macosDetails),
+      payload: payload,
+    );
   }
 
-  // Настройка звука и вибрации для macOS
-  Future<void> _configureMacOSSoundAndVibration(
-    bool enableSound,
-    bool enableVibration,
-    String? soundName,
-  ) async {
-    // Реализация настройки звука и вибрации для macOS
-  }
-
-  // Обработка нажатия на уведомление
-  Future<void> onNotificationClick(
-    PendingNotificationRequest notification,
-  ) async {
-    // Логика обработки нажатия на уведомление
-    // Открытие приложения или переход к нужному экрану
-  }
-
-  // Проверка статуса уведомлений для iOS и macOS
-  Future<bool> areNotificationsEnabled() async {
+  /// Запрос разрешений (полезно для iOS/macOS)
+  Future<bool> requestPermissions({
+    bool sound = true,
+    bool alert = true,
+    bool badge = true,
+  }) async {
     if (Platform.isIOS || Platform.isMacOS) {
-      // For iOS and macOS, we can check the authorization status
-      if (Platform.isIOS) {
-        return await _checkIOSNotificationStatus();
-      } else if (Platform.isMacOS) {
-        return await _checkMacOSNotificationStatus();
-      }
+      final plugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+
+      return await plugin?.requestPermissions(
+            sound: sound,
+            alert: alert,
+            badge: badge,
+          ) ??
+          false;
     }
+
+    if (Platform.isAndroid) {
+      final plugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+
+      return await plugin?.requestNotificationsPermission() ?? false;
+    }
+
     return false;
   }
 
-  // Проверка статуса уведомлений для iOS
-  Future<bool> _checkIOSNotificationStatus() async {
-    // This would require platform-specific implementation
-    // For now, we'll return a default value
-    return true;
+  /// Проверка, включены ли уведомления (iOS/macOS)
+  Future<bool> areNotificationsEnabled() async {
+    if (Platform.isIOS || Platform.isMacOS) {
+      final plugin = flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
+
+      final settings = await plugin?.checkPermissions();
+      return settings?.isSoundEnabled == true ||
+          settings?.isAlertEnabled == true;
+    }
+    return true; // На Android считаем включёнными, если есть разрешение
   }
 
-  // Проверка статуса уведомлений для macOS
-  Future<bool> _checkMacOSNotificationStatus() async {
-    // This would require platform-specific implementation
-    return true;
+  /// Отмена всех уведомлений
+  Future<void> cancelAll() async {
+    await flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+  /// Отмена конкретного уведомления
+  Future<void> cancel(int id) async {
+    await flutterLocalNotificationsPlugin.cancel(id: id);
   }
 }

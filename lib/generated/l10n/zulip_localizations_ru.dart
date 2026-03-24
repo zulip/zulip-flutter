@@ -600,7 +600,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String dmsWithOthersPageTitle(String others) {
-    return 'ЛС с $others';
+    return '$others';
   }
 
   @override
