@@ -3,35 +3,22 @@ import Flutter
 import UserNotifications
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private var notificationTapEventListener: NotificationTapEventListener?
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
-
-    // Use `DesignVariables.mainBackground` color as the background color
-    // of the default UIView.
-    window?.backgroundColor = UIColor(named: "LaunchBackground");
-
-    let controller = window?.rootViewController as! FlutterViewController
-
-    IosNativeHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: IosNativeHostApiImpl())
-
-    // Retrieve the remote notification payload from launch options;
-    // this will be null if the launch wasn't triggered by a notification.
-    let notificationPayload = launchOptions?[.remoteNotification] as? [AnyHashable : Any]
-    let api = NotificationHostApiImpl(notificationPayload.map { NotificationDataFromLaunch(payload: $0) })
-    NotificationHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: api)
-
-    notificationTapEventListener = NotificationTapEventListener()
-    NotificationTapEventsStreamHandler.register(with: controller.binaryMessenger, streamHandler: notificationTapEventListener!)
 
     UNUserNotificationCenter.current().delegate = self
+    notificationTapEventListener = NotificationTapEventListener()
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
   }
 
   override func userNotificationCenter(
@@ -41,7 +28,7 @@ import UserNotifications
   ) {
     if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
       let userInfo = response.notification.request.content.userInfo
-      notificationTapEventListener!.onNotificationTapEvent(payload: userInfo)
+      notificationTapEventListener?.onNotificationTapEvent(payload: userInfo)
     }
     completionHandler()
   }
@@ -82,3 +69,4 @@ private class IosNativeHostApiImpl: IosNativeHostApi {
     try url.setResourceValues(resourceValues)
   }
 }
+
