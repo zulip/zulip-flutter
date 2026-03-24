@@ -43,7 +43,7 @@ class ComposeBoxBlock extends StatefulWidget {
   }
 
   @override
-  State<ComposeBoxBlock> createState() => _ComposeBoxState();
+  State<ComposeBoxBlock> createState() => ComposeBoxState();
 }
 
 /// The interface for the state of a [ComposeBox].
@@ -77,12 +77,18 @@ abstract class ComposeBoxBlockState extends State<ComposeBoxBlock> {
   void endEditInteraction();
 }
 
-class _ComposeBoxState extends State<ComposeBoxBlock>
+class ComposeBoxState extends State<ComposeBoxBlock>
     with PerAccountStoreAwareStateMixin<ComposeBoxBlock>
     implements ComposeBoxBlockState {
   @override
   ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
+
+  static ComposeBoxState ancestorOf(BuildContext context) {
+    final state = context.findAncestorStateOfType<ComposeBoxState>();
+    assert(state != null, 'No ComposeBoxBlockState ancestor');
+    return state!;
+  }
 
   @override
   void restoreMessageNotSent(int localMessageId) async {

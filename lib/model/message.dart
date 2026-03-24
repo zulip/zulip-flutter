@@ -1174,6 +1174,8 @@ mixin _OutboxMessageStore on HasChannelStore {
           _processTopicLikeServer(topic),
           displayRecipient: null),
       DmDestination(:final userIds) => DmConversation(allRecipientIds: userIds),
+      // TODO: Handle this case.
+      EditDestination() => throw UnimplementedError(),
     };
 
     _outboxMessages[localMessageId] = OutboxMessage.fromConversation(

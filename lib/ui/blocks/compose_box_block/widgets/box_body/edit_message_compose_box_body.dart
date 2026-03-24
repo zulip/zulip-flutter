@@ -27,8 +27,7 @@ class EditMessageComposeBoxBody extends ComposeBoxBody {
   Widget buildContentInput() => EditMessageContentInput(
     narrow: narrow,
     controller: controller,
-    // TODO: удалить, тестовая заглушка
-    getDestination: () => DmDestination(userIds: []),
+    getDestination: () => EditDestination(),
   );
 
   @override

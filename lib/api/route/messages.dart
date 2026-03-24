@@ -8,16 +8,22 @@ import '../model/narrow.dart';
 part 'messages.g.dart';
 
 /// https://zulip.com/api/get-message
-Future<GetMessageResult> getMessage(ApiConnection connection, {
+Future<GetMessageResult> getMessage(
+  ApiConnection connection, {
   required int messageId,
   bool? applyMarkdown,
   required bool allowEmptyTopicName,
 }) {
   assert(allowEmptyTopicName, '`allowEmptyTopicName` should only be true');
-  return connection.get('getMessage', GetMessageResult.fromJson, 'messages/$messageId', {
-    'apply_markdown': ?applyMarkdown,
-    'allow_empty_topic_name': allowEmptyTopicName,
-  });
+  return connection.get(
+    'getMessage',
+    GetMessageResult.fromJson,
+    'messages/$messageId',
+    {
+      'apply_markdown': ?applyMarkdown,
+      'allow_empty_topic_name': allowEmptyTopicName,
+    },
+  );
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -26,18 +32,17 @@ class GetMessageResult {
   @JsonKey(fromJson: Message.fromJson)
   final Message message;
 
-  GetMessageResult({
-    required this.message,
-  });
+  GetMessageResult({required this.message});
 
   factory GetMessageResult.fromJson(Map<String, dynamic> json) =>
-    _$GetMessageResultFromJson(json);
+      _$GetMessageResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetMessageResultToJson(this);
 }
 
 /// https://zulip.com/api/get-messages
-Future<GetMessagesResult> getMessages(ApiConnection connection, {
+Future<GetMessagesResult> getMessages(
+  ApiConnection connection, {
   required ApiNarrow narrow,
   required Anchor anchor,
   bool? includeAnchor,
@@ -76,7 +81,9 @@ sealed class Anchor {
 /// https://zulip.com/api/get-messages#parameter-anchor
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum AnchorCode implements Anchor {
-  newest, oldest, firstUnread;
+  newest,
+  oldest,
+  firstUnread;
 
   @override
   String toJson() => _$AnchorCodeEnumMap[this]!;
@@ -112,8 +119,8 @@ class GetMessagesResult {
 
   static List<Message> _messagesFromJson(Object json) {
     return (json as List<dynamic>)
-      .map((e) => Message.fromJson(e as Map<String, dynamic>))
-      .toList();
+        .map((e) => Message.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   factory GetMessagesResult.fromJson(Map<String, dynamic> json) =>
@@ -134,41 +141,52 @@ Future<SendMessageResult> sendMessage(
   String? localId,
   bool? readBySender,
 }) {
-  final supportsTypeDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
-  final supportsReadBySender = connection.zulipFeatureLevel! >= 236; // TODO(server-8)
-  return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
-    ...(switch (destination) {
-      StreamDestination() => {
-        'type': RawParameter('stream'),
-        'to': destination.streamId,
-        'topic': RawParameter(destination.topic.apiName),
-      },
-      DmDestination() => {
-        'type': supportsTypeDirect ? RawParameter('direct') : RawParameter('private'),
-        'to': destination.userIds,
-      }}),
-    'content': RawParameter(content),
-    if (queueId != null) 'queue_id': RawParameter(queueId),
-    if (localId != null) 'local_id': RawParameter(localId),
-    'read_by_sender': ?readBySender,
-  },
-  overrideUserAgent: switch ((supportsReadBySender, readBySender)) {
-    // Old servers use the user agent to decide if we're a UI client
-    // and so whether the message should be marked as read for its author
-    // (see #440). We are a UI client; so, use a value those servers will
-    // interpret correctly. With newer servers, passing `readBySender: true`
-    // gives the same result.
-    // TODO(#467) include platform, platform version, and app version
-    (false, _   ) => 'ZulipMobile/flutter',
+  final supportsTypeDirect =
+      connection.zulipFeatureLevel! >= 174; // TODO(server-7)
+  final supportsReadBySender =
+      connection.zulipFeatureLevel! >= 236; // TODO(server-8)
+  return connection.post(
+    'sendMessage',
+    SendMessageResult.fromJson,
+    'messages',
+    {
+      ...(switch (destination) {
+        StreamDestination() => {
+          'type': RawParameter('stream'),
+          'to': destination.streamId,
+          'topic': RawParameter(destination.topic.apiName),
+        },
+        DmDestination() => {
+          'type': supportsTypeDirect
+              ? RawParameter('direct')
+              : RawParameter('private'),
+          'to': destination.userIds,
+        },
+        EditDestination() => {},
+      }),
+      'content': RawParameter(content),
+      if (queueId != null) 'queue_id': RawParameter(queueId),
+      if (localId != null) 'local_id': RawParameter(localId),
+      'read_by_sender': ?readBySender,
+    },
+    overrideUserAgent: switch ((supportsReadBySender, readBySender)) {
+      // Old servers use the user agent to decide if we're a UI client
+      // and so whether the message should be marked as read for its author
+      // (see #440). We are a UI client; so, use a value those servers will
+      // interpret correctly. With newer servers, passing `readBySender: true`
+      // gives the same result.
+      // TODO(#467) include platform, platform version, and app version
+      (false, _) => 'ZulipMobile/flutter',
 
-    // According to the doc, a user-agent heuristic is still used in this case:
-    //   https://zulip.com/api/send-message#parameter-read_by_sender
-    // TODO find out if our default user agent would work with that.
-    // TODO(#467) include platform, platform version, and app version
-    (true,  null) => 'ZulipMobile/flutter',
+      // According to the doc, a user-agent heuristic is still used in this case:
+      //   https://zulip.com/api/send-message#parameter-read_by_sender
+      // TODO find out if our default user agent would work with that.
+      // TODO(#467) include platform, platform version, and app version
+      (true, null) => 'ZulipMobile/flutter',
 
-    _             => null,
-  });
+      _ => null,
+    },
+  );
 }
 
 /// Which conversation to send a message to, in [sendMessage].
@@ -199,16 +217,18 @@ class DmDestination extends MessageDestination {
   final List<int> userIds;
 }
 
+class EditDestination extends MessageDestination {
+  const EditDestination();
+}
+
 @JsonSerializable(fieldRename: FieldRename.snake)
 class SendMessageResult {
   final int id;
 
-  SendMessageResult({
-    required this.id,
-  });
+  SendMessageResult({required this.id});
 
   factory SendMessageResult.fromJson(Map<String, dynamic> json) =>
-    _$SendMessageResultFromJson(json);
+      _$SendMessageResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$SendMessageResultToJson(this);
 }
@@ -225,15 +245,22 @@ Future<UpdateMessageResult> updateMessage(
   String? prevContentSha256,
   int? streamId,
 }) {
-  return connection.patch('updateMessage', UpdateMessageResult.fromJson, 'messages/$messageId', {
-    if (topic != null) 'topic': RawParameter(topic.apiName),
-    if (propagateMode != null) 'propagate_mode': RawParameter(propagateMode.toJson()),
-    'send_notification_to_old_thread': ?sendNotificationToOldThread,
-    'send_notification_to_new_thread': ?sendNotificationToNewThread,
-    if (content != null) 'content': RawParameter(content),
-    if (prevContentSha256 != null) 'prev_content_sha256': RawParameter(prevContentSha256),
-    'stream_id': ?streamId,
-  });
+  return connection.patch(
+    'updateMessage',
+    UpdateMessageResult.fromJson,
+    'messages/$messageId',
+    {
+      if (topic != null) 'topic': RawParameter(topic.apiName),
+      if (propagateMode != null)
+        'propagate_mode': RawParameter(propagateMode.toJson()),
+      'send_notification_to_old_thread': ?sendNotificationToOldThread,
+      'send_notification_to_new_thread': ?sendNotificationToNewThread,
+      if (content != null) 'content': RawParameter(content),
+      if (prevContentSha256 != null)
+        'prev_content_sha256': RawParameter(prevContentSha256),
+      'stream_id': ?streamId,
+    },
+  );
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -243,29 +270,28 @@ class UpdateMessageResult {
   UpdateMessageResult();
 
   factory UpdateMessageResult.fromJson(Map<String, dynamic> json) =>
-    _$UpdateMessageResultFromJson(json);
+      _$UpdateMessageResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$UpdateMessageResultToJson(this);
 }
 
 /// https://zulip.com/api/delete-message
-Future<void> deleteMessage(
-  ApiConnection connection, {
-  required int messageId,
-}) {
+Future<void> deleteMessage(ApiConnection connection, {required int messageId}) {
   return connection.delete('deleteMessage', (_) {}, 'messages/$messageId', {});
 }
 
 /// https://zulip.com/api/report-message
-Future<void> reportMessage(ApiConnection connection, {
+Future<void> reportMessage(
+  ApiConnection connection, {
   required int messageId,
   required String reportType,
   String? description,
 }) {
-  return connection.post('reportMessage', (_) {}, 'messages/$messageId/report', {
-    'report_type': RawParameter(reportType),
-    if (description != null) 'description': RawParameter(description),
-  });
+  return connection
+      .post('reportMessage', (_) {}, 'messages/$messageId/report', {
+        'report_type': RawParameter(reportType),
+        if (description != null) 'description': RawParameter(description),
+      });
 }
 
 /// The `report_type` value meaning "other", for [reportMessage].
@@ -303,8 +329,15 @@ Future<UploadFileResult> uploadFile(
   required String filename,
   required String? contentType,
 }) {
-  return connection.postFileFromStream('uploadFile', UploadFileResult.fromJson, 'user_uploads',
-    content, length, filename: filename, contentType: contentType);
+  return connection.postFileFromStream(
+    'uploadFile',
+    UploadFileResult.fromJson,
+    'user_uploads',
+    content,
+    length,
+    filename: filename,
+    contentType: contentType,
+  );
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -312,78 +345,89 @@ class UploadFileResult {
   @JsonKey(name: 'uri')
   final String url;
 
-  UploadFileResult({
-    required this.url,
-  });
+  UploadFileResult({required this.url});
 
   factory UploadFileResult.fromJson(Map<String, dynamic> json) =>
-    _$UploadFileResultFromJson(json);
+      _$UploadFileResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$UploadFileResultToJson(this);
 }
 
 /// https://zulip.com/api/get-file-temporary-url
-Future<GetFileTemporaryUrlResult> getFileTemporaryUrl(ApiConnection connection, {
+Future<GetFileTemporaryUrlResult> getFileTemporaryUrl(
+  ApiConnection connection, {
   required int realmId,
   required String filename,
 }) {
-  return connection.get('getFileTemporaryUrl', GetFileTemporaryUrlResult.fromJson,
-    'user_uploads/$realmId/$filename', {});
+  return connection.get(
+    'getFileTemporaryUrl',
+    GetFileTemporaryUrlResult.fromJson,
+    'user_uploads/$realmId/$filename',
+    {},
+  );
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class GetFileTemporaryUrlResult {
   final String url;
 
-  GetFileTemporaryUrlResult({
-    required this.url,
-  });
+  GetFileTemporaryUrlResult({required this.url});
 
   factory GetFileTemporaryUrlResult.fromJson(Map<String, dynamic> json) =>
-    _$GetFileTemporaryUrlResultFromJson(json);
+      _$GetFileTemporaryUrlResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetFileTemporaryUrlResultToJson(this);
 }
 
 /// https://zulip.com/api/add-reaction
-Future<void> addReaction(ApiConnection connection, {
+Future<void> addReaction(
+  ApiConnection connection, {
   required int messageId,
   required ReactionType reactionType,
   required String emojiCode,
   required String emojiName,
 }) {
-  return connection.post('addReaction', (_) {}, 'messages/$messageId/reactions', {
-    'emoji_name': RawParameter(emojiName),
-    'emoji_code': RawParameter(emojiCode),
-    'reaction_type': RawParameter(reactionType.toJson()),
-  });
+  return connection
+      .post('addReaction', (_) {}, 'messages/$messageId/reactions', {
+        'emoji_name': RawParameter(emojiName),
+        'emoji_code': RawParameter(emojiCode),
+        'reaction_type': RawParameter(reactionType.toJson()),
+      });
 }
 
 /// https://zulip.com/api/remove-reaction
-Future<void> removeReaction(ApiConnection connection, {
+Future<void> removeReaction(
+  ApiConnection connection, {
   required int messageId,
   required ReactionType reactionType,
   required String emojiCode,
   required String emojiName,
 }) {
-  return connection.delete('removeReaction', (_) {}, 'messages/$messageId/reactions', {
-    'emoji_name': RawParameter(emojiName),
-    'emoji_code': RawParameter(emojiCode),
-    'reaction_type': RawParameter(reactionType.toJson()),
-  });
+  return connection
+      .delete('removeReaction', (_) {}, 'messages/$messageId/reactions', {
+        'emoji_name': RawParameter(emojiName),
+        'emoji_code': RawParameter(emojiCode),
+        'reaction_type': RawParameter(reactionType.toJson()),
+      });
 }
 
 /// https://zulip.com/api/update-message-flags
-Future<UpdateMessageFlagsResult> updateMessageFlags(ApiConnection connection, {
+Future<UpdateMessageFlagsResult> updateMessageFlags(
+  ApiConnection connection, {
   required List<int> messages,
   required UpdateMessageFlagsOp op,
   required MessageFlag flag,
 }) {
-  return connection.post('updateMessageFlags', UpdateMessageFlagsResult.fromJson, 'messages/flags', {
-    'messages': messages,
-    'op': RawParameter(op.toJson()),
-    'flag': RawParameter(flag.toJson()),
-  });
+  return connection.post(
+    'updateMessageFlags',
+    UpdateMessageFlagsResult.fromJson,
+    'messages/flags',
+    {
+      'messages': messages,
+      'op': RawParameter(op.toJson()),
+      'flag': RawParameter(flag.toJson()),
+    },
+  );
 }
 
 /// An `op` value for [updateMessageFlags] and [updateMessageFlagsForNarrow].
@@ -399,18 +443,17 @@ enum UpdateMessageFlagsOp {
 class UpdateMessageFlagsResult {
   final List<int> messages;
 
-  UpdateMessageFlagsResult({
-    required this.messages,
-  });
+  UpdateMessageFlagsResult({required this.messages});
 
   factory UpdateMessageFlagsResult.fromJson(Map<String, dynamic> json) =>
-    _$UpdateMessageFlagsResultFromJson(json);
+      _$UpdateMessageFlagsResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$UpdateMessageFlagsResultToJson(this);
 }
 
 /// https://zulip.com/api/update-message-flags-for-narrow
-Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnection connection, {
+Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(
+  ApiConnection connection, {
   required Anchor anchor,
   bool? includeAnchor,
   required int numBefore,
@@ -419,15 +462,23 @@ Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnect
   required UpdateMessageFlagsOp op,
   required MessageFlag flag,
 }) {
-  return connection.post('updateMessageFlagsForNarrow', UpdateMessageFlagsForNarrowResult.fromJson, 'messages/flags/narrow', {
-    'anchor': RawParameter(anchor.toJson()),
-    'include_anchor': ?includeAnchor,
-    'num_before': numBefore,
-    'num_after': numAfter,
-    'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
-    'op': RawParameter(op.toJson()),
-    'flag': RawParameter(flag.toJson()),
-  });
+  return connection.post(
+    'updateMessageFlagsForNarrow',
+    UpdateMessageFlagsForNarrowResult.fromJson,
+    'messages/flags/narrow',
+    {
+      'anchor': RawParameter(anchor.toJson()),
+      'include_anchor': ?includeAnchor,
+      'num_before': numBefore,
+      'num_after': numAfter,
+      'narrow': resolveApiNarrowForServer(
+        narrow,
+        connection.zulipFeatureLevel!,
+      ),
+      'op': RawParameter(op.toJson()),
+      'flag': RawParameter(flag.toJson()),
+    },
+  );
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -448,18 +499,25 @@ class UpdateMessageFlagsForNarrowResult {
     required this.foundNewest,
   });
 
-  factory UpdateMessageFlagsForNarrowResult.fromJson(Map<String, dynamic> json) =>
-    _$UpdateMessageFlagsForNarrowResultFromJson(json);
+  factory UpdateMessageFlagsForNarrowResult.fromJson(
+    Map<String, dynamic> json,
+  ) => _$UpdateMessageFlagsForNarrowResultFromJson(json);
 
-  Map<String, dynamic> toJson() => _$UpdateMessageFlagsForNarrowResultToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$UpdateMessageFlagsForNarrowResultToJson(this);
 }
 
 /// https://zulip.com/api/get-read-receipts
-Future<GetReadReceiptsResult> getReadReceipts(ApiConnection connection, {
+Future<GetReadReceiptsResult> getReadReceipts(
+  ApiConnection connection, {
   required int messageId,
 }) {
-  return connection.get('getReadReceipts', GetReadReceiptsResult.fromJson,
-    'messages/$messageId/read_receipts', null);
+  return connection.get(
+    'getReadReceipts',
+    GetReadReceiptsResult.fromJson,
+    'messages/$messageId/read_receipts',
+    null,
+  );
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -469,7 +527,7 @@ class GetReadReceiptsResult {
   final List<int> userIds;
 
   factory GetReadReceiptsResult.fromJson(Map<String, dynamic> json) =>
-    _$GetReadReceiptsResultFromJson(json);
+      _$GetReadReceiptsResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetReadReceiptsResultToJson(this);
 }
