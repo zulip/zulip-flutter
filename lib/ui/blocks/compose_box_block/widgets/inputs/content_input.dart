@@ -68,6 +68,8 @@ class ContentInput extends StatefulWidget {
 }
 
 class _ContentInputState extends State<ContentInput> {
+  final _scrollController = ScrollController();
+
   // Перехват "Вставить" в инпут сообщения
   void _handleContentInserted(
     BuildContext context,
@@ -118,6 +120,7 @@ class _ContentInputState extends State<ContentInput> {
     return result;
   }
 
+  // TODO: Лютое говно, но сделал, чтобы работало
   void _enterHandle() {
     if (widget.getDestination() is EditDestination) {
       _edit(context);
@@ -273,75 +276,77 @@ class _ContentInputState extends State<ContentInput> {
       narrow: widget.narrow,
       controller: widget.controller.content,
       focusNode: widget.controller.contentFocusNode,
-      fieldViewBuilder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: ContentInput.maxHeight(context)),
-        // This [ClipRect] replaces the [TextField] clipping we disable below.
-        child: ClipRect(
-          child: InsetShadowBox(
-            top: ContentInput._verticalPadding,
-            bottom: ContentInput._verticalPadding,
-            color: designVariables.composeBoxBg,
-            child: Focus(
-              onKeyEvent: (FocusNode node, KeyEvent event) {
-                if (!(Platform.isAndroid || Platform.isIOS)) {
-                  if (event is KeyDownEvent) {
-                    final hardwareKeyboard = HardwareKeyboard.instance;
-                    if ((hardwareKeyboard.isControlPressed ||
-                            hardwareKeyboard.isMetaPressed) &&
-                        event.logicalKey == LogicalKeyboardKey.enter) {
-                      widget.controller.content.text += '\n';
-                      return KeyEventResult.handled;
-                    } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-                      if (widget.controller.content.text.isNotEmpty) {
-                        _enterHandle();
-                      }
-
-                      return KeyEventResult.handled;
+      fieldViewBuilder: (context) => ClipRect(
+        child: InsetShadowBox(
+          top: ContentInput._verticalPadding,
+          bottom: 0,
+          color: designVariables.composeBoxBg,
+          child: Focus(
+            onKeyEvent: (FocusNode node, KeyEvent event) {
+              if (!(Platform.isAndroid || Platform.isIOS)) {
+                if (event is KeyDownEvent) {
+                  final hardwareKeyboard = HardwareKeyboard.instance;
+                  if ((hardwareKeyboard.isControlPressed ||
+                          hardwareKeyboard.isMetaPressed) &&
+                      event.logicalKey == LogicalKeyboardKey.enter) {
+                    widget.controller.content.text += '\n';
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _scrollController.jumpTo(
+                        _scrollController.position.maxScrollExtent,
+                      );
+                    });
+                    return KeyEventResult.handled;
+                  } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+                    if (widget.controller.content.text.isNotEmpty) {
+                      _enterHandle();
                     }
+
+                    return KeyEventResult.handled;
                   }
                 }
-                return KeyEventResult.ignored;
-              },
-              child: TextField(
-                enabled: widget.enabled,
-                controller: widget.controller.content,
-                focusNode: widget.controller.contentFocusNode,
-                contentInsertionConfiguration: ContentInsertionConfiguration(
-                  onContentInserted: (content) =>
-                      _handleContentInserted(context, content),
+              }
+              return KeyEventResult.ignored;
+            },
+            child: TextField(
+              enabled: widget.enabled,
+              controller: widget.controller.content,
+              scrollController: _scrollController,
+              focusNode: widget.controller.contentFocusNode,
+              contentInsertionConfiguration: ContentInsertionConfiguration(
+                onContentInserted: (content) =>
+                    _handleContentInserted(context, content),
+              ),
+              // Let the content show through the `contentPadding` so that
+              // our [InsetShadowBox] can fade it smoothly there.
+              clipBehavior: Clip.none,
+              style: TextStyle(
+                fontSize: ContentInput._fontSize,
+                height: ContentInput._lineHeightRatio,
+                color: designVariables.textInput,
+              ),
+              // From the spec at
+              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+              // > Compose box has the height to fit 2 lines. This is [done] to
+              // > have a bigger hit area for the user to start the input. […]
+              minLines: 1,
+              maxLines: 7,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                // This padding ensures that the user can always scroll long
+                // content entirely out of the top or bottom shadow if desired.
+                // With this and the `minLines: 2` above, an empty content input
+                // gets 60px vertical distance (with no text-size scaling)
+                // between the top of the top shadow and the bottom of the
+                // bottom shadow. That's a bit more than the 54px given in the
+                // Figma, and we can revisit if needed, but it's tricky to get
+                // that 54px distance while also making the scrolling work like
+                // this and offering two lines of touchable area.
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: ContentInput._verticalPadding,
                 ),
-                // Let the content show through the `contentPadding` so that
-                // our [InsetShadowBox] can fade it smoothly there.
-                clipBehavior: Clip.none,
-                style: TextStyle(
-                  fontSize: ContentInput._fontSize,
-                  height: ContentInput._lineHeightRatio,
-                  color: designVariables.textInput,
-                ),
-                // From the spec at
-                //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-                // > Compose box has the height to fit 2 lines. This is [done] to
-                // > have a bigger hit area for the user to start the input. […]
-                minLines: 2,
-                maxLines: null,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  // This padding ensures that the user can always scroll long
-                  // content entirely out of the top or bottom shadow if desired.
-                  // With this and the `minLines: 2` above, an empty content input
-                  // gets 60px vertical distance (with no text-size scaling)
-                  // between the top of the top shadow and the bottom of the
-                  // bottom shadow. That's a bit more than the 54px given in the
-                  // Figma, and we can revisit if needed, but it's tricky to get
-                  // that 54px distance while also making the scrolling work like
-                  // this and offering two lines of touchable area.
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: ContentInput._verticalPadding,
-                  ),
-                  hintText: widget.hintText,
-                  hintStyle: TextStyle(
-                    color: designVariables.textInput.withFadedAlpha(0.5),
-                  ),
+                hintText: widget.hintText,
+                hintStyle: TextStyle(
+                  color: designVariables.textInput.withFadedAlpha(0.5),
                 ),
               ),
             ),
