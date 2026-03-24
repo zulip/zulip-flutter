@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'licenses.dart';
 import 'log.dart';
 import 'model/binding.dart';
+import 'notifications/local_notifications.dart';
 import 'notifications/receive.dart';
 import 'ui/app.dart';
 import 'ui/utils/share.dart';
@@ -21,6 +22,7 @@ void mainInit() {
     debugLogEnabled = true;
     return true;
   }());
+  LocalNotificationsService().init();
   LicenseRegistry.addLicense(additionalLicenses);
   WidgetsFlutterBinding.ensureInitialized();
   LiveZulipBinding.ensureInitialized();
