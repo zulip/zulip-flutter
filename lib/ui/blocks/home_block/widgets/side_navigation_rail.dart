@@ -3,15 +3,14 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
 import '../home.dart';
-import 'main_menu.dart';
+import 'bottom_nav_bar.dart';
 import 'navigation_bar_button.dart';
 
-class BottomNavBar extends StatelessWidget {
-  const BottomNavBar({super.key, required this.tabNotifier});
+class SideNavigationRail extends StatelessWidget {
+  const SideNavigationRail({super.key, required this.tabNotifier});
 
   final ValueNotifier<HomePageTab> tabNotifier;
 
@@ -83,13 +82,18 @@ class BottomNavBar extends StatelessWidget {
           heightFactor: 1,
           child: ConstrainedBox(
             // TODO(design): determine a suitable max width for bottom nav bar
-            constraints: const BoxConstraints(maxWidth: 600, minHeight: 48),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final navigationBarButton in navigationBarButtons)
-                  Expanded(child: navigationBarButton),
-              ],
+            constraints: const BoxConstraints(minWidth: 64),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
+                spacing: 24,
+                children: [
+                  for (final navigationBarButton in navigationBarButtons)
+                    navigationBarButton,
+                ],
+              ),
             ),
           ),
         ),
@@ -105,32 +109,4 @@ class BottomNavBar extends StatelessWidget {
 
     return result;
   }
-}
-
-void showMainMenu(
-  BuildContext context, {
-  required ValueNotifier<HomePageTab> tabNotifier,
-}) {
-  final designVariables = DesignVariables.of(context);
-  final accountId = PerAccountStoreWidget.accountIdOf(context);
-  showModalBottomSheet<void>(
-    context: context,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-    clipBehavior: Clip.antiAlias,
-    useSafeArea: true,
-    isScrollControlled: true,
-    // TODO: Fix the issue that the color does not respond when the theme
-    //   changes, because `designVariables` was retrieved from a gesture handler,
-    //   not a build method.  Discussion and screenshots:
-    //     https://github.com/zulip/zulip-flutter/pull/1076/files#r1872659043
-    backgroundColor: designVariables.bgBotBar,
-    builder: (BuildContext _) {
-      return PerAccountStoreWidget(
-        accountId: accountId,
-        child: MainMenu(tabNotifier: tabNotifier),
-      );
-    },
-  );
 }

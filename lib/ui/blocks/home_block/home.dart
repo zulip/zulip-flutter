@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -14,6 +15,7 @@ import '../recent_dm_conversations_block/recent_dm_conversations.dart';
 import '../subscription_list_block/subscription_list_block.dart';
 import 'widgets/bottom_nav_bar.dart';
 import 'widgets/home_loading_placeholder_page.dart';
+import 'widgets/side_navigation_rail.dart';
 
 enum HomePageTab { inbox, channels, directMessages }
 
@@ -108,6 +110,17 @@ class _HomePageState extends State<HomePage> {
       (HomePageTab.directMessages, RecentDmConversationsPageBody()),
     ];
 
+    final bottomNavBar = Platform.isAndroid || Platform.isIOS
+        ? BottomNavBar(tabNotifier: _tab)
+        : null;
+
+    final homeBody = Stack(
+      children: [
+        for (final (tab, body) in pageBodies)
+          Offstage(offstage: tab != _tab.value, child: body),
+      ],
+    );
+
     return Scaffold(
       appBar: ZulipAppBar(
         titleSpacing: 16,
@@ -123,15 +136,16 @@ class _HomePageState extends State<HomePage> {
         identifier: HomePage.contentSemanticsIdentifier,
         container: true,
         explicitChildNodes: true,
-        child: Stack(
-          children: [
-            for (final (tab, body) in pageBodies)
-              Offstage(offstage: tab != _tab.value, child: body),
-          ],
-        ),
+        child: Platform.isAndroid || Platform.isIOS
+            ? homeBody
+            : Row(
+                children: [
+                  SideNavigationRail(tabNotifier: _tab),
+                  Expanded(child: homeBody),
+                ],
+              ),
       ),
-      bottomNavigationBar: BottomNavBar(tabNotifier: _tab),
+      bottomNavigationBar: bottomNavBar,
     );
   }
 }
-
