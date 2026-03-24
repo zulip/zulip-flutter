@@ -3,8 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../model/narrow.dart';
-import '../../message_list_block/message_list_block.dart';
 import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
@@ -39,23 +37,23 @@ class BottomNavBar extends StatelessWidget {
 
     // TODO(a11y): add tooltips for these buttons
     final navigationBarButtons = [
-      _button(
-        tab: HomePageTab.inbox,
-        icon: ZulipIcons.inbox,
-        label: zulipLocalizations.inboxPageTitle,
-      ),
-      _NavigationBarButton(
-        icon: ZulipIcons.message_feed,
-        label: zulipLocalizations.navBarFeedLabel,
-        selected: false,
-        onPressed: () => Navigator.push(
-          context,
-          MessageListBlockPage.buildRoute(
-            context: context,
-            narrow: const CombinedFeedNarrow(),
-          ),
-        ),
-      ),
+      // _button(
+      //   tab: HomePageTab.inbox,
+      //   icon: ZulipIcons.inbox,
+      //   label: zulipLocalizations.inboxPageTitle,
+      // ),
+      // _NavigationBarButton(
+      //   icon: ZulipIcons.message_feed,
+      //   label: zulipLocalizations.navBarFeedLabel,
+      //   selected: false,
+      //   onPressed: () => Navigator.push(
+      //     context,
+      //     MessageListBlockPage.buildRoute(
+      //       context: context,
+      //       narrow: const CombinedFeedNarrow(),
+      //     ),
+      //   ),
+      // ),
       _button(
         tab: HomePageTab.channels,
         icon: ZulipIcons.hash_italic,

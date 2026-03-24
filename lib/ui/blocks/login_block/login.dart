@@ -25,9 +25,7 @@ import '../../values/text.dart';
 import '../../values/theme.dart';
 
 class _LoginSequenceRoute extends MaterialWidgetRoute<void> {
-  _LoginSequenceRoute({
-    required super.page,
-  });
+  _LoginSequenceRoute({required super.page});
 }
 
 enum ServerUrlValidationError {
@@ -93,9 +91,16 @@ class ServerUrlTextEditingController extends TextEditingController {
         // TODO(log): Log to Sentry? How much does this happen, if at all? Maybe
         //   log once when the input enters this error state, but don't spam
         //   on every keystroke/render while it's in it.
-        return ServerUrlParseResult.error(ServerUrlValidationError.unsupportedSchemeZulip);
-      } else if (url != null && url.hasScheme && url.scheme != 'http' && url.scheme != 'https') {
-        return ServerUrlParseResult.error(ServerUrlValidationError.unsupportedSchemeOther);
+        return ServerUrlParseResult.error(
+          ServerUrlValidationError.unsupportedSchemeZulip,
+        );
+      } else if (url != null &&
+          url.hasScheme &&
+          url.scheme != 'http' &&
+          url.scheme != 'https') {
+        return ServerUrlParseResult.error(
+          ServerUrlValidationError.unsupportedSchemeOther,
+        );
       }
       url = Uri.tryParse('https://$trimmedText');
     }
@@ -138,7 +143,8 @@ class AddAccountPage extends StatefulWidget {
 class _AddAccountPageState extends State<AddAccountPage> {
   bool _inProgress = false;
 
-  final ServerUrlTextEditingController _controller = ServerUrlTextEditingController();
+  final ServerUrlTextEditingController _controller =
+      ServerUrlTextEditingController();
   late ServerUrlParseResult _parseResult;
 
   void _serverUrlChanged() {
@@ -165,9 +171,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
     final url = _parseResult.url;
     final error = _parseResult.error;
     if (error != null) {
-      showErrorDialog(context: context,
+      showErrorDialog(
+        context: context,
         title: zulipLocalizations.errorLoginInvalidInputTitle,
-        message: error.message(zulipLocalizations));
+        message: error.message(zulipLocalizations),
+      );
       return;
     }
     assert(url != null);
@@ -181,7 +189,9 @@ class _AddAccountPageState extends State<AddAccountPage> {
         final globalStore = GlobalStoreWidget.of(context);
         serverSettings = await globalStore.fetchServerSettings(url!);
 
-        final zulipVersionData = ZulipVersionData.fromServerSettings(serverSettings);
+        final zulipVersionData = ZulipVersionData.fromServerSettings(
+          serverSettings,
+        );
         if (zulipVersionData.isUnsupported) {
           throw ServerVersionUnsupportedException(zulipVersionData);
         }
@@ -195,23 +205,32 @@ class _AddAccountPageState extends State<AddAccountPage> {
             message = zulipLocalizations.errorServerVersionUnsupportedMessage(
               url.toString(),
               data.zulipVersion,
-              kMinSupportedZulipVersion);
+              kMinSupportedZulipVersion,
+            );
             learnMoreButtonUrl = kServerSupportDocUrl;
           default:
             // TODO(#105) give more helpful feedback; see `fetchServerSettings`
             //   in zulip-mobile's src/message/fetchActions.js.
-            message = zulipLocalizations.errorLoginCouldNotConnect(url.toString());
+            message = zulipLocalizations.errorLoginCouldNotConnect(
+              url.toString(),
+            );
         }
-        showErrorDialog(context: context,
+        showErrorDialog(
+          context: context,
           title: zulipLocalizations.errorCouldNotConnectTitle,
           message: message,
-          learnMoreButtonUrl: learnMoreButtonUrl);
+          learnMoreButtonUrl: learnMoreButtonUrl,
+        );
         return;
       }
       if (!context.mounted) return;
 
-      unawaited(Navigator.push(context,
-        LoginPage.buildRoute(serverSettings: serverSettings)));
+      unawaited(
+        Navigator.push(
+          context,
+          LoginPage.buildRoute(serverSettings: serverSettings),
+        ),
+      );
     } finally {
       setState(() {
         _inProgress = false;
@@ -225,55 +244,72 @@ class _AddAccountPageState extends State<AddAccountPage> {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final error = _parseResult.error;
     final errorText = error == null || error.shouldDeferFeedback()
-      ? null
-      : error.message(zulipLocalizations);
+        ? null
+        : error.message(zulipLocalizations);
 
     return Scaffold(
-      appBar: AppBar(title: Text(zulipLocalizations.loginAddAnAccountPageTitle),
+      appBar: AppBar(
+        title: Text(zulipLocalizations.loginAddAnAccountPageTitle),
         bottom: _inProgress
-          ? const PreferredSize(preferredSize: Size.fromHeight(4),
-              child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
-          : null),
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(4),
+                child: LinearProgressIndicator(minHeight: 4),
+              ) // 4 restates default
+            : null,
+      ),
       body: SafeArea(
         minimum: const EdgeInsets.all(8),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              // TODO(#109) Link to doc about what a "server URL" is and how to find it
-              // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
-              TextField(
-                controller: _controller,
-                onSubmitted: (value) => _onSubmitted(context),
-                keyboardType: TextInputType.url,
-                autocorrect: false,
-                textInputAction: TextInputAction.go,
-                onEditingComplete: () {
-                  // Repeat default implementation by clearing IME compose session…
-                  _controller.clearComposing();
-                  // …but leave out unfocusing the input in case more editing is needed.
-                },
-                decoration: InputDecoration(
-                  labelText: zulipLocalizations.loginServerUrlLabel,
-                  errorText: errorText,
-                  helperText: kLayoutPinningHelperText,
-                  hintText: AddAccountPage._serverUrlHint)),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: !_inProgress && errorText == null
-                  ? () => _onSubmitted(context)
-                  : null,
-                child: Text(zulipLocalizations.dialogContinue)),
-            ])))));
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // TODO(#109) Link to doc about what a "server URL" is and how to find it
+                // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
+                TextField(
+                  controller: _controller,
+                  onSubmitted: (value) => _onSubmitted(context),
+                  keyboardType: TextInputType.url,
+                  autocorrect: false,
+                  textInputAction: TextInputAction.go,
+                  onEditingComplete: () {
+                    // Repeat default implementation by clearing IME compose session…
+                    _controller.clearComposing();
+                    // …but leave out unfocusing the input in case more editing is needed.
+                  },
+                  decoration: InputDecoration(
+                    labelText: zulipLocalizations.loginServerUrlLabel,
+                    errorText: errorText,
+                    helperText: kLayoutPinningHelperText,
+                    hintText: AddAccountPage._serverUrlHint,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: !_inProgress && errorText == null
+                      ? () => _onSubmitted(context)
+                      : null,
+                  child: Text(zulipLocalizations.dialogContinue),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.serverSettings});
 
-  static Route<void> buildRoute({required GetServerSettingsResult serverSettings}) {
+  static Route<void> buildRoute({
+    required GetServerSettingsResult serverSettings,
+  }) {
     return _LoginSequenceRoute(
-      page: LoginPage(serverSettings: serverSettings, key: _lastBuiltKey));
+      page: LoginPage(serverSettings: serverSettings, key: _lastBuiltKey),
+    );
   }
 
   final GetServerSettingsResult serverSettings;
@@ -305,6 +341,7 @@ class _LoginPageState extends State<LoginPage> {
     }());
     return result ?? __otp;
   }
+
   String? __otp;
 
   Future<void> handleWebAuthUrl(Uri url) async {
@@ -316,7 +353,8 @@ class _LoginPageState extends State<LoginPage> {
 
       if (_otp == null) throw Error();
       final payload = WebAuthPayload.parse(url);
-      if (payload.realm.origin != widget.serverSettings.realmUrl.origin) throw Error();
+      if (payload.realm.origin != widget.serverSettings.realmUrl.origin)
+        throw Error();
       final apiKey = payload.decodeApiKey(_otp!);
       await _tryInsertAccountAndNavigate(
         userId: payload.userId,
@@ -332,9 +370,11 @@ class _LoginPageState extends State<LoginPage> {
       if (e is PlatformException && e.message != null) {
         message = e.message!;
       }
-      showErrorDialog(context: context,
+      showErrorDialog(
+        context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
-        message: message);
+        message: message,
+      );
     } finally {
       setState(() {
         _inProgress = false;
@@ -346,8 +386,9 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _beginWebAuth(ExternalAuthenticationMethod method) async {
     __otp = generateOtp();
     try {
-      final url = widget.serverSettings.realmUrl.resolve(method.loginUrl)
-        .replace(queryParameters: {'mobile_flow_otp': _otp!});
+      final url = widget.serverSettings.realmUrl
+          .resolve(method.loginUrl)
+          .replace(queryParameters: {'mobile_flow_otp': _otp!});
 
       // Could set [_inProgress]… but we'd need to unset it if the web-auth
       // attempt is aborted (by the user closing the browser, for example),
@@ -355,13 +396,17 @@ class _LoginPageState extends State<LoginPage> {
 
       // Not using [PlatformActions.launchUrl] because web auth needs special
       // error handling.
-      await ZulipBinding.instance.launchUrl(url, mode: LaunchMode.inAppBrowserView);
+      await ZulipBinding.instance.launchUrl(
+        url,
+        mode: LaunchMode.inAppBrowserView,
+      );
     } catch (e) {
       assert(debugLog(e.toString()));
 
-      if (e is PlatformException
-        && defaultTargetPlatform == TargetPlatform.iOS
-        && e.message != null && e.message!.startsWith('Error while launching')) {
+      if (e is PlatformException &&
+          defaultTargetPlatform == TargetPlatform.iOS &&
+          e.message != null &&
+          e.message!.startsWith('Error while launching')) {
         // Ignore; I've seen this on my iPhone even when auth succeeds.
         // Specifically, Apple web auth…which on iOS should be replaced by
         // Apple native auth; that's #462.
@@ -379,9 +424,11 @@ class _LoginPageState extends State<LoginPage> {
       if (e is PlatformException && e.message != null) {
         message = e.message!;
       }
-      showErrorDialog(context: context,
+      showErrorDialog(
+        context: context,
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
-        message: message);
+        message: message,
+      );
     }
   }
 
@@ -394,18 +441,20 @@ class _LoginPageState extends State<LoginPage> {
     final realmUrl = widget.serverSettings.realmUrl;
     final int accountId;
     try {
-      accountId = await globalStore.insertAccount(AccountsCompanion.insert(
-        realmUrl: realmUrl,
-        realmName: Value(widget.serverSettings.realmName),
-        realmIcon: Value(widget.serverSettings.realmIcon),
-        email: email,
-        apiKey: apiKey,
-        userId: userId,
-        zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-        zulipVersion: widget.serverSettings.zulipVersion,
-        zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
-        possibleLegacyPushToken: const Value(false),
-      ));
+      accountId = await globalStore.insertAccount(
+        AccountsCompanion.insert(
+          realmUrl: realmUrl,
+          realmName: Value(widget.serverSettings.realmName),
+          realmIcon: Value(widget.serverSettings.realmIcon),
+          email: email,
+          apiKey: apiKey,
+          userId: userId,
+          zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
+          zulipVersion: widget.serverSettings.zulipVersion,
+          zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
+          possibleLegacyPushToken: const Value(false),
+        ),
+      );
       // TODO give feedback to user on other SQL exceptions
     } on AccountAlreadyExistsException {
       if (!mounted) {
@@ -416,7 +465,10 @@ class _LoginPageState extends State<LoginPage> {
         context: context,
         title: zulipLocalizations.errorAccountLoggedInTitle,
         message: zulipLocalizations.errorAccountLoggedIn(
-          email, realmUrl.toString()));
+          email,
+          realmUrl.toString(),
+        ),
+      );
       return;
     }
 
@@ -432,7 +484,9 @@ class _LoginPageState extends State<LoginPage> {
     final connection = globalStore.apiConnection(
       realmUrl: widget.serverSettings.realmUrl,
       zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-      email: email, apiKey: apiKey);
+      email: email,
+      apiKey: apiKey,
+    );
     try {
       return (await getOwnUser(connection)).userId;
     } finally {
@@ -446,36 +500,47 @@ class _LoginPageState extends State<LoginPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
+    final externalAuthenticationMethods =
+        widget.serverSettings.externalAuthenticationMethods;
 
-    final loginContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      _UsernamePasswordForm(loginPageState: this),
-      if (externalAuthenticationMethods.isNotEmpty) ...[
-        _AlternativeAuthDivider(),
-        ...externalAuthenticationMethods.map((method) {
-          final icon = method.displayIcon;
-          return OutlinedButton.icon(
-            style: ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
-              foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer)),
-            icon: icon != null
-              ? Image.network(icon, width: 24, height: 24)
-              : null,
-            onPressed: !_inProgress
-              ? () => _beginWebAuth(method)
-              : null,
-            label: Text(
-              zulipLocalizations.signInWithFoo(method.displayName)));
-        }),
+    final loginContent = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _UsernamePasswordForm(loginPageState: this),
+        if (externalAuthenticationMethods.isNotEmpty) ...[
+          _AlternativeAuthDivider(),
+          ...externalAuthenticationMethods.map((method) {
+            final icon = method.displayIcon;
+            return OutlinedButton.icon(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                  colorScheme.secondaryContainer,
+                ),
+                foregroundColor: WidgetStatePropertyAll(
+                  colorScheme.onSecondaryContainer,
+                ),
+              ),
+              icon: icon != null
+                  ? Image.network(icon, width: 24, height: 24)
+                  : null,
+              onPressed: !_inProgress ? () => _beginWebAuth(method) : null,
+              label: Text(zulipLocalizations.signInWithFoo(method.displayName)),
+            );
+          }),
+        ],
       ],
-    ]);
+    );
 
     return Scaffold(
-      appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),
+      appBar: AppBar(
+        title: Text(zulipLocalizations.loginPageTitle),
         bottom: _inProgress
-          ? const PreferredSize(preferredSize: Size.fromHeight(4),
-              child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
-          : null),
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(4),
+                child: LinearProgressIndicator(minHeight: 4),
+              ) // 4 restates default
+            : null,
+      ),
       body: SafeArea(
         minimum: const EdgeInsets.symmetric(horizontal: 8),
         bottom: false,
@@ -488,7 +553,13 @@ class _LoginPageState extends State<LoginPage> {
               //   left or the right of this box
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
-                child: loginContent))))));
+                child: loginContent,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -519,8 +590,10 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
     final realmUrl = serverSettings.realmUrl;
     final usernameFieldState = _usernameKey.currentState!;
     final passwordFieldState = _passwordKey.currentState!;
-    final usernameValid = usernameFieldState.validate(); // Side effect: on-field error text
-    final passwordValid = passwordFieldState.validate(); // Side effect: on-field error text
+    final usernameValid = usernameFieldState
+        .validate(); // Side effect: on-field error text
+    final passwordValid = passwordFieldState
+        .validate(); // Side effect: on-field error text
     if (!usernameValid || !passwordValid) {
       return;
     }
@@ -534,11 +607,16 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       final FetchApiKeyResult result;
       try {
         final globalStore = GlobalStoreWidget.of(context);
-        final connection = globalStore.apiConnection(realmUrl: realmUrl,
-          zulipFeatureLevel: serverSettings.zulipFeatureLevel);
+        final connection = globalStore.apiConnection(
+          realmUrl: realmUrl,
+          zulipFeatureLevel: serverSettings.zulipFeatureLevel,
+        );
         try {
-          result = await fetchApiKey(connection,
-            username: username, password: password);
+          result = await fetchApiKey(
+            connection,
+            username: username,
+            password: password,
+          );
         } finally {
           connection.close();
         }
@@ -549,17 +627,20 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         //   errors for deactivated user or realm (see zulip-mobile#4571).
         final zulipLocalizations = ZulipLocalizations.of(context);
         final message = (e is ZulipApiException)
-          ? zulipLocalizations.errorServerMessage(e.message)
-          : e.message;
-        showErrorDialog(context: context,
+            ? zulipLocalizations.errorServerMessage(e.message)
+            : e.message;
+        showErrorDialog(
+          context: context,
           title: zulipLocalizations.errorLoginFailedTitle,
-          message: message);
+          message: message,
+        );
         return;
       }
 
       // TODO(server-7): Rely on user_id from fetchApiKey.
-      final int userId = result.userId
-        ?? await widget.loginPageState._getUserId(result.email, result.apiKey);
+      final int userId =
+          result.userId ??
+          await widget.loginPageState._getUserId(result.email, result.apiKey);
       // https://github.com/dart-lang/linter/issues/4007
       // ignore: use_build_context_synchronously
       if (!context.mounted) {
@@ -583,7 +664,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final serverSettings = widget.loginPageState.widget.serverSettings;
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final requireEmailFormatUsernames = serverSettings.requireEmailFormatUsernames;
+    final requireEmailFormatUsernames =
+        serverSettings.requireEmailFormatUsernames;
 
     final usernameField = TextFormField(
       key: _usernameKey,
@@ -598,8 +680,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
           return requireEmailFormatUsernames
-            ? zulipLocalizations.loginErrorMissingEmail
-            : zulipLocalizations.loginErrorMissingUsername;
+              ? zulipLocalizations.loginErrorMissingEmail
+              : zulipLocalizations.loginErrorMissingUsername;
         }
         if (requireEmailFormatUsernames) {
           // TODO(#106): validate is in the shape of an email
@@ -609,10 +691,11 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       textInputAction: TextInputAction.next,
       decoration: InputDecoration(
         labelText: requireEmailFormatUsernames
-          ? zulipLocalizations.loginEmailLabel
-          : zulipLocalizations.loginUsernameLabel,
+            ? zulipLocalizations.loginEmailLabel
+            : zulipLocalizations.loginUsernameLabel,
         helperText: kLayoutPinningHelperText,
-      ));
+      ),
+    );
 
     final passwordField = TextFormField(
       key: _passwordKey,
@@ -637,20 +720,28 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
           icon: const Icon(Icons.visibility),
           isSelected: _obscurePassword,
           selectedIcon: const Icon(Icons.visibility_off),
-        )));
+        ),
+      ),
+    );
 
     return Form(
       // TODO(#110) Try to highlight CZO / Zulip Cloud realms in autofill
       child: AutofillGroup(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          usernameField,
-          const SizedBox(height: 8),
-          passwordField,
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: widget.loginPageState._inProgress ? null : _submit,
-            child: Text(zulipLocalizations.loginFormSubmitLabel)),
-        ])));
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            usernameField,
+            const SizedBox(height: 8),
+            passwordField,
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: widget.loginPageState._inProgress ? null : _submit,
+              child: Text(zulipLocalizations.loginFormSubmitLabel),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -662,24 +753,33 @@ class _AlternativeAuthDivider extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final divider = Expanded(
-      child: Divider(color: designVariables.loginOrDivider, thickness: 2));
+      child: Divider(color: designVariables.loginOrDivider, thickness: 2),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Semantics(
         excludeSemantics: true,
         label: zulipLocalizations.loginMethodDividerSemanticLabel,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          divider,
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Text(zulipLocalizations.loginMethodDivider,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: designVariables.loginOrDividerText,
-                height: 1.5,
-              ).merge(weightVariableTextStyle(context, wght: 600)))),
-          divider,
-        ])));
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            divider,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: Text(
+                zulipLocalizations.loginMethodDivider,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: designVariables.loginOrDividerText,
+                  height: 1.5,
+                ).merge(weightVariableTextStyle(context, wght: 600)),
+              ),
+            ),
+            divider,
+          ],
+        ),
+      ),
+    );
   }
 }
