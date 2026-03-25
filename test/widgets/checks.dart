@@ -126,5 +126,5 @@ extension VoiceRecordingModalChecks on Subject<VoiceRecordingModal> {
 }
 
 extension AudioPlayerBottomSheetChecks on Subject<AudioPlayerBottomSheet> {
-  Subject<String> get audioUrl => has((x) => x.audioUrl, 'audioUrl');
+  Subject<Uri> get src => has((x) => x.src, 'src');
 }

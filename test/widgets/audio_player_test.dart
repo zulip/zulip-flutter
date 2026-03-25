@@ -12,7 +12,7 @@ void main() {
 
   group('AudioPlayerBottomSheet', () {
     late PerAccountStore store;
-    const testAudioUrl = 'https://example.com/voice_message.m4a';
+    final testAudioParams = (src: Uri.parse('https://example.com/voice_message.m4a'), title: 'Test Audio');
 
     Future<void> setupWidget(WidgetTester tester) async {
       addTearDown(testBinding.reset);
@@ -21,40 +21,38 @@ void main() {
 
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
-        child: const AudioPlayerBottomSheet(audioUrl: testAudioUrl),
+        child: AudioPlayerBottomSheet(
+          src: testAudioParams.src,
+          title: testAudioParams.title,
+        ),
       ));
       await tester.pump();
     }
 
     testWidgets('renders audio player interface', (tester) async {
       await setupWidget(tester);
-
-      check(find.byType(AudioPlayerBottomSheet)).findsOne();
+      expect(find.byType(AudioPlayerBottomSheet), findsOneWidget);
     });
 
     testWidgets('displays play button', (tester) async {
       await setupWidget(tester);
-
-      check(find.byIcon(Icons.play_arrow)).findsWidgets();
+      expect(find.byIcon(Icons.play_arrow), findsWidgets);
     });
 
     testWidgets('displays close button', (tester) async {
       await setupWidget(tester);
-
-      check(find.byIcon(Icons.close)).findsWidgets();
+      expect(find.byIcon(Icons.close), findsWidgets);
     });
 
     testWidgets('displays progress slider', (tester) async {
       await setupWidget(tester);
-
-      check(find.byType(Slider)).findsWidgets();
+      expect(find.byType(Slider), findsWidgets);
     });
 
     testWidgets('displays duration text', (tester) async {
       await setupWidget(tester);
-
       // Audio player should display time information
-      check(find.byType(Text)).findsWidgets();
+      expect(find.byType(Text), findsWidgets);
     });
 
     testWidgets('close button closes player', (tester) async {
@@ -64,20 +62,20 @@ void main() {
       await tester.pump();
 
       // Player should be closed (bottom sheet dismissed)
-      check(find.byType(AudioPlayerBottomSheet)).findsNothing();
+      expect(find.byType(AudioPlayerBottomSheet), findsNothing);
     });
 
     testWidgets('play button toggles playback state', (tester) async {
       await setupWidget(tester);
 
       final playButton = find.byIcon(Icons.play_arrow);
-      check(playButton).findsWidgets();
+      expect(playButton, findsWidgets);
 
       await tester.tap(playButton.first);
       await tester.pump();
 
       // After tapping play, button should show pause icon
-      check(find.byIcon(Icons.pause)).findsWidgets();
+      expect(find.byIcon(Icons.pause), findsWidgets);
     });
   });
 }

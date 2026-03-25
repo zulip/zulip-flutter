@@ -28,33 +28,33 @@ void main() {
     testWidgets('renders recording interface', (tester) async {
       await setupWidget(tester);
 
-      check(find.byType(VoiceRecordingModal)).findsOne();
-      check(find.text('Record Voice Message')).findsWidgets();
+      expect(find.byType(VoiceRecordingModal), findsOneWidget);
+      expect(find.text('Record Voice Message'), findsWidgets);
     });
 
     testWidgets('displays record button', (tester) async {
       await setupWidget(tester);
 
-      check(find.byIcon(Icons.mic)).findsWidgets();
+      expect(find.byIcon(Icons.mic), findsWidgets);
     });
 
     testWidgets('displays cancel button', (tester) async {
       await setupWidget(tester);
 
-      check(find.byIcon(Icons.close)).findsWidgets();
+      expect(find.byIcon(Icons.close), findsWidgets);
     });
 
     testWidgets('displays send button', (tester) async {
       await setupWidget(tester);
 
-      check(find.byIcon(Icons.send)).findsWidgets();
+      expect(find.byIcon(Icons.send), findsWidgets);
     });
 
     testWidgets('initial state shows idle UI', (tester) async {
       await setupWidget(tester);
 
       // Should show record button enabled initially
-      check(find.byIcon(Icons.mic)).findsWidgets();
+      expect(find.byIcon(Icons.mic), findsWidgets);
     });
 
     testWidgets('cancel button closes modal', (tester) async {
@@ -64,7 +64,7 @@ void main() {
       await tester.pump();
 
       // Modal should be closed (check for pop behavior)
-      check(find.byType(VoiceRecordingModal)).findsNothing();
+      expect(find.byType(VoiceRecordingModal), findsNothing);
     });
   });
 }

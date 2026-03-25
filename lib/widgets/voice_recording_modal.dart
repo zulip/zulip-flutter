@@ -8,7 +8,7 @@ import 'waveform_visualizer.dart';
 
 /// Modal for recording voice messages
 class VoiceRecordingModal extends StatefulWidget {
-  final void Function(String recordingPath)? onRecordingComplete;
+  final VoidCallback? onRecordingComplete;
   final VoidCallback? onCancel;
 
   const VoiceRecordingModal({
@@ -161,7 +161,7 @@ class _VoiceRecordingModalState extends State<VoiceRecordingModal>
     if (path == null) return;
     await _audioPlayer.stop();
     if (!mounted) return;
-    widget.onRecordingComplete?.call(path);
+    widget.onRecordingComplete?.call();
     Navigator.of(context).pop(path);
   }
 
