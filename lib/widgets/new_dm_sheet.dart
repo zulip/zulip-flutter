@@ -157,64 +157,72 @@ class _NewDmHeader extends StatelessWidget {
   final Set<int> selectedUserIds;
   final OnDmSelectCallback onDmSelect;
 
-  Widget _buildCancelButton(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-
-    return GestureDetector(
-      onTap: Navigator.of(context).pop,
-      child: Text(zulipLocalizations.dialogCancel, style: TextStyle(
-        color: designVariables.icon,
-        fontSize: 20,
-        height: 30 / 20)));
-  }
-
-  Widget _buildComposeButton(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final zulipLocalizations = ZulipLocalizations.of(context);
-
-    final color = selectedUserIds.isEmpty
-      ? designVariables.icon.withFadedAlpha(0.5)
-      : designVariables.icon;
-
-    return GestureDetector(
-      onTap: selectedUserIds.isEmpty ? null : () {
-        final store = PerAccountStoreWidget.of(context);
-        final narrow = DmNarrow.withUsers(
-          selectedUserIds.toList(),
-          selfUserId: store.selfUserId);
-        onDmSelect(narrow);
-      },
-      child: Text(zulipLocalizations.newDmSheetComposeButtonLabel,
-        style: TextStyle(
-          color: color,
-          fontSize: 20,
-          height: 30 / 20,
-        ).merge(weightVariableTextStyle(context, wght: 600))));
-  }
-
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 6),
-      child: Row(children: [
-        _buildCancelButton(context),
-        SizedBox(width: 8),
-        Expanded(child: Text(zulipLocalizations.newDmSheetScreenTitle,
-          style: TextStyle(
-            color: designVariables.title,
-            fontSize: 20,
-            height: 30 / 20,
-          ).merge(weightVariableTextStyle(context, wght: 600)),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          textAlign: TextAlign.center)),
-        SizedBox(width: 8),
-        _buildComposeButton(context),
-      ]));
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
+      ),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 12),
+        child: Row(children: [
+          GestureDetector(
+            onTap: Navigator.of(context).pop,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(Icons.close, size: 24, color: designVariables.icon),
+            ),
+          ),
+          SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              zulipLocalizations.newDmSheetScreenTitle,
+              style: TextStyle(
+                color: designVariables.title,
+                fontSize: 18,
+                height: 26 / 18,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SizedBox(width: 4),
+          GestureDetector(
+            onTap: selectedUserIds.isEmpty ? null : () {
+              final store = PerAccountStoreWidget.of(context);
+              final narrow = DmNarrow.withUsers(
+                selectedUserIds.toList(),
+                selfUserId: store.selfUserId);
+              onDmSelect(narrow);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selectedUserIds.isEmpty
+                  ? Colors.grey.withValues(alpha: 0.1)
+                  : designVariables.icon.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                zulipLocalizations.newDmSheetComposeButtonLabel,
+                style: TextStyle(
+                  color: selectedUserIds.isEmpty
+                    ? designVariables.icon.withFadedAlpha(0.5)
+                    : designVariables.icon,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ]),
+      ),
+    );
   }
 }
 
@@ -263,15 +271,17 @@ class _NewDmSearchBar extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     return Container(
-      constraints: const BoxConstraints(maxHeight: 124),
-      decoration: BoxDecoration(color: designVariables.bgSearchInput),
+      constraints: const BoxConstraints(maxHeight: 140),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.5),
+      ),
       child: SingleChildScrollView(
         reverse: true,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Wrap(
-            spacing: 6,
-            runSpacing: 4,
+            spacing: 8,
+            runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               for (final userId in selectedUserIds)
@@ -280,8 +290,19 @@ class _NewDmSearchBar extends StatelessWidget {
               // when its content fits on the same line with a user chip,
               // by preventing it from expanding to fill the available width.  See:
               //   https://github.com/zulip/zulip-flutter/pull/1322#discussion_r2094112488
-              IntrinsicWidth(child: _buildSearchField(context)),
-            ]))));
+              IntrinsicWidth(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: _buildSearchField(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -303,26 +324,50 @@ class _SelectedUserChip extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => unselectUser(userId),
-      child: DecoratedBox(
+      child: Container(
         decoration: BoxDecoration(
-          color: designVariables.bgMenuButtonSelected,
-          borderRadius: BorderRadius.circular(3)),
+          color: designVariables.icon.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: designVariables.icon.withValues(alpha: 0.2)),
+        ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Avatar(userId: userId, size: clampedTextScaler.scale(22), borderRadius: 3),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(6, 4, 4, 4),
+            child: Avatar(userId: userId, size: clampedTextScaler.scale(24), borderRadius: 4),
+          ),
           Flexible(
             child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(5, 3, 4, 3),
-              child: Text(store.userDisplayName(userId),
+              padding: const EdgeInsetsDirectional.fromSTEB(0, 6, 6, 6),
+              child: Text(
+                store.userDisplayName(userId),
                 textScaler: clampedTextScaler,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 16,
-                  height: 16 / 16,
-                  color: designVariables.labelMenuButton)))),
-          UserStatusEmoji(userId: userId, size: 16,
-            padding: EdgeInsetsDirectional.only(end: 4)),
-        ])));
+                  fontSize: 14,
+                  height: 16 / 14,
+                  fontWeight: FontWeight.w500,
+                  color: designVariables.textMessage,
+                ),
+              ),
+            ),
+          ),
+          UserStatusEmoji(
+            userId: userId,
+            size: 14,
+            padding: EdgeInsetsDirectional.only(end: 6),
+          ),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4),
+            child: Icon(
+              Icons.clear_rounded,
+              size: 16,
+              color: designVariables.icon.withFadedAlpha(0.6),
+            ),
+          ),
+        ]),
+      ),
+    );
   }
 }
 
@@ -354,7 +399,10 @@ class _NewDmUserList extends StatelessWidget {
             zulipLocalizations.newDmSheetNoUsersFound,
             style: TextStyle(
               color: designVariables.labelMenuButton,
-              fontSize: 16))));
+              fontSize: 15,
+              height: 20 / 15,
+              fontWeight: FontWeight.w500,
+            ))));
     }
 
     return Padding(
@@ -395,41 +443,71 @@ class _NewDmUserListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
-    return Material(
-      clipBehavior: Clip.antiAlias,
-      borderRadius: BorderRadius.circular(10),
-      color: isSelected
-        ? designVariables.bgMenuButtonSelected
-        : Colors.transparent,
-      child: InkWell(
-        highlightColor: designVariables.bgMenuButtonSelected,
-        splashFactory: NoSplash.splashFactory,
-        onTap: () => onTapped(userId),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(0, 6, 12, 6),
-          child: Row(children: [
-            SizedBox(width: 8),
-            isSelected
-              ? Icon(size: 24,
-                  color: designVariables.radioFillSelected,
-                  ZulipIcons.check_circle_checked)
-              : Icon(size: 24,
-                  color: designVariables.radioBorder,
-                  ZulipIcons.check_circle_unchecked),
-            SizedBox(width: 10),
-            Avatar(userId: userId, size: 32, borderRadius: 3),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text.rich(
-                TextSpan(text: store.userDisplayName(userId), children: [
-                  UserStatusEmoji.asWidgetSpan(userId: userId, fontSize: 17,
-                    textScaler: MediaQuery.textScalerOf(context)),
-                ]),
-                style: TextStyle(
-                  fontSize: 17,
-                  height: 19 / 17,
-                  color: designVariables.textMessage,
-                ).merge(weightVariableTextStyle(context, wght: 500)))),
-          ]))));
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: isSelected
+          ? designVariables.icon.withValues(alpha: 0.08)
+          : Colors.transparent,
+        border: isSelected
+          ? Border.all(color: designVariables.icon.withValues(alpha: 0.15))
+          : null,
+      ),
+      child: Material(
+        clipBehavior: Clip.antiAlias,
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.transparent,
+        child: InkWell(
+          highlightColor: designVariables.icon.withValues(alpha: 0.05),
+          splashFactory: NoSplash.splashFactory,
+          onTap: () => onTapped(userId),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
+            child: Row(children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected
+                    ? designVariables.radioFillSelected
+                    : Colors.transparent,
+                  border: Border.all(
+                    color: isSelected
+                      ? designVariables.radioFillSelected
+                      : designVariables.radioBorder,
+                    width: 2,
+                  ),
+                ),
+                child: isSelected
+                  ? Icon(
+                      Icons.check_rounded,
+                      size: 16,
+                      color: Colors.white,
+                    )
+                  : null,
+              ),
+              SizedBox(width: 12),
+              Avatar(userId: userId, size: 40, borderRadius: 6),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(text: store.userDisplayName(userId), children: [
+                    UserStatusEmoji.asWidgetSpan(userId: userId, fontSize: 16,
+                      textScaler: MediaQuery.textScalerOf(context)),
+                  ]),
+                  style: TextStyle(
+                    fontSize: 16,
+                    height: 20 / 16,
+                    color: designVariables.textMessage,
+                    fontWeight: FontWeight.w500,
+                  ).merge(weightVariableTextStyle(context, wght: 500))),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }

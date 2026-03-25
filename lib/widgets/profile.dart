@@ -61,19 +61,33 @@ class ProfilePage extends StatelessWidget {
     final userStatus = store.getUserStatus(userId);
 
     final displayEmail = user.deliveryEmail;
+    const roleBadgeColor = Color(0xFFA2AADB);
+    const dmButtonGradientBlue = Color(0xFF0066FF);
 
     final items = [
+      const SizedBox(height: 24),
       Center(
-        child: Avatar(
-          userId: userId,
-          size: 200,
-          borderRadius: 200 / 8,
-          // Would look odd with this large image;
-          // we'll show it by the user's name instead.
-          showPresence: false,
-          replaceIfMuted: false,
-        )),
-      const SizedBox(height: 16),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Avatar(
+            userId: userId,
+            size: 160,
+            borderRadius: 160 / 2,
+            showPresence: false,
+            replaceIfMuted: false,
+          ),
+        ),
+      ),
+      const SizedBox(height: 24),
       Text.rich(
         TextSpan(children: [
           PresenceCircle.asWidgetSpan(
@@ -81,67 +95,165 @@ class ProfilePage extends StatelessWidget {
             fontSize: nameStyle.fontSize!,
             textScaler: MediaQuery.textScalerOf(context),
           ),
-          // TODO write a test where the user is muted; check this and avatar
-          TextSpan(text: store.userDisplayName(userId, replaceIfMuted: false)),
-          if (userId != store.selfUserId)
+          TextSpan(text: ' ' + store.userDisplayName(userId, replaceIfMuted: false)),
+          if (userId != store.selfUserId) ...[
+            const TextSpan(text: ' '),
             UserStatusEmoji.asWidgetSpan(
               userId: userId,
               fontSize: nameStyle.fontSize!,
               textScaler: MediaQuery.textScalerOf(context),
               animationMode: ImageAnimationMode.animateConditionally,
             ),
+          ],
         ]),
         textAlign: TextAlign.center,
-        style: nameStyle),
+        style: nameStyle.copyWith(fontSize: 28)),
+      
+      const SizedBox(height: 8),
       if (userId != store.selfUserId && userStatus.text != null)
         Text(userStatus.text!,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18, height: 22 / 18,
-            color: DesignVariables.of(context).userStatusText)),
-      if (!user.isBot)
-        _LastActiveTime(userId: userId),
+          style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: DesignVariables.of(context).labelTime)),
 
-      const SizedBox(height: 8),
-      if (displayEmail != null)
-        Text(displayEmail,
-          textAlign: TextAlign.center,
-          style: _TextStyles.primaryFieldText),
-      Text(roleToLabel(user.role, zulipLocalizations),
-        textAlign: TextAlign.center,
-        style: _TextStyles.primaryFieldText),
-      // TODO(#196) render active status
-      // TODO(#292) render user local time
+      const SizedBox(height: 32),
+      
+      Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+        ),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!user.isBot) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Active Status', style: _TextStyles.customProfileFieldLabel(context).copyWith(color: Theme.of(context).colorScheme.primary)),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: _LastActiveTime(userId: userId),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (displayEmail != null) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Email', style: _TextStyles.customProfileFieldLabel(context).copyWith(color: Theme.of(context).colorScheme.primary)),
+                    ),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        displayEmail,
+                        textAlign: TextAlign.right,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: _TextStyles.customProfileFieldText,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Role', style: _TextStyles.customProfileFieldLabel(context).copyWith(color: Theme.of(context).colorScheme.primary)),
+                  ),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: roleBadgeColor,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          roleToLabel(user.role, zulipLocalizations),
+                          style: _TextStyles.customProfileFieldText
+                            .copyWith(color: Colors.black)
+                            .merge(weightVariableTextStyle(context, wght: 600)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
 
       if (userId == store.selfUserId) ...[
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         MenuButtonsShape(buttons: [
           _SetStatusButton(),
           if (!store.realmPresenceDisabled)
             _InvisibleModeToggle(),
         ]),
-        const SizedBox(height: 16),
       ],
 
+      const SizedBox(height: 24),
       _ProfileDataTable(profileData: user.profileData),
-      const SizedBox(height: 16),
-      FilledButton.icon(
-        onPressed: () => Navigator.push(context,
-          MessageListPage.buildRoute(context: context,
-            narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
-        icon: const Icon(Icons.email),
-        label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
+      
+      const SizedBox(height: 32),
+      if (userId != store.selfUserId)
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Colors.black, dmButtonGradientBlue],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
+            icon: const Icon(Icons.email),
+            label: Text(
+              zulipLocalizations.profileButtonSendDirectMessage,
+              style: const TextStyle(fontSize: 16)
+                .merge(TextStyle(color: Colors.white))
+                .merge(weightVariableTextStyle(context, wght: 600)),
+            ),
+          ),
+        ),
+      const SizedBox(height: 32),
     ];
 
     return Scaffold(
       appBar: ZulipAppBar(
-        // TODO write a test where the user is muted
-        title: Text(store.userDisplayName(userId, replaceIfMuted: false))),
+        title: Text('Profile'),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
+            constraints: const BoxConstraints(maxWidth: 600),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: items))))));
@@ -242,7 +354,7 @@ class _LastActiveTimeState extends State<_LastActiveTime> with PerAccountStoreAw
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Text(_lastActiveText(zulipLocalizations),
-      textAlign: TextAlign.center,
+      textAlign: TextAlign.right,
       style: TextStyle(fontSize: 18, height: 22 / 18,
         color: DesignVariables.of(context).userStatusText));
   }
@@ -423,25 +535,41 @@ class _ProfileDataTable extends StatelessWidget {
       final widget = _buildCustomProfileFieldValue(context, profileField.value, realmField);
       if (widget == null) continue; // TODO(log)
 
-      items.add(Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: localizedTextBaseline(context),
-        children: [
-          SizedBox(width: 100,
-            child: Text(style: _TextStyles.customProfileFieldLabel(context),
-              realmField.name)),
-          const SizedBox(width: 8),
-          Flexible(child: widget),
-        ]));
-      items.add(const SizedBox(height: 8));
+      items.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: localizedTextBaseline(context),
+            children: [
+              SizedBox(width: 120,
+                child: Text(style: _TextStyles.customProfileFieldLabel(context).copyWith(color: Theme.of(context).colorScheme.primary),
+                  realmField.name)),
+              const SizedBox(width: 8),
+              Flexible(child: widget),
+            ],
+          ),
+        ),
+      );
     }
 
     if (items.isEmpty) return const SizedBox.shrink();
 
-    return Column(children: [
-      const SizedBox(height: 16),
-      ...items
-    ]);
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+      ),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: items,
+        ),
+      ),
+    );
   }
 }
 
@@ -451,17 +579,38 @@ class _LinkWidget extends StatelessWidget {
   final String url;
   final String text;
 
+  IconData? _getSocialIcon(String url) {
+    // We use a generic link icon since specific social icons 
+    // like github or twitter might not be in the current font.
+    return Icons.link; 
+  }
+
   @override
   Widget build(BuildContext context) {
     final linkNode = LinkNode(url: url, nodes: [TextNode(text)]);
     final paragraph = DefaultTextStyle(
       style: ContentTheme.of(context).textStylePlainParagraph,
       child: Paragraph(node: ParagraphNode(nodes: [linkNode], links: [linkNode])));
+      
+    final icon = _getSocialIcon(url);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: paragraph));
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 6),
+            ],
+            Flexible(child: paragraph),
+          ],
+        ),
+      ),
+    );
   }
 }
 

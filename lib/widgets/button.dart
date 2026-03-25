@@ -485,11 +485,11 @@ class ZulipMenuItemButton extends StatelessWidget {
               spacing: itemSpacingAndEndPadding,
               children: [
                 ?toggle,
-                if (icon != null) Icon(icon!, color: _iconColor(designVariables)),
+                if (icon != null) Icon(icon!, color: _iconColor(designVariables), size: 20),
               ]))
         : null,
       style: MenuItemButton.styleFrom(
-        minimumSize: Size.fromHeight(48),
+        minimumSize: Size.fromHeight(40),
         padding: EdgeInsetsDirectional.only(start: 16, end: itemSpacingAndEndPadding),
         foregroundColor: _labelColor(designVariables),
         splashFactory: NoSplash.splashFactory,
@@ -505,7 +505,7 @@ class ZulipMenuItemButton extends StatelessWidget {
           children: [
             Flexible(child: Text(label,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 20, height: 24 / 20)
+              style: const TextStyle(fontSize: 16, height: 22 / 16)
                 .merge(weightVariableTextStyle(context, wght: _labelWght())))),
             if (subLabel != null)
               Flexible(child: Text.rich(subLabel!,
