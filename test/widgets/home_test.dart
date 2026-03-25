@@ -158,7 +158,7 @@ void main () {
         matching: find.text('Channels'))).findsOne();
       check(findSearchButton).findsNothing();
 
-      await tester.tap(find.byIcon(ZulipIcons.two_person));
+      await tester.tap(find.byIcon(Icons.people_rounded));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),

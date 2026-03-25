@@ -51,7 +51,7 @@ Future<void> setupSheet(WidgetTester tester, {
     child: const HomePage()));
   await tester.pumpAndSettle();
 
-  await tester.tap(find.byIcon(ZulipIcons.two_person));
+  await tester.tap(find.byIcon(Icons.people_rounded));
   await tester.pumpAndSettle();
 
   await tester.tap(find.widgetWithText(GestureDetector, 'New DM'));
