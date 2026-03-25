@@ -8,6 +8,7 @@ import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
 import '../../widgets/app_bar.dart';
 import '../../values/icons.dart';
+import '../../widgets/new_dm_sheet.dart';
 import '../all_channels_block/all_channels.dart';
 import '../inbox_block/inbox.dart';
 import '../message_list_block/message_list_block.dart';
@@ -109,7 +110,24 @@ class _HomePageState extends State<HomePage> {
           SizedBox(width: 16),
         ];
       case .directMessages:
-        return null;
+        return [
+          IconButton(
+            icon: const Icon(ZulipIcons.plus),
+            tooltip: ZulipLocalizations.of(context).newDmFabButtonLabel,
+            onPressed: () {
+              showNewDmSheet(context, (DmNarrow narrow) {
+                Navigator.pushReplacement(
+                  context,
+                  MessageListBlockPage.buildRoute(
+                    context: context,
+                    narrow: narrow,
+                  ),
+                );
+              });
+            },
+          ),
+          SizedBox(width: 16),
+        ];
     }
   }
 
