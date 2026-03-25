@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
@@ -6,7 +7,7 @@ import '../../../app.dart';
 import '../../../extensions/color.dart';
 import '../../message_list_block/message_list_block.dart';
 import '../../profile_block/profile.dart';
-import '../../settings_block/settings.dart';
+import '../../settings_block/settings_page.dart';
 import '../../../utils/page.dart';
 import '../../../utils/store.dart';
 import '../../../values/icons.dart';
@@ -28,7 +29,7 @@ import '../home.dart';
 class MainMenu extends StatelessWidget {
   const MainMenu({super.key, required this.tabNotifier});
 
-  final ValueNotifier<HomePageTab> tabNotifier;
+  final Rx<HomePageTab> tabNotifier;
 
   @override
   Widget build(BuildContext context) {
@@ -307,7 +308,7 @@ abstract class MenuButton extends StatelessWidget {
 abstract class _NavigationBarMenuButton extends MenuButton {
   const _NavigationBarMenuButton({required this.tabNotifier});
 
-  final ValueNotifier<HomePageTab> tabNotifier;
+  final Rx<HomePageTab> tabNotifier;
 
   HomePageTab get navigationTarget;
 

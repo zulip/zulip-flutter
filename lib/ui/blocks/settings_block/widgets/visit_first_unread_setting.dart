@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/settings.dart';
-import '../../../utils/page.dart';
 import '../../../utils/store.dart';
+
+class VisitFirstUnreadSettingController extends GetxController {
+  void navigateToPage() {
+    Get.toNamed<dynamic>('/visit_first_unread_setting');
+  }
+}
 
 class VisitFirstUnreadSettingWidget extends StatelessWidget {
   const VisitFirstUnreadSettingWidget({super.key});
@@ -12,6 +18,7 @@ class VisitFirstUnreadSettingWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final controller = VisitFirstUnreadSettingController();
     return ListTile(
       title: Text(zulipLocalizations.initialAnchorSettingTitle),
       subtitle: Text(
@@ -20,18 +27,13 @@ class VisitFirstUnreadSettingWidget extends StatelessWidget {
           zulipLocalizations: zulipLocalizations,
         ),
       ),
-      onTap: () =>
-          Navigator.push(context, VisitFirstUnreadSettingPage.buildRoute()),
+      onTap: () => controller.navigateToPage(),
     );
   }
 }
 
 class VisitFirstUnreadSettingPage extends StatelessWidget {
   const VisitFirstUnreadSettingPage({super.key});
-
-  static WidgetRoute<void> buildRoute() {
-    return MaterialWidgetRoute(page: const VisitFirstUnreadSettingPage());
-  }
 
   static String _valueDisplayName(
     VisitFirstUnreadSetting value, {

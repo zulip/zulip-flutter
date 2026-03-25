@@ -3,11 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
-import '../../model/settings.dart';
 import '../themes/content_theme.dart';
 import '../utils/actions.dart';
-import '../app.dart';
-import '../utils/store.dart';
 
 /// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.
 ///
@@ -34,7 +31,9 @@ Widget _adaptiveAction({
           // > for the Text within the TextButton, so that buttons whose
           // > labels wrap to an extra line align with the overall
           // > OverflowBar's alignment within the dialog.
-          textAlign: TextAlign.end));
+          textAlign: TextAlign.end,
+        ),
+      );
 
     case TargetPlatform.iOS:
     case TargetPlatform.macOS:
@@ -42,7 +41,8 @@ Widget _adaptiveAction({
         onPressed: onPressed,
         isDefaultAction: isDefaultAction,
         isDestructiveAction: isDestructiveAction,
-        child: Text(text));
+        child: Text(text),
+      );
   }
 }
 
@@ -70,7 +70,8 @@ Widget? _adaptiveContent(Widget? content) {
         // (Confusingly, in 2025-10, it's center-aligned in the graphic at the
         // *top* of that page; shrug.)
         textAlign: TextAlign.start,
-        child: content);
+        child: content,
+      );
   }
 }
 
@@ -130,14 +131,19 @@ DialogStatus<void> showErrorDialog({
       actions: [
         if (learnMoreButtonUrl != null)
           _adaptiveAction(
-            onPressed: () => PlatformActions.launchUrl(context, learnMoreButtonUrl),
+            onPressed: () =>
+                PlatformActions.launchUrl(context, learnMoreButtonUrl),
             isDefaultAction: false,
-            text: zulipLocalizations.errorDialogLearnMore),
+            text: zulipLocalizations.errorDialogLearnMore,
+          ),
         _adaptiveAction(
           onPressed: () => Navigator.pop(context),
           isDefaultAction: true,
-          text: zulipLocalizations.errorDialogContinue),
-      ]));
+          text: zulipLocalizations.errorDialogContinue,
+        ),
+      ],
+    ),
+  );
   return DialogStatus(future);
 }
 
@@ -166,13 +172,17 @@ DialogStatus<bool> showSuggestedActionDialog({
         _adaptiveAction(
           onPressed: () => Navigator.pop<bool>(context, null),
           isDefaultAction: false,
-          text: zulipLocalizations.dialogCancel),
+          text: zulipLocalizations.dialogCancel,
+        ),
         _adaptiveAction(
           onPressed: () => Navigator.pop<bool>(context, true),
           isDefaultAction: true,
           isDestructiveAction: destructiveActionButton,
-          text: actionButtonText ?? zulipLocalizations.dialogContinue),
-      ]));
+          text: actionButtonText ?? zulipLocalizations.dialogContinue,
+        ),
+      ],
+    ),
+  );
   return DialogStatus(future);
 }
 
@@ -182,43 +192,45 @@ class UpgradeWelcomeDialog extends StatelessWidget {
   const UpgradeWelcomeDialog._();
 
   static void maybeShow() async {
-    final navigator = await ZulipApp.navigator;
-    final context = navigator.context;
-    assert(context.mounted);
-    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    return;
+    // final navigator = await ZulipApp.navigator;
+    // final context = navigator.context;
+    // assert(context.mounted);
+    // if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
-    switch (globalSettings.legacyUpgradeState) {
-      case LegacyUpgradeState.noLegacy:
-        // This install didn't replace the legacy app.
-        return;
+    // final globalSettings = GlobalStoreWidget.settingsOf(context);
+    // switch (globalSettings.legacyUpgradeState) {
+    //   case LegacyUpgradeState.noLegacy:
+    //     // This install didn't replace the legacy app.
+    //     return;
 
-      case LegacyUpgradeState.unknown:
-        // Not clear if this replaced the legacy app;
-        // skip the dialog that would assume it had.
-        // TODO(log)
-        return;
+    //   case LegacyUpgradeState.unknown:
+    //     // Not clear if this replaced the legacy app;
+    //     // skip the dialog that would assume it had.
+    //     // TODO(log)
+    //     return;
 
-      case LegacyUpgradeState.found:
-      case LegacyUpgradeState.migrated:
-        // This install replaced the legacy app.
-        // Show the dialog, if we haven't already.
-        if (globalSettings.getBool(BoolGlobalSetting.upgradeWelcomeDialogShown)) {
-          return;
-        }
-    }
+    //   case LegacyUpgradeState.found:
+    //   case LegacyUpgradeState.migrated:
+    //     // This install replaced the legacy app.
+    //     // Show the dialog, if we haven't already.
+    //     if (globalSettings.getBool(BoolGlobalSetting.upgradeWelcomeDialogShown)) {
+    //       return;
+    //     }
 
-    final future = showDialog<void>(
-      context: context,
-      builder: (context) => UpgradeWelcomeDialog._());
+    // }
 
-    await future; // Wait for the dialog to be dismissed.
+    // final future = showDialog<void>(
+    //   context: context,
+    //   builder: (context) => UpgradeWelcomeDialog._());
 
-    await globalSettings.setBool(BoolGlobalSetting.upgradeWelcomeDialogShown, true);
+    // await future; // Wait for the dialog to be dismissed.
+
+    // await globalSettings.setBool(BoolGlobalSetting.upgradeWelcomeDialogShown, true);
   }
 
   static const String _announcementUrl =
-    'https://blog.zulip.com/flutter-mobile-app-launch';
+      'https://blog.zulip.com/flutter-mobile-app-launch';
 
   @override
   Widget build(BuildContext context) {
@@ -226,20 +238,30 @@ class UpgradeWelcomeDialog extends StatelessWidget {
     return AlertDialog.adaptive(
       title: Text(zulipLocalizations.upgradeWelcomeDialogTitle),
       content: _adaptiveContent(
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(zulipLocalizations.upgradeWelcomeDialogMessage),
-          GestureDetector(
-            onTap: () => PlatformActions.launchUrl(context,
-              Uri.parse(_announcementUrl)),
-            child: Text(
-              style: TextStyle(color: ContentTheme.of(context).colorLink),
-              zulipLocalizations.upgradeWelcomeDialogLinkText)),
-        ])),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(zulipLocalizations.upgradeWelcomeDialogMessage),
+            GestureDetector(
+              onTap: () => PlatformActions.launchUrl(
+                context,
+                Uri.parse(_announcementUrl),
+              ),
+              child: Text(
+                style: TextStyle(color: ContentTheme.of(context).colorLink),
+                zulipLocalizations.upgradeWelcomeDialogLinkText,
+              ),
+            ),
+          ],
+        ),
+      ),
       actions: [
         _adaptiveAction(
           onPressed: () => Navigator.pop(context),
           isDefaultAction: true,
-          text: zulipLocalizations.upgradeWelcomeDialogDismiss)
-      ]);
+          text: zulipLocalizations.upgradeWelcomeDialogDismiss,
+        ),
+      ],
+    );
   }
 }

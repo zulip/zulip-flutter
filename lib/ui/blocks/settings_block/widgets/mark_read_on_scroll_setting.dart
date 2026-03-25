@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/app_pages.dart';
 import '../../../../model/settings.dart';
-import '../../../utils/page.dart';
 import '../../../utils/store.dart';
+
+class MarkReadOnScrollSettingController extends GetxController {
+  void navigateToPage() {
+    Get.toNamed<dynamic>(AppRoutes.markReadOnScrollSetting);
+  }
+}
 
 class MarkReadOnScrollSettingWidget extends StatelessWidget {
   const MarkReadOnScrollSettingWidget({super.key});
@@ -12,6 +19,7 @@ class MarkReadOnScrollSettingWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final controller = MarkReadOnScrollSettingController();
     return ListTile(
       title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
       subtitle: Text(
@@ -20,18 +28,13 @@ class MarkReadOnScrollSettingWidget extends StatelessWidget {
           zulipLocalizations: zulipLocalizations,
         ),
       ),
-      onTap: () =>
-          Navigator.push(context, MarkReadOnScrollSettingPage.buildRoute()),
+      onTap: () => controller.navigateToPage(),
     );
   }
 }
 
 class MarkReadOnScrollSettingPage extends StatelessWidget {
   const MarkReadOnScrollSettingPage({super.key});
-
-  static WidgetRoute<void> buildRoute() {
-    return MaterialWidgetRoute(page: const MarkReadOnScrollSettingPage());
-  }
 
   static String _valueDisplayName(
     MarkReadOnScrollSetting value, {

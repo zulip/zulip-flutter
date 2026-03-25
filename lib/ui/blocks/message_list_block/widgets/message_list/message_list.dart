@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:get/get.dart';
 
 import '../../../../../model/message_list.dart';
 import '../../../../../model/narrow.dart';
@@ -54,7 +55,7 @@ class _MessageListState extends State<MessageList>
   final MessageListScrollController scrollController =
       MessageListScrollController();
 
-  final ValueNotifier<bool> _scrollToBottomVisible = ValueNotifier<bool>(false);
+  final RxBool _scrollToBottomVisible = false.obs;
 
   @override
   void initState() {
@@ -74,7 +75,6 @@ class _MessageListState extends State<MessageList>
   void dispose() {
     _model?.dispose();
     scrollController.dispose();
-    _scrollToBottomVisible.dispose();
     super.dispose();
   }
 

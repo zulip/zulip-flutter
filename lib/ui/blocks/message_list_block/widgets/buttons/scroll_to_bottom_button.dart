@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../model/message_list.dart';
@@ -14,7 +15,7 @@ class ScrollToBottomButton extends StatelessWidget {
 
   final MessageListView model;
   final MessageListScrollController scrollController;
-  final ValueNotifier<bool> visible;
+  final RxBool visible;
 
   void _scrollToBottom() {
     if (model.haveNewest) {
@@ -44,20 +45,17 @@ class ScrollToBottomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return ValueListenableBuilder<bool>(
-      valueListenable: visible,
-      builder: (BuildContext context, bool value, Widget? child) {
-        return (value && child != null) ? child : const SizedBox.shrink();
-      },
-      // TODO: fix hardcoded values for size and style here
-      child: IconButton(
-        tooltip: zulipLocalizations.scrollToBottomTooltip,
-        icon: const Icon(Icons.expand_circle_down_rounded),
-        iconSize: 40,
-        // Web has the same color in light and dark mode.
-        color: const HSLColor.fromAHSL(0.5, 240, 0.96, 0.68).toColor(),
-        onPressed: _scrollToBottom,
-      ),
-    );
+    return Obx(() {
+      final value = visible.value;
+      return value
+          ? IconButton(
+              tooltip: zulipLocalizations.scrollToBottomTooltip,
+              icon: const Icon(Icons.expand_circle_down_rounded),
+              iconSize: 40,
+              color: const HSLColor.fromAHSL(0.5, 240, 0.96, 0.68).toColor(),
+              onPressed: _scrollToBottom,
+            )
+          : const SizedBox.shrink();
+    });
   }
 }
