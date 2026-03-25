@@ -322,7 +322,7 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
                     ),
                   )),
                 ),
-              ),
+              )),
             ),
             Visibility(
               visible: showTryAnotherAccount,
