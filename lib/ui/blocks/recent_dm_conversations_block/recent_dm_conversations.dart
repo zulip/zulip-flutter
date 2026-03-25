@@ -73,7 +73,10 @@ class _RecentDmConversationsPageBodyState
     if (widget.onDmSelect case final onDmSelect?) {
       onDmSelect(narrow);
     } else {
-      Get.toNamed<dynamic>(AppRoutes.topicList, arguments: {'narrow': narrow});
+      Get.toNamed<dynamic>(
+        AppRoutes.messageList,
+        arguments: {'narrow': narrow},
+      );
     }
   }
 

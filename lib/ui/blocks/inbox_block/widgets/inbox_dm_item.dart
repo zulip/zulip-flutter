@@ -46,7 +46,7 @@ class InboxDmItem extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Get.toNamed<dynamic>(
-            AppRoutes.topicList,
+            AppRoutes.messageList,
             arguments: {'narrow': narrow},
           );
         },

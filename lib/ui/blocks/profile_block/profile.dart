@@ -137,7 +137,7 @@ class ProfilePage extends StatelessWidget {
       const SizedBox(height: 16),
       FilledButton.icon(
         onPressed: () => Get.toNamed<dynamic>(
-          AppRoutes.topicList,
+          AppRoutes.messageList,
           arguments: {
             'narrow': DmNarrow.withUser(userId, selfUserId: store.selfUserId),
           },

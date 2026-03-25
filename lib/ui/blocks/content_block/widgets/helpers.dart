@@ -35,7 +35,7 @@ void contentLaunchUrl(BuildContext context, String urlString) async {
     case NarrowLink():
       unawaited(
         Get.toNamed<dynamic>(
-          AppRoutes.topicList,
+          AppRoutes.messageList,
           arguments: {'narrow': internalLink.narrow},
         ),
       );

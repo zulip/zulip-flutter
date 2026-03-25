@@ -23,7 +23,7 @@ class HomeController extends GetxController {
 
   void navigateToInboxSearch() {
     Get.toNamed<dynamic>(
-      AppRoutes.topicList,
+      AppRoutes.messageList,
       arguments: {'narrow': KeywordSearchNarrow('')},
     );
   }
@@ -34,7 +34,10 @@ class HomeController extends GetxController {
 
   void navigateToNewDm() {
     showNewDmSheet(Get.context!, (DmNarrow narrow) {
-      Get.offNamed<dynamic>(AppRoutes.topicList, arguments: {'narrow': narrow});
+      Get.offNamed<dynamic>(
+        AppRoutes.messageList,
+        arguments: {'narrow': narrow},
+      );
     });
   }
 
