@@ -7,12 +7,11 @@ import '../../../model/unreads.dart';
 import '../message_list_block/message_list_block.dart';
 import '../../utils/page.dart';
 import '../../utils/store.dart';
-import 'widgets/new_dn_button.dart';
 import 'widgets/recent_dm_conversations_item.dart';
 
 typedef OnDmSelectCallback = void Function(DmNarrow narrow);
 
-// Блок недавних сообщений (как я понял)
+// Блок сообщений (на гл странице)
 class RecentDmConversationsPageBody extends StatefulWidget {
   const RecentDmConversationsPageBody({
     super.key,
@@ -73,19 +72,6 @@ class _RecentDmConversationsPageBodyState
       onDmSelect(narrow);
     } else {
       Navigator.push(
-        context,
-        MessageListBlockPage.buildRoute(context: context, narrow: narrow),
-      );
-    }
-  }
-
-  void _handleDmSelectForNewDms(DmNarrow narrow) {
-    if (widget.onDmSelect case final onDmSelect?) {
-      // Pop the new-DMs action sheet.
-      Navigator.pop(context);
-      onDmSelect(narrow);
-    } else {
-      Navigator.pushReplacement(
         context,
         MessageListBlockPage.buildRoute(context: context, narrow: narrow),
       );
@@ -156,10 +142,10 @@ class _RecentDmConversationsPageBodyState
               },
             ),
           ),
-        Positioned(
-          bottom: bottomInsets + 21,
-          child: NewDmButton(onDmSelect: _handleDmSelectForNewDms),
-        ),
+        // Positioned(
+        //   bottom: bottomInsets + 21,
+        //   child: NewDmButton(onDmSelect: _handleDmSelectForNewDms),
+        // ),
       ],
     );
   }

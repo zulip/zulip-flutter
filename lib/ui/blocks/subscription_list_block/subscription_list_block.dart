@@ -6,11 +6,9 @@ import '../../../model/channel.dart';
 import '../../../model/narrow.dart';
 import '../../../model/unreads.dart';
 import '../all_channels_block/all_channels.dart';
-import '../../widgets/button.dart';
-import '../../values/icons.dart';
-import '../message_list_block/message_list_block.dart';
 import '../../utils/page.dart';
 import '../../utils/store.dart';
+import '../topic_list_block/topic_list_block.dart';
 import 'widgets/subscription_list.dart';
 import 'widgets/subscription_list_header.dart';
 
@@ -87,7 +85,9 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
     } else {
       Navigator.push(
         context,
-        MessageListBlockPage.buildRoute(context: context, narrow: narrow),
+        // Заменить на выбор беседы
+        TopicListPage.buildRoute(context: context, streamId: narrow.streamId),
+       // MessageListBlockPage.buildRoute(context: context, narrow: narrow),
       );
     }
   }
@@ -197,26 +197,26 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
             ),
           ],
 
-          if (includeAllChannelsButton) ...[
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              sliver: SliverToBoxAdapter(
-                child: MenuButtonsShape(
-                  buttons: [
-                    ZulipMenuItemButton(
-                      style: ZulipMenuItemButtonStyle.menu,
-                      label: zulipLocalizations.navButtonAllChannels,
-                      icon: ZulipIcons.chevron_right,
-                      onPressed: () => Navigator.push(
-                        context,
-                        AllChannelsPage.buildRoute(context: context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          // if (includeAllChannelsButton) ...[
+          //   SliverPadding(
+          //     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          //     sliver: SliverToBoxAdapter(
+          //       child: MenuButtonsShape(
+          //         buttons: [
+          //           ZulipMenuItemButton(
+          //             style: ZulipMenuItemButtonStyle.menu,
+          //             label: zulipLocalizations.navButtonAllChannels,
+          //             icon: ZulipIcons.chevron_right,
+          //             onPressed: () => Navigator.push(
+          //               context,
+          //               AllChannelsPage.buildRoute(context: context),
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ],
 
           // This ensures last item in scrollable can settle in an unobstructed area.
           // (Noop in the home-page case; see comment on `bottom: false` arg in
