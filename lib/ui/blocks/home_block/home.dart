@@ -47,7 +47,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final _tab = ValueNotifier(HomePageTab.inbox);
+  late final _tab = ValueNotifier(HomePageTab.channels);
 
   @override
   void initState() {

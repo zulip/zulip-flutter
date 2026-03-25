@@ -8,9 +8,9 @@ import '../../../model/unreads.dart';
 import '../all_channels_block/all_channels.dart';
 import '../../widgets/button.dart';
 import '../../values/icons.dart';
-import '../message_list_block/message_list_block.dart';
 import '../../utils/page.dart';
 import '../../utils/store.dart';
+import '../topic_list_block/topic_list_block.dart';
 import 'widgets/subscription_list.dart';
 import 'widgets/subscription_list_header.dart';
 
@@ -87,7 +87,9 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
     } else {
       Navigator.push(
         context,
-        MessageListBlockPage.buildRoute(context: context, narrow: narrow),
+        // Заменить на выбор беседы
+        TopicListPage.buildRoute(context: context, streamId: narrow.streamId),
+       // MessageListBlockPage.buildRoute(context: context, narrow: narrow),
       );
     }
   }
