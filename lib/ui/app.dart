@@ -196,49 +196,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  AccountRoute<void>? _initialRouteIos(BuildContext context) {
-    return NotificationOpenService.instance.routeForNotificationFromLaunch(
-      context: context,
-    );
-  }
-
-  List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
-    // The `_ZulipAppState.context` lacks the required ancestors. Instead
-    // we use the Navigator which should be available when this callback is
-    // called and its context should have the required ancestors.
-    final context = ZulipApp.navigatorKey.currentContext!;
-
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final route = _initialRouteIos(context);
-      if (route != null) {
-        return [HomePage.buildRoute(accountId: route.accountId), route];
-      }
-    } else {
-      // On Android, we ignore any notification at this step, and handle
-      // any initial notification by a navigation after the first frame.
-      // See [NotificationOpenService.start], and the buffering in
-      // NotificationTapEventListener.kt when onListen is not yet called.
-      //
-      // The navigation causes a small visible glitch where one loading spinner
-      // gets replaced by another; see recordings:
-      //   https://github.com/zulip/zulip-flutter/pull/2043#discussion_r2794138972
-      // TODO it'd be nice to avoid that glitch by controlling the initial route.
-      //   We accept this glitch as a workaround for an upstream issue:
-      //   https://github.com/flutter/flutter/issues/178305
-    }
-
-    final globalStore = GlobalStoreWidget.of(context);
-    final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
-
-    return [
-      if (lastVisitedAccountId == null)
-        // There are no accounts, or the last-visited account was logged out.
-        MaterialWidgetRoute(page: const ChooseAccountPage())
-      else
-        HomePage.buildRoute(accountId: lastVisitedAccountId),
-    ];
-  }
-
   @override
   Future<bool> didPushRouteInformation(routeInformation) async {
     switch (routeInformation.uri) {
@@ -255,6 +212,9 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
       blockingFuture: NotificationOpenService.instance.initialized,
       child: Builder(
         builder: (context) {
+          final globalStore = GlobalStoreWidget.of(context);
+          final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
+
           return GetMaterialApp(
             onGenerateTitle: (BuildContext context) {
               return ZulipLocalizations.of(context).zulipAppTitle;
@@ -265,6 +225,10 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
             // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
             theme: zulipThemeData(context),
             initialBinding: InitialBinding(),
+            getPages: AppPages.pages,
+            initialRoute: lastVisitedAccountId != null
+                ? AppRoutes.home
+                : AppRoutes.addAccount,
             navigatorKey: ZulipApp.navigatorKey,
             navigatorObservers: [
               if (widget.navigatorObservers != null)
@@ -284,17 +248,7 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
               );
               return child!;
             },
-
-            // We use onGenerateInitialRoutes for the real work of specifying the
-            // initial nav state.  To do that we need [MaterialApp] to decide to
-            // build a [Navigator]... which means specifying either `home`, `routes`,
-            // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-            // It never actually gets called, though: `onGenerateInitialRoutes`
-            // handles startup, and then we always push whole routes with methods
-            // like [Navigator.push], never mere names as with [Navigator.pushNamed].
             onGenerateRoute: (_) => null,
-
-            onGenerateInitialRoutes: _handleGenerateInitialRoutes,
           );
         },
       ),

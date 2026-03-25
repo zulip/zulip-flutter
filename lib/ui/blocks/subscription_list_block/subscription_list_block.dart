@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../get/app_pages.dart';
 
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/channel.dart';
 import '../../../model/narrow.dart';
 import '../../../model/unreads.dart';
-import '../all_channels_block/all_channels.dart';
 import '../../utils/page.dart';
 import '../../utils/store.dart';
-import '../topic_list_block/topic_list_block.dart';
 import 'widgets/subscription_list.dart';
 import 'widgets/subscription_list_header.dart';
 
@@ -83,11 +84,9 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
     if (widget.onChannelSelect case final onChannelSelect?) {
       onChannelSelect(narrow);
     } else {
-      Navigator.push(
-        context,
-        // Заменить на выбор беседы
-        TopicListPage.buildRoute(context: context, streamId: narrow.streamId),
-       // MessageListBlockPage.buildRoute(context: context, narrow: narrow),
+      Get.toNamed<dynamic>(
+        AppRoutes.topicList,
+        arguments: {'streamId': narrow.streamId},
       );
     }
   }
@@ -146,10 +145,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
               .channelsEmptyPlaceholderMessage(
                 zulipLocalizations.allChannelsPageTitle,
               ),
-          onTapMessageLink: () => Navigator.push(
-            context,
-            AllChannelsPage.buildRoute(context: context),
-          ),
+          onTapMessageLink: () => Get.toNamed<dynamic>(AppRoutes.allChannels),
         );
       } else {
         return PageBodyEmptyContentPlaceholder(

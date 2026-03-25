@@ -10,7 +10,6 @@ import '../../widgets/app_bar.dart';
 import '../../values/icons.dart';
 import '../../widgets/new_dm_sheet.dart';
 import '../inbox_block/inbox.dart';
-import '../message_list_block/message_list_block.dart';
 import '../../utils/page.dart';
 import '../recent_dm_conversations_block/recent_dm_conversations.dart';
 import '../subscription_list_block/subscription_list_block.dart';
@@ -18,6 +17,7 @@ import 'widgets/bottom_nav_bar.dart';
 import 'widgets/home_loading_placeholder_page.dart';
 import 'widgets/side_navigation_rail.dart';
 import 'home_controller.dart';
+import '../../../get/app_pages.dart';
 
 enum HomePageTab { inbox, channels, directMessages }
 
@@ -87,12 +87,9 @@ class HomePage extends GetView<HomeController> {
                 tooltip: zulipLocalizations.newDmFabButtonLabel,
                 onPressed: () {
                   showNewDmSheet(context, (DmNarrow narrow) {
-                    Navigator.pushReplacement(
-                      context,
-                      MessageListBlockPage.buildRoute(
-                        context: context,
-                        narrow: narrow,
-                      ),
+                    Get.toNamed<dynamic>(
+                      AppRoutes.topicList,
+                      arguments: {'narrow': narrow},
                     );
                   });
                 },

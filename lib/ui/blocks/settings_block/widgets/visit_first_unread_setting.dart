@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../get/app_pages.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/settings.dart';
 import '../../../utils/store.dart';
 
 class VisitFirstUnreadSettingController extends GetxController {
   void navigateToPage() {
-    Get.toNamed<dynamic>('/visit_first_unread_setting');
+    Get.toNamed<dynamic>(AppRoutes.visitFirstUnreadSetting);
   }
 }
 

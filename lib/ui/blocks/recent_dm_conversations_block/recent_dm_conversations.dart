@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../get/app_pages.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
 import '../../../model/recent_dm_conversations.dart';
 import '../../../model/unreads.dart';
-import '../message_list_block/message_list_block.dart';
 import '../../utils/page.dart';
 import '../../utils/store.dart';
 import 'widgets/recent_dm_conversations_item.dart';
@@ -71,10 +73,7 @@ class _RecentDmConversationsPageBodyState
     if (widget.onDmSelect case final onDmSelect?) {
       onDmSelect(narrow);
     } else {
-      Navigator.push(
-        context,
-        MessageListBlockPage.buildRoute(context: context, narrow: narrow),
-      );
+      Get.toNamed<dynamic>(AppRoutes.topicList, arguments: {'narrow': narrow});
     }
   }
 

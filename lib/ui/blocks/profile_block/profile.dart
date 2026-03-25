@@ -1,13 +1,13 @@
-
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../get/app_pages.dart';
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/button.dart';
 import '../../widgets/image.dart';
-import '../message_list_block/message_list_block.dart';
 import '../../utils/page.dart';
 import '../../utils/store.dart';
 import '../../values/text.dart';
@@ -136,12 +136,11 @@ class ProfilePage extends StatelessWidget {
       ProfileDataTable(profileData: user.profileData),
       const SizedBox(height: 16),
       FilledButton.icon(
-        onPressed: () => Navigator.push(
-          context,
-          MessageListBlockPage.buildRoute(
-            context: context,
-            narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId),
-          ),
+        onPressed: () => Get.toNamed<dynamic>(
+          AppRoutes.topicList,
+          arguments: {
+            'narrow': DmNarrow.withUser(userId, selfUserId: store.selfUserId),
+          },
         ),
         icon: const Icon(Icons.email),
         label: Text(zulipLocalizations.profileButtonSendDirectMessage),

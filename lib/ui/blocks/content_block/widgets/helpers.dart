@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:html/dom.dart' as dom;
 
+import '../../../../get/app_pages.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/content.dart';
 import '../../../../model/internal_link.dart';
 import '../../../themes/content_theme.dart';
-import '../../message_list_block/message_list_block.dart';
 import '../../../utils/actions.dart';
 import '../../../utils/store.dart';
 import '../../../widgets/dialog.dart';
@@ -33,13 +34,9 @@ void contentLaunchUrl(BuildContext context, String urlString) async {
   switch (internalLink) {
     case NarrowLink():
       unawaited(
-        Navigator.push(
-          context,
-          MessageListBlockPage.buildRoute(
-            context: context,
-            narrow: internalLink.narrow,
-            initAnchorMessageId: internalLink.nearMessageId,
-          ),
+        Get.toNamed<dynamic>(
+          AppRoutes.topicList,
+          arguments: {'narrow': internalLink.narrow},
         ),
       );
 
