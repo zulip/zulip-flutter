@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import '../get/app_pages.dart';
 import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
@@ -86,7 +88,7 @@ class ZulipApp extends StatefulWidget {
     final navigatorState = navigatorKey.currentState;
     if (navigatorState == null) return null;
     final appState = navigatorState.context
-      .findAncestorStateOfType<_ZulipAppState>()!;
+        .findAncestorStateOfType<_ZulipAppState>()!;
     return appState._navStackTracker;
   }
 
@@ -124,18 +126,28 @@ class ZulipApp extends StatefulWidget {
       return;
     }
 
-    final zulipLocalizations = ZulipLocalizations.of(navigatorKey.currentContext!);
+    final zulipLocalizations = ZulipLocalizations.of(
+      navigatorKey.currentContext!,
+    );
     final newSnackBar = scaffoldMessenger!.showSnackBar(
       snackBarAnimationStyle: AnimationStyle(
         duration: const Duration(milliseconds: 200),
-        reverseDuration: const Duration(milliseconds: 50)),
+        reverseDuration: const Duration(milliseconds: 50),
+      ),
       SnackBar(
         content: Text(message),
-        action: (details == null) ? null : SnackBarAction(
-          label: zulipLocalizations.snackBarDetails,
-          onPressed: () => showErrorDialog(context: navigatorKey.currentContext!,
-            title: zulipLocalizations.errorDialogTitle,
-            message: details))));
+        action: (details == null)
+            ? null
+            : SnackBarAction(
+                label: zulipLocalizations.snackBarDetails,
+                onPressed: () => showErrorDialog(
+                  context: navigatorKey.currentContext!,
+                  title: zulipLocalizations.errorDialogTitle,
+                  message: details,
+                ),
+              ),
+      ),
+    );
 
     _snackBarCount++;
     newSnackBar.closed.whenComplete(() => _snackBarCount--);
@@ -153,7 +165,8 @@ class ZulipApp extends StatefulWidget {
       context: navigatorKey.currentContext!,
       title: title,
       message: message,
-      learnMoreButtonUrl: learnMoreButtonUrl);
+      learnMoreButtonUrl: learnMoreButtonUrl,
+    );
   }
 
   void _declareReady() {
@@ -183,51 +196,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  AccountRoute<void>? _initialRouteIos(BuildContext context) {
-    return NotificationOpenService.instance
-        .routeForNotificationFromLaunch(context: context);
-  }
-
-  List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
-    // The `_ZulipAppState.context` lacks the required ancestors. Instead
-    // we use the Navigator which should be available when this callback is
-    // called and its context should have the required ancestors.
-    final context = ZulipApp.navigatorKey.currentContext!;
-
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final route = _initialRouteIos(context);
-      if (route != null) {
-        return [
-          HomePage.buildRoute(accountId: route.accountId),
-          route,
-        ];
-      }
-    } else {
-      // On Android, we ignore any notification at this step, and handle
-      // any initial notification by a navigation after the first frame.
-      // See [NotificationOpenService.start], and the buffering in
-      // NotificationTapEventListener.kt when onListen is not yet called.
-      //
-      // The navigation causes a small visible glitch where one loading spinner
-      // gets replaced by another; see recordings:
-      //   https://github.com/zulip/zulip-flutter/pull/2043#discussion_r2794138972
-      // TODO it'd be nice to avoid that glitch by controlling the initial route.
-      //   We accept this glitch as a workaround for an upstream issue:
-      //   https://github.com/flutter/flutter/issues/178305
-    }
-
-    final globalStore = GlobalStoreWidget.of(context);
-    final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
-
-    return [
-      if (lastVisitedAccountId == null)
-        // There are no accounts, or the last-visited account was logged out.
-        MaterialWidgetRoute(page: const ChooseAccountPage())
-      else
-        HomePage.buildRoute(accountId: lastVisitedAccountId),
-    ];
-  }
-
   @override
   Future<bool> didPushRouteInformation(routeInformation) async {
     switch (routeInformation.uri) {
@@ -242,45 +210,49 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return GlobalStoreWidget(
       blockingFuture: NotificationOpenService.instance.initialized,
-      child: Builder(builder: (context) {
-        return MaterialApp(
-          onGenerateTitle: (BuildContext context) {
-            return ZulipLocalizations.of(context).zulipAppTitle;
-          },
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          // The context has to be taken from the [Builder] because
-          // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
-          theme: zulipThemeData(context),
+      child: Builder(
+        builder: (context) {
+          final globalStore = GlobalStoreWidget.of(context);
+          final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
 
-          navigatorKey: ZulipApp.navigatorKey,
-          navigatorObservers: [
-            if (widget.navigatorObservers != null)
-              ...widget.navigatorObservers!,
-            _PreventEmptyStack(),
-            _navStackTracker,
-            _UpdateLastVisitedAccount(GlobalStoreWidget.of(context)),
-          ],
-          builder: (BuildContext context, Widget? child) {
-            if (!ZulipApp.ready.value) {
-              SchedulerBinding.instance.addPostFrameCallback(
-                (_) => widget._declareReady());
-            }
-            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(context);
-            return child!;
-          },
-
-          // We use onGenerateInitialRoutes for the real work of specifying the
-          // initial nav state.  To do that we need [MaterialApp] to decide to
-          // build a [Navigator]... which means specifying either `home`, `routes`,
-          // `onGenerateRoute`, or `onUnknownRoute`.  Make it `onGenerateRoute`.
-          // It never actually gets called, though: `onGenerateInitialRoutes`
-          // handles startup, and then we always push whole routes with methods
-          // like [Navigator.push], never mere names as with [Navigator.pushNamed].
-          onGenerateRoute: (_) => null,
-
-          onGenerateInitialRoutes: _handleGenerateInitialRoutes);
-      }));
+          return GetMaterialApp(
+            onGenerateTitle: (BuildContext context) {
+              return ZulipLocalizations.of(context).zulipAppTitle;
+            },
+            localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+            supportedLocales: ZulipLocalizations.supportedLocales,
+            // The context has to be taken from the [Builder] because
+            // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
+            theme: zulipThemeData(context),
+            initialBinding: InitialBinding(),
+            getPages: AppPages.pages,
+            initialRoute: lastVisitedAccountId != null
+                ? AppRoutes.home
+                : AppRoutes.addAccount,
+            navigatorKey: ZulipApp.navigatorKey,
+            navigatorObservers: [
+              if (widget.navigatorObservers != null)
+                ...widget.navigatorObservers!,
+              _PreventEmptyStack(),
+              _navStackTracker,
+              _UpdateLastVisitedAccount(GlobalStoreWidget.of(context)),
+            ],
+            builder: (BuildContext context, Widget? child) {
+              if (!ZulipApp.ready.value) {
+                SchedulerBinding.instance.addPostFrameCallback(
+                  (_) => widget._declareReady(),
+                );
+              }
+              GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(
+                context,
+              );
+              return child!;
+            },
+            onGenerateRoute: (_) => null,
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -348,8 +320,10 @@ class _TrackNavigationStack extends NavigatorObserver with NavigationStack {
     final index = routes.lastIndexOf(route);
     assert(index >= 0);
     routes.removeAt(index);
-    assert((previousRoute == null && index == 0)
-        || (previousRoute != null && routes[index - 1] == previousRoute));
+    assert(
+      (previousRoute == null && index == 0) ||
+          (previousRoute != null && routes[index - 1] == previousRoute),
+    );
   }
 
   @override
@@ -376,8 +350,9 @@ class _PreventEmptyStack extends NavigatorObserver {
       return true; // never actually pops
     });
     if (isEmptyStack) {
-      unawaited(navigator.push(
-        MaterialWidgetRoute(page: const ChooseAccountPage())));
+      unawaited(
+        navigator.push(MaterialWidgetRoute(page: const ChooseAccountPage())),
+      );
     }
   }
 
@@ -429,35 +404,46 @@ class ChooseAccountPage extends StatelessWidget {
           menuChildren: [
             MenuItemButton(
               onPressed: () async {
-                final dialog = showSuggestedActionDialog(context: context,
+                final dialog = showSuggestedActionDialog(
+                  context: context,
                   title: zulipLocalizations.logOutConfirmationDialogTitle,
                   message: zulipLocalizations.logOutConfirmationDialogMessage,
                   destructiveActionButton: true,
-                  actionButtonText: zulipLocalizations.logOutConfirmationDialogConfirmButton);
+                  actionButtonText:
+                      zulipLocalizations.logOutConfirmationDialogConfirmButton,
+                );
                 if (await dialog.result == true) {
                   if (!context.mounted) return;
                   // TODO error handling if db write fails?
-                  unawaited(logOutAccount(GlobalStoreWidget.of(context), accountId));
+                  unawaited(
+                    logOutAccount(GlobalStoreWidget.of(context), accountId),
+                  );
                 }
               },
-              child: Text(zulipLocalizations.chooseAccountPageLogOutButton)),
+              child: Text(zulipLocalizations.chooseAccountPageLogOutButton),
+            ),
           ],
-          builder: (BuildContext context, MenuController controller, Widget? child) {
-            return IconButton(
-              tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
-              onPressed: () {
-                if (controller.isOpen) {
-                  controller.close();
-                } else {
-                  controller.open();
-                }
+          builder:
+              (BuildContext context, MenuController controller, Widget? child) {
+                return IconButton(
+                  tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  icon: Icon(Icons.adaptive.more, color: designVariables.icon),
+                );
               },
-              icon: Icon(Icons.adaptive.more, color: designVariables.icon));
-          }),
+        ),
         // The default trailing padding with M3 is 24px. Decrease by 12 because
         // IconButton (the "…" button) comes with 12px padding on all sides.
         contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
-        onTap: () => HomePage.navigate(context, accountId: accountId)));
+        onTap: () => HomePage.navigate(context, accountId: accountId),
+      ),
+    );
   }
 
   @override
@@ -471,38 +457,63 @@ class ChooseAccountPage extends StatelessWidget {
     // See documentation on [ModalRoute.impliesAppBarDismissal]:
     // > Whether an [AppBar] in the route should automatically add a back button or
     // > close button.
-    final hasBackButton = ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
+    final hasBackButton =
+        ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
 
     return MenuButtonTheme(
-      data: MenuButtonThemeData(style: MenuItemButton.styleFrom(
-        backgroundColor: colorScheme.secondaryContainer,
-        foregroundColor: colorScheme.onSecondaryContainer)),
+      data: MenuButtonThemeData(
+        style: MenuItemButton.styleFrom(
+          backgroundColor: colorScheme.secondaryContainer,
+          foregroundColor: colorScheme.onSecondaryContainer,
+        ),
+      ),
       child: Scaffold(
         appBar: AppBar(
           titleSpacing: hasBackButton ? null : 16,
           title: Text(zulipLocalizations.chooseAccountPageTitle),
-          actions: const [ChooseAccountPageOverflowButton()]),
+          actions: const [ChooseAccountPageOverflowButton()],
+        ),
         body: SafeArea(
           minimum: const EdgeInsets.fromLTRB(8, 0, 8, 8),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Flexible(child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    for (final (:accountId, :account) in globalStore.accountEntries)
-                      _buildAccountItem(context,
-                        accountId: accountId,
-                        title: Text(account.realmUrl.toString()),
-                        subtitle: Text(account.email)),
-                  ]))),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () => Navigator.push(context,
-                    AddAccountPage.buildRoute()),
-                  child: Text(zulipLocalizations.chooseAccountButtonAddAnAccount)),
-              ]))))));
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final (:accountId, :account)
+                              in globalStore.accountEntries)
+                            _buildAccountItem(
+                              context,
+                              accountId: accountId,
+                              title: Text(account.realmUrl.toString()),
+                              subtitle: Text(account.email),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () =>
+                        Navigator.push(context, AddAccountPage.buildRoute()),
+                    child: Text(
+                      zulipLocalizations.chooseAccountButtonAddAnAccount,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -519,19 +530,23 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
           onPressed: () {
             Navigator.push(context, AboutZulipPage.buildRoute(context));
           },
-          child: Text(zulipLocalizations.aboutPageTitle)),
+          child: Text(zulipLocalizations.aboutPageTitle),
+        ),
       ],
-      builder: (BuildContext context, MenuController controller, Widget? child) {
-        return IconButton(
-          tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
+      builder:
+          (BuildContext context, MenuController controller, Widget? child) {
+            return IconButton(
+              tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              icon: Icon(Icons.adaptive.more),
+            );
           },
-          icon: Icon(Icons.adaptive.more));
-      });
+    );
   }
 }

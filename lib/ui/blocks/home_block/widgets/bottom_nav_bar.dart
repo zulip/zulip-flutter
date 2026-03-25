@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:get/state_manager.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../utils/store.dart';
@@ -13,7 +14,7 @@ import 'navigation_bar_button.dart';
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({super.key, required this.tabNotifier});
 
-  final ValueNotifier<HomePageTab> tabNotifier;
+  final Rx<HomePageTab> tabNotifier;
 
   NavigationBarButton _button({
     required HomePageTab tab,
@@ -108,7 +109,7 @@ class BottomNavBar extends StatelessWidget {
 
 void showMainMenu(
   BuildContext context, {
-  required ValueNotifier<HomePageTab> tabNotifier,
+  required Rx<HomePageTab> tabNotifier,
 }) {
   final designVariables = DesignVariables.of(context);
   final accountId = PerAccountStoreWidget.accountIdOf(context);

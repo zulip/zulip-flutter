@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../values/icons.dart';
@@ -12,7 +13,7 @@ import 'navigation_bar_button.dart';
 class SideNavigationRail extends StatelessWidget {
   const SideNavigationRail({super.key, required this.tabNotifier});
 
-  final ValueNotifier<HomePageTab> tabNotifier;
+  final Rx<HomePageTab> tabNotifier;
 
   NavigationBarButton _button({
     required HomePageTab tab,

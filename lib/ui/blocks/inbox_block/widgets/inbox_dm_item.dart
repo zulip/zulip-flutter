@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../../get/app_pages.dart';
 
 import '../../../../model/narrow.dart';
-import '../../message_list_block/message_list_block.dart';
 import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
@@ -43,9 +45,9 @@ class InboxDmItem extends StatelessWidget {
           .background, // TODO(design) check if this is the right variable
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MessageListBlockPage.buildRoute(context: context, narrow: narrow),
+          Get.toNamed<dynamic>(
+            AppRoutes.messageList,
+            arguments: {'narrow': narrow},
           );
         },
         child: ConstrainedBox(

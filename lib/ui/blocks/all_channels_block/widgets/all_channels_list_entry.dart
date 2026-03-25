@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../../get/app_pages.dart';
 import '../../../../api/model/model.dart';
 import '../../../../api/route/channels.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../log.dart';
 import '../../../../model/narrow.dart';
-import '../../message_list_block/message_list_block.dart';
 import '../../../utils/actions.dart';
 import '../../../utils/remote_settings.dart';
 import '../../../utils/store.dart';
@@ -32,12 +33,9 @@ class AllChannelsListEntry extends StatelessWidget {
     return InkWell(
       onTap: !hasContentAccess
           ? null
-          : () => Navigator.push(
-              context,
-              MessageListBlockPage.buildRoute(
-                context: context,
-                narrow: ChannelNarrow(channel.streamId),
-              ),
+          : () => Get.toNamed<dynamic>(
+              AppRoutes.topicList,
+              arguments: {'narrow': ChannelNarrow(channel.streamId)},
             ),
       onLongPress: () =>
           showChannelActionSheet(context, channelId: channel.streamId),

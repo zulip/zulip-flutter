@@ -66,6 +66,7 @@ dependencies:
   zulip_plugin:
     path: ./packages/zulip_plugin
   flutter_local_notifications: ^21.0.0
+  get: ^4.6.6
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.
 
 dependency_overrides:

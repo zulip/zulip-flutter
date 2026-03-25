@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../../get/app_pages.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/narrow.dart';
-import '../../../app.dart';
 import '../../../extensions/color.dart';
 import '../../message_list_block/message_list_block.dart';
 import '../../profile_block/profile.dart';
-import '../../settings_block/settings.dart';
-import '../../../utils/page.dart';
+import '../../settings_block/settings_page.dart';
 import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/text.dart';
@@ -28,7 +29,7 @@ import '../home.dart';
 class MainMenu extends StatelessWidget {
   const MainMenu({super.key, required this.tabNotifier});
 
-  final ValueNotifier<HomePageTab> tabNotifier;
+  final Rx<HomePageTab> tabNotifier;
 
   @override
   Widget build(BuildContext context) {
@@ -108,10 +109,7 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
 
   void _handleSwitchAccount(BuildContext context) {
     Navigator.pop(context); // Close the main menu.
-    Navigator.push(
-      context,
-      MaterialWidgetRoute(page: const ChooseAccountPage()),
-    );
+    Get.toNamed<dynamic>(AppRoutes.addAccount);
   }
 
   @override
@@ -307,7 +305,7 @@ abstract class MenuButton extends StatelessWidget {
 abstract class _NavigationBarMenuButton extends MenuButton {
   const _NavigationBarMenuButton({required this.tabNotifier});
 
-  final ValueNotifier<HomePageTab> tabNotifier;
+  final Rx<HomePageTab> tabNotifier;
 
   HomePageTab get navigationTarget;
 

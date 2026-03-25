@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../get/app_pages.dart';
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
 import '../../widgets/app_bar.dart';
 import '../../values/icons.dart';
-import '../message_list_block/message_list_block.dart';
 import '../../utils/page.dart';
 import '../../utils/store.dart';
 import '../../values/theme.dart';
@@ -63,12 +64,9 @@ class TopicListPage extends StatelessWidget {
             IconButton(
               icon: const Icon(ZulipIcons.message_feed),
               tooltip: zulipLocalizations.channelFeedButtonTooltip,
-              onPressed: () => Navigator.push(
-                context,
-                MessageListBlockPage.buildRoute(
-                  context: context,
-                  narrow: ChannelNarrow(streamId),
-                ),
+              onPressed: () => Get.toNamed<dynamic>(
+                AppRoutes.topicList,
+                arguments: {'narrow': ChannelNarrow(streamId)},
               ),
             ),
           ],
