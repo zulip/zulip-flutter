@@ -8,6 +8,7 @@ import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/narrow.dart';
 import '../../widgets/app_bar.dart';
 import '../../values/icons.dart';
+import '../all_channels_block/all_channels.dart';
 import '../inbox_block/inbox.dart';
 import '../message_list_block/message_list_block.dart';
 import '../../utils/page.dart';
@@ -96,6 +97,17 @@ class _HomePageState extends State<HomePage> {
           ),
         ];
       case .channels:
+        return [
+          IconButton(
+            icon: const Icon(ZulipIcons.message_feed),
+            tooltip: ZulipLocalizations.of(context).navButtonAllChannels,
+            onPressed: () => Navigator.push(
+              context,
+              AllChannelsPage.buildRoute(context: context),
+            ),
+          ),
+          SizedBox(width: 16),
+        ];
       case .directMessages:
         return null;
     }
