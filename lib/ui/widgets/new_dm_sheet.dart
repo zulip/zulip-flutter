@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../api/model/model.dart';
 import '../../generated/l10n/zulip_localizations.dart';
 import '../../model/autocomplete.dart';
@@ -6,7 +7,6 @@ import '../../model/narrow.dart';
 import '../../model/store.dart';
 import '../extensions/color.dart';
 import '../values/icons.dart';
-import '../utils/page.dart';
 import '../blocks/recent_dm_conversations_block/recent_dm_conversations.dart';
 import '../utils/store.dart';
 import '../values/text.dart';
@@ -14,10 +14,9 @@ import '../values/theme.dart';
 import 'user.dart';
 
 void showNewDmSheet(BuildContext context, OnDmSelectCallback onDmSelect) {
-  final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(context);
   showModalBottomSheet<void>(
-    context: pageContext,
+    context: Get.context!,
     clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
@@ -29,7 +28,10 @@ void showNewDmSheet(BuildContext context, OnDmSelectCallback onDmSelect) {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: PerAccountStoreWidget(
         accountId: store.accountId,
-        child: NewDmPicker(onDmSelect: onDmSelect))));
+        child: NewDmPicker(onDmSelect: onDmSelect),
+      ),
+    ),
+  );
 }
 
 @visibleForTesting
@@ -42,17 +44,19 @@ class NewDmPicker extends StatefulWidget {
   State<NewDmPicker> createState() => _NewDmPickerState();
 }
 
-class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStateMixin<NewDmPicker> {
+class _NewDmPickerState extends State<NewDmPicker>
+    with PerAccountStoreAwareStateMixin<NewDmPicker> {
   late TextEditingController searchController;
   late ScrollController resultsScrollController;
   Set<int> selectedUserIds = {};
   List<User> filteredUsers = [];
-  List <User> sortedUsers = [];
+  List<User> sortedUsers = [];
 
   @override
   void initState() {
     super.initState();
-    searchController = TextEditingController()..addListener(_handleSearchUpdate);
+    searchController = TextEditingController()
+      ..addListener(_handleSearchUpdate);
     resultsScrollController = ScrollController();
   }
 
@@ -70,10 +74,12 @@ class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStat
   }
 
   void _initSortedUsers(PerAccountStore store) {
-    final users = store.allUsers
-      .where((user) => user.isActive && !store.isUserMuted(user.userId));
-    sortedUsers = List<User>.from(users)
-      ..sort((a, b) => MentionAutocompleteView.compareByDms(a, b, store: store));
+    final users = store.allUsers.where(
+      (user) => user.isActive && !store.isUserMuted(user.userId),
+    );
+    sortedUsers = List<User>.from(
+      users,
+    )..sort((a, b) => MentionAutocompleteView.compareByDms(a, b, store: store));
     _updateFilteredUsers(store);
   }
 
@@ -85,15 +91,19 @@ class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStat
   // Function to sort users based on recency of DM's
   // TODO: switch to using an `AutocompleteView` for users
   void _updateFilteredUsers(PerAccountStore store) {
-    final excludeSelfUser = selectedUserIds.isNotEmpty
-      && !selectedUserIds.contains(store.selfUserId);
-    final normalizedQuery =
-      AutocompleteQuery.lowercaseAndStripDiacritics(searchController.text);
+    final excludeSelfUser =
+        selectedUserIds.isNotEmpty &&
+        !selectedUserIds.contains(store.selfUserId);
+    final normalizedQuery = AutocompleteQuery.lowercaseAndStripDiacritics(
+      searchController.text,
+    );
 
     final result = <User>[];
     for (final user in sortedUsers) {
       if (excludeSelfUser && user.userId == store.selfUserId) continue;
-      final normalizedName = AutocompleteQuery.lowercaseAndStripDiacritics(user.fullName);
+      final normalizedName = AutocompleteQuery.lowercaseAndStripDiacritics(
+        user.fullName,
+      );
       if (normalizedName.contains(normalizedQuery)) {
         result.add(user);
       }
@@ -128,26 +138,35 @@ class _NewDmPickerState extends State<NewDmPicker> with PerAccountStoreAwareStat
 
   void _handleUserTap(int userId) {
     selectedUserIds.contains(userId)
-      ? _unselectUser(userId)
-      : _selectUser(userId);
+        ? _unselectUser(userId)
+        : _selectUser(userId);
     searchController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _NewDmHeader(selectedUserIds: selectedUserIds, onDmSelect: widget.onDmSelect),
-      _NewDmSearchBar(
-        controller: searchController,
-        selectedUserIds: selectedUserIds,
-        unselectUser: _unselectUser),
-      Expanded(
-        child: _NewDmUserList(
-          filteredUsers: filteredUsers,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _NewDmHeader(
           selectedUserIds: selectedUserIds,
-          scrollController: resultsScrollController,
-          onUserTapped: (userId) => _handleUserTap(userId))),
-    ]);
+          onDmSelect: widget.onDmSelect,
+        ),
+        _NewDmSearchBar(
+          controller: searchController,
+          selectedUserIds: selectedUserIds,
+          unselectUser: _unselectUser,
+        ),
+        Expanded(
+          child: _NewDmUserList(
+            filteredUsers: filteredUsers,
+            selectedUserIds: selectedUserIds,
+            scrollController: resultsScrollController,
+            onUserTapped: (userId) => _handleUserTap(userId),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -163,10 +182,15 @@ class _NewDmHeader extends StatelessWidget {
 
     return GestureDetector(
       onTap: Navigator.of(context).pop,
-      child: Text(zulipLocalizations.dialogCancel, style: TextStyle(
-        color: designVariables.icon,
-        fontSize: 20,
-        height: 30 / 20)));
+      child: Text(
+        zulipLocalizations.dialogCancel,
+        style: TextStyle(
+          color: designVariables.icon,
+          fontSize: 20,
+          height: 30 / 20,
+        ),
+      ),
+    );
   }
 
   Widget _buildComposeButton(BuildContext context) {
@@ -174,23 +198,30 @@ class _NewDmHeader extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final color = selectedUserIds.isEmpty
-      ? designVariables.icon.withFadedAlpha(0.5)
-      : designVariables.icon;
+        ? designVariables.icon.withFadedAlpha(0.5)
+        : designVariables.icon;
 
     return GestureDetector(
-      onTap: selectedUserIds.isEmpty ? null : () {
-        final store = PerAccountStoreWidget.of(context);
-        final narrow = DmNarrow.withUsers(
-          selectedUserIds.toList(),
-          selfUserId: store.selfUserId);
-        onDmSelect(narrow);
-      },
-      child: Text(zulipLocalizations.newDmSheetComposeButtonLabel,
+      onTap: selectedUserIds.isEmpty
+          ? null
+          : () {
+              final store = PerAccountStoreWidget.of(context);
+              final narrow = DmNarrow.withUsers(
+                selectedUserIds.toList(),
+                selfUserId: store.selfUserId,
+              );
+              Navigator.of(context).pop();
+              onDmSelect(narrow);
+            },
+      child: Text(
+        zulipLocalizations.newDmSheetComposeButtonLabel,
         style: TextStyle(
           color: color,
           fontSize: 20,
           height: 30 / 20,
-        ).merge(weightVariableTextStyle(context, wght: 600))));
+        ).merge(weightVariableTextStyle(context, wght: 600)),
+      ),
+    );
   }
 
   @override
@@ -200,21 +231,28 @@ class _NewDmHeader extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 6),
-      child: Row(children: [
-        _buildCancelButton(context),
-        SizedBox(width: 8),
-        Expanded(child: Text(zulipLocalizations.newDmSheetScreenTitle,
-          style: TextStyle(
-            color: designVariables.title,
-            fontSize: 20,
-            height: 30 / 20,
-          ).merge(weightVariableTextStyle(context, wght: 600)),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-          textAlign: TextAlign.center)),
-        SizedBox(width: 8),
-        _buildComposeButton(context),
-      ]));
+      child: Row(
+        children: [
+          _buildCancelButton(context),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              zulipLocalizations.newDmSheetScreenTitle,
+              style: TextStyle(
+                color: designVariables.title,
+                fontSize: 20,
+                height: 30 / 20,
+              ).merge(weightVariableTextStyle(context, wght: 600)),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          SizedBox(width: 8),
+          _buildComposeButton(context),
+        ],
+      ),
+    );
   }
 }
 
@@ -235,8 +273,8 @@ class _NewDmSearchBar extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final hintText = selectedUserIds.isEmpty
-      ? zulipLocalizations.newDmSheetSearchHintEmpty
-      : zulipLocalizations.newDmSheetSearchHintSomeSelected;
+        ? zulipLocalizations.newDmSheetSearchHintEmpty
+        : zulipLocalizations.newDmSheetSearchHintSomeSelected;
 
     return TextField(
       controller: controller,
@@ -245,7 +283,8 @@ class _NewDmSearchBar extends StatelessWidget {
       style: TextStyle(
         color: designVariables.textMessage,
         fontSize: 17,
-        height: 22 / 17),
+        height: 22 / 17,
+      ),
       scrollPadding: EdgeInsets.zero,
       decoration: InputDecoration(
         isDense: true,
@@ -255,7 +294,10 @@ class _NewDmSearchBar extends StatelessWidget {
         hintStyle: TextStyle(
           color: designVariables.labelSearchPrompt,
           fontSize: 17,
-          height: 22 / 17)));
+          height: 22 / 17,
+        ),
+      ),
+    );
   }
 
   @override
@@ -281,15 +323,16 @@ class _NewDmSearchBar extends StatelessWidget {
               // by preventing it from expanding to fill the available width.  See:
               //   https://github.com/zulip/zulip-flutter/pull/1322#discussion_r2094112488
               IntrinsicWidth(child: _buildSearchField(context)),
-            ]))));
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class _SelectedUserChip extends StatelessWidget {
-  const _SelectedUserChip({
-    required this.userId,
-    required this.unselectUser,
-  });
+  const _SelectedUserChip({required this.userId, required this.unselectUser});
 
   final int userId;
   final void Function(int) unselectUser;
@@ -298,31 +341,50 @@ class _SelectedUserChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final clampedTextScaler = MediaQuery.textScalerOf(context)
-      .clamp(maxScaleFactor: 1.5);
+    final clampedTextScaler = MediaQuery.textScalerOf(
+      context,
+    ).clamp(maxScaleFactor: 1.5);
 
     return GestureDetector(
       onTap: () => unselectUser(userId),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: designVariables.bgMenuButtonSelected,
-          borderRadius: BorderRadius.circular(3)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Avatar(userId: userId, size: clampedTextScaler.scale(22), borderRadius: 3),
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(5, 3, 4, 3),
-              child: Text(store.userDisplayName(userId),
-                textScaler: clampedTextScaler,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 16 / 16,
-                  color: designVariables.labelMenuButton)))),
-          UserStatusEmoji(userId: userId, size: 16,
-            padding: EdgeInsetsDirectional.only(end: 4)),
-        ])));
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Avatar(
+              userId: userId,
+              size: clampedTextScaler.scale(22),
+              borderRadius: 3,
+            ),
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(5, 3, 4, 3),
+                child: Text(
+                  store.userDisplayName(userId),
+                  textScaler: clampedTextScaler,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    height: 16 / 16,
+                    color: designVariables.labelMenuButton,
+                  ),
+                ),
+              ),
+            ),
+            UserStatusEmoji(
+              userId: userId,
+              size: 16,
+              padding: EdgeInsetsDirectional.only(end: 4),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -354,29 +416,40 @@ class _NewDmUserList extends StatelessWidget {
             zulipLocalizations.newDmSheetNoUsersFound,
             style: TextStyle(
               color: designVariables.labelMenuButton,
-              fontSize: 16))));
+              fontSize: 16,
+            ),
+          ),
+        ),
+      );
     }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: CustomScrollView(controller: scrollController, slivers: [
-        SliverPadding(
-          padding: EdgeInsets.only(top: 8),
-          sliver: SliverSafeArea(
-            minimum: EdgeInsets.only(bottom: 8),
-            sliver: SliverList.builder(
-              itemCount: filteredUsers.length,
-              itemBuilder: (context, index) {
-                final user = filteredUsers[index];
-                final isSelected = selectedUserIds.contains(user.userId);
+      child: CustomScrollView(
+        controller: scrollController,
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.only(top: 8),
+            sliver: SliverSafeArea(
+              minimum: EdgeInsets.only(bottom: 8),
+              sliver: SliverList.builder(
+                itemCount: filteredUsers.length,
+                itemBuilder: (context, index) {
+                  final user = filteredUsers[index];
+                  final isSelected = selectedUserIds.contains(user.userId);
 
-                return _NewDmUserListItem(
-                  userId: user.userId,
-                  isSelected: isSelected,
-                  onTapped: onUserTapped,
-                );
-              }))),
-        ]));
+                  return _NewDmUserListItem(
+                    userId: user.userId,
+                    isSelected: isSelected,
+                    onTapped: onUserTapped,
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -399,37 +472,54 @@ class _NewDmUserListItem extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       borderRadius: BorderRadius.circular(10),
       color: isSelected
-        ? designVariables.bgMenuButtonSelected
-        : Colors.transparent,
+          ? designVariables.bgMenuButtonSelected
+          : Colors.transparent,
       child: InkWell(
         highlightColor: designVariables.bgMenuButtonSelected,
         splashFactory: NoSplash.splashFactory,
         onTap: () => onTapped(userId),
         child: Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(0, 6, 12, 6),
-          child: Row(children: [
-            SizedBox(width: 8),
-            isSelected
-              ? Icon(size: 24,
-                  color: designVariables.radioFillSelected,
-                  ZulipIcons.check_circle_checked)
-              : Icon(size: 24,
-                  color: designVariables.radioBorder,
-                  ZulipIcons.check_circle_unchecked),
-            SizedBox(width: 10),
-            Avatar(userId: userId, size: 32, borderRadius: 3),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text.rich(
-                TextSpan(text: store.userDisplayName(userId), children: [
-                  UserStatusEmoji.asWidgetSpan(userId: userId, fontSize: 17,
-                    textScaler: MediaQuery.textScalerOf(context)),
-                ]),
-                style: TextStyle(
-                  fontSize: 17,
-                  height: 19 / 17,
-                  color: designVariables.textMessage,
-                ).merge(weightVariableTextStyle(context, wght: 500)))),
-          ]))));
+          child: Row(
+            children: [
+              SizedBox(width: 8),
+              isSelected
+                  ? Icon(
+                      size: 24,
+                      color: designVariables.radioFillSelected,
+                      ZulipIcons.check_circle_checked,
+                    )
+                  : Icon(
+                      size: 24,
+                      color: designVariables.radioBorder,
+                      ZulipIcons.check_circle_unchecked,
+                    ),
+              SizedBox(width: 10),
+              Avatar(userId: userId, size: 32, borderRadius: 3),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text: store.userDisplayName(userId),
+                    children: [
+                      UserStatusEmoji.asWidgetSpan(
+                        userId: userId,
+                        fontSize: 17,
+                        textScaler: MediaQuery.textScalerOf(context),
+                      ),
+                    ],
+                  ),
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 19 / 17,
+                    color: designVariables.textMessage,
+                  ).merge(weightVariableTextStyle(context, wght: 500)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

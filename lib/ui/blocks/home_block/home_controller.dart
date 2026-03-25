@@ -34,7 +34,7 @@ class HomeController extends GetxController {
 
   void navigateToNewDm() {
     showNewDmSheet(Get.context!, (DmNarrow narrow) {
-      Get.offNamed<dynamic>(
+      Get.toNamed<dynamic>(
         AppRoutes.messageList,
         arguments: {'narrow': narrow},
       );

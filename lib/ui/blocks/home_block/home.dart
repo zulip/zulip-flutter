@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/app_pages.dart';
 import '../../../model/narrow.dart';
 import '../../widgets/app_bar.dart';
 import '../../values/icons.dart';
@@ -17,7 +18,6 @@ import 'widgets/bottom_nav_bar.dart';
 import 'widgets/home_loading_placeholder_page.dart';
 import 'widgets/side_navigation_rail.dart';
 import 'home_controller.dart';
-import '../../../get/app_pages.dart';
 
 enum HomePageTab { inbox, channels, directMessages }
 
@@ -88,7 +88,7 @@ class HomePage extends GetView<HomeController> {
                 onPressed: () {
                   showNewDmSheet(context, (DmNarrow narrow) {
                     Get.toNamed<dynamic>(
-                      AppRoutes.topicList,
+                      AppRoutes.messageList,
                       arguments: {'narrow': narrow},
                     );
                   });
