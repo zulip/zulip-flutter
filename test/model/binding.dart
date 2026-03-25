@@ -1,15 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
-import 'package:crypto/crypto.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:sodium_libs/sodium_libs.dart' as sodium;
-import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:zulip/host/android_intents.dart';
 import 'package:zulip/host/android_notifications.dart';
@@ -78,8 +71,6 @@ class TestZulipBinding extends ZulipBinding {
     _resetCloseInAppWebView();
     _resetDeviceInfo();
     _resetPackageInfo();
-    _resetFirebase();
-    _resetNotifications();
     _resetPickFiles();
     _resetPickImage();
     _resetWakelock();
@@ -161,6 +152,7 @@ class TestZulipBinding extends ZulipBinding {
     _canLaunchUrlCalls = null;
     return result ?? [];
   }
+
   List<Uri>? _canLaunchUrlCalls;
 
   @override
@@ -201,6 +193,7 @@ class TestZulipBinding extends ZulipBinding {
     _launchUrlCalls = null;
     return result ?? [];
   }
+
   List<({Uri url, url_launcher.LaunchMode mode})>? _launchUrlCalls;
 
   @override
@@ -214,10 +207,12 @@ class TestZulipBinding extends ZulipBinding {
       throw FlutterError.fromParts([
         ErrorSummary(
           'TestZulipBinding.launchUrl called '
-          'with launchUrlResult: false and non-null launchUrlException'),
+          'with launchUrlResult: false and non-null launchUrlException',
+        ),
         ErrorHint(
           'Tests should either set launchUrlResult or launchUrlException, '
-          'but not both.'),
+          'but not both.',
+        ),
       ]);
     }
 
@@ -229,7 +224,8 @@ class TestZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<bool> supportsCloseForLaunchMode(url_launcher.LaunchMode mode) async => true;
+  Future<bool> supportsCloseForLaunchMode(url_launcher.LaunchMode mode) async =>
+      true;
 
   void _resetCloseInAppWebView() {
     _closeInAppWebViewCallCount = 0;
@@ -241,6 +237,7 @@ class TestZulipBinding extends ZulipBinding {
     _closeInAppWebViewCallCount = 0;
     return result;
   }
+
   int _closeInAppWebViewCallCount = 0;
 
   @override
@@ -256,7 +253,10 @@ class TestZulipBinding extends ZulipBinding {
 
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
-  static const _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33, release: '13');
+  static const _defaultDeviceInfoResult = AndroidDeviceInfo(
+    sdkInt: 33,
+    release: '13',
+  );
 
   void _resetDeviceInfo() {
     deviceInfoResult = _defaultDeviceInfoResult;
@@ -283,55 +283,13 @@ class TestZulipBinding extends ZulipBinding {
   PackageInfo? get syncPackageInfo => packageInfoResult;
 
   @override
-  Future<sodium.Sodium> sodiumInit() async => FakeSodium();
-
-  void _resetFirebase() {
-    _firebaseInitialized = false;
-    _firebaseMessaging = null;
-  }
-
-  bool _firebaseInitialized = false;
-  FakeFirebaseMessaging? _firebaseMessaging;
-
-  @override
-  Future<void> firebaseInitializeApp({required FirebaseOptions options}) async {
-    _firebaseInitialized = true;
-  }
-
-  /// The value `firebaseMessaging.getToken` will initialize the token to.
-  ///
-  /// After `firebaseMessaging.getToken` has been called once, this has no effect.
-  set firebaseMessagingInitialToken(String value) {
-    (_firebaseMessaging ??= FakeFirebaseMessaging())._initialToken = value;
-  }
-
-  @override
-  FakeFirebaseMessaging get firebaseMessaging {
-    assert(_firebaseInitialized);
-    return (_firebaseMessaging ??= FakeFirebaseMessaging());
-  }
-
-  @override
-  Stream<RemoteMessage> get firebaseMessagingOnMessage => firebaseMessaging.onMessage.stream;
-
-  @override
-  void firebaseMessagingOnBackgroundMessage(BackgroundMessageHandler handler) {
-    firebaseMessaging.onBackgroundMessage.stream.listen(handler);
-  }
-
-  void _resetNotifications() {
-    _androidNotificationHostApi = null;
-    _notificationPigeonApi = null;
-  }
-
-  @override
   FakeAndroidNotificationHostApi get androidNotificationHost =>
-    (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
+      (_androidNotificationHostApi ??= FakeAndroidNotificationHostApi());
   FakeAndroidNotificationHostApi? _androidNotificationHostApi;
 
   @override
   FakeNotificationPigeonApi get notificationPigeonApi =>
-    (_notificationPigeonApi ??= FakeNotificationPigeonApi());
+      (_notificationPigeonApi ??= FakeNotificationPigeonApi());
   FakeNotificationPigeonApi? _notificationPigeonApi;
 
   /// The value that `ZulipBinding.instance.pickFiles()` should return.
@@ -351,20 +309,15 @@ class TestZulipBinding extends ZulipBinding {
   /// either this method or [reset].
   ///
   /// See also [pickFilesResult].
-  List<({
-    bool? allowMultiple,
-    bool? withReadStream,
-    FileType? type,
-  })> takePickFilesCalls() {
+  List<({bool? allowMultiple, bool? withReadStream, FileType? type})>
+  takePickFilesCalls() {
     final result = _pickFilesCalls;
     _pickFilesCalls = null;
     return result ?? [];
   }
-  List<({
-    bool? allowMultiple,
-    bool? withReadStream,
-    FileType? type,
-  })>? _pickFilesCalls;
+
+  List<({bool? allowMultiple, bool? withReadStream, FileType? type})>?
+  _pickFilesCalls;
 
   @override
   Future<FilePickerResult?> pickFiles({
@@ -372,7 +325,11 @@ class TestZulipBinding extends ZulipBinding {
     bool? withReadStream,
     FileType? type,
   }) async {
-    (_pickFilesCalls ??= []).add((allowMultiple: allowMultiple, withReadStream: withReadStream, type: type));
+    (_pickFilesCalls ??= []).add((
+      allowMultiple: allowMultiple,
+      withReadStream: withReadStream,
+      type: type,
+    ));
     return pickFilesResult;
   }
 
@@ -393,25 +350,23 @@ class TestZulipBinding extends ZulipBinding {
   /// either this method or [reset].
   ///
   /// See also [pickImageResult].
-  List<({
-    ImageSource source,
-    bool requestFullMetadata,
-  })> takePickImageCalls() {
+  List<({ImageSource source, bool requestFullMetadata})> takePickImageCalls() {
     final result = _pickImageCalls;
     _pickImageCalls = null;
     return result ?? [];
   }
-  List<({
-    ImageSource source,
-    bool requestFullMetadata,
-  })>? _pickImageCalls;
+
+  List<({ImageSource source, bool requestFullMetadata})>? _pickImageCalls;
 
   @override
   Future<XFile?> pickImage({
     required ImageSource source,
     bool requestFullMetadata = true,
   }) async {
-    (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
+    (_pickImageCalls ??= []).add((
+      source: source,
+      requestFullMetadata: requestFullMetadata,
+    ));
     return pickImageResult;
   }
 
@@ -431,248 +386,20 @@ class TestZulipBinding extends ZulipBinding {
 
   @override
   // TODO(#1787) implement androidIntentEvents and write related tests
-  Stream<AndroidIntentEvent> get androidIntentEvents => throw UnimplementedError();
+  Stream<AndroidIntentEvent> get androidIntentEvents =>
+      throw UnimplementedError();
 }
 
-class FakeSodium extends Fake implements sodium.Sodium {
-  @override
-  sodium.SecureKey secureCopy(Uint8List data) => FakeSodiumSecureKey(data);
-
-  @override
-  sodium.Crypto get crypto => FakeSodiumCrypto();
+/// Set the token to a new value, as if it were newly generated.
+///
+/// This will cause listeners of [onTokenRefresh] to be called, but
+/// in a microtask, not synchronously.
+void setToken(String value) {
+  _tokenController.add(value);
 }
 
-class FakeSodiumSecureKey extends Fake implements sodium.SecureKey {
-  FakeSodiumSecureKey(this.bytes);
-
-  final Uint8List bytes;
-
-  @override
-  Uint8List extractBytes() => bytes;
-}
-
-class FakeSodiumCrypto extends Fake implements sodium.Crypto {
-  @override
-  sodium.Box get box => FakeSodiumBox();
-
-  @override
-  sodium.SecretBox get secretBox => FakeSodiumSecretBox();
-}
-
-class FakeSodiumBox extends Fake implements sodium.Box {
-  @override
-  Uint8List seal({required Uint8List message, required Uint8List publicKey}) {
-    return Uint8List.fromList([
-      ..._prefix,
-      ...message,
-      ..._infix,
-      ...publicKey,
-      ..._suffix,
-    ]);
-  }
-
-  static final _prefix = utf8.encode('sealed, don\'t tamper: [');
-  static final _infix  = utf8.encode(']; eyes only: [');
-  static final _suffix = utf8.encode(']');
-
-  @override
-  Uint8List sealOpen({
-    required Uint8List cipherText,
-    required Uint8List publicKey,
-    required sodium.SecureKey secretKey,
-  }) {
-    // Ignores [secretKey].
-    int offset = 0;
-    Uint8List take(int length) =>
-        Uint8List.sublistView(cipherText, offset, offset += length);
-
-    void checkMatch(List<int> piece, [int? length]) {
-      length ??= piece.length;
-      if (!take(length).equals(piece)) throw Exception('invalid ciphertext');
-    }
-
-    final messageLength = cipherText.length
-      - (_prefix.length + _infix.length + 32 + _suffix.length);
-    if (messageLength < 0) throw Exception('invalid ciphertext');
-
-    checkMatch(_prefix);
-    final result = take(messageLength);
-    checkMatch(_infix);
-    checkMatch(publicKey, 32);
-    checkMatch(_suffix);
-    assert(offset == cipherText.length);
-
-    return result;
-  }
-}
-
-class FakeSodiumSecretBox extends Fake implements sodium.SecretBox {
-  @override
-  Uint8List openEasy({
-    required Uint8List cipherText,
-    required Uint8List nonce,
-    required sodium.SecureKey key,
-  }) {
-    int offset = 0;
-    Uint8List take(int length) =>
-        Uint8List.sublistView(cipherText, offset, offset += length);
-
-    void checkMatch(List<int> piece, [int? length]) {
-      length ??= piece.length;
-      if (!take(length).equals(piece)) throw Exception('invalid ciphertext');
-    }
-
-    final messageLength = cipherText.length
-      - (_prefix.length + _infix.length + 32 + _suffix.length);
-    if (messageLength < 0) throw Exception('invalid ciphertext');
-
-    checkMatch(_prefix);
-    final result = take(messageLength);
-    checkMatch(_infix);
-    checkMatch(sha256.convert(key.extractBytes()).bytes, 32);
-    checkMatch(_suffix);
-    assert(offset == cipherText.length);
-
-    return result;
-  }
-
-  static final _prefix = utf8.encode('sekrit, don\'t peek: [');
-  static final _infix = utf8.encode(']; signed, [');
-  static final _suffix = utf8.encode(']');
-
-  @override
-  Uint8List easy({ // TODO include nonce too? (and check in open)
-    required Uint8List message,
-    required Uint8List nonce,
-    required sodium.SecureKey key,
-  }) {
-    return Uint8List.fromList([
-      ..._prefix,
-      ...message,
-      ..._infix,
-      ...sha256.convert(key.extractBytes()).bytes,
-      ..._suffix,
-    ]);
-  }
-}
-
-class FakeFirebaseMessaging extends Fake implements FirebaseMessaging {
-  //|//////////////////////////////
-  // Permissions.
-
-  NotificationSettings requestPermissionResult = const NotificationSettings(
-    alert: AppleNotificationSetting.enabled,
-    announcement: AppleNotificationSetting.disabled,
-    authorizationStatus: AuthorizationStatus.authorized,
-    badge: AppleNotificationSetting.enabled,
-    carPlay: AppleNotificationSetting.disabled,
-    lockScreen: AppleNotificationSetting.enabled,
-    notificationCenter: AppleNotificationSetting.enabled,
-    showPreviews: AppleShowPreviewSetting.whenAuthenticated,
-    timeSensitive: AppleNotificationSetting.disabled,
-    criticalAlert: AppleNotificationSetting.disabled,
-    sound: AppleNotificationSetting.enabled,
-    providesAppNotificationSettings: AppleNotificationSetting.disabled,
-  );
-
-  List<FirebaseMessagingRequestPermissionCall> takeRequestPermissionCalls() {
-    final result = _requestPermissionCalls;
-    _requestPermissionCalls = [];
-    return result;
-  }
-  List<FirebaseMessagingRequestPermissionCall> _requestPermissionCalls = [];
-
-  @override
-  Future<NotificationSettings> requestPermission({
-    bool alert = true,
-    bool announcement = false,
-    bool badge = true,
-    bool carPlay = false,
-    bool criticalAlert = false,
-    bool provisional = false,
-    bool sound = true,
-    bool providesAppNotificationSettings = false,
-  }) async {
-    _requestPermissionCalls.add((
-      alert: alert,
-      announcement: announcement,
-      badge: badge,
-      carPlay: carPlay,
-      criticalAlert: criticalAlert,
-      provisional: provisional,
-      sound: sound,
-      providesAppNotificationSettings: providesAppNotificationSettings,
-    ));
-    return requestPermissionResult;
-  }
-
-  //|//////////////////////////////
-  // Tokens.
-
-  String? _initialToken;
-
-  /// Set the token to a new value, as if it were newly generated.
-  ///
-  /// This will cause listeners of [onTokenRefresh] to be called, but
-  /// in a microtask, not synchronously.
-  void setToken(String value) {
-    _token = value;
-    _tokenController.add(value);
-  }
-
-  String? _token;
-
-  final StreamController<String> _tokenController =
+final StreamController<String> _tokenController =
     StreamController<String>.broadcast();
-
-  @override
-  Future<String?> getToken({String? vapidKey}) async {
-    assert(vapidKey == null);
-    if (_token == null) {
-      assert(_initialToken != null,
-        'Tests that call [NotificationService.start], or otherwise cause'
-        ' a call to `ZulipBinding.instance.firebaseMessaging.getToken`,'
-        ' must set `testBinding.firebaseMessagingInitialToken` first.');
-
-      // This causes [onTokenRefresh] to fire, just like the real [getToken]
-      // does when no token exists (e.g., on first run after install).
-      setToken(_initialToken!);
-    }
-    return _token;
-  }
-
-  @override
-  Stream<String> get onTokenRefresh => _tokenController.stream;
-
-  @override
-  Future<String?> getAPNSToken() async {
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        // In principle the APNs token is unrelated to any FCM token.
-        // But for tests it's convenient to have just one version of
-        // [TestBinding.firebaseMessagingInitialToken].
-        return _initialToken;
-
-      case TargetPlatform.android:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-      case TargetPlatform.fuchsia:
-        return null;
-    }
-  }
-
-  //|//////////////////////////////
-  // Messages.
-
-  StreamController<RemoteMessage> onMessage = StreamController.broadcast();
-
-  /// Controls [TestZulipBinding.firebaseMessagingOnBackgroundMessage].
-  ///
-  /// Calling [StreamController.add] on this will cause a call
-  /// to any handler registered through that method.
-  StreamController<RemoteMessage> onBackgroundMessage = StreamController.broadcast();
-}
 
 typedef FirebaseMessagingRequestPermissionCall = ({
   bool alert,
@@ -715,6 +442,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _createdChannels = [];
     return result;
   }
+
   List<NotificationChannel> _createdChannels = [];
 
   @override
@@ -737,6 +465,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _deletedChannels = [];
     return result;
   }
+
   List<String> _deletedChannels = [];
 
   @override
@@ -759,7 +488,8 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   }
 
   @override
-  Future<List<StoredNotificationSound>> listStoredSoundsInNotificationsDirectory() async {
+  Future<List<StoredNotificationSound>>
+  listStoredSoundsInNotificationsDirectory() async {
     return _storedNotificationSounds.toList(growable: false);
   }
 
@@ -767,12 +497,15 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   ///
   /// This returns a list of the arguments to all calls made
   /// to [copySoundResourceToMediaStore] since the last call to this method.
-  List<CopySoundResourceToMediaStoreCall> takeCopySoundResourceToMediaStoreCalls() {
+  List<CopySoundResourceToMediaStoreCall>
+  takeCopySoundResourceToMediaStoreCalls() {
     final result = _copySoundResourceToMediaStoreCalls;
     _copySoundResourceToMediaStoreCalls = [];
     return result;
   }
-  List<CopySoundResourceToMediaStoreCall> _copySoundResourceToMediaStoreCalls = [];
+
+  List<CopySoundResourceToMediaStoreCall> _copySoundResourceToMediaStoreCalls =
+      [];
 
   @override
   Future<String> copySoundResourceToMediaStore({
@@ -781,13 +514,17 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   }) async {
     _copySoundResourceToMediaStoreCalls.add((
       targetFileDisplayName: targetFileDisplayName,
-      sourceResourceName: sourceResourceName));
+      sourceResourceName: sourceResourceName,
+    ));
 
     final url = fakeStoredNotificationSoundUrl(sourceResourceName);
-    _storedNotificationSounds.add(StoredNotificationSound(
-      fileName: targetFileDisplayName,
-      isOwned: true,
-      contentUrl: url));
+    _storedNotificationSounds.add(
+      StoredNotificationSound(
+        fileName: targetFileDisplayName,
+        isOwned: true,
+        contentUrl: url,
+      ),
+    );
     return url;
   }
 
@@ -800,9 +537,11 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _notifyCalls = [];
     return result;
   }
+
   List<AndroidNotificationHostApiNotifyCall> _notifyCalls = [];
 
-  Iterable<StatusBarNotification> get activeNotifications => _activeNotifications.values;
+  Iterable<StatusBarNotification> get activeNotifications =>
+      _activeNotifications.values;
   final Map<(int, String?), StatusBarNotification> _activeNotifications = {};
 
   final Map<String, MessagingStyle?> _activeNotificationsMessagingStyle = {};
@@ -853,41 +592,52 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
       _activeNotifications[(id, tag)] = StatusBarNotification(
         id: id,
         notification: Notification(group: groupKey ?? '', extras: extras ?? {}),
-        tag: tag);
+        tag: tag,
+      );
 
       _activeNotificationsMessagingStyle[tag] = messagingStyle == null
-        ? null
-        : MessagingStyle(
-            user: messagingStyle.user,
-            conversationTitle: messagingStyle.conversationTitle,
-            isGroupConversation: messagingStyle.isGroupConversation,
-            messages: messagingStyle.messages.map((message) =>
-              MessagingStyleMessage(
-                text: message.text,
-                timestampMs: message.timestampMs,
-                person: Person(
-                  key: message.person.key,
-                  name: message.person.name,
-                  iconBitmap: null)),
-            ).toList(growable: false));
+          ? null
+          : MessagingStyle(
+              user: messagingStyle.user,
+              conversationTitle: messagingStyle.conversationTitle,
+              isGroupConversation: messagingStyle.isGroupConversation,
+              messages: messagingStyle.messages
+                  .map(
+                    (message) => MessagingStyleMessage(
+                      text: message.text,
+                      timestampMs: message.timestampMs,
+                      person: Person(
+                        key: message.person.key,
+                        name: message.person.name,
+                        iconBitmap: null,
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            );
     }
   }
 
   @override
-  Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(String tag) async =>
-    _activeNotificationsMessagingStyle[tag];
+  Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(
+    String tag,
+  ) async => _activeNotificationsMessagingStyle[tag];
 
   @override
-  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras}) async {
-    return _activeNotifications.values.map((statusNotif) {
-      final notificationExtras = statusNotif.notification.extras;
-      statusNotif.notification.extras = {
-        for (final key in desiredExtras)
-          if (notificationExtras[key] != null)
-            key: notificationExtras[key]!,
-      };
-      return statusNotif;
-    }).toList(growable: false);
+  Future<List<StatusBarNotification>> getActiveNotifications({
+    required List<String> desiredExtras,
+  }) async {
+    return _activeNotifications.values
+        .map((statusNotif) {
+          final notificationExtras = statusNotif.notification.extras;
+          statusNotif.notification.extras = {
+            for (final key in desiredExtras)
+              if (notificationExtras[key] != null)
+                key: notificationExtras[key]!,
+          };
+          return statusNotif;
+        })
+        .toList(growable: false);
   }
 
   @override
@@ -907,10 +657,10 @@ class FakeNotificationPigeonApi implements NotificationPigeonApi {
 
   @override
   Future<NotificationDataFromLaunch?> getNotificationDataFromLaunch() async =>
-    _notificationDataFromLaunch;
+      _notificationDataFromLaunch;
 
   final _notificationTapEventsStreamController =
-    StreamController<NotificationTapEvent>();
+      StreamController<NotificationTapEvent>();
 
   void addNotificationTapEvent(NotificationTapEvent event) {
     _notificationTapEventsStreamController.add(event);

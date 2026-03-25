@@ -15,7 +15,6 @@ import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
-import 'package:zulip/model/push_key.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 
@@ -31,20 +30,21 @@ void _checkPositive(int? value, String description) {
 // Error objects.
 //
 
-Object nullCheckError() {
-  try { null!; } catch (e) { return e; } // ignore: null_check_always_fails
-}
-
 /// A Zulip API error with the generic "BAD_REQUEST" error code.
 ///
 /// The server returns this error code for a wide range of error conditions;
 /// it's the default within the server code when no more-specific code is chosen.
 ZulipApiException apiBadRequest({
-    String routeName = 'someRoute', String message = 'Something failed'}) {
+  String routeName = 'someRoute',
+  String message = 'Something failed',
+}) {
   return ZulipApiException(
     routeName: routeName,
-    httpStatus: 400, code: 'BAD_REQUEST',
-    data: {}, message: message);
+    httpStatus: 400,
+    code: 'BAD_REQUEST',
+    data: {},
+    message: message,
+  );
 }
 
 /// The error for the "events" route when the target event queue has been
@@ -55,8 +55,12 @@ ZulipApiException apiExceptionBadEventQueueId({
   String queueId = 'fb67bf8a-c031-47cc-84cf-ed80accacda8',
 }) {
   return ZulipApiException(
-    routeName: 'events', httpStatus: 400, code: 'BAD_EVENT_QUEUE_ID',
-    data: {'queue_id': queueId}, message: 'Bad event queue ID: $queueId');
+    routeName: 'events',
+    httpStatus: 400,
+    code: 'BAD_EVENT_QUEUE_ID',
+    data: {'queue_id': queueId},
+    message: 'Bad event queue ID: $queueId',
+  );
 }
 
 /// The error the server gives when the client's credentials
@@ -69,8 +73,11 @@ ZulipApiException apiExceptionBadEventQueueId({
 ZulipApiException apiExceptionUnauthorized({String routeName = 'someRoute'}) {
   return ZulipApiException(
     routeName: routeName,
-    httpStatus: 401, code: 'UNAUTHORIZED',
-    data: {}, message: 'Invalid API key');
+    httpStatus: 401,
+    code: 'UNAUTHORIZED',
+    data: {},
+    message: 'Invalid API key',
+  );
 }
 
 //|//////////////////////////////////////////////////////////////
@@ -155,20 +162,25 @@ CustomProfileField customProfileField(
 }
 
 ServerEmojiData _immutableServerEmojiData({
-    required Map<String, List<String>> codeToNames}) {
+  required Map<String, List<String>> codeToNames,
+}) {
   return ServerEmojiData(
-    codeToNames: Map.unmodifiable(codeToNames.map(
-      (k, v) => MapEntry(k, List<String>.unmodifiable(v)))));
+    codeToNames: Map.unmodifiable(
+      codeToNames.map((k, v) => MapEntry(k, List<String>.unmodifiable(v))),
+    ),
+  );
 }
 
-final ServerEmojiData serverEmojiDataPopular = _immutableServerEmojiData(codeToNames: {
-  '1f44d': ['+1', 'thumbs_up', 'like'],
-  '1f389': ['tada'],
-  '1f642': ['slight_smile'],
-  '2764': ['heart', 'love', 'love_you'],
-  '1f6e0': ['working_on_it', 'hammer_and_wrench', 'tools'],
-  '1f419': ['octopus'],
-});
+final ServerEmojiData serverEmojiDataPopular = _immutableServerEmojiData(
+  codeToNames: {
+    '1f44d': ['+1', 'thumbs_up', 'like'],
+    '1f389': ['tada'],
+    '1f642': ['slight_smile'],
+    '2764': ['heart', 'love', 'love_you'],
+    '1f6e0': ['working_on_it', 'hammer_and_wrench', 'tools'],
+    '1f419': ['octopus'],
+  },
+);
 
 ServerEmojiData serverEmojiDataPopularPlus(ServerEmojiData data) {
   final a = serverEmojiDataPopular;
@@ -188,14 +200,16 @@ ServerEmojiData serverEmojiDataPopularPlus(ServerEmojiData data) {
 ///
 /// zulip/zulip@9feba0f16f is a Server 11 commit.
 // TODO(server-11) can drop this
-final ServerEmojiData serverEmojiDataPopularLegacy = _immutableServerEmojiData(codeToNames: {
-  '1f44d': ['+1', 'thumbs_up', 'like'],
-  '1f389': ['tada'],
-  '1f642': ['smile'],
-  '2764': ['heart', 'love', 'love_you'],
-  '1f6e0': ['working_on_it', 'hammer_and_wrench', 'tools'],
-  '1f419': ['octopus'],
-});
+final ServerEmojiData serverEmojiDataPopularLegacy = _immutableServerEmojiData(
+  codeToNames: {
+    '1f44d': ['+1', 'thumbs_up', 'like'],
+    '1f389': ['tada'],
+    '1f642': ['smile'],
+    '2764': ['heart', 'love', 'love_you'],
+    '1f6e0': ['working_on_it', 'hammer_and_wrench', 'tools'],
+    '1f419': ['octopus'],
+  },
+);
 
 /// A fresh user-group ID, from a random but always strictly increasing sequence.
 int _nextUserGroupId() => (_lastUserGroupId += 1 + Random().nextInt(10));
@@ -223,8 +237,10 @@ UserGroup userGroup({
 
 final UserGroup nobodyGroup = userGroup(
   isSystemGroup: true,
-  name: 'role:nobody', description: 'Nobody',
-  members: [], directSubgroupIds: [],
+  name: 'role:nobody',
+  description: 'Nobody',
+  members: [],
+  directSubgroupIds: [],
 );
 
 GroupSettingValueNameless groupSetting({
@@ -263,7 +279,8 @@ int _nextUserId() => (_lastUserId += 1 + Random().nextInt(100));
 int _lastUserId = 1000;
 
 /// A random email address, different from previously generated ones.
-String _nextEmail() => 'mail${_lastEmailSuffix += 1 + Random().nextInt(1000)}@example.com';
+String _nextEmail() =>
+    'mail${_lastEmailSuffix += 1 + Random().nextInt(1000)}@example.com';
 int _lastEmailSuffix = 1000;
 
 /// Construct an example user.
@@ -342,6 +359,7 @@ Account account({
     possibleLegacyPushToken: possibleLegacyPushToken ?? false,
   );
 }
+
 const _account = account;
 
 /// A [User] which throws on attempting to mutate any of its fields.
@@ -352,70 +370,87 @@ const _account = account;
 /// which happens to a value in this file like [selfUser] (which will not be
 /// discarded by [TestZulipBinding.reset]).  That was the cause of issue #1712.
 class _ImmutableUser extends User {
-  _ImmutableUser.copyUser(User user) : super(
-    // When adding a field here, be sure to add the corresponding setter below.
-    userId: user.userId,
-    deliveryEmail: user.deliveryEmail,
-    email: user.email,
-    fullName: user.fullName,
-    dateJoined: user.dateJoined,
-    isActive: user.isActive,
-    isBot: user.isBot,
-    botType: user.botType,
-    botOwnerId: user.botOwnerId,
-    role: user.role,
-    timezone: user.timezone,
-    avatarUrl: user.avatarUrl,
-    avatarVersion: user.avatarVersion,
-    profileData: user.profileData == null ? null : Map.unmodifiable(user.profileData!),
-    isSystemBot: user.isSystemBot,
-    // When adding a field here, be sure to add the corresponding setter below.
-  );
+  _ImmutableUser.copyUser(User user)
+    : super(
+        // When adding a field here, be sure to add the corresponding setter below.
+        userId: user.userId,
+        deliveryEmail: user.deliveryEmail,
+        email: user.email,
+        fullName: user.fullName,
+        dateJoined: user.dateJoined,
+        isActive: user.isActive,
+        isBot: user.isBot,
+        botType: user.botType,
+        botOwnerId: user.botOwnerId,
+        role: user.role,
+        timezone: user.timezone,
+        avatarUrl: user.avatarUrl,
+        avatarVersion: user.avatarVersion,
+        profileData: user.profileData == null
+            ? null
+            : Map.unmodifiable(user.profileData!),
+        isSystemBot: user.isSystemBot,
+        // When adding a field here, be sure to add the corresponding setter below.
+      );
 
   static final Error _error = UnsupportedError(
     'Cannot mutate immutable User.\n'
     'When a test needs to have the store handle an event which will\n'
     'modify a user, use `eg.user()` to make a fresh User object\n'
-    'instead of using a shared User object like `eg.selfUser`.');
+    'instead of using a shared User object like `eg.selfUser`.',
+  );
 
   // userId already immutable
-  @override set deliveryEmail(_) => throw _error;
-  @override set email(_) => throw _error;
-  @override set fullName(_) => throw _error;
+  @override
+  set deliveryEmail(_) => throw _error;
+  @override
+  set email(_) => throw _error;
+  @override
+  set fullName(_) => throw _error;
   // dateJoined already immutable
-  @override set isActive(_) => throw _error;
+  @override
+  set isActive(_) => throw _error;
   // isBot already immutable
   // botType already immutable
-  @override set botOwnerId(_) => throw _error;
-  @override set role(_) => throw _error;
-  @override set timezone(_) => throw _error;
-  @override set avatarUrl(_) => throw _error;
-  @override set avatarVersion(_) => throw _error;
-  @override set profileData(_) => throw _error;
+  @override
+  set botOwnerId(_) => throw _error;
+  @override
+  set role(_) => throw _error;
+  @override
+  set timezone(_) => throw _error;
+  @override
+  set avatarUrl(_) => throw _error;
+  @override
+  set avatarVersion(_) => throw _error;
+  @override
+  set profileData(_) => throw _error;
   // isSystemBot already immutable
 }
 
 final User selfUser = _ImmutableUser.copyUser(user(fullName: 'Self User'));
 final User otherUser = _ImmutableUser.copyUser(user(fullName: 'Other User'));
 final User thirdUser = _ImmutableUser.copyUser(user(fullName: 'Third User'));
-final User fourthUser  = _ImmutableUser.copyUser(user(fullName: 'Fourth User'));
+final User fourthUser = _ImmutableUser.copyUser(user(fullName: 'Fourth User'));
 
 // There's no need for an [Account] analogue of [_ImmutableUser],
 // because [Account] (which is generated by Drift) is already immutable.
 final Account selfAccount = account(
   id: 1001,
   user: selfUser,
-  apiKey: 'dQcEJWTq3LczosDkJnRTwf31zniGvMrO', // A Zulip API key is 32 digits of base64.
+  apiKey:
+      'dQcEJWTq3LczosDkJnRTwf31zniGvMrO', // A Zulip API key is 32 digits of base64.
 );
 final Account otherAccount = account(
   id: 1002,
   user: otherUser,
-  apiKey: '6dxT4b73BYpCTU+i4BB9LAKC5h/CufqY', // A Zulip API key is 32 digits of base64.
+  apiKey:
+      '6dxT4b73BYpCTU+i4BB9LAKC5h/CufqY', // A Zulip API key is 32 digits of base64.
 );
 final Account thirdAccount = account(
   id: 1003,
   user: thirdUser,
-  apiKey: 'q8HdN7u5Yz3Wc9LhQv1Rb4o2sXjKf6Ut', // A Zulip API key is 32 digits of base64.
+  apiKey:
+      'q8HdN7u5Yz3Wc9LhQv1Rb4o2sXjKf6Ut', // A Zulip API key is 32 digits of base64.
 );
 
 //|//////////////////////////////////////////////////////////////
@@ -441,7 +476,6 @@ ClientDevice clientDevice({
 Uint8List _pushKeyKey() {
   final start = Random().nextInt(256);
   return Uint8List.fromList([
-    PushKeyStore.pushKeyTagSecretbox,
     ...Iterable.generate(32, (i) => (start + i) % 256),
   ]);
 }
@@ -542,21 +576,28 @@ ZulipStream stream({
     messageRetentionDays: messageRetentionDays,
     channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
     folderId: folderId,
-    canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
-    canDeleteAnyMessageGroup: canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
-    canDeleteOwnMessageGroup: canDeleteOwnMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canAddSubscribersGroup:
+        canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canDeleteAnyMessageGroup:
+        canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canDeleteOwnMessageGroup:
+        canDeleteOwnMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canSendMessageGroup: canSendMessageGroup,
-    canSubscribeGroup: canSubscribeGroup ?? GroupSettingValueNamed(nobodyGroup.id),
+    canSubscribeGroup:
+        canSubscribeGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     isRecentlyActive: isRecentlyActive ?? true,
     streamWeeklyTraffic: streamWeeklyTraffic,
   );
 }
+
 const _stream = stream;
 
 GetChannelTopicsEntry getChannelTopicsEntry({int? maxId, String? name}) {
   maxId ??= 123;
-  return GetChannelTopicsEntry(maxId: maxId,
-    name: TopicName(name ?? 'Test Topic #$maxId'));
+  return GetChannelTopicsEntry(
+    maxId: maxId,
+    name: TopicName(name ?? 'Test Topic #$maxId'),
+  );
 }
 
 /// Construct an example subscription from a stream.
@@ -608,7 +649,8 @@ Subscription subscription(
 
 /// A fresh channel folder ID,
 /// from a random but always strictly increasing sequence.
-int _nextChannelFolderId() => (_lastChannelFolderId += 1 + Random().nextInt(100));
+int _nextChannelFolderId() =>
+    (_lastChannelFolderId += 1 + Random().nextInt(100));
 int _lastChannelFolderId = 1000;
 
 ChannelFolder channelFolder({
@@ -659,7 +701,10 @@ TopicNarrow topicNarrow(int channelId, String topicName, {int? with_}) {
 }
 
 UserTopicItem userTopicItem(
-    ZulipStream stream, String topic, UserTopicVisibilityPolicy policy) {
+  ZulipStream stream,
+  String topic,
+  UserTopicVisibilityPolicy policy,
+) {
   return UserTopicItem(
     streamId: stream.streamId,
     topicName: TopicName(topic),
@@ -708,13 +753,13 @@ Map<String, dynamic> _messagePropertiesFromSender(User? sender) {
   };
 }
 
-Map<String, dynamic> _messagePropertiesFromContent(String? content, String? contentMarkdown) {
+Map<String, dynamic> _messagePropertiesFromContent(
+  String? content,
+  String? contentMarkdown,
+) {
   if (contentMarkdown != null) {
     assert(content == null);
-    return {
-      'content': contentMarkdown,
-      'content_type': 'text/x-markdown',
-    };
+    return {'content': contentMarkdown, 'content_type': 'text/x-markdown'};
   } else {
     return {
       'content': content ?? '<p>This is an example message.</p>',
@@ -771,29 +816,33 @@ StreamMessage streamMessage({
   List<Submessage>? submessages,
 }) {
   _checkPositive(id, 'message ID');
-  final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
+  final effectiveStream =
+      stream ?? _stream(streamId: defaultStreamMessageStreamId);
   // The use of JSON here is convenient in order to delegate parts of the data
   // to helper functions.  The main downside is that it loses static typing
   // of the properties as we're constructing the data.  That's probably OK
   // because (a) this is only for tests; (b) the types do get checked
   // dynamically in the constructor, so any ill-typing won't propagate further.
-  return StreamMessage.fromJson(deepToJson({
-    ..._messagePropertiesBase,
-    ..._messagePropertiesFromSender(sender),
-    ..._messagePropertiesFromContent(content, contentMarkdown),
-    'display_recipient': effectiveStream.name,
-    'stream_id': effectiveStream.streamId,
-    'reactions': reactions == null ? <Reaction>[] : Reactions(reactions),
-    'flags': flags ?? [],
-    'id': id ?? _nextMessageId(),
-    'last_edit_timestamp': lastEditTimestamp,
-    'subject': topic ?? _defaultTopic,
-    'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
-    'type': 'stream',
-    'match_content': matchContent,
-    'match_subject': matchTopic,
-  }) as Map<String, dynamic>);
+  return StreamMessage.fromJson(
+    deepToJson({
+          ..._messagePropertiesBase,
+          ..._messagePropertiesFromSender(sender),
+          ..._messagePropertiesFromContent(content, contentMarkdown),
+          'display_recipient': effectiveStream.name,
+          'stream_id': effectiveStream.streamId,
+          'reactions': reactions == null ? <Reaction>[] : Reactions(reactions),
+          'flags': flags ?? [],
+          'id': id ?? _nextMessageId(),
+          'last_edit_timestamp': lastEditTimestamp,
+          'subject': topic ?? _defaultTopic,
+          'submessages': submessages ?? [],
+          'timestamp': timestamp ?? 1678139636,
+          'type': 'stream',
+          'match_content': matchContent,
+          'match_subject': matchTopic,
+        })
+        as Map<String, dynamic>,
+  );
 }
 
 /// Construct an example direct message.
@@ -819,22 +868,31 @@ DmMessage dmMessage({
 }) {
   _checkPositive(id, 'message ID');
   assert(!to.any((user) => user.userId == from.userId));
-  return DmMessage.fromJson(deepToJson({
-    ..._messagePropertiesBase,
-    ..._messagePropertiesFromSender(from),
-    ..._messagePropertiesFromContent(content, contentMarkdown),
-    'display_recipient': [from, ...to]
-      .map((u) => {'id': u.userId, 'email': u.email, 'full_name': u.fullName})
-      .toList(growable: false),
-    'reactions': <Reaction>[],
-    'flags': flags ?? [],
-    'id': id ?? _nextMessageId(),
-    'last_edit_timestamp': lastEditTimestamp,
-    'subject': '',
-    'submessages': submessages ?? [],
-    'timestamp': timestamp ?? 1678139636,
-    'type': 'private',
-  }) as Map<String, dynamic>);
+  return DmMessage.fromJson(
+    deepToJson({
+          ..._messagePropertiesBase,
+          ..._messagePropertiesFromSender(from),
+          ..._messagePropertiesFromContent(content, contentMarkdown),
+          'display_recipient': [from, ...to]
+              .map(
+                (u) => {
+                  'id': u.userId,
+                  'email': u.email,
+                  'full_name': u.fullName,
+                },
+              )
+              .toList(growable: false),
+          'reactions': <Reaction>[],
+          'flags': flags ?? [],
+          'id': id ?? _nextMessageId(),
+          'last_edit_timestamp': lastEditTimestamp,
+          'subject': '',
+          'submessages': submessages ?? [],
+          'timestamp': timestamp ?? 1678139636,
+          'type': 'private',
+        })
+        as Map<String, dynamic>,
+  );
 }
 
 /// A GetMessagesResult the server might return for
@@ -854,8 +912,9 @@ GetMessagesResult getMessagesResult({
   final resultAnchor = switch (anchor) {
     AnchorCode.oldest => 0,
     NumericAnchor(:final messageId) => messageId,
-    AnchorCode.firstUnread =>
-      throw ArgumentError("firstUnread not accepted in this helper; try NumericAnchor"),
+    AnchorCode.firstUnread => throw ArgumentError(
+      "firstUnread not accepted in this helper; try NumericAnchor",
+    ),
     AnchorCode.newest => 10_000_000_000_000_000, // that's 16 zeros
   };
 
@@ -893,8 +952,12 @@ GetMessagesResult newestGetMessagesResult({
   bool historyLimited = false,
   required List<Message> messages,
 }) {
-  return getMessagesResult(anchor: AnchorCode.newest, foundOldest: foundOldest,
-    historyLimited: historyLimited, messages: messages);
+  return getMessagesResult(
+    anchor: AnchorCode.newest,
+    foundOldest: foundOldest,
+    historyLimited: historyLimited,
+    messages: messages,
+  );
 }
 
 /// A GetMessagesResult the server might return on an initial request
@@ -927,7 +990,8 @@ GetMessagesResult olderGetMessagesResult({
   return GetMessagesResult(
     anchor: anchor,
     foundAnchor: false,
-    foundNewest: false, // empirically always this, even when anchor happens to be latest
+    foundNewest:
+        false, // empirically always this, even when anchor happens to be latest
     foundOldest: foundOldest,
     historyLimited: historyLimited,
     messages: messages,
@@ -961,16 +1025,20 @@ StreamOutboxMessage streamOutboxMessage({
   String? topic,
   String? content,
 }) {
-  final effectiveStream = stream ?? _stream(streamId: defaultStreamMessageStreamId);
+  final effectiveStream =
+      stream ?? _stream(streamId: defaultStreamMessageStreamId);
   return OutboxMessage.fromConversation(
-    StreamConversation(
-      effectiveStream.streamId, TopicName(topic ?? 'topic'),
-      displayRecipient: null,
-    ),
-    localMessageId: localMessageId ?? _nextLocalMessageId++,
-    selfUserId: selfUserId ?? selfUser.userId,
-    timestamp: timestamp ?? utcTimestamp(),
-    contentMarkdown: content ?? 'content') as StreamOutboxMessage;
+        StreamConversation(
+          effectiveStream.streamId,
+          TopicName(topic ?? 'topic'),
+          displayRecipient: null,
+        ),
+        localMessageId: localMessageId ?? _nextLocalMessageId++,
+        selfUserId: selfUserId ?? selfUser.userId,
+        timestamp: timestamp ?? utcTimestamp(),
+        contentMarkdown: content ?? 'content',
+      )
+      as StreamOutboxMessage;
 }
 
 DmOutboxMessage dmOutboxMessage({
@@ -980,14 +1048,16 @@ DmOutboxMessage dmOutboxMessage({
   int? timestamp,
   String? content,
 }) {
-  final allRecipientIds =
-    [from, ...to].map((user) => user.userId).toList()..sort();
+  final allRecipientIds = [from, ...to].map((user) => user.userId).toList()
+    ..sort();
   return OutboxMessage.fromConversation(
-    DmConversation(allRecipientIds: allRecipientIds),
-    localMessageId: localMessageId ?? _nextLocalMessageId++,
-    selfUserId: from.userId,
-    timestamp: timestamp ?? utcTimestamp(),
-    contentMarkdown: content ?? 'content') as DmOutboxMessage;
+        DmConversation(allRecipientIds: allRecipientIds),
+        localMessageId: localMessageId ?? _nextLocalMessageId++,
+        selfUserId: from.userId,
+        timestamp: timestamp ?? utcTimestamp(),
+        contentMarkdown: content ?? 'content',
+      )
+      as DmOutboxMessage;
 }
 
 PollWidgetData pollWidgetData({
@@ -995,7 +1065,8 @@ PollWidgetData pollWidgetData({
   required List<String> options,
 }) {
   return PollWidgetData(
-    extraData: PollWidgetExtraData(question: question, options: options));
+    extraData: PollWidgetExtraData(question: question, options: options),
+  );
 }
 
 Submessage submessage({
@@ -1043,6 +1114,7 @@ UnreadMessagesSnapshot unreadMsgs({
     oldUnreadsMissing: oldUnreadsMissing ?? false,
   );
 }
+
 const _unreadMsgs = unreadMsgs;
 
 //|//////////////////////////////////////////////////////////////
@@ -1069,7 +1141,10 @@ DeviceUpdateEvent deviceUpdateEvent(
 }
 
 UserTopicEvent userTopicEvent(
-    int streamId, String topic, UserTopicVisibilityPolicy visibilityPolicy) {
+  int streamId,
+  String topic,
+  UserTopicVisibilityPolicy visibilityPolicy,
+) {
   return UserTopicEvent(
     id: 1,
     streamId: streamId,
@@ -1080,12 +1155,18 @@ UserTopicEvent userTopicEvent(
 }
 
 MutedUsersEvent mutedUsersEvent(List<int> userIds) {
-  return MutedUsersEvent(id: 1,
-    mutedUsers: userIds.map((id) => MutedUserItem(id: id)).toList());
+  return MutedUsersEvent(
+    id: 1,
+    mutedUsers: userIds.map((id) => MutedUserItem(id: id)).toList(),
+  );
 }
 
 MessageEvent messageEvent(Message message, {int? localMessageId}) =>
-  MessageEvent(id: 0, message: message, localMessageId: localMessageId?.toString());
+    MessageEvent(
+      id: 0,
+      message: message,
+      localMessageId: localMessageId?.toString(),
+    );
 
 DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   assert(messages.isNotEmpty);
@@ -1184,7 +1265,8 @@ UpdateMessageEvent updateMessageEventMoveFrom({
   final origMessage = origMessages.first;
   // Only present on content change.
   final origContent = (newContent != null) ? origMessage.content : null;
-  return _updateMessageMoveEvent(origMessages.map((e) => e.id).toList(),
+  return _updateMessageMoveEvent(
+    origMessages.map((e) => e.id).toList(),
     origStreamId: origMessage.streamId,
     newStreamId: newStreamId,
     origTopic: origMessage.topic,
@@ -1216,11 +1298,12 @@ UpdateMessageEvent updateMessageEventMoveTo({
   final newStreamId = (origStreamId != null) ? newMessage.streamId : null;
   // Only present on content change.
   final newContent = (origContent != null) ? newMessage.content : null;
-  return _updateMessageMoveEvent(newMessages.map((e) => e.id).toList(),
+  return _updateMessageMoveEvent(
+    newMessages.map((e) => e.id).toList(),
     origStreamId: origStreamId ?? newMessage.streamId,
     newStreamId: newStreamId,
     origTopic: origTopic ?? newMessage.topic,
-    newTopic:  newTopic,
+    newTopic: newTopic,
     origContent: origContent,
     newContent: newContent,
     flags: newMessage.flags,
@@ -1238,11 +1321,10 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
     id: 0,
     flag: flag,
     messages: messages.map((m) => m.id).toList(),
-    messageDetails: Map.fromEntries(messages.map((message) {
-      final mentioned = message.flags.any((flag) => flag.isMentionFlag);
-      return MapEntry(
-        message.id,
-        switch (message) {
+    messageDetails: Map.fromEntries(
+      messages.map((message) {
+        final mentioned = message.flags.any((flag) => flag.isMentionFlag);
+        return MapEntry(message.id, switch (message) {
           StreamMessage() => UpdateMessageFlagsMessageDetail(
             type: MessageType.stream,
             mentioned: mentioned,
@@ -1255,12 +1337,15 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
             mentioned: mentioned,
             streamId: null,
             topic: null,
-            userIds: DmNarrow.ofMessage(message, selfUserId: selfUserId ?? selfUser.userId)
-              .otherRecipientIds,
+            userIds: DmNarrow.ofMessage(
+              message,
+              selfUserId: selfUserId ?? selfUser.userId,
+            ).otherRecipientIds,
           ),
-        },
-      );
-    })));
+        });
+      }),
+    ),
+  );
 }
 
 SubmessageEvent submessageEvent(
@@ -1281,17 +1366,25 @@ SubmessageEvent submessageEvent(
 TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
   switch (narrow) {
     case TopicNarrow():
-      return TypingEvent(id: 0, op: op, senderId: senderId,
+      return TypingEvent(
+        id: 0,
+        op: op,
+        senderId: senderId,
         messageType: MessageType.stream,
         streamId: narrow.streamId,
         topic: narrow.topic,
-        recipientIds: null);
+        recipientIds: null,
+      );
     case DmNarrow():
-      return TypingEvent(id: 0, op: op, senderId: senderId,
+      return TypingEvent(
+        id: 0,
+        op: op,
+        senderId: senderId,
         messageType: MessageType.direct,
         recipientIds: narrow.allRecipientIds,
         streamId: null,
-        topic: null);
+        topic: null,
+      );
   }
 }
 
@@ -1368,6 +1461,7 @@ TestGlobalStore globalStore({
     pushKeys: pushKeys,
   );
 }
+
 const _globalStore = globalStore;
 
 const String defaultRealmEmptyTopicDisplayName = 'test general chat';
@@ -1386,6 +1480,7 @@ UserSettings userSettings({
     presenceEnabled: presenceEnabled ?? true,
   );
 }
+
 const _userSettings = userSettings;
 
 InitialSnapshot initialSnapshot({
@@ -1447,7 +1542,10 @@ InitialSnapshot initialSnapshot({
     // trying to simulate a modern server without realmDeleteOwnMessagePolicy.
     realmCanDeleteOwnMessageGroup ??= GroupSettingValueNamed(nobodyGroup.id);
   }
-  assert((realmCanDeleteOwnMessageGroup != null) ^ (realmDeleteOwnMessagePolicy != null));
+  assert(
+    (realmCanDeleteOwnMessageGroup != null) ^
+        (realmDeleteOwnMessagePolicy != null),
+  );
 
   return InitialSnapshot(
     queueId: queueId ?? '1:2345',
@@ -1460,13 +1558,14 @@ InitialSnapshot initialSnapshot({
     maxChannelNameLength: maxChannelNameLength ?? 60,
     maxTopicLength: maxTopicLength ?? 60,
     serverPresencePingIntervalSeconds: serverPresencePingIntervalSeconds ?? 60,
-    serverPresenceOfflineThresholdSeconds: serverPresenceOfflineThresholdSeconds ?? 140,
+    serverPresenceOfflineThresholdSeconds:
+        serverPresenceOfflineThresholdSeconds ?? 140,
     serverTypingStartedExpiryPeriodMilliseconds:
-      serverTypingStartedExpiryPeriodMilliseconds ?? 15000,
+        serverTypingStartedExpiryPeriodMilliseconds ?? 15000,
     serverTypingStoppedWaitPeriodMilliseconds:
-      serverTypingStoppedWaitPeriodMilliseconds ?? 5000,
+        serverTypingStoppedWaitPeriodMilliseconds ?? 5000,
     serverTypingStartedWaitPeriodMilliseconds:
-      serverTypingStartedWaitPeriodMilliseconds ?? 10000,
+        serverTypingStartedWaitPeriodMilliseconds ?? 10000,
     mutedUsers: mutedUsers ?? [],
     presences: presences ?? {},
     realmEmoji: realmEmoji ?? {},
@@ -1486,11 +1585,13 @@ InitialSnapshot initialSnapshot({
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
-    realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    realmWildcardMentionPolicy:
+        realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmName: realmName ?? 'Example Zulip organization',
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
-    realmMessageContentDeleteLimitSeconds: realmMessageContentDeleteLimitSeconds,
+    realmMessageContentDeleteLimitSeconds:
+        realmMessageContentDeleteLimitSeconds,
     realmAllowMessageEditing: realmAllowMessageEditing ?? true,
     realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
     realmEnableReadReceipts: realmEnableReadReceipts ?? true,
@@ -1499,16 +1600,18 @@ InitialSnapshot initialSnapshot({
     realmDefaultExternalAccounts: realmDefaultExternalAccounts ?? {},
     maxFileUploadSizeMib: maxFileUploadSizeMib ?? 25,
     serverThumbnailFormats: serverThumbnailFormats ?? [],
-    serverEmojiDataUrl: serverEmojiDataUrl
-      ?? realmUrl.replace(path: '/static/emoji.json'),
+    serverEmojiDataUrl:
+        serverEmojiDataUrl ?? realmUrl.replace(path: '/static/emoji.json'),
     realmModerationRequestChannelId: realmModerationRequestChannelId,
-    realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
+    realmEmptyTopicDisplayName:
+        realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
     realmUsers: realmUsers ?? [selfUser],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
     serverReportMessageTypes: serverReportMessageTypes,
   );
 }
+
 const _initialSnapshot = initialSnapshot;
 
 PerAccountStore store({
@@ -1518,14 +1621,15 @@ PerAccountStore store({
   InitialSnapshot? initialSnapshot,
 }) {
   assert(!(account != null && selfUser != null));
-  final effectiveAccount = account
-    ?? (selfUser != null ? _account(user: selfUser) : selfAccount);
+  final effectiveAccount =
+      account ?? (selfUser != null ? _account(user: selfUser) : selfAccount);
   return PerAccountStore.fromInitialSnapshot(
     globalStore: globalStore ?? _globalStore(accounts: [effectiveAccount]),
     accountId: effectiveAccount.id,
     initialSnapshot: initialSnapshot ?? _initialSnapshot(),
   );
 }
+
 const _store = store;
 
 UpdateMachine updateMachine({
@@ -1534,10 +1638,15 @@ UpdateMachine updateMachine({
   InitialSnapshot? initialSnapshot,
 }) {
   initialSnapshot ??= _initialSnapshot();
-  final store = _store(globalStore: globalStore,
-    account: account, initialSnapshot: initialSnapshot);
+  final store = _store(
+    globalStore: globalStore,
+    account: account,
+    initialSnapshot: initialSnapshot,
+  );
   return UpdateMachine.fromInitialSnapshot(
-    store: store, initialSnapshot: initialSnapshot);
+    store: store,
+    initialSnapshot: initialSnapshot,
+  );
 }
 
 PackageInfo packageInfo({

@@ -6,9 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart' as http_testing;
 import 'package:zulip/model/actions.dart';
-import 'package:zulip/model/push_device.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/notifications/receive.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -16,10 +14,8 @@ import '../fake_async.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
-import '../notifications/display_test.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
-import 'store_test.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -27,7 +23,10 @@ void main() {
   late PerAccountStore store;
   late FakeApiConnection connection;
 
-  http.Client makeFakeHttpClient({http.Response? response, Exception? exception}) {
+  http.Client makeFakeHttpClient({
+    http.Response? response,
+    Exception? exception,
+  }) {
     return http_testing.MockClient((request) async {
       assert((response != null) ^ (exception != null));
       if (exception != null) throw exception;
@@ -35,19 +34,14 @@ void main() {
     });
   }
 
-  final fakeHttpClientGivingSuccess = makeFakeHttpClient(
-    response: http.Response.bytes(kSolidBlueAvatar, HttpStatus.ok));
-
-  T runWithHttpClient<T>(
-    T Function() callback, {
-    http.Client Function()? httpClientFactory,
-  }) {
-    return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
-  }
+  makeFakeHttpClient(
+    response: http.Response.bytes(kSolidBlueAvatar, HttpStatus.ok),
+  );
 
   Future<void> prepare({bool possibleLegacyPushToken = false}) async {
     final account = eg.selfAccount.copyWith(
-      possibleLegacyPushToken: possibleLegacyPushToken);
+      possibleLegacyPushToken: possibleLegacyPushToken,
+    );
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(account, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(account.id);
@@ -71,21 +65,19 @@ void main() {
     testBinding.globalStore
       ..clearCachedApiConnections()
       ..useCachedApiConnections = true;
-    return testBinding.globalStore
-      .apiConnectionFromAccount(eg.selfAccount) as FakeApiConnection;
+    return testBinding.globalStore.apiConnectionFromAccount(eg.selfAccount)
+        as FakeApiConnection;
   }
 
   String unregisterApiPathForPlatform(TargetPlatform platform) {
     return switch (platform) {
       TargetPlatform.android => '/api/v1/users/me/android_gcm_reg_id',
-      TargetPlatform.iOS     => '/api/v1/users/me/apns_device_token',
-      _                      => throw Error(),
+      TargetPlatform.iOS => '/api/v1/users/me/apns_device_token',
+      _ => throw Error(),
     };
   }
 
-  Condition<Object?> isUnregisterTokenRequest({
-    String? expectedToken,
-  }) {
+  Condition<Object?> isUnregisterTokenRequest({String? expectedToken}) {
     return (it) {
       final subject = it.isA<http.Request>()
         ..method.equals('DELETE')
@@ -96,213 +88,120 @@ void main() {
     };
   }
 
-  Condition<Object?> isUnregisterDeviceRequest({
-    int? expectedDeviceId,
-  }) {
-    return (it) {
-      final subject = it.isA<http.Request>()
-        ..method.equals('POST')
-        ..url.path.equals('/api/v1/remove_client_device');
-      if (expectedDeviceId != null) {
-        subject.bodyFields.deepEquals({'device_id': expectedDeviceId.toString()});
-      }
-    };
-  }
-
   void checkSingleUnregisterRequest(
     FakeApiConnection connection, {
     String? expectedToken,
   }) {
-    check(connection.takeRequests()).single
-      .which(isUnregisterTokenRequest(expectedToken: expectedToken));
+    check(
+      connection.takeRequests(),
+    ).single.which(isUnregisterTokenRequest(expectedToken: expectedToken));
   }
 
   group('logOutAccount', () {
-    test('smoke', () => awaitFakeAsync((async) async {
-      await prepare();
-      addTearDown(NotificationService.debugReset);
-      NotificationService.instance.token = ValueNotifier('asdf');
+    test(
+      'smoke',
+      () => awaitFakeAsync((async) async {
+        await prepare();
 
-      check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
-      final newConnection = separateConnection();
+        check(
+          testBinding.globalStore,
+        ).accountIds.single.equals(eg.selfAccount.id);
+        final newConnection = separateConnection();
 
-      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
-      check(newConnection.takeRequests()).isEmpty();
-      check(testBinding.globalStore.takeDoRemoveAccountCalls())
-        .single.equals(eg.selfAccount.id);
+        final future = logOutAccount(
+          testBinding.globalStore,
+          eg.selfAccount.id,
+        );
+        check(newConnection.takeRequests()).isEmpty();
+        check(
+          testBinding.globalStore.takeDoRemoveAccountCalls(),
+        ).single.equals(eg.selfAccount.id);
 
-      async.elapse(TestGlobalStore.removeAccountDuration);
-      await future;
-      check(testBinding.globalStore).accountIds.isEmpty();
-      check(connection.isOpen).isFalse();
-    }));
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        await future;
+        check(testBinding.globalStore).accountIds.isEmpty();
+        check(connection.isOpen).isFalse();
+      }),
+    );
 
-    test('unregister token, if possibleLegacyPushToken', () => awaitFakeAsync((async) async {
-      await prepare(possibleLegacyPushToken: true);
-      addTearDown(NotificationService.debugReset);
-      NotificationService.instance.token = ValueNotifier('asdf');
+    test(
+      'unregister token, if possibleLegacyPushToken',
+      () => awaitFakeAsync((async) async {
+        await prepare(possibleLegacyPushToken: true);
 
-      check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
-      const unregisterDelay = Duration(seconds: 5);
-      assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
-      final newConnection = separateConnection()
-        ..prepare(delay: unregisterDelay, json: {'msg': '', 'result': 'success'});
+        check(
+          testBinding.globalStore,
+        ).accountIds.single.equals(eg.selfAccount.id);
+        const unregisterDelay = Duration(seconds: 5);
+        assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
+        final newConnection = separateConnection()
+          ..prepare(
+            delay: unregisterDelay,
+            json: {'msg': '', 'result': 'success'},
+          );
 
-      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
-      // Unregister-token request and account removal dispatched together
-      checkSingleUnregisterRequest(newConnection);
-      check(testBinding.globalStore.takeDoRemoveAccountCalls())
-        .single.equals(eg.selfAccount.id);
+        final future = logOutAccount(
+          testBinding.globalStore,
+          eg.selfAccount.id,
+        );
+        // Unregister-token request and account removal dispatched together
+        checkSingleUnregisterRequest(newConnection);
+        check(
+          testBinding.globalStore.takeDoRemoveAccountCalls(),
+        ).single.equals(eg.selfAccount.id);
 
-      async.elapse(TestGlobalStore.removeAccountDuration);
-      await future;
-      // Account removal not blocked on unregister-token response
-      check(testBinding.globalStore).accountIds.isEmpty();
-      check(connection.isOpen).isFalse();
-      check(newConnection.isOpen).isTrue(); // still busy with unregister-token
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        await future;
+        // Account removal not blocked on unregister-token response
+        check(testBinding.globalStore).accountIds.isEmpty();
+        check(connection.isOpen).isFalse();
+        check(
+          newConnection.isOpen,
+        ).isTrue(); // still busy with unregister-token
 
-      async.elapse(unregisterDelay - TestGlobalStore.removeAccountDuration);
-      check(newConnection.isOpen).isFalse();
-    }));
+        async.elapse(unregisterDelay - TestGlobalStore.removeAccountDuration);
+        check(newConnection.isOpen).isFalse();
+      }),
+    );
 
-    test('unregister request has an error: remove account anyway', () => awaitFakeAsync((async) async {
-      await prepare(possibleLegacyPushToken: true);
-      addTearDown(NotificationService.debugReset);
-      NotificationService.instance.token = ValueNotifier('asdf');
+    test(
+      'unregister request has an error: remove account anyway',
+      () => awaitFakeAsync((async) async {
+        await prepare(possibleLegacyPushToken: true);
 
-      check(testBinding.globalStore).accountIds.single.equals(eg.selfAccount.id);
-      const unregisterDelay = Duration(seconds: 5);
-      assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
-      final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
-      final newConnection = separateConnection()
-        ..prepare(delay: unregisterDelay, apiException: exception);
+        check(
+          testBinding.globalStore,
+        ).accountIds.single.equals(eg.selfAccount.id);
+        const unregisterDelay = Duration(seconds: 5);
+        assert(unregisterDelay > TestGlobalStore.removeAccountDuration);
+        final exception = eg.apiExceptionUnauthorized(
+          routeName: 'removeEtcEtcToken',
+        );
+        final newConnection = separateConnection()
+          ..prepare(delay: unregisterDelay, apiException: exception);
 
-      final future = logOutAccount(testBinding.globalStore, eg.selfAccount.id);
-      // Unregister-token request and account removal dispatched together
-      checkSingleUnregisterRequest(newConnection);
-      check(testBinding.globalStore.takeDoRemoveAccountCalls())
-        .single.equals(eg.selfAccount.id);
+        final future = logOutAccount(
+          testBinding.globalStore,
+          eg.selfAccount.id,
+        );
+        // Unregister-token request and account removal dispatched together
+        checkSingleUnregisterRequest(newConnection);
+        check(
+          testBinding.globalStore.takeDoRemoveAccountCalls(),
+        ).single.equals(eg.selfAccount.id);
 
-      async.elapse(TestGlobalStore.removeAccountDuration);
-      await future;
-      // Account removal not blocked on unregister-token response
-      check(testBinding.globalStore).accountIds.isEmpty();
-      check(connection.isOpen).isFalse();
-      check(newConnection.isOpen).isTrue(); // for the unregister-token request
+        async.elapse(TestGlobalStore.removeAccountDuration);
+        await future;
+        // Account removal not blocked on unregister-token response
+        check(testBinding.globalStore).accountIds.isEmpty();
+        check(connection.isOpen).isFalse();
+        check(
+          newConnection.isOpen,
+        ).isTrue(); // for the unregister-token request
 
-      async.elapse(unregisterDelay - TestGlobalStore.removeAccountDuration);
-      check(newConnection.isOpen).isFalse();
-    }));
-
-    test('notifications are removed after logout', () => awaitFakeAsync((async) async {
-      PushDeviceManager.debugAutoPause = true;
-      addTearDown(() => PushDeviceManager.debugAutoPause = false);
-      await prepare();
-      testBinding.firebaseMessagingInitialToken = '123';
-      addTearDown(NotificationService.debugReset);
-      NotificationService.debugBackgroundIsolateIsLive = false;
-      await runWithHttpClient(NotificationService.instance.start);
-
-      await testBinding.globalStore.pushKeys.perAccount(eg.selfAccount.id).insertPushKey(
-        eg.pushKey(account: eg.selfAccount).toCompanion(false));
-
-      // Create a notification to check that it's removed after logout
-      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      testBinding.firebaseMessaging.onMessage.add(
-        await encodeFcmMessage(messageFcmMessage(message)));
-      async.flushMicrotasks();
-      check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
-
-      await logOutAccount(testBinding.globalStore, eg.selfAccount.id);
-      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
-    }));
-  });
-
-  group('unregisterDevice', () {
-    testAndroidIos('smoke, happy path', () => awaitFakeAsync((async) async {
-      await prepare(possibleLegacyPushToken: true);
-      addTearDown(NotificationService.debugReset);
-      NotificationService.instance.token = ValueNotifier('asdf');
-
-      final newConnection = separateConnection()
-        ..prepare(json: {'msg': '', 'result': 'success'})
-        ..prepare(json: {'msg': '', 'result': 'success'});
-      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
-      async.elapse(Duration.zero);
-      await future;
-      check(newConnection.takeRequests()).deepEquals([
-        isUnregisterTokenRequest(expectedToken: 'asdf'),
-        isUnregisterDeviceRequest(expectedDeviceId: eg.selfAccount.deviceId),
-      ]);
-      check(newConnection.isOpen).isFalse();
-    }));
-
-    test('if not possibleLegacyPushToken, no token request', () => awaitFakeAsync((async) async {
-      await prepare(possibleLegacyPushToken: false);
-      addTearDown(NotificationService.debugReset);
-      NotificationService.instance.token = ValueNotifier('asdf');
-
-      final newConnection = separateConnection()
-        ..prepare(json: {'msg': '', 'result': 'success'});
-      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
-      async.flushTimers();
-      await future;
-      check(newConnection.takeRequests()).deepEquals([
-        isUnregisterDeviceRequest(),
-      ]);
-    }));
-
-    test('if current token missing, no token request (and no error)', () => awaitFakeAsync((async) async {
-      await prepare(possibleLegacyPushToken: true);
-      addTearDown(NotificationService.debugReset);
-      NotificationService.instance.token = ValueNotifier(null);
-
-      final newConnection = separateConnection()
-        ..prepare(json: {'msg': '', 'result': 'success'});
-      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
-      async.flushTimers();
-      await future;
-      check(newConnection.takeRequests()).deepEquals([
-        isUnregisterDeviceRequest(),
-      ]);
-    }));
-
-    test('if no deviceId, no device request (and no error)', () => awaitFakeAsync((async) async {
-      final account = eg.selfAccount.copyWith(
-        deviceId: Value(null), possibleLegacyPushToken: true);
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(account, eg.initialSnapshot());
-
-      addTearDown(NotificationService.debugReset);
-      NotificationService.instance.token = ValueNotifier('asdf');
-
-      final newConnection = separateConnection()
-        ..prepare(json: {'msg': '', 'result': 'success'});
-      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
-      async.flushTimers();
-      await future;
-      check(newConnection.takeRequests()).deepEquals([
-        isUnregisterTokenRequest(),
-      ]);
-    }));
-
-    test('even if requests error, both happen and connection closed', () => awaitFakeAsync((async) async {
-      await prepare(possibleLegacyPushToken: true);
-      addTearDown(NotificationService.debugReset);
-      NotificationService.instance.token = ValueNotifier('asdf');
-
-      final exception = eg.apiExceptionUnauthorized(routeName: 'removeEtcEtcToken');
-      final newConnection = separateConnection()
-        ..prepare(apiException: exception)
-        ..prepare(apiException: exception);
-      final future = unregisterDevice(testBinding.globalStore, eg.selfAccount.id);
-      async.elapse(Duration.zero);
-      await future;
-      check(newConnection.takeRequests()).deepEquals([
-        isUnregisterTokenRequest(),
-        isUnregisterDeviceRequest(),
-      ]);
-      check(newConnection.isOpen).isFalse();
-    }));
+        async.elapse(unregisterDelay - TestGlobalStore.removeAccountDuration);
+        check(newConnection.isOpen).isFalse();
+      }),
+    );
   });
 }

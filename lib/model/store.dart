@@ -18,6 +18,7 @@ import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../host/ios_native.g.dart';
 import '../log.dart';
+import '../notifications/local_notifications.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
@@ -25,8 +26,6 @@ import 'emoji.dart';
 import 'localizations.dart';
 import 'message.dart';
 import 'presence.dart';
-import 'push_device.dart';
-import 'push_key.dart';
 import 'realm.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
@@ -41,7 +40,8 @@ import 'user.dart';
 import 'user_group.dart';
 
 export 'package:drift/drift.dart' show Value;
-export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException, PushKey;
+export 'database.dart'
+    show Account, AccountsCompanion, AccountAlreadyExistsException, PushKey;
 
 /// An underlying data store that can support a [GlobalStore],
 /// possibly storing the data to persist between runs of the app.
@@ -108,12 +108,13 @@ abstract class GlobalStore extends ChangeNotifier {
     required Map<IntGlobalSetting, int> intGlobalSettings,
     required Iterable<Account> accounts,
     required Iterable<PushKey> pushKeys,
-  })
-    : settings = GlobalSettingsStore(backend: backend,
-        data: globalSettings, boolData: boolGlobalSettings, intData: intGlobalSettings),
-      pushKeys = GlobalPushKeyStore(backend: backend,
-        data: pushKeys),
-      _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
+  }) : settings = GlobalSettingsStore(
+         backend: backend,
+         data: globalSettings,
+         boolData: boolGlobalSettings,
+         intData: intGlobalSettings,
+       ),
+       _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
   /// The store for the user's account-independent settings.
   ///
@@ -123,8 +124,6 @@ abstract class GlobalStore extends ChangeNotifier {
   /// subscribes to changes in the [GlobalSettingsStore].
   final GlobalSettingsStore settings;
 
-  final GlobalPushKeyStore pushKeys;
-
   /// Construct a new [ApiConnection], real or fake as appropriate.
   ///
   /// Where a per-account store is available, use [PerAccountStore.connection].
@@ -132,15 +131,19 @@ abstract class GlobalStore extends ChangeNotifier {
   /// the login flow.
   ApiConnection apiConnection({
     required Uri realmUrl,
-    required int? zulipFeatureLevel, // required even though nullable; see [ApiConnection.zulipFeatureLevel]
+    required int?
+    zulipFeatureLevel, // required even though nullable; see [ApiConnection.zulipFeatureLevel]
     String? email,
     String? apiKey,
   });
 
   ApiConnection apiConnectionFromAccount(Account account) {
     return apiConnection(
-      realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
-      email: account.email, apiKey: account.apiKey);
+      realmUrl: account.realmUrl,
+      zulipFeatureLevel: account.zulipFeatureLevel,
+      email: account.email,
+      apiKey: account.apiKey,
+    );
   }
 
   //|//////////////////////////////////////////////////////////////
@@ -156,7 +159,8 @@ abstract class GlobalStore extends ChangeNotifier {
   ///
   /// When not null, this is the same [PerAccountStore] that would be returned
   /// by the asynchronous [perAccount].
-  PerAccountStore? perAccountSync(int accountId) => _perAccountStores[accountId];
+  PerAccountStore? perAccountSync(int accountId) =>
+      _perAccountStores[accountId];
 
   /// The store's per-account data for the given account.
   ///
@@ -234,7 +238,9 @@ abstract class GlobalStore extends ChangeNotifier {
       rethrow;
     } catch (e) {
       final account = getAccount(accountId);
-      assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
+      assert(
+        account != null,
+      ); // doLoadPerAccount would have thrown AccountNotFoundException
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       switch (e) {
         case ServerVersionUnsupportedException():
@@ -243,8 +249,10 @@ abstract class GlobalStore extends ChangeNotifier {
             message: zulipLocalizations.errorServerVersionUnsupportedMessage(
               account!.realmUrl.toString(),
               e.data.zulipVersion,
-              kMinSupportedZulipVersion),
-            learnMoreButtonUrl: kServerSupportDocUrl);
+              kMinSupportedZulipVersion,
+            ),
+            learnMoreButtonUrl: kServerSupportDocUrl,
+          );
           // The important thing is to tear down per-account UI,
           // and logOutAccount conveniently handles that already.
           // It's not ideal to force the user to reauthenticate when they retry,
@@ -257,7 +265,9 @@ abstract class GlobalStore extends ChangeNotifier {
           reportErrorToUserModally(
             zulipLocalizations.errorCouldNotConnectTitle,
             message: zulipLocalizations.errorInvalidApiKeyMessage(
-              account!.realmUrl.toString()));
+              account!.realmUrl.toString(),
+            ),
+          );
           await logOutAccount(this, accountId);
           throw AccountNotFoundException();
         default:
@@ -290,7 +300,7 @@ abstract class GlobalStore extends ChangeNotifier {
   // Mutations should go through the setters/mutators below.
   Iterable<Account> get accounts => _accounts.values;
   Iterable<int> get accountIds => _accounts.keys;
-  Iterable<({ int accountId, Account account })> get accountEntries {
+  Iterable<({int accountId, Account account})> get accountEntries {
     return _accounts.entries.map((entry) {
       return (accountId: entry.key, account: entry.value);
     });
@@ -336,7 +346,10 @@ abstract class GlobalStore extends ChangeNotifier {
     assert(!data.id.present && !data.realmUrl.present && !data.userId.present);
     assert(_accounts.containsKey(accountId));
     await doUpdateAccount(accountId, data);
-    final result = _accounts.update(accountId, (value) => value.copyWithCompanion(data));
+    final result = _accounts.update(
+      accountId,
+      (value) => value.copyWithCompanion(data),
+    );
     notifyListeners();
     return result;
   }
@@ -344,18 +357,26 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Update an account with [ZulipVersionData], returning the new version.
   ///
   /// The account must already exist in the store.
-  Future<Account> updateZulipVersionData(int accountId, ZulipVersionData data) async {
+  Future<Account> updateZulipVersionData(
+    int accountId,
+    ZulipVersionData data,
+  ) async {
     assert(_accounts.containsKey(accountId));
-    return updateAccount(accountId, AccountsCompanion(
-      zulipVersion: Value(data.zulipVersion),
-      zulipMergeBase: Value(data.zulipMergeBase),
-      zulipFeatureLevel: Value(data.zulipFeatureLevel)));
+    return updateAccount(
+      accountId,
+      AccountsCompanion(
+        zulipVersion: Value(data.zulipVersion),
+        zulipMergeBase: Value(data.zulipMergeBase),
+        zulipFeatureLevel: Value(data.zulipFeatureLevel),
+      ),
+    );
   }
 
   /// Update an account with [realmName] and [realmIcon], returning the new version.
   ///
   /// The account must already exist in the store.
-  Future<Account> updateRealmData(int accountId, {
+  Future<Account> updateRealmData(
+    int accountId, {
     required String realmName,
     required Uri realmIcon,
   }) async {
@@ -364,14 +385,17 @@ abstract class GlobalStore extends ChangeNotifier {
       return account;
     }
 
-    return updateAccount(accountId,  AccountsCompanion(
-      realmName: account.realmName != realmName
-        ? Value(realmName)
-        : const Value.absent(),
-      realmIcon: account.realmIcon != realmIcon
-        ? Value(realmIcon)
-        : const Value.absent(),
-    ));
+    return updateAccount(
+      accountId,
+      AccountsCompanion(
+        realmName: account.realmName != realmName
+            ? Value(realmName)
+            : const Value.absent(),
+        realmIcon: account.realmIcon != realmIcon
+            ? Value(realmIcon)
+            : const Value.absent(),
+      ),
+    );
   }
 
   /// Fetches the server settings for the given [realmUrl].
@@ -383,11 +407,13 @@ abstract class GlobalStore extends ChangeNotifier {
   Future<GetServerSettingsResult> fetchServerSettings(Uri realmUrl) async {
     final connection = apiConnection(
       realmUrl: realmUrl,
-      zulipFeatureLevel: null);
+      zulipFeatureLevel: null,
+    );
     try {
       return await getServerSettings(connection);
     } on MalformedServerResponseException catch (e) {
-      final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e);
+      final zulipVersionData =
+          ZulipVersionData.fromMalformedServerResponseException(e);
       if (zulipVersionData != null && zulipVersionData.isUnsupported) {
         throw ServerVersionUnsupportedException(zulipVersionData);
       }
@@ -434,7 +460,8 @@ abstract class GlobalStore extends ChangeNotifier {
         await updateRealmData(
           accountId,
           realmName: serverSettings.realmName,
-          realmIcon: serverSettings.realmIcon);
+          realmIcon: serverSettings.realmIcon,
+        );
       }());
     }
   }
@@ -452,7 +479,6 @@ abstract class GlobalStore extends ChangeNotifier {
     _accounts.remove(accountId);
     _perAccountStores.remove(accountId)?.dispose();
     unawaited(_perAccountStoresLoading.remove(accountId));
-    pushKeys.removeAccount(accountId);
     notifyListeners();
   }
 
@@ -464,7 +490,8 @@ abstract class GlobalStore extends ChangeNotifier {
   //|//////////////////////////////////////////////////////////////
 
   @override
-  String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
+  String toString() =>
+      '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
 }
 
 class AccountNotFoundException implements Exception {}
@@ -483,10 +510,13 @@ class CorePerAccountStore {
     required this.queueId,
     required this.accountId,
     required this.selfUserId,
-  }) : assert(connection.realmUrl == _globalStore.getAccount(accountId)!.realmUrl);
+  }) : assert(
+         connection.realmUrl == _globalStore.getAccount(accountId)!.realmUrl,
+       );
 
   final GlobalStore _globalStore;
-  final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
+  final ApiConnection
+  connection; // TODO(#135): update zulipFeatureLevel with events
   final String queueId;
   final int accountId;
 
@@ -564,8 +594,6 @@ abstract class PerAccountStoreBase {
   Future<void> updateAccount(AccountsCompanion data) async {
     await _globalStore.updateAccount(accountId, data);
   }
-
-  PushKeyStore get pushKeys => _globalStore.pushKeys.perAccount(accountId);
 }
 
 const _tryResolveUrl = tryResolveUrl;
@@ -587,15 +615,22 @@ Uri? tryResolveUrl(Uri baseUrl, String reference) {
 /// This class does not attempt to poll an event queue
 /// to keep the data up to date.  For that behavior, see
 /// [UpdateMachine].
-class PerAccountStore extends PerAccountStoreBase with
-    ChangeNotifier,
-    UserGroupStore, ProxyUserGroupStore,
-    RealmStore, ProxyRealmStore,
-    EmojiStore, ProxyEmojiStore,
-    SavedSnippetStore,
-    UserStore, ProxyUserStore,
-    ChannelStore, ProxyChannelStore,
-    MessageStore, ProxyMessageStore {
+class PerAccountStore extends PerAccountStoreBase
+    with
+        ChangeNotifier,
+        UserGroupStore,
+        ProxyUserGroupStore,
+        RealmStore,
+        ProxyRealmStore,
+        EmojiStore,
+        ProxyEmojiStore,
+        SavedSnippetStore,
+        UserStore,
+        ProxyUserStore,
+        ChannelStore,
+        ProxyChannelStore,
+        MessageStore,
+        ProxyMessageStore {
   /// Construct a store for the user's data, starting from the given snapshot.
   ///
   /// The global store must already have been updated with
@@ -613,11 +648,15 @@ class PerAccountStore extends PerAccountStoreBase with
     required InitialSnapshot initialSnapshot,
   }) {
     final account = globalStore.getAccount(accountId)!;
-    assert(account.zulipVersion == initialSnapshot.zulipVersion
-      && account.zulipMergeBase == initialSnapshot.zulipMergeBase
-      && account.zulipFeatureLevel == initialSnapshot.zulipFeatureLevel);
-    assert(account.realmName == initialSnapshot.realmName
-      && account.realmIcon == initialSnapshot.realmIconUrl);
+    assert(
+      account.zulipVersion == initialSnapshot.zulipVersion &&
+          account.zulipMergeBase == initialSnapshot.zulipMergeBase &&
+          account.zulipFeatureLevel == initialSnapshot.zulipFeatureLevel,
+    );
+    assert(
+      account.realmName == initialSnapshot.realmName &&
+          account.realmIcon == initialSnapshot.realmIconUrl,
+    );
 
     connection ??= globalStore.apiConnectionFromAccount(account);
     assert(connection.zulipFeatureLevel == account.zulipFeatureLevel);
@@ -643,46 +682,67 @@ class PerAccountStore extends PerAccountStoreBase with
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       reportErrorToUserModally(
         zulipLocalizations.errorCouldNotConnectTitle,
-        message: zulipLocalizations.errorMalformedResponseWithCause(200,
+        message: zulipLocalizations.errorMalformedResponseWithCause(
+          200,
           // skip-i18n: This would be an unlikely bug (in the server?).  We're
           //   showing the user these details at all only because it would be a
           //   very nasty bug (so, important to resolve ASAP) if it ever did happen.
-          'self-user missing from user list'));
+          'self-user missing from user list',
+        ),
+      );
       throw Exception("bad initial snapshot: self-user missing from user list");
     }
 
-    final groups = UserGroupStoreImpl(core: core,
-      groups: initialSnapshot.realmUserGroups);
-    final realm = RealmStoreImpl(groups: groups, initialSnapshot: initialSnapshot,
-      selfUser: selfUser);
-    final users = UserStoreImpl(realm: realm, initialSnapshot: initialSnapshot,
-      userMap: userMap);
-    final channels = ChannelStoreImpl(users: users,
-      initialSnapshot: initialSnapshot);
+    final groups = UserGroupStoreImpl(
+      core: core,
+      groups: initialSnapshot.realmUserGroups,
+    );
+    final realm = RealmStoreImpl(
+      groups: groups,
+      initialSnapshot: initialSnapshot,
+      selfUser: selfUser,
+    );
+    final users = UserStoreImpl(
+      realm: realm,
+      initialSnapshot: initialSnapshot,
+      userMap: userMap,
+    );
+    final channels = ChannelStoreImpl(
+      users: users,
+      initialSnapshot: initialSnapshot,
+    );
     return PerAccountStore._(
       core: core,
       groups: groups,
       realm: realm,
-      emoji: EmojiStoreImpl(core: core,
-        allRealmEmoji: initialSnapshot.realmEmoji),
+      emoji: EmojiStoreImpl(
+        core: core,
+        allRealmEmoji: initialSnapshot.realmEmoji,
+      ),
       userSettings: initialSnapshot.userSettings,
-      pushDevices: PushDeviceManager(core: core,
-        devices: initialSnapshot.devices ?? {}),
-      savedSnippets: SavedSnippetStoreImpl(core: core,
-        savedSnippets: initialSnapshot.savedSnippets ?? []),
+      savedSnippets: SavedSnippetStoreImpl(
+        core: core,
+        savedSnippets: initialSnapshot.savedSnippets ?? [],
+      ),
       typingNotifier: TypingNotifier(realm: realm),
       users: users,
       typingStatus: TypingStatus(realm: realm),
-      presence: Presence(realm: realm,
-        initial: initialSnapshot.presences),
+      presence: Presence(realm: realm, initial: initialSnapshot.presences),
       channels: channels,
       topics: Topics(core: core),
-      messages: MessageStoreImpl(channels: channels,
-        initialStarredMessages: initialSnapshot.starredMessages),
-      unreads: Unreads(core: core, channelStore: channels,
-        initial: initialSnapshot.unreadMsgs),
-      recentDmConversationsView: RecentDmConversationsView(core: core,
-        initial: initialSnapshot.recentPrivateConversations),
+      messages: MessageStoreImpl(
+        channels: channels,
+        initialStarredMessages: initialSnapshot.starredMessages,
+      ),
+      unreads: Unreads(
+        core: core,
+        channelStore: channels,
+        initial: initialSnapshot.unreadMsgs,
+      ),
+      recentDmConversationsView: RecentDmConversationsView(
+        core: core,
+        initial: initialSnapshot.recentPrivateConversations,
+      ),
       recentSenders: RecentSenders(),
     );
   }
@@ -693,7 +753,6 @@ class PerAccountStore extends PerAccountStoreBase with
     required this._realm,
     required this._emoji,
     required this.userSettings,
-    required this.pushDevices,
     required this._savedSnippets,
     required this.typingNotifier,
     required this._users,
@@ -759,8 +818,6 @@ class PerAccountStore extends PerAccountStoreBase with
   // Data attached to the self-account on the realm.
 
   final UserSettings userSettings;
-
-  final PushDeviceManager pushDevices;
 
   @override
   Map<int, SavedSnippet> get savedSnippets => _savedSnippets.savedSnippets;
@@ -830,7 +887,8 @@ class PerAccountStore extends PerAccountStoreBase with
   //|//////////////////////////////
   // Other digests of data.
 
-  final AutocompleteViewManager autocompleteViewManager = AutocompleteViewManager();
+  final AutocompleteViewManager autocompleteViewManager =
+      AutocompleteViewManager();
 
   // End of data.
   //|//////////////////////////////////////////////////////////////
@@ -855,7 +913,6 @@ class PerAccountStore extends PerAccountStoreBase with
     presence.dispose();
     typingStatus.dispose();
     typingNotifier.dispose();
-    pushDevices.dispose();
     updateMachine?.dispose();
     connection.close();
     _disposed = true;
@@ -876,31 +933,35 @@ class PerAccountStore extends PerAccountStoreBase with
 
       case AlertWordsEvent():
         assert(debugLog("server event: alert_words"));
-        // We don't yet store this data, so there's nothing to update.
+      // We don't yet store this data, so there's nothing to update.
 
       case UserSettingsUpdateEvent():
-        assert(debugLog("server event: user_settings/update ${event.property?.name ?? '[unrecognized]'}"));
+        assert(
+          debugLog(
+            "server event: user_settings/update ${event.property?.name ?? '[unrecognized]'}",
+          ),
+        );
         if (event.property == null) {
           // unrecognized setting; do nothing
           return;
         }
         switch (event.property!) {
           case UserSettingName.twentyFourHourTime:
-            userSettings.twentyFourHourTime        = event.value as TwentyFourHourTimeMode;
+            userSettings.twentyFourHourTime =
+                event.value as TwentyFourHourTimeMode;
           case UserSettingName.starredMessageCounts:
-            userSettings.starredMessageCounts      = event.value as bool;
+            userSettings.starredMessageCounts = event.value as bool;
           case UserSettingName.displayEmojiReactionUsers:
             userSettings.displayEmojiReactionUsers = event.value as bool;
           case UserSettingName.emojiset:
-            userSettings.emojiset                  = event.value as Emojiset;
+            userSettings.emojiset = event.value as Emojiset;
           case UserSettingName.presenceEnabled:
-            userSettings.presenceEnabled           = event.value as bool;
+            userSettings.presenceEnabled = event.value as bool;
         }
         notifyListeners();
 
       case DeviceEvent():
         assert(debugLog("server event: device"));
-        pushDevices.handleDeviceEvent(event);
         notifyListeners();
 
       case CustomProfileFieldsEvent():
@@ -981,7 +1042,11 @@ class PerAccountStore extends PerAccountStoreBase with
         notifyListeners();
 
       case MessageEvent():
-        assert(debugLog("server event: message ${jsonEncode(event.message.toJson())}"));
+        assert(
+          debugLog(
+            "server event: message ${jsonEncode(event.message.toJson())}",
+          ),
+        );
         // Assert against malformed events that might be created in test code.
         assert(event.message.matchContent == null);
         assert(event.message.matchTopic == null);
@@ -991,8 +1056,18 @@ class PerAccountStore extends PerAccountStoreBase with
         recentDmConversationsView.handleMessageEvent(event);
         recentSenders.handleMessage(event.message); // TODO(#824)
         topics.handleMessageEvent(event);
-        // When adding anything here (to handle [MessageEvent]),
-        // it probably belongs in [reconcileMessages] too.
+
+        if (event.message.isMeMessage) {
+          unawaited(
+            LocalNotificationsService().showNotification(
+              title: event.message.senderFullName,
+              body: event.message.content,
+              groupKey: event.message.senderId.toString(),
+            ),
+          );
+        }
+      // When adding anything here (to handle [MessageEvent]),
+      // it probably belongs in [reconcileMessages] too.
 
       case UpdateMessageEvent():
         assert(debugLog("server event: update_message ${event.messageId}"));
@@ -1013,7 +1088,11 @@ class PerAccountStore extends PerAccountStoreBase with
         if (shouldNotify) notifyListeners();
 
       case UpdateMessageFlagsEvent():
-        assert(debugLog("server event: update_message_flags/${event.op} ${event.flag.toJson()}"));
+        assert(
+          debugLog(
+            "server event: update_message_flags/${event.op} ${event.flag.toJson()}",
+          ),
+        );
         bool shouldNotify = false;
         shouldNotify |= _messages.handleUpdateMessageFlagsEvent(event);
         unreads.handleUpdateMessageFlagsEvent(event);
@@ -1024,7 +1103,9 @@ class PerAccountStore extends PerAccountStoreBase with
         _messages.handleSubmessageEvent(event);
 
       case TypingEvent():
-        assert(debugLog("server event: typing/${event.op} ${event.messageType}"));
+        assert(
+          debugLog("server event: typing/${event.op} ${event.messageType}"),
+        );
         typingStatus.handleTypingEvent(event);
 
       case PresenceEvent():
@@ -1044,12 +1125,15 @@ class PerAccountStore extends PerAccountStoreBase with
         notifyListeners();
 
       case UnexpectedEvent():
-        assert(debugLog("server event: ${jsonEncode(event.toJson())}")); // TODO log better
+        assert(
+          debugLog("server event: ${jsonEncode(event.toJson())}"),
+        ); // TODO log better
     }
   }
 
   @override
-  String toString() => '${objectRuntimeType(this, 'PerAccountStore')}#${shortHash(this)}';
+  String toString() =>
+      '${objectRuntimeType(this, 'PerAccountStore')}#${shortHash(this)}';
 }
 
 /// A [GlobalStoreBackend] that uses a live, persistent local database.
@@ -1069,50 +1153,64 @@ class LiveGlobalStoreBackend implements GlobalStoreBackend {
   }
 
   @override
-  Future<void> doSetBoolGlobalSetting(BoolGlobalSetting setting, bool? value) async {
+  Future<void> doSetBoolGlobalSetting(
+    BoolGlobalSetting setting,
+    bool? value,
+  ) async {
     if (value == null) {
       final query = _db.delete(_db.boolGlobalSettings)
         ..where((r) => r.name.equals(setting.name));
       await query.go();
     } else {
-      await _db.into(_db.boolGlobalSettings).insertOnConflictUpdate(
-        BoolGlobalSettingRow(name: setting.name, value: value));
+      await _db
+          .into(_db.boolGlobalSettings)
+          .insertOnConflictUpdate(
+            BoolGlobalSettingRow(name: setting.name, value: value),
+          );
     }
   }
 
   @override
-  Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value) async {
+  Future<void> doSetIntGlobalSetting(
+    IntGlobalSetting setting,
+    int? value,
+  ) async {
     if (value == null) {
-      await (_db.delete(_db.intGlobalSettings)
-        ..where((r) => r.name.equals(setting.name))
-      ).go();
+      await (_db.delete(
+        _db.intGlobalSettings,
+      )..where((r) => r.name.equals(setting.name))).go();
     } else {
-      await _db.into(_db.intGlobalSettings).insertOnConflictUpdate(
-        IntGlobalSettingRow(name: setting.name, value: value));
+      await _db
+          .into(_db.intGlobalSettings)
+          .insertOnConflictUpdate(
+            IntGlobalSettingRow(name: setting.name, value: value),
+          );
     }
   }
 
   @override
   Future<PushKey> doInsertPushKey(PushKeysCompanion data) async {
     await _db.createPushKey(data); // TODO(log): db errors
-    return await (_db.select(_db.pushKeys) // TODO perhaps put this logic in AppDatabase
-      ..where((a) => a.pushKeyId.equals(data.pushKeyId.value))
-    ).getSingle();
+    return await (_db.select(
+            _db.pushKeys,
+          ) // TODO perhaps put this logic in AppDatabase
+          ..where((a) => a.pushKeyId.equals(data.pushKeyId.value)))
+        .getSingle();
   }
 
   @override
   Future<void> doUpdatePushKey(int pushKeyId, PushKeysCompanion data) async {
-    final rowsAffected = await (_db.update(_db.pushKeys)
-      ..where((a) => a.pushKeyId.equals(pushKeyId))
-    ).write(data);
+    final rowsAffected = await (_db.update(
+      _db.pushKeys,
+    )..where((a) => a.pushKeyId.equals(pushKeyId))).write(data);
     assert(rowsAffected == 1);
   }
 
   @override
   Future<void> doRemovePushKey(int pushKeyId) async {
-    final rowsAffected = await (_db.delete(_db.pushKeys)
-      ..where((a) => a.pushKeyId.equals(pushKeyId))
-    ).go();
+    final rowsAffected = await (_db.delete(
+      _db.pushKeys,
+    )..where((a) => a.pushKeyId.equals(pushKeyId))).go();
     assert(rowsAffected == 1);
   }
 }
@@ -1136,11 +1234,17 @@ class LiveGlobalStore extends GlobalStore {
 
   @override
   ApiConnection apiConnection({
-      required Uri realmUrl, required int? zulipFeatureLevel,
-      String? email, String? apiKey}) {
+    required Uri realmUrl,
+    required int? zulipFeatureLevel,
+    String? email,
+    String? apiKey,
+  }) {
     return ApiConnection.live(
-      realmUrl: realmUrl, zulipFeatureLevel: zulipFeatureLevel,
-      email: email, apiKey: apiKey);
+      realmUrl: realmUrl,
+      zulipFeatureLevel: zulipFeatureLevel,
+      email: email,
+      apiKey: apiKey,
+    );
   }
 
   // We keep the API simple and synchronous for the bulk of the app's code
@@ -1169,11 +1273,13 @@ class LiveGlobalStore extends GlobalStore {
     final t6 = stopwatch.elapsed;
     if (kProfileMode) {
       String format(Duration d) =>
-        "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
-      profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
+          "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
+      profilePrint(
+        "db load time ${format(t5)} total: ${format(t1)} init, "
         "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
         "${format(t4 - t3)} int-settings, "
-        "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys");
+        "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys",
+      );
     }
 
     // Disable OS backups for the database file, see:
@@ -1255,29 +1361,32 @@ class LiveGlobalStore extends GlobalStore {
     // if we did that and then there was some subtle case where we
     // didn't match the database's behavior, that'd be a nasty bug.
     // This isn't a hot path, so just make the extra query.
-    return await (_db.select(_db.accounts) // TODO perhaps put this logic in AppDatabase
-      ..where((a) => a.id.equals(accountId))
-    ).getSingle();
+    return await (_db.select(
+            _db.accounts,
+          ) // TODO perhaps put this logic in AppDatabase
+          ..where((a) => a.id.equals(accountId)))
+        .getSingle();
   }
 
   @override
   Future<void> doUpdateAccount(int accountId, AccountsCompanion data) async {
-    final rowsAffected = await (_db.update(_db.accounts)
-      ..where((a) => a.id.equals(accountId))
-    ).write(data);
+    final rowsAffected = await (_db.update(
+      _db.accounts,
+    )..where((a) => a.id.equals(accountId))).write(data);
     assert(rowsAffected == 1);
   }
 
   @override
   Future<void> doRemoveAccount(int accountId) async {
-    final rowsAffected = await (_db.delete(_db.accounts)
-      ..where((a) => a.id.equals(accountId))
-    ).go();
+    final rowsAffected = await (_db.delete(
+      _db.accounts,
+    )..where((a) => a.id.equals(accountId))).go();
     assert(rowsAffected == 1);
   }
 
   @override
-  String toString() => '${objectRuntimeType(this, 'LiveGlobalStore')}#${shortHash(this)}';
+  String toString() =>
+      '${objectRuntimeType(this, 'LiveGlobalStore')}#${shortHash(this)}';
 }
 
 /// A [PerAccountStore] plus an event-polling loop to stay up to date.
@@ -1298,9 +1407,13 @@ class UpdateMachine {
   /// the account has been removed.
   ///
   /// In the future this might load an old snapshot from local storage first.
-  static Future<UpdateMachine> load(GlobalStore globalStore, int accountId) async {
+  static Future<UpdateMachine> load(
+    GlobalStore globalStore,
+    int accountId,
+  ) async {
     final connection = globalStore.apiConnectionFromAccount(
-      globalStore.getAccount(accountId)!);
+      globalStore.getAccount(accountId)!,
+    );
 
     void stopAndThrowIfNoAccount() {
       final account = globalStore.getAccount(accountId);
@@ -1314,8 +1427,10 @@ class UpdateMachine {
     final stopwatch = Stopwatch()..start();
     InitialSnapshot? initialSnapshot;
     try {
-      initialSnapshot = await _registerQueueWithRetry(connection,
-        stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
+      initialSnapshot = await _registerQueueWithRetry(
+        connection,
+        stopAndThrowIfNoAccount: stopAndThrowIfNoAccount,
+      );
     } on ServerVersionUnsupportedException catch (e) {
       // `!` is OK because _registerQueueWithRetry would have thrown a
       // not-ServerVersionUnsupportedException if no account
@@ -1330,7 +1445,9 @@ class UpdateMachine {
       profilePrint("initial fetch time: ${stopwatch.elapsed.inMilliseconds}ms");
     }
 
-    final zulipVersionData = ZulipVersionData.fromInitialSnapshot(initialSnapshot);
+    final zulipVersionData = ZulipVersionData.fromInitialSnapshot(
+      initialSnapshot,
+    );
     // `!` is OK because _registerQueueWithRetry would have thrown if no account
     if (!zulipVersionData.matchesAccount(globalStore.getAccount(accountId)!)) {
       await globalStore.updateZulipVersionData(accountId, zulipVersionData);
@@ -1338,9 +1455,11 @@ class UpdateMachine {
     }
 
     // TODO(#668) update realmName and realmIcon on realm update events
-    await globalStore.updateRealmData(accountId,
+    await globalStore.updateRealmData(
+      accountId,
       realmName: initialSnapshot.realmName,
-      realmIcon: initialSnapshot.realmIconUrl);
+      realmIcon: initialSnapshot.realmIconUrl,
+    );
 
     final store = PerAccountStore.fromInitialSnapshot(
       globalStore: globalStore,
@@ -1349,7 +1468,9 @@ class UpdateMachine {
       initialSnapshot: initialSnapshot,
     );
     final updateMachine = UpdateMachine.fromInitialSnapshot(
-      store: store, initialSnapshot: initialSnapshot);
+      store: store,
+      initialSnapshot: initialSnapshot,
+    );
     updateMachine.poll();
     unawaited(updateMachine.fetchEmojiData(initialSnapshot.serverEmojiDataUrl));
     store.presence.start();
@@ -1379,8 +1500,12 @@ class UpdateMachine {
         final ZulipVersionData? zulipVersionData;
         switch (e) {
           case MalformedServerResponseException()
-            when (zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e))
-              ?.isUnsupported == true:
+              when (zulipVersionData =
+                          ZulipVersionData.fromMalformedServerResponseException(
+                            e,
+                          ))
+                      ?.isUnsupported ==
+                  true:
             throw ServerVersionUnsupportedException(zulipVersionData!);
           case HttpException(httpStatus: 401):
             // We cannot recover from this error through retrying.
@@ -1397,12 +1522,14 @@ class UpdateMachine {
               // TODO: When the error seems transient, do keep retrying but
               //   don't spam this feedback.
               // TODO(#1948) Break the retry loop on non-transient errors.
-              _reportConnectionErrorToUserAndPromiseRetry(e,
+              _reportConnectionErrorToUserAndPromiseRetry(
+                e,
                 realmUrl: connection.realmUrl,
                 // The stack trace is mostly useful for
                 // `MalformedServerResponseException`s, and will be noise for
                 // routine exceptions like from network problems.
-                stackTrace: e is ApiRequestException ? null : stackTrace);
+                stackTrace: e is ApiRequestException ? null : stackTrace,
+              );
             }
         }
         assert(debugLog('Backing off, then will retry…'));
@@ -1440,17 +1567,25 @@ class UpdateMachine {
     ServerEmojiData data;
     while (true) {
       try {
-        data = await fetchServerEmojiData(store.connection,
-          emojiDataUrl: serverEmojiDataUrl);
+        data = await fetchServerEmojiData(
+          store.connection,
+          emojiDataUrl: serverEmojiDataUrl,
+        );
         assert(debugLog('Got emoji data: ${data.codeToNames.length} emoji'));
         break;
       } catch (e) {
-        assert(debugLog('Error fetching emoji data: $e\n' // TODO(log)
-          'Backing off, then will retry…'));
+        assert(
+          debugLog(
+            'Error fetching emoji data: $e\n' // TODO(log)
+            'Backing off, then will retry…',
+          ),
+        );
         // The emoji data is a lot less urgent than the initial fetch,
         // or even the event-queue poll request.  So wait longer.
-        backoffMachine ??= BackoffMachine(firstBound: const Duration(seconds: 2),
-                                          maxBound: const Duration(minutes: 2));
+        backoffMachine ??= BackoffMachine(
+          firstBound: const Duration(seconds: 2),
+          maxBound: const Duration(minutes: 2),
+        );
         await backoffMachine.wait();
       }
     }
@@ -1464,7 +1599,7 @@ class UpdateMachine {
   /// In debug mode, causes the polling loop to pause before the next
   /// request and wait for [debugAdvanceLoop] to be called.
   void debugPauseLoop() {
-    assert((){
+    assert(() {
       assert(_debugLoopSignal == null);
       _debugLoopSignal = Completer();
       return true;
@@ -1488,7 +1623,7 @@ class UpdateMachine {
   /// or [debugPauseLoop], the polling loop will throw the prepared error
   /// instead of making a request.
   void debugAdvanceLoop() {
-    assert((){
+    assert(() {
       if (_debugLoopError != null) {
         _debugLoopSignal!.completeError(_debugLoopError!);
       } else {
@@ -1518,14 +1653,16 @@ class UpdateMachine {
 
         final GetEventsResult result;
         try {
-          result = await getEvents(store.connection,
+          result = await getEvents(
+            store.connection,
             queueId: store.queueId,
             lastEventId: lastEventId,
             // If the UI shows we're busy getting event-polling to work again,
             // ask the server to tell us immediately that it's working again,
             // rather than waiting for an event, which could take up to a minute
             // in the case of a heartbeat event. See #979.
-            dontBlock: store.isRecoveringEventStream ? true : null);
+            dontBlock: store.isRecoveringEventStream ? true : null,
+          );
           if (_disposed) return;
         } catch (e, stackTrace) {
           if (_disposed) return;
@@ -1543,7 +1680,9 @@ class UpdateMachine {
           } catch (e, stackTrace) {
             if (_disposed) return;
             Error.throwWithStackTrace(
-              _EventHandlingException(cause: e, event: event), stackTrace);
+              _EventHandlingException(cause: e, event: event),
+              stackTrace,
+            );
           }
         }
         if (events.isNotEmpty) {
@@ -1565,9 +1704,11 @@ class UpdateMachine {
   // later success.  After all, these unexpected errors should be uncommon;
   // ideally they'd never happen.
   static BackoffMachine get _unexpectedErrorBackoffMachine {
-    return __unexpectedErrorBackoffMachine
-      ??= BackoffMachine(maxBound: const Duration(seconds: 60));
+    return __unexpectedErrorBackoffMachine ??= BackoffMachine(
+      maxBound: const Duration(seconds: 60),
+    );
   }
+
   static BackoffMachine? __unexpectedErrorBackoffMachine;
 
   BackoffMachine? _pollBackoffMachine;
@@ -1617,7 +1758,10 @@ class UpdateMachine {
   /// See also:
   ///  * [_handlePollError], which handles errors from the rest of [poll]
   ///    and errors this method rethrows.
-  Future<void> _handlePollRequestError(Object error, StackTrace stackTrace) async {
+  Future<void> _handlePollRequestError(
+    Object error,
+    StackTrace stackTrace,
+  ) async {
     store.isRecoveringEventStream = true;
 
     if (error is! ApiRequestException) {
@@ -1653,8 +1797,12 @@ class UpdateMachine {
         Error.throwWithStackTrace(error, stackTrace);
     }
 
-    assert(debugLog('Transient error polling event queue for $store: $error\n'
-        'Backing off, then will retry…'));
+    assert(
+      debugLog(
+        'Transient error polling event queue for $store: $error\n'
+        'Backing off, then will retry…',
+      ),
+    );
     if (shouldReportToUser) {
       _maybeReportToUserTransientError(error);
     }
@@ -1687,13 +1835,22 @@ class UpdateMachine {
         isUnexpected = false;
 
       case _EventHandlingException(:final cause, :final event):
-        assert(debugLog('BUG: Error handling an event: $cause\n' // TODO(log)
-          '  event: $event\n'
-          'Replacing event queue…'));
+        assert(
+          debugLog(
+            'BUG: Error handling an event: $cause\n' // TODO(log)
+            '  event: $event\n'
+            'Replacing event queue…',
+          ),
+        );
         reportErrorToUserBriefly(
           GlobalLocalizations.zulipLocalizations.errorHandlingEventTitle,
-          details: GlobalLocalizations.zulipLocalizations.errorHandlingEventDetails(
-            store.realmUrl.toString(), cause.toString(), event.toString()));
+          details: GlobalLocalizations.zulipLocalizations
+              .errorHandlingEventDetails(
+                store.realmUrl.toString(),
+                cause.toString(),
+                event.toString(),
+              ),
+        );
         // We can't just continue with the next event, because our state
         // may be garbled due to failing to apply this one (and worse,
         // any invariants that were left in a broken state from where
@@ -1704,14 +1861,18 @@ class UpdateMachine {
         isUnexpected = true;
 
       default:
-        assert(debugLog('BUG: Unexpected error in event polling: $error')); // TODO(log)
+        assert(
+          debugLog('BUG: Unexpected error in event polling: $error'),
+        ); // TODO(log)
         // Print stack trace in its own log entry; log entries are truncated
         // at 1 kiB (at least on Android), and stack can be longer than that.
         assert(debugLog('Stack trace:\n$stackTrace'));
         assert(debugLog('Replacing event queue…'));
-        _reportConnectionErrorToUserAndPromiseRetry(error,
+        _reportConnectionErrorToUserAndPromiseRetry(
+          error,
           realmUrl: store.realmUrl,
-          stackTrace: stackTrace);
+          stackTrace: stackTrace,
+        );
         // Similar story to the _EventHandlingException case;
         // separate only so that that other case can print more context.
         // The bug here could be in the server if it's an ApiRequestException,
@@ -1741,8 +1902,12 @@ class UpdateMachine {
   /// a pre-defined threshold of retries.
   void _maybeReportToUserTransientError(Object error) {
     _accumulatedTransientFailureCount++;
-    if (_accumulatedTransientFailureCount > transientFailureCountNotifyThreshold) {
-      _reportConnectionErrorToUserAndPromiseRetry(error, realmUrl: store.realmUrl);
+    if (_accumulatedTransientFailureCount >
+        transientFailureCountNotifyThreshold) {
+      _reportConnectionErrorToUserAndPromiseRetry(
+        error,
+        realmUrl: store.realmUrl,
+      );
     }
   }
 
@@ -1763,7 +1928,10 @@ class UpdateMachine {
     reportErrorToUserBriefly(
       zulipLocalizations.errorConnectingToServerShort,
       details: zulipLocalizations.errorConnectingToServerDetails(
-        realmUrl.toString(), details.toString()));
+        realmUrl.toString(),
+        details.toString(),
+      ),
+    );
   }
 
   /// Cleans up resources and tells the instance not to make new API requests.
@@ -1791,6 +1959,7 @@ class UpdateMachine {
     }());
     return result;
   }
+
   static bool _debugEnableFetchEmojiData = true;
   static set debugEnableFetchEmojiData(bool value) {
     assert(() {
@@ -1800,7 +1969,8 @@ class UpdateMachine {
   }
 
   @override
-  String toString() => '${objectRuntimeType(this, 'UpdateMachine')}#${shortHash(this)}';
+  String toString() =>
+      '${objectRuntimeType(this, 'UpdateMachine')}#${shortHash(this)}';
 }
 
 class _EventHandlingException implements Exception {
