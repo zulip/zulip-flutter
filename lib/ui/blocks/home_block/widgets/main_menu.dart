@@ -37,11 +37,11 @@ class MainMenu extends StatelessWidget {
     final menuItems = <Widget>[
       const _SearchButton(),
       // const SizedBox(height: 8),
-      _InboxButton(tabNotifier: tabNotifier),
+      //_InboxButton(tabNotifier: tabNotifier),
       // TODO: Recent conversations
       const _MentionsButton(),
       const _StarredMessagesButton(),
-      const _CombinedFeedButton(),
+      //const _CombinedFeedButton(),
       // TODO: Drafts
       _ChannelsButton(tabNotifier: tabNotifier),
       _DirectMessagesButton(tabNotifier: tabNotifier),
@@ -342,34 +342,6 @@ class _SearchButton extends MenuButton {
   }
 }
 
-class _InboxButton extends _NavigationBarMenuButton {
-  const _InboxButton({required super.tabNotifier});
-
-  @override
-  IconData get icon => ZulipIcons.inbox;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.inboxPageTitle;
-  }
-
-  @override
-  Widget? buildTrailing(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final unreadCount = store.unreads.countInCombinedFeedNarrow();
-    if (unreadCount == 0) return null;
-    return CounterBadge(
-      kind: CounterBadgeKind.unread,
-      style: CounterBadgeStyle.mainMenu,
-      count: unreadCount,
-      channelIdForBackground: null,
-    );
-  }
-
-  @override
-  HomePageTab get navigationTarget => HomePageTab.inbox;
-}
-
 class _MentionsButton extends MenuButton {
   const _MentionsButton();
 
@@ -434,28 +406,6 @@ class _StarredMessagesButton extends MenuButton {
       MessageListBlockPage.buildRoute(
         context: context,
         narrow: const StarredMessagesNarrow(),
-      ),
-    );
-  }
-}
-
-class _CombinedFeedButton extends MenuButton {
-  const _CombinedFeedButton();
-
-  @override
-  IconData get icon => ZulipIcons.message_feed;
-
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.combinedFeedPageTitle;
-  }
-
-  @override
-  void onPressed(BuildContext context) {
-    Navigator.of(context).push(
-      MessageListBlockPage.buildRoute(
-        context: context,
-        narrow: const CombinedFeedNarrow(),
       ),
     );
   }
