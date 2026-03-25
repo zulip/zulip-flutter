@@ -32,37 +32,35 @@ class NavigationBarButton extends StatelessWidget {
       duration: const Duration(milliseconds: 100),
       child: Material(
         type: MaterialType.transparency,
-        child: InkWell(
-          borderRadius: BorderRadius.all(Radius.circular(4)),
-          // TODO(#417): Disable splash effects for all buttons globally.
-          splashFactory: NoSplash.splashFactory,
-          highlightColor: designVariables.navigationButtonBg,
-          onTap: onPressed,
-          child: Padding(
-            // (Added 3px horizontal padding not present in Figma, to make the
-            // text wrap before getting too close to the button's edge, which is
-            // visible on tap-down.)
-            padding: const EdgeInsets.fromLTRB(3, 6, 3, 3),
-            child: Column(
-              spacing: 3,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 24, color: color),
-                Flexible(
-                  child: Text(
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: InkWell(
+            borderRadius: BorderRadius.zero,
+            splashFactory: NoSplash.splashFactory,
+            highlightColor: designVariables.navigationButtonBg,
+            onTap: onPressed,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(3, 6, 3, 3),
+              child: Column(
+                spacing: 3,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 24, color: color),
+                  Text(
                     label,
                     style: TextStyle(
                       fontSize: 12,
                       color: color,
-                      height: 12 / 12,
+                      height: 1,
                     ),
                     textAlign: TextAlign.center,
                     textScaler: MediaQuery.textScalerOf(
                       context,
                     ).clamp(maxScaleFactor: 1.5),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

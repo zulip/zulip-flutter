@@ -59,7 +59,6 @@ class BottomNavBar extends StatelessWidget {
         icon: ZulipIcons.hash_italic,
         label: zulipLocalizations.channelsPageTitle,
       ),
-      // TODO(#1094): Users
       _button(
         tab: HomePageTab.directMessages,
         icon: ZulipIcons.two_person,
