@@ -292,13 +292,14 @@ class _LoadingPlaceholderPageState extends State<_LoadingPlaceholderPage> {
       appBar: AppBar(),
       body: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: List.generate(8, (index) => Padding(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: List.generate(8, (index) => Padding(
                     padding: const EdgeInsets.only(bottom: 24.0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
