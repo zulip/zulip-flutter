@@ -314,22 +314,36 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
             itemCount: _resultsToDisplay.length,
             itemBuilder: (context, index) {
               final result = _resultsToDisplay[index];
-              return InkWell(
-                onTap: () {
-                  Navigator.pop(context, result.candidate);
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Center(
-                  child: EmojiWidget(
-                    emojiDisplay: result.candidate.emojiDisplay,
-                    squareDimension: 32,
-                  ),
-                ),
-              );
+              return EmojiPickerListEntry(emoji: result.candidate);
             },
           ),
         ),
       ],
+    );
+  }
+}
+
+class EmojiPickerListEntry extends StatelessWidget {
+  const EmojiPickerListEntry({
+    super.key,
+    required this.emoji,
+  });
+
+  final EmojiCandidate emoji;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context, emoji);
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Center(
+        child: EmojiWidget(
+          emojiDisplay: emoji.emojiDisplay,
+          squareDimension: 32,
+        ),
+      ),
     );
   }
 }
