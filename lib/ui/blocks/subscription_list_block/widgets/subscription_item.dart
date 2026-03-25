@@ -43,6 +43,11 @@ class SubscriptionItem extends StatelessWidget {
           channelId: subscription.streamId,
           showTopicListButton: showTopicListButtonInActionSheet,
         ),
+        onSecondaryTap: () => showChannelActionSheet(
+          context,
+          channelId: subscription.streamId,
+          showTopicListButton: showTopicListButtonInActionSheet,
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

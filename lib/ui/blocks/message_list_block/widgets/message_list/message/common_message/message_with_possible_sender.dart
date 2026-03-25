@@ -122,7 +122,10 @@ class MessageWithPossibleSender extends StatelessWidget {
             )
           : null,
       onLongPress: showAsMuted
-          ? null // TODO write a test for this
+          ? null
+          : () => showMessageActionSheet(context: context, message: message),
+      onSecondaryTap: showAsMuted
+          ? null
           : () => showMessageActionSheet(context: context, message: message),
       child: Padding(
         padding: const EdgeInsets.only(top: 4),
