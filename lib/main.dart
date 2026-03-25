@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'licenses.dart';
 import 'log.dart';
 import 'model/binding.dart';
+import 'model/pending_unregistrations.dart';
 import 'notifications/receive.dart';
 import 'widgets/app.dart';
 import 'widgets/share.dart';
@@ -26,4 +29,6 @@ void mainInit() {
   LiveZulipBinding.ensureInitialized();
   NotificationService.instance.start();
   ShareService.start();
+
+  unawaited(PendingUnregistrationsStore.flushAll());
 }

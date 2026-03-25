@@ -1,11 +1,16 @@
 import 'dart:async';
 
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 import '../api/core.dart';
+import '../api/exception.dart';
 import '../api/route/account.dart';
 import '../notifications/display.dart';
 import '../notifications/receive.dart';
+import 'pending_unregistrations.dart';
 import 'store.dart';
 
 // TODO: Make this a part of GlobalStore
@@ -31,12 +36,37 @@ Future<void> unregisterDevice(GlobalStore globalStore, int accountId) async {
   if (account == null) return; // TODO(log)
 
   final connection = globalStore.apiConnectionFromAccount(account);
+  bool hasOfflineError = false;
+
   try {
     await _unregisterToken(account, connection);
-    await _unregisterDevice(account, connection);
-  } finally {
-    connection.close();
+  } catch (e) {
+    if (e is http.ClientException || e is SocketException || e is NetworkException) {
+      hasOfflineError = true;
+    }
   }
+
+  try {
+    await _unregisterDevice(account, connection);
+  } catch (e) {
+    if (e is http.ClientException || e is SocketException || e is NetworkException) {
+      hasOfflineError = true;
+    }
+  }
+
+  if (hasOfflineError) {
+    await PendingUnregistrationsStore.add(PendingUnregistration(
+      realmUrl: account.realmUrl,
+      zulipFeatureLevel: account.zulipFeatureLevel,
+      email: account.email,
+      apiKey: account.apiKey,
+      deviceId: account.deviceId,
+      token: NotificationService.instance.token.value,
+      possibleLegacyPushToken: account.possibleLegacyPushToken,
+    ));
+  }
+
+  connection.close();
 }
 
 /// Tell the server to stop sending legacy non-E2EE notifications for this account.
@@ -51,11 +81,7 @@ Future<void> _unregisterToken(Account account, ApiConnection connection) async {
   final token = NotificationService.instance.token.value;
   if (token == null) return;
 
-  try {
-    await NotificationService.unregisterToken(connection, token: token);
-  } catch (e) {
-    // TODO retry? handle failures?
-  }
+  await NotificationService.unregisterToken(connection, token: token);
 }
 
 /// Tell the server to delete its device record for this device,
@@ -73,9 +99,5 @@ Future<void> _unregisterDevice(Account account, ApiConnection connection) async 
     return;
   }
 
-  try {
-    await removeClientDevice(connection, deviceId: account.deviceId!);
-  } catch (e) {
-    // TODO retry? handle failures?
-  }
+  await removeClientDevice(connection, deviceId: account.deviceId!);
 }
