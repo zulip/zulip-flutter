@@ -1334,7 +1334,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           message: zulipLocalizations.emptyMessageListSelfDmMessage);
 
       case DmNarrow(:final otherRecipientIds) when otherRecipientIds.length == 1:
-        final user = store.getUser(otherRecipientIds.single);
+        final user = store.userResolver.resolveUser(otherRecipientIds.single);
         switch (user) {
           case null:
             return PageBodyEmptyContentPlaceholder(
@@ -1342,9 +1342,9 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           case User(isActive: false):
             return PageBodyEmptyContentPlaceholder(
               header: zulipLocalizations.emptyMessageListDmDeactivatedUser(
-                store.userDisplayName(user.userId, replaceIfMuted: false)));
+                store.userResolver.getDisplayName(user.userId, replaceIfMuted: false)));
           case User():
-            final displayName = store.userDisplayName(user.userId, replaceIfMuted: false);
+            final displayName = store.userResolver.getDisplayName(user.userId, replaceIfMuted: false);
             return PageBodyEmptyContentPlaceholder(
               header: zulipLocalizations.emptyMessageListDm(displayName),
               message: store.isUserMuted(user.userId)
@@ -1354,7 +1354,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
 
       case DmNarrow(:final otherRecipientIds)
           when otherRecipientIds.any((userId) {
-            final user = store.getUser(userId);
+            final user = store.userResolver.resolveUser(userId);
             return user != null && !user.isActive;
           }):
         return PageBodyEmptyContentPlaceholder(
@@ -2088,7 +2088,7 @@ class SenderRow extends StatelessWidget {
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 
-    final sender = store.getUser(message.senderId);
+    final sender = store.userResolver.resolveUser(message.senderId);
     final timestamp = timestampStyle
       .format(message.timestamp,
         now: DateTime.now(),

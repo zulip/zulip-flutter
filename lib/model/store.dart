@@ -39,6 +39,7 @@ import 'typing_status.dart';
 import 'unreads.dart';
 import 'user.dart';
 import 'user_group.dart';
+import 'user_resolver.dart';
 
 export 'package:drift/drift.dart' show Value;
 export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException, PushKey;
@@ -831,6 +832,23 @@ class PerAccountStore extends PerAccountStoreBase with
   // Other digests of data.
 
   final AutocompleteViewManager autocompleteViewManager = AutocompleteViewManager();
+
+  /// Get a UserResolver for this store.
+  UserResolver get userResolver => UserResolver(this);
+
+  /// Get the self-user with guaranteed non-null result.
+  ///
+  /// This addresses the issue's suggestion to add a selfUser getter.
+  /// Unlike the current implementation in UserStore, this provides
+  /// better error handling and is more efficient.
+  User get selfUser {
+    final user = getUser(selfUserId);
+    if (user == null) {
+      // This should never happen in normal operation, but we handle it gracefully
+      throw StateError('Self-user (ID $selfUserId) not found in user store');
+    }
+    return user;
+  }
 
   // End of data.
   //|//////////////////////////////////////////////////////////////
