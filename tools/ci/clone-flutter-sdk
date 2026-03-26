@@ -13,6 +13,10 @@ flutter_tree=~/flutter
 # so instead clone with `--filter=blob:none`.
 git clone --filter=blob:none -b main https://github.com/flutter/flutter "$flutter_tree"
 
+# Pin to the Flutter commit specified in pubspec.yaml
+pubspec_flutter_version
+git -C "$flutter_tree" checkout "$flutter_commit"
+
 TZ=UTC git -C "$flutter_tree" log -1 --format='%h | %ci | %s' --date=iso8601-local
 
 echo "$flutter_tree"/bin >> "$GITHUB_PATH"
