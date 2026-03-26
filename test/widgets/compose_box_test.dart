@@ -52,6 +52,7 @@ void main() {
   late PerAccountStore store;
   late FakeApiConnection connection;
   late ComposeBoxState state;
+  late TransitionDurationObserver transitionDurationObserver;
 
   // Caution: when testing edit-message UI, this will often be stale;
   // read state.controller instead.
@@ -107,7 +108,9 @@ void main() {
       // The topic input will autofocus, triggering a getChannelTopics request.
       connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
     }
+    transitionDurationObserver = TransitionDurationObserver();
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
+      navigatorObservers: [transitionDurationObserver],
       child: MessageListPage(initNarrow: narrow)));
     await tester.pumpAndSettle();
     connection.takeRequests();
@@ -1830,8 +1833,8 @@ void main() {
   }) async {
     await tester.longPress(find.byWidgetPredicate((widget) =>
       widget is MessageWithPossibleSender && widget.item.message.id == messageId));
-    // sheet appears onscreen; default duration of bottom-sheet enter animation
-    await tester.pump(const Duration(milliseconds: 250));
+    // Wait for the bottom-sheet enter animation using the observed duration.
+    await transitionDurationObserver.pumpPastTransition(tester);
     final findEditButton = find.descendant(
       of: find.byType(BottomSheet),
       matching: find.byIcon(ZulipIcons.edit, skipOffstage: false));
@@ -1989,7 +1992,7 @@ void main() {
       await startEditInteractionFromActionSheet(tester, messageId: messageToEdit.id,
         originalRawContent: 'message to edit',
         delay: Duration.zero);
-      await tester.pump(const Duration(milliseconds: 250)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester);
 
       await tester.tap(failedMessageFinder);
       await tester.pump();
@@ -2013,7 +2016,7 @@ void main() {
       await startEditInteractionFromActionSheet(tester, messageId: messageToEdit.id,
         originalRawContent: 'message to edit',
         delay: Duration.zero);
-      await tester.pump(const Duration(milliseconds: 250)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester);
 
       await tester.tap(failedMessageFinder);
       await tester.pump();

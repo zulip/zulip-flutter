@@ -331,6 +331,7 @@ void main() {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final transitionDurationObserver = TransitionDurationObserver();
 
       if (users != null) {
         await store.addUsers(users);
@@ -339,7 +340,7 @@ void main() {
       // ZulipApp instead of TestZulipApp because we need the navigator to push
       // the lightbox route. The lightbox page works together with the route;
       // it takes the route's entrance animation.
-      await tester.pumpWidget(const ZulipApp());
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionDurationObserver]));
       await tester.pump();
       final navigator = await ZulipApp.navigator;
       unawaited(navigator.push(getImageLightboxRoute(
@@ -352,7 +353,7 @@ void main() {
         originalWidth: null,
       )));
       await tester.pump(); // per-account store
-      await tester.pump(const Duration(milliseconds: 301)); // nav transition
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     testWidgets('shows image', (tester) async {

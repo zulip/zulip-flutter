@@ -25,6 +25,7 @@ void main() {
 
   late PerAccountStore store;
   late FakeApiConnection connection;
+  late TransitionDurationObserver transitionDurationObserver;
 
   Future<void> prepare(WidgetTester tester, {
     ZulipStream? channel,
@@ -50,8 +51,10 @@ void main() {
     await store.addMessages(messages);
 
     connection.prepare(json: GetChannelTopicsResult(topics: topics).toJson());
+    transitionDurationObserver = TransitionDurationObserver();
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
+      navigatorObservers: [transitionDurationObserver],
       child: TopicListPage(streamId: channel.streamId)));
     await tester.pump();
     await tester.pump(Duration.zero);
@@ -99,7 +102,7 @@ void main() {
         messages: [eg.streamMessage(stream: channel)]);
 
       await tester.longPress(find.text('channel foo'));
-      await tester.pump(Duration(milliseconds: 100)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester);
       check(find.text('Mark channel as read')).findsOne();
     });
   });
@@ -194,7 +197,7 @@ void main() {
     await prepare(tester, channel: channel,
       topics: [eg.getChannelTopicsEntry(name: 'topic foo')]);
     await tester.longPress(topicItemFinder);
-    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester);
 
     connection.prepare(json: {});
     await tester.tap(find.text('Mute topic'));
@@ -221,7 +224,7 @@ void main() {
     // Before the move, "foo"'s maxId is known to be accurate. This makes
     // topic actions that require `someMessageIdInTopic` available.
     await tester.longPress(find.text('foo'));
-    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester);
     check(find.text('Mark as resolved')).findsOne();
     await tester.tap(find.text('Cancel'));
 
@@ -234,7 +237,7 @@ void main() {
     // After the move, the message with maxId moved away from "foo". The topic
     // actions that require `someMessageIdInTopic` are no longer available.
     await tester.longPress(find.text('foo'));
-    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester);
     check(find.text('Mark as resolved')).findsNothing();
     await tester.tap(find.text('Cancel'));
     await tester.pump();
@@ -242,7 +245,7 @@ void main() {
     // Topic actions that require `someMessageIdInTopic` are available
     // for "bar", the new topic that the message moved to.
     await tester.longPress(find.text('bar'));
-    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+      await transitionDurationObserver.pumpPastTransition(tester);
     check(find.text('Mark as resolved')).findsOne();
   });
 
@@ -256,7 +259,7 @@ void main() {
       topics: [eg.getChannelTopicsEntry(maxId: 109, name: 'foo')],
       messages: messages);
     await tester.longPress(topicItemFinder);
-    await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
+    await transitionDurationObserver.pumpPastTransition(tester);
     check(findInTopicItemAt(0, find.byIcon(ZulipIcons.check))).findsNothing();
     check(findInTopicItemAt(0, find.text('foo'))).findsOne();
 

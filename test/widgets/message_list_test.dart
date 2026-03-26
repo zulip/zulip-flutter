@@ -2555,7 +2555,7 @@ void main() {
     Future<void> dismissErrorDialog(WidgetTester tester) async {
       await tester.tap(find.byWidget(
         checkErrorDialog(tester, expectedTitle: 'Message not sent')));
-      await tester.pump(Duration(milliseconds: 250));
+      await tester.pumpAndSettle();
     }
 
     Future<void> checkTapRestoreMessage(WidgetTester tester) async {

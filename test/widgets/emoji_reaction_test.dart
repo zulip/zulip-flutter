@@ -421,7 +421,9 @@ void main() {
       connection = store.connection as FakeApiConnection;
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [message]).toJson());
+      transitionDurationObserver = TransitionDurationObserver();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: MessageListPage(initNarrow: narrow)));
 
       store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
@@ -433,8 +435,8 @@ void main() {
       await tester.pumpAndSettle();
       // request the message action sheet
       await tester.longPress(find.byType(MessageContent));
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
+      // Wait for the bottom-sheet enter animation using the observed duration.
+      await transitionDurationObserver.pumpPastTransition(tester);
 
       await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing'),

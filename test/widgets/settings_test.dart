@@ -106,13 +106,13 @@ void main() {
 
       await tester.tap(findRadioListTileWithTitle<ThemeSetting?>('Dark'));
       await tester.pump();
-      await tester.pump(Duration(milliseconds: 250)); // wait for transition
+      await tester.pumpAndSettle(); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.dark);
       checkThemeSetting(tester, expectedThemeSetting: ThemeSetting.dark);
 
       await tester.tap(findRadioListTileWithTitle<ThemeSetting?>('System'));
       await tester.pump();
-      await tester.pump(Duration(milliseconds: 250)); // wait for transition
+      await tester.pumpAndSettle(); // wait for transition
       check(Theme.of(element)).brightness.equals(Brightness.light);
       checkThemeSetting(tester, expectedThemeSetting: null);
 
