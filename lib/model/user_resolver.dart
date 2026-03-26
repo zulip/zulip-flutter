@@ -19,10 +19,10 @@ class UserResolver {
   final PerAccountStore _store;
 
   /// Cache for frequently accessed users to avoid repeated lookups
-  const Map<int, User?> _userCache = {};
+  final Map<int, User?> _userCache = {};
 
   /// Cache for display names to avoid repeated string operations
-  const Map<int, String> _displayNameCache = {};
+  final Map<int, String> _displayNameCache = {};
 
   /// Get a user with null safety guaranteed.
   ///
@@ -200,20 +200,6 @@ class UserResolver {
 extension PerAccountStoreUserResolver on PerAccountStore {
   /// Get a UserResolver for this store.
   UserResolver get userResolver => UserResolver(this);
-
-  /// Get the self-user with guaranteed non-null result.
-  ///
-  /// This addresses the issue's suggestion to add a selfUser getter.
-  /// Unlike the current implementation in UserStore, this is cached
-  /// and provides better error handling.
-  User get selfUser {
-    final user = getUser(selfUserId);
-    if (user == null) {
-      // This should never happen in normal operation, but we handle it gracefully
-      throw StateError('Self-user (ID $selfUserId) not found in user store');
-    }
-    return user;
-  }
 
   /// Safe user lookup with intelligent fallbacks.
   ///
