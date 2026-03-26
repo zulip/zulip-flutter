@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../utils/store.dart';
+import '../../get/services/store_service.dart';
 
 /// A custom [AppBar] with a loading indicator.
 ///
@@ -23,12 +23,17 @@ class ZulipAppBar extends AppBar {
     super.backgroundColor,
     super.shape,
     super.actions,
-  }) :
-    assert((title == null) != (buildTitle == null)),
-    super(
-      bottom: _ZulipAppBarBottom(backgroundColor: backgroundColor),
-      title: title ?? _Title(centerTitle: centerTitle, actions: actions, buildTitle: buildTitle!)
-    );
+  }) : assert((title == null) != (buildTitle == null)),
+       super(
+         bottom: _ZulipAppBarBottom(backgroundColor: backgroundColor),
+         title:
+             title ??
+             _Title(
+               centerTitle: centerTitle,
+               actions: actions,
+               buildTitle: buildTitle!,
+             ),
+       );
 }
 
 class _Title extends StatelessWidget {
@@ -68,7 +73,8 @@ class _Title extends StatelessWidget {
   }
 }
 
-class _ZulipAppBarBottom extends StatelessWidget implements PreferredSizeWidget {
+class _ZulipAppBarBottom extends StatelessWidget
+    implements PreferredSizeWidget {
   const _ZulipAppBarBottom({this.backgroundColor});
 
   final Color? backgroundColor;
@@ -78,8 +84,11 @@ class _ZulipAppBarBottom extends StatelessWidget implements PreferredSizeWidget 
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     if (!store.isRecoveringEventStream) return const SizedBox.shrink();
-    return LinearProgressIndicator(minHeight: 4.0, backgroundColor: backgroundColor);
+    return LinearProgressIndicator(
+      minHeight: 4.0,
+      backgroundColor: backgroundColor,
+    );
   }
 }

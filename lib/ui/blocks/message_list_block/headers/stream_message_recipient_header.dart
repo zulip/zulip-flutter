@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../themes/message_list_theme.dart';
 import '../../../widgets/action_sheet.dart';
 import '../../../extensions/color.dart';
 import '../../../values/icons.dart';
 import '../message_list.dart';
-import '../../../utils/store.dart';
 import '../../../values/theme.dart';
 import '../message_list_block.dart';
 import 'recipient_header_date.dart';
@@ -43,7 +43,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     // For design specs, see:
     //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=538%3A20849&mode=dev
     //   https://github.com/zulip/zulip-mobile/issues/5511
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);

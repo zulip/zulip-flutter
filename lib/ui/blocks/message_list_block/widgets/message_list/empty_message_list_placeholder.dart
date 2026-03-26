@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../../api/model/model.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../utils/actions.dart';
 import '../../../../utils/page.dart';
-import '../../../../utils/store.dart';
 
 class EmptyMessageListPlaceholder extends StatelessWidget {
   const EmptyMessageListPlaceholder({super.key, required this.narrow});
@@ -14,7 +14,7 @@ class EmptyMessageListPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     switch (narrow) {

@@ -8,19 +8,9 @@ import '../api/model/model.dart';
 import '../api/route/users.dart';
 import 'realm.dart';
 
-/// The model for tracking which users are online, idle, and offline.
-///
-/// Use [presenceStatusForUser]. If that returns null, the user is offline.
-///
-/// This substore is its own [ChangeNotifier],
-/// so callers need to remember to add a listener (and remove it on dispose).
-/// In particular, [PerAccountStoreWidget] doesn't subscribe a widget subtree
-/// to updates.
 class Presence extends HasRealmStore with ChangeNotifier {
-  Presence({
-    required super.realm,
-    required Map<int, PerUserPresence> initial,
-  }) : _map = initial;
+  Presence({required super.realm, required Map<int, PerUserPresence> initial})
+    : _map = initial;
 
   Map<int, PerUserPresence> _map;
 
@@ -52,12 +42,14 @@ class Presence extends HasRealmStore with ChangeNotifier {
     _hasStarted = true;
 
     _appLifecycleListener = AppLifecycleListener(
-      onStateChange: _handleLifecycleStateChange);
+      onStateChange: _handleLifecycleStateChange,
+    );
 
     _poll();
   }
 
-  Future<void> _maybePingAndRecordResponse(AppLifecycleState? appLifecycleState, {
+  Future<void> _maybePingAndRecordResponse(
+    AppLifecycleState? appLifecycleState, {
     required bool pingOnly,
   }) async {
     if (realmPresenceDisabled) return;
@@ -74,26 +66,32 @@ class Presence extends HasRealmStore with ChangeNotifier {
         // > detached from any host views.
         // TODO see if this actually works as a way to send an "idle" update
         //   when the user closes the app completely.
-        result = await updatePresence(connection,
+        result = await updatePresence(
+          connection,
           pingOnly: pingOnly,
           status: PresenceStatus.idle,
-          newUserInput: false);
+          newUserInput: false,
+        );
       case AppLifecycleState.resumed:
         // > […] the default running mode for a running application that has
         // > input focus and is visible.
-        result = await updatePresence(connection,
+        result = await updatePresence(
+          connection,
           pingOnly: pingOnly,
           status: PresenceStatus.active,
-          newUserInput: true);
+          newUserInput: true,
+        );
       case AppLifecycleState.inactive:
         // > At least one view of the application is visible, but none have
         // > input focus. The application is otherwise running normally.
         // For example, we expect this state when the user is selecting a file
         // to upload.
-        result = await updatePresence(connection,
+        result = await updatePresence(
+          connection,
           pingOnly: pingOnly,
           status: PresenceStatus.active,
-          newUserInput: false);
+          newUserInput: false,
+        );
     }
     if (!pingOnly) {
       _handlePresenceResponse(result.presences!);
@@ -109,7 +107,9 @@ class Presence extends HasRealmStore with ChangeNotifier {
       if (_disposed) return;
 
       await _maybePingAndRecordResponse(
-        SchedulerBinding.instance.lifecycleState, pingOnly: false);
+        SchedulerBinding.instance.lifecycleState,
+        pingOnly: false,
+      );
       if (_disposed) return;
     }
   }
@@ -134,7 +134,10 @@ class Presence extends HasRealmStore with ChangeNotifier {
   }
 
   /// The [PresenceStatus] for [userId], or null if the user is offline.
-  PresenceStatus? presenceStatusForUser(int userId, {required DateTime utcNow}) {
+  PresenceStatus? presenceStatusForUser(
+    int userId, {
+    required DateTime utcNow,
+  }) {
     final now = utcNow.millisecondsSinceEpoch ~/ 1000;
     final perUserPresence = _map[userId];
     if (perUserPresence == null) return null;
@@ -192,6 +195,7 @@ class Presence extends HasRealmStore with ChangeNotifier {
     }());
     return result;
   }
+
   static bool _debugEnable = true;
   static set debugEnable(bool value) {
     assert(() {

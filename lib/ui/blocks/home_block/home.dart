@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../get/app_pages.dart';
+import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../widgets/app_bar.dart';
 import '../../values/icons.dart';
@@ -116,31 +117,37 @@ class HomePage extends GetView<HomeController> {
         ],
       );
 
-      return Scaffold(
-        appBar: ZulipAppBar(
-          titleSpacing: 16,
-          title: Semantics(
-            identifier: HomePage.titleSemanticsIdentifier,
-            namesRoute: true,
-            child: Text(getTitle()),
-          ),
-          actions: getActions(),
-        ),
-        body: Semantics(
-          role: SemanticsRole.tabPanel,
-          identifier: HomePage.contentSemanticsIdentifier,
-          container: true,
-          explicitChildNodes: true,
-          child: controller.isMobile
-              ? homeBody
-              : Row(
-                  children: [
-                    SideNavigationRail(tabNotifier: controller.currentTab),
-                    Expanded(child: homeBody),
-                  ],
+      return Obx(
+        () => StoreService.to.currentStore.value != null
+            ? Scaffold(
+                appBar: ZulipAppBar(
+                  titleSpacing: 16,
+                  title: Semantics(
+                    identifier: HomePage.titleSemanticsIdentifier,
+                    namesRoute: true,
+                    child: Text(getTitle()),
+                  ),
+                  actions: getActions(),
                 ),
-        ),
-        bottomNavigationBar: bottomNavBar,
+                body: Semantics(
+                  role: SemanticsRole.tabPanel,
+                  identifier: HomePage.contentSemanticsIdentifier,
+                  container: true,
+                  explicitChildNodes: true,
+                  child: controller.isMobile
+                      ? homeBody
+                      : Row(
+                          children: [
+                            SideNavigationRail(
+                              tabNotifier: controller.currentTab,
+                            ),
+                            Expanded(child: homeBody),
+                          ],
+                        ),
+                ),
+                bottomNavigationBar: bottomNavBar,
+              )
+            : Center(child: CircularProgressIndicator.adaptive()),
       );
     });
   }

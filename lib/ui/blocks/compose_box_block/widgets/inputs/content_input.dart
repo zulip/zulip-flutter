@@ -8,9 +8,9 @@ import '../../../../../api/exception.dart';
 import '../../../../../api/model/model.dart';
 import '../../../../../api/route/messages.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../utils/page.dart';
-import '../../../../utils/store.dart';
 import '../../../../widgets/autocomplete.dart';
 import '../../../../extensions/color.dart';
 import '../../../message_list_block/message_list_block.dart';
@@ -134,7 +134,7 @@ class _ContentInputState extends State<ContentInput> {
 
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
-      final store = PerAccountStoreWidget.of(context);
+      final store = requirePerAccountStore();
       List<String> validationErrorMessages = [
         for (final error
             in (controller is StreamComposeBoxController
@@ -158,7 +158,7 @@ class _ContentInputState extends State<ContentInput> {
     controller.content.clear();
 
     try {
-      final store = PerAccountStoreWidget.of(context);
+      final store = requirePerAccountStore();
       await store.sendMessage(destination: destination, content: content);
       if (!mounted) return;
     } on ApiRequestException catch (e) {
@@ -176,7 +176,7 @@ class _ContentInputState extends State<ContentInput> {
       return;
     }
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     if (destination is StreamDestination &&
         store.subscriptions[destination.streamId] == null) {
       // The message was sent to an unsubscribed channel.
@@ -224,7 +224,7 @@ class _ContentInputState extends State<ContentInput> {
     composeBoxState.endEditInteraction();
 
     try {
-      final store = PerAccountStoreWidget.of(pageContext);
+      final store = requirePerAccountStore();
       await store.editMessage(
         messageId: messageId,
         originalRawContent: originalRawContent,
@@ -246,7 +246,7 @@ class _ContentInputState extends State<ContentInput> {
       return;
     }
 
-    final store = PerAccountStoreWidget.of(pageContext);
+    final store = requirePerAccountStore();
     final messageListPageState = MessageListBlockPage.ancestorOf(pageContext);
     final narrow = messageListPageState.narrow;
     final message = store.messages[messageId];

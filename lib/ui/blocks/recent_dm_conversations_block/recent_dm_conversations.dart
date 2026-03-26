@@ -4,11 +4,11 @@ import 'package:get/get.dart';
 import '../../../get/app_pages.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../../model/recent_dm_conversations.dart';
 import '../../../model/unreads.dart';
 import '../../utils/page.dart';
-import '../../utils/store.dart';
 import 'widgets/recent_dm_conversations_item.dart';
 
 typedef OnDmSelectCallback = void Function(DmNarrow narrow);
@@ -39,33 +39,40 @@ class RecentDmConversationsPageBody extends StatefulWidget {
 }
 
 class _RecentDmConversationsPageBodyState
-    extends State<RecentDmConversationsPageBody>
-    with PerAccountStoreAwareStateMixin<RecentDmConversationsPageBody> {
-  RecentDmConversationsView? model;
-  Unreads? unreadsModel;
+    extends State<RecentDmConversationsPageBody> {
+  RecentDmConversationsView? _model;
+  Unreads? _unreadsModel;
 
   @override
-  void onNewStore() {
-    model?.removeListener(_modelChanged);
-    model = PerAccountStoreWidget.of(context).recentDmConversationsView
-      ..addListener(_modelChanged);
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _initFromStore();
+  }
 
-    unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = PerAccountStoreWidget.of(context).unreads
+  void _onStoreChanged() {
+    _model?.removeListener(_modelChanged);
+    _unreadsModel?.removeListener(_modelChanged);
+    _initFromStore();
+  }
+
+  void _initFromStore() {
+    _model = StoreService.to.requireStore.recentDmConversationsView
+      ..addListener(_modelChanged);
+    _unreadsModel = StoreService.to.requireStore.unreads
       ..addListener(_modelChanged);
   }
 
   @override
   void dispose() {
-    model?.removeListener(_modelChanged);
-    unreadsModel?.removeListener(_modelChanged);
+    _model?.removeListener(_modelChanged);
+    _unreadsModel?.removeListener(_modelChanged);
     super.dispose();
   }
 
   void _modelChanged() {
     setState(() {
-      // The actual state lives in [model] and [unreadsModel].
-      // This method was called because one of those just changed.
+      // The actual state lives in [_model] and [_unreadsModel].
     });
   }
 
@@ -82,9 +89,9 @@ class _RecentDmConversationsPageBodyState
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final sorted = model!.sorted;
+    final sorted = _model!.sorted;
 
     // This value will be zero when this page is used in the context of
     // home-page, see comment on `bottom: false` arg in use of `SafeArea`
@@ -138,7 +145,7 @@ class _RecentDmConversationsPageBodyState
                 }
                 return RecentDmConversationsItem(
                   narrow: narrow,
-                  unreadCount: unreadsModel!.countInDmNarrow(narrow),
+                  unreadCount: _unreadsModel!.countInDmNarrow(narrow),
                   onDmSelect: _handleDmSelect,
                 );
               },

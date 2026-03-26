@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../compose_box.dart';
-import '../../../utils/store.dart';
 
 class TypingNotifier extends StatefulWidget {
   const TypingNotifier({
@@ -50,7 +50,7 @@ class _TypingNotifierState extends State<TypingNotifier>
   }
 
   void _contentChanged() {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     (widget.controller.content.text.isEmpty)
         ? store.typingNotifier.stoppedComposing()
         : store.typingNotifier.keystroke(widget.destination);
@@ -62,7 +62,7 @@ class _TypingNotifierState extends State<TypingNotifier>
       // the user started typing, so do nothing.
       return;
     }
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     store.typingNotifier.stoppedComposing();
   }
 
@@ -83,7 +83,7 @@ class _TypingNotifierState extends State<TypingNotifier>
         //
         // For all these states, we can conclude that the user is not
         // composing a message.
-        final store = PerAccountStoreWidget.of(context);
+        final store = requirePerAccountStore();
         store.typingNotifier.stoppedComposing();
       case AppLifecycleState.inactive:
       // > At least one view of the application is visible, but none have

@@ -5,11 +5,11 @@ import '../../../../get/app_pages.dart';
 import '../../../../api/model/model.dart';
 import '../../../../api/route/channels.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../log.dart';
 import '../../../../model/narrow.dart';
 import '../../../utils/actions.dart';
 import '../../../utils/remote_settings.dart';
-import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/text.dart';
 import '../../../values/theme.dart';
@@ -24,7 +24,7 @@ class AllChannelsListEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
     final channel = this.channel;
     final Subscription? subscription = channel is Subscription ? channel : null;
@@ -83,7 +83,7 @@ class _SubscribeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     return RemoteSettingBuilder<bool>(
       findValueInStore: (store) =>

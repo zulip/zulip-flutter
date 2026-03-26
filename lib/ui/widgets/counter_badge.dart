@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../utils/store.dart';
+import '../../get/services/store_service.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 
@@ -18,13 +18,14 @@ class CounterBadge extends StatelessWidget {
     required this.kind,
     required this.count,
     required this.channelIdForBackground,
-  }) :
-       // The API is awkward for callers who want [CounterBadgeKind.quantity] --
+  }) : // The API is awkward for callers who want [CounterBadgeKind.quantity] --
        // they're required to pass null for an irrelevant param --
        //   https://github.com/zulip/zulip-flutter/pull/1999#discussion_r2663221201
        // But [channelIdForBackground] has a TODO for being removed,
        // and that'll resolve the awkwardness.
-       assert(!(kind == CounterBadgeKind.quantity && channelIdForBackground != null));
+       assert(
+         !(kind == CounterBadgeKind.quantity && channelIdForBackground != null),
+       );
 
   final CounterBadgeStyle style;
   final CounterBadgeKind kind;
@@ -40,7 +41,7 @@ class CounterBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
 
     final Color textColor;
@@ -60,17 +61,21 @@ class CounterBadge extends StatelessWidget {
     }
 
     final padding = switch (style) {
-      CounterBadgeStyle.mainMenu =>
-        const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-      CounterBadgeStyle.other =>
-        const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+      CounterBadgeStyle.mainMenu => const EdgeInsets.symmetric(
+        horizontal: 5,
+        vertical: 4,
+      ),
+      CounterBadgeStyle.other => const EdgeInsets.symmetric(
+        horizontal: 5,
+        vertical: 3,
+      ),
     };
 
     final double wght = switch ((style, kind)) {
-      (CounterBadgeStyle.mainMenu, CounterBadgeKind.unread  ) => 600,
+      (CounterBadgeStyle.mainMenu, CounterBadgeKind.unread) => 600,
       (CounterBadgeStyle.mainMenu, CounterBadgeKind.quantity) => 500,
-      (CounterBadgeStyle.other,    CounterBadgeKind.unread  ) => 500,
-      (CounterBadgeStyle.other,    CounterBadgeKind.quantity) => 500,
+      (CounterBadgeStyle.other, CounterBadgeKind.unread) => 500,
+      (CounterBadgeStyle.other, CounterBadgeKind.quantity) => 500,
     };
 
     Widget result = Padding(
@@ -81,7 +86,9 @@ class CounterBadge extends StatelessWidget {
           height: (16 / 16),
           color: textColor,
         ).merge(weightVariableTextStyle(context, wght: wght)),
-        count.toString()));
+        count.toString(),
+      ),
+    );
 
     switch (kind) {
       case CounterBadgeKind.unread:
@@ -90,9 +97,10 @@ class CounterBadge extends StatelessWidget {
             borderRadius: BorderRadius.circular(5),
             color: backgroundColor,
           ),
-          child: result);
+          child: result,
+        );
       case CounterBadgeKind.quantity:
-        // no decoration
+      // no decoration
     }
 
     return result;
@@ -149,6 +157,8 @@ class MutedUnreadBadge extends StatelessWidget {
       margin: const EdgeInsetsDirectional.only(end: 3),
       decoration: BoxDecoration(
         color: designVariables.mutedUnreadBadge,
-        shape: BoxShape.circle));
+        shape: BoxShape.circle,
+      ),
+    );
   }
 }

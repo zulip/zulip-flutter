@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import '../../api/model/submessage.dart';
 import '../../api/route/submessage.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import '../themes/content_theme.dart';
-import '../utils/store.dart';
 import '../values/text.dart';
 
 class PollWidget extends StatefulWidget {
@@ -49,13 +49,18 @@ class _PollWidgetState extends State<PollWidget> {
   }
 
   void _toggleVote(PollOption option) async {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final op = option.voters.contains(store.selfUserId)
-      ? PollVoteOp.remove
-      : PollVoteOp.add;
-    unawaited(sendSubmessage(store.connection, messageId: widget.messageId,
-      submessageType: SubmessageType.widget,
-      content: PollVoteEventSubmessage(key: option.key, op: op)));
+        ? PollVoteOp.remove
+        : PollVoteOp.add;
+    unawaited(
+      sendSubmessage(
+        store.connection,
+        messageId: widget.messageId,
+        submessageType: SubmessageType.widget,
+        content: PollVoteEventSubmessage(key: option.key, op: op),
+      ),
+    );
   }
 
   @override
@@ -64,24 +69,32 @@ class _PollWidgetState extends State<PollWidget> {
 
     final zulipLocalizations = ZulipLocalizations.of(context);
     final theme = ContentTheme.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     final textStyleBold = weightVariableTextStyle(context, wght: 600);
     final textStyleVoterNames = TextStyle(
-      fontSize: 16, color: theme.colorPollNames);
+      fontSize: 16,
+      color: theme.colorPollNames,
+    );
 
     Text question = (widget.poll.question.isNotEmpty)
-      ? Text(widget.poll.question, style: textStyleBold.copyWith(fontSize: 18))
-      : Text(zulipLocalizations.pollWidgetQuestionMissing,
-          style: textStyleBold.copyWith(fontSize: 18, fontStyle: FontStyle.italic));
+        ? Text(
+            widget.poll.question,
+            style: textStyleBold.copyWith(fontSize: 18),
+          )
+        : Text(
+            zulipLocalizations.pollWidgetQuestionMissing,
+            style: textStyleBold.copyWith(
+              fontSize: 18,
+              fontStyle: FontStyle.italic,
+            ),
+          );
 
     Widget buildOptionItem(PollOption option) {
       // TODO(i18n): List formatting, like you can do in JavaScript:
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Zixuan'])
       //   // 'Chris、Greg、Alya、Zixuan'
-      final voterNames = option.voters
-        .map(store.userDisplayName)
-        .join(', ');
+      final voterNames = option.voters.map(store.userDisplayName).join(', ');
 
       return Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -95,11 +108,15 @@ class _PollWidgetState extends State<PollWidget> {
               // start because we want to align all the poll options to the
               // surrounding messages.
               padding: const EdgeInsetsDirectional.only(
-                end: 5, top: verticalPadding, bottom: verticalPadding),
+                end: 5,
+                top: verticalPadding,
+                bottom: verticalPadding,
+              ),
               child: Material(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(3),
-                  side: BorderSide(color: theme.colorPollVoteCountBorder)),
+                  side: BorderSide(color: theme.colorPollVoteCountBorder),
+                ),
                 color: theme.colorPollVoteCountBackground,
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
@@ -110,9 +127,19 @@ class _PollWidgetState extends State<PollWidget> {
                     // there are more than three digits).
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Center(
-                      child: Text(option.voters.length.toString(),
+                      child: Text(
+                        option.voters.length.toString(),
                         style: textStyleBold.copyWith(
-                          color: theme.colorPollVoteCountText, fontSize: 20)))))))),
+                          color: theme.colorPollVoteCountText,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: Padding(
               // This and the padding on the vote count box both extend the row
@@ -123,12 +150,21 @@ class _PollWidgetState extends State<PollWidget> {
               child: Wrap(
                 spacing: 5,
                 children: [
-                  Text(option.text, style: textStyleBold.copyWith(fontSize: 16)),
+                  Text(
+                    option.text,
+                    style: textStyleBold.copyWith(fontSize: 16),
+                  ),
                   if (option.voters.isNotEmpty)
-                    Text(zulipLocalizations.pollVoterNames(voterNames),
-                      style: textStyleVoterNames),
-                ]))),
-        ]);
+                    Text(
+                      zulipLocalizations.pollVoterNames(voterNames),
+                      style: textStyleVoterNames,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
     }
 
     return Column(
@@ -141,12 +177,15 @@ class _PollWidgetState extends State<PollWidget> {
           Padding(
             // This is consistent with the option rows' padding.
             padding: const EdgeInsets.symmetric(vertical: verticalPadding),
-            child: Text(zulipLocalizations.pollWidgetOptionsMissing,
-              style: textStyleVoterNames.copyWith(fontStyle: FontStyle.italic))),
-        for (final option in widget.poll.options)
-          buildOptionItem(option),
+            child: Text(
+              zulipLocalizations.pollWidgetOptionsMissing,
+              style: textStyleVoterNames.copyWith(fontStyle: FontStyle.italic),
+            ),
+          ),
+        for (final option in widget.poll.options) buildOptionItem(option),
         // `verticalPadding` out of 5px comes from the last option row.
         const SizedBox(height: 5 - verticalPadding),
-      ]);
+      ],
+    );
   }
 }

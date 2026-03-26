@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../../api/route/messages.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../../model/narrow.dart';
 import '../../compose_box.dart';
-import '../../../../utils/store.dart';
 import '../typing_notifier.dart';
 import 'content_input.dart';
 
@@ -24,7 +24,7 @@ class FixedDestinationContentInput extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch (narrow) {
       case TopicNarrow(:final streamId, :final topic):
-        final store = PerAccountStoreWidget.of(context);
+        final store = requirePerAccountStore();
         final streamName =
             store.streams[streamId]?.name ??
             zulipLocalizations.unknownChannelName;
@@ -40,7 +40,7 @@ class FixedDestinationContentInput extends StatelessWidget {
         return zulipLocalizations.composeBoxSelfDmContentHint;
 
       case DmNarrow(otherRecipientIds: [final otherUserId]):
-        final store = PerAccountStoreWidget.of(context);
+        final store = requirePerAccountStore();
         final user = store.getUser(otherUserId);
         if (user == null) {
           return zulipLocalizations.composeBoxGenericContentHint;

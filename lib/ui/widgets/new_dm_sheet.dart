@@ -2,34 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../api/model/model.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import '../../model/autocomplete.dart';
 import '../../model/narrow.dart';
 import '../../model/store.dart';
 import '../extensions/color.dart';
 import '../values/icons.dart';
 import '../blocks/recent_dm_conversations_block/recent_dm_conversations.dart';
-import '../utils/store.dart';
+
 import '../values/text.dart';
 import '../values/theme.dart';
 import 'user.dart';
 
 void showNewDmSheet(BuildContext context, OnDmSelectCallback onDmSelect) {
-  final store = PerAccountStoreWidget.of(context);
   showModalBottomSheet<void>(
     context: Get.context!,
     clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
     builder: (BuildContext context) => Padding(
-      // By default, when software keyboard is opened, the ListView
-      // expands behind the software keyboard — resulting in some
-      // list entries being covered by the keyboard. Add explicit
-      // bottom padding the size of the keyboard, which fixes this.
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: PerAccountStoreWidget(
-        accountId: store.accountId,
-        child: NewDmPicker(onDmSelect: onDmSelect),
-      ),
+      child: NewDmPicker(onDmSelect: onDmSelect),
     ),
   );
 }
@@ -44,8 +37,7 @@ class NewDmPicker extends StatefulWidget {
   State<NewDmPicker> createState() => _NewDmPickerState();
 }
 
-class _NewDmPickerState extends State<NewDmPicker>
-    with PerAccountStoreAwareStateMixin<NewDmPicker> {
+class _NewDmPickerState extends State<NewDmPicker> {
   late TextEditingController searchController;
   late ScrollController resultsScrollController;
   Set<int> selectedUserIds = {};
@@ -55,15 +47,11 @@ class _NewDmPickerState extends State<NewDmPicker>
   @override
   void initState() {
     super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
     searchController = TextEditingController()
       ..addListener(_handleSearchUpdate);
     resultsScrollController = ScrollController();
-  }
-
-  @override
-  void onNewStore() {
-    final store = PerAccountStoreWidget.of(context);
-    _initSortedUsers(store);
+    _onStoreChanged();
   }
 
   @override
@@ -71,6 +59,11 @@ class _NewDmPickerState extends State<NewDmPicker>
     searchController.dispose();
     resultsScrollController.dispose();
     super.dispose();
+  }
+
+  void _onStoreChanged() {
+    final store = StoreService.to.requireStore;
+    _initSortedUsers(store);
   }
 
   void _initSortedUsers(PerAccountStore store) {
@@ -84,7 +77,7 @@ class _NewDmPickerState extends State<NewDmPicker>
   }
 
   void _handleSearchUpdate() {
-    final store = PerAccountStoreWidget.of(context);
+    final store = StoreService.to.requireStore;
     _updateFilteredUsers(store);
   }
 
@@ -121,7 +114,7 @@ class _NewDmPickerState extends State<NewDmPicker>
 
   void _selectUser(int userId) {
     assert(!selectedUserIds.contains(userId));
-    final store = PerAccountStoreWidget.of(context);
+    final store = StoreService.to.requireStore;
     selectedUserIds.add(userId);
     if (userId != store.selfUserId) {
       selectedUserIds.remove(store.selfUserId);
@@ -131,7 +124,7 @@ class _NewDmPickerState extends State<NewDmPicker>
 
   void _unselectUser(int userId) {
     assert(selectedUserIds.contains(userId));
-    final store = PerAccountStoreWidget.of(context);
+    final store = StoreService.to.requireStore;
     selectedUserIds.remove(userId);
     _updateFilteredUsers(store);
   }
@@ -205,7 +198,7 @@ class _NewDmHeader extends StatelessWidget {
       onTap: selectedUserIds.isEmpty
           ? null
           : () {
-              final store = PerAccountStoreWidget.of(context);
+              final store = StoreService.to.requireStore;
               final narrow = DmNarrow.withUsers(
                 selectedUserIds.toList(),
                 selfUserId: store.selfUserId,
@@ -340,7 +333,7 @@ class _SelectedUserChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = StoreService.to.requireStore;
     final clampedTextScaler = MediaQuery.textScalerOf(
       context,
     ).clamp(maxScaleFactor: 1.5);
@@ -466,7 +459,7 @@ class _NewDmUserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = StoreService.to.requireStore;
     final designVariables = DesignVariables.of(context);
     return Material(
       clipBehavior: Clip.antiAlias,

@@ -2,9 +2,9 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/store_service.dart';
 import '../../widgets/app_bar.dart';
 import '../../utils/page.dart';
-import '../../utils/store.dart';
 import 'widgets/all_channels_list_entry.dart';
 
 class AllChannelsController extends GetxController {
@@ -37,7 +37,7 @@ class AllChannelsPageBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final channels = PerAccountStoreWidget.of(context).streams;
+    final channels = requirePerAccountStore().streams;
 
     if (channels.isEmpty) {
       return PageBodyEmptyContentPlaceholder(

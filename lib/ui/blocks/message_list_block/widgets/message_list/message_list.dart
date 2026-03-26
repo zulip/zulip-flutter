@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
+import '../../../../../get/services/store_service.dart';
 import '../../../../../model/message_list.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../../model/store.dart';
@@ -45,8 +46,7 @@ class MessageList extends StatefulWidget {
   State<StatefulWidget> createState() => _MessageListState();
 }
 
-class _MessageListState extends State<MessageList>
-    with PerAccountStoreAwareStateMixin<MessageList> {
+class _MessageListState extends State<MessageList> {
   final GlobalKey _scrollViewKey = GlobalKey();
 
   MessageListView get model => _model!;
@@ -60,21 +60,22 @@ class _MessageListState extends State<MessageList>
   @override
   void initState() {
     super.initState();
+    _onStoreChanged();
     scrollController.addListener(_scrollChanged);
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
   }
 
-  @override
-  void onNewStore() {
+  void _onStoreChanged() {
     // TODO(#464) try to keep using old model until new one gets messages
     final anchor = _model == null ? widget.initAnchor : _model!.anchor;
     _model?.dispose();
-    _initModel(PerAccountStoreWidget.of(context), anchor);
+    _initModel(StoreService.to.requireStore, anchor);
   }
 
   @override
   void dispose() {
-    _model?.dispose();
     scrollController.dispose();
+    _model?.dispose();
     super.dispose();
   }
 

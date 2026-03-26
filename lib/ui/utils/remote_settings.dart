@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../basic.dart';
+import '../../get/services/store_service.dart';
 import '../../model/store.dart';
-import 'store.dart';
 
 /// A builder function for [RemoteSettingBuilder.builder]
 /// that creates a toggle, or radio buttons, etc.
@@ -23,7 +24,7 @@ import 'store.dart';
 /// while ensuring that the real in-store value is shown soon after the
 /// user finishes interacting, whether the request(s) succeeded or failed.
 typedef RemoteSettingBuilderFn<T> =
-  Widget Function(T value, void Function(T) handleRequestNewValue);
+    Widget Function(T value, void Function(T) handleRequestNewValue);
 
 /// A stateful builder widget for toggles/etc.
 /// that control per-account settings on the server,
@@ -77,29 +78,30 @@ class RemoteSettingBuilder<T> extends StatefulWidget {
   State<RemoteSettingBuilder<T>> createState() => _RemoteSettingBuilderState();
 }
 
-class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>> with PerAccountStoreAwareStateMixin<RemoteSettingBuilder<T>> {
+class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>> {
   final _LocalEchoNotifier<T> _notifier = _LocalEchoNotifier();
 
   @override
   void initState() {
     super.initState();
+    _onStoreChanged();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
     _notifier.addListener(_notifierChanged);
   }
 
   late T? _prevValueFromStore;
 
-  @override
-  void onNewStore() {
-    _prevValueFromStore = widget.findValueInStore(PerAccountStoreWidget.of(context));
+  void _onStoreChanged() {
+    _prevValueFromStore = widget.findValueInStore(StoreService.to.requireStore);
     _notifier.stop();
   }
 
   @override
   void didChangeDependencies() {
-    // On the first call, this sets _prevValueFromStore, via onNewStore.
+    // On the first call, this sets _prevValueFromStore, via _onStoreChanged.
     super.didChangeDependencies();
 
-    final value = widget.findValueInStore(PerAccountStoreWidget.of(context));
+    final value = widget.findValueInStore(StoreService.to.requireStore);
     if (value != _prevValueFromStore) {
       _notifier.stop();
       _prevValueFromStore = value;
@@ -129,7 +131,8 @@ class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>> with 
       if (_disposed) return;
       // Don't call _notifier.stop(). We do that when the event arrives,
       // causing the in-store value to change (see didChangeDependencies).
-    } catch (e) { // TODO(log)
+    } catch (e) {
+      // TODO(log)
       if (_disposed) return;
       await _notifier.stop();
       if (_disposed) return;
@@ -141,7 +144,7 @@ class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>> with 
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = StoreService.to.requireStore;
 
     final value = _notifier.value.orElse(() => widget.findValueInStore(store));
     return widget.builder(value, _handleRequestNewValue);

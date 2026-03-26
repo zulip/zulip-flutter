@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 
 import '../../../../get/app_pages.dart';
 
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
-import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
 import '../../../widgets/action_sheet.dart';
@@ -28,7 +28,7 @@ class InboxTopicItem extends StatelessWidget {
       :lastUnreadId,
     ) = data;
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     final designVariables = DesignVariables.of(context);
     final visibilityIcon = iconDataForTopicVisibilityPolicy(

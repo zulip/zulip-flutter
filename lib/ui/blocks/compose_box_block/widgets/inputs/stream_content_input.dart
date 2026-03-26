@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../../api/model/model.dart';
 import '../../../../../api/route/messages.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../../model/narrow.dart';
 import '../../compose_box.dart';
-import '../../../../utils/store.dart';
 import 'content_input.dart';
 import '../typing_notifier.dart';
 
@@ -110,7 +110,7 @@ class _StreamContentInputState extends State<StreamContentInput> {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final streamName =

@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../../../api/exception.dart';
 import '../../../../../api/route/messages.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../values/constants.dart';
 import '../../../../extensions/color.dart';
 import '../../compose_box.dart';
 import '../../../../widgets/dialog.dart';
 import '../../../../values/icons.dart';
 import '../../../message_list_block/message_list_block.dart';
-import '../../../../utils/store.dart';
 import '../../../../values/theme.dart';
 
 class SendButton extends StatefulWidget {
@@ -86,7 +86,7 @@ class _SendButtonState extends State<SendButton> {
 
     if (_hasValidationErrors) {
       final zulipLocalizations = ZulipLocalizations.of(context);
-      final store = PerAccountStoreWidget.of(context);
+      final store = requirePerAccountStore();
       List<String> validationErrorMessages = [
         for (final error
             in (controller is StreamComposeBoxController
@@ -110,7 +110,7 @@ class _SendButtonState extends State<SendButton> {
     controller.content.clear();
 
     try {
-      final store = PerAccountStoreWidget.of(context);
+      final store = requirePerAccountStore();
       await store.sendMessage(destination: destination, content: content);
       if (!mounted) return;
     } on ApiRequestException catch (e) {
@@ -128,7 +128,7 @@ class _SendButtonState extends State<SendButton> {
       return;
     }
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     if (destination is StreamDestination &&
         store.subscriptions[destination.streamId] == null) {
       // The message was sent to an unsubscribed channel.

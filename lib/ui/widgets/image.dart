@@ -3,22 +3,9 @@ import 'package:flutter/widgets.dart';
 
 import '../../api/core.dart';
 import '../../api/model/initial_snapshot.dart';
+import '../../get/services/store_service.dart';
 import '../../model/content.dart';
-import '../utils/store.dart';
 
-/// Like [Image.network], but includes [authHeader] if [src] is on-realm.
-///
-/// Use this to present image content in the ambient realm: avatars, images in
-/// messages, etc. Must have a [PerAccountStoreWidget] ancestor.
-///
-/// If [src] is an on-realm URL (it has the same origin as the ambient
-/// [Auth.realmUrl]), then an HTTP request to fetch the image will include the
-/// user's [authHeader].
-///
-/// If [src] is off-realm (e.g., a Gravatar URL), no auth header will be sent.
-///
-/// The image will be cached according to the cache behavior of [Image.network],
-/// which may mean the cache is shared between realms.
 class RealmContentNetworkImage extends StatelessWidget {
   const RealmContentNetworkImage(
     this.src, {
@@ -74,7 +61,7 @@ class RealmContentNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final account = PerAccountStoreWidget.of(context).account;
+    final account = requirePerAccountStore().account;
 
     return Image.network(
       src.toString(),
@@ -100,9 +87,8 @@ class RealmContentNetworkImage extends StatelessWidget {
       isAntiAlias: isAntiAlias,
       headers: {
         // Only send the auth header to the server `auth` belongs to.
-        if (src.origin == account.realmUrl.origin) ...authHeader(
-          email: account.email, apiKey: account.apiKey,
-        ),
+        if (src.origin == account.realmUrl.origin)
+          ...authHeader(email: account.email, apiKey: account.apiKey),
         ...userAgentHeader(),
       },
       cacheWidth: cacheWidth,
@@ -124,26 +110,30 @@ enum ImageAnimationMode {
 
   /// Show the animated version
   /// just if animations aren't disabled in device settings.
-  animateConditionally,
-  ;
+  animateConditionally;
 
   /// True if the image should be animated, false if it should be still.
   bool shouldAnimate(BuildContext context) {
     switch (this) {
-      case animateAlways: return true;
-      case animateNever: return false;
+      case animateAlways:
+        return true;
+      case animateNever:
+        return false;
       case animateConditionally:
         // From reading code, this doesn't actually get set on iOS:
         //   https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408522293
         if (MediaQuery.disableAnimationsOf(context)) return false;
 
-        if (
-          defaultTargetPlatform == TargetPlatform.iOS
-          // TODO(#1924) On iOS 17+ (new in 2023), there's a more closely
-          //   relevant setting than "reduce motion". It's called "auto-play
-          //   animated images"; we should use that once Flutter exposes it.
-          && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion
-        ) {
+        if (defaultTargetPlatform == TargetPlatform.iOS
+            // TODO(#1924) On iOS 17+ (new in 2023), there's a more closely
+            //   relevant setting than "reduce motion". It's called "auto-play
+            //   animated images"; we should use that once Flutter exposes it.
+            &&
+            WidgetsBinding
+                .instance
+                .platformDispatcher
+                .accessibilityFeatures
+                .reduceMotion) {
           return false;
         }
 
@@ -153,15 +143,6 @@ enum ImageAnimationMode {
 }
 
 extension ImageThumbnailLocatorExtension on ImageThumbnailLocator {
-  /// Chooses an appropriate format from [PerAccountStore.serverThumbnailFormats],
-  /// represented as an absolute URL.
-  ///
-  /// [height] and [width] are in logical pixels.
-  ///
-  /// Requires an ancestor [PerAccountStoreWidget].
-  ///
-  /// The returned URL may not work
-  /// without adding authentication credentials to the request.
   Uri resolve(
     BuildContext context, {
     required double width,
@@ -172,15 +153,21 @@ extension ImageThumbnailLocatorExtension on ImageThumbnailLocator {
     final widthPhysicalPx = (width * devicePixelRatio).ceil();
     final heightPhysicalPx = (height * devicePixelRatio).ceil();
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     ThumbnailFormat? bestCandidate;
     if (animated && animationMode.shouldAnimate(context)) {
-      bestCandidate ??= _bestFormatOf(store.sortedAnimatedThumbnailFormats,
-                          width: widthPhysicalPx, height: heightPhysicalPx);
+      bestCandidate ??= _bestFormatOf(
+        store.sortedAnimatedThumbnailFormats,
+        width: widthPhysicalPx,
+        height: heightPhysicalPx,
+      );
     }
-    bestCandidate ??= _bestFormatOf(store.sortedStillThumbnailFormats,
-                        width: widthPhysicalPx, height: heightPhysicalPx);
+    bestCandidate ??= _bestFormatOf(
+      store.sortedStillThumbnailFormats,
+      width: widthPhysicalPx,
+      height: heightPhysicalPx,
+    );
 
     if (bestCandidate == null) {
       // There are no known thumbnail formats applicable; and yet we have this
@@ -195,9 +182,11 @@ extension ImageThumbnailLocatorExtension on ImageThumbnailLocator {
     final defaultFormatPath = defaultFormatSrc.path;
     final lastSlashIndexInPath = defaultFormatPath.lastIndexOf('/');
     final adjustedPath =
-      '${defaultFormatPath.substring(0, lastSlashIndexInPath)}/${bestCandidate.name}';
+        '${defaultFormatPath.substring(0, lastSlashIndexInPath)}/${bestCandidate.name}';
 
-    return store.realmUrl.resolveUri(defaultFormatSrc.replace(path: adjustedPath));
+    return store.realmUrl.resolveUri(
+      defaultFormatSrc.replace(path: adjustedPath),
+    );
   }
 
   ThumbnailFormat? _bestFormatOf(

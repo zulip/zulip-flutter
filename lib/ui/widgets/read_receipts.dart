@@ -1,21 +1,21 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../api/route/messages.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import 'action_sheet.dart';
 import '../utils/actions.dart';
 import '../extensions/color.dart';
 import '../blocks/profile_block/profile.dart';
-import '../utils/store.dart';
+
 import '../values/text.dart';
 import '../values/theme.dart';
 import 'user.dart';
 
 /// Opens a bottom sheet showing who has read the message.
 void showReadReceiptsSheet(BuildContext pageContext, {required int messageId}) {
-  final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
-
   showModalBottomSheet<void>(
     context: pageContext,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
@@ -25,12 +25,12 @@ void showReadReceiptsSheet(BuildContext pageContext, {required int messageId}) {
     useSafeArea: true,
     isScrollControlled: true,
     builder: (_) {
-      return PerAccountStoreWidget(
-        accountId: accountId,
-        child: SafeArea(
-          minimum: const EdgeInsets.only(bottom: 16),
-          child: ReadReceipts(messageId: messageId)));
-    });
+      return SafeArea(
+        minimum: const EdgeInsets.only(bottom: 16),
+        child: ReadReceipts(messageId: messageId),
+      );
+    },
+  );
 }
 
 /// The read-receipts sheet.
@@ -46,22 +46,36 @@ class ReadReceipts extends StatefulWidget {
   State<ReadReceipts> createState() => _ReadReceiptsState();
 }
 
-class _ReadReceiptsState extends State<ReadReceipts> with PerAccountStoreAwareStateMixin<ReadReceipts> {
+class _ReadReceiptsState extends State<ReadReceipts> {
   List<int> userIds = [];
   FetchStatus status = FetchStatus.loading;
 
   @override
-  void onNewStore() {
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _onStoreChanged();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _onStoreChanged() {
     tryFetchReadReceipts(context);
   }
 
   Future<void> tryFetchReadReceipts(BuildContext context) async {
-    final store = PerAccountStoreWidget.of(context);
+    final store = StoreService.to.requireStore;
     try {
-      final result = await getReadReceipts(store.connection, messageId: widget.messageId);
+      final result = await getReadReceipts(
+        store.connection,
+        messageId: widget.messageId,
+      );
 
       if (!context.mounted) return;
-      final storeNow = PerAccountStoreWidget.of(context);
+      final storeNow = StoreService.to.requireStore;
       if (!identical(store, storeNow)) return;
 
       // TODO(i18n): add locale-aware sorting
@@ -84,22 +98,32 @@ class _ReadReceiptsState extends State<ReadReceipts> with PerAccountStoreAwareSt
 
     final content = switch (status) {
       FetchStatus.loading => SliverToBoxAdapter(
-        child: BottomSheetEmptyContentPlaceholder(loading: true)),
-      FetchStatus.error   => SliverToBoxAdapter(
+        child: BottomSheetEmptyContentPlaceholder(loading: true),
+      ),
+      FetchStatus.error => SliverToBoxAdapter(
         child: BottomSheetEmptyContentPlaceholder(
-          message: zulipLocalizations.actionSheetReadReceiptsErrorReadCount)),
-      FetchStatus.success => userIds.isEmpty
-        ? SliverToBoxAdapter(
-            child: BottomSheetEmptyContentPlaceholder(
-              message: zulipLocalizations.actionSheetReadReceiptsZeroReadCount))
-        : SliverList.builder(
-            itemCount: receiptCount,
-            itemBuilder: (_, index) => ReadReceiptsUserItem(userId: userIds[index])),
+          message: zulipLocalizations.actionSheetReadReceiptsErrorReadCount,
+        ),
+      ),
+      FetchStatus.success =>
+        userIds.isEmpty
+            ? SliverToBoxAdapter(
+                child: BottomSheetEmptyContentPlaceholder(
+                  message:
+                      zulipLocalizations.actionSheetReadReceiptsZeroReadCount,
+                ),
+              )
+            : SliverList.builder(
+                itemCount: receiptCount,
+                itemBuilder: (_, index) =>
+                    ReadReceiptsUserItem(userId: userIds[index]),
+              ),
     };
 
     return DraggableScrollableModalBottomSheet(
       header: _ReadReceiptsHeader(receiptCount: receiptCount, status: status),
-      contentSliver: content);
+      contentSliver: content,
+    );
   }
 }
 
@@ -121,17 +145,23 @@ class _ReadReceiptsHeader extends StatelessWidget {
     if (status == FetchStatus.success && receiptCount > 0) {
       headerMessageBuilder = (TextStyle style) => TextWithLink(
         onTap: () {
-          PlatformActions.launchUrl(context, PerAccountStoreWidget.of(context)
-            .tryResolveUrl(_helpCenterRelativeUrl)!);
+          PlatformActions.launchUrl(
+            context,
+            StoreService.to.requireStore.tryResolveUrl(_helpCenterRelativeUrl)!,
+          );
         },
         style: style,
-        markup: zulipLocalizations.actionSheetReadReceiptsReadCount(receiptCount));
+        markup: zulipLocalizations.actionSheetReadReceiptsReadCount(
+          receiptCount,
+        ),
+      );
     }
 
     return BottomSheetHeader(
       outerVerticalPadding: true,
       title: zulipLocalizations.actionSheetReadReceipts,
-      buildMessage: headerMessageBuilder);
+      buildMessage: headerMessageBuilder,
+    );
   }
 }
 
@@ -146,39 +176,51 @@ class ReadReceiptsUserItem extends StatelessWidget {
     // Dismiss the action sheet.
     Navigator.pop(context);
 
-    Navigator.push(context,
-      ProfilePage.buildRoute(context: context, userId: userId));
+    Navigator.push(
+      context,
+      ProfilePage.buildRoute(context: context, userId: userId),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = StoreService.to.requireStore;
     final designVariables = DesignVariables.of(context);
 
     return InkWell(
       onTap: () => _onPressed(context),
       splashFactory: NoSplash.splashFactory,
       overlayColor: WidgetStateColor.fromMap({
-        WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.20),
+        WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(
+          0.20,
+        ),
       }),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(spacing: 8, children: [
-          Avatar(
-            size: 32,
-            borderRadius: 3,
-            backgroundColor: designVariables.bgContextMenu,
-            userId: userId),
-          Flexible(
-            child: Text(
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 17,
-                height: 17 / 17,
-                color: designVariables.textMessage,
-              ).merge(weightVariableTextStyle(context, wght: 500)),
-              store.userDisplayName(userId))),
-        ])));
+        child: Row(
+          spacing: 8,
+          children: [
+            Avatar(
+              size: 32,
+              borderRadius: 3,
+              backgroundColor: designVariables.bgContextMenu,
+              userId: userId,
+            ),
+            Flexible(
+              child: Text(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 17,
+                  height: 17 / 17,
+                  color: designVariables.textMessage,
+                ).merge(weightVariableTextStyle(context, wght: 500)),
+                store.userDisplayName(userId),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

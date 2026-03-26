@@ -1,13 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:get/state_manager.dart';
+import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../utils/store.dart';
+import '../../home_block/home.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
-import '../home.dart';
 import 'main_menu.dart';
 import 'navigation_bar_button.dart';
 
@@ -112,7 +111,6 @@ void showMainMenu(
   required Rx<HomePageTab> tabNotifier,
 }) {
   final designVariables = DesignVariables.of(context);
-  final accountId = PerAccountStoreWidget.accountIdOf(context);
   showModalBottomSheet<void>(
     context: context,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
@@ -127,10 +125,7 @@ void showMainMenu(
     //     https://github.com/zulip/zulip-flutter/pull/1076/files#r1872659043
     backgroundColor: designVariables.bgBotBar,
     builder: (BuildContext _) {
-      return PerAccountStoreWidget(
-        accountId: accountId,
-        child: MainMenu(tabNotifier: tabNotifier),
-      );
+      return MainMenu(tabNotifier: tabNotifier);
     },
   );
 }

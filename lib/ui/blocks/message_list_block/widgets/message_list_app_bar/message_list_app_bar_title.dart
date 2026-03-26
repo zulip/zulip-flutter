@@ -2,12 +2,12 @@ import 'package:flutter/material.dart' hide SearchBar;
 
 import '../../../../../api/model/model.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../../model/message_list.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../widgets/action_sheet.dart';
 import '../../../../extensions/color.dart';
 import '../../../../values/icons.dart';
-import '../../../../utils/store.dart';
 import '../../../../values/text.dart';
 import '../../../../values/theme.dart';
 import '../../message_list_block.dart';
@@ -24,7 +24,7 @@ class MessageListAppBarTitle extends StatelessWidget {
   final bool willCenterTitle;
 
   Widget _buildStreamRow(BuildContext context, {ZulipStream? stream}) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     // A null [Icon.icon] makes a blank space.
@@ -59,7 +59,7 @@ class MessageListAppBarTitle extends StatelessWidget {
     required ZulipStream? stream,
     required TopicName topic,
   }) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
     final icon = stream == null
         ? null
@@ -106,7 +106,7 @@ class MessageListAppBarTitle extends StatelessWidget {
         return Text(zulipLocalizations.starredMessagesPageTitle);
 
       case ChannelNarrow(:var streamId):
-        final store = PerAccountStoreWidget.of(context);
+        final store = requirePerAccountStore();
         final stream = store.streams[streamId];
         final alignment = willCenterTitle
             ? Alignment.center
@@ -126,7 +126,7 @@ class MessageListAppBarTitle extends StatelessWidget {
         );
 
       case TopicNarrow(:var streamId, :var topic):
-        final store = PerAccountStoreWidget.of(context);
+        final store = requirePerAccountStore();
         final stream = store.streams[streamId];
         final alignment = willCenterTitle
             ? Alignment.center
@@ -174,7 +174,7 @@ class MessageListAppBarTitle extends StatelessWidget {
         );
 
       case DmNarrow(:var otherRecipientIds):
-        final store = PerAccountStoreWidget.of(context);
+        final store = requirePerAccountStore();
         if (otherRecipientIds.isEmpty) {
           return Text(zulipLocalizations.dmsWithYourselfPageTitle);
         } else {

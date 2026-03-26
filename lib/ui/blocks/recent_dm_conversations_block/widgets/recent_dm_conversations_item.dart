@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
-import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
 import '../../../widgets/counter_badge.dart';
@@ -24,7 +24,7 @@ class RecentDmConversationsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
 
     final InlineSpan title;

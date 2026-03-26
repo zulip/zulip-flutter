@@ -4,12 +4,12 @@ import '../../../../../api/exception.dart';
 import '../../../../../api/model/model.dart';
 import '../../../../../api/route/messages.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../widgets/button.dart';
 import '../../compose_box.dart';
 import '../../../../widgets/dialog.dart';
 import '../../../message_list_block/message_list_block.dart';
 import '../../../../utils/page.dart';
-import '../../../../utils/store.dart';
 import '../../compose_box_block.dart';
 
 class EditMessageBannerTrailing extends StatelessWidget {
@@ -50,7 +50,7 @@ class EditMessageBannerTrailing extends StatelessWidget {
     composeBoxState.endEditInteraction();
 
     try {
-      final store = PerAccountStoreWidget.of(pageContext);
+      final store = requirePerAccountStore();
       await store.editMessage(
         messageId: messageId,
         originalRawContent: originalRawContent,
@@ -72,7 +72,7 @@ class EditMessageBannerTrailing extends StatelessWidget {
       return;
     }
 
-    final store = PerAccountStoreWidget.of(pageContext);
+    final store = requirePerAccountStore();
     final messageListPageState = MessageListBlockPage.ancestorOf(pageContext);
     final narrow = messageListPageState.narrow;
     final message = store.messages[messageId];

@@ -4,7 +4,6 @@ import '../../../api/route/realm.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../values/constants.dart';
 import '../../utils/page.dart';
-import '../../utils/store.dart';
 import '../../values/text.dart';
 import '../../values/theme.dart';
 import 'login_controller.dart';
@@ -24,7 +23,6 @@ class AddAccountPage extends GetView<LoginController> {
 
   @override
   Widget build(BuildContext context) {
-    assert(!PerAccountStoreWidget.debugExistsOf(context));
     final zulipLocalizations = ZulipLocalizations.of(context);
     final error = controller.parseResult.value?.error;
     final errorText = error == null || error.shouldDeferFeedback()
@@ -103,7 +101,6 @@ class LoginPage extends GetView<LoginController> {
 
   @override
   Widget build(BuildContext context) {
-    assert(!PerAccountStoreWidget.debugExistsOf(context));
     final colorScheme = Theme.of(context).colorScheme;
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -218,7 +215,6 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
 
   @override
   Widget build(BuildContext context) {
-    assert(!PerAccountStoreWidget.debugExistsOf(context));
     final zulipLocalizations = ZulipLocalizations.of(context);
     final requireEmailFormatUsernames =
         widget.serverSettings.requireEmailFormatUsernames;

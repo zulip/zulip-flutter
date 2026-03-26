@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'services/store_service.dart';
 import '../ui/utils/store.dart';
 import '../model/narrow.dart';
 import '../ui/blocks/home_block/home_bindings.dart';
@@ -45,9 +46,14 @@ class AppRoutes {
 }
 
 class AppPages {
-  static int _getAccountId() {
+  static void _setCurrentAccount() {
     final globalStore = GlobalStoreWidget.of(Get.context!);
-    return globalStore.lastVisitedAccount?.id ?? 0;
+    final accountId = globalStore.lastVisitedAccount?.id ?? 0;
+    if (accountId > 0) {
+      StoreService.to.setGlobalStore(globalStore);
+
+      StoreService.to.setCurrentAccount(accountId);
+    }
   }
 
   static final List<GetPage<dynamic>> pages = [
@@ -59,61 +65,46 @@ class AppPages {
     GetPage<dynamic>(
       name: AppRoutes.home,
       page: () {
-        final accountId = _getAccountId();
-        return PerAccountStoreWidget(
-          accountId: accountId,
-          child: const HomePage(),
-        );
+        _setCurrentAccount();
+        return const HomePage();
       },
       binding: HomeBinding(),
     ),
     GetPage<dynamic>(
       name: AppRoutes.settings,
       page: () {
-        final accountId = _getAccountId();
-        return PerAccountStoreWidget(
-          accountId: accountId,
-          child: const SettingsPage(),
-        );
+        _setCurrentAccount();
+        return const SettingsPage();
       },
       binding: SettingsBinding(),
     ),
     GetPage<dynamic>(
       name: AppRoutes.allChannels,
       page: () {
-        final accountId = _getAccountId();
-        return PerAccountStoreWidget(
-          accountId: accountId,
-          child: const AllChannelsPage(),
-        );
+        _setCurrentAccount();
+        return const AllChannelsPage();
       },
     ),
     GetPage<dynamic>(
       name: AppRoutes.topicList,
       page: () {
-        final accountId = _getAccountId();
+        _setCurrentAccount();
         final args = Get.arguments as Map<String, dynamic>? ?? {};
         final streamId = args['streamId'] as int? ?? 0;
-        return PerAccountStoreWidget(
-          accountId: accountId,
-          child: TopicListPage(streamId: streamId),
-        );
+        return TopicListPage(streamId: streamId);
       },
       binding: TopicListBinding(),
     ),
     GetPage<dynamic>(
       name: AppRoutes.messageList,
       page: () {
-        final accountId = _getAccountId();
+        _setCurrentAccount();
         final args = Get.arguments as Map<String, dynamic>? ?? {};
         final narrow = args['narrow'] as Narrow;
         final initAnchorMessageId = args['initAnchorMessageId'] as int?;
-        return PerAccountStoreWidget(
-          accountId: accountId,
-          child: MessageListBlockPage(
-            initNarrow: narrow,
-            initAnchorMessageId: initAnchorMessageId,
-          ),
+        return MessageListBlockPage(
+          initNarrow: narrow,
+          initAnchorMessageId: initAnchorMessageId,
         );
       },
       binding: MessageListBinding(),
@@ -121,13 +112,10 @@ class AppPages {
     GetPage<dynamic>(
       name: AppRoutes.profile,
       page: () {
-        final accountId = _getAccountId();
+        _setCurrentAccount();
         final args = Get.arguments as Map<String, dynamic>? ?? {};
         final userId = args['userId'] as int? ?? 0;
-        return PerAccountStoreWidget(
-          accountId: accountId,
-          child: ProfilePage(userId: userId),
-        );
+        return ProfilePage(userId: userId);
       },
       binding: ProfileBinding(),
     ),
@@ -152,6 +140,7 @@ class AppPages {
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
+    Get.lazyPut<StoreService>(() => StoreService());
     Get.lazyPut<LoginController>(() => LoginController());
     Get.lazyPut<HomeController>(() => HomeController());
     Get.lazyPut<MessageListController>(() => MessageListController());

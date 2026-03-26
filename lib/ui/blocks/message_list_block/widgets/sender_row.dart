@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/store.dart';
 import '../../../extensions/color.dart';
 import '../../../themes/message_list_theme.dart';
 import '../../../values/icons.dart';
 import '../message_list.dart';
 import '../../profile_block/profile.dart';
-import '../../../utils/store.dart';
 import '../../../values/text.dart';
 import '../../../values/theme.dart';
 import '../../../widgets/user.dart';
@@ -40,7 +40,7 @@ class SenderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final messageListTheme = MessageListTheme.of(context);
     final designVariables = DesignVariables.of(context);
 

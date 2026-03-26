@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/binding.dart';
 import '../../../themes/message_list_theme.dart';
 import '../message_list.dart';
-import '../../../utils/store.dart';
 
 class DateText extends StatelessWidget {
   const DateText({
@@ -20,7 +20,7 @@ class DateText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final formattedTimestamp = MessageTimestampStyle.dateOnlyRelative.format(

@@ -12,11 +12,6 @@ const kTryAnotherAccountWaitPeriod = Duration(seconds: 5);
 class HomeLoadingPlaceholderPage extends StatefulWidget {
   const HomeLoadingPlaceholderPage({super.key, required this.accountId});
 
-  /// The relevant account for this page.
-  ///
-  /// The account is not guaranteed to exist in the global store. This can
-  /// happen briefly when the account is removed from the database for logout,
-  /// but before [PerAccountStoreWidget.routeToRemoveOnLogout] is processed.
   final int accountId;
 
   @override
