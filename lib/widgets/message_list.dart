@@ -29,6 +29,7 @@ import 'page.dart';
 import 'profile.dart';
 import 'scrolling.dart';
 import 'sticky_header.dart';
+import 'skeleton.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -1069,7 +1070,35 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
-    if (!model.fetched) return const Center(child: CircularProgressIndicator());
+    if (!model.fetched) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: List.generate(6, (index) => Padding(
+            padding: const EdgeInsets.only(bottom: 24.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonLoader(width: 40, height: 40, borderRadius: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SkeletonLoader(width: 120, height: 16, borderRadius: 4),
+                      const SizedBox(height: 8),
+                      SkeletonLoader(width: double.infinity, height: 14, borderRadius: 4),
+                      const SizedBox(height: 4),
+                      SkeletonLoader(width: MediaQuery.sizeOf(context).width * 0.5, height: 14, borderRadius: 4),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ),
+      );
+    }
 
     if (model.items.isEmpty && model.haveNewest && model.haveOldest) {
       return _EmptyMessageListPlaceholder(narrow: widget.narrow);
@@ -1408,10 +1437,10 @@ class _MessageListLoadingMore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 16.0),
-        child: CircularProgressIndicator())); // TODO perhaps a different indicator
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: SkeletonLoader(width: 100, height: 4, borderRadius: 2)));
   }
 }
 
@@ -1697,7 +1726,15 @@ class DateSeparator extends StatelessWidget {
 
     final designVariables = DesignVariables.of(context);
 
-    final line = BorderSide(width: 0, color: designVariables.foreground);
+    // Create gradient background for timeline lines
+    final timelineGradient = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        const Color(0xFF3DB6B1),
+        const Color(0xFF007E6E),
+      ],
+    );
 
     // TODO(#681) use different color for DM messages
     return ColoredBox(color: designVariables.bgMessageRegular,
@@ -1705,21 +1742,32 @@ class DateSeparator extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
           Expanded(
-            child: SizedBox(height: 0,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: line))))),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Center(
+                child: Container(
+                  height: 2,
+                  decoration: BoxDecoration(gradient: timelineGradient),
+                ),
+              ),
+            ),
+          ),
           Padding(padding: const EdgeInsets.fromLTRB(2, 0, 2, textBottomPadding),
             child: DateText(
               fontSize: 16,
               height: (16 / 16),
               timestamp: message.timestamp)),
-          SizedBox(height: 0, width: 12,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: line)))),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Center(
+                child: Container(
+                  height: 2,
+                  decoration: BoxDecoration(gradient: timelineGradient),
+                ),
+              ),
+            ),
+          ),
         ])),
     );
   }
@@ -2111,8 +2159,8 @@ class SenderRow extends StatelessWidget {
               child: Row(
                 children: [
                   Avatar(
-                    size: 32,
-                    borderRadius: 3,
+                    size: 42,
+                    borderRadius: 21,
                     showPresence: false,
                     replaceIfMuted: showAsMuted,
                     userId: message.senderId),
@@ -2356,9 +2404,11 @@ class MessageWithPossibleSender extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Column(children: [
-          if (item.showSender)
+          if (item.showSender) ...[
             SenderRow(message: message,
               timestampStyle: MessageTimestampStyle.timeOnly),
+            const SizedBox(height: 6),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: localizedTextBaseline(context),
@@ -2603,3 +2653,4 @@ class _RestoreOutboxMessageGestureDetector extends StatelessWidget {
       child: child);
   }
 }
+

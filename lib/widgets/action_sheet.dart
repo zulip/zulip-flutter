@@ -30,9 +30,11 @@ import 'inset_shadow.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'read_receipts.dart';
+import 'skeleton.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
+import 'user.dart';
 import 'topic_list.dart';
 
 /// Show an action sheet with scrollable menu buttons
@@ -54,76 +56,111 @@ void _showActionSheet(
 
   showModalBottomSheet<void>(
     context: pageContext,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
     clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
-    builder: (BuildContext _) {
-      final designVariables = DesignVariables.of(pageContext);
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+      builder: (BuildContext context) {
+        final designVariables = DesignVariables.of(context);
+        final brightness = Theme.of(context).brightness;
 
-      Widget? effectiveHeader;
-      if (header != null) {
-        effectiveHeader = headerScrollable
-          ? Flexible(
-              // TODO(upstream) Enforce a flex ratio (e.g. 1:3)
-              //   only when the header height plus the buttons' height
-              //   exceeds available space. Otherwise let one or the other
-              //   grow to fill available space even if it breaks the ratio.
-              //   Needs support for separate properties like `flex-grow`
-              //   and `flex-shrink`.
-              flex: 1,
-              child: InsetShadowBox(
-                top: 8, bottom: 8,
-                color: designVariables.bgContextMenu,
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: header)))
-          : Padding(
-              padding: EdgeInsets.only(top: 16, bottom: 4),
-              child: header);
-      }
+        Widget? effectiveHeader;
+        if (header != null) {
+          effectiveHeader = headerScrollable
+            ? Flexible(
+                flex: 1,
+                child: InsetShadowBox(
+                  top: 8, bottom: 8,
+                  color: Colors.transparent,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: header)))
+            : Padding(
+                padding: EdgeInsets.only(top: 16, bottom: 4),
+                child: header);
+        }
 
-      final body = Flexible(
-        flex: (effectiveHeader != null && headerScrollable)
-          ? 3
-          : 1,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: InsetShadowBox(
-                top: 8, bottom: 8,
-                color: designVariables.bgContextMenu,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 8,
-                    children: buttonSections.map((buttons) =>
-                      MenuButtonsShape(buttons: buttons)).toList())))),
-              const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
-            ])));
-
-      return PerAccountStoreWidget(
-        accountId: accountId,
-        child: Semantics(
-          role: SemanticsRole.menu,
-          child: SafeArea(
-            minimum: const EdgeInsets.only(bottom: 16),
+        final body = Flexible(
+          flex: (effectiveHeader != null && headerScrollable)
+            ? 3
+            : 1,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (effectiveHeader != null)
-                  effectiveHeader
-                else
-                  SizedBox(height: 8),
-                body,
-              ]))));
-    });
+                Flexible(child: InsetShadowBox(
+                  top: 8, bottom: 8,
+                  color: Colors.transparent,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 8,
+                      children: buttonSections.map((buttons) =>
+                        MenuButtonsShape(buttons: buttons)).toList())))),
+                const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
+              ])));
+
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: PerAccountStoreWidget(
+            accountId: accountId,
+            child: Material(
+              color: brightness == Brightness.light
+                ? Colors.white.withValues(alpha: 0.99)
+                : designVariables.bgContextMenu.withValues(alpha: 0.99),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              clipBehavior: Clip.antiAlias,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                    left: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 0.5),
+                    right: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 0.5),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 24,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: Semantics(
+                  role: SemanticsRole.menu,
+                  child: SafeArea(
+                    minimum: const EdgeInsets.only(bottom: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 14, bottom: 8),
+                          child: Container(
+                            width: 44,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: designVariables.icon.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(1.5),
+                            ),
+                          ),
+                        ),
+                        if (effectiveHeader != null)
+                          effectiveHeader
+                        else
+                          const SizedBox(height: 8),
+                        body,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      });
 }
 
 typedef WidgetBuilderFromTextStyle = Widget Function(TextStyle);
@@ -255,7 +292,7 @@ class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final child = loading
-      ? CircularProgressIndicator()
+      ? SkeletonLoader(height: 100, borderRadius: 12)
       : Text(
           textAlign: TextAlign.center,
           style: TextStyle(
@@ -480,6 +517,212 @@ enum BottomSheetDismissButtonStyle {
 
   /// The "Close" label, for bottom sheets that are read-only or for navigation.
   close,
+}
+
+/// Add or remove an emoji reaction to/from a message.
+///
+/// If the request fails, shows an error dialog with the given [errorDialogTitle].
+Future<void> doAddOrRemoveReaction({
+  required BuildContext context,
+  required bool doRemoveReaction,
+  required int messageId,
+  required EmojiCandidate emoji,
+  required String errorDialogTitle,
+}) async {
+  final store = PerAccountStoreWidget.of(context);
+  final connection = store.connection;
+  
+  try {
+    if (doRemoveReaction) {
+      await removeReaction(
+        connection,
+        messageId: messageId,
+        reactionType: emoji.emojiType,
+        emojiCode: emoji.emojiCode,
+        emojiName: emoji.emojiName,
+      );
+    } else {
+      await addReaction(
+        connection,
+        messageId: messageId,
+        reactionType: emoji.emojiType,
+        emojiCode: emoji.emojiCode,
+        emojiName: emoji.emojiName,
+      );
+    }
+  } catch (e) {
+    if (!context.mounted) return;
+    
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    showErrorDialog(
+      context: context,
+      title: errorDialogTitle,
+      message: zulipLocalizations.errorNetworkRequestFailed,
+    );
+  }
+}
+
+/// Opens a bottom sheet showing who reacted with each emoji to a message.
+void showViewReactionsSheet(BuildContext pageContext, {required int messageId}) {
+  final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
+
+  showModalBottomSheet<void>(
+    context: pageContext,
+    clipBehavior: Clip.antiAlias,
+    useSafeArea: true,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+    builder: (BuildContext context) {
+      final designVariables = DesignVariables.of(context);
+      final brightness = Theme.of(context).brightness;
+      return BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: PerAccountStoreWidget(
+          accountId: accountId,
+          child: Material(
+            color: brightness == Brightness.light
+              ? Colors.white.withValues(alpha: 0.99)
+              : designVariables.bgContextMenu.withValues(alpha: 0.99),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            clipBehavior: Clip.antiAlias,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                  left: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 0.5),
+                  right: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 0.5),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 24,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: _ViewReactionsSheetContent(messageId: messageId),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _ViewReactionsSheetContent extends StatefulWidget {
+  const _ViewReactionsSheetContent({required this.messageId});
+
+  final int messageId;
+
+  @override
+  State<_ViewReactionsSheetContent> createState() => _ViewReactionsSheetContentState();
+}
+
+class _ViewReactionsSheetContentState extends State<_ViewReactionsSheetContent> {
+  String selectedEmojiCode = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (selectedEmojiCode.isEmpty) {
+      final store = PerAccountStoreWidget.of(context);
+      final message = store.messages[widget.messageId];
+      final firstReaction = message?.reactions?.aggregated.firstOrNull;
+      selectedEmojiCode = firstReaction?.emojiCode ?? '';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final message = store.messages[widget.messageId];
+    final reactions = message?.reactions;
+
+    if (reactions == null || reactions.aggregated.isEmpty) {
+      return BottomSheetEmptyContentPlaceholder(
+        message: ZulipLocalizations.of(context).seeWhoReactedSheetNoReactions,
+      );
+    }
+
+    final reactionsByCode = <String, ReactionWithVotes>{};
+    for (final reaction in reactions.aggregated) {
+      reactionsByCode[reaction.emojiCode] = reaction;
+    }
+
+    final allUserReactions = <({int userId, ReactionWithVotes reaction})>[];
+    for (final reaction in reactions.aggregated) {
+      for (final userId in reaction.userIds) {
+        allUserReactions.add((userId: userId, reaction: reaction));
+      }
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Subtle professional drag handle
+        Padding(
+          padding: const EdgeInsets.only(top: 14, bottom: 8),
+          child: Container(
+            width: 44,
+            height: 3,
+            decoration: BoxDecoration(
+              color: DesignVariables.of(context).icon.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(1.5),
+            ),
+          ),
+        ),
+        BottomSheetHeader(
+          title: ZulipLocalizations.of(context)
+            .seeWhoReactedSheetHeaderLabel(reactions.total),
+        ),
+        Flexible(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.5,
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: allUserReactions.length,
+              itemBuilder: (context, index) {
+                final userReaction = allUserReactions[index];
+                final user = store.getUser(userReaction.userId);
+                final designVariables = DesignVariables.of(context);
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      Avatar(userId: userReaction.userId, size: 30, borderRadius: 15),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          user?.fullName ?? 'Unknown User',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: designVariables.labelMenuButton,
+                          ).merge(weightVariableTextStyle(context, wght: 500)),
+                        ),
+                      ),
+                      EmojiWidget(
+                        emojiDisplay: store.emojiDisplayFor(
+                          emojiType: userReaction.reaction.reactionType,
+                          emojiCode: userReaction.reaction.emojiCode,
+                          emojiName: userReaction.reaction.emojiName,
+                        ),
+                        squareDimension: 24,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// Show a sheet of actions you can take on a channel.
@@ -1296,20 +1539,23 @@ class ReactionButtons extends StatelessWidget {
       onTap: () => _handleTapReaction(emoji: emoji, isSelfVoted: isSelfVoted),
       splashFactory: NoSplash.splashFactory,
       borderRadius: isFirst
-        ? const BorderRadiusDirectional.only(topStart: Radius.circular(7))
+        ? const BorderRadiusDirectional.only(topStart: Radius.circular(12))
             .resolve(Directionality.of(context))
         : null,
       overlayColor: WidgetStateColor.resolveWith((states) =>
         states.any((e) => e == WidgetState.pressed)
-          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+          ? const Color(0xFFD8E0ED).withValues(alpha: 0.4)
           : Colors.transparent),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
         alignment: Alignment.center,
-        color: isSelfVoted
-          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-          : null,
+        decoration: BoxDecoration(
+          color: isSelfVoted
+            ? designVariables.icon.withValues(alpha: 0.15)
+            : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
         child: UnicodeEmojiWidget(
           emojiDisplay: emoji.emojiDisplay as UnicodeEmojiDisplay,
           size: 24))));
@@ -1342,38 +1588,42 @@ class ReactionButtons extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: designVariables.contextMenuItemBg.withFadedAlpha(0.12)),
+        color: designVariables.bgSearchInput.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: designVariables.borderBar, width: 0.5),
+      ),
       child: Row(children: [
-        Flexible(child: Row(spacing: 1, children: List.unmodifiable(
+        Flexible(child: Row(spacing: 2, children: List.unmodifiable(
           popularEmojiCandidates.mapIndexed((index, emoji) =>
             _buildButton(
               context: context,
               emoji: emoji,
               isSelfVoted: hasSelfVote(emoji),
-              isFirst: index == 0))))),
+              isFirst: index == 0)))),),
         InkWell(
           onTap: _handleTapMore,
           splashFactory: NoSplash.splashFactory,
           borderRadius: const BorderRadiusDirectional.only(
-            topEnd: Radius.circular(7)).resolve(textDirection),
+            topEnd: Radius.circular(12)).resolve(textDirection),
           overlayColor: WidgetStateColor.resolveWith((states) =>
             states.any((e) => e == WidgetState.pressed)
-              ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+              ? const Color(0xFFD8E0ED).withValues(alpha: 0.5)
               : Colors.transparent),
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 4, 12),
+            child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 8, 10),
             child: Row(children: [
               Text(zulipLocalizations.emojiReactionsMore,
                 textAlign: TextAlign.end,
                 style: TextStyle(
-                  color: designVariables.contextMenuItemText,
-                  fontSize: 14,
-                ).merge(weightVariableTextStyle(context, wght: 600))),
+                  color: designVariables.labelSearchPrompt,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ).merge(weightVariableTextStyle(context, wght: 500))),
               Icon(ZulipIcons.chevron_right,
-                color: designVariables.contextMenuItemText,
-                size: 24),
-            ]),
-          )),
+                color: designVariables.labelSearchPrompt,
+                size: 18),
+            ])),
+          ),
       ]),
     );
   }

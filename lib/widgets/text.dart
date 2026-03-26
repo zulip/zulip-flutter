@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -156,7 +157,7 @@ TextTheme _convertTextTheme(
 ///
 /// This is a variable-weight font, so any [TextStyle] that uses this should be
 /// merged with the result of calling [weightVariableTextStyle].
-const kDefaultFontFamily = 'Source Sans 3';
+String get kDefaultFontFamily => GoogleFonts.poppins().fontFamily!;
 
 /// The [TextStyle.fontFamilyFallback] for use with [kDefaultFontFamily].
 List<String> get defaultFontFamilyFallback => [
