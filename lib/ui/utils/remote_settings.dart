@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../basic.dart';
 import '../../get/services/store_service.dart';
 import '../../model/store.dart';
-import 'store.dart';
 
 /// A builder function for [RemoteSettingBuilder.builder]
 /// that creates a toggle, or radio buttons, etc.
@@ -78,30 +78,30 @@ class RemoteSettingBuilder<T> extends StatefulWidget {
   State<RemoteSettingBuilder<T>> createState() => _RemoteSettingBuilderState();
 }
 
-class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>>
-    with PerAccountStoreAwareStateMixin<RemoteSettingBuilder<T>> {
+class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>> {
   final _LocalEchoNotifier<T> _notifier = _LocalEchoNotifier();
 
   @override
   void initState() {
     super.initState();
+    _onStoreChanged();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
     _notifier.addListener(_notifierChanged);
   }
 
   late T? _prevValueFromStore;
 
-  @override
-  void onNewStore() {
-    _prevValueFromStore = widget.findValueInStore(requirePerAccountStore());
+  void _onStoreChanged() {
+    _prevValueFromStore = widget.findValueInStore(StoreService.to.requireStore);
     _notifier.stop();
   }
 
   @override
   void didChangeDependencies() {
-    // On the first call, this sets _prevValueFromStore, via onNewStore.
+    // On the first call, this sets _prevValueFromStore, via _onStoreChanged.
     super.didChangeDependencies();
 
-    final value = widget.findValueInStore(requirePerAccountStore());
+    final value = widget.findValueInStore(StoreService.to.requireStore);
     if (value != _prevValueFromStore) {
       _notifier.stop();
       _prevValueFromStore = value;
@@ -144,7 +144,7 @@ class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>>
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
 
     final value = _notifier.value.orElse(() => widget.findValueInStore(store));
     return widget.builder(value, _handleRequestNewValue);

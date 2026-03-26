@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
 import '../../get/services/store_service.dart';
@@ -6,7 +7,7 @@ import '../../model/emoji.dart';
 import '../../model/store.dart';
 import 'emoji.dart';
 import '../values/icons.dart';
-import '../utils/store.dart';
+
 import '../../model/autocomplete.dart';
 import '../../model/compose.dart';
 import '../../model/narrow.dart';
@@ -49,8 +50,7 @@ class _AutocompleteFieldState<
   QueryT extends AutocompleteQuery,
   ResultT extends AutocompleteResult
 >
-    extends State<AutocompleteField<QueryT, ResultT>>
-    with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT>> {
+    extends State<AutocompleteField<QueryT, ResultT>> {
   AutocompleteView<QueryT, ResultT>? _viewModel;
   final ScrollController _scrollController = ScrollController();
 
@@ -88,11 +88,11 @@ class _AutocompleteFieldState<
   @override
   void initState() {
     super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
     widget.controller.addListener(_handleControllerChange);
   }
 
-  @override
-  void onNewStore() {
+  void _onStoreChanged() {
     if (_viewModel != null) {
       final query = _viewModel!.query;
       _viewModel!.dispose();
@@ -210,7 +210,7 @@ class ComposeAutocomplete
     BuildContext context,
     ComposeAutocompleteQuery query,
   ) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
     return query.initViewModel(
       store: store,
@@ -229,7 +229,7 @@ class ComposeAutocomplete
     }
     final query = intent.query;
 
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final String replacementString;
     switch (option) {
       case EmojiAutocompleteResult(:var candidate):
@@ -353,7 +353,7 @@ class MentionAutocompleteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final designVariables = DesignVariables.of(context);
 
     Widget avatar;
@@ -461,7 +461,7 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final channel = store.streams[option.channelId];
 
     if (channel == null) return SizedBox.shrink();
@@ -513,7 +513,7 @@ class EmojiAutocompleteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final designVariables = DesignVariables.of(context);
     final candidate = option.candidate;
 
@@ -593,7 +593,7 @@ class TopicAutocomplete
     BuildContext context,
     TopicAutocompleteQuery query,
   ) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     return TopicAutocompleteView.init(
       store: store,
       streamId: streamId,
@@ -617,7 +617,7 @@ class TopicAutocomplete
   ) {
     final Widget child;
     if (option.topic.displayName == null) {
-      final store = requirePerAccountStore();
+      final store = StoreService.to.requireStore;
       child = Text(
         store.realmEmptyTopicDisplayName,
         style: const TextStyle(fontStyle: FontStyle.italic),

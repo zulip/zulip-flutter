@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Banner;
 import 'package:flutter/scheduler.dart';
+import 'package:get/get.dart';
 
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
@@ -9,7 +10,7 @@ import '../../../model/store.dart';
 import '../../utils/actions.dart';
 import 'compose_box.dart';
 import '../../widgets/dialog.dart';
-import '../../utils/store.dart';
+
 import 'compose_box_container.dart';
 import 'widgets/banner.dart';
 import 'widgets/banner_trailings/edit_message_banner_trailing.dart';
@@ -79,7 +80,6 @@ abstract class ComposeBoxBlockState extends State<ComposeBoxBlock> {
 }
 
 class ComposeBoxState extends State<ComposeBoxBlock>
-    with PerAccountStoreAwareStateMixin<ComposeBoxBlock>
     implements ComposeBoxBlockState {
   @override
   ComposeBoxController get controller => _controller!;
@@ -92,6 +92,38 @@ class ComposeBoxState extends State<ComposeBoxBlock>
   }
 
   @override
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _setNewController(StoreService.to.requireStore);
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _onStoreChanged() {
+    final newStore = StoreService.to.requireStore;
+
+    final controller = _controller;
+    if (controller == null) {
+      _setNewController(newStore);
+      return;
+    }
+
+    switch (controller) {
+      case StreamComposeBoxController():
+        controller.content.store = newStore;
+        controller.topic.store = newStore;
+      case FixedDestinationComposeBoxController():
+      case EditMessageComposeBoxController():
+        controller.content.store = newStore;
+    }
+  }
+
+  @override
   void restoreMessageNotSent(int localMessageId) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -101,7 +133,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     );
     if (abort || !mounted) return;
 
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final outboxMessage = store.takeOutboxMessage(localMessageId);
     setState(() {
       _setNewController(store);
@@ -127,7 +159,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     );
     if (abort || !mounted) return;
 
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
 
     switch (store.getEditMessageErrorStatus(messageId)) {
       case null:
@@ -173,7 +205,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
   }
 
   void _editByRestoringFailedEdit(int messageId) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     // Fill the content input with the content the user wanted in the failed
     // edit attempt, not the original content.
     // Side effect: Clears the "EDIT NOT SAVED" text in the message list.
@@ -190,7 +222,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
   }
 
   void _editFromRawContentFetch(int messageId) async {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
     final emptyEditController = EditMessageComposeBoxController.empty(
       store,
@@ -218,7 +250,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
       // Fetch-raw-content failed; abort the edit session.
       // An error dialog was already shown, by fetchRawContentWithFeedback.
       setState(() {
-        _setNewController(requirePerAccountStore());
+        _setNewController(StoreService.to.requireStore);
       });
       return;
     }
@@ -245,30 +277,10 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     assert(controller is EditMessageComposeBoxController);
     if (controller is! EditMessageComposeBoxController) return; // TODO(log)
 
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     setState(() {
       _setNewController(store);
     });
-  }
-
-  @override
-  void onNewStore() {
-    final newStore = requirePerAccountStore();
-
-    final controller = _controller;
-    if (controller == null) {
-      _setNewController(newStore);
-      return;
-    }
-
-    switch (controller) {
-      case StreamComposeBoxController():
-        controller.content.store = newStore;
-        controller.topic.store = newStore;
-      case FixedDestinationComposeBoxController():
-      case EditMessageComposeBoxController():
-        controller.content.store = newStore;
-    }
   }
 
   void _setNewController(PerAccountStore store) {
@@ -287,15 +299,9 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     }
   }
 
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
   /// A [_Banner] that replaces the compose box's text inputs.
   Widget? _bannerComposingNotAllowed(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
@@ -372,7 +378,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final bannerComposingNotAllowed = _bannerComposingNotAllowed(context);

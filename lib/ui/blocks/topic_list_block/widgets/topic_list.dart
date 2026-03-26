@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../api/route/channels.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
@@ -6,7 +7,7 @@ import '../../../../get/services/store_service.dart';
 import '../../../../model/topics.dart';
 import '../../../../model/unreads.dart';
 import '../../../utils/page.dart';
-import '../../../utils/store.dart';
+
 import '../topic_list_block.dart';
 import 'topic_item.dart';
 
@@ -19,19 +20,15 @@ class TopicList extends StatefulWidget {
   State<TopicList> createState() => _TopicListState();
 }
 
-class _TopicListState extends State<TopicList>
-    with PerAccountStoreAwareStateMixin {
+class _TopicListState extends State<TopicList> {
   Topics? topicsModel;
   Unreads? unreadsModel;
 
   @override
-  void onNewStore() {
-    final newStore = requirePerAccountStore();
-    topicsModel?.removeListener(_modelChanged);
-    topicsModel = newStore.topics..addListener(_modelChanged);
-    unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = newStore.unreads..addListener(_modelChanged);
-    _fetchTopics();
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _onStoreChanged();
   }
 
   @override
@@ -39,6 +36,15 @@ class _TopicListState extends State<TopicList>
     topicsModel?.removeListener(_modelChanged);
     unreadsModel?.removeListener(_modelChanged);
     super.dispose();
+  }
+
+  void _onStoreChanged() {
+    final newStore = StoreService.to.requireStore;
+    topicsModel?.removeListener(_modelChanged);
+    topicsModel = newStore.topics..addListener(_modelChanged);
+    unreadsModel?.removeListener(_modelChanged);
+    unreadsModel = newStore.unreads..addListener(_modelChanged);
+    _fetchTopics();
   }
 
   void _modelChanged() {

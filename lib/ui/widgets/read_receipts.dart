@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../api/route/messages.dart';
 import '../../generated/l10n/zulip_localizations.dart';
@@ -8,7 +9,7 @@ import 'action_sheet.dart';
 import '../utils/actions.dart';
 import '../extensions/color.dart';
 import '../blocks/profile_block/profile.dart';
-import '../utils/store.dart';
+
 import '../values/text.dart';
 import '../values/theme.dart';
 import 'user.dart';
@@ -45,18 +46,28 @@ class ReadReceipts extends StatefulWidget {
   State<ReadReceipts> createState() => _ReadReceiptsState();
 }
 
-class _ReadReceiptsState extends State<ReadReceipts>
-    with PerAccountStoreAwareStateMixin<ReadReceipts> {
+class _ReadReceiptsState extends State<ReadReceipts> {
   List<int> userIds = [];
   FetchStatus status = FetchStatus.loading;
 
   @override
-  void onNewStore() {
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _onStoreChanged();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _onStoreChanged() {
     tryFetchReadReceipts(context);
   }
 
   Future<void> tryFetchReadReceipts(BuildContext context) async {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     try {
       final result = await getReadReceipts(
         store.connection,
@@ -64,7 +75,7 @@ class _ReadReceiptsState extends State<ReadReceipts>
       );
 
       if (!context.mounted) return;
-      final storeNow = requirePerAccountStore();
+      final storeNow = StoreService.to.requireStore;
       if (!identical(store, storeNow)) return;
 
       // TODO(i18n): add locale-aware sorting
@@ -136,7 +147,7 @@ class _ReadReceiptsHeader extends StatelessWidget {
         onTap: () {
           PlatformActions.launchUrl(
             context,
-            requirePerAccountStore().tryResolveUrl(_helpCenterRelativeUrl)!,
+            StoreService.to.requireStore.tryResolveUrl(_helpCenterRelativeUrl)!,
           );
         },
         style: style,
@@ -173,7 +184,7 @@ class ReadReceiptsUserItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final designVariables = DesignVariables.of(context);
 
     return InkWell(

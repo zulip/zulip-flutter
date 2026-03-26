@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../api/core.dart';
@@ -14,7 +15,7 @@ import 'dialog.dart';
 import 'image.dart';
 import '../blocks/message_list_block/message_list.dart';
 import '../utils/page.dart';
-import '../utils/store.dart';
+
 import 'user.dart';
 import '../values/icons.dart';
 
@@ -176,7 +177,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final themeData = Theme.of(context);
 
     final appBarBackgroundColor = Colors.grey.shade900.withValues(alpha: 0.87);
@@ -544,17 +545,31 @@ class VideoLightboxPage extends StatefulWidget {
   State<VideoLightboxPage> createState() => _VideoLightboxPageState();
 }
 
-class _VideoLightboxPageState extends State<VideoLightboxPage>
-    with PerAccountStoreAwareStateMixin<VideoLightboxPage> {
+class _VideoLightboxPageState extends State<VideoLightboxPage> {
   VideoPlayerController? _controller;
 
   @override
-  void onNewStore() {
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_handleVideoControllerUpdate);
+    _controller?.dispose();
+    _controller = null;
+    // The VideoController doesn't emit a pause event
+    // while disposing, so disable the wakelock here
+    // explicitly.
+    ZulipBinding.instance.toggleWakelock(enable: false);
+    super.dispose();
+  }
+
+  void _onStoreChanged() {
+    StoreService.to.requireStore;
     if (_controller != null) {
-      // The exclusion of reinitialization logic is deliberate here,
-      // as initialization relies only on the initial values of the store's
-      // realm URL and the user's credentials, which we assume remain unchanged
-      // when the store is replaced.
       return;
     }
 
@@ -562,7 +577,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage>
   }
 
   Future<void> _initialize() async {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
 
     assert(debugLog('VideoPlayerController.networkUrl(${widget.src})'));
     _controller = VideoPlayerController.networkUrl(
@@ -596,18 +611,6 @@ class _VideoLightboxPageState extends State<VideoLightboxPage>
       if (!mounted) return;
       Navigator.pop(context); // Pops the lightbox
     }
-  }
-
-  @override
-  void dispose() {
-    _controller?.removeListener(_handleVideoControllerUpdate);
-    _controller?.dispose();
-    _controller = null;
-    // The VideoController doesn't emit a pause event
-    // while disposing, so disable the wakelock here
-    // explicitly.
-    ZulipBinding.instance.toggleWakelock(enable: false);
-    super.dispose();
   }
 
   void _handleVideoControllerUpdate() {

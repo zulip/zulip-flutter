@@ -10,7 +10,7 @@ import '../../../model/channel.dart';
 import '../../../model/narrow.dart';
 import '../../../model/unreads.dart';
 import '../../utils/page.dart';
-import '../../utils/store.dart';
+
 import 'widgets/subscription_list.dart';
 import 'widgets/subscription_list_header.dart';
 
@@ -48,21 +48,26 @@ class SubscriptionListPageBody extends StatefulWidget {
       _SubscriptionListPageBodyState();
 }
 
-class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
-    with PerAccountStoreAwareStateMixin<SubscriptionListPageBody> {
+class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> {
   Unreads? unreadsModel;
 
   @override
-  void onNewStore() {
-    unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = requirePerAccountStore().unreads
-      ..addListener(_modelChanged);
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _onStoreChanged();
   }
 
   @override
   void dispose() {
     unreadsModel?.removeListener(_modelChanged);
     super.dispose();
+  }
+
+  void _onStoreChanged() {
+    unreadsModel?.removeListener(_modelChanged);
+    unreadsModel = StoreService.to.requireStore.unreads
+      ..addListener(_modelChanged);
   }
 
   void _modelChanged() {
@@ -107,7 +112,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
 
     // TODO: Implement collapsible topics
 
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final includeAllChannelsButton =

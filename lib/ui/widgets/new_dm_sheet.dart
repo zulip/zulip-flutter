@@ -9,7 +9,7 @@ import '../../model/store.dart';
 import '../extensions/color.dart';
 import '../values/icons.dart';
 import '../blocks/recent_dm_conversations_block/recent_dm_conversations.dart';
-import '../utils/store.dart';
+
 import '../values/text.dart';
 import '../values/theme.dart';
 import 'user.dart';
@@ -37,8 +37,7 @@ class NewDmPicker extends StatefulWidget {
   State<NewDmPicker> createState() => _NewDmPickerState();
 }
 
-class _NewDmPickerState extends State<NewDmPicker>
-    with PerAccountStoreAwareStateMixin<NewDmPicker> {
+class _NewDmPickerState extends State<NewDmPicker> {
   late TextEditingController searchController;
   late ScrollController resultsScrollController;
   Set<int> selectedUserIds = {};
@@ -48,15 +47,11 @@ class _NewDmPickerState extends State<NewDmPicker>
   @override
   void initState() {
     super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
     searchController = TextEditingController()
       ..addListener(_handleSearchUpdate);
     resultsScrollController = ScrollController();
-  }
-
-  @override
-  void onNewStore() {
-    final store = requirePerAccountStore();
-    _initSortedUsers(store);
+    _onStoreChanged();
   }
 
   @override
@@ -64,6 +59,11 @@ class _NewDmPickerState extends State<NewDmPicker>
     searchController.dispose();
     resultsScrollController.dispose();
     super.dispose();
+  }
+
+  void _onStoreChanged() {
+    final store = StoreService.to.requireStore;
+    _initSortedUsers(store);
   }
 
   void _initSortedUsers(PerAccountStore store) {
@@ -77,7 +77,7 @@ class _NewDmPickerState extends State<NewDmPicker>
   }
 
   void _handleSearchUpdate() {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     _updateFilteredUsers(store);
   }
 
@@ -114,7 +114,7 @@ class _NewDmPickerState extends State<NewDmPicker>
 
   void _selectUser(int userId) {
     assert(!selectedUserIds.contains(userId));
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     selectedUserIds.add(userId);
     if (userId != store.selfUserId) {
       selectedUserIds.remove(store.selfUserId);
@@ -124,7 +124,7 @@ class _NewDmPickerState extends State<NewDmPicker>
 
   void _unselectUser(int userId) {
     assert(selectedUserIds.contains(userId));
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     selectedUserIds.remove(userId);
     _updateFilteredUsers(store);
   }
@@ -198,7 +198,7 @@ class _NewDmHeader extends StatelessWidget {
       onTap: selectedUserIds.isEmpty
           ? null
           : () {
-              final store = requirePerAccountStore();
+              final store = StoreService.to.requireStore;
               final narrow = DmNarrow.withUsers(
                 selectedUserIds.toList(),
                 selfUserId: store.selfUserId,
@@ -333,7 +333,7 @@ class _SelectedUserChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final clampedTextScaler = MediaQuery.textScalerOf(
       context,
     ).clamp(maxScaleFactor: 1.5);
@@ -459,7 +459,7 @@ class _NewDmUserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final designVariables = DesignVariables.of(context);
     return Material(
       clipBehavior: Clip.antiAlias,

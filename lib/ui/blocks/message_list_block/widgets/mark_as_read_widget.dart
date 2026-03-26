@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../get/services/store_service.dart';
@@ -7,7 +8,7 @@ import '../../../../model/unreads.dart';
 import '../../../themes/message_list_theme.dart';
 import '../../../utils/actions.dart';
 import '../../../values/icons.dart';
-import '../../../utils/store.dart';
+
 import '../../../values/text.dart';
 
 class MarkAsReadWidget extends StatefulWidget {
@@ -19,8 +20,7 @@ class MarkAsReadWidget extends StatefulWidget {
   State<MarkAsReadWidget> createState() => _MarkAsReadWidgetState();
 }
 
-class _MarkAsReadWidgetState extends State<MarkAsReadWidget>
-    with PerAccountStoreAwareStateMixin {
+class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
   Unreads? unreadsModel;
 
   bool _loading = false;
@@ -32,16 +32,22 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget>
   }
 
   @override
-  void onNewStore() {
-    final newStore = requirePerAccountStore();
-    unreadsModel?.removeListener(_unreadsModelChanged);
-    unreadsModel = newStore.unreads..addListener(_unreadsModelChanged);
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _onStoreChanged();
   }
 
   @override
   void dispose() {
     unreadsModel?.removeListener(_unreadsModelChanged);
     super.dispose();
+  }
+
+  void _onStoreChanged() {
+    final newStore = StoreService.to.requireStore;
+    unreadsModel?.removeListener(_unreadsModelChanged);
+    unreadsModel = newStore.unreads..addListener(_unreadsModelChanged);
   }
 
   void _handlePress(BuildContext context) async {

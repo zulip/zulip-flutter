@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../get/services/store_service.dart';
@@ -7,7 +8,7 @@ import '../../../model/recent_dm_conversations.dart';
 import '../../../model/unreads.dart';
 import '../../utils/page.dart';
 import '../../widgets/sticky_header.dart';
-import '../../utils/store.dart';
+
 import 'inbox_section_data_model.dart';
 import 'widgets/all_dms_section.dart';
 import 'widgets/inbox_strean_section.dart';
@@ -29,7 +30,6 @@ abstract class InboxPageStateTemplate extends State<InboxPageBody> {
 }
 
 class InboxPageState extends State<InboxPageBody>
-    with PerAccountStoreAwareStateMixin<InboxPageBody>
     implements InboxPageStateTemplate {
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
@@ -61,13 +61,10 @@ class InboxPageState extends State<InboxPageBody>
   }
 
   @override
-  void onNewStore() {
-    final newStore = requirePerAccountStore();
-    unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = newStore.unreads..addListener(_modelChanged);
-    recentDmConversationsModel?.removeListener(_modelChanged);
-    recentDmConversationsModel = newStore.recentDmConversationsView
-      ..addListener(_modelChanged);
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _onStoreChanged();
   }
 
   @override
@@ -75,6 +72,15 @@ class InboxPageState extends State<InboxPageBody>
     unreadsModel?.removeListener(_modelChanged);
     recentDmConversationsModel?.removeListener(_modelChanged);
     super.dispose();
+  }
+
+  void _onStoreChanged() {
+    final newStore = StoreService.to.requireStore;
+    unreadsModel?.removeListener(_modelChanged);
+    unreadsModel = newStore.unreads..addListener(_modelChanged);
+    recentDmConversationsModel?.removeListener(_modelChanged);
+    recentDmConversationsModel = newStore.recentDmConversationsView
+      ..addListener(_modelChanged);
   }
 
   void _modelChanged() {
@@ -98,7 +104,7 @@ class InboxPageState extends State<InboxPageBody>
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final subscriptions = store.subscriptions;
 
     // TODO(#1065) make an incrementally-updated view-model for InboxPage

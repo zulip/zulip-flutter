@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../api/model/model.dart';
@@ -6,7 +7,6 @@ import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/binding.dart';
 import '../../../../model/presence.dart';
-import '../../../utils/store.dart';
 import '../../../values/theme.dart';
 
 class LastActiveTime extends StatefulWidget {
@@ -18,26 +18,34 @@ class LastActiveTime extends StatefulWidget {
   State<LastActiveTime> createState() => _LastActiveTimeState();
 }
 
-class _LastActiveTimeState extends State<LastActiveTime>
-    with PerAccountStoreAwareStateMixin {
-  Presence? model;
+class _LastActiveTimeState extends State<LastActiveTime> {
+  Presence? _model;
 
   @override
-  void onNewStore() {
-    model?.removeListener(_modelChanged);
-    model = requirePerAccountStore().presence..addListener(_modelChanged);
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _initFromStore();
+  }
+
+  void _onStoreChanged() {
+    _model?.removeListener(_modelChanged);
+    _initFromStore();
+  }
+
+  void _initFromStore() {
+    _model = StoreService.to.requireStore.presence..addListener(_modelChanged);
   }
 
   @override
   void dispose() {
-    model!.removeListener(_modelChanged);
+    _model?.removeListener(_modelChanged);
     super.dispose();
   }
 
   void _modelChanged() {
     setState(() {
-      // The actual state lives in [model].
-      // This method was called because that just changed.
+      // The actual state lives in [_model].
     });
   }
 
@@ -49,7 +57,10 @@ class _LastActiveTimeState extends State<LastActiveTime>
     // TODO(#293), TODO(#891): auto-rebuild as relative time changes
     final nowDate = ZulipBinding.instance.utcNow();
 
-    final status = model!.presenceStatusForUser(widget.userId, utcNow: nowDate);
+    final status = _model!.presenceStatusForUser(
+      widget.userId,
+      utcNow: nowDate,
+    );
     switch (status) {
       case PresenceStatus.active:
         return zulipLocalizations.userActiveNow;
@@ -59,7 +70,7 @@ class _LastActiveTimeState extends State<LastActiveTime>
         break; // handle below
     }
 
-    final timestamp = model!.userLastActive(widget.userId);
+    final timestamp = _model!.userLastActive(widget.userId);
     if (timestamp == null) return zulipLocalizations.userNotActiveInYear;
 
     // Compare web's timerender.last_seen_status_from_date.

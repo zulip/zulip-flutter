@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../api/model/model.dart';
 import '../../get/services/store_service.dart';
@@ -8,7 +9,7 @@ import '../../model/presence.dart';
 import 'emoji.dart';
 import '../values/icons.dart';
 import 'image.dart';
-import '../utils/store.dart';
+
 import '../values/theme.dart';
 
 /// A rounded square with size [size] showing a user's avatar.
@@ -68,7 +69,7 @@ class AvatarImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final user = store.getUser(userId);
 
     if (user == null) {
@@ -240,20 +241,25 @@ class PresenceCircle extends StatefulWidget {
   State<PresenceCircle> createState() => _PresenceCircleState();
 }
 
-class _PresenceCircleState extends State<PresenceCircle>
-    with PerAccountStoreAwareStateMixin {
+class _PresenceCircleState extends State<PresenceCircle> {
   Presence? model;
 
   @override
-  void onNewStore() {
-    model?.removeListener(_modelChanged);
-    model = requirePerAccountStore().presence..addListener(_modelChanged);
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _onStoreChanged();
   }
 
   @override
   void dispose() {
-    model!.removeListener(_modelChanged);
+    model?.removeListener(_modelChanged);
     super.dispose();
+  }
+
+  void _onStoreChanged() {
+    model?.removeListener(_modelChanged);
+    model = StoreService.to.requireStore.presence..addListener(_modelChanged);
   }
 
   void _modelChanged() {
@@ -384,7 +390,7 @@ class UserStatusEmoji extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final effectiveEmoji = emoji ?? store.getUserStatus(userId!).emoji;
 
     if (effectiveEmoji == null) return SizedBox.shrink();

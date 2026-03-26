@@ -1,12 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
+import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../../model/typing_status.dart';
-import '../../../utils/store.dart';
 
 class TypingStatusWidget extends StatefulWidget {
   const TypingStatusWidget({super.key, required this.narrow});
@@ -17,27 +17,35 @@ class TypingStatusWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _TypingStatusWidgetState();
 }
 
-class _TypingStatusWidgetState extends State<TypingStatusWidget>
-    with PerAccountStoreAwareStateMixin<TypingStatusWidget> {
-  TypingStatus? model;
+class _TypingStatusWidgetState extends State<TypingStatusWidget> {
+  TypingStatus? _model;
 
   @override
-  void onNewStore() {
-    model?.removeListener(_modelChanged);
-    model = requirePerAccountStore().typingStatus
+  void initState() {
+    super.initState();
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _initFromStore();
+  }
+
+  void _onStoreChanged() {
+    _model?.removeListener(_modelChanged);
+    _initFromStore();
+  }
+
+  void _initFromStore() {
+    _model = StoreService.to.requireStore.typingStatus
       ..addListener(_modelChanged);
   }
 
   @override
   void dispose() {
-    model?.removeListener(_modelChanged);
+    _model?.removeListener(_modelChanged);
     super.dispose();
   }
 
   void _modelChanged() {
     setState(() {
-      // The actual state lives in [model].
-      // This method was called because that just changed.
+      // The actual state lives in [_model].
     });
   }
 
@@ -46,9 +54,9 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget>
     final narrow = widget.narrow;
     if (narrow is! SendableNarrow) return const SizedBox();
 
-    final store = requirePerAccountStore();
+    final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final typistIds = model!.typistIdsInNarrow(narrow);
+    final typistIds = _model!.typistIdsInNarrow(narrow);
     final filteredTypistIds = typistIds.whereNot(store.isUserMuted);
     if (filteredTypistIds.isEmpty) return const SizedBox();
     final text = switch (filteredTypistIds.length) {

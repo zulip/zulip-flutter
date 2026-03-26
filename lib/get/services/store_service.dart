@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../model/store.dart';
@@ -19,9 +18,7 @@ class StoreService extends GetxService {
   void _onGlobalStoreChanged() {
     if (currentAccountId.value > 0) {
       final store = _globalStore?.perAccountSync(currentAccountId.value);
-      if (store != currentStore.value) {
-        currentStore.value = store;
-      }
+      currentStore.value = store;
     }
   }
 
@@ -88,6 +85,6 @@ bool hasPerAccountStore() {
   return StoreService.to.hasStore;
 }
 
-PerAccountStore perAccountStoreOf(BuildContext context) {
+PerAccountStore perAccountStoreOf(dynamic context) {
   return requirePerAccountStore();
 }

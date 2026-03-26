@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../api/exception.dart';
 import '../../api/model/model.dart';
@@ -19,7 +20,6 @@ import 'emoji.dart';
 import 'inset_shadow.dart';
 import '../utils/page.dart';
 import '../blocks/profile_block/profile.dart';
-import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 import 'user.dart';
@@ -408,8 +408,7 @@ class EmojiPicker extends StatefulWidget {
   State<EmojiPicker> createState() => _EmojiPickerState();
 }
 
-class _EmojiPickerState extends State<EmojiPicker>
-    with PerAccountStoreAwareStateMixin<EmojiPicker> {
+class _EmojiPickerState extends State<EmojiPicker> {
   late TextEditingController _controller;
 
   EmojiAutocompleteView? _viewModel;
@@ -419,11 +418,11 @@ class _EmojiPickerState extends State<EmojiPicker>
   void initState() {
     super.initState();
     _controller = TextEditingController()..addListener(_handleControllerUpdate);
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
   }
 
-  @override
-  void onNewStore() {
-    final store = requirePerAccountStore();
+  void _onStoreChanged() {
+    final store = StoreService.to.requireStore;
     final query = EmojiAutocompleteQuery(_controller.text);
     if (_viewModel != null) {
       assert(_viewModel!.query == query);
@@ -648,13 +647,12 @@ class ViewReactions extends StatefulWidget {
   State<ViewReactions> createState() => _ViewReactionsState();
 }
 
-class _ViewReactionsState extends State<ViewReactions>
-    with PerAccountStoreAwareStateMixin<ViewReactions> {
+class _ViewReactionsState extends State<ViewReactions> {
   ReactionType? reactionType;
   String? emojiCode;
   String? emojiName;
 
-  PerAccountStore? store;
+  PerAccountStore? _store;
 
   void _setSelection(ReactionWithVotes? selection) {
     setState(() {
@@ -662,10 +660,6 @@ class _ViewReactionsState extends State<ViewReactions>
       emojiCode = selection?.emojiCode;
       emojiName = selection?.emojiName;
     });
-  }
-
-  void _storeChanged() {
-    _reconcile();
   }
 
   /// Check that the given reaction still has votes;
@@ -676,7 +670,7 @@ class _ViewReactionsState extends State<ViewReactions>
   }
 
   ReactionWithVotes? _findMatchingReaction() {
-    final message = requirePerAccountStore().messages[widget.messageId];
+    final message = StoreService.to.requireStore.messages[widget.messageId];
 
     final reactions = message?.reactions?.aggregated;
 
@@ -700,20 +694,27 @@ class _ViewReactionsState extends State<ViewReactions>
       reactionType = widget.initialReactionType!;
       emojiCode = widget.initialEmojiCode!;
     }
+    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
+    _store = StoreService.to.requireStore;
+    _store!.addListener(_storeChanged);
   }
 
-  @override
-  void onNewStore() {
-    // TODO(#1747) listen for changes in the message's reactions
-    store?.removeListener(_storeChanged);
-    store = requirePerAccountStore();
-    store!.addListener(_storeChanged);
+  void _onStoreChanged() {
+    // StoreService has a new store instance
+    _store?.removeListener(_storeChanged);
+    _store = StoreService.to.requireStore;
+    _store!.addListener(_storeChanged);
+    _reconcile();
+  }
+
+  void _storeChanged() {
+    // The current store notified of changes (message reactions)
     _reconcile();
   }
 
   @override
   void dispose() {
-    store?.removeListener(_storeChanged);
+    _store?.removeListener(_storeChanged);
     super.dispose();
   }
 
