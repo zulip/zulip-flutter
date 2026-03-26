@@ -46,11 +46,13 @@ void main() {
     return FakeApiConnection.with_((connection) async {
       connection.prepare(json: {});
 
-      // TODO(server-future) instead, check for twenty_four_hour_time: null
-      //   (could be an error-prone part of the JSONification)
-      check(() => updateSettings(connection,
-        newSettings: {UserSettingName.twentyFourHourTime: TwentyFourHourTimeMode.localeDefault})
-      ).throws<AssertionError>();
+      await updateSettings(connection,
+        newSettings: {UserSettingName.twentyFourHourTime: TwentyFourHourTimeMode.localeDefault});
+
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('PATCH')
+        ..url.path.equals('/api/v1/settings')
+        ..bodyFields.deepEquals({'twenty_four_hour_time': 'null'});
     });
   });
 }

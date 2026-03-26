@@ -13,8 +13,6 @@ Future<void> updateSettings(ApiConnection connection, {
     switch (name) {
       case UserSettingName.twentyFourHourTime:
         final mode = (valueRaw as TwentyFourHourTimeMode);
-        // TODO(server-future) allow localeDefault for servers that support it
-        assert(mode != TwentyFourHourTimeMode.localeDefault);
         value = mode.toJson();
       case UserSettingName.starredMessageCounts:
       case UserSettingName.displayEmojiReactionUsers:

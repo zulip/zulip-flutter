@@ -362,7 +362,6 @@ enum TwentyFourHourTimeMode {
   twentyFourHour(apiValue: true),
 
   /// The locale's default format (12-hour for en_US, 24-hour for fr_FR, etc.).
-  // TODO(#1727) actually follow this
   // Not sent by current servers, but planned when most client installs accept it:
   //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/.60user_settings.2Etwenty_four_hour_time.60/near/2220696
   // TODO(server-future) Write down what server N starts sending null;
