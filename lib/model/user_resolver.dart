@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 
 import '../api/model/model.dart';
-import 'localizations.dart';
-import 'store.dart';
+import '../generated/l10n/zulip_localizations.dart';
+import '../widgets/store.dart';
 
 /// A multipurpose utility class for efficient and safe user resolution.
-/// 
+///
 /// This class centralizes all user lookup logic and provides multiple
 /// convenience methods for handling unknown users across the codebase.
 /// It addresses issue #716 by providing null-safe user lookups with
@@ -19,16 +19,16 @@ class UserResolver {
   final PerAccountStore _store;
 
   /// Cache for frequently accessed users to avoid repeated lookups
-  final Map<int, User?> _userCache = {};
+  const Map<int, User?> _userCache = {};
 
   /// Cache for display names to avoid repeated string operations
-  final Map<int, String> _displayNameCache = {};
+  const Map<int, String> _displayNameCache = {};
 
   /// Get a user with null safety guaranteed.
-  /// 
+  ///
   /// Unlike [PerAccountStore.getUser], this method provides intelligent
   /// fallbacks and caching for better performance.
-  /// 
+  ///
   /// Returns null if user is not found and no fallback is available.
   User? resolveUser(int userId) {
     // Check cache first for performance
@@ -42,10 +42,10 @@ class UserResolver {
   }
 
   /// Get a user with guaranteed non-null result.
-  /// 
+  ///
   /// This method will never return null. If the user is not found,
   /// it creates a synthetic user with appropriate fallback data.
-  /// 
+  ///
   /// Use this when you absolutely need a User object and can handle
   /// placeholder data.
   User resolveUserOrFallback(int userId, {String? fallbackName}) {
@@ -66,11 +66,12 @@ class UserResolver {
       profileData: null,
       botOwnerId: null,
       deliveryEmail: null,
+      dateJoined: DateTime.now(),
     );
   }
 
   /// Get display name with intelligent fallbacks.
-  /// 
+  ///
   /// This is the preferred method for getting user display names
   /// as it handles all edge cases:
   /// - Unknown users get fallback names
@@ -113,7 +114,7 @@ class UserResolver {
   }
 
   /// Get display name for a message sender with optimal fallbacks.
-  /// 
+  ///
   /// This is the most efficient way to get sender display names
   /// as it leverages message context for better fallbacks.
   String getSenderDisplayName(Message message, {bool replaceIfMuted = true}) {
@@ -125,7 +126,7 @@ class UserResolver {
   }
 
   /// Check if a user exists in the store.
-  /// 
+  ///
   /// This is more efficient than [resolveUser] when you only need
   /// to check existence without accessing user data.
   bool userExists(int userId) {
@@ -133,42 +134,42 @@ class UserResolver {
   }
 
   /// Get multiple users efficiently.
-  /// 
+  ///
   /// This method is optimized for batch operations and reduces
   /// the number of individual lookups.
   Map<int, User?> resolveUsers(Iterable<int> userIds) {
     final result = <int, User?>{};
-    
+
     for (final userId in userIds) {
       result[userId] = resolveUser(userId);
     }
-    
+
     return result;
   }
 
   /// Check if any users in a list are unknown.
-  /// 
+  ///
   /// This is useful for validation and UI state management.
   bool hasUnknownUsers(Iterable<int> userIds) {
     return userIds.any((userId) => !userExists(userId));
   }
 
   /// Filter out unknown users from a list.
-  /// 
+  ///
   /// Returns only the user IDs that exist in the store.
   List<int> filterKnownUsers(Iterable<int> userIds) {
     return userIds.where(userExists).toList();
   }
 
   /// Get user status with safe fallback.
-  /// 
+  ///
   /// Never crashes on unknown users.
   UserStatus getUserStatus(int userId) {
     return _store.getUserStatus(userId);
   }
 
   /// Clear internal caches.
-  /// 
+  ///
   /// Call this when user data changes significantly
   /// or for memory management in long-running processes.
   void clearCache() {
@@ -185,11 +186,11 @@ class UserResolver {
   }
 
   /// Invalidate cache for specific user.
-  /// 
+  ///
   /// Use this when a specific user's data changes.
   void invalidateUserCache(int userId) {
     _userCache.remove(userId);
-    
+
     // Remove all display name cache entries for this user
     _displayNameCache.removeWhere((key, value) => key == userId);
   }
@@ -201,7 +202,7 @@ extension PerAccountStoreUserResolver on PerAccountStore {
   UserResolver get userResolver => UserResolver(this);
 
   /// Get the self-user with guaranteed non-null result.
-  /// 
+  ///
   /// This addresses the issue's suggestion to add a selfUser getter.
   /// Unlike the current implementation in UserStore, this is cached
   /// and provides better error handling.
@@ -215,12 +216,12 @@ extension PerAccountStoreUserResolver on PerAccountStore {
   }
 
   /// Safe user lookup with intelligent fallbacks.
-  /// 
+  ///
   /// This is a convenience method that uses UserResolver internally.
   User? resolveUser(int userId) => userResolver.resolveUser(userId);
 
   /// Get display name with intelligent fallbacks.
-  /// 
+  ///
   /// This is a convenience method that uses UserResolver internally.
   String getDisplayName(
     int userId, {
