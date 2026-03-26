@@ -49,7 +49,7 @@ class UserResolver {
       dateJoined: DateTime.now(),
       isActive: true,
       isBot: false,
-      botType: BotType.normalUser,
+      botType: null,
       botOwnerId: null,
       role: UserRole.member,
       timezone: null,
