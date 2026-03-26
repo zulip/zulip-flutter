@@ -1,8 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../api/model/model.dart';
-import '../generated/l10n/zulip_localizations.dart';
-import '../widgets/store.dart';
+import 'store.dart';
 
 /// A multipurpose utility class for efficient and safe user resolution.
 ///
@@ -11,18 +10,18 @@ import '../widgets/store.dart';
 /// It addresses issue #716 by providing null-safe user lookups with
 /// intelligent fallbacks and caching mechanisms.
 class UserResolver {
-  const UserResolver._(this._store);
+  UserResolver(this._store);
 
   /// Create a UserResolver for the given store.
-  factory UserResolver(PerAccountStore store) => UserResolver._(store);
+  factory UserResolver(PerAccountStore store) => UserResolver(store);
 
   final PerAccountStore _store;
 
   /// Cache for frequently accessed users to avoid repeated lookups
-  final Map<int, User?> _userCache = {};
+  final Map<int, User?> _userCache = <int, User?>{};
 
   /// Cache for display names to avoid repeated string operations
-  final Map<int, String> _displayNameCache = {};
+  final Map<int, String> _displayNameCache = <int, String>{};
 
   /// Get a user with null safety guaranteed.
   ///
@@ -55,18 +54,20 @@ class UserResolver {
     // Create a synthetic user for unknown users
     return User(
       userId: userId,
+      deliveryEmail: null,
       email: 'unknown-$userId@example.com',
-      fullName: fallbackName ?? ZulipLocalizations.current.unknownUserName,
-      avatarUrl: null,
-      avatarVersion: 0,
+      fullName: fallbackName ?? 'Unknown user',
+      dateJoined: DateTime.now(),
       isActive: true,
       isBot: false,
-      timezone: null,
-      role: UserRole.member,
-      profileData: null,
+      botType: BotType.normal,
       botOwnerId: null,
-      deliveryEmail: null,
-      dateJoined: DateTime.now(),
+      role: UserRole.member,
+      timezone: null,
+      avatarUrl: null,
+      avatarVersion: 0,
+      profileData: null,
+      isSystemBot: false,
     );
   }
 
@@ -93,7 +94,7 @@ class UserResolver {
 
     // Handle muted users
     if (replaceIfMuted && _store.isUserMuted(userId)) {
-      displayName = ZulipLocalizations.current.mutedUser;
+      displayName = 'Muted user';
     } else {
       // Try to get user from store
       final user = resolveUser(userId);
@@ -104,7 +105,7 @@ class UserResolver {
         displayName = messageContext.senderFullName;
       } else {
         // Final fallback
-        displayName = fallbackName ?? ZulipLocalizations.current.unknownUserName;
+        displayName = fallbackName ?? 'Unknown user';
       }
     }
 
