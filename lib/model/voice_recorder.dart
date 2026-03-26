@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
-/// State of voice recording
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
+
 enum VoiceRecordingState {
   idle,
   recording,
@@ -11,77 +11,50 @@ enum VoiceRecordingState {
   stopped,
 }
 
-/// Service to handle voice recording functionality
 class VoiceRecordingService {
-  static final VoiceRecordingService _instance = VoiceRecordingService._internal();
-
-  factory VoiceRecordingService() {
-    return _instance;
-  }
-
-  VoiceRecordingService._internal();
-
   AudioRecorder? _recorder;
   VoiceRecordingState _state = VoiceRecordingState.idle;
+
+  VoiceRecordingService({AudioRecorder? recorder}) : _recorder = recorder;
   String? _recordingPath;
   Duration _recordingDuration = Duration.zero;
   Timer? _durationTimer;
+  Timer? _amplitudeTimer;
   List<double> _amplitudes = [];
 
-  // Getters
   VoiceRecordingState get state => _state;
   Duration get recordingDuration => _recordingDuration;
   List<double> get amplitudes => List.unmodifiable(_amplitudes);
   String? get recordingPath => _recordingPath;
 
-  /// Initialize recorder
-  Future<bool> _ensureRecorder() async {
-    if (_recorder == null) {
-      try {
-        _recorder = AudioRecorder();
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /// Check if microphone permission is granted
   Future<bool> hasPermission() async {
     try {
-      if (!await _ensureRecorder()) return false;
+      _recorder ??= AudioRecorder();
       return await _recorder!.hasPermission();
     } catch (e) {
       return false;
     }
   }
 
-  /// Start recording voice
   Future<bool> startRecording() async {
     try {
-      if (!await _ensureRecorder()) return false;
+      _recorder ??= AudioRecorder();
 
-      // Check and request permissions
       if (!await _recorder!.hasPermission()) {
         return false;
       }
 
-      // Get temporary directory for recording
       final tempDir = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       _recordingPath = path.join(tempDir.path, 'voice_message_$timestamp.m4a');
 
-      // Check if recorder is already recording
       if (_state == VoiceRecordingState.recording) {
         return false;
       }
 
-      // Reset state
       _recordingDuration = Duration.zero;
       _amplitudes = [];
 
-      // Start recording
       await _recorder!.start(
         const RecordConfig(
           encoder: AudioEncoder.aacLc,
@@ -92,12 +65,7 @@ class VoiceRecordingService {
       );
 
       _state = VoiceRecordingState.recording;
-
-      // Start duration timer
-      _startDurationTimer();
-
-      // Start amplitude monitoring
-      _startAmplitudeMonitoring();
+      _startTimers();
 
       return true;
     } catch (e) {
@@ -106,7 +74,6 @@ class VoiceRecordingService {
     }
   }
 
-  /// Pause recording
   Future<bool> pauseRecording() async {
     if (_state != VoiceRecordingState.recording) {
       return false;
@@ -116,14 +83,13 @@ class VoiceRecordingService {
       if (_recorder == null) return false;
       await _recorder!.pause();
       _state = VoiceRecordingState.paused;
-      _durationTimer?.cancel();
+      _stopTimers();
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  /// Resume recording after pause
   Future<bool> resumeRecording() async {
     if (_state != VoiceRecordingState.paused) {
       return false;
@@ -133,21 +99,20 @@ class VoiceRecordingService {
       if (_recorder == null) return false;
       await _recorder!.resume();
       _state = VoiceRecordingState.recording;
-      _startDurationTimer();
+      _startTimers();
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  /// Stop recording and return the file path
   Future<String?> stopRecording() async {
     if (_state == VoiceRecordingState.idle) {
       return null;
     }
 
     try {
-      _durationTimer?.cancel();
+      _stopTimers();
       if (_recorder == null) return null;
       final path = await _recorder!.stop();
       _state = VoiceRecordingState.stopped;
@@ -159,74 +124,68 @@ class VoiceRecordingService {
     }
   }
 
-  /// Cancel recording and delete the file
   Future<void> cancelRecording() async {
     try {
-      _durationTimer?.cancel();
+      _stopTimers();
       if (_recorder != null) {
         await _recorder!.stop();
       }
-      _state = VoiceRecordingState.idle;
-      _recordingDuration = Duration.zero;
-      _amplitudes = [];
-      _recordingPath = null;
+      _resetState();
     } catch (e) {
-      // Handle error silently
+      // debugPrint('Error canceling recording: $e');
     }
   }
 
-  /// Dispose recorder resources
   Future<void> dispose() async {
     try {
-      _durationTimer?.cancel();
+      _stopTimers();
       if (_recorder != null) {
         await _recorder!.dispose();
         _recorder = null;
       }
-      _state = VoiceRecordingState.idle;
-      _recordingDuration = Duration.zero;
-      _amplitudes = [];
-      _recordingPath = null;
+      _resetState();
     } catch (e) {
-      // Handle error silently
+      // debugPrint('Error disposing recorder: $e');
     }
   }
 
-  /// Reset to initial state
   void reset() {
-    _durationTimer?.cancel();
+    _stopTimers();
+    _resetState();
+  }
+
+  void _resetState() {
     _state = VoiceRecordingState.idle;
     _recordingDuration = Duration.zero;
     _amplitudes = [];
     _recordingPath = null;
   }
 
-  /// Start monitoring recording duration
-  void _startDurationTimer() {
+  void _startTimers() {
     _durationTimer?.cancel();
     _durationTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      _recordingDuration = _recordingDuration + const Duration(milliseconds: 100);
+      _recordingDuration += const Duration(milliseconds: 100);
     });
-  }
 
-  /// Start monitoring amplitude for waveform visualization
-  void _startAmplitudeMonitoring() {
-    // Generate realistic amplitude values for waveform
-    // In a real app, you'd get these from the recorder
-    Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (_state == VoiceRecordingState.recording) {
-        // Generate random amplitude between 0 and 1
-        // In production, you'd use _recorder.getAmplitude() if available
-        final amplitude = (DateTime.now().millisecond / 1000.0) * 0.8 + 0.2;
-        if (_amplitudes.length < 200) {
-          _amplitudes.add(amplitude);
-        } else {
+    _amplitudeTimer?.cancel();
+    _amplitudeTimer = Timer.periodic(const Duration(milliseconds: 50), (_) async {
+      if (_state == VoiceRecordingState.recording && _recorder != null) {
+        final amplitude = await _recorder!.getAmplitude();
+        final current = amplitude.current;
+        // Normalize roughly to 0-1 range for UI usage, typical range is -160 to 0 dB
+        final normalized = ((current + 160) / 160).clamp(0.0, 1.0);
+        
+        if (_amplitudes.length >= 200) {
           _amplitudes.removeAt(0);
-          _amplitudes.add(amplitude);
         }
-      } else {
-        timer.cancel();
+        _amplitudes.add(normalized);
       }
     });
   }
+
+  void _stopTimers() {
+    _durationTimer?.cancel();
+    _amplitudeTimer?.cancel();
+  }
 }
+

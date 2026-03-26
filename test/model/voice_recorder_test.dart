@@ -1,180 +1,178 @@
 import 'package:checks/checks.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:record/record.dart';
 import 'package:zulip/model/voice_recorder.dart';
 
-import '../example_data.dart' as eg;
+import '../fake_async.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('VoiceRecordingService', () {
     late VoiceRecordingService service;
+    late FakeAudioRecorder fakeRecorder;
 
     setUp(() {
-      service = VoiceRecordingService();
-    });
-
-    tearDown(() async {
-      // Clean up any ongoing recording
-      if (service.state != VoiceRecordingState.idle) {
-        await service.stopRecording();
-      }
-    });
-
-    group('state management', () {
-      test('initial state is idle', () {
-        check(service.state).equals(VoiceRecordingState.idle);
-      });
-
-      test('initial duration is zero', () {
-        check(service.recordingDuration).equals(Duration.zero);
-      });
-
-      test('initial amplitudes is empty', () {
-        check(service.amplitudes).isEmpty();
-      });
-
-      test('initial recording path is null', () {
-        check(service.recordingPath).isNull();
-      });
-    });
-
-    group('recording lifecycle', () {
-      test('start recording sets state to recording', () async {
-        // Note: This test assumes permission is granted in the test environment
-        // In a real scenario, permissions would need to be mocked
-        final result = await service.startRecording();
-        
-        if (result) {
-          check(service.state).equals(VoiceRecordingState.recording);
-          check(service.recordingPath).isNotNull();
-        }
-      });
-
-      test('pause recording changes state to paused', () async {
-        final started = await service.startRecording();
-        
-        if (started) {
-          final paused = await service.pauseRecording();
-          if (paused) {
-            check(service.state).equals(VoiceRecordingState.paused);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (methodCall) async {
+          if (methodCall.method == 'getTemporaryDirectory') {
+            return 'temp/dir';
           }
-        }
-      });
+          return null;
+        },
+      );
 
-      test('no pause recording when not recording', () async {
-        final result = await service.pauseRecording();
-        check(result).isFalse();
-      });
-
-      test('resume recording after pause', () async {
-        final started = await service.startRecording();
-        if (started) {
-          final paused = await service.pauseRecording();
-          if (paused) {
-            final resumed = await service.resumeRecording();
-            if (resumed) {
-              check(service.state).equals(VoiceRecordingState.recording);
-            }
-          }
-        }
-      });
-
-      test('no resume recording when not paused', () async {
-        final result = await service.resumeRecording();
-        check(result).isFalse();
-      });
-
-      test('stop recording returns file path', () async {
-        final started = await service.startRecording();
-        
-        if (started) {
-          final filePath = await service.stopRecording();
-          check(filePath).isNotNull();
-          check(service.state).equals(VoiceRecordingState.idle);
-        }
-      });
-
-      test('no stop recording when idle', () async {
-        final result = await service.stopRecording();
-        check(result).isNull();
-      });
+      fakeRecorder = FakeAudioRecorder();
+      service = VoiceRecordingService(recorder: fakeRecorder);
     });
 
-    group('recording duration', () {
-      test('duration increases during recording', () async {
-        final started = await service.startRecording();
-        
-        if (started) {
-          final initialDuration = service.recordingDuration;
-          
-          // Wait a bit for duration to increase
-          await Future.delayed(const Duration(milliseconds: 100));
-          
-          check(service.recordingDuration).isGreaterThan(initialDuration);
-        }
-      });
-
-      test('duration reset on new recording', () async {
-        final started1 = await service.startRecording();
-        if (started1) {
-          await Future.delayed(const Duration(milliseconds: 50));
-          await service.stopRecording();
-          
-          final durationAfterStop = service.recordingDuration;
-          
-          final started2 = await service.startRecording();
-          if (started2) {
-            check(service.recordingDuration).equals(Duration.zero);
-          }
-        }
-      });
-
-      test('duration stops updating when paused', () async {
-        final started = await service.startRecording();
-        if (started) {
-          await Future.delayed(const Duration(milliseconds: 50));
-          final durationBeforePause = service.recordingDuration;
-          
-          await service.pauseRecording();
-          await Future.delayed(const Duration(milliseconds: 50));
-          
-          check(service.recordingDuration).equals(durationBeforePause);
-        }
-      });
+    tearDown(() {
+      service.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        null,
+      );
     });
 
-    group('amplitudes', () {
-      test('amplitudes are collected during recording', () async {
-        final started = await service.startRecording();
-        
-        if (started) {
-          // Wait for amplitudes to be collected
-          await Future.delayed(const Duration(milliseconds: 200));
-          
-          // Note: Amplitudes might be empty depending on system,
-          // but the list should be modifiable independently
-          check(service.amplitudes).isA<List<double>>();
-        }
-      });
-
-      test('amplitudes reset on new recording', () async {
-        final started = await service.startRecording();
-        if (started) {
-          await Future.delayed(const Duration(milliseconds: 100));
-          await service.stopRecording();
-          
-          final started2 = await service.startRecording();
-          if (started2) {
-            check(service.amplitudes).isEmpty();
-          }
-        }
-      });
+    test('initial state is idle', () {
+      check(service.state).equals(VoiceRecordingState.idle);
+      check(service.recordingDuration).equals(Duration.zero);
+      check(service.amplitudes).isEmpty();
+      check(service.recordingPath).isNull();
     });
 
-    group('permission checking', () {
-      test('permission check returns bool', () async {
-        final hasPermission = await service.hasPermission();
-        check(hasPermission).isA<bool>();
-      });
+    test('startRecording succeeds when permission granted', () async {
+      fakeRecorder.permission = true;
+
+      final result = await service.startRecording();
+      check(result).isTrue();
+      check(service.state).equals(VoiceRecordingState.recording);
+      check(service.recordingPath).isNotNull().endsWith('.m4a');
+      check(fakeRecorder.recordingState).isTrue();
     });
+
+    test('startRecording fails when permission denied', () async {
+      fakeRecorder.permission = false;
+
+      final result = await service.startRecording();
+      check(result).isFalse();
+      check(service.state).equals(VoiceRecordingState.idle);
+      check(fakeRecorder.recordingState).isFalse();
+    });
+
+    test('pauseRecording pauses recorder', () async {
+      fakeRecorder.permission = true;
+      await service.startRecording();
+      
+      final result = await service.pauseRecording();
+      check(result).isTrue();
+      check(service.state).equals(VoiceRecordingState.paused);
+      check(fakeRecorder.pausedState).isTrue();
+    });
+
+    test('resumeRecording resumes recorder', () async {
+      fakeRecorder.permission = true;
+      await service.startRecording();
+      await service.pauseRecording();
+
+      final result = await service.resumeRecording();
+      check(result).isTrue();
+      check(service.state).equals(VoiceRecordingState.recording);
+      check(fakeRecorder.pausedState).isFalse();
+      check(fakeRecorder.recordingState).isTrue();
+    });
+
+    test('stopRecording returns path and resets state', () async {
+      fakeRecorder.permission = true;
+      await service.startRecording();
+
+      final path = await service.stopRecording();
+      check(path).isNotNull();
+      check(service.state).equals(VoiceRecordingState.stopped);
+      check(fakeRecorder.recordingState).isFalse();
+    });
+
+    test('duration updates during recording', () => awaitFakeAsync((async) async {
+      fakeRecorder.permission = true;
+      await service.startRecording();
+
+      async.elapse(const Duration(milliseconds: 500));
+      check(service.recordingDuration).isGreaterThan(Duration.zero);
+      await service.dispose();
+    }));
+
+    test('amplitudes update during recording', () => awaitFakeAsync((async) async {
+      fakeRecorder.permission = true;
+      await service.startRecording();
+
+      async.elapse(const Duration(milliseconds: 200));
+      check(service.amplitudes).isNotEmpty();
+      await service.dispose();
+    }));
   });
+}
+
+class FakeAudioRecorder extends Fake implements AudioRecorder {
+  bool _permission = false;
+  bool _isRecording = false;
+  bool _isPaused = false;
+  String? currentPath;
+
+  set permission(bool value) => _permission = value;
+  
+  bool get recordingState => _isRecording;
+  bool get pausedState => _isPaused;
+
+  @override
+  Future<bool> hasPermission({bool request = false}) async => _permission;
+
+  @override
+  Future<void> start(RecordConfig config, {required String path}) async {
+    if (!_permission) throw Exception('No permission');
+    _isRecording = true;
+    currentPath = path;
+  }
+
+  @override
+  Future<void> pause() async {
+    _isPaused = true;
+  }
+
+  @override
+  Future<void> resume() async {
+    _isPaused = false;
+  }
+
+  @override
+  Future<String?> stop() async {
+    _isRecording = false;
+    _isPaused = false;
+    return currentPath;
+  }
+
+  @override
+  Future<void> cancel() async {
+    _isRecording = false;
+    _isPaused = false;
+  }
+
+  @override
+  Future<void> dispose() async {
+    _isRecording = false;
+  }
+
+  @override
+  Future<Amplitude> getAmplitude() async {
+    return Amplitude(current: -10.0, max: 0.0);
+  }
+
+  @override
+  Future<bool> isRecording() async => _isRecording;
+
+  @override
+  Future<bool> isPaused() async => _isPaused;
 }
