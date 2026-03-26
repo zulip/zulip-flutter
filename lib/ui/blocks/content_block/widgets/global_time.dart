@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../../../../api/model/model.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
 import '../../../themes/content_theme.dart';
-import '../../../utils/store.dart';
 import '../../../values/constants.dart';
 import '../../../values/icons.dart';
 
@@ -35,7 +35,7 @@ class GlobalTime extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final twentyFourHourTimeMode = store.userSettings.twentyFourHourTime;
     // Design taken from css for `.rendered_markdown & time` in web,
     //   see zulip:web/styles/rendered_markdown.css .

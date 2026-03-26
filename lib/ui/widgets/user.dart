@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../api/model/model.dart';
+import '../../get/services/store_service.dart';
 import '../../model/avatar_url.dart';
 import '../../model/binding.dart';
 import '../../model/presence.dart';
@@ -39,7 +40,12 @@ class Avatar extends StatelessWidget {
       borderRadius: borderRadius,
       backgroundColor: backgroundColor,
       userIdForPresence: showPresence ? userId : null,
-      child: AvatarImage(userId: userId, size: size, replaceIfMuted: replaceIfMuted));
+      child: AvatarImage(
+        userId: userId,
+        size: size,
+        replaceIfMuted: replaceIfMuted,
+      ),
+    );
   }
 }
 
@@ -62,10 +68,11 @@ class AvatarImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final user = store.getUser(userId);
 
-    if (user == null) { // TODO(log)
+    if (user == null) {
+      // TODO(log)
       return _AvatarPlaceholder(size: size);
     }
 
@@ -74,7 +81,7 @@ class AvatarImage extends StatelessWidget {
     }
 
     final resolvedUrl = switch (user.avatarUrl) {
-      null          => null, // TODO(#255): handle computing gravatars
+      null => null, // TODO(#255): handle computing gravatars
       var avatarUrl => store.tryResolveUrl(avatarUrl),
     };
 
@@ -112,11 +119,14 @@ class _AvatarPlaceholder extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     return DecoratedBox(
       decoration: BoxDecoration(color: designVariables.avatarPlaceholderBg),
-      child: Icon(ZulipIcons.person,
+      child: Icon(
+        ZulipIcons.person,
         // Where the avatar placeholder appears in the Figma,
         // this is how the icon is sized proportionally to its box.
         size: size * 20 / 32,
-        color: designVariables.avatarPlaceholderIcon));
+        color: designVariables.avatarPlaceholderIcon,
+      ),
+    );
   }
 }
 
@@ -151,20 +161,27 @@ class AvatarShape extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.all(Radius.circular(borderRadius)),
         clipBehavior: Clip.antiAlias,
-        child: child));
+        child: child,
+      ),
+    );
 
     if (userIdForPresence != null) {
       final presenceCircleSize = size / 4; // TODO(design) is this right?
-      result = Stack(children: [
-        result,
-        Positioned.directional(textDirection: Directionality.of(context),
-          end: 0,
-          bottom: 0,
-          child: PresenceCircle(
-            userId: userIdForPresence!,
-            size: presenceCircleSize,
-            backgroundColor: backgroundColor)),
-      ]);
+      result = Stack(
+        children: [
+          result,
+          Positioned.directional(
+            textDirection: Directionality.of(context),
+            end: 0,
+            bottom: 0,
+            child: PresenceCircle(
+              userId: userIdForPresence!,
+              size: presenceCircleSize,
+              backgroundColor: backgroundColor,
+            ),
+          ),
+        ],
+      );
     }
 
     return result;
@@ -213,21 +230,24 @@ class PresenceCircle extends StatefulWidget {
           userId: userId,
           size: size,
           backgroundColor: backgroundColor,
-          explicitOffline: true)));
+          explicitOffline: true,
+        ),
+      ),
+    );
   }
 
   @override
   State<PresenceCircle> createState() => _PresenceCircleState();
 }
 
-class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwareStateMixin {
+class _PresenceCircleState extends State<PresenceCircle>
+    with PerAccountStoreAwareStateMixin {
   Presence? model;
 
   @override
   void onNewStore() {
     model?.removeListener(_modelChanged);
-    model = PerAccountStoreWidget.of(context).presence
-      ..addListener(_modelChanged);
+    model = requirePerAccountStore().presence..addListener(_modelChanged);
   }
 
   @override
@@ -246,9 +266,12 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
   @override
   Widget build(BuildContext context) {
     final status = model!.presenceStatusForUser(
-      widget.userId, utcNow: ZulipBinding.instance.utcNow());
+      widget.userId,
+      utcNow: ZulipBinding.instance.utcNow(),
+    );
     final designVariables = DesignVariables.of(context);
-    final effectiveBackgroundColor = widget.backgroundColor ?? designVariables.mainBackground;
+    final effectiveBackgroundColor =
+        widget.backgroundColor ?? designVariables.mainBackground;
     assert(effectiveBackgroundColor != Colors.transparent);
 
     Color? color;
@@ -274,16 +297,21 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
         );
     }
 
-    return SizedBox.square(dimension: widget.size,
+    return SizedBox.square(
+      dimension: widget.size,
       child: DecoratedBox(
         decoration: BoxDecoration(
           border: Border.all(
             color: effectiveBackgroundColor,
             width: 2,
-            strokeAlign: BorderSide.strokeAlignOutside),
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
           color: color,
           gradient: gradient,
-          shape: BoxShape.circle)));
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
   }
 }
 
@@ -308,8 +336,10 @@ class UserStatusEmoji extends StatelessWidget {
     required this.size,
     this.padding = EdgeInsets.zero,
     this.animationMode = ImageAnimationMode.animateNever,
-  }) : assert((userId == null) != (emoji == null),
-              'Only one of the userId or emoji should be provided.');
+  }) : assert(
+         (userId == null) != (emoji == null),
+         'Only one of the userId or emoji should be provided.',
+       );
 
   final int? userId;
   final StatusEmoji? emoji;
@@ -333,20 +363,28 @@ class UserStatusEmoji extends StatelessWidget {
     ImageAnimationMode animationMode = ImageAnimationMode.animateNever,
   }) {
     final (double paddingStart, double paddingEnd) = switch (position) {
-      StatusEmojiPosition.before => (0,            _spanPadding),
-      StatusEmojiPosition.after  => (_spanPadding, 0),
+      StatusEmojiPosition.before => (0, _spanPadding),
+      StatusEmojiPosition.after => (_spanPadding, 0),
     };
     final size = textScaler.scale(fontSize);
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
-      child: UserStatusEmoji(userId: userId, emoji: emoji, size: size,
-        padding: EdgeInsetsDirectional.only(start: paddingStart, end: paddingEnd),
-        animationMode: animationMode));
+      child: UserStatusEmoji(
+        userId: userId,
+        emoji: emoji,
+        size: size,
+        padding: EdgeInsetsDirectional.only(
+          start: paddingStart,
+          end: paddingEnd,
+        ),
+        animationMode: animationMode,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final effectiveEmoji = emoji ?? store.getUserStatus(userId!).emoji;
 
     if (effectiveEmoji == null) return SizedBox.shrink();
@@ -354,9 +392,10 @@ class UserStatusEmoji extends StatelessWidget {
     final emojiDisplay = store.emojiDisplayFor(
       emojiType: effectiveEmoji.reactionType,
       emojiCode: effectiveEmoji.emojiCode,
-      emojiName: effectiveEmoji.emojiName)
-        // The user-status feature doesn't support a :text_emoji:-style display.
-        // .resolve(store.userSettings)
+      emojiName: effectiveEmoji.emojiName,
+    )
+    // The user-status feature doesn't support a :text_emoji:-style display.
+    // .resolve(store.userSettings)
     ;
 
     return Padding(
@@ -366,11 +405,12 @@ class UserStatusEmoji extends StatelessWidget {
         squareDimension: size,
         imageAnimationMode: animationMode,
         buildCustomTextEmoji: () =>
-          // Invoked when an image emoji's URL didn't parse; see
-          // EmojiStore.emojiDisplayFor. Don't show text, just an empty square.
-          // TODO(design) refine?; offer a visible touch target with tooltip?
-          SizedBox.square(dimension: size),
-      ));
+            // Invoked when an image emoji's URL didn't parse; see
+            // EmojiStore.emojiDisplayFor. Don't show text, just an empty square.
+            // TODO(design) refine?; offer a visible touch target with tooltip?
+            SizedBox.square(dimension: size),
+      ),
+    );
   }
 }
 

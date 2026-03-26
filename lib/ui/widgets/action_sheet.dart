@@ -12,6 +12,7 @@ import '../../api/model/model.dart';
 import '../../api/route/channels.dart';
 import '../../api/route/messages.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import '../../model/binding.dart';
 import '../../model/content.dart';
 import '../../model/emoji.dart';
@@ -32,7 +33,6 @@ import '../blocks/message_list_block/message_list_block.dart';
 import '../blocks/message_list_block/widgets/sender_row.dart';
 import '../utils/page.dart';
 import 'read_receipts.dart';
-import '../utils/store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
 import '../blocks/topic_list_block/topic_list_block.dart';
@@ -50,9 +50,6 @@ void _showActionSheet(
   required List<List<Widget>> buttonSections,
 }) {
   assert(header is! BottomSheetHeader || !header.outerVerticalPadding);
-
-  // Could omit this if we need _showActionSheet outside a per-account context.
-  final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
 
   showModalBottomSheet<void>(
     context: pageContext,
@@ -125,22 +122,19 @@ void _showActionSheet(
         ),
       );
 
-      return PerAccountStoreWidget(
-        accountId: accountId,
-        child: Semantics(
-          role: SemanticsRole.menu,
-          child: SafeArea(
-            minimum: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (effectiveHeader != null)
-                  effectiveHeader
-                else
-                  SizedBox(height: 8),
-                body,
-              ],
-            ),
+      return Semantics(
+        role: SemanticsRole.menu,
+        child: SafeArea(
+          minimum: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (effectiveHeader != null)
+                effectiveHeader
+              else
+                SizedBox(height: 8),
+              body,
+            ],
           ),
         ),
       );
@@ -551,7 +545,7 @@ void showChannelActionSheet(
   bool showTopicListButton = true,
 }) {
   final pageContext = PageRoot.contextOf(context);
-  final store = PerAccountStoreWidget.of(pageContext);
+  final store = requirePerAccountStore();
   final messageListPageState = MessageListBlockPage.maybeAncestorOf(
     pageContext,
   );
@@ -735,7 +729,7 @@ class CopyChannelLinkButton extends ActionSheetMenuItemButton {
   @override
   void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
-    final store = PerAccountStoreWidget.of(pageContext);
+    final store = requirePerAccountStore();
 
     PlatformActions.copyWithPopup(
       context: pageContext,
@@ -772,7 +766,7 @@ class PinUnpinButton extends ActionSheetMenuItemButton {
   void onPressed() async {
     try {
       await updateSubscriptionSettings(
-        PerAccountStoreWidget.of(pageContext).connection,
+        requirePerAccountStore().connection,
         streamId: channelId,
         property: SubscriptionProperty.pinToTop,
         value: !isPinned,
@@ -838,7 +832,7 @@ void showTopicActionSheet(
 }) {
   final pageContext = PageRoot.contextOf(context);
 
-  final store = PerAccountStoreWidget.of(pageContext);
+  final store = requirePerAccountStore();
   final subscription = store.subscriptions[channelId];
 
   final optionButtons = <ActionSheetMenuItemButton>[];
@@ -1062,7 +1056,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
   void onPressed() async {
     try {
       await updateUserTopicCompat(
-        PerAccountStoreWidget.of(pageContext).connection,
+        requirePerAccountStore().connection,
         streamId: narrow.streamId,
         topic: narrow.topic,
         visibilityPolicy: newVisibilityPolicy,
@@ -1127,7 +1121,7 @@ class ResolveUnresolveButton extends ActionSheetMenuItemButton {
   @override
   void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
-    final store = PerAccountStoreWidget.of(pageContext);
+    final store = requirePerAccountStore();
 
     // We *could* check here if the topic has changed since the action sheet was
     // opened (see dartdoc of [ActionSheetMenuItemButton]) and abort if so.
@@ -1219,7 +1213,7 @@ class CopyTopicLinkButton extends ActionSheetMenuItemButton {
   @override
   void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
-    final store = PerAccountStoreWidget.of(pageContext);
+    final store = requirePerAccountStore();
 
     PlatformActions.copyWithPopup(
       context: pageContext,
@@ -1239,7 +1233,7 @@ void showMessageActionSheet({
   final now = ZulipBinding.instance.utcNow();
 
   final pageContext = PageRoot.contextOf(context);
-  final store = PerAccountStoreWidget.of(pageContext);
+  final store = requirePerAccountStore();
 
   final popularEmojiLoaded = store.popularEmojiCandidates().isNotEmpty;
 
@@ -1349,7 +1343,7 @@ abstract class MessageActionSheetMenuItemButton
 }
 
 bool _getShouldShowEditButton(BuildContext pageContext, Message message) {
-  final store = PerAccountStoreWidget.of(pageContext);
+  final store = requirePerAccountStore();
 
   final messageListPage = MessageListBlockPage.ancestorOf(pageContext);
   final composeBoxState = messageListPage.composeBoxState;
@@ -1472,7 +1466,7 @@ class ReactionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textDirection = Directionality.of(context);
-    final store = PerAccountStoreWidget.of(pageContext);
+    final store = requirePerAccountStore();
     final popularEmojiCandidates = store.popularEmojiCandidates();
     assert(
       popularEmojiCandidates.every(
@@ -1623,7 +1617,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
         : UpdateMessageFlagsOp.add;
 
     try {
-      final connection = PerAccountStoreWidget.of(pageContext).connection;
+      final connection = requirePerAccountStore().connection;
       await updateMessageFlags(
         connection,
         messages: [message.id],
@@ -1692,7 +1686,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // giving the user a form of progress feedback.
     final tag = composeBoxController.content.registerQuoteAndReplyStart(
       zulipLocalizations,
-      PerAccountStoreWidget.of(pageContext),
+      requirePerAccountStore(),
       message: message,
     );
 
@@ -1709,7 +1703,7 @@ class QuoteAndReplyButton extends MessageActionSheetMenuItemButton {
     // (e.g. in Combined Feed) or always non-null; it can't have been nulled out
     // during the raw-content request.
     composeBoxController!.content.registerQuoteAndReplyEnd(
-      PerAccountStoreWidget.of(pageContext),
+      requirePerAccountStore(),
       tag,
       message: message,
       rawContent: rawContent,
@@ -1838,7 +1832,7 @@ class CopyMessageLinkButton extends MessageActionSheetMenuItemButton {
   void onPressed() {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
 
-    final store = PerAccountStoreWidget.of(pageContext);
+    final store = requirePerAccountStore();
     final messageLink = narrowLink(
       store,
       SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
@@ -1968,7 +1962,7 @@ class DeleteMessageButton extends MessageActionSheetMenuItemButton {
     if (await dialog.result != true) return;
     if (!pageContext.mounted) return;
 
-    final connection = PerAccountStoreWidget.of(pageContext).connection;
+    final connection = requirePerAccountStore().connection;
     try {
       await deleteMessage(connection, messageId: message.id);
     } catch (e) {

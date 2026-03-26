@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 
 import '../../api/model/model.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import 'icons.dart';
-import '../utils/store.dart';
 import 'theme.dart';
 
 /// An app-wide [Typography] for Zulip, customized from the Material default.
@@ -657,7 +657,7 @@ InlineSpan channelTopicLabelSpan({
   required Color color,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
-  final store = PerAccountStoreWidget.of(context);
+  final store = requirePerAccountStore();
   final channel = store.streams[channelId];
   final subscription = store.subscriptions[channelId];
   final swatch = colorSwatchFor(context, subscription);

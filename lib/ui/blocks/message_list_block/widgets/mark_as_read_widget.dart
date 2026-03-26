@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../../model/unreads.dart';
 import '../../../themes/message_list_theme.dart';
@@ -32,7 +33,7 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget>
 
   @override
   void onNewStore() {
-    final newStore = PerAccountStoreWidget.of(context);
+    final newStore = requirePerAccountStore();
     unreadsModel?.removeListener(_unreadsModelChanged);
     unreadsModel = newStore.unreads..addListener(_unreadsModelChanged);
   }

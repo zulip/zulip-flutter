@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/route/channels.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/topics.dart';
 import '../../../../model/unreads.dart';
 import '../../../utils/page.dart';
@@ -25,7 +26,7 @@ class _TopicListState extends State<TopicList>
 
   @override
   void onNewStore() {
-    final newStore = PerAccountStoreWidget.of(context);
+    final newStore = requirePerAccountStore();
     topicsModel?.removeListener(_modelChanged);
     topicsModel = newStore.topics..addListener(_modelChanged);
     unreadsModel?.removeListener(_modelChanged);

@@ -5,6 +5,7 @@ import '../../../get/app_pages.dart';
 
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/store_service.dart';
 import '../../../model/channel.dart';
 import '../../../model/narrow.dart';
 import '../../../model/unreads.dart';
@@ -54,7 +55,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
   @override
   void onNewStore() {
     unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = PerAccountStoreWidget.of(context).unreads
+    unreadsModel = requirePerAccountStore().unreads
       ..addListener(_modelChanged);
   }
 
@@ -106,7 +107,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody>
 
     // TODO: Implement collapsible topics
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final includeAllChannelsButton =

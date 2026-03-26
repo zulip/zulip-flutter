@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
-import '../../../utils/store.dart';
 import '../../../widgets/image.dart';
 import 'helpers.dart';
 import 'message_media_container.dart';
@@ -13,7 +13,7 @@ class MessageEmbedVideo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final previewImageSrcUrl = store.tryResolveUrl(node.previewImageSrcUrl);
 
     return MessageMediaContainer(

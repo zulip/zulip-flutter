@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../get/app_pages.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../../model/recent_dm_conversations.dart';
 import '../../../model/unreads.dart';
@@ -47,11 +48,11 @@ class _RecentDmConversationsPageBodyState
   @override
   void onNewStore() {
     model?.removeListener(_modelChanged);
-    model = PerAccountStoreWidget.of(context).recentDmConversationsView
+    model = requirePerAccountStore().recentDmConversationsView
       ..addListener(_modelChanged);
 
     unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = PerAccountStoreWidget.of(context).unreads
+    unreadsModel = requirePerAccountStore().unreads
       ..addListener(_modelChanged);
   }
 
@@ -82,7 +83,7 @@ class _RecentDmConversationsPageBodyState
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
     final sorted = model!.sorted;
 

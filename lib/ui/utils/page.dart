@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../get/services/store_service.dart';
 import 'store.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
@@ -53,6 +54,7 @@ mixin WidgetRoute<T extends Object?> on PageRoute<T> {
         element.visitChildElements(visitor);
       }
     }
+
     context.visitChildElements(visitor);
     return result!;
   }
@@ -71,7 +73,8 @@ abstract class AccountRoute<T extends Object?> extends PageRoute<T> {
 /// See also:
 ///  * [MaterialAccountWidgetRoute], a subclass which automates providing a
 ///    per-account store on the new route.
-class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T> with WidgetRoute<T> {
+class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T>
+    with WidgetRoute<T> {
   MaterialWidgetRoute({
     required this.page,
     super.settings,
@@ -85,22 +88,22 @@ class MaterialWidgetRoute<T extends Object?> extends MaterialPageRoute<T> with W
 }
 
 /// A mixin for providing a given account's per-account store on a page route.
-mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> implements AccountRoute<T> {
+mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T>
+    implements AccountRoute<T> {
   @override
   int get accountId;
 
   Widget? get loadingPlaceholderPage;
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-    return PerAccountStoreWidget(
-      accountId: accountId,
-      placeholder: loadingPlaceholderPage ?? const LoadingPlaceholderPage(),
-      routeToRemoveOnLogout: this,
-      // PageRoot goes under PerAccountStoreWidget, so the provided context
-      // can be used for PerAccountStoreWidget.of.
-      child: PageRoot(
-        child: super.buildPage(context, animation, secondaryAnimation)));
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return PageRoot(
+      child: super.buildPage(context, animation, secondaryAnimation),
+    );
   }
 }
 
@@ -111,7 +114,8 @@ mixin AccountPageRouteMixin<T extends Object?> on PageRoute<T> implements Accoun
 ///    for tests.
 ///  * [AccountPageRouteBuilder], for defining one-off page routes
 ///    in terms of callbacks.
-class MaterialAccountPageRoute<T extends Object?> extends MaterialPageRoute<T> with AccountPageRouteMixin<T> {
+class MaterialAccountPageRoute<T extends Object?> extends MaterialPageRoute<T>
+    with AccountPageRouteMixin<T> {
   /// Construct a [MaterialAccountPageRoute] using either the given account ID,
   /// or the ambient one from the given context.
   ///
@@ -132,9 +136,11 @@ class MaterialAccountPageRoute<T extends Object?> extends MaterialPageRoute<T> w
     super.maintainState,
     super.fullscreenDialog,
     super.allowSnapshotting,
-  }) : assert((accountId != null) ^ (context != null),
-         "exactly one of accountId or context must be specified"),
-       accountId = accountId ?? PerAccountStoreWidget.accountIdOf(context!);
+  }) : assert(
+         (accountId != null) ^ (context != null),
+         "exactly one of accountId or context must be specified",
+       ),
+       accountId = accountId ?? requirePerAccountStore().accountId;
 
   @override
   final int accountId;
@@ -153,7 +159,9 @@ class MaterialAccountPageRoute<T extends Object?> extends MaterialPageRoute<T> w
 ///
 /// See also:
 ///  * [MaterialWidgetRoute], for routes that need no per-account store.
-class MaterialAccountWidgetRoute<T extends Object?> extends MaterialAccountPageRoute<T> with WidgetRoute<T> {
+class MaterialAccountWidgetRoute<T extends Object?>
+    extends MaterialAccountPageRoute<T>
+    with WidgetRoute<T> {
   /// Construct a [MaterialAccountWidgetRoute] using either the given account ID,
   /// or the ambient one from the given context.
   ///
@@ -183,7 +191,8 @@ class MaterialAccountWidgetRoute<T extends Object?> extends MaterialAccountPageR
 /// A [PageRouteBuilder] providing a per-account store for a given account.
 ///
 /// This is the [PageRouteBuilder] analogue of [MaterialAccountPageRoute].
-class AccountPageRouteBuilder<T extends Object?> extends PageRouteBuilder<T> with AccountPageRouteMixin<T> {
+class AccountPageRouteBuilder<T extends Object?> extends PageRouteBuilder<T>
+    with AccountPageRouteMixin<T> {
   /// Construct an [AccountPageRouteBuilder] using either the given account ID,
   /// or the ambient one from the given context.
   ///
@@ -211,9 +220,11 @@ class AccountPageRouteBuilder<T extends Object?> extends PageRouteBuilder<T> wit
     super.maintainState,
     super.fullscreenDialog,
     super.allowSnapshotting,
-  }) : assert((accountId != null) ^ (context != null),
-         "exactly one of accountId or context must be specified"),
-       accountId = accountId ?? PerAccountStoreWidget.accountIdOf(context!);
+  }) : assert(
+         (accountId != null) ^ (context != null),
+         "exactly one of accountId or context must be specified",
+       ),
+       accountId = accountId ?? StoreService.to.accountId!;
 
   @override
   final int accountId;
@@ -227,10 +238,7 @@ class LoadingPlaceholderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: const LoadingPlaceholder(),
-    );
+    return Scaffold(appBar: AppBar(), body: const LoadingPlaceholder());
   }
 }
 
@@ -259,8 +267,9 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     this.messageWithLinkMarkup,
     this.onTapMessageLink,
   }) : assert(
-         (header != null)
-         ^ (headerWithLinkMarkup != null && onTapHeaderLink != null));
+         (header != null) ^
+             (headerWithLinkMarkup != null && onTapHeaderLink != null),
+       );
 
   final String? header;
   final String? headerWithLinkMarkup;
@@ -284,13 +293,15 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
       return Text(
         textAlign: TextAlign.center,
         style: _headerStyle(context),
-        header!);
+        header!,
+      );
     }
     return TextWithLink(
       onTap: onTapHeaderLink!,
       textAlign: TextAlign.center,
       style: _headerStyle(context),
-      markup: headerWithLinkMarkup!);
+      markup: headerWithLinkMarkup!,
+    );
   }
 
   TextStyle _messageStyle(BuildContext context) {
@@ -308,14 +319,16 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
       return Text(
         textAlign: TextAlign.center,
         style: _messageStyle(context),
-        message!);
+        message!,
+      );
     }
     if (messageWithLinkMarkup != null) {
       return TextWithLink(
         onTap: onTapMessageLink!,
         textAlign: TextAlign.center,
         style: _messageStyle(context),
-        markup: messageWithLinkMarkup!);
+        markup: messageWithLinkMarkup!,
+      );
     }
     return null;
   }
@@ -339,6 +352,10 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
               //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
               header,
               ?message,
-            ]))));
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../api/model/model.dart';
 import '../../../../api/model/permission.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
 import '../../../themes/content_theme.dart';
-import '../../../utils/store.dart';
 import '../../../values/constants.dart';
 import 'inline_content.dart';
 
@@ -21,7 +21,7 @@ class Mention extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final contentTheme = ContentTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 

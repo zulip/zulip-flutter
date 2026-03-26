@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../api/model/model.dart';
 import '../../../../api/route/settings.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../log.dart';
 import '../../../utils/remote_settings.dart';
-import '../../../utils/store.dart';
 import '../../../widgets/button.dart';
 
 class InvisibleModeToggle extends StatelessWidget {
@@ -14,7 +14,7 @@ class InvisibleModeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     // `value: true` means invisible mode is on,
     // i.e., that presenceEnabled is false.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
+import '../../../../../get/services/store_service.dart';
 import '../../../../../model/message_list.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../../model/store.dart';
@@ -68,7 +69,7 @@ class _MessageListState extends State<MessageList>
     // TODO(#464) try to keep using old model until new one gets messages
     final anchor = _model == null ? widget.initAnchor : _model!.anchor;
     _model?.dispose();
-    _initModel(PerAccountStoreWidget.of(context), anchor);
+    _initModel(requirePerAccountStore(), anchor);
   }
 
   @override

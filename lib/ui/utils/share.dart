@@ -7,6 +7,7 @@ import 'package:mime/mime.dart';
 
 import '../../api/core.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import '../../host/android_intents.dart';
 import '../../log.dart';
 import '../../model/binding.dart';
@@ -53,32 +54,44 @@ class ShareService {
     }
   }
 
-  static Future<void> _handleSend(AndroidIntentSendEvent intentSendEvent) async {
+  static Future<void> _handleSend(
+    AndroidIntentSendEvent intentSendEvent,
+  ) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
 
     assert(debugLog('intentSendEvent.action: ${intentSendEvent.action}'));
     assert(debugLog('intentSendEvent.extraText: ${intentSendEvent.extraText}'));
-    assert(debugLog('intentSendEvent.extraStream?.length: ${intentSendEvent.extraStream?.length}'));
+    assert(
+      debugLog(
+        'intentSendEvent.extraStream?.length: ${intentSendEvent.extraStream?.length}',
+      ),
+    );
 
     final navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
-    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    if (!context.mounted)
+      return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
     final globalStore = GlobalStoreWidget.of(context);
 
     // TODO(#1779) allow selecting account, if there are multiple
-    final accountId = globalStore.lastVisitedAccount?.id
-      ?? globalStore.accountIds.firstOrNull;
+    final accountId =
+        globalStore.lastVisitedAccount?.id ??
+        globalStore.accountIds.firstOrNull;
 
     if (accountId == null) {
       final zulipLocalizations = ZulipLocalizations.of(context);
       showErrorDialog(
         context: context,
         title: zulipLocalizations.errorSharingTitle,
-        message: zulipLocalizations.errorSharingAccountNotLoggedIn);
+        message: zulipLocalizations.errorSharingAccountNotLoggedIn,
+      );
       return;
     }
+
+    StoreService.to.setGlobalStore(globalStore);
+    StoreService.to.setCurrentAccount(accountId);
 
     final sharedFiles = intentSendEvent.extraStream?.map((sharedFile) {
       var mimeType = sharedFile.mimeType;
@@ -94,23 +107,27 @@ class ShareService {
         //   https://github.com/dart-lang/mime/issues/11#issuecomment-2246824452
         sharedFile.name ?? '',
         headerBytes: List.unmodifiable(
-          sharedFile.bytes.take(defaultMagicNumbersMaxLength)));
+          sharedFile.bytes.take(defaultMagicNumbersMaxLength),
+        ),
+      );
 
       final filename =
-        sharedFile.name ?? 'unknown.${mimeType?.split('/').last ?? 'bin'}';
+          sharedFile.name ?? 'unknown.${mimeType?.split('/').last ?? 'bin'}';
 
       return FileToUpload(
         content: Stream.value(sharedFile.bytes),
         length: sharedFile.bytes.length,
         filename: filename,
-        mimeType: mimeType);
+        mimeType: mimeType,
+      );
     });
 
     ShareSheet.show(
       pageContext: context,
       initialAccountId: accountId,
       sharedFiles: sharedFiles,
-      sharedText: intentSendEvent.extraText);
+      sharedText: intentSendEvent.extraText,
+    );
   }
 }
 
@@ -119,10 +136,7 @@ class ShareService {
 /// Figma link:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=12853-76543&p=f&t=oBRXWxFjbkz1yeI7-0
 class ShareSheet extends StatelessWidget {
-  const ShareSheet._({
-    required this.sharedFiles,
-    required this.sharedText,
-  });
+  const ShareSheet._({required this.sharedFiles, required this.sharedText});
 
   final Iterable<FileToUpload>? sharedFiles;
   final String? sharedText;
@@ -133,39 +147,45 @@ class ShareSheet extends StatelessWidget {
     required Iterable<FileToUpload>? sharedFiles,
     required String? sharedText,
   }) async {
-    unawaited(showModalBottomSheet<void>(
-      context: pageContext,
-      // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-      // on my iPhone 13 Pro but is marked as "much slower":
-      //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-      clipBehavior: Clip.antiAlias,
-      useSafeArea: true,
-      isScrollControlled: true,
-      // The Figma uses designVariables.mainBackground, which we could set
-      // here with backgroundColor. Shrug; instead, accept the background color
-      // from BottomSheetThemeData, which is similar to that (as of 2025-10-07),
-      // for consistency with other bottom sheets.
-      builder: (_) {
-        return PerAccountStoreWidget(
-          accountId: initialAccountId,
-          // PageRoot goes under PerAccountStoreWidget, so the provided context
-          // can be used for PerAccountStoreWidget.of.
-          child: PageRoot(
+    unawaited(
+      showModalBottomSheet<void>(
+        context: pageContext,
+        // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+        // on my iPhone 13 Pro but is marked as "much slower":
+        //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+        clipBehavior: Clip.antiAlias,
+        useSafeArea: true,
+        isScrollControlled: true,
+        // The Figma uses designVariables.mainBackground, which we could set
+        // here with backgroundColor. Shrug; instead, accept the background color
+        // from BottomSheetThemeData, which is similar to that (as of 2025-10-07),
+        // for consistency with other bottom sheets.
+        builder: (_) {
+          return PageRoot(
             child: ShareSheet._(
               sharedFiles: sharedFiles,
-              sharedText: sharedText)));
-      }));
+              sharedText: sharedText,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _handleNarrowSelect(BuildContext context, Narrow narrow) {
     final messageListPageKey = GlobalKey<MessageListBlockPageState>();
 
     // Push the message list page, replacing the share page.
-    unawaited(Navigator.pushReplacement(context,
-      MessageListBlockPage.buildRoute(
-        context: context,
-        key: messageListPageKey,
-        narrow: narrow)));
+    unawaited(
+      Navigator.pushReplacement(
+        context,
+        MessageListBlockPage.buildRoute(
+          context: context,
+          key: messageListPageKey,
+          narrow: narrow,
+        ),
+      ),
+    );
 
     // Wait for the message list page to appear in the widget tree.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
@@ -192,7 +212,8 @@ class ShareSheet extends StatelessWidget {
           context: composeBoxState.context,
           files: sharedFiles!,
           // We handle requesting focus ourselves above.
-          shouldRequestFocus: false);
+          shouldRequestFocus: false,
+        );
       }
     });
   }
@@ -200,7 +221,7 @@ class ShareSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final globalStore = GlobalStoreWidget.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -222,81 +243,109 @@ class ShareSheet extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   height: 24 / 18,
-                ).merge(weightVariableTextStyle(context, wght: 500)))),
-          ]));
+                ).merge(weightVariableTextStyle(context, wght: 500)),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return DefaultTabController(
       length: 2,
-      child: Column(children: [
-        Row(children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: !hasMultipleAccounts
-              ? null
-              : () {
-                  ChooseAccountForShareModal.show(
-                    pageContext: context,
-                    selectedAccountId: store.accountId,
-                    sharedFiles: sharedFiles,
-                    sharedText: sharedText);
-                },
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 7, horizontal: 11),
-              child: AvatarShape(
-                size: 28,
-                borderRadius: 4,
-                child: RealmContentNetworkImage(
-                  store.resolvedRealmIcon,
-                  filterQuality: FilterQuality.medium,
-                  fit: BoxFit.cover)))),
-          Expanded(child: TabBar(
-            labelPadding: EdgeInsets.symmetric(horizontal: 4),
-            labelColor: designVariables.iconSelected,
-            unselectedLabelColor: designVariables.icon,
-            // TODO(upstream): The documentation for `indicatorWeight` states
-            //   that it is ignored if `indicator` is specified. But that
-            //   doesn't seem to be the case in practice, this value affects
-            //   the size of the tab label, making the tab label 2px larger
-            //   which is also the default value for this argument. See:
-            //     https://github.com/flutter/flutter/issues/171951
-            //   As a workaround passing a value of zero appears to be working
-            //   fine, so use that.
-            indicatorWeight: 0,
-            indicator: UnderlineTabIndicator(
-              borderSide: BorderSide(
-                color: designVariables.iconSelected,
-                width: 4.0)),
-            dividerHeight: 0,
-            splashFactory: NoSplash.splashFactory,
-            overlayColor: WidgetStatePropertyAll(Colors.transparent),
-            tabs: [
-              mkTabLabel(
-                text: zulipLocalizations.channelsPageTitle,
-                icon: ZulipIcons.hash_italic),
-              mkTabLabel(
-                text: zulipLocalizations.recentDmConversationsPageShortLabel,
-                icon: ZulipIcons.two_person),
-            ])),
-        ]),
-        Expanded(child: TabBarView(children: [
-          SubscriptionListPageBody(
-            showTopicListButtonInActionSheet: false,
-            hideChannelsIfUserCantSendMessage: true,
-            allowGoToAllChannels: false,
-            onChannelSelect: (narrow) => _handleNarrowSelect(context, narrow),
-            // TODO(#412) add onTopicSelect, Currently when user lands on the
-            //   channel feed page from subscription list page and they tap
-            //   on the topic recipient header, the user is brought to the
-            //   topic message list, but without the share content. So, we
-            //   might want to force the user to choose a topic or start a
-            //   new topic from the subscription list page.
+      child: Column(
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: !hasMultipleAccounts
+                    ? null
+                    : () {
+                        ChooseAccountForShareModal.show(
+                          pageContext: context,
+                          selectedAccountId: store.accountId,
+                          sharedFiles: sharedFiles,
+                          sharedText: sharedText,
+                        );
+                      },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 7, horizontal: 11),
+                  child: AvatarShape(
+                    size: 28,
+                    borderRadius: 4,
+                    child: RealmContentNetworkImage(
+                      store.resolvedRealmIcon,
+                      filterQuality: FilterQuality.medium,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: TabBar(
+                  labelPadding: EdgeInsets.symmetric(horizontal: 4),
+                  labelColor: designVariables.iconSelected,
+                  unselectedLabelColor: designVariables.icon,
+                  // TODO(upstream): The documentation for `indicatorWeight` states
+                  //   that it is ignored if `indicator` is specified. But that
+                  //   doesn't seem to be the case in practice, this value affects
+                  //   the size of the tab label, making the tab label 2px larger
+                  //   which is also the default value for this argument. See:
+                  //     https://github.com/flutter/flutter/issues/171951
+                  //   As a workaround passing a value of zero appears to be working
+                  //   fine, so use that.
+                  indicatorWeight: 0,
+                  indicator: UnderlineTabIndicator(
+                    borderSide: BorderSide(
+                      color: designVariables.iconSelected,
+                      width: 4.0,
+                    ),
+                  ),
+                  dividerHeight: 0,
+                  splashFactory: NoSplash.splashFactory,
+                  overlayColor: WidgetStatePropertyAll(Colors.transparent),
+                  tabs: [
+                    mkTabLabel(
+                      text: zulipLocalizations.channelsPageTitle,
+                      icon: ZulipIcons.hash_italic,
+                    ),
+                    mkTabLabel(
+                      text: zulipLocalizations
+                          .recentDmConversationsPageShortLabel,
+                      icon: ZulipIcons.two_person,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          RecentDmConversationsPageBody(
-            hideDmsIfUserCantPost: true,
-            onDmSelect: (narrow) => _handleNarrowSelect(context, narrow)),
-        ])),
-      ]));
+          Expanded(
+            child: TabBarView(
+              children: [
+                SubscriptionListPageBody(
+                  showTopicListButtonInActionSheet: false,
+                  hideChannelsIfUserCantSendMessage: true,
+                  allowGoToAllChannels: false,
+                  onChannelSelect: (narrow) =>
+                      _handleNarrowSelect(context, narrow),
+                  // TODO(#412) add onTopicSelect, Currently when user lands on the
+                  //   channel feed page from subscription list page and they tap
+                  //   on the topic recipient header, the user is brought to the
+                  //   topic message list, but without the share content. So, we
+                  //   might want to force the user to choose a topic or start a
+                  //   new topic from the subscription list page.
+                ),
+                RecentDmConversationsPageBody(
+                  hideDmsIfUserCantPost: true,
+                  onDmSelect: (narrow) => _handleNarrowSelect(context, narrow),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -315,28 +364,35 @@ class ChooseAccountForShareModal extends StatefulWidget {
     required Iterable<FileToUpload>? sharedFiles,
     required String? sharedText,
   }) async {
-    unawaited(showModalBottomSheet<void>(
-      context: pageContext,
-      // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-      // on my iPhone 13 Pro but is marked as "much slower":
-      //   https://api.flutter.dev/flutter/dart-ui/Clip.html
-      clipBehavior: Clip.antiAlias,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (_) {
-        return SafeArea(
-          minimum: const EdgeInsets.only(bottom: 16),
-          child: ChooseAccountForShareModal._(
-            sharedFiles: sharedFiles,
-            sharedText: sharedText));
-      }));
+    unawaited(
+      showModalBottomSheet<void>(
+        context: pageContext,
+        // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
+        // on my iPhone 13 Pro but is marked as "much slower":
+        //   https://api.flutter.dev/flutter/dart-ui/Clip.html
+        clipBehavior: Clip.antiAlias,
+        useSafeArea: true,
+        isScrollControlled: true,
+        builder: (_) {
+          return SafeArea(
+            minimum: const EdgeInsets.only(bottom: 16),
+            child: ChooseAccountForShareModal._(
+              sharedFiles: sharedFiles,
+              sharedText: sharedText,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
-  State<ChooseAccountForShareModal> createState() => _ChooseAccountForShareModalState();
+  State<ChooseAccountForShareModal> createState() =>
+      _ChooseAccountForShareModalState();
 }
 
-class _ChooseAccountForShareModalState extends State<ChooseAccountForShareModal> {
+class _ChooseAccountForShareModalState
+    extends State<ChooseAccountForShareModal> {
   bool _hasUpdatedAccountsOnce = false;
 
   @override
@@ -366,8 +422,7 @@ class _ChooseAccountForShareModalState extends State<ChooseAccountForShareModal>
         final account = accounts[index];
         final accountId = account.id;
 
-        final resolvedRealmIconUrl =
-          account.realmIcon == null
+        final resolvedRealmIconUrl = account.realmIcon == null
             ? null
             : account.realmUrl.resolveUri(account.realmIcon!);
 
@@ -380,27 +435,34 @@ class _ChooseAccountForShareModalState extends State<ChooseAccountForShareModal>
               pageContext: context,
               initialAccountId: accountId,
               sharedFiles: widget.sharedFiles,
-              sharedText: widget.sharedText);
+              sharedText: widget.sharedText,
+            );
           },
           splashColor: Colors.transparent,
           leading: AvatarShape(
             size: 56,
             borderRadius: 4,
             child: resolvedRealmIconUrl == null
-              ? const SizedBox.shrink()
-              : Image.network(
-                  resolvedRealmIconUrl.toString(),
-                  headers: userAgentHeader(),
-                  filterQuality: FilterQuality.medium,
-                  fit: BoxFit.cover)),
+                ? const SizedBox.shrink()
+                : Image.network(
+                    resolvedRealmIconUrl.toString(),
+                    headers: userAgentHeader(),
+                    filterQuality: FilterQuality.medium,
+                    fit: BoxFit.cover,
+                  ),
+          ),
           title: Text(account.realmName ?? account.realmUrl.toString()),
-          subtitle: Text(account.email));
-      });
+          subtitle: Text(account.email),
+        );
+      },
+    );
 
     return DraggableScrollableModalBottomSheet(
       header: BottomSheetHeader(
         title: zulipLocalizations.shareChooseAccountModalTitle,
-        outerVerticalPadding: true),
-      contentSliver: content);
+        outerVerticalPadding: true,
+      ),
+      contentSliver: content,
+    );
   }
 }

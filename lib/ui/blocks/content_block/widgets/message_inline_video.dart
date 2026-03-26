@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
-import '../../../utils/store.dart';
 import '../../../widgets/lightbox.dart';
 import '../content.dart';
 import 'message_media_container.dart';
@@ -14,7 +14,7 @@ class MessageInlineVideo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = InheritedMessage.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final resolvedSrc = store.tryResolveUrl(node.srcUrl);
 
     return MessageMediaContainer(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import '../../model/emoji.dart';
 import '../../model/store.dart';
 import 'emoji.dart';
@@ -14,7 +15,11 @@ import '../values/text.dart';
 import '../values/theme.dart';
 import 'user.dart';
 
-abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends StatefulWidget {
+abstract class AutocompleteField<
+  QueryT extends AutocompleteQuery,
+  ResultT extends AutocompleteResult
+>
+    extends StatefulWidget {
   const AutocompleteField({
     super.key,
     required this.controller,
@@ -30,13 +35,22 @@ abstract class AutocompleteField<QueryT extends AutocompleteQuery, ResultT exten
 
   Widget buildItem(BuildContext context, int index, ResultT option);
 
-  AutocompleteView<QueryT, ResultT> initViewModel(BuildContext context, QueryT query);
+  AutocompleteView<QueryT, ResultT> initViewModel(
+    BuildContext context,
+    QueryT query,
+  );
 
   @override
-  State<AutocompleteField<QueryT, ResultT>> createState() => _AutocompleteFieldState<QueryT, ResultT>();
+  State<AutocompleteField<QueryT, ResultT>> createState() =>
+      _AutocompleteFieldState<QueryT, ResultT>();
 }
 
-class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends State<AutocompleteField<QueryT, ResultT>> with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT>> {
+class _AutocompleteFieldState<
+  QueryT extends AutocompleteQuery,
+  ResultT extends AutocompleteResult
+>
+    extends State<AutocompleteField<QueryT, ResultT>>
+    with PerAccountStoreAwareStateMixin<AutocompleteField<QueryT, ResultT>> {
   AutocompleteView<QueryT, ResultT>? _viewModel;
   final ScrollController _scrollController = ScrollController();
 
@@ -49,9 +63,8 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
     final newQuery = widget.autocompleteIntent()?.query;
     final oldQuery = _viewModel?.query;
     // First, tear down the old view-model if necessary.
-    if (_viewModel != null
-        && (newQuery == null
-            || !_viewModel!.acceptsQuery(newQuery))) {
+    if (_viewModel != null &&
+        (newQuery == null || !_viewModel!.acceptsQuery(newQuery))) {
       // The autocomplete interaction has ended, or has switched to a
       // different kind of autocomplete (e.g. @-mention vs. emoji).
       _viewModel!.dispose(); // removes our listener
@@ -142,13 +155,19 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
           child: Material(
             elevation: 4.0,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 300), // TODO not hard-coded
+              constraints: const BoxConstraints(
+                maxHeight: 300,
+              ), // TODO not hard-coded
               child: ListView.builder(
                 controller: _scrollController,
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 itemCount: _resultsToDisplay.length,
-                itemBuilder: _buildItem))));
+                itemBuilder: _buildItem,
+              ),
+            ),
+          ),
+        );
       },
       // RawAutocomplete passes these when it calls fieldViewBuilder:
       //   TextEditingController textEditingController,
@@ -165,7 +184,9 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
   }
 }
 
-class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, ComposeAutocompleteResult> {
+class ComposeAutocomplete
+    extends
+        AutocompleteField<ComposeAutocompleteQuery, ComposeAutocompleteResult> {
   const ComposeAutocomplete({
     super.key,
     required this.narrow,
@@ -177,17 +198,25 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
   final Narrow narrow;
 
   @override
-  ComposeContentController get controller => super.controller as ComposeContentController;
+  ComposeContentController get controller =>
+      super.controller as ComposeContentController;
 
   @override
-  AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
+  AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() =>
+      controller.autocompleteIntent();
 
   @override
-  ComposeAutocompleteView initViewModel(BuildContext context, ComposeAutocompleteQuery query) {
-    final store = PerAccountStoreWidget.of(context);
+  ComposeAutocompleteView initViewModel(
+    BuildContext context,
+    ComposeAutocompleteQuery query,
+  ) {
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
-    return query.initViewModel(store: store, localizations: zulipLocalizations,
-      narrow: narrow);
+    return query.initViewModel(
+      store: store,
+      localizations: zulipLocalizations,
+      narrow: narrow,
+    );
   }
 
   void _onTapOption(BuildContext context, ComposeAutocompleteResult option) {
@@ -200,7 +229,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     }
     final query = intent.query;
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final String replacementString;
     switch (option) {
       case EmojiAutocompleteResult(:var candidate):
@@ -217,7 +246,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         }
         // TODO(#1805) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${userMention(user, silent: query.silent, users: store)} ';
+        replacementString =
+            '${userMention(user, silent: query.silent, users: store)} ';
       case WildcardMentionAutocompleteResult(:var wildcardOption):
         replacementString = '${wildcardMention(wildcardOption, store: store)} ';
       case UserGroupMentionAutocompleteResult(:final groupId):
@@ -232,7 +262,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         }
         // TODO(#1805) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
-        replacementString = '${userGroupMention(userGroup.name, silent: query.silent)} ';
+        replacementString =
+            '${userGroupMention(userGroup.name, silent: query.silent)} ';
       case ChannelLinkAutocompleteResult(:final channelId):
         final channel = store.streams[channelId];
         if (channel == null) {
@@ -246,19 +277,28 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
     controller.value = intent.textEditingValue.replaced(
       TextRange(
         start: intent.syntaxStart,
-        end: intent.textEditingValue.selection.end),
+        end: intent.textEditingValue.selection.end,
+      ),
       replacementString,
     );
   }
 
   @override
-  Widget buildItem(BuildContext context, int index, ComposeAutocompleteResult option) {
+  Widget buildItem(
+    BuildContext context,
+    int index,
+    ComposeAutocompleteResult option,
+  ) {
     final designVariables = DesignVariables.of(context);
 
     final child = switch (option) {
       MentionAutocompleteResult() => MentionAutocompleteItem(
-        option: option, narrow: narrow),
-      ChannelLinkAutocompleteResult() => _ChannelLinkAutocompleteItem(option: option),
+        option: option,
+        narrow: narrow,
+      ),
+      ChannelLinkAutocompleteResult() => _ChannelLinkAutocompleteItem(
+        option: option,
+      ),
       EmojiAutocompleteResult() => EmojiAutocompleteItem(option: option),
     };
     return InkWell(
@@ -268,7 +308,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
       highlightColor: designVariables.editorButtonPressedBg,
       splashFactory: NoSplash.splashFactory,
       borderRadius: BorderRadius.circular(5),
-      child: child);
+      child: child,
+    );
   }
 }
 
@@ -283,30 +324,36 @@ class MentionAutocompleteItem extends StatelessWidget {
   final MentionAutocompleteResult option;
   final Narrow narrow;
 
-  String wildcardSublabel(WildcardMentionOption wildcardOption, {
+  String wildcardSublabel(
+    WildcardMentionOption wildcardOption, {
     required BuildContext context,
     required PerAccountStore store,
   }) {
     final isDmNarrow = narrow is DmNarrow;
-    final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
+    final isChannelWildcardAvailable =
+        store.zulipFeatureLevel >= 247; // TODO(server-9)
     final zulipLocalizations = ZulipLocalizations.of(context);
     return switch (wildcardOption) {
-      WildcardMentionOption.all || WildcardMentionOption.everyone => isDmNarrow
-        ? zulipLocalizations.wildcardMentionAllDmDescription
-        : isChannelWildcardAvailable
+      WildcardMentionOption.all || WildcardMentionOption.everyone =>
+        isDmNarrow
+            ? zulipLocalizations.wildcardMentionAllDmDescription
+            : isChannelWildcardAvailable
             ? zulipLocalizations.wildcardMentionChannelDescription
             : zulipLocalizations.wildcardMentionStreamDescription,
-      WildcardMentionOption.channel => zulipLocalizations.wildcardMentionChannelDescription,
-      WildcardMentionOption.stream => isChannelWildcardAvailable
-        ? zulipLocalizations.wildcardMentionChannelDescription
-        : zulipLocalizations.wildcardMentionStreamDescription,
-      WildcardMentionOption.topic => zulipLocalizations.wildcardMentionTopicDescription,
+      WildcardMentionOption.channel =>
+        zulipLocalizations.wildcardMentionChannelDescription,
+      WildcardMentionOption.stream =>
+        isChannelWildcardAvailable
+            ? zulipLocalizations.wildcardMentionChannelDescription
+            : zulipLocalizations.wildcardMentionStreamDescription,
+      WildcardMentionOption.topic =>
+        zulipLocalizations.wildcardMentionTopicDescription,
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
 
     Widget avatar;
@@ -317,59 +364,93 @@ class MentionAutocompleteItem extends StatelessWidget {
       case UserMentionAutocompleteResult(:var userId):
         avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
         label = store.userDisplayName(userId);
-        emoji = UserStatusEmoji(userId: userId, size: 18,
-          padding: const EdgeInsetsDirectional.only(start: 5.0));
+        emoji = UserStatusEmoji(
+          userId: userId,
+          size: 18,
+          padding: const EdgeInsetsDirectional.only(start: 5.0),
+        );
         sublabel = store.getUser(userId)?.deliveryEmail;
       case UserGroupMentionAutocompleteResult(:final groupId):
         final group = store.getGroup(groupId);
-        avatar = SizedBox.square(dimension: 36,
-          child: const Icon(ZulipIcons.three_person, size: 24));
-        label = group?.name
-          // Don't crash on theoretical race between async results-filtering
-          // and losing data for the group.
-          ?? '';
+        avatar = SizedBox.square(
+          dimension: 36,
+          child: const Icon(ZulipIcons.three_person, size: 24),
+        );
+        label =
+            group?.name
+            // Don't crash on theoretical race between async results-filtering
+            // and losing data for the group.
+            ??
+            '';
         emoji = null;
         sublabel = group?.description;
       case WildcardMentionAutocompleteResult(:var wildcardOption):
-        avatar = SizedBox.square(dimension: 36,
-          child: const Icon(ZulipIcons.three_person, size: 24));
+        avatar = SizedBox.square(
+          dimension: 36,
+          child: const Icon(ZulipIcons.three_person, size: 24),
+        );
         label = wildcardOption.canonicalString;
         emoji = null;
-        sublabel = wildcardSublabel(wildcardOption, context: context, store: store);
+        sublabel = wildcardSublabel(
+          wildcardOption,
+          context: context,
+          store: store,
+        );
     }
 
-    final labelWidget = Row(children: [
-      Flexible(child: Text(label,
-        style: TextStyle(
-          fontSize: 18,
-          height: 20 / 18,
-          color: designVariables.contextMenuItemLabel,
-        ).merge(weightVariableTextStyle(context,
-            wght: sublabel == null ? 500 : 600)),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1)),
-      ?emoji,
-    ]);
+    final labelWidget = Row(
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style:
+                TextStyle(
+                  fontSize: 18,
+                  height: 20 / 18,
+                  color: designVariables.contextMenuItemLabel,
+                ).merge(
+                  weightVariableTextStyle(
+                    context,
+                    wght: sublabel == null ? 500 : 600,
+                  ),
+                ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        ?emoji,
+      ],
+    );
 
-    final sublabelWidget = sublabel == null ? null : Text(
-      sublabel,
-      style: TextStyle(
-        fontSize: 14,
-        height: 16 / 14,
-        color: designVariables.contextMenuItemMeta),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1);
+    final sublabelWidget = sublabel == null
+        ? null
+        : Text(
+            sublabel,
+            style: TextStyle(
+              fontSize: 14,
+              height: 16 / 14,
+              color: designVariables.contextMenuItemMeta,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          );
 
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(4, 4, 8, 4),
-      child: Row(children: [
-        avatar,
-        const SizedBox(width: 6),
-        Expanded(child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [labelWidget, ?sublabelWidget])),
-      ]));
+      child: Row(
+        children: [
+          avatar,
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [labelWidget, ?sublabelWidget],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -380,7 +461,7 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final channel = store.streams[option.channelId];
 
     if (channel == null) return SizedBox.shrink();
@@ -389,17 +470,35 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
       constraints: BoxConstraints(minHeight: 44),
       child: Padding(
         padding: EdgeInsetsDirectional.fromSTEB(12, 4, 10, 4),
-        child: Row(spacing: 10, children: [
-          SizedBox.square(dimension: 24, child: Icon(iconDataForStream(channel),
-            size: 18, color: colorSwatchFor(context, store.subscriptions[channel.streamId]))),
-          Expanded(child: Text(channel.name,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 18, height: 20 / 18,
-              color: DesignVariables.of(context).contextMenuItemLabel,
-            ).merge(weightVariableTextStyle(context, wght: 600)))),
-          // TODO(#1945): show channel description
-        ])),
+        child: Row(
+          spacing: 10,
+          children: [
+            SizedBox.square(
+              dimension: 24,
+              child: Icon(
+                iconDataForStream(channel),
+                size: 18,
+                color: colorSwatchFor(
+                  context,
+                  store.subscriptions[channel.streamId],
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                channel.name,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 18,
+                  height: 20 / 18,
+                  color: DesignVariables.of(context).contextMenuItemLabel,
+                ).merge(weightVariableTextStyle(context, wght: 600)),
+              ),
+            ),
+            // TODO(#1945): show channel description
+          ],
+        ),
+      ),
     );
   }
 }
@@ -414,7 +513,7 @@ class EmojiAutocompleteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
     final candidate = option.candidate;
 
@@ -429,8 +528,8 @@ class EmojiAutocompleteItem extends StatelessWidget {
     };
 
     final label = candidate.aliases.isEmpty
-      ? candidate.emojiName
-      : [candidate.emojiName, ...candidate.aliases].join(", "); // TODO(#1080)
+        ? candidate.emojiName
+        : [candidate.emojiName, ...candidate.aliases].join(", "); // TODO(#1080)
 
     // TODO(design): emoji autocomplete results
     // There's no design in Figma for emoji autocomplete results.
@@ -442,24 +541,32 @@ class EmojiAutocompleteItem extends StatelessWidget {
     // to bring it to same size as avatar in _MentionAutocompleteItem.
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(children: [
-        if (glyph != null) ...[
-          Padding(padding: const EdgeInsets.all(6),
-            child: glyph),
-          const SizedBox(width: 6),
+      child: Row(
+        children: [
+          if (glyph != null) ...[
+            Padding(padding: const EdgeInsets.all(6), child: glyph),
+            const SizedBox(width: 6),
+          ],
+          Expanded(
+            child: Text(
+              style: TextStyle(
+                fontSize: 17,
+                height: 18 / 17,
+                color: designVariables.contextMenuItemLabel,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              label,
+            ),
+          ),
         ],
-        Expanded(
-          child: Text(
-            style: TextStyle(fontSize: 17, height: 18 / 17,
-              color: designVariables.contextMenuItemLabel),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            label)),
-      ]));
+      ),
+    );
   }
 }
 
-class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult> {
+class TopicAutocomplete
+    extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult> {
   const TopicAutocomplete({
     super.key,
     required this.streamId,
@@ -474,15 +581,24 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
   final int streamId;
 
   @override
-  ComposeTopicController get controller => super.controller as ComposeTopicController;
+  ComposeTopicController get controller =>
+      super.controller as ComposeTopicController;
 
   @override
-  AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent() => controller.autocompleteIntent();
+  AutocompleteIntent<TopicAutocompleteQuery>? autocompleteIntent() =>
+      controller.autocompleteIntent();
 
   @override
-  TopicAutocompleteView initViewModel(BuildContext context, TopicAutocompleteQuery query) {
-    final store = PerAccountStoreWidget.of(context);
-    return TopicAutocompleteView.init(store: store, streamId: streamId, query: query);
+  TopicAutocompleteView initViewModel(
+    BuildContext context,
+    TopicAutocompleteQuery query,
+  ) {
+    final store = requirePerAccountStore();
+    return TopicAutocompleteView.init(
+      store: store,
+      streamId: streamId,
+      query: query,
+    );
   }
 
   void _onTapOption(BuildContext context, TopicAutocompleteResult option) {
@@ -494,12 +610,18 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
   }
 
   @override
-  Widget buildItem(BuildContext context, int index, TopicAutocompleteResult option) {
+  Widget buildItem(
+    BuildContext context,
+    int index,
+    TopicAutocompleteResult option,
+  ) {
     final Widget child;
     if (option.topic.displayName == null) {
-      final store = PerAccountStoreWidget.of(context);
-      child = Text(store.realmEmptyTopicDisplayName,
-        style: const TextStyle(fontStyle: FontStyle.italic));
+      final store = requirePerAccountStore();
+      child = Text(
+        store.realmEmptyTopicDisplayName,
+        style: const TextStyle(fontStyle: FontStyle.italic),
+      );
     } else {
       child = Text(option.topic.displayName!);
     }
@@ -510,6 +632,8 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: child));
+        child: child,
+      ),
+    );
   }
 }

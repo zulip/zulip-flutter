@@ -7,6 +7,7 @@ import '../../api/exception.dart';
 import '../../api/model/model.dart';
 import '../../api/route/messages.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import '../../model/autocomplete.dart';
 import '../../model/emoji.dart';
 import '../../model/store.dart';
@@ -23,7 +24,6 @@ import '../values/text.dart';
 import '../values/theme.dart';
 import 'user.dart';
 
-
 class ReactionChipsList extends StatelessWidget {
   const ReactionChipsList({
     super.key,
@@ -37,21 +37,32 @@ class ReactionChipsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
-    final displayEmojiReactionUsers = store.userSettings.displayEmojiReactionUsers;
+    final store = requirePerAccountStore();
+    final displayEmojiReactionUsers =
+        store.userSettings.displayEmojiReactionUsers;
     final showNames = displayEmojiReactionUsers && reactions.total <= 3;
 
-    Widget result = Wrap(spacing: 4, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center,
-      children: reactions.aggregated.map((reactionVotes) => ReactionChip(
-        showName: showNames,
-        messageId: messageId, reactionWithVotes: reactionVotes),
-      ).toList());
+    Widget result = Wrap(
+      spacing: 4,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: reactions.aggregated
+          .map(
+            (reactionVotes) => ReactionChip(
+              showName: showNames,
+              messageId: messageId,
+              reactionWithVotes: reactionVotes,
+            ),
+          )
+          .toList(),
+    );
 
     return Semantics(
       label: zulipLocalizations.reactionChipsLabel,
       container: true,
       explicitChildNodes: true,
-      child: result);
+      child: result,
+    );
   }
 }
 
@@ -69,7 +80,10 @@ class ReactionChip extends StatelessWidget {
 
   // Linear in the number of voters (of course);
   // best to avoid calling this unless we know there are few voters.
-  String _voterNames(PerAccountStore store, ZulipLocalizations zulipLocalizations) {
+  String _voterNames(
+    PerAccountStore store,
+    ZulipLocalizations zulipLocalizations,
+  ) {
     final selfUserId = store.selfUserId;
     final userIds = reactionWithVotes.userIds;
     final result = <String>[];
@@ -77,7 +91,11 @@ class ReactionChip extends StatelessWidget {
       // Putting "You" first is helpful when this is used in the semantics label.
       result.add(zulipLocalizations.reactedEmojiSelfUser);
     }
-    result.addAll(userIds.whereNot((userId) => userId == selfUserId).map(store.userDisplayName));
+    result.addAll(
+      userIds
+          .whereNot((userId) => userId == selfUserId)
+          .map(store.userDisplayName),
+    );
     // TODO(i18n): List formatting, like you can do in JavaScript:
     //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
     //   // 'Chris、Greg、Alya、Shu'
@@ -86,7 +104,7 @@ class ReactionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final reactionType = reactionWithVotes.reactionType;
@@ -105,20 +123,30 @@ class ReactionChip extends StatelessWidget {
       final count = userIds.length;
       final countStr = count.toString(); // TODO(i18n) number formatting?
       label = countStr;
-      semanticsLabel = zulipLocalizations.reactionChipLabel(emojiName,
+      semanticsLabel = zulipLocalizations.reactionChipLabel(
+        emojiName,
         selfVoted
-          ? count == 1
-            ? zulipLocalizations.reactedEmojiSelfUser
-            : zulipLocalizations.reactionChipVotesYouAndOthers(count - 1)
-          : countStr);
+            ? count == 1
+                  ? zulipLocalizations.reactedEmojiSelfUser
+                  : zulipLocalizations.reactionChipVotesYouAndOthers(count - 1)
+            : countStr,
+      );
     }
 
     final reactionTheme = EmojiReactionTheme.of(context);
-    final borderColor =     selfVoted ? reactionTheme.borderSelected : reactionTheme.borderUnselected;
-    final labelColor =      selfVoted ? reactionTheme.textSelected   : reactionTheme.textUnselected;
-    final backgroundColor = selfVoted ? reactionTheme.bgSelected     : reactionTheme.bgUnselected;
-    final splashColor =     selfVoted ? reactionTheme.bgUnselected   : reactionTheme.bgSelected;
-    final highlightColor =  splashColor.withFadedAlpha(0.5);
+    final borderColor = selfVoted
+        ? reactionTheme.borderSelected
+        : reactionTheme.borderUnselected;
+    final labelColor = selfVoted
+        ? reactionTheme.textSelected
+        : reactionTheme.textUnselected;
+    final backgroundColor = selfVoted
+        ? reactionTheme.bgSelected
+        : reactionTheme.bgUnselected;
+    final splashColor = selfVoted
+        ? reactionTheme.bgUnselected
+        : reactionTheme.bgSelected;
+    final highlightColor = splashColor.withFadedAlpha(0.5);
 
     final borderSide = BorderSide(
       color: borderColor,
@@ -126,19 +154,21 @@ class ReactionChip extends StatelessWidget {
     );
     final shape = StadiumBorder(side: borderSide);
 
-    final emojiDisplay = store.emojiDisplayFor(
-      emojiType: reactionType,
-      emojiCode: emojiCode,
-      emojiName: emojiName,
-    ).resolve(store.userSettings);
+    final emojiDisplay = store
+        .emojiDisplayFor(
+          emojiType: reactionType,
+          emojiCode: emojiCode,
+          emojiName: emojiName,
+        )
+        .resolve(store.userSettings);
 
     final emoji = EmojiWidget(
       emojiDisplay: emojiDisplay,
       squareDimension: _squareEmojiSize,
       squareDimensionScaler: _squareEmojiScalerClamped(context),
       imagePlaceholderStyle: EmojiImagePlaceholderStyle.text,
-      buildCustomTextEmoji: () => _TextEmoji(
-        emojiName: emojiName, selected: selfVoted),
+      buildCustomTextEmoji: () =>
+          _TextEmoji(emojiName: emojiName, selected: selfVoted),
     );
 
     Widget result = Material(
@@ -149,13 +179,16 @@ class ReactionChip extends StatelessWidget {
         splashColor: splashColor,
         highlightColor: highlightColor,
         onLongPress: () {
-          showViewReactionsSheet(PageRoot.contextOf(context),
+          showViewReactionsSheet(
+            PageRoot.contextOf(context),
             messageId: messageId,
             initialReactionType: reactionType,
-            initialEmojiCode: emojiCode);
+            initialEmojiCode: emojiCode,
+          );
         },
         onTap: () {
-          (selfVoted ? removeReaction : addReaction).call(store.connection,
+          (selfVoted ? removeReaction : addReaction).call(
+            store.connection,
             messageId: messageId,
             reactionType: reactionType,
             emojiCode: emojiCode,
@@ -188,34 +221,59 @@ class ReactionChip extends StatelessWidget {
                 children: [
                   // So text-emoji chips are at least as tall as square-emoji
                   // ones (probably a good thing).
-                  SizedBox(height: _squareEmojiScalerClamped(context).scale(_squareEmojiSize)),
-                  Flexible( // [Flexible] to let text emojis expand if they can
-                    child: Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: emoji)),
-                  Padding(padding: const EdgeInsets.symmetric(horizontal: 3),
+                  SizedBox(
+                    height: _squareEmojiScalerClamped(
+                      context,
+                    ).scale(_squareEmojiSize),
+                  ),
+                  Flexible(
+                    // [Flexible] to let text emojis expand if they can
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: emoji,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
                     child: Container(
                       constraints: BoxConstraints(maxWidth: maxLabelWidth),
                       child: Text(
                         textWidthBasis: TextWidthBasis.longestLine,
                         textScaler: labelScaler,
-                        style: TextStyle(
-                          fontSize: (14 * 0.90),
-                          letterSpacing: proportionalLetterSpacing(context,
-                            kButtonTextLetterSpacingProportion,
-                            baseFontSize: (14 * 0.90),
-                            textScaler: labelScaler),
-                          height: 13 / (14 * 0.90),
-                          color: labelColor,
-                        ).merge(weightVariableTextStyle(context,
-                            wght: selfVoted ? 600 : null)),
-                        label))),
-                ]);
-              }))));
+                        style:
+                            TextStyle(
+                              fontSize: (14 * 0.90),
+                              letterSpacing: proportionalLetterSpacing(
+                                context,
+                                kButtonTextLetterSpacingProportion,
+                                baseFontSize: (14 * 0.90),
+                                textScaler: labelScaler,
+                              ),
+                              height: 13 / (14 * 0.90),
+                              color: labelColor,
+                            ).merge(
+                              weightVariableTextStyle(
+                                context,
+                                wght: selfVoted ? 600 : null,
+                              ),
+                            ),
+                        label,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
 
     return Semantics(
       label: semanticsLabel,
       container: true,
-      child: ExcludeSemantics(child: result));
+      child: ExcludeSemantics(child: result),
+    );
   }
 }
 
@@ -230,19 +288,19 @@ const _squareEmojiSize = 17.0;
 /// This should scale [_squareEmojiSize] for Unicode and image emojis.
 // TODO(a11y) clamp higher?
 TextScaler _squareEmojiScalerClamped(BuildContext context) =>
-  MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
+    MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
 
 /// A [TextScaler] that limits text emojis' max scale factor,
 /// to minimize the need for line breaks.
 // TODO(a11y) clamp higher?
 TextScaler _textEmojiScalerClamped(BuildContext context) =>
-  MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5);
+    MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5);
 
 /// A [TextScaler] that limits the label's max scale factor,
 /// to minimize the need for line breaks.
 // TODO(a11y) clamp higher?
 TextScaler _labelTextScalerClamped(BuildContext context) =>
-  MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
+    MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
 
 class _TextEmoji extends StatelessWidget {
   const _TextEmoji({required this.emojiName, required this.selected});
@@ -260,10 +318,12 @@ class _TextEmoji extends StatelessWidget {
       style: TextStyle(
         fontSize: 14 * 0.8,
         height: 1, // to be denser when we have to wrap
-        color: selected ? reactionTheme.textSelected : reactionTheme.textUnselected,
-      ).merge(weightVariableTextStyle(context,
-          wght: selected ? 600 : null)),
-      textEmojiForEmojiName(emojiName));
+        color: selected
+            ? reactionTheme.textSelected
+            : reactionTheme.textUnselected,
+      ).merge(weightVariableTextStyle(context, wght: selected ? 600 : null)),
+      textEmojiForEmojiName(emojiName),
+    );
   }
 }
 
@@ -277,7 +337,7 @@ Future<void> doAddOrRemoveReaction({
   required EmojiCandidate emoji,
   required String errorDialogTitle,
 }) async {
-  final store = PerAccountStoreWidget.of(context);
+  final store = requirePerAccountStore();
   String? errorMessage;
   try {
     await (doRemoveReaction ? removeReaction : addReaction).call(
@@ -293,15 +353,17 @@ Future<void> doAddOrRemoveReaction({
     switch (e) {
       case ZulipApiException():
         errorMessage = e.message;
-        // TODO(#741) specific messages for common errors, like network errors
-        //   (support with reusable code)
+      // TODO(#741) specific messages for common errors, like network errors
+      //   (support with reusable code)
       default:
-        // TODO(log)
+      // TODO(log)
     }
 
-    showErrorDialog(context: context,
+    showErrorDialog(
+      context: context,
       title: errorDialogTitle,
-      message: errorMessage);
+      message: errorMessage,
+    );
     return;
   }
 }
@@ -310,7 +372,6 @@ Future<void> doAddOrRemoveReaction({
 Future<EmojiCandidate?> showEmojiPickerSheet({
   required BuildContext pageContext,
 }) async {
-  final store = PerAccountStoreWidget.of(pageContext);
   return showModalBottomSheet<EmojiCandidate>(
     context: pageContext,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
@@ -327,12 +388,14 @@ Future<EmojiCandidate?> showEmojiPickerSheet({
         // expands behind the software keyboard — resulting in some
         // list entries being covered by the keyboard. Add explicit
         // bottom padding the size of the keyboard, which fixes this.
-        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
         // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
-        child: PerAccountStoreWidget(
-          accountId: store.accountId,
-          child: EmojiPicker(pageContext: pageContext)));
-    });
+        child: EmojiPicker(pageContext: pageContext),
+      );
+    },
+  );
 }
 
 @visibleForTesting
@@ -345,7 +408,8 @@ class EmojiPicker extends StatefulWidget {
   State<EmojiPicker> createState() => _EmojiPickerState();
 }
 
-class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStateMixin<EmojiPicker> {
+class _EmojiPickerState extends State<EmojiPicker>
+    with PerAccountStoreAwareStateMixin<EmojiPicker> {
   late TextEditingController _controller;
 
   EmojiAutocompleteView? _viewModel;
@@ -354,13 +418,12 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController()
-      ..addListener(_handleControllerUpdate);
+    _controller = TextEditingController()..addListener(_handleControllerUpdate);
   }
 
   @override
   void onNewStore() {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final query = EmojiAutocompleteQuery(_controller.text);
     if (_viewModel != null) {
       assert(_viewModel!.query == query);
@@ -392,52 +455,78 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
-    return Column(children: [
-      Padding(padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
-        child: Row(children: [
-          // TODO(design): Make sure if we need a button to clear the textfield.
-          Flexible(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: zulipLocalizations.emojiPickerSearchEmoji,
-                contentPadding: const EdgeInsetsDirectional.only(start: 10, top: 6),
-                filled: true,
-                fillColor: designVariables.bgSearchInput,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none),
-                hintStyle: TextStyle(color: designVariables.textMessage)),
-              style: const TextStyle(fontSize: 19, height: 26 / 19)))),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              splashFactory: NoSplash.splashFactory,
-              foregroundColor: designVariables.contextMenuItemText,
-              overlayColor: Colors.transparent,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 8, top: 4),
+          child: Row(
+            children: [
+              // TODO(design): Make sure if we need a button to clear the textfield.
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: zulipLocalizations.emojiPickerSearchEmoji,
+                      contentPadding: const EdgeInsetsDirectional.only(
+                        start: 10,
+                        top: 6,
+                      ),
+                      filled: true,
+                      fillColor: designVariables.bgSearchInput,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintStyle: TextStyle(color: designVariables.textMessage),
+                    ),
+                    style: const TextStyle(fontSize: 19, height: 26 / 19),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  splashFactory: NoSplash.splashFactory,
+                  foregroundColor: designVariables.contextMenuItemText,
+                  overlayColor: Colors.transparent,
+                ),
+                child: Text(
+                  zulipLocalizations.dialogCancel,
+                  style: const TextStyle(fontSize: 20, height: 30 / 20),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: InsetShadowBox(
+            top: 8,
+            color: designVariables.bgContextMenu,
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.only(top: 8),
+                  sliver: SliverSafeArea(
+                    minimum: EdgeInsets.only(bottom: 8),
+                    sliver: SliverList.builder(
+                      itemCount: _resultsToDisplay.length,
+                      itemBuilder: (context, i) => EmojiPickerListEntry(
+                        pageContext: widget.pageContext,
+                        emoji: _resultsToDisplay[i].candidate,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            child: Text(zulipLocalizations.dialogCancel,
-              style: const TextStyle(fontSize: 20, height: 30 / 20))),
-        ])),
-      Expanded(child: InsetShadowBox(
-        top: 8,
-        color: designVariables.bgContextMenu,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: EdgeInsets.only(top: 8),
-              sliver: SliverSafeArea(
-                minimum: EdgeInsets.only(bottom: 8),
-                sliver: SliverList.builder(
-                  itemCount: _resultsToDisplay.length,
-                  itemBuilder: (context, i) => EmojiPickerListEntry(
-                    pageContext: widget.pageContext,
-                    emoji: _resultsToDisplay[i].candidate)))),
-          ]))),
-    ]);
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -460,7 +549,7 @@ class EmojiPickerListEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
 
     final emojiDisplay = emoji.emojiDisplay.resolve(store.userSettings);
@@ -474,45 +563,54 @@ class EmojiPickerListEntry extends StatelessWidget {
     };
 
     final label = emoji.aliases.isEmpty
-      ? emoji.emojiName
-      : [emoji.emojiName, ...emoji.aliases].join(", "); // TODO(#1080)
+        ? emoji.emojiName
+        : [emoji.emojiName, ...emoji.aliases].join(", "); // TODO(#1080)
 
     return InkWell(
       onTap: _onPressed,
       splashFactory: NoSplash.splashFactory,
-      overlayColor: WidgetStateColor.resolveWith((states) =>
-        states.any((e) => e == WidgetState.pressed)
-          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
-          : Colors.transparent),
+      overlayColor: WidgetStateColor.resolveWith(
+        (states) => states.any((e) => e == WidgetState.pressed)
+            ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+            : Colors.transparent,
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: ConstrainedBox(
           // Ensure the row meets the minimum touch target height.
           constraints: const BoxConstraints(minHeight: 44),
-          child: Row(spacing: 4, children: [
-            if (glyph != null)
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: glyph),
-            Flexible(child: Text(label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 17,
-                height: 18 / 17,
-                color: designVariables.textMessage)))
-          ]))));
+          child: Row(
+            spacing: 4,
+            children: [
+              if (glyph != null)
+                Padding(padding: const EdgeInsets.all(10), child: glyph),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 18 / 17,
+                    color: designVariables.textMessage,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
 /// Opens a bottom sheet showing who reacted to the message.
-void showViewReactionsSheet(BuildContext pageContext, {
+void showViewReactionsSheet(
+  BuildContext pageContext, {
   required int messageId,
   ReactionType? initialReactionType,
   String? initialEmojiCode,
 }) {
-  final accountId = PerAccountStoreWidget.accountIdOf(pageContext);
-
   showModalBottomSheet<void>(
     context: pageContext,
     // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
@@ -522,15 +620,16 @@ void showViewReactionsSheet(BuildContext pageContext, {
     useSafeArea: true,
     isScrollControlled: true,
     builder: (_) {
-      return PerAccountStoreWidget(
-        accountId: accountId,
-        child: SafeArea(
-          minimum: const EdgeInsets.only(bottom: 16),
-          child: ViewReactions(
-            messageId: messageId,
-            initialEmojiCode: initialEmojiCode,
-            initialReactionType: initialReactionType)));
-    });
+      return SafeArea(
+        minimum: const EdgeInsets.only(bottom: 16),
+        child: ViewReactions(
+          messageId: messageId,
+          initialEmojiCode: initialEmojiCode,
+          initialReactionType: initialReactionType,
+        ),
+      );
+    },
+  );
 }
 
 class ViewReactions extends StatefulWidget {
@@ -549,7 +648,8 @@ class ViewReactions extends StatefulWidget {
   State<ViewReactions> createState() => _ViewReactionsState();
 }
 
-class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAwareStateMixin<ViewReactions> {
+class _ViewReactionsState extends State<ViewReactions>
+    with PerAccountStoreAwareStateMixin<ViewReactions> {
   ReactionType? reactionType;
   String? emojiCode;
   String? emojiName;
@@ -576,7 +676,7 @@ class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAware
   }
 
   ReactionWithVotes? _findMatchingReaction() {
-    final message = PerAccountStoreWidget.of(context).messages[widget.messageId];
+    final message = requirePerAccountStore().messages[widget.messageId];
 
     final reactions = message?.reactions?.aggregated;
 
@@ -584,11 +684,12 @@ class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAware
       return null;
     }
 
-    return reactions
-      .firstWhereOrNull((x) =>
-        x.reactionType == reactionType && x.emojiCode == emojiCode)
-      // first item will exist; early-return above on reactions.isEmpty
-      ?? reactions.first;
+    return reactions.firstWhereOrNull(
+          (x) => x.reactionType == reactionType && x.emojiCode == emojiCode,
+        )
+        // first item will exist; early-return above on reactions.isEmpty
+        ??
+        reactions.first;
   }
 
   @override
@@ -605,7 +706,7 @@ class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAware
   void onNewStore() {
     // TODO(#1747) listen for changes in the message's reactions
     store?.removeListener(_storeChanged);
-    store = PerAccountStoreWidget.of(context);
+    store = requirePerAccountStore();
     store!.addListener(_storeChanged);
     _reconcile();
   }
@@ -629,7 +730,9 @@ class _ViewReactionsState extends State<ViewReactions> with PerAccountStoreAware
         messageId: widget.messageId,
         reactionType: reactionType,
         emojiCode: emojiCode,
-        emojiName: emojiName));
+        emojiName: emojiName,
+      ),
+    );
   }
 }
 
@@ -664,19 +767,22 @@ class ViewReactionsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final message = PerAccountStoreWidget.of(context).messages[messageId];
+    final message = requirePerAccountStore().messages[messageId];
 
     final reactions = message?.reactions;
 
     if (reactions == null || reactions.aggregated.isEmpty) {
       return BottomSheetHeader(
         outerVerticalPadding: true,
-        message: zulipLocalizations.seeWhoReactedSheetNoReactions);
+        message: zulipLocalizations.seeWhoReactedSheetNoReactions,
+      );
     }
 
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 4),
-      child: InsetShadowBox(start: 8, end: 8,
+      child: InsetShadowBox(
+        start: 8,
+        end: 8,
         color: designVariables.bgContextMenu,
         child: Center(
           child: SingleChildScrollView(
@@ -690,15 +796,32 @@ class ViewReactionsHeader extends StatelessWidget {
                 role: SemanticsRole.tabBar,
                 container: true,
                 explicitChildNodes: true,
-                label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(reactions.total),
+                label: zulipLocalizations.seeWhoReactedSheetHeaderLabel(
+                  reactions.total,
+                ),
                 child: Row(
-                  children: reactions.aggregated.mapIndexed((i, r) =>
-                    _ViewReactionsEmojiItem(
-                      reactionWithVotes: r,
-                      position: _emojiItemPosition(i, reactions.aggregated.length),
-                      selected: r.reactionType == reactionType && r.emojiCode == emojiCode,
-                      onRequestSelect: onRequestSelect),
-                  ).toList())))))));
+                  children: reactions.aggregated
+                      .mapIndexed(
+                        (i, r) => _ViewReactionsEmojiItem(
+                          reactionWithVotes: r,
+                          position: _emojiItemPosition(
+                            i,
+                            reactions.aggregated.length,
+                          ),
+                          selected:
+                              r.reactionType == reactionType &&
+                              r.emojiCode == emojiCode,
+                          onRequestSelect: onRequestSelect,
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -725,15 +848,21 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
   ///   and there may be more items in view. (In particular, does this when
   ///   any item is tapped, because each item has a different [position].)
   void _scrollIntoView(BuildContext context) {
-    final scrollPosition = Scrollable.of(context, axis: Axis.horizontal).position;
+    final scrollPosition = Scrollable.of(
+      context,
+      axis: Axis.horizontal,
+    ).position;
     final destination = lerpDouble(
       scrollPosition.minScrollExtent,
       scrollPosition.maxScrollExtent,
-      position)!;
+      position,
+    )!;
 
-    scrollPosition.animateTo(destination,
+    scrollPosition.animateTo(
+      destination,
       duration: Duration(milliseconds: 200),
-      curve: Curves.ease);
+      curve: Curves.ease,
+    );
   }
 
   void _handleTap(BuildContext context) {
@@ -745,14 +874,15 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final count = reactionWithVotes.userIds.length;
 
     final emojiName = reactionWithVotes.emojiName;
     final emojiDisplay = store.emojiDisplayFor(
       emojiType: reactionWithVotes.reactionType,
       emojiCode: reactionWithVotes.emojiCode,
-      emojiName: emojiName);
+      emojiName: emojiName,
+    );
     // (Not calling EmojiDisplay.resolve. For expediency, rather than design a
     // reasonable layout for [Emojiset.text], in this case we just override that
     // setting and show the emoji anyway.)
@@ -761,10 +891,10 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
       emojiDisplay: emojiDisplay,
       squareDimension: emojiSize,
       buildCustomTextEmoji: () =>
-        // Invoked when an image emoji's URL didn't parse; see
-        // EmojiStore.emojiDisplayFor. Don't show text, just an empty square.
-        // TODO(design) refine?; offer a visible touch target with tooltip?
-        SizedBox.square(dimension: emojiSize),
+          // Invoked when an image emoji's URL didn't parse; see
+          // EmojiStore.emojiDisplayFor. Don't show text, just an empty square.
+          // TODO(design) refine?; offer a visible touch target with tooltip?
+          SizedBox.square(dimension: emojiSize),
     );
 
     Widget result = Tooltip(
@@ -775,8 +905,8 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             border: selected
-              ? Border.all(color: designVariables.borderBar)
-              : null,
+                ? Border.all(color: designVariables.borderBar)
+                : null,
             borderRadius: BorderRadius.circular(10),
             color: selected ? designVariables.background : null,
           ),
@@ -792,10 +922,17 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
                     style: TextStyle(
                       color: designVariables.title,
                       fontSize: 14,
-                      height: 14 / 14),
-                    count.toString()), // TODO(i18n) number formatting?
-                ])),
-          ))));
+                      height: 14 / 14,
+                    ),
+                    count.toString(),
+                  ), // TODO(i18n) number formatting?
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
 
     return Semantics(
       role: SemanticsRole.tab,
@@ -806,10 +943,13 @@ class _ViewReactionsEmojiItem extends StatelessWidget {
       controlsNodes: {ViewReactionsUserListSliver.semanticsIdentifier},
 
       selected: selected,
-      label: zulipLocalizations.seeWhoReactedSheetEmojiNameWithVoteCount(emojiName, count),
+      label: zulipLocalizations.seeWhoReactedSheetEmojiNameWithVoteCount(
+        emojiName,
+        count,
+      ),
       onTap: () => _handleTap(context),
-      child: ExcludeSemantics(
-        child: result));
+      child: ExcludeSemantics(child: result),
+    );
   }
 }
 
@@ -833,7 +973,7 @@ class ViewReactionsUserListSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     if (reactionType == null || emojiCode == null) {
       // The emoji selection was cleared,
@@ -846,9 +986,12 @@ class ViewReactionsUserListSliver extends StatelessWidget {
 
     final message = store.messages[messageId];
 
-    final userIds = message?.reactions?.aggregated.firstWhereOrNull(
-      (x) => x.reactionType == reactionType && x.emojiCode == emojiCode
-    )?.userIds.toList();
+    final userIds = message?.reactions?.aggregated
+        .firstWhereOrNull(
+          (x) => x.reactionType == reactionType && x.emojiCode == emojiCode,
+        )
+        ?.userIds
+        .toList();
 
     // (No filtering of muted or deactivated users.
     //  Muted users will be shown as muted.)
@@ -861,25 +1004,28 @@ class ViewReactionsUserListSliver extends StatelessWidget {
 
     Widget result = SliverList.builder(
       itemCount: userIds.length,
-      itemBuilder: (_, index) => ViewReactionsUserItem(userId: userIds[index]));
+      itemBuilder: (_, index) => ViewReactionsUserItem(userId: userIds[index]),
+    );
 
     return SliverSemantics(
-      identifier: semanticsIdentifier, // See note on `controlsNodes` on the tab.
-      label: zulipLocalizations.seeWhoReactedSheetUserListLabel(emojiName!, userIds.length),
+      identifier:
+          semanticsIdentifier, // See note on `controlsNodes` on the tab.
+      label: zulipLocalizations.seeWhoReactedSheetUserListLabel(
+        emojiName!,
+        userIds.length,
+      ),
       role: SemanticsRole.tabPanel,
       container: true,
       explicitChildNodes: true,
-      sliver: result);
+      sliver: result,
+    );
   }
 }
 
 // TODO: deduplicate the code with [ReadReceiptsUserItem]
 @visibleForTesting
 class ViewReactionsUserItem extends StatelessWidget {
-  const ViewReactionsUserItem({
-    super.key,
-    required this.userId,
-  });
+  const ViewReactionsUserItem({super.key, required this.userId});
 
   final int userId;
 
@@ -887,39 +1033,51 @@ class ViewReactionsUserItem extends StatelessWidget {
     // Dismiss the action sheet.
     Navigator.pop(context);
 
-    Navigator.push(context,
-      ProfilePage.buildRoute(context: context, userId: userId));
+    Navigator.push(
+      context,
+      ProfilePage.buildRoute(context: context, userId: userId),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
 
     return InkWell(
       onTap: () => _onPressed(context),
       splashFactory: NoSplash.splashFactory,
       overlayColor: WidgetStateColor.fromMap({
-        WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.20),
+        WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(
+          0.20,
+        ),
       }),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(spacing: 8, children: [
-          Avatar(
-            size: 32,
-            borderRadius: 3,
-            backgroundColor: designVariables.bgContextMenu,
-            userId: userId),
-          Flexible(
-            child: Text(
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 17,
-                height: 17 / 17,
-                color: designVariables.textMessage,
-              ).merge(weightVariableTextStyle(context, wght: 500)),
-              store.userDisplayName(userId))),
-        ])));
+        child: Row(
+          spacing: 8,
+          children: [
+            Avatar(
+              size: 32,
+              borderRadius: 3,
+              backgroundColor: designVariables.bgContextMenu,
+              userId: userId,
+            ),
+            Flexible(
+              child: Text(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 17,
+                  height: 17 / 17,
+                  color: designVariables.textMessage,
+                ).merge(weightVariableTextStyle(context, wght: 500)),
+                store.userDisplayName(userId),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

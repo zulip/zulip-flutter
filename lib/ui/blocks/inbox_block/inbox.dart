@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../../model/recent_dm_conversations.dart';
 import '../../../model/unreads.dart';
@@ -61,7 +62,7 @@ class InboxPageState extends State<InboxPageBody>
 
   @override
   void onNewStore() {
-    final newStore = PerAccountStoreWidget.of(context);
+    final newStore = requirePerAccountStore();
     unreadsModel?.removeListener(_modelChanged);
     unreadsModel = newStore.unreads..addListener(_modelChanged);
     recentDmConversationsModel?.removeListener(_modelChanged);
@@ -97,7 +98,7 @@ class InboxPageState extends State<InboxPageBody>
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final subscriptions = store.subscriptions;
 
     // TODO(#1065) make an incrementally-updated view-model for InboxPage

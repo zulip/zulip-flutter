@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../extensions/color.dart';
 import '../../message_list_block/message_list_block.dart';
-import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
 import '../../../widgets/action_sheet.dart';
@@ -23,7 +23,7 @@ class TopicItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final TopicItemData(:topic, :unreadCount, :hasMention, :maxId) = data;
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
 
     // `maxId` might be incorrect (see [Topics.channelTopics]).

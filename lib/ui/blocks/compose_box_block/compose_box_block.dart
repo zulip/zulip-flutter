@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../../model/store.dart';
 import '../../utils/actions.dart';
@@ -100,7 +101,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     );
     if (abort || !mounted) return;
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final outboxMessage = store.takeOutboxMessage(localMessageId);
     setState(() {
       _setNewController(store);
@@ -126,7 +127,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     );
     if (abort || !mounted) return;
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     switch (store.getEditMessageErrorStatus(messageId)) {
       case null:
@@ -172,7 +173,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
   }
 
   void _editByRestoringFailedEdit(int messageId) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     // Fill the content input with the content the user wanted in the failed
     // edit attempt, not the original content.
     // Side effect: Clears the "EDIT NOT SAVED" text in the message list.
@@ -189,7 +190,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
   }
 
   void _editFromRawContentFetch(int messageId) async {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
     final emptyEditController = EditMessageComposeBoxController.empty(
       store,
@@ -217,7 +218,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
       // Fetch-raw-content failed; abort the edit session.
       // An error dialog was already shown, by fetchRawContentWithFeedback.
       setState(() {
-        _setNewController(PerAccountStoreWidget.of(context));
+        _setNewController(requirePerAccountStore());
       });
       return;
     }
@@ -244,7 +245,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     assert(controller is EditMessageComposeBoxController);
     if (controller is! EditMessageComposeBoxController) return; // TODO(log)
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     setState(() {
       _setNewController(store);
     });
@@ -252,7 +253,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
 
   @override
   void onNewStore() {
-    final newStore = PerAccountStoreWidget.of(context);
+    final newStore = requirePerAccountStore();
 
     final controller = _controller;
     if (controller == null) {
@@ -294,7 +295,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
 
   /// A [_Banner] that replaces the compose box's text inputs.
   Widget? _bannerComposingNotAllowed(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
@@ -371,7 +372,7 @@ class ComposeBoxState extends State<ComposeBoxBlock>
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final bannerComposingNotAllowed = _bannerComposingNotAllowed(context);

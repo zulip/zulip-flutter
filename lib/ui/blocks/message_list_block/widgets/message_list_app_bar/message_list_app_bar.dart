@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../themes/message_list_theme.dart';
 import '../../../../widgets/app_bar.dart';
 import '../../../../values/icons.dart';
-import '../../../../utils/store.dart';
 import '../../../../values/theme.dart';
 import '../../message_list_block.dart';
 import 'message_list_app_bar_title.dart';
@@ -23,7 +23,7 @@ import '../buttons/topic_list_button.dart';
 //   to customize by composition in a reasonable way.
 abstract class MessageListAppBar {
   static AppBar build(BuildContext context, {required Narrow narrow}) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 

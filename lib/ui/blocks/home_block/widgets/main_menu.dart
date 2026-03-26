@@ -4,12 +4,12 @@ import 'package:get/get.dart';
 import '../../../../get/app_pages.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../extensions/color.dart';
 import '../../message_list_block/message_list_block.dart';
 import '../../profile_block/profile.dart';
 import '../../settings_block/settings_page.dart';
-import '../../../utils/store.dart';
 import '../../../values/icons.dart';
 import '../../../values/text.dart';
 import '../../../values/theme.dart';
@@ -116,7 +116,7 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     return Tooltip(
       message: zulipLocalizations.switchAccountButtonTooltip,
@@ -353,7 +353,7 @@ class _MentionsButton extends MenuButton {
 
   @override
   Widget? buildTrailing(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final unreadCount = store.unreads.countInMentionsNarrow();
     if (unreadCount == 0) return null;
     return CounterBadge(
@@ -388,7 +388,7 @@ class _StarredMessagesButton extends MenuButton {
 
   @override
   Widget? buildTrailing(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     if (!store.userSettings.starredMessageCounts) return null;
     return CounterBadge(
       kind: CounterBadgeKind.quantity,
@@ -437,7 +437,7 @@ class _DirectMessagesButton extends _NavigationBarMenuButton {
 
   @override
   Widget? buildTrailing(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final unreadCount = store.unreads.countInDms();
     if (unreadCount == 0) return null;
     return CounterBadge(
@@ -460,7 +460,7 @@ class _MyProfileButton extends MenuButton {
 
   @override
   Widget buildLeading(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     return Avatar(
       userId: store.selfUserId,
       size: MenuButton._iconSize,
@@ -476,7 +476,7 @@ class _MyProfileButton extends MenuButton {
 
   @override
   void onPressed(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     Navigator.of(
       context,
     ).push(ProfilePage.buildRoute(context: context, userId: store.selfUserId));

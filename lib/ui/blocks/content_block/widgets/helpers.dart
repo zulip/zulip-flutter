@@ -6,17 +6,17 @@ import 'package:html/dom.dart' as dom;
 
 import '../../../../get/app_pages.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
 import '../../../../model/internal_link.dart';
 import '../../../themes/content_theme.dart';
 import '../../../utils/actions.dart';
-import '../../../utils/store.dart';
 import '../../../widgets/dialog.dart';
 import 'block_inline_container.dart';
 import 'inline_content.dart';
 
 void contentLaunchUrl(BuildContext context, String urlString) async {
-  final store = PerAccountStoreWidget.of(context);
+  final store = requirePerAccountStore();
   final url = store.tryResolveUrl(urlString);
   if (url == null) {
     // TODO(log)

@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import '../../api/core.dart';
 import '../../api/model/model.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/store_service.dart';
 import '../../log.dart';
 import '../../model/binding.dart';
 import '../utils/actions.dart';
@@ -28,10 +29,7 @@ import '../values/icons.dart';
 /// to the version in the lightbox,
 /// and back to the original upon exiting the lightbox.
 class _LightboxHeroTag {
-  _LightboxHeroTag({
-    required this.messageImageContext,
-    required this.src,
-  });
+  _LightboxHeroTag({required this.messageImageContext, required this.src});
 
   /// The [BuildContext] for the [MessageImagePreview] being expanded into the lightbox.
   ///
@@ -53,8 +51,8 @@ class _LightboxHeroTag {
   @override
   bool operator ==(Object other) {
     return other is _LightboxHeroTag &&
-      other.messageImageContext == messageImageContext &&
-      other.src == src;
+        other.messageImageContext == messageImageContext &&
+        other.src == src;
   }
 
   @override
@@ -78,19 +76,19 @@ class LightboxHero extends StatelessWidget {
   Widget build(BuildContext context) {
     return Hero(
       tag: _LightboxHeroTag(messageImageContext: messageImageContext, src: src),
-      flightShuttleBuilder: (
-        BuildContext flightContext,
-        Animation<double> animation,
-        HeroFlightDirection flightDirection,
-        BuildContext fromHeroContext,
-        BuildContext toHeroContext,
-      ) {
-        final accountId = PerAccountStoreWidget.accountIdOf(fromHeroContext);
-
-        // For a RealmContentNetworkImage shown during flight.
-        return PerAccountStoreWidget(accountId: accountId, child: child);
-      },
-      child: child);
+      flightShuttleBuilder:
+          (
+            BuildContext flightContext,
+            Animation<double> animation,
+            HeroFlightDirection flightDirection,
+            BuildContext fromHeroContext,
+            BuildContext toHeroContext,
+          ) {
+            // For a RealmContentNetworkImage shown during flight.
+            return child;
+          },
+      child: child,
+    );
   }
 }
 
@@ -106,10 +104,13 @@ class _CopyLinkButton extends StatelessWidget {
       tooltip: zulipLocalizations.lightboxCopyLinkTooltip,
       icon: const Icon(ZulipIcons.copy),
       onPressed: () async {
-        PlatformActions.copyWithPopup(context: context,
+        PlatformActions.copyWithPopup(
+          context: context,
           successContent: Text(zulipLocalizations.successLinkCopied),
-          data: ClipboardData(text: url.toString()));
-      });
+          data: ClipboardData(text: url.toString()),
+        );
+      },
+    );
   }
 }
 
@@ -128,8 +129,8 @@ class _LightboxPageLayout extends StatefulWidget {
   /// For [AppBar.bottom].
   final PreferredSizeWidget? Function(BuildContext context) buildAppBarBottom;
 
-  final Widget? Function(
-    BuildContext context, Color color, double elevation) buildBottomAppBar;
+  final Widget? Function(BuildContext context, Color color, double elevation)
+  buildBottomAppBar;
   final Widget child;
 
   @override
@@ -143,13 +144,19 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
   @override
   void initState() {
     super.initState();
-    _handleRouteEntranceAnimationStatusChange(widget.routeEntranceAnimation.status);
-    widget.routeEntranceAnimation.addStatusListener(_handleRouteEntranceAnimationStatusChange);
+    _handleRouteEntranceAnimationStatusChange(
+      widget.routeEntranceAnimation.status,
+    );
+    widget.routeEntranceAnimation.addStatusListener(
+      _handleRouteEntranceAnimationStatusChange,
+    );
   }
 
   @override
   void dispose() {
-    widget.routeEntranceAnimation.removeStatusListener(_handleRouteEntranceAnimationStatusChange);
+    widget.routeEntranceAnimation.removeStatusListener(
+      _handleRouteEntranceAnimationStatusChange,
+    );
     super.dispose();
   }
 
@@ -169,7 +176,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final themeData = Theme.of(context);
 
     final appBarBackgroundColor = Colors.grey.shade900.withValues(alpha: 0.87);
@@ -178,11 +185,12 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
 
     PreferredSizeWidget? appBar;
     if (_headerFooterVisible) {
-      final timestampText = MessageTimestampStyle.lightbox
-        .format(widget.message.timestamp,
-          now: DateTime.now(),
-          twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
-          zulipLocalizations: zulipLocalizations);
+      final timestampText = MessageTimestampStyle.lightbox.format(
+        widget.message.timestamp,
+        now: DateTime.now(),
+        twentyFourHourTimeMode: store.userSettings.twentyFourHourTime,
+        zulipLocalizations: zulipLocalizations,
+      );
 
       // We use plain [AppBar] instead of [ZulipAppBar], even though this page
       // has a [PerAccountStore], because:
@@ -197,42 +205,60 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
         backgroundColor: appBarBackgroundColor,
         shape: const Border(), // Remove bottom border from [AppBarTheme]
         elevation: appBarElevation,
-        title: Row(children: [
-          Avatar(
-            size: 36,
-            borderRadius: 36 / 8,
-            userId: widget.message.senderId,
-            replaceIfMuted: false,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: RichText(
-              text: TextSpan(children: [
-                TextSpan(
-                  // TODO write a test where the sender is muted; check this and avatar
-                  text: '${store.senderDisplayName(widget.message, replaceIfMuted: false)}\n',
+        title: Row(
+          children: [
+            Avatar(
+              size: 36,
+              borderRadius: 36 / 8,
+              userId: widget.message.senderId,
+              replaceIfMuted: false,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      // TODO write a test where the sender is muted; check this and avatar
+                      text:
+                          '${store.senderDisplayName(widget.message, replaceIfMuted: false)}\n',
 
-                  // Restate default
-                  style: themeData.textTheme.titleLarge!.copyWith(color: appBarForegroundColor)),
-                TextSpan(
-                  text: timestampText,
+                      // Restate default
+                      style: themeData.textTheme.titleLarge!.copyWith(
+                        color: appBarForegroundColor,
+                      ),
+                    ),
+                    TextSpan(
+                      text: timestampText,
 
-                  // Make smaller, like a subtitle
-                  style: themeData.textTheme.titleSmall!.copyWith(color: appBarForegroundColor)),
-              ]))),
-        ]),
-        bottom: widget.buildAppBarBottom(context));
+                      // Make smaller, like a subtitle
+                      style: themeData.textTheme.titleSmall!.copyWith(
+                        color: appBarForegroundColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        bottom: widget.buildAppBarBottom(context),
+      );
     }
 
     Widget? bottomAppBar;
     if (_headerFooterVisible) {
       bottomAppBar = widget.buildBottomAppBar(
-        context, appBarBackgroundColor, appBarElevation);
+        context,
+        appBarBackgroundColor,
+        appBarElevation,
+      );
     }
 
     return Theme(
       data: themeData.copyWith(
-        iconTheme: themeData.iconTheme.copyWith(color: appBarForegroundColor)),
+        iconTheme: themeData.iconTheme.copyWith(color: appBarForegroundColor),
+      ),
       child: Scaffold(
         backgroundColor: Colors.black,
         extendBody: true, // For the BottomAppBar
@@ -250,7 +276,11 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: _handleTap,
-            child: widget.child))));
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -288,22 +318,34 @@ class _ImageLightboxPageState extends State<ImageLightboxPage> {
     }
     return PreferredSize(
       preferredSize: const Size.fromHeight(4.0),
-      child: LinearProgressIndicator(minHeight: 4.0, value: _loadingProgress));
-  }
-
-  Widget _buildBottomAppBar(BuildContext context, Color color, double elevation) {
-    return BottomAppBar(
-      color: color,
-      elevation: elevation,
-      child: Row(children: [
-        _CopyLinkButton(url: widget.src),
-        // TODO(#43): Share image
-        // TODO(#42): Download image
-      ]),
+      child: LinearProgressIndicator(minHeight: 4.0, value: _loadingProgress),
     );
   }
 
-  Widget _frameBuilder(BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
+  Widget _buildBottomAppBar(
+    BuildContext context,
+    Color color,
+    double elevation,
+  ) {
+    return BottomAppBar(
+      color: color,
+      elevation: elevation,
+      child: Row(
+        children: [
+          _CopyLinkButton(url: widget.src),
+          // TODO(#43): Share image
+          // TODO(#42): Download image
+        ],
+      ),
+    );
+  }
+
+  Widget _frameBuilder(
+    BuildContext context,
+    Widget child,
+    int? frame,
+    bool wasSynchronouslyLoaded,
+  ) {
     if (widget.thumbnailUrl == null) return child;
 
     // The full image is available, so display it.
@@ -315,17 +357,27 @@ class _ImageLightboxPageState extends State<ImageLightboxPage> {
       child: SizedBox(
         width: widget.originalWidth,
         height: widget.originalHeight,
-        child: RealmContentNetworkImage(widget.thumbnailUrl!,
+        child: RealmContentNetworkImage(
+          widget.thumbnailUrl!,
           filterQuality: FilterQuality.medium,
-          fit: BoxFit.contain)));
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
   }
 
-  Widget _loadingBuilder(BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+  Widget _loadingBuilder(
+    BuildContext context,
+    Widget child,
+    ImageChunkEvent? loadingProgress,
+  ) {
     if (widget.thumbnailUrl == null) return child;
 
     // `loadingProgress` becomes null when Image has finished downloading.
-    final double? progress = loadingProgress?.expectedTotalBytes == null ? null
-      : loadingProgress!.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!;
+    final double? progress = loadingProgress?.expectedTotalBytes == null
+        ? null
+        : loadingProgress!.cumulativeBytesLoaded /
+              loadingProgress.expectedTotalBytes!;
 
     if (progress != _loadingProgress) {
       _loadingProgress = progress;
@@ -356,18 +408,22 @@ class _ImageLightboxPageState extends State<ImageLightboxPage> {
             child: LightboxHero(
               messageImageContext: widget.messageImageContext,
               src: widget.src,
-              child: RealmContentNetworkImage(widget.src,
+              child: RealmContentNetworkImage(
+                widget.src,
                 filterQuality: FilterQuality.medium,
                 frameBuilder: _frameBuilder,
-                loadingBuilder: _loadingBuilder))))));
+                loadingBuilder: _loadingBuilder,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class VideoDurationLabel extends StatelessWidget {
-  const VideoDurationLabel(this.duration, {
-    super.key,
-    this.semanticsLabel,
-  });
+  const VideoDurationLabel(this.duration, {super.key, this.semanticsLabel});
 
   final Duration duration;
   final String? semanticsLabel;
@@ -382,24 +438,26 @@ class VideoDurationLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(formatDuration(duration),
+    return Text(
+      formatDuration(duration),
       semanticsLabel: semanticsLabel,
-      style: const TextStyle(color: Colors.white));
+      style: const TextStyle(color: Colors.white),
+    );
   }
 }
 
 class _VideoPositionSliderControl extends StatefulWidget {
   final VideoPlayerController controller;
 
-  const _VideoPositionSliderControl({
-    required this.controller,
-  });
+  const _VideoPositionSliderControl({required this.controller});
 
   @override
-  State<_VideoPositionSliderControl> createState() => _VideoPositionSliderControlState();
+  State<_VideoPositionSliderControl> createState() =>
+      _VideoPositionSliderControlState();
 }
 
-class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl> {
+class _VideoPositionSliderControlState
+    extends State<_VideoPositionSliderControl> {
   Duration _sliderValue = Duration.zero;
   bool _isSliderDragging = false;
 
@@ -424,43 +482,49 @@ class _VideoPositionSliderControlState extends State<_VideoPositionSliderControl
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final currentPosition = _isSliderDragging
-      ? _sliderValue
-      : widget.controller.value.position;
+        ? _sliderValue
+        : widget.controller.value.position;
 
-    return Row(children: [
-      VideoDurationLabel(currentPosition,
-        semanticsLabel: zulipLocalizations.lightboxVideoCurrentPosition),
-      Expanded(
-        child: Slider(
-          value: currentPosition.inMilliseconds.toDouble(),
-          max: widget.controller.value.duration.inMilliseconds.toDouble(),
-          activeColor: Colors.white,
-          onChangeStart: (value) {
-            setState(() {
-              _sliderValue = Duration(milliseconds: value.toInt());
-              _isSliderDragging = true;
-            });
-          },
-          onChanged: (value) {
-            setState(() {
-              _sliderValue = Duration(milliseconds: value.toInt());
-            });
-          },
-          onChangeEnd: (value) async {
-            final durationValue = Duration(milliseconds: value.toInt());
-            await widget.controller.seekTo(durationValue);
-            if (mounted) {
-              setState(() {
-                _sliderValue = durationValue;
-                _isSliderDragging = false;
-              });
-            }
-          },
+    return Row(
+      children: [
+        VideoDurationLabel(
+          currentPosition,
+          semanticsLabel: zulipLocalizations.lightboxVideoCurrentPosition,
         ),
-      ),
-      VideoDurationLabel(widget.controller.value.duration,
-        semanticsLabel: zulipLocalizations.lightboxVideoDuration),
-    ]);
+        Expanded(
+          child: Slider(
+            value: currentPosition.inMilliseconds.toDouble(),
+            max: widget.controller.value.duration.inMilliseconds.toDouble(),
+            activeColor: Colors.white,
+            onChangeStart: (value) {
+              setState(() {
+                _sliderValue = Duration(milliseconds: value.toInt());
+                _isSliderDragging = true;
+              });
+            },
+            onChanged: (value) {
+              setState(() {
+                _sliderValue = Duration(milliseconds: value.toInt());
+              });
+            },
+            onChangeEnd: (value) async {
+              final durationValue = Duration(milliseconds: value.toInt());
+              await widget.controller.seekTo(durationValue);
+              if (mounted) {
+                setState(() {
+                  _sliderValue = durationValue;
+                  _isSliderDragging = false;
+                });
+              }
+            },
+          ),
+        ),
+        VideoDurationLabel(
+          widget.controller.value.duration,
+          semanticsLabel: zulipLocalizations.lightboxVideoDuration,
+        ),
+      ],
+    );
   }
 }
 
@@ -480,7 +544,8 @@ class VideoLightboxPage extends StatefulWidget {
   State<VideoLightboxPage> createState() => _VideoLightboxPageState();
 }
 
-class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountStoreAwareStateMixin<VideoLightboxPage> {
+class _VideoLightboxPageState extends State<VideoLightboxPage>
+    with PerAccountStoreAwareStateMixin<VideoLightboxPage> {
   VideoPlayerController? _controller;
 
   @override
@@ -497,30 +562,36 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
   }
 
   Future<void> _initialize() async {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     assert(debugLog('VideoPlayerController.networkUrl(${widget.src})'));
-    _controller = VideoPlayerController.networkUrl(widget.src, httpHeaders: {
-      if (widget.src.origin == store.account.realmUrl.origin) ...authHeader(
-        email: store.account.email,
-        apiKey: store.account.apiKey,
-      ),
-      ...userAgentHeader()
-    });
+    _controller = VideoPlayerController.networkUrl(
+      widget.src,
+      httpHeaders: {
+        if (widget.src.origin == store.account.realmUrl.origin)
+          ...authHeader(
+            email: store.account.email,
+            apiKey: store.account.apiKey,
+          ),
+        ...userAgentHeader(),
+      },
+    );
     _controller!.addListener(_handleVideoControllerUpdate);
 
     try {
       await _controller!.initialize();
       if (_controller == null) return; // widget was disposed
       await _controller!.play();
-    } catch (error) { // TODO(log)
+    } catch (error) {
+      // TODO(log)
       assert(debugLog("VideoPlayerController.initialize failed: $error"));
       if (!mounted) return;
       final zulipLocalizations = ZulipLocalizations.of(context);
       final dialog = showErrorDialog(
         context: context,
         title: zulipLocalizations.errorDialogTitle,
-        message: zulipLocalizations.errorVideoPlayerFailed);
+        message: zulipLocalizations.errorVideoPlayerFailed,
+      );
       await dialog.result;
       if (!mounted) return;
       Navigator.pop(context); // Pops the lightbox
@@ -552,30 +623,37 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
     }
   }
 
-  Widget? _buildBottomAppBar(BuildContext context, Color color, double elevation) {
+  Widget? _buildBottomAppBar(
+    BuildContext context,
+    Color color,
+    double elevation,
+  ) {
     if (_controller == null) return null;
     return BottomAppBar(
       height: 150,
       color: color,
       elevation: elevation,
-      child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-        _VideoPositionSliderControl(controller: _controller!),
-        IconButton(
-          onPressed: () {
-            if (_controller!.value.isPlaying) {
-              _controller!.pause();
-            } else {
-              _controller!.play();
-            }
-          },
-          icon: Icon(
-            _controller!.value.isPlaying
-              ? Icons.pause_circle_rounded
-              : Icons.play_circle_rounded,
-            size: 50,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          _VideoPositionSliderControl(controller: _controller!),
+          IconButton(
+            onPressed: () {
+              if (_controller!.value.isPlaying) {
+                _controller!.pause();
+              } else {
+                _controller!.play();
+              }
+            },
+            icon: Icon(
+              _controller!.value.isPlaying
+                  ? Icons.pause_circle_rounded
+                  : Icons.play_circle_rounded,
+              size: 50,
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -588,17 +666,27 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
       buildBottomAppBar: _buildBottomAppBar,
       child: SafeArea(
         child: Center(
-          child: Stack(alignment: Alignment.center, children: [
-            if (_controller != null && _controller!.value.isInitialized)
-              AspectRatio(
-                aspectRatio: _controller!.value.aspectRatio,
-                child: VideoPlayer(_controller!)),
-            if (_controller == null || !_controller!.value.isInitialized || _controller!.value.isBuffering)
-              const SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(color: Colors.white)),
-            ]))));
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (_controller != null && _controller!.value.isInitialized)
+                AspectRatio(
+                  aspectRatio: _controller!.value.aspectRatio,
+                  child: VideoPlayer(_controller!),
+                ),
+              if (_controller == null ||
+                  !_controller!.value.isInitialized ||
+                  _controller!.value.isBuffering)
+                const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -611,24 +699,27 @@ Route<void> _getLightboxRoute({
     accountId: accountId,
     context: context,
     fullscreenDialog: true,
-    pageBuilder: (
-      BuildContext context,
-      Animation<double> animation,
-      Animation<double> secondaryAnimation,
-    ) {
-      // TODO(#40): Drag down to close?
-      return pageBuilder(context, animation, secondaryAnimation);
-    },
-    transitionsBuilder: (
-      BuildContext context,
-      Animation<double> animation,
-      Animation<double> secondaryAnimation,
-      Widget child,
-    ) {
-      return FadeTransition(
-        opacity: animation.drive(CurveTween(curve: Curves.easeIn)),
-        child: child);
-    },
+    pageBuilder:
+        (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+        ) {
+          // TODO(#40): Drag down to close?
+          return pageBuilder(context, animation, secondaryAnimation);
+        },
+    transitionsBuilder:
+        (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+          Widget child,
+        ) {
+          return FadeTransition(
+            opacity: animation.drive(CurveTween(curve: Curves.easeIn)),
+            child: child,
+          );
+        },
   );
 }
 
@@ -653,8 +744,10 @@ Route<void> getImageLightboxRoute({
         src: src,
         thumbnailUrl: thumbnailUrl,
         originalWidth: originalWidth,
-        originalHeight: originalHeight);
-    });
+        originalHeight: originalHeight,
+      );
+    },
+  );
 }
 
 Route<void> getVideoLightboxRoute({
@@ -670,6 +763,8 @@ Route<void> getVideoLightboxRoute({
       return VideoLightboxPage(
         routeEntranceAnimation: animation,
         message: message,
-        src: src);
-    });
+        src: src,
+      );
+    },
+  );
 }

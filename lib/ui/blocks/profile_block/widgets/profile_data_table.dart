@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
 import '../../../themes/content_theme.dart';
 import '../../content_block/widgets/paragraph.dart';
-import '../../../utils/store.dart';
 import '../../../values/text.dart';
 import '../../../widgets/user.dart';
 import '../profile.dart';
@@ -40,7 +40,7 @@ class ProfileDataTable extends StatelessWidget {
     String value,
     CustomProfileField realmField,
   ) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     switch (realmField.type) {
       case CustomProfileFieldType.link:
@@ -105,7 +105,7 @@ class ProfileDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     if (profileData == null) return const SizedBox.shrink();
 
     List<Widget> items = [];
@@ -189,7 +189,7 @@ class _UserWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     return InkWell(
       onTap: () => Navigator.push(
         context,

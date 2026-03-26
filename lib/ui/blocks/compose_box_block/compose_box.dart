@@ -8,11 +8,11 @@ import 'package:flutter/material.dart';
 import '../../../api/model/model.dart';
 import '../../../api/route/messages.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/store_service.dart';
 import '../../../model/compose.dart';
 import '../../../model/store.dart';
 import 'compose_box_block.dart';
 import '../../widgets/dialog.dart';
-import '../../utils/store.dart';
 
 /// A [TextEditingController] for use in the compose box.
 ///
@@ -380,7 +380,7 @@ Future<void> _uploadFiles({
   required Iterable<FileToUpload> files,
 }) async {
   assert(context.mounted);
-  final store = PerAccountStoreWidget.of(context);
+  final store = requirePerAccountStore();
   final zulipLocalizations = ZulipLocalizations.of(context);
 
   final List<FileToUpload> tooLargeFiles = [];

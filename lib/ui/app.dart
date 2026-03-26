@@ -450,7 +450,6 @@ class ChooseAccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    assert(!PerAccountStoreWidget.debugExistsOf(context));
     final globalStore = GlobalStoreWidget.of(context);
 
     // Borrowed from [AppBar.build].

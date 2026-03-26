@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../utils/store.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../values/icons.dart';
 import '../../../widgets/button.dart';
 import '../../../widgets/image.dart';
@@ -15,7 +15,7 @@ class ProfileSetStatusButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final userStatus = store.getUserStatus(store.selfUserId);
 
     return ZulipMenuItemButton(

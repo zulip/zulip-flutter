@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../../api/model/model.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../get/services/store_service.dart';
 import '../../../../widgets/autocomplete.dart';
 import '../../../../extensions/color.dart';
 import '../../compose_box.dart';
-import '../../../../utils/store.dart';
 import '../../../../values/text.dart';
 import '../../../../values/theme.dart';
 
@@ -104,7 +104,7 @@ class _TopicInputState extends State<TopicInput> {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
 
     final topicTextStyle = TextStyle(
       fontSize: 20,

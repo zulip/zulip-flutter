@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../../api/model/model.dart';
 import '../../../../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../../../../get/services/store_service.dart';
 import '../../../../../../../model/message_list.dart';
 import '../../../../../../../model/narrow.dart';
 import '../../../../../../widgets/action_sheet.dart';
@@ -12,7 +13,6 @@ import '../../../../../content_block/content.dart';
 import '../../../../../../widgets/emoji_reaction.dart';
 import '../../../../../../values/icons.dart';
 import '../../../../message_list.dart';
-import '../../../../../../utils/store.dart';
 import '../../../../../../values/text.dart';
 import '../../../../../../values/theme.dart';
 import '../../../../message_list_block.dart';
@@ -36,7 +36,7 @@ class MessageWithPossibleSender extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
     final message = item.message;
 

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
-import '../../../utils/store.dart';
 import '../../../widgets/image.dart';
 import '../../../widgets/lightbox.dart';
 import '../content.dart';
@@ -44,7 +44,7 @@ class ContentImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final message = InheritedMessage.of(context);
 
     final resolvedSrc = switch (node.src) {

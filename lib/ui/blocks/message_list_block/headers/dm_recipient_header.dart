@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../themes/message_list_theme.dart';
 import '../../../values/icons.dart';
 import '../message_list.dart';
-import '../../../utils/store.dart';
 import '../../../values/theme.dart';
 import '../message_list_block.dart';
 import 'recipient_header_date.dart';
@@ -25,7 +25,7 @@ class DmRecipientHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final String title;
     if (message.conversation.allRecipientIds.length > 1) {
       title = zulipLocalizations.messageListGroupYouAndOthers(

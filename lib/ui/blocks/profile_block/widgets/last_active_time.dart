@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/binding.dart';
 import '../../../../model/presence.dart';
 import '../../../utils/store.dart';
@@ -24,8 +25,7 @@ class _LastActiveTimeState extends State<LastActiveTime>
   @override
   void onNewStore() {
     model?.removeListener(_modelChanged);
-    model = PerAccountStoreWidget.of(context).presence
-      ..addListener(_modelChanged);
+    model = requirePerAccountStore().presence..addListener(_modelChanged);
   }
 
   @override

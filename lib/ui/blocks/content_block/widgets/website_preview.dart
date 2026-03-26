@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
 import '../../../themes/content_theme.dart';
-import '../../../utils/store.dart';
 import '../../../values/constants.dart';
 import '../../../values/theme.dart';
 import '../../../widgets/image.dart';
@@ -17,7 +17,7 @@ class WebsitePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final resolvedImageSrcUrl = store.tryResolveUrl(node.imageSrcUrl);
     final isSmallWidth = MediaQuery.sizeOf(context).width <= 576;
 

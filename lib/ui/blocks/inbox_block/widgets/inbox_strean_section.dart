@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../utils/store.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../widgets/sticky_header.dart';
 import '../inbox.dart';
 import '../inbox_section_data_model.dart';
@@ -21,9 +21,7 @@ class InboxStreamSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subscription = PerAccountStoreWidget.of(
-      context,
-    ).subscriptions[data.streamId]!;
+    final subscription = requirePerAccountStore().subscriptions[data.streamId]!;
     final header = InboxChannelHeaderItem(
       subscription: subscription,
       count: data.count,

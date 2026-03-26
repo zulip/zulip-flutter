@@ -4,12 +4,12 @@ import 'package:get/get.dart';
 import '../../../get/app_pages.dart';
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../widgets/app_bar.dart';
 import '../../widgets/button.dart';
 import '../../widgets/image.dart';
 import '../../utils/page.dart';
-import '../../utils/store.dart';
 import '../../values/text.dart';
 import '../../values/theme.dart';
 import '../../widgets/user.dart';
@@ -44,7 +44,7 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final user = store.getUser(userId);
     if (user == null) {
       return const ProfileErrorPage();

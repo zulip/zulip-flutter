@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../utils/store.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../values/icons.dart';
 import '../../../values/text.dart';
 import '../../../values/theme.dart';
@@ -22,7 +22,7 @@ class TopicListAppBarTitle extends StatelessWidget {
     // TODO(#1039) implement a consistent app bar design here
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final stream = store.streams[streamId];
     final channelIconColor = colorSwatchFor(
       context,

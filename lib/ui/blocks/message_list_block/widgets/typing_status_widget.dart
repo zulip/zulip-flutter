@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../../model/typing_status.dart';
 import '../../../utils/store.dart';
@@ -23,7 +24,7 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget>
   @override
   void onNewStore() {
     model?.removeListener(_modelChanged);
-    model = PerAccountStoreWidget.of(context).typingStatus
+    model = requirePerAccountStore().typingStatus
       ..addListener(_modelChanged);
   }
 
@@ -45,7 +46,7 @@ class _TypingStatusWidgetState extends State<TypingStatusWidget>
     final narrow = widget.narrow;
     if (narrow is! SendableNarrow) return const SizedBox();
 
-    final store = PerAccountStoreWidget.of(context);
+    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
     final typistIds = model!.typistIdsInNarrow(narrow);
     final filteredTypistIds = typistIds.whereNot(store.isUserMuted);
