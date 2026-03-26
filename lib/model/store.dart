@@ -22,6 +22,7 @@ import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
 import 'emoji.dart';
+import 'user_resolver.dart';
 import 'localizations.dart';
 import 'message.dart';
 import 'presence.dart';
