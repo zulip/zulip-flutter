@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 
 import '../../../../get/app_pages.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/global_service.dart';
 import '../../../../model/settings.dart';
-import '../../../utils/store.dart';
 
 class VisitFirstUnreadSettingController extends GetxController {
   void navigateToPage() {
@@ -18,13 +18,13 @@ class VisitFirstUnreadSettingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final globalSettings = GlobalService.to.settingsStore;
     final controller = VisitFirstUnreadSettingController();
     return ListTile(
       title: Text(zulipLocalizations.initialAnchorSettingTitle),
       subtitle: Text(
         VisitFirstUnreadSettingPage._valueDisplayName(
-          globalSettings.visitFirstUnread,
+          globalSettings?.visitFirstUnread ?? VisitFirstUnreadSetting.always,
           zulipLocalizations: zulipLocalizations,
         ),
       ),
@@ -52,18 +52,19 @@ class VisitFirstUnreadSettingPage extends StatelessWidget {
 
   void _handleChange(BuildContext context, VisitFirstUnreadSetting? value) {
     if (value == null) return; // TODO(log); can this actually happen? how?
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
-    globalSettings.setVisitFirstUnread(value);
+    final globalSettings = GlobalService.to.settingsStore;
+    globalSettings?.setVisitFirstUnread(value);
   }
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final globalSettings = GlobalService.to.settingsStore;
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.initialAnchorSettingTitle)),
       body: RadioGroup<VisitFirstUnreadSetting>(
-        groupValue: globalSettings.visitFirstUnread,
+        groupValue:
+            globalSettings?.visitFirstUnread ?? VisitFirstUnreadSetting.always,
         onChanged: (newValue) => _handleChange(context, newValue),
         child: Column(
           children: [

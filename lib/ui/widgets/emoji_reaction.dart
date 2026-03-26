@@ -8,10 +8,13 @@ import '../../api/exception.dart';
 import '../../api/model/model.dart';
 import '../../api/route/messages.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/account_service.dart';
 import '../../get/services/store_service.dart';
+import '../../get/services/domains/messages/messages_service.dart';
+import '../../get/services/domains/users/users_service.dart';
+import '../../get/services/domains/settings/settings_service.dart';
 import '../../model/autocomplete.dart';
 import '../../model/emoji.dart';
-import '../../model/store.dart';
 import '../themes/emoji_reaction_theme.dart';
 import 'action_sheet.dart';
 import '../extensions/color.dart';
@@ -37,9 +40,8 @@ class ReactionChipsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = requirePerAccountStore();
     final displayEmojiReactionUsers =
-        store.userSettings.displayEmojiReactionUsers;
+        SettingsService.to.settings.value.displayEmojiReactionUsers;
     final showNames = displayEmojiReactionUsers && reactions.total <= 3;
 
     Widget result = Wrap(
@@ -80,21 +82,17 @@ class ReactionChip extends StatelessWidget {
 
   // Linear in the number of voters (of course);
   // best to avoid calling this unless we know there are few voters.
-  String _voterNames(
-    PerAccountStore store,
-    ZulipLocalizations zulipLocalizations,
-  ) {
-    final selfUserId = store.selfUserId;
+  String _voterNames(ZulipLocalizations zulipLocalizations) {
+    final selfUserId = UsersService.to.selfUserId;
     final userIds = reactionWithVotes.userIds;
     final result = <String>[];
     if (userIds.contains(selfUserId)) {
-      // Putting "You" first is helpful when this is used in the semantics label.
       result.add(zulipLocalizations.reactedEmojiSelfUser);
     }
     result.addAll(
       userIds
           .whereNot((userId) => userId == selfUserId)
-          .map(store.userDisplayName),
+          .map(UsersService.to.userDisplayName),
     );
     // TODO(i18n): List formatting, like you can do in JavaScript:
     //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
@@ -104,7 +102,6 @@ class ReactionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final reactionType = reactionWithVotes.reactionType;
@@ -112,16 +109,17 @@ class ReactionChip extends StatelessWidget {
     final emojiName = reactionWithVotes.emojiName;
     final userIds = reactionWithVotes.userIds;
 
-    final selfVoted = userIds.contains(store.selfUserId);
+    final selfUserId = UsersService.to.selfUserId;
+    final selfVoted = userIds.contains(selfUserId);
     final String label;
     final String semanticsLabel;
     if (showName) {
-      final names = _voterNames(store, zulipLocalizations);
+      final names = _voterNames(zulipLocalizations);
       label = names;
       semanticsLabel = zulipLocalizations.reactionChipLabel(emojiName, names);
     } else {
       final count = userIds.length;
-      final countStr = count.toString(); // TODO(i18n) number formatting?
+      final countStr = count.toString();
       label = countStr;
       semanticsLabel = zulipLocalizations.reactionChipLabel(
         emojiName,
@@ -154,16 +152,16 @@ class ReactionChip extends StatelessWidget {
     );
     final shape = StadiumBorder(side: borderSide);
 
-    final emojiDisplay = store
-        .emojiDisplayFor(
-          emojiType: reactionType,
-          emojiCode: emojiCode,
-          emojiName: emojiName,
-        )
-        .resolve(store.userSettings);
+    final settings = SettingsService.to.settings.value;
+    final emojiDisplayRaw = StoreService.to.store?.emojiDisplayFor(
+      emojiType: reactionType,
+      emojiCode: emojiCode,
+      emojiName: emojiName,
+    );
+    final emojiDisplay = emojiDisplayRaw?.resolve(settings);
 
     final emoji = EmojiWidget(
-      emojiDisplay: emojiDisplay,
+      emojiDisplay: emojiDisplay ?? TextEmojiDisplay(emojiName: emojiName),
       squareDimension: _squareEmojiSize,
       squareDimensionScaler: _squareEmojiScalerClamped(context),
       imagePlaceholderStyle: EmojiImagePlaceholderStyle.text,
@@ -187,8 +185,10 @@ class ReactionChip extends StatelessWidget {
           );
         },
         onTap: () {
+          final connection = AccountService.to.connection;
+          if (connection == null) return;
           (selfVoted ? removeReaction : addReaction).call(
-            store.connection,
+            connection,
             messageId: messageId,
             reactionType: reactionType,
             emojiCode: emojiCode,
@@ -652,8 +652,6 @@ class _ViewReactionsState extends State<ViewReactions> {
   String? emojiCode;
   String? emojiName;
 
-  PerAccountStore? _store;
-
   void _setSelection(ReactionWithVotes? selection) {
     setState(() {
       reactionType = selection?.reactionType;
@@ -670,7 +668,7 @@ class _ViewReactionsState extends State<ViewReactions> {
   }
 
   ReactionWithVotes? _findMatchingReaction() {
-    final message = StoreService.to.requireStore.messages[widget.messageId];
+    final message = MessagesService.to.getMessage(widget.messageId);
 
     final reactions = message?.reactions?.aggregated;
 
@@ -694,28 +692,7 @@ class _ViewReactionsState extends State<ViewReactions> {
       reactionType = widget.initialReactionType!;
       emojiCode = widget.initialEmojiCode!;
     }
-    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
-    _store = StoreService.to.requireStore;
-    _store!.addListener(_storeChanged);
-  }
-
-  void _onStoreChanged() {
-    // StoreService has a new store instance
-    _store?.removeListener(_storeChanged);
-    _store = StoreService.to.requireStore;
-    _store!.addListener(_storeChanged);
-    _reconcile();
-  }
-
-  void _storeChanged() {
-    // The current store notified of changes (message reactions)
-    _reconcile();
-  }
-
-  @override
-  void dispose() {
-    _store?.removeListener(_storeChanged);
-    super.dispose();
+    ever(StoreService.to.currentStore, (_) => _reconcile());
   }
 
   @override

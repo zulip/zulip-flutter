@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/domains/channels/channels_service.dart';
+import '../../../get/services/domains/unreads/unreads_service.dart';
 import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../../model/recent_dm_conversations.dart';
@@ -75,12 +77,15 @@ class InboxPageState extends State<InboxPageBody>
   }
 
   void _onStoreChanged() {
-    final newStore = StoreService.to.requireStore;
     unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = newStore.unreads..addListener(_modelChanged);
+    final unreads = UnreadsService.to.unreads;
+    if (unreads != null) {
+      unreadsModel = unreads..addListener(_modelChanged);
+    }
     recentDmConversationsModel?.removeListener(_modelChanged);
-    recentDmConversationsModel = newStore.recentDmConversationsView
-      ..addListener(_modelChanged);
+    recentDmConversationsModel =
+        StoreService.to.requireStore.recentDmConversationsView
+          ..addListener(_modelChanged);
   }
 
   void _modelChanged() {
@@ -105,7 +110,7 @@ class InboxPageState extends State<InboxPageBody>
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = StoreService.to.requireStore;
-    final subscriptions = store.subscriptions;
+    final subscriptions = ChannelsService.to.subscriptions;
 
     // TODO(#1065) make an incrementally-updated view-model for InboxPage
     final sections = <InboxSectionData>[];

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/domains/presence/presence_service.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/binding.dart';
 import '../../../../model/presence.dart';
@@ -34,7 +35,10 @@ class _LastActiveTimeState extends State<LastActiveTime> {
   }
 
   void _initFromStore() {
-    _model = StoreService.to.requireStore.presence..addListener(_modelChanged);
+    final presence = PresenceService.to.presence;
+    if (presence != null) {
+      _model = presence..addListener(_modelChanged);
+    }
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../../api/model/model.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
@@ -24,6 +25,8 @@ class TopicInput extends StatefulWidget {
 }
 
 class _TopicInputState extends State<TopicInput> {
+  Worker? _topicInteractionStatusWorker;
+
   void _topicOrContentFocusChanged() {
     setState(() {
       final status = widget.controller.topicInteractionStatus;
@@ -58,8 +61,9 @@ class _TopicInputState extends State<TopicInput> {
     super.initState();
     widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
     widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
-    widget.controller.topicInteractionStatus.addListener(
-      _topicInteractionStatusChanged,
+    _topicInteractionStatusWorker = ever(
+      widget.controller.topicInteractionStatus,
+      (_) => _topicInteractionStatusChanged(),
     );
   }
 
@@ -77,11 +81,10 @@ class _TopicInputState extends State<TopicInput> {
       widget.controller.contentFocusNode.addListener(
         _topicOrContentFocusChanged,
       );
-      oldWidget.controller.topicInteractionStatus.removeListener(
-        _topicInteractionStatusChanged,
-      );
-      widget.controller.topicInteractionStatus.addListener(
-        _topicInteractionStatusChanged,
+      _topicInteractionStatusWorker?.dispose();
+      _topicInteractionStatusWorker = ever(
+        widget.controller.topicInteractionStatus,
+        (_) => _topicInteractionStatusChanged(),
       );
     }
   }
@@ -94,9 +97,7 @@ class _TopicInputState extends State<TopicInput> {
     widget.controller.contentFocusNode.removeListener(
       _topicOrContentFocusChanged,
     );
-    widget.controller.topicInteractionStatus.removeListener(
-      _topicInteractionStatusChanged,
-    );
+    _topicInteractionStatusWorker?.dispose();
     super.dispose();
   }
 

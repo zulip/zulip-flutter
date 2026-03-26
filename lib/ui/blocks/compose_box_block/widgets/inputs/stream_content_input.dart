@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../../api/model/model.dart';
 import '../../../../../api/route/messages.dart';
@@ -26,6 +27,9 @@ class StreamContentInput extends StatefulWidget {
 }
 
 class _StreamContentInputState extends State<StreamContentInput> {
+  Worker? _topicWorker;
+  Worker? _topicInteractionStatusWorker;
+
   void _topicChanged() {
     setState(() {
       // The relevant state lives on widget.controller.topic itself.
@@ -47,10 +51,14 @@ class _StreamContentInputState extends State<StreamContentInput> {
   @override
   void initState() {
     super.initState();
-    widget.controller.topic.addListener(_topicChanged);
+    _topicWorker = ever(
+      widget.controller.topic.hasValidationErrors,
+      (_) => _topicChanged(),
+    );
     widget.controller.contentFocusNode.addListener(_contentFocusChanged);
-    widget.controller.topicInteractionStatus.addListener(
-      _topicInteractionStatusChanged,
+    _topicInteractionStatusWorker = ever(
+      widget.controller.topicInteractionStatus,
+      (_) => _topicInteractionStatusChanged(),
     );
   }
 
@@ -58,8 +66,11 @@ class _StreamContentInputState extends State<StreamContentInput> {
   void didUpdateWidget(covariant StreamContentInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller.topic != oldWidget.controller.topic) {
-      oldWidget.controller.topic.removeListener(_topicChanged);
-      widget.controller.topic.addListener(_topicChanged);
+      _topicWorker?.dispose();
+      _topicWorker = ever(
+        widget.controller.topic.hasValidationErrors,
+        (_) => _topicChanged(),
+      );
     }
     if (widget.controller.contentFocusNode !=
         oldWidget.controller.contentFocusNode) {
@@ -70,22 +81,19 @@ class _StreamContentInputState extends State<StreamContentInput> {
     }
     if (widget.controller.topicInteractionStatus !=
         oldWidget.controller.topicInteractionStatus) {
-      oldWidget.controller.topicInteractionStatus.removeListener(
-        _topicInteractionStatusChanged,
-      );
-      widget.controller.topicInteractionStatus.addListener(
-        _topicInteractionStatusChanged,
+      _topicInteractionStatusWorker?.dispose();
+      _topicInteractionStatusWorker = ever(
+        widget.controller.topicInteractionStatus,
+        (_) => _topicInteractionStatusChanged(),
       );
     }
   }
 
   @override
   void dispose() {
-    widget.controller.topic.removeListener(_topicChanged);
+    _topicWorker?.dispose();
     widget.controller.contentFocusNode.removeListener(_contentFocusChanged);
-    widget.controller.topicInteractionStatus.removeListener(
-      _topicInteractionStatusChanged,
-    );
+    _topicInteractionStatusWorker?.dispose();
     super.dispose();
   }
 

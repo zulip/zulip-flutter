@@ -3,21 +3,20 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:get/get.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../get/app_pages.dart';
+import '../get/services/global_service.dart';
 import '../log.dart';
-import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
-import '../notifications/open.dart';
 import 'widgets/about_zulip.dart';
 import 'widgets/dialog.dart';
 import 'blocks/home_block/home.dart';
 import 'blocks/login_block/login.dart';
 import 'utils/page.dart';
-import 'utils/store.dart';
 import 'values/theme.dart';
 
 class ZulipApp extends StatefulWidget {
@@ -28,8 +27,8 @@ class ZulipApp extends StatefulWidget {
   /// This begins as false.  It transitions to true when the
   /// [GlobalStore] has been loaded and the [MaterialApp] has been mounted,
   /// and then remains true.
-  static ValueListenable<bool> get ready => _ready;
-  static ValueNotifier<bool> _ready = ValueNotifier(false);
+  static RxBool get ready => _ready;
+  static final RxBool _ready = false.obs;
 
   /// The navigator for the whole app.
   ///
@@ -42,9 +41,11 @@ class ZulipApp extends StatefulWidget {
 
     assert(!ready.value);
     final completer = Completer<NavigatorState>();
-    ready.addListener(() {
-      assert(ready.value);
-      completer.complete(navigatorKey.currentState!);
+    ever(ready, (value) {
+      if (value) {
+        assert(ready.value);
+        completer.complete(navigatorKey.currentState!);
+      }
     });
     return completer.future;
   }
@@ -100,8 +101,7 @@ class ZulipApp extends StatefulWidget {
     _snackBarCount = 0;
     reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
     reportErrorToUserModally = defaultReportErrorToUserModally;
-    _ready.dispose();
-    _ready = ValueNotifier(false);
+    _ready.value = false;
   }
 
   /// A list to pass through to [MaterialApp.navigatorObservers].
@@ -208,50 +208,58 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return GlobalStoreWidget(
-      blockingFuture: NotificationOpenService.instance.initialized,
-      child: Builder(
-        builder: (context) {
-          final globalStore = GlobalStoreWidget.of(context);
-          final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
-
-          return GetMaterialApp(
-            onGenerateTitle: (BuildContext context) {
-              return ZulipLocalizations.of(context).zulipAppTitle;
-            },
-            localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-            supportedLocales: ZulipLocalizations.supportedLocales,
-            // The context has to be taken from the [Builder] because
-            // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
-            theme: zulipThemeData(context),
-            initialBinding: InitialBinding(),
-            getPages: AppPages.pages,
-            initialRoute: lastVisitedAccountId != null
-                ? AppRoutes.home
-                : AppRoutes.addAccount,
-            navigatorKey: ZulipApp.navigatorKey,
-            navigatorObservers: [
-              if (widget.navigatorObservers != null)
-                ...widget.navigatorObservers!,
-              _PreventEmptyStack(),
-              _navStackTracker,
-              _UpdateLastVisitedAccount(GlobalStoreWidget.of(context)),
-            ],
-            builder: (BuildContext context, Widget? child) {
-              if (!ZulipApp.ready.value) {
-                SchedulerBinding.instance.addPostFrameCallback(
-                  (_) => widget._declareReady(),
-                );
-              }
-              GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(
-                context,
-              );
-              return child!;
-            },
-            onGenerateRoute: (_) => null,
+    return FutureBuilder(
+      future: GlobalService.to.initialize(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const MaterialApp(
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
           );
-        },
-      ),
+        }
+
+        final globalStore = GlobalService.to.globalStore;
+        if (globalStore == null) {
+          return const MaterialApp(
+            home: Scaffold(body: Center(child: Text('Failed to initialize'))),
+          );
+        }
+
+        final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
+
+        return GetMaterialApp(
+          onGenerateTitle: (BuildContext context) {
+            return ZulipLocalizations.of(context).zulipAppTitle;
+          },
+          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+          supportedLocales: ZulipLocalizations.supportedLocales,
+          theme: zulipThemeData(context),
+          initialBinding: InitialBinding(),
+          getPages: AppPages.pages,
+          initialRoute: lastVisitedAccountId != null
+              ? AppRoutes.home
+              : AppRoutes.addAccount,
+          navigatorKey: ZulipApp.navigatorKey,
+          navigatorObservers: [
+            if (widget.navigatorObservers != null)
+              ...widget.navigatorObservers!,
+            _PreventEmptyStack(),
+            _navStackTracker,
+            _UpdateLastVisitedAccount(globalStore),
+          ],
+          builder: (BuildContext context, Widget? child) {
+            if (!ZulipApp.ready.value) {
+              SchedulerBinding.instance.addPostFrameCallback(
+                (_) => widget._declareReady(),
+              );
+            }
+            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(
+              context,
+            );
+            return child!;
+          },
+          onGenerateRoute: (_) => null,
+        );
+      },
     );
   }
 }
@@ -415,9 +423,7 @@ class ChooseAccountPage extends StatelessWidget {
                 if (await dialog.result == true) {
                   if (!context.mounted) return;
                   // TODO error handling if db write fails?
-                  unawaited(
-                    logOutAccount(GlobalStoreWidget.of(context), accountId),
-                  );
+                  unawaited(GlobalService.to.logOutAccount(accountId));
                 }
               },
               child: Text(zulipLocalizations.chooseAccountPageLogOutButton),
@@ -450,7 +456,8 @@ class ChooseAccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalStore = GlobalStoreWidget.of(context);
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore == null) return const SizedBox.shrink();
 
     // Borrowed from [AppBar.build].
     // See documentation on [ModalRoute.impliesAppBarDismissal]:

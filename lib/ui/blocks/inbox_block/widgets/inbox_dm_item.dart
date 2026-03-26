@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../get/app_pages.dart';
 
-import '../../../../get/services/store_service.dart';
+import '../../../../get/services/domains/users/users_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
@@ -25,19 +25,20 @@ class InboxDmItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
+    final usersService = UsersService.to;
 
     // TODO write a test where a/the recipient is muted
     final title = switch (narrow.otherRecipientIds) {
       // TODO dedupe with [RecentDmConversationsItem]
-      [] => store.selfUser.fullName,
-      [var otherUserId] => store.userDisplayName(otherUserId),
+      [] => usersService.selfUser?.fullName ?? '',
+      [var otherUserId] => usersService.userDisplayName(otherUserId),
 
       // TODO(i18n): List formatting, like you can do in JavaScript:
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Shu'])
       //   // 'Chris、Greg、Alya、Shu'
-      _ => narrow.otherRecipientIds.map(store.userDisplayName).join(', '),
+      _ =>
+        narrow.otherRecipientIds.map(usersService.userDisplayName).join(', '),
     };
 
     Widget result = Material(

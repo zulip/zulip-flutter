@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../api/route/channels.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/domains/unreads/unreads_service.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/topics.dart';
 import '../../../../model/unreads.dart';
@@ -39,11 +40,14 @@ class _TopicListState extends State<TopicList> {
   }
 
   void _onStoreChanged() {
-    final newStore = StoreService.to.requireStore;
     topicsModel?.removeListener(_modelChanged);
-    topicsModel = newStore.topics..addListener(_modelChanged);
+    topicsModel = StoreService.to.requireStore.topics
+      ..addListener(_modelChanged);
     unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = newStore.unreads..addListener(_modelChanged);
+    final unreads = UnreadsService.to.unreads;
+    if (unreads != null) {
+      unreadsModel = unreads..addListener(_modelChanged);
+    }
     _fetchTopics();
   }
 

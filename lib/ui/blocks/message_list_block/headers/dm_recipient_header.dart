@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../get/services/store_service.dart';
+import '../../../../get/services/domains/users/users_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../themes/message_list_theme.dart';
 import '../../../values/icons.dart';
@@ -25,13 +25,14 @@ class DmRecipientHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = requirePerAccountStore();
+    final usersService = UsersService.to;
+    final selfUserId = usersService.selfUserId;
     final String title;
     if (message.conversation.allRecipientIds.length > 1) {
       title = zulipLocalizations.messageListGroupYouAndOthers(
         message.conversation.allRecipientIds
-            .where((id) => id != store.selfUserId)
-            .map(store.userDisplayName)
+            .where((id) => id != selfUserId)
+            .map(usersService.userDisplayName)
             .sorted()
             .join(", "),
       );
@@ -53,10 +54,7 @@ class DmRecipientHeader extends StatelessWidget {
               context,
               MessageListBlockPage.buildRoute(
                 context: context,
-                narrow: DmNarrow.ofMessage(
-                  message,
-                  selfUserId: store.selfUserId,
-                ),
+                narrow: DmNarrow.ofMessage(message, selfUserId: selfUserId),
               ),
             ),
       child: ColoredBox(

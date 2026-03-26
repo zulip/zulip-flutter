@@ -80,13 +80,14 @@ class RemoteSettingBuilder<T> extends StatefulWidget {
 
 class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>> {
   final _LocalEchoNotifier<T> _notifier = _LocalEchoNotifier();
+  Worker? _notifierWorker;
 
   @override
   void initState() {
     super.initState();
     _onStoreChanged();
     ever(StoreService.to.currentStore, (_) => _onStoreChanged());
-    _notifier.addListener(_notifierChanged);
+    _notifierWorker = ever(_notifier.value, (_) => _notifierChanged());
   }
 
   late T? _prevValueFromStore;
@@ -112,6 +113,7 @@ class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>> {
 
   @override
   void dispose() {
+    _notifierWorker?.dispose();
     _notifier.dispose();
     _disposed = true;
     super.dispose();
@@ -146,20 +148,22 @@ class _RemoteSettingBuilderState<T> extends State<RemoteSettingBuilder<T>> {
   Widget build(BuildContext context) {
     final store = StoreService.to.requireStore;
 
-    final value = _notifier.value.orElse(() => widget.findValueInStore(store));
+    final value = _notifier.value.value.orElse(
+      () => widget.findValueInStore(store),
+    );
     return widget.builder(value, _handleRequestNewValue);
   }
 }
 
-/// A [ValueNotifier] for whether local echo is active, and with what value.
+/// A reactive notifier for whether local echo is active, and with what value.
 ///
-/// The [ValueNotifier.value] is an [Option].
+/// The [value] is an [Option].
 /// When it is [OptionSome], local echo is active with [OptionSome.value].
 /// When it is [OptionNone], local echo is not active.
 ///
 /// Use [startOrExtend] and [stop] to control local echo.
-class _LocalEchoNotifier<T> extends ValueNotifier<Option<T>> {
-  _LocalEchoNotifier() : super(OptionNone());
+class _LocalEchoNotifier<T> {
+  final Rx<Option<T>> value = Rx<Option<T>>(OptionNone());
 
   Timer? _lowerBoundTimer;
   Completer<void>? _lowerBoundCompleter;
@@ -167,7 +171,7 @@ class _LocalEchoNotifier<T> extends ValueNotifier<Option<T>> {
 
   /// Start a local-echo session or extend the timers of an existing session.
   void startOrExtend(T newValue) {
-    value = OptionSome(newValue);
+    value.value = OptionSome(newValue);
 
     _lowerBoundCompleter ??= Completer();
     _lowerBoundTimer?.cancel();
@@ -178,7 +182,7 @@ class _LocalEchoNotifier<T> extends ValueNotifier<Option<T>> {
 
     _upperBoundTimer?.cancel();
     _upperBoundTimer = Timer(RemoteSettingBuilder.localEchoIdleTimeout, () {
-      value = OptionNone();
+      value.value = OptionNone();
     });
   }
 
@@ -194,17 +198,15 @@ class _LocalEchoNotifier<T> extends ValueNotifier<Option<T>> {
       await _lowerBoundCompleter!.future;
       if (_disposed) return;
     }
-    value = OptionNone();
+    value.value = OptionNone();
   }
 
   bool _disposed = false;
 
-  @override
   void dispose() {
     _lowerBoundCompleter?.complete();
     _lowerBoundTimer?.cancel();
     _upperBoundTimer?.cancel();
     _disposed = true;
-    super.dispose();
   }
 }

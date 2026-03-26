@@ -1,6 +1,13 @@
 import 'package:get/get.dart';
+import 'services/account_service.dart';
+import 'services/domains/channels/channels_service.dart';
+import 'services/domains/presence/presence_service.dart';
+import 'services/domains/settings/settings_service.dart';
+import 'services/domains/typing/typing_service.dart';
+import 'services/domains/unreads/unreads_service.dart';
+import 'services/domains/users/users_service.dart';
+import 'services/global_service.dart';
 import 'services/store_service.dart';
-import '../ui/utils/store.dart';
 import '../model/narrow.dart';
 import '../ui/blocks/home_block/home_bindings.dart';
 import '../ui/blocks/login_block/login_bindings.dart';
@@ -47,7 +54,8 @@ class AppRoutes {
 
 class AppPages {
   static void _setCurrentAccount() {
-    final globalStore = GlobalStoreWidget.of(Get.context!);
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore == null) return;
     final accountId = globalStore.lastVisitedAccount?.id ?? 0;
     if (accountId > 0) {
       StoreService.to.setGlobalStore(globalStore);
@@ -141,6 +149,16 @@ class AppPages {
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
+    Get.lazyPut<GlobalService>(() => GlobalService());
+    Get.lazyPut<AccountService>(() => AccountService());
+    Get.lazyPut<UnreadsService>(() => UnreadsService());
+
+    Get.lazyPut<UsersService>(() => UsersService());
+    Get.lazyPut<PresenceService>(() => PresenceService());
+    Get.lazyPut<ChannelsService>(() => ChannelsService());
+    Get.lazyPut<TypingService>(() => TypingService());
+    Get.lazyPut<SettingsService>(() => SettingsService());
+
     Get.lazyPut<StoreService>(() => StoreService());
     Get.lazyPut<LoginController>(() => LoginController());
     Get.lazyPut<HomeController>(() => HomeController());

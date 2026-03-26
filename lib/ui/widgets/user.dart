@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../api/model/model.dart';
+import '../../get/services/domains/presence/presence_service.dart';
+import '../../get/services/domains/users/users_service.dart';
 import '../../get/services/store_service.dart';
 import '../../model/avatar_url.dart';
 import '../../model/binding.dart';
-import '../../model/presence.dart';
 import 'emoji.dart';
 import '../values/icons.dart';
 import 'image.dart';
+import 'presence_controller.dart';
 
 import '../values/theme.dart';
 
@@ -70,14 +72,14 @@ class AvatarImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = StoreService.to.requireStore;
-    final user = store.getUser(userId);
+    final user = UsersService.to.getUser(userId);
 
     if (user == null) {
       // TODO(log)
       return _AvatarPlaceholder(size: size);
     }
 
-    if (replaceIfMuted && store.isUserMuted(userId)) {
+    if (replaceIfMuted && UsersService.to.isUserMuted(userId)) {
       return _AvatarPlaceholder(size: size);
     }
 
@@ -242,82 +244,68 @@ class PresenceCircle extends StatefulWidget {
 }
 
 class _PresenceCircleState extends State<PresenceCircle> {
-  Presence? model;
+  late final PresenceController _controller;
 
   @override
   void initState() {
     super.initState();
-    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
-    _onStoreChanged();
+    _controller = Get.put(
+      PresenceController(userId: widget.userId),
+      tag: 'presence_${widget.userId}',
+    );
   }
 
   @override
   void dispose() {
-    model?.removeListener(_modelChanged);
+    Get.delete<PresenceController>(tag: 'presence_${widget.userId}');
     super.dispose();
-  }
-
-  void _onStoreChanged() {
-    model?.removeListener(_modelChanged);
-    model = StoreService.to.requireStore.presence..addListener(_modelChanged);
-  }
-
-  void _modelChanged() {
-    setState(() {
-      // The actual state lives in [model].
-      // This method was called because that just changed.
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final status = model!.presenceStatusForUser(
-      widget.userId,
-      utcNow: ZulipBinding.instance.utcNow(),
-    );
-    final designVariables = DesignVariables.of(context);
-    final effectiveBackgroundColor =
-        widget.backgroundColor ?? designVariables.mainBackground;
-    assert(effectiveBackgroundColor != Colors.transparent);
+    return Obx(() {
+      final status = _controller.status.value;
+      final designVariables = DesignVariables.of(context);
+      final effectiveBackgroundColor =
+          widget.backgroundColor ?? designVariables.mainBackground;
+      assert(effectiveBackgroundColor != Colors.transparent);
 
-    Color? color;
-    LinearGradient? gradient;
-    switch (status) {
-      case null:
-        if (widget.explicitOffline) {
-          // TODO(a11y) this should be an open circle, like on web,
-          //   to differentiate by shape (vs. the "active" status which is also
-          //   a solid circle)
-          color = designVariables.statusAway;
-        } else {
-          return SizedBox.square(dimension: widget.size);
-        }
-      case PresenceStatus.active:
-        color = designVariables.statusOnline;
-      case PresenceStatus.idle:
-        gradient = LinearGradient(
-          begin: AlignmentDirectional.centerStart,
-          end: AlignmentDirectional.centerEnd,
-          colors: [designVariables.statusIdle, effectiveBackgroundColor],
-          stops: [0.05, 1.00],
-        );
-    }
+      Color? color;
+      LinearGradient? gradient;
+      switch (status) {
+        case null:
+          if (widget.explicitOffline) {
+            color = designVariables.statusAway;
+          } else {
+            return SizedBox.square(dimension: widget.size);
+          }
+        case PresenceStatus.active:
+          color = designVariables.statusOnline;
+        case PresenceStatus.idle:
+          gradient = LinearGradient(
+            begin: AlignmentDirectional.centerStart,
+            end: AlignmentDirectional.centerEnd,
+            colors: [designVariables.statusIdle, effectiveBackgroundColor],
+            stops: [0.05, 1.00],
+          );
+      }
 
-    return SizedBox.square(
-      dimension: widget.size,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: effectiveBackgroundColor,
-            width: 2,
-            strokeAlign: BorderSide.strokeAlignOutside,
+      return SizedBox.square(
+        dimension: widget.size,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: effectiveBackgroundColor,
+              width: 2,
+              strokeAlign: BorderSide.strokeAlignOutside,
+            ),
+            color: color,
+            gradient: gradient,
+            shape: BoxShape.circle,
           ),
-          color: color,
-          gradient: gradient,
-          shape: BoxShape.circle,
         ),
-      ),
-    );
+      );
+    });
   }
 }
 
@@ -391,7 +379,8 @@ class UserStatusEmoji extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = StoreService.to.requireStore;
-    final effectiveEmoji = emoji ?? store.getUserStatus(userId!).emoji;
+    final effectiveEmoji =
+        emoji ?? UsersService.to.getUserStatus(userId!).emoji;
 
     if (effectiveEmoji == null) return SizedBox.shrink();
 

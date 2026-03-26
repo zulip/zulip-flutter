@@ -5,6 +5,8 @@ import '../../../get/app_pages.dart';
 
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/domains/channels/channels_service.dart';
+import '../../../get/services/domains/unreads/unreads_service.dart';
 import '../../../get/services/store_service.dart';
 import '../../../model/channel.dart';
 import '../../../model/narrow.dart';
@@ -66,8 +68,10 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> {
 
   void _onStoreChanged() {
     unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = StoreService.to.requireStore.unreads
-      ..addListener(_modelChanged);
+    final unreads = UnreadsService.to.unreads;
+    if (unreads != null) {
+      unreadsModel = unreads..addListener(_modelChanged);
+    }
   }
 
   void _modelChanged() {
@@ -114,6 +118,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> {
 
     final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final subscriptions = ChannelsService.to.subscriptions;
 
     final includeAllChannelsButton =
         widget.allowGoToAllChannels
@@ -128,7 +133,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> {
     final List<Subscription> pinned = [];
     final List<Subscription> unpinned = [];
     final now = DateTime.now();
-    for (final subscription in store.subscriptions.values) {
+    for (final subscription in subscriptions.values) {
       if (widget.hideChannelsIfUserCantSendMessage) {
         if (!store.selfCanSendMessage(inChannel: subscription, byDate: now)) {
           continue;

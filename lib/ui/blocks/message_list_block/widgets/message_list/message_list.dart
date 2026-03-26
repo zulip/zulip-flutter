@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
+import '../../../../../get/services/global_service.dart';
 import '../../../../../get/services/store_service.dart';
 import '../../../../../model/message_list.dart';
 import '../../../../../model/narrow.dart';
@@ -11,7 +12,6 @@ import '../../../compose_box_block/compose_box_block.dart';
 import '../../message_list.dart';
 import '../../../../widgets/scrolling.dart';
 import '../../../../widgets/sticky_header.dart';
-import '../../../../utils/store.dart';
 import '../../message_list_block.dart';
 import '../buttons/scroll_to_bottom_button.dart';
 import '../date_separator.dart';
@@ -255,9 +255,10 @@ class _MessageListState extends State<MessageList> {
   bool _effectiveMarkReadOnScroll() {
     if (!MessageListBlockPage.debugEnableMarkReadOnScroll) return false;
     return widget.markReadOnScroll ??
-        GlobalStoreWidget.settingsOf(
-          context,
-        ).markReadOnScrollForNarrow(widget.narrow);
+        GlobalService.to.settingsStore?.markReadOnScrollForNarrow(
+          widget.narrow,
+        ) ??
+        false;
   }
 
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {

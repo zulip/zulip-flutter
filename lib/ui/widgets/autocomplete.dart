@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/domains/channels/channels_service.dart';
+import '../../get/services/domains/realm/realm_service.dart';
+import '../../get/services/domains/settings/settings_service.dart';
+import '../../get/services/domains/users/users_service.dart';
 import '../../get/services/store_service.dart';
 import '../../model/emoji.dart';
 import '../../model/store.dart';
@@ -238,7 +242,7 @@ class ComposeAutocomplete
         if (query is! MentionAutocompleteQuery) {
           return; // Shrug; similar to `intent == null` case above.
         }
-        final user = store.getUser(userId);
+        final user = UsersService.to.getUser(userId);
         if (user == null) {
           // Don't crash on theoretical race between async results-filtering
           // and losing data for the user.
@@ -246,6 +250,7 @@ class ComposeAutocomplete
         }
         // TODO(#1805) language-appropriate space character; check active keyboard?
         //   (maybe handle centrally in `controller`)
+        final store = StoreService.to.requireStore;
         replacementString =
             '${userMention(user, silent: query.silent, users: store)} ';
       case WildcardMentionAutocompleteResult(:var wildcardOption):
@@ -265,7 +270,8 @@ class ComposeAutocomplete
         replacementString =
             '${userGroupMention(userGroup.name, silent: query.silent)} ';
       case ChannelLinkAutocompleteResult(:final channelId):
-        final channel = store.streams[channelId];
+        final store = StoreService.to.requireStore;
+        final channel = ChannelsService.to.streams[channelId];
         if (channel == null) {
           // Don't crash on theoretical race between async results-filtering
           // and losing data for the channel.
@@ -363,13 +369,13 @@ class MentionAutocompleteItem extends StatelessWidget {
     switch (option) {
       case UserMentionAutocompleteResult(:var userId):
         avatar = Avatar(userId: userId, size: 36, borderRadius: 4);
-        label = store.userDisplayName(userId);
+        label = UsersService.to.userDisplayName(userId);
         emoji = UserStatusEmoji(
           userId: userId,
           size: 18,
           padding: const EdgeInsetsDirectional.only(start: 5.0),
         );
-        sublabel = store.getUser(userId)?.deliveryEmail;
+        sublabel = UsersService.to.getUser(userId)?.deliveryEmail;
       case UserGroupMentionAutocompleteResult(:final groupId):
         final group = store.getGroup(groupId);
         avatar = SizedBox.square(
@@ -462,7 +468,9 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = StoreService.to.requireStore;
-    final channel = store.streams[option.channelId];
+    final streams = ChannelsService.to.streams;
+    final subscriptions = ChannelsService.to.subscriptions;
+    final channel = streams[option.channelId];
 
     if (channel == null) return SizedBox.shrink();
 
@@ -478,10 +486,7 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
               child: Icon(
                 iconDataForStream(channel),
                 size: 18,
-                color: colorSwatchFor(
-                  context,
-                  store.subscriptions[channel.streamId],
-                ),
+                color: colorSwatchFor(context, subscriptions[channel.streamId]),
               ),
             ),
             Expanded(
@@ -513,11 +518,12 @@ class EmojiAutocompleteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = StoreService.to.requireStore;
     final designVariables = DesignVariables.of(context);
     final candidate = option.candidate;
 
-    final emojiDisplay = candidate.emojiDisplay.resolve(store.userSettings);
+    final emojiDisplay = candidate.emojiDisplay.resolve(
+      SettingsService.to.settings.value,
+    );
     final Widget? glyph = switch (emojiDisplay) {
       ImageEmojiDisplay() || UnicodeEmojiDisplay() => EmojiWidget(
         emojiDisplay: emojiDisplay,
@@ -617,9 +623,8 @@ class TopicAutocomplete
   ) {
     final Widget child;
     if (option.topic.displayName == null) {
-      final store = StoreService.to.requireStore;
       child = Text(
-        store.realmEmptyTopicDisplayName,
+        RealmService.to.realmEmptyTopicDisplayName.value,
         style: const TextStyle(fontStyle: FontStyle.italic),
       );
     } else {

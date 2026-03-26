@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../api/model/model.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/domains/users/users_service.dart';
 import '../../get/services/store_service.dart';
 import '../../model/autocomplete.dart';
 import '../../model/narrow.dart';
@@ -62,13 +63,12 @@ class _NewDmPickerState extends State<NewDmPicker> {
   }
 
   void _onStoreChanged() {
-    final store = StoreService.to.requireStore;
-    _initSortedUsers(store);
+    _initSortedUsers(StoreService.to.requireStore);
   }
 
   void _initSortedUsers(PerAccountStore store) {
-    final users = store.allUsers.where(
-      (user) => user.isActive && !store.isUserMuted(user.userId),
+    final users = UsersService.to.allUsers.where(
+      (user) => user.isActive && !UsersService.to.isUserMuted(user.userId),
     );
     sortedUsers = List<User>.from(
       users,
@@ -77,8 +77,7 @@ class _NewDmPickerState extends State<NewDmPicker> {
   }
 
   void _handleSearchUpdate() {
-    final store = StoreService.to.requireStore;
-    _updateFilteredUsers(store);
+    _updateFilteredUsers(StoreService.to.requireStore);
   }
 
   // Function to sort users based on recency of DM's
@@ -114,19 +113,18 @@ class _NewDmPickerState extends State<NewDmPicker> {
 
   void _selectUser(int userId) {
     assert(!selectedUserIds.contains(userId));
-    final store = StoreService.to.requireStore;
+    final selfUserId = UsersService.to.selfUserId;
     selectedUserIds.add(userId);
-    if (userId != store.selfUserId) {
-      selectedUserIds.remove(store.selfUserId);
+    if (userId != selfUserId) {
+      selectedUserIds.remove(selfUserId);
     }
-    _updateFilteredUsers(store);
+    _updateFilteredUsers(StoreService.to.requireStore);
   }
 
   void _unselectUser(int userId) {
     assert(selectedUserIds.contains(userId));
-    final store = StoreService.to.requireStore;
     selectedUserIds.remove(userId);
-    _updateFilteredUsers(store);
+    _updateFilteredUsers(StoreService.to.requireStore);
   }
 
   void _handleUserTap(int userId) {
@@ -198,10 +196,9 @@ class _NewDmHeader extends StatelessWidget {
       onTap: selectedUserIds.isEmpty
           ? null
           : () {
-              final store = StoreService.to.requireStore;
               final narrow = DmNarrow.withUsers(
                 selectedUserIds.toList(),
-                selfUserId: store.selfUserId,
+                selfUserId: UsersService.to.selfUserId,
               );
               Navigator.of(context).pop();
               onDmSelect(narrow);
@@ -333,7 +330,6 @@ class _SelectedUserChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    final store = StoreService.to.requireStore;
     final clampedTextScaler = MediaQuery.textScalerOf(
       context,
     ).clamp(maxScaleFactor: 1.5);
@@ -357,7 +353,7 @@ class _SelectedUserChip extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(5, 3, 4, 3),
                 child: Text(
-                  store.userDisplayName(userId),
+                  UsersService.to.userDisplayName(userId),
                   textScaler: clampedTextScaler,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -459,7 +455,6 @@ class _NewDmUserListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = StoreService.to.requireStore;
     final designVariables = DesignVariables.of(context);
     return Material(
       clipBehavior: Clip.antiAlias,
@@ -493,7 +488,7 @@ class _NewDmUserListItem extends StatelessWidget {
               Expanded(
                 child: Text.rich(
                   TextSpan(
-                    text: store.userDisplayName(userId),
+                    text: UsersService.to.userDisplayName(userId),
                     children: [
                       UserStatusEmoji.asWidgetSpan(
                         userId: userId,

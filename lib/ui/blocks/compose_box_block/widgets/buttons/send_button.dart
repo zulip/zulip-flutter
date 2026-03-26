@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../../api/exception.dart';
 import '../../../../../api/route/messages.dart';
@@ -27,6 +28,9 @@ class SendButton extends StatefulWidget {
 }
 
 class _SendButtonState extends State<SendButton> {
+  Worker? _topicWorker;
+  Worker? _contentWorker;
+
   void _hasErrorsChanged() {
     setState(() {
       // Update disabled/non-disabled state
@@ -38,9 +42,15 @@ class _SendButtonState extends State<SendButton> {
     super.initState();
     final controller = widget.controller;
     if (controller is StreamComposeBoxController) {
-      controller.topic.hasValidationErrors.addListener(_hasErrorsChanged);
+      _topicWorker = ever(
+        controller.topic.hasValidationErrors,
+        (_) => _hasErrorsChanged(),
+      );
     }
-    controller.content.hasValidationErrors.addListener(_hasErrorsChanged);
+    _contentWorker = ever(
+      controller.content.hasValidationErrors,
+      (_) => _hasErrorsChanged(),
+    );
   }
 
   @override
@@ -52,22 +62,25 @@ class _SendButtonState extends State<SendButton> {
     if (controller == oldController) return;
 
     if (oldController is StreamComposeBoxController) {
-      oldController.topic.hasValidationErrors.removeListener(_hasErrorsChanged);
+      _topicWorker?.dispose();
     }
     if (controller is StreamComposeBoxController) {
-      controller.topic.hasValidationErrors.addListener(_hasErrorsChanged);
+      _topicWorker = ever(
+        controller.topic.hasValidationErrors,
+        (_) => _hasErrorsChanged(),
+      );
     }
-    oldController.content.hasValidationErrors.removeListener(_hasErrorsChanged);
-    controller.content.hasValidationErrors.addListener(_hasErrorsChanged);
+    _contentWorker?.dispose();
+    _contentWorker = ever(
+      controller.content.hasValidationErrors,
+      (_) => _hasErrorsChanged(),
+    );
   }
 
   @override
   void dispose() {
-    final controller = widget.controller;
-    if (controller is StreamComposeBoxController) {
-      controller.topic.hasValidationErrors.removeListener(_hasErrorsChanged);
-    }
-    controller.content.hasValidationErrors.removeListener(_hasErrorsChanged);
+    _topicWorker?.dispose();
+    _contentWorker?.dispose();
     super.dispose();
   }
 

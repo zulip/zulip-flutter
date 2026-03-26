@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../get/services/global_service.dart';
 import '../../../model/message_list.dart';
 import '../../../model/narrow.dart';
 import '../compose_box_block/compose_box_block.dart';
 import 'message_list.dart';
 import '../../utils/page.dart';
-import '../../utils/store.dart';
 import 'widgets/message_list/message_list.dart';
 import 'widgets/message_list_app_bar/message_list_app_bar.dart';
 
@@ -259,10 +259,9 @@ class _MessageListBlockPageState extends State<MessageListBlockPage>
     } else if (widget.initAnchorMessageId != null) {
       initAnchor = NumericAnchor(widget.initAnchorMessageId!);
     } else {
-      final globalSettings = GlobalStoreWidget.settingsOf(context);
-      final useFirstUnread = globalSettings.shouldVisitFirstUnread(
-        narrow: narrow,
-      );
+      final globalSettings = GlobalService.to.settingsStore;
+      final useFirstUnread =
+          globalSettings?.shouldVisitFirstUnread(narrow: narrow) ?? false;
       initAnchor = useFirstUnread ? AnchorCode.firstUnread : AnchorCode.newest;
     }
 

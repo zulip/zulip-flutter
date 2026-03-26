@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../get/services/store_service.dart';
+import '../../../../get/services/domains/users/users_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
@@ -24,8 +24,8 @@ class RecentDmConversationsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
+    final usersService = UsersService.to;
 
     final InlineSpan title;
     final Widget avatar;
@@ -33,20 +33,24 @@ class RecentDmConversationsItem extends StatelessWidget {
     switch (narrow.otherRecipientIds) {
       // TODO dedupe with DM items in [InboxPage]
       case []:
+        final selfUser = usersService.selfUser;
         title = TextSpan(
-          text: store.selfUser.fullName,
+          text: selfUser?.fullName ?? '',
           children: [
             UserStatusEmoji.asWidgetSpan(
-              userId: store.selfUserId,
+              userId: usersService.selfUserId,
               fontSize: 17,
               textScaler: MediaQuery.textScalerOf(context),
             ),
           ],
         );
-        avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
+        avatar = AvatarImage(
+          userId: usersService.selfUserId,
+          size: _avatarSize,
+        );
       case [var otherUserId]:
         title = TextSpan(
-          text: store.userDisplayName(otherUserId),
+          text: usersService.userDisplayName(otherUserId),
           children: [
             UserStatusEmoji.asWidgetSpan(
               userId: otherUserId,
@@ -62,7 +66,9 @@ class RecentDmConversationsItem extends StatelessWidget {
           // TODO(i18n): List formatting, like you can do in JavaScript:
           //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
           //   // 'Chris、Greg、Alya'
-          text: narrow.otherRecipientIds.map(store.userDisplayName).join(', '),
+          text: narrow.otherRecipientIds
+              .map(usersService.userDisplayName)
+              .join(', '),
         );
         avatar = ColoredBox(
           color: designVariables.avatarPlaceholderBg,

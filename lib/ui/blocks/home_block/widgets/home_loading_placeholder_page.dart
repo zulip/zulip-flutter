@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/global_service.dart';
 import '../../../app.dart';
 import '../../../utils/page.dart';
-import '../../../utils/store.dart';
 
 const kTryAnotherAccountWaitPeriod = Duration(seconds: 5);
 
@@ -42,7 +42,7 @@ class _LoadingPlaceholderPageState extends State<HomeLoadingPlaceholderPage> {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final account = GlobalStoreWidget.of(context).getAccount(widget.accountId);
+    final account = GlobalService.to.getAccount(widget.accountId);
 
     if (account == null) {
       // We should only reach this state very briefly.

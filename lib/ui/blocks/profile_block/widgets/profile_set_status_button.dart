@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../api/model/model.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../get/services/store_service.dart';
+import '../../../../get/services/domains/users/users_service.dart';
 import '../../../values/icons.dart';
 import '../../../widgets/button.dart';
 import '../../../widgets/image.dart';
@@ -15,8 +15,9 @@ class ProfileSetStatusButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final store = requirePerAccountStore();
-    final userStatus = store.getUserStatus(store.selfUserId);
+    final usersService = UsersService.to;
+    final selfUserId = usersService.selfUserId;
+    final userStatus = usersService.getUserStatus(selfUserId);
 
     return ZulipMenuItemButton(
       style: ZulipMenuItemButtonStyle.list,
@@ -28,7 +29,7 @@ class ProfileSetStatusButton extends StatelessWidget {
           : TextSpan(
               children: [
                 UserStatusEmoji.asWidgetSpan(
-                  userId: store.selfUserId,
+                  userId: selfUserId,
                   fontSize: 16,
                   textScaler: MediaQuery.textScalerOf(context),
                   position: StatusEmojiPosition.before,

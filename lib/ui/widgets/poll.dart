@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../api/model/submessage.dart';
 import '../../api/route/submessage.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/domains/users/users_service.dart';
 import '../../get/services/store_service.dart';
 import '../themes/content_theme.dart';
 import '../values/text.dart';
@@ -49,13 +50,14 @@ class _PollWidgetState extends State<PollWidget> {
   }
 
   void _toggleVote(PollOption option) async {
-    final store = requirePerAccountStore();
-    final op = option.voters.contains(store.selfUserId)
+    final connection = StoreService.to.connection;
+    if (connection == null) return;
+    final op = option.voters.contains(UsersService.to.selfUserId)
         ? PollVoteOp.remove
         : PollVoteOp.add;
     unawaited(
       sendSubmessage(
-        store.connection,
+        connection,
         messageId: widget.messageId,
         submessageType: SubmessageType.widget,
         content: PollVoteEventSubmessage(key: option.key, op: op),
@@ -69,7 +71,6 @@ class _PollWidgetState extends State<PollWidget> {
 
     final zulipLocalizations = ZulipLocalizations.of(context);
     final theme = ContentTheme.of(context);
-    final store = requirePerAccountStore();
 
     final textStyleBold = weightVariableTextStyle(context, wght: 600);
     final textStyleVoterNames = TextStyle(
@@ -94,7 +95,9 @@ class _PollWidgetState extends State<PollWidget> {
       // TODO(i18n): List formatting, like you can do in JavaScript:
       //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Zixuan'])
       //   // 'Chris、Greg、Alya、Zixuan'
-      final voterNames = option.voters.map(store.userDisplayName).join(', ');
+      final voterNames = option.voters
+          .map(UsersService.to.userDisplayName)
+          .join(', ');
 
       return Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,

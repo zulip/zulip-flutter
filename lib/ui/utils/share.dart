@@ -7,6 +7,7 @@ import 'package:mime/mime.dart';
 
 import '../../api/core.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/global_service.dart';
 import '../../get/services/store_service.dart';
 import '../../host/android_intents.dart';
 import '../../log.dart';
@@ -23,7 +24,6 @@ import '../widgets/image.dart';
 import '../blocks/message_list_block/message_list_block.dart';
 import 'page.dart';
 import '../blocks/recent_dm_conversations_block/recent_dm_conversations.dart';
-import 'store.dart';
 import '../blocks/subscription_list_block/subscription_list_block.dart';
 import '../values/text.dart';
 import '../values/theme.dart';
@@ -74,7 +74,8 @@ class ShareService {
       return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
     }
 
-    final globalStore = GlobalStoreWidget.of(context);
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore == null) return;
 
     // TODO(#1779) allow selecting account, if there are multiple
     final accountId =
@@ -221,12 +222,11 @@ class ShareSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final globalStore = GlobalStoreWidget.of(context);
     final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final hasMultipleAccounts = globalStore.accountIds.length > 1;
+    final hasMultipleAccounts = GlobalService.to.accountIds.length > 1;
 
     Widget mkTabLabel({required String text, required IconData icon}) {
       return ConstrainedBox(
@@ -400,17 +400,16 @@ class _ChooseAccountForShareModalState
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final globalStore = GlobalStoreWidget.of(context);
-
     if (_hasUpdatedAccountsOnce) return;
     _hasUpdatedAccountsOnce = true;
 
-    globalStore.refreshRealmMetadata();
+    GlobalService.to.refreshRealmMetadata();
   }
 
   @override
   Widget build(BuildContext context) {
-    final globalStore = GlobalStoreWidget.of(context);
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore == null) return const SizedBox.shrink();
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final accounts = List<Account>.unmodifiable(globalStore.accounts);

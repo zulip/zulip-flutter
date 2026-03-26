@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../api/exception.dart';
 import '../../api/model/model.dart';
@@ -10,13 +11,13 @@ import '../../api/route/messages.dart';
 import '../../api/route/messages.dart' as messages_api;
 import '../../api/route/channels.dart' as channels_api;
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/global_service.dart';
 import '../../get/services/store_service.dart';
 import '../../model/binding.dart';
 import '../../model/internal_link.dart';
 import '../../model/narrow.dart';
 import '../../model/realm.dart';
 import '../widgets/dialog.dart';
-import 'store.dart';
 
 /// Methods that act through the Zulip API and show feedback in the UI.
 ///
@@ -498,14 +499,15 @@ abstract final class PlatformActions {
 
   /// Opens a URL with [ZulipBinding.launchUrl], with an error dialog on failure.
   static Future<void> launchUrl(BuildContext context, Uri url) async {
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final globalSettings = GlobalService.to.settingsStore;
 
     bool launched = false;
     String? errorMessage;
     try {
       launched = await ZulipBinding.instance.launchUrl(
         url,
-        mode: globalSettings.getUrlLaunchMode(url),
+        mode:
+            globalSettings?.getUrlLaunchMode(url) ?? LaunchMode.platformDefault,
       );
     } on PlatformException catch (e) {
       errorMessage = e.message;

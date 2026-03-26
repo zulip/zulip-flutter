@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../api/route/messages.dart';
 import '../../generated/l10n/zulip_localizations.dart';
+import '../../get/services/domains/users/users_service.dart';
 import '../../get/services/store_service.dart';
 import 'action_sheet.dart';
 import '../utils/actions.dart';
@@ -76,11 +77,11 @@ class _ReadReceiptsState extends State<ReadReceipts> {
 
       if (!context.mounted) return;
       final storeNow = StoreService.to.requireStore;
-      if (!identical(store, storeNow)) return;
+      if (store.connection != storeNow.connection) return;
 
       // TODO(i18n): add locale-aware sorting
       userIds = result.userIds.sortedByCompare(
-        store.userDisplayName,
+        UsersService.to.userDisplayName,
         (nameA, nameB) => nameA.toLowerCase().compareTo(nameB.toLowerCase()),
       );
       status = FetchStatus.success;

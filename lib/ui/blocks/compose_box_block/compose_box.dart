@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../api/model/model.dart';
 import '../../../api/route/messages.dart';
@@ -51,7 +52,7 @@ abstract class ComposeController<ErrorT> extends TextEditingController {
   late List<ErrorT> _validationErrors;
   List<ErrorT> _computeValidationErrors();
 
-  ValueNotifier<bool> hasValidationErrors = ValueNotifier(false);
+  RxBool hasValidationErrors = false.obs;
 
   void _update() {
     _textNormalized = _computeTextNormalized();
@@ -555,8 +556,10 @@ class StreamComposeBoxController extends ComposeBoxController {
 
   final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
-  final ValueNotifier<ComposeTopicInteractionStatus> topicInteractionStatus =
-      ValueNotifier(ComposeTopicInteractionStatus.notEditingNotChosen);
+  final Rx<ComposeTopicInteractionStatus> topicInteractionStatus =
+      Rx<ComposeTopicInteractionStatus>(
+        ComposeTopicInteractionStatus.notEditingNotChosen,
+      );
 
   @override
   void requestFocusIfUnfocused() {
@@ -576,7 +579,6 @@ class StreamComposeBoxController extends ComposeBoxController {
   void dispose() {
     topic.dispose();
     topicFocusNode.dispose();
-    topicInteractionStatus.dispose();
     super.dispose();
   }
 }

@@ -17,13 +17,13 @@ import '../../../api/route/account.dart';
 import '../../../api/route/realm.dart';
 import '../../../api/route/users.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/global_service.dart';
 import '../../../log.dart';
 import '../../../model/binding.dart';
 import '../../../model/server_support.dart';
 import '../../../model/store.dart' hide Value;
 import '../../../model/store.dart' as store_model;
 import '../../widgets/dialog.dart';
-import '../../utils/store.dart';
 
 enum ServerUrlValidationError {
   empty,
@@ -149,7 +149,8 @@ class LoginController extends GetxController {
 
     inProgress.value = true;
     try {
-      final globalStore = GlobalStoreWidget.of(context);
+      final globalStore = GlobalService.to.globalStore;
+      if (globalStore == null) throw StateError('GlobalStore not initialized');
       final serverSettingsResult = await globalStore.fetchServerSettings(url!);
 
       final zulipVersionData = ZulipVersionData.fromServerSettings(
@@ -275,7 +276,8 @@ class LoginController extends GetxController {
     required String apiKey,
     required int userId,
   }) async {
-    final globalStore = GlobalStoreWidget.of(context);
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore == null) throw StateError('GlobalStore not initialized');
     final realmUrl = serverSettings!.realmUrl;
     final int accountId;
     try {
@@ -326,8 +328,7 @@ class LoginController extends GetxController {
     String apiKey,
     BuildContext context,
   ) async {
-    final globalStore = GlobalStoreWidget.of(context);
-    final connection = globalStore.apiConnection(
+    final connection = GlobalService.to.createConnection(
       realmUrl: serverSettings!.realmUrl,
       zulipFeatureLevel: serverSettings!.zulipFeatureLevel,
       email: email,
@@ -348,8 +349,7 @@ class LoginController extends GetxController {
   }) async {
     inProgress.value = true;
     try {
-      final globalStore = GlobalStoreWidget.of(context);
-      final connection = globalStore.apiConnection(
+      final connection = GlobalService.to.createConnection(
         realmUrl: serverSettings!.realmUrl,
         zulipFeatureLevel: serverSettings!.zulipFeatureLevel,
       );

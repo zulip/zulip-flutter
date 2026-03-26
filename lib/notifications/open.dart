@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../get/services/global_service.dart';
 import '../host/notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
@@ -17,7 +18,6 @@ import '../ui/widgets/dialog.dart';
 import '../ui/blocks/home_block/home.dart';
 import '../ui/blocks/message_list_block/message_list_block.dart';
 import '../ui/utils/page.dart';
-import '../ui/utils/store.dart';
 
 NotificationPigeonApi get _notifPigeonApi =>
     ZulipBinding.instance.notificationPigeonApi;
@@ -112,7 +112,8 @@ class NotificationOpenService {
     required BuildContext context,
     required NotificationOpenPayload data,
   }) {
-    final globalStore = GlobalStoreWidget.of(context);
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore == null) return null;
 
     final account = globalStore.accounts.firstWhereOrNull(
       (account) =>

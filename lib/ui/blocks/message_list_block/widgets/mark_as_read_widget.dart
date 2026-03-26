@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/domains/unreads/unreads_service.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../../model/unreads.dart';
@@ -45,9 +46,11 @@ class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
   }
 
   void _onStoreChanged() {
-    final newStore = StoreService.to.requireStore;
     unreadsModel?.removeListener(_unreadsModelChanged);
-    unreadsModel = newStore.unreads..addListener(_unreadsModelChanged);
+    final unreads = UnreadsService.to.unreads;
+    if (unreads != null) {
+      unreadsModel = unreads..addListener(_unreadsModelChanged);
+    }
   }
 
   void _handlePress(BuildContext context) async {

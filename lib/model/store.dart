@@ -162,6 +162,23 @@ abstract class GlobalStore extends ChangeNotifier {
   PerAccountStore? perAccountSync(int accountId) =>
       _perAccountStores[accountId];
 
+  /// The store's per-account data for the given account.
+  ///
+  /// If the data for this account is not already loaded, this will ensure a
+  /// request is made to load it, and the returned future will complete when
+  /// the data is ready.
+  ///
+  /// The [GlobalStore] will avoid making redundant requests for the same data,
+  /// even if this method is called many times.  The futures returned from each
+  /// call for the same account will all complete once the data is ready.
+  ///
+  /// Consider checking [perAccountSync] before calling this function, so that if
+  /// the data is already available it can be used immediately (e.g., in the
+  /// current frame.)
+  ///
+  /// See also:
+  ///  * [PerAccountStoreWidget.of], for getting the relevant [PerAccountStore]
+  ///    from UI code.
   Future<PerAccountStore> perAccount(int accountId) async {
     // First, see if we have the store already.
     PerAccountStore? store = _perAccountStores[accountId];

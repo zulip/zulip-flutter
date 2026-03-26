@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../get/app_pages.dart';
-
+import '../../../get/services/domains/unreads/unreads_service.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
@@ -59,8 +59,7 @@ class _RecentDmConversationsPageBodyState
   void _initFromStore() {
     _model = StoreService.to.requireStore.recentDmConversationsView
       ..addListener(_modelChanged);
-    _unreadsModel = StoreService.to.requireStore.unreads
-      ..addListener(_modelChanged);
+    _unreadsModel = UnreadsService.to.unreads?..addListener(_modelChanged);
   }
 
   @override

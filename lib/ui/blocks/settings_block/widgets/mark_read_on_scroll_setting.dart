@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../get/app_pages.dart';
+import '../../../../get/services/global_service.dart';
 import '../../../../model/settings.dart';
-import '../../../utils/store.dart';
 
 class MarkReadOnScrollSettingController extends GetxController {
   void navigateToPage() {
@@ -18,13 +18,13 @@ class MarkReadOnScrollSettingWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final globalSettings = GlobalService.to.settingsStore;
     final controller = MarkReadOnScrollSettingController();
     return ListTile(
       title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
       subtitle: Text(
         MarkReadOnScrollSettingPage._valueDisplayName(
-          globalSettings.markReadOnScroll,
+          globalSettings?.markReadOnScroll ?? MarkReadOnScrollSetting.always,
           zulipLocalizations: zulipLocalizations,
         ),
       ),
@@ -64,20 +64,21 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
 
   void _handleChange(BuildContext context, MarkReadOnScrollSetting? value) {
     if (value == null) return; // TODO(log); can this actually happen? how?
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
-    globalSettings.setMarkReadOnScroll(value);
+    final globalSettings = GlobalService.to.settingsStore;
+    globalSettings?.setMarkReadOnScroll(value);
   }
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final globalSettings = GlobalService.to.settingsStore;
     return Scaffold(
       appBar: AppBar(
         title: Text(zulipLocalizations.markReadOnScrollSettingTitle),
       ),
       body: RadioGroup<MarkReadOnScrollSetting>(
-        groupValue: globalSettings.markReadOnScroll,
+        groupValue:
+            globalSettings?.markReadOnScroll ?? MarkReadOnScrollSetting.always,
         onChanged: (newValue) => _handleChange(context, newValue),
         child: Column(
           children: [

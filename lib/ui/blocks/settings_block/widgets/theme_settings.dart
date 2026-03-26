@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/global_service.dart';
 import '../../../../model/settings.dart';
-import '../../../utils/store.dart';
 
 class ThemeSettingWidget extends StatelessWidget {
   const ThemeSettingWidget({super.key});
 
   void _handleChange(BuildContext context, ThemeSetting? newThemeSetting) {
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
-    globalSettings.setThemeSetting(newThemeSetting);
+    final globalSettings = GlobalService.to.settingsStore;
+    globalSettings?.setThemeSetting(newThemeSetting);
   }
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    final globalSettings = GlobalService.to.settingsStore;
     return RadioGroup<ThemeSetting?>(
-      groupValue: globalSettings.themeSetting,
+      groupValue: globalSettings?.themeSetting,
       onChanged: (newValue) => _handleChange(context, newValue),
       child: Column(
         children: [

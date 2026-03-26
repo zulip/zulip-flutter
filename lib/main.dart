@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 
+import 'get/services/account_service.dart';
+import 'get/services/global_service.dart';
+import 'get/services/store_service.dart';
 import 'licenses.dart';
 import 'log.dart';
 import 'model/binding.dart';
@@ -27,4 +31,9 @@ void mainInit() {
   WidgetsFlutterBinding.ensureInitialized();
   LiveZulipBinding.ensureInitialized();
   ShareService.start();
+
+  // Initialize GetX services
+  Get.put(GlobalService());
+  Get.put(StoreService());
+  AccountService.initServices();
 }

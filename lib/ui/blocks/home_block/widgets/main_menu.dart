@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../get/app_pages.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
+import '../../../../get/services/domains/users/users_service.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../extensions/color.dart';
@@ -460,9 +461,8 @@ class _MyProfileButton extends MenuButton {
 
   @override
   Widget buildLeading(BuildContext context) {
-    final store = requirePerAccountStore();
     return Avatar(
-      userId: store.selfUserId,
+      userId: UsersService.to.selfUserId,
       size: MenuButton._iconSize,
       borderRadius: 4,
       showPresence: false,
@@ -476,10 +476,12 @@ class _MyProfileButton extends MenuButton {
 
   @override
   void onPressed(BuildContext context) {
-    final store = requirePerAccountStore();
-    Navigator.of(
-      context,
-    ).push(ProfilePage.buildRoute(context: context, userId: store.selfUserId));
+    Navigator.of(context).push(
+      ProfilePage.buildRoute(
+        context: context,
+        userId: UsersService.to.selfUserId,
+      ),
+    );
   }
 }
 

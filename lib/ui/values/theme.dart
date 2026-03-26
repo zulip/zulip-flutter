@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../api/model/model.dart';
+import '../../get/services/global_service.dart';
 import '../../model/settings.dart';
 import '../themes/compose_box_theme.dart';
 import '../themes/content_theme.dart';
 import '../themes/emoji_reaction_theme.dart';
 import '../themes/message_list_theme.dart';
 import 'channel_colors.dart';
-import '../utils/store.dart';
 import 'text.dart';
 
 ThemeData zulipThemeData(BuildContext context) {
   final DesignVariables designVariables;
   final List<ThemeExtension> themeExtensions;
-  final globalSettings = GlobalStoreWidget.settingsOf(context);
-  Brightness brightness = switch (globalSettings.themeSetting) {
+  final globalSettings = GlobalService.to.settingsStore;
+  Brightness brightness = switch (globalSettings?.themeSetting) {
     null => MediaQuery.platformBrightnessOf(context),
     ThemeSetting.light => Brightness.light,
     ThemeSetting.dark => Brightness.dark,
@@ -30,29 +30,32 @@ ThemeData zulipThemeData(BuildContext context) {
   //   https://m3.material.io/theme-builder#/custom
   final colorScheme = ColorScheme.fromSeed(
     brightness: brightness,
-    seedColor: kZulipBrandColor);
+    seedColor: kZulipBrandColor,
+  );
 
   switch (brightness) {
-    case Brightness.light: {
-      designVariables = DesignVariables.light;
-      themeExtensions = [
-        ContentTheme.light(context),
-        designVariables,
-        EmojiReactionTheme.light,
-        MessageListTheme.light,
-        ComposeBoxTheme.light,
-      ];
-    }
-    case Brightness.dark: {
-      designVariables = DesignVariables.dark;
-      themeExtensions = [
-        ContentTheme.dark(context),
-        designVariables,
-        EmojiReactionTheme.dark,
-        MessageListTheme.dark,
-        ComposeBoxTheme.dark,
-      ];
-    }
+    case Brightness.light:
+      {
+        designVariables = DesignVariables.light;
+        themeExtensions = [
+          ContentTheme.light(context),
+          designVariables,
+          EmojiReactionTheme.light,
+          MessageListTheme.light,
+          ComposeBoxTheme.light,
+        ];
+      }
+    case Brightness.dark:
+      {
+        designVariables = DesignVariables.dark;
+        themeExtensions = [
+          ContentTheme.dark(context),
+          designVariables,
+          EmojiReactionTheme.dark,
+          MessageListTheme.dark,
+          ComposeBoxTheme.dark,
+        ];
+      }
   }
 
   return ThemeData(
@@ -66,13 +69,15 @@ ThemeData zulipThemeData(BuildContext context) {
     // we use the desktop builds for.
     visualDensity: VisualDensity.standard,
 
-    iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(
-      foregroundColor: designVariables.icon,
-    )),
-    elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(
-      backgroundColor: colorScheme.secondaryContainer,
-      foregroundColor: colorScheme.onSecondaryContainer,
-    )),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(foregroundColor: designVariables.icon),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: colorScheme.secondaryContainer,
+        foregroundColor: colorScheme.onSecondaryContainer,
+      ),
+    ),
     appBarTheme: AppBarTheme(
       // Set these two fields to prevent a color change in [AppBar]s when
       // there is something scrolled under it. If an app bar hasn't been
@@ -83,7 +88,6 @@ ThemeData zulipThemeData(BuildContext context) {
       backgroundColor: designVariables.bgTopBar,
 
       // TODO match actions layout to Figma
-
       titleTextStyle: TextStyle(
         inherit: false,
         color: designVariables.title,
@@ -95,18 +99,19 @@ ThemeData zulipThemeData(BuildContext context) {
         decoration: TextDecoration.none,
         fontFamily: kDefaultFontFamily,
         fontFamilyFallback: defaultFontFamilyFallback,
-      )
-        .merge(weightVariableTextStyle(context, wght: 600)),
+      ).merge(weightVariableTextStyle(context, wght: 600)),
       titleSpacing: 4,
 
       // TODO Figma has height 42; we should try `toolbarHeight: 42` and test
       //   that it looks reasonable with different system text-size settings.
       //   Also the back button will look too big and need adjusting.
-
-      shape: Border(bottom: BorderSide(
-        color: designVariables.borderBar,
-        strokeAlign: BorderSide.strokeAlignInside, // (default restated for explicitness)
-      )),
+      shape: Border(
+        bottom: BorderSide(
+          color: designVariables.borderBar,
+          strokeAlign: BorderSide
+              .strokeAlignInside, // (default restated for explicitness)
+        ),
+      ),
     ),
     colorScheme: colorScheme,
     scaffoldBackgroundColor: designVariables.mainBackground,
@@ -116,7 +121,8 @@ ThemeData zulipThemeData(BuildContext context) {
       backgroundColor: designVariables.bgContextMenu,
       modalBarrierColor: designVariables.modalBarrierColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+      ),
     ),
   );
 }
@@ -154,10 +160,18 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnBgAttHighIntInfoNormal: const Color(0xff3c6bff),
     btnBgAttHighIntWarningActive: const Color(0xffeba002),
     btnBgAttHighIntWarningNormal: const Color(0xfffebe3d),
-    btnBgAttMediumIntInfoActive: const Color(0xff3c6bff).withValues(alpha: 0.22),
-    btnBgAttMediumIntInfoNormal: const Color(0xff3c6bff).withValues(alpha: 0.12),
-    btnBgAttMediumIntWarningActive: const Color(0xffeba001).withValues(alpha: 0.28),
-    btnBgAttMediumIntWarningNormal: const Color(0xffeba002).withValues(alpha: 0.18),
+    btnBgAttMediumIntInfoActive: const Color(
+      0xff3c6bff,
+    ).withValues(alpha: 0.22),
+    btnBgAttMediumIntInfoNormal: const Color(
+      0xff3c6bff,
+    ).withValues(alpha: 0.12),
+    btnBgAttMediumIntWarningActive: const Color(
+      0xffeba001,
+    ).withValues(alpha: 0.28),
+    btnBgAttMediumIntWarningNormal: const Color(
+      0xffeba002,
+    ).withValues(alpha: 0.18),
     btnLabelAttHigh: const Color(0xffffffff),
     btnLabelAttHighIntWarning: const Color(0xff000000).withValues(alpha: 0.88),
     btnLabelAttLowIntDanger: const Color(0xffc0070a),
@@ -231,8 +245,18 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     navigationButtonBg: Colors.black.withValues(alpha: 0.05),
     sectionCollapseIcon: const Color(0x7f1e2e48),
     star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
-    subscriptionListHeaderLine: const HSLColor.fromAHSL(0.2, 240, 0.1, 0.5).toColor(),
-    subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.5).toColor(),
+    subscriptionListHeaderLine: const HSLColor.fromAHSL(
+      0.2,
+      240,
+      0.1,
+      0.5,
+    ).toColor(),
+    subscriptionListHeaderText: const HSLColor.fromAHSL(
+      1.0,
+      240,
+      0.1,
+      0.5,
+    ).toColor(),
     unreadCountBadgeTextForChannel: Colors.black.withValues(alpha: 0.9),
     userStatusText: const Color(0xff808080),
   );
@@ -257,10 +281,18 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnBgAttHighIntInfoNormal: const Color(0xff1e41d3),
     btnBgAttHighIntWarningActive: const Color(0xffdb920d),
     btnBgAttHighIntWarningNormal: const Color(0xffdb920d),
-    btnBgAttMediumIntInfoActive: const Color(0xff97b6fe).withValues(alpha: 0.12),
-    btnBgAttMediumIntInfoNormal: const Color(0xff97b6fe).withValues(alpha: 0.12),
-    btnBgAttMediumIntWarningActive: const Color(0xffdb920d).withValues(alpha: 0.12),
-    btnBgAttMediumIntWarningNormal: const Color(0xffdb920d).withValues(alpha: 0.12),
+    btnBgAttMediumIntInfoActive: const Color(
+      0xff97b6fe,
+    ).withValues(alpha: 0.12),
+    btnBgAttMediumIntInfoNormal: const Color(
+      0xff97b6fe,
+    ).withValues(alpha: 0.12),
+    btnBgAttMediumIntWarningActive: const Color(
+      0xffdb920d,
+    ).withValues(alpha: 0.12),
+    btnBgAttMediumIntWarningNormal: const Color(
+      0xffdb920d,
+    ).withValues(alpha: 0.12),
     btnLabelAttHigh: const Color(0xffffffff).withValues(alpha: 0.85),
     btnLabelAttHighIntWarning: const Color(0xff000000).withValues(alpha: 0.90),
     btnLabelAttLowIntDanger: const Color(0xffff8b7c),
@@ -325,8 +357,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     avatarPlaceholderBg: const Color(0x33cccccc),
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     avatarPlaceholderIcon: Colors.white.withValues(alpha: 0.5),
-    contextMenuCancelBg: const Color(0xff797986).withValues(alpha: 0.15), // the same as the light mode in Figma
-    contextMenuCancelPressedBg: const Color(0xff797986).withValues(alpha: 0.20), // the same as the light mode in Figma
+    contextMenuCancelBg: const Color(
+      0xff797986,
+    ).withValues(alpha: 0.15), // the same as the light mode in Figma
+    contextMenuCancelPressedBg: const Color(
+      0xff797986,
+    ).withValues(alpha: 0.20), // the same as the light mode in Figma
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
     dmHeaderBg: const HSLColor.fromAHSL(1, 46, 0.15, 0.2).toColor(),
     inboxItemIconMarker: const HSLColor.fromAHSL(0.4, 0, 0, 1).toColor(),
@@ -341,9 +377,19 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     // TODO(design-dark) unchanged in dark theme?
     star: const HSLColor.fromAHSL(0.5, 47, 1, 0.41).toColor(),
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    subscriptionListHeaderLine: const HSLColor.fromAHSL(0.4, 240, 0.1, 0.75).toColor(),
+    subscriptionListHeaderLine: const HSLColor.fromAHSL(
+      0.4,
+      240,
+      0.1,
+      0.75,
+    ).toColor(),
     // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-    subscriptionListHeaderText: const HSLColor.fromAHSL(1.0, 240, 0.1, 0.75).toColor(),
+    subscriptionListHeaderText: const HSLColor.fromAHSL(
+      1.0,
+      240,
+      0.1,
+      0.75,
+    ).toColor(),
     unreadCountBadgeTextForChannel: Colors.white.withValues(alpha: 0.9),
     // TODO(design-dark) unchanged in dark theme?
     userStatusText: const Color(0xff808080),
@@ -538,8 +584,10 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color contextMenuCancelPressedBg; // In Figma, but unnamed.
   final Color dmHeaderBg;
   final Color inboxItemIconMarker;
-  final Color loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
-  final Color loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+  final Color
+  loginOrDivider; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
+  final Color
+  loginOrDividerText; // TODO(design-dark) need proper dark-theme color (this is ad hoc)
   final Color modalBarrierColor;
   final Color mutedUnreadBadge;
   final Color navigationButtonBg;
@@ -659,34 +707,54 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
-      borderMenuButtonSelected: borderMenuButtonSelected ?? this.borderMenuButtonSelected,
-      btnBgAttHighIntInfoActive: btnBgAttHighIntInfoActive ?? this.btnBgAttHighIntInfoActive,
-      btnBgAttHighIntInfoNormal: btnBgAttHighIntInfoNormal ?? this.btnBgAttHighIntInfoNormal,
-      btnBgAttHighIntWarningActive: btnBgAttHighIntWarningActive ?? this.btnBgAttHighIntWarningActive,
-      btnBgAttHighIntWarningNormal: btnBgAttHighIntWarningNormal ?? this.btnBgAttHighIntWarningNormal,
-      btnBgAttMediumIntInfoActive: btnBgAttMediumIntInfoActive ?? this.btnBgAttMediumIntInfoActive,
-      btnBgAttMediumIntInfoNormal: btnBgAttMediumIntInfoNormal ?? this.btnBgAttMediumIntInfoNormal,
-      btnBgAttMediumIntWarningActive: btnBgAttMediumIntWarningActive ?? this.btnBgAttMediumIntWarningActive,
-      btnBgAttMediumIntWarningNormal: btnBgAttMediumIntWarningNormal ?? this.btnBgAttMediumIntWarningNormal,
+      borderMenuButtonSelected:
+          borderMenuButtonSelected ?? this.borderMenuButtonSelected,
+      btnBgAttHighIntInfoActive:
+          btnBgAttHighIntInfoActive ?? this.btnBgAttHighIntInfoActive,
+      btnBgAttHighIntInfoNormal:
+          btnBgAttHighIntInfoNormal ?? this.btnBgAttHighIntInfoNormal,
+      btnBgAttHighIntWarningActive:
+          btnBgAttHighIntWarningActive ?? this.btnBgAttHighIntWarningActive,
+      btnBgAttHighIntWarningNormal:
+          btnBgAttHighIntWarningNormal ?? this.btnBgAttHighIntWarningNormal,
+      btnBgAttMediumIntInfoActive:
+          btnBgAttMediumIntInfoActive ?? this.btnBgAttMediumIntInfoActive,
+      btnBgAttMediumIntInfoNormal:
+          btnBgAttMediumIntInfoNormal ?? this.btnBgAttMediumIntInfoNormal,
+      btnBgAttMediumIntWarningActive:
+          btnBgAttMediumIntWarningActive ?? this.btnBgAttMediumIntWarningActive,
+      btnBgAttMediumIntWarningNormal:
+          btnBgAttMediumIntWarningNormal ?? this.btnBgAttMediumIntWarningNormal,
       btnLabelAttHigh: btnLabelAttHigh ?? this.btnLabelAttHigh,
-      btnLabelAttHighIntWarning: btnLabelAttHighIntWarning ?? this.btnLabelAttHighIntWarning,
-      btnLabelAttLowIntDanger: btnLabelAttLowIntDanger ?? this.btnLabelAttLowIntDanger,
-      btnLabelAttLowIntInfo: btnLabelAttLowIntInfo ?? this.btnLabelAttLowIntInfo,
-      btnLabelAttMediumIntDanger: btnLabelAttMediumIntDanger ?? this.btnLabelAttMediumIntDanger,
-      btnLabelAttMediumIntInfo: btnLabelAttMediumIntInfo ?? this.btnLabelAttMediumIntInfo,
-      btnLabelAttMediumIntWarning: btnLabelAttMediumIntWarning ?? this.btnLabelAttMediumIntWarning,
+      btnLabelAttHighIntWarning:
+          btnLabelAttHighIntWarning ?? this.btnLabelAttHighIntWarning,
+      btnLabelAttLowIntDanger:
+          btnLabelAttLowIntDanger ?? this.btnLabelAttLowIntDanger,
+      btnLabelAttLowIntInfo:
+          btnLabelAttLowIntInfo ?? this.btnLabelAttLowIntInfo,
+      btnLabelAttMediumIntDanger:
+          btnLabelAttMediumIntDanger ?? this.btnLabelAttMediumIntDanger,
+      btnLabelAttMediumIntInfo:
+          btnLabelAttMediumIntInfo ?? this.btnLabelAttMediumIntInfo,
+      btnLabelAttMediumIntWarning:
+          btnLabelAttMediumIntWarning ?? this.btnLabelAttMediumIntWarning,
       btnShadowAttMed: btnShadowAttMed ?? this.btnShadowAttMed,
       composeBoxBg: composeBoxBg ?? this.composeBoxBg,
-      contextMenuCancelText: contextMenuCancelText ?? this.contextMenuCancelText,
+      contextMenuCancelText:
+          contextMenuCancelText ?? this.contextMenuCancelText,
       contextMenuItemBg: contextMenuItemBg ?? this.contextMenuItemBg,
-      contextMenuItemBgDanger: contextMenuItemBgDanger ?? this.contextMenuItemBgDanger,
+      contextMenuItemBgDanger:
+          contextMenuItemBgDanger ?? this.contextMenuItemBgDanger,
       contextMenuItemIcon: contextMenuItemIcon ?? this.contextMenuItemIcon,
-      contextMenuItemIconDanger: contextMenuItemIconDanger ?? this.contextMenuItemIconDanger,
+      contextMenuItemIconDanger:
+          contextMenuItemIconDanger ?? this.contextMenuItemIconDanger,
       contextMenuItemLabel: contextMenuItemLabel ?? this.contextMenuItemLabel,
       contextMenuItemMeta: contextMenuItemMeta ?? this.contextMenuItemMeta,
       contextMenuItemText: contextMenuItemText ?? this.contextMenuItemText,
-      contextMenuItemTextDanger: contextMenuItemTextDanger ?? this.contextMenuItemTextDanger,
-      editorButtonPressedBg: editorButtonPressedBg ?? this.editorButtonPressedBg,
+      contextMenuItemTextDanger:
+          contextMenuItemTextDanger ?? this.contextMenuItemTextDanger,
+      editorButtonPressedBg:
+          editorButtonPressedBg ?? this.editorButtonPressedBg,
       fabBg: fabBg ?? this.fabBg,
       fabBgPressed: fabBgPressed ?? this.fabBgPressed,
       fabLabel: fabLabel ?? this.fabLabel,
@@ -720,9 +788,11 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       title: title ?? this.title,
       channelColorSwatches: channelColorSwatches ?? this.channelColorSwatches,
       avatarPlaceholderBg: avatarPlaceholderBg ?? this.avatarPlaceholderBg,
-      avatarPlaceholderIcon: avatarPlaceholderIcon ?? this.avatarPlaceholderIcon,
+      avatarPlaceholderIcon:
+          avatarPlaceholderIcon ?? this.avatarPlaceholderIcon,
       contextMenuCancelBg: contextMenuCancelBg ?? this.contextMenuCancelBg,
-      contextMenuCancelPressedBg: contextMenuCancelPressedBg ?? this.contextMenuCancelPressedBg,
+      contextMenuCancelPressedBg:
+          contextMenuCancelPressedBg ?? this.contextMenuCancelPressedBg,
       dmHeaderBg: dmHeaderBg ?? this.dmHeaderBg,
       inboxItemIconMarker: inboxItemIconMarker ?? this.inboxItemIconMarker,
       loginOrDivider: loginOrDivider ?? this.loginOrDivider,
@@ -732,9 +802,12 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       navigationButtonBg: navigationButtonBg ?? this.navigationButtonBg,
       sectionCollapseIcon: sectionCollapseIcon ?? this.sectionCollapseIcon,
       star: star ?? this.star,
-      subscriptionListHeaderLine: subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
-      subscriptionListHeaderText: subscriptionListHeaderText ?? this.subscriptionListHeaderText,
-      unreadCountBadgeTextForChannel: unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
+      subscriptionListHeaderLine:
+          subscriptionListHeaderLine ?? this.subscriptionListHeaderLine,
+      subscriptionListHeaderText:
+          subscriptionListHeaderText ?? this.subscriptionListHeaderText,
+      unreadCountBadgeTextForChannel:
+          unreadCountBadgeTextForChannel ?? this.unreadCountBadgeTextForChannel,
       userStatusText: userStatusText ?? this.userStatusText,
     );
   }
@@ -746,47 +819,171 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     }
     return DesignVariables._(
       background: Color.lerp(background, other.background, t)!,
-      bannerBgIntDanger: Color.lerp(bannerBgIntDanger, other.bannerBgIntDanger, t)!,
+      bannerBgIntDanger: Color.lerp(
+        bannerBgIntDanger,
+        other.bannerBgIntDanger,
+        t,
+      )!,
       bannerBgIntInfo: Color.lerp(bannerBgIntInfo, other.bannerBgIntInfo, t)!,
-      bannerBgIntWarning: Color.lerp(bannerBgIntWarning, other.bannerBgIntWarning, t)!,
-      bannerTextIntInfo: Color.lerp(bannerTextIntInfo, other.bannerTextIntInfo, t)!,
+      bannerBgIntWarning: Color.lerp(
+        bannerBgIntWarning,
+        other.bannerBgIntWarning,
+        t,
+      )!,
+      bannerTextIntInfo: Color.lerp(
+        bannerTextIntInfo,
+        other.bannerTextIntInfo,
+        t,
+      )!,
       bgBotBar: Color.lerp(bgBotBar, other.bgBotBar, t)!,
       bgContextMenu: Color.lerp(bgContextMenu, other.bgContextMenu, t)!,
       bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
-      bgMenuButtonActive: Color.lerp(bgMenuButtonActive, other.bgMenuButtonActive, t)!,
-      bgMenuButtonSelected: Color.lerp(bgMenuButtonSelected, other.bgMenuButtonSelected, t)!,
-      bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
+      bgMenuButtonActive: Color.lerp(
+        bgMenuButtonActive,
+        other.bgMenuButtonActive,
+        t,
+      )!,
+      bgMenuButtonSelected: Color.lerp(
+        bgMenuButtonSelected,
+        other.bgMenuButtonSelected,
+        t,
+      )!,
+      bgMessageRegular: Color.lerp(
+        bgMessageRegular,
+        other.bgMessageRegular,
+        t,
+      )!,
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
-      borderMenuButtonSelected: Color.lerp(borderMenuButtonSelected, other.borderMenuButtonSelected, t)!,
-      btnBgAttHighIntInfoActive: Color.lerp(btnBgAttHighIntInfoActive, other.btnBgAttHighIntInfoActive, t)!,
-      btnBgAttHighIntInfoNormal: Color.lerp(btnBgAttHighIntInfoNormal, other.btnBgAttHighIntInfoNormal, t)!,
-      btnBgAttHighIntWarningActive: Color.lerp(btnBgAttHighIntWarningActive, other.btnBgAttHighIntWarningActive, t)!,
-      btnBgAttHighIntWarningNormal: Color.lerp(btnBgAttHighIntWarningNormal, other.btnBgAttHighIntWarningNormal, t)!,
-      btnBgAttMediumIntInfoActive: Color.lerp(btnBgAttMediumIntInfoActive, other.btnBgAttMediumIntInfoActive, t)!,
-      btnBgAttMediumIntInfoNormal: Color.lerp(btnBgAttMediumIntInfoNormal, other.btnBgAttMediumIntInfoNormal, t)!,
-      btnBgAttMediumIntWarningActive: Color.lerp(btnBgAttMediumIntWarningActive, other.btnBgAttMediumIntWarningActive, t)!,
-      btnBgAttMediumIntWarningNormal: Color.lerp(btnBgAttMediumIntWarningNormal, other.btnBgAttMediumIntWarningNormal, t)!,
+      borderMenuButtonSelected: Color.lerp(
+        borderMenuButtonSelected,
+        other.borderMenuButtonSelected,
+        t,
+      )!,
+      btnBgAttHighIntInfoActive: Color.lerp(
+        btnBgAttHighIntInfoActive,
+        other.btnBgAttHighIntInfoActive,
+        t,
+      )!,
+      btnBgAttHighIntInfoNormal: Color.lerp(
+        btnBgAttHighIntInfoNormal,
+        other.btnBgAttHighIntInfoNormal,
+        t,
+      )!,
+      btnBgAttHighIntWarningActive: Color.lerp(
+        btnBgAttHighIntWarningActive,
+        other.btnBgAttHighIntWarningActive,
+        t,
+      )!,
+      btnBgAttHighIntWarningNormal: Color.lerp(
+        btnBgAttHighIntWarningNormal,
+        other.btnBgAttHighIntWarningNormal,
+        t,
+      )!,
+      btnBgAttMediumIntInfoActive: Color.lerp(
+        btnBgAttMediumIntInfoActive,
+        other.btnBgAttMediumIntInfoActive,
+        t,
+      )!,
+      btnBgAttMediumIntInfoNormal: Color.lerp(
+        btnBgAttMediumIntInfoNormal,
+        other.btnBgAttMediumIntInfoNormal,
+        t,
+      )!,
+      btnBgAttMediumIntWarningActive: Color.lerp(
+        btnBgAttMediumIntWarningActive,
+        other.btnBgAttMediumIntWarningActive,
+        t,
+      )!,
+      btnBgAttMediumIntWarningNormal: Color.lerp(
+        btnBgAttMediumIntWarningNormal,
+        other.btnBgAttMediumIntWarningNormal,
+        t,
+      )!,
       btnLabelAttHigh: Color.lerp(btnLabelAttHigh, other.btnLabelAttHigh, t)!,
-      btnLabelAttHighIntWarning: Color.lerp(btnLabelAttHighIntWarning, other.btnLabelAttHighIntWarning, t)!,
-      btnLabelAttLowIntDanger: Color.lerp(btnLabelAttLowIntDanger, other.btnLabelAttLowIntDanger, t)!,
-      btnLabelAttLowIntInfo: Color.lerp(btnLabelAttLowIntInfo, other.btnLabelAttLowIntInfo, t)!,
-      btnLabelAttMediumIntDanger: Color.lerp(btnLabelAttMediumIntDanger, other.btnLabelAttMediumIntDanger, t)!,
-      btnLabelAttMediumIntInfo: Color.lerp(btnLabelAttMediumIntInfo, other.btnLabelAttMediumIntInfo, t)!,
-      btnLabelAttMediumIntWarning: Color.lerp(btnLabelAttMediumIntWarning, other.btnLabelAttMediumIntWarning, t)!,
+      btnLabelAttHighIntWarning: Color.lerp(
+        btnLabelAttHighIntWarning,
+        other.btnLabelAttHighIntWarning,
+        t,
+      )!,
+      btnLabelAttLowIntDanger: Color.lerp(
+        btnLabelAttLowIntDanger,
+        other.btnLabelAttLowIntDanger,
+        t,
+      )!,
+      btnLabelAttLowIntInfo: Color.lerp(
+        btnLabelAttLowIntInfo,
+        other.btnLabelAttLowIntInfo,
+        t,
+      )!,
+      btnLabelAttMediumIntDanger: Color.lerp(
+        btnLabelAttMediumIntDanger,
+        other.btnLabelAttMediumIntDanger,
+        t,
+      )!,
+      btnLabelAttMediumIntInfo: Color.lerp(
+        btnLabelAttMediumIntInfo,
+        other.btnLabelAttMediumIntInfo,
+        t,
+      )!,
+      btnLabelAttMediumIntWarning: Color.lerp(
+        btnLabelAttMediumIntWarning,
+        other.btnLabelAttMediumIntWarning,
+        t,
+      )!,
       btnShadowAttMed: Color.lerp(btnShadowAttMed, other.btnShadowAttMed, t)!,
       composeBoxBg: Color.lerp(composeBoxBg, other.composeBoxBg, t)!,
-      contextMenuCancelText: Color.lerp(contextMenuCancelText, other.contextMenuCancelText, t)!,
-      contextMenuItemBg: Color.lerp(contextMenuItemBg, other.contextMenuItemBg, t)!,
-      contextMenuItemBgDanger: Color.lerp(contextMenuItemBgDanger, other.contextMenuItemBgDanger, t)!,
-      contextMenuItemIcon: Color.lerp(contextMenuItemIcon, other.contextMenuItemIcon, t)!,
-      contextMenuItemIconDanger: Color.lerp(contextMenuItemIconDanger, other.contextMenuItemIconDanger, t)!,
-      contextMenuItemLabel: Color.lerp(contextMenuItemLabel, other.contextMenuItemLabel, t)!,
-      contextMenuItemMeta: Color.lerp(contextMenuItemMeta, other.contextMenuItemMeta, t)!,
-      contextMenuItemText: Color.lerp(contextMenuItemText, other.contextMenuItemText, t)!,
-      contextMenuItemTextDanger: Color.lerp(contextMenuItemTextDanger, other.contextMenuItemTextDanger, t)!,
-      editorButtonPressedBg: Color.lerp(editorButtonPressedBg, other.editorButtonPressedBg, t)!,
+      contextMenuCancelText: Color.lerp(
+        contextMenuCancelText,
+        other.contextMenuCancelText,
+        t,
+      )!,
+      contextMenuItemBg: Color.lerp(
+        contextMenuItemBg,
+        other.contextMenuItemBg,
+        t,
+      )!,
+      contextMenuItemBgDanger: Color.lerp(
+        contextMenuItemBgDanger,
+        other.contextMenuItemBgDanger,
+        t,
+      )!,
+      contextMenuItemIcon: Color.lerp(
+        contextMenuItemIcon,
+        other.contextMenuItemIcon,
+        t,
+      )!,
+      contextMenuItemIconDanger: Color.lerp(
+        contextMenuItemIconDanger,
+        other.contextMenuItemIconDanger,
+        t,
+      )!,
+      contextMenuItemLabel: Color.lerp(
+        contextMenuItemLabel,
+        other.contextMenuItemLabel,
+        t,
+      )!,
+      contextMenuItemMeta: Color.lerp(
+        contextMenuItemMeta,
+        other.contextMenuItemMeta,
+        t,
+      )!,
+      contextMenuItemText: Color.lerp(
+        contextMenuItemText,
+        other.contextMenuItemText,
+        t,
+      )!,
+      contextMenuItemTextDanger: Color.lerp(
+        contextMenuItemTextDanger,
+        other.contextMenuItemTextDanger,
+        t,
+      )!,
+      editorButtonPressedBg: Color.lerp(
+        editorButtonPressedBg,
+        other.editorButtonPressedBg,
+        t,
+      )!,
       fabBg: Color.lerp(fabBg, other.fabBg, t)!,
       fabBgPressed: Color.lerp(fabBgPressed, other.fabBgPressed, t)!,
       fabLabel: Color.lerp(fabLabel, other.fabLabel, t)!,
@@ -796,45 +993,133 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       foreground: Color.lerp(foreground, other.foreground, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
-      labelCounterQuantity: Color.lerp(labelCounterQuantity, other.labelCounterQuantity, t)!,
-      labelCounterUnread: Color.lerp(labelCounterUnread, other.labelCounterUnread, t)!,
+      labelCounterQuantity: Color.lerp(
+        labelCounterQuantity,
+        other.labelCounterQuantity,
+        t,
+      )!,
+      labelCounterUnread: Color.lerp(
+        labelCounterUnread,
+        other.labelCounterUnread,
+        t,
+      )!,
       labelEdited: Color.lerp(labelEdited, other.labelEdited, t)!,
       labelMenuButton: Color.lerp(labelMenuButton, other.labelMenuButton, t)!,
-      labelSearchPrompt: Color.lerp(labelSearchPrompt, other.labelSearchPrompt, t)!,
+      labelSearchPrompt: Color.lerp(
+        labelSearchPrompt,
+        other.labelSearchPrompt,
+        t,
+      )!,
       labelTime: Color.lerp(labelTime, other.labelTime, t)!,
       link: Color.lerp(link, other.link, t)!,
       listMenuItemBg: Color.lerp(listMenuItemBg, other.listMenuItemBg, t)!,
-      listMenuItemIcon: Color.lerp(listMenuItemIcon, other.listMenuItemIcon, t)!,
-      listMenuItemText: Color.lerp(listMenuItemText, other.listMenuItemText, t)!,
+      listMenuItemIcon: Color.lerp(
+        listMenuItemIcon,
+        other.listMenuItemIcon,
+        t,
+      )!,
+      listMenuItemText: Color.lerp(
+        listMenuItemText,
+        other.listMenuItemText,
+        t,
+      )!,
       mainBackground: Color.lerp(mainBackground, other.mainBackground, t)!,
       neutralButtonBg: Color.lerp(neutralButtonBg, other.neutralButtonBg, t)!,
-      neutralButtonLabel: Color.lerp(neutralButtonLabel, other.neutralButtonLabel, t)!,
+      neutralButtonLabel: Color.lerp(
+        neutralButtonLabel,
+        other.neutralButtonLabel,
+        t,
+      )!,
       radioBorder: Color.lerp(radioBorder, other.radioBorder, t)!,
-      radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
+      radioFillSelected: Color.lerp(
+        radioFillSelected,
+        other.radioFillSelected,
+        t,
+      )!,
       statusAway: Color.lerp(statusAway, other.statusAway, t)!,
       statusIdle: Color.lerp(statusIdle, other.statusIdle, t)!,
       statusOnline: Color.lerp(statusOnline, other.statusOnline, t)!,
       textInput: Color.lerp(textInput, other.textInput, t)!,
       textMessage: Color.lerp(textMessage, other.textMessage, t)!,
-      textMessageMuted: Color.lerp(textMessageMuted, other.textMessageMuted, t)!,
+      textMessageMuted: Color.lerp(
+        textMessageMuted,
+        other.textMessageMuted,
+        t,
+      )!,
       title: Color.lerp(title, other.title, t)!,
-      channelColorSwatches: ChannelColorSwatches.lerp(channelColorSwatches, other.channelColorSwatches, t),
-      avatarPlaceholderBg: Color.lerp(avatarPlaceholderBg, other.avatarPlaceholderBg, t)!,
-      avatarPlaceholderIcon: Color.lerp(avatarPlaceholderIcon, other.avatarPlaceholderIcon, t)!,
-      contextMenuCancelBg: Color.lerp(contextMenuCancelBg, other.contextMenuCancelBg, t)!,
-      contextMenuCancelPressedBg: Color.lerp(contextMenuCancelPressedBg, other.contextMenuCancelPressedBg, t)!,
+      channelColorSwatches: ChannelColorSwatches.lerp(
+        channelColorSwatches,
+        other.channelColorSwatches,
+        t,
+      ),
+      avatarPlaceholderBg: Color.lerp(
+        avatarPlaceholderBg,
+        other.avatarPlaceholderBg,
+        t,
+      )!,
+      avatarPlaceholderIcon: Color.lerp(
+        avatarPlaceholderIcon,
+        other.avatarPlaceholderIcon,
+        t,
+      )!,
+      contextMenuCancelBg: Color.lerp(
+        contextMenuCancelBg,
+        other.contextMenuCancelBg,
+        t,
+      )!,
+      contextMenuCancelPressedBg: Color.lerp(
+        contextMenuCancelPressedBg,
+        other.contextMenuCancelPressedBg,
+        t,
+      )!,
       dmHeaderBg: Color.lerp(dmHeaderBg, other.dmHeaderBg, t)!,
-      inboxItemIconMarker: Color.lerp(inboxItemIconMarker, other.inboxItemIconMarker, t)!,
+      inboxItemIconMarker: Color.lerp(
+        inboxItemIconMarker,
+        other.inboxItemIconMarker,
+        t,
+      )!,
       loginOrDivider: Color.lerp(loginOrDivider, other.loginOrDivider, t)!,
-      loginOrDividerText: Color.lerp(loginOrDividerText, other.loginOrDividerText, t)!,
-      modalBarrierColor: Color.lerp(modalBarrierColor, other.modalBarrierColor, t)!,
-      mutedUnreadBadge: Color.lerp(mutedUnreadBadge, other.mutedUnreadBadge, t)!,
-      navigationButtonBg: Color.lerp(navigationButtonBg, other.navigationButtonBg, t)!,
-      sectionCollapseIcon: Color.lerp(sectionCollapseIcon, other.sectionCollapseIcon, t)!,
+      loginOrDividerText: Color.lerp(
+        loginOrDividerText,
+        other.loginOrDividerText,
+        t,
+      )!,
+      modalBarrierColor: Color.lerp(
+        modalBarrierColor,
+        other.modalBarrierColor,
+        t,
+      )!,
+      mutedUnreadBadge: Color.lerp(
+        mutedUnreadBadge,
+        other.mutedUnreadBadge,
+        t,
+      )!,
+      navigationButtonBg: Color.lerp(
+        navigationButtonBg,
+        other.navigationButtonBg,
+        t,
+      )!,
+      sectionCollapseIcon: Color.lerp(
+        sectionCollapseIcon,
+        other.sectionCollapseIcon,
+        t,
+      )!,
       star: Color.lerp(star, other.star, t)!,
-      subscriptionListHeaderLine: Color.lerp(subscriptionListHeaderLine, other.subscriptionListHeaderLine, t)!,
-      subscriptionListHeaderText: Color.lerp(subscriptionListHeaderText, other.subscriptionListHeaderText, t)!,
-      unreadCountBadgeTextForChannel: Color.lerp(unreadCountBadgeTextForChannel, other.unreadCountBadgeTextForChannel, t)!,
+      subscriptionListHeaderLine: Color.lerp(
+        subscriptionListHeaderLine,
+        other.subscriptionListHeaderLine,
+        t,
+      )!,
+      subscriptionListHeaderText: Color.lerp(
+        subscriptionListHeaderText,
+        other.subscriptionListHeaderText,
+        t,
+      )!,
+      unreadCountBadgeTextForChannel: Color.lerp(
+        unreadCountBadgeTextForChannel,
+        other.unreadCountBadgeTextForChannel,
+        t,
+      )!,
       userStatusText: Color.lerp(userStatusText, other.userStatusText, t)!,
     );
   }
@@ -851,8 +1136,11 @@ const kDefaultChannelColorSwatchBaseColor = 0xffc2c2c2;
 ///
 /// For how this value is cached, see [ChannelColorSwatches.forBaseColor].
 // TODO(#188) pick different colors for unsubscribed channels
-ChannelColorSwatch colorSwatchFor(BuildContext context, Subscription? subscription) {
-  return DesignVariables.of(context)
-    .channelColorSwatches.forBaseColor(
-      subscription?.color ?? kDefaultChannelColorSwatchBaseColor);
+ChannelColorSwatch colorSwatchFor(
+  BuildContext context,
+  Subscription? subscription,
+) {
+  return DesignVariables.of(context).channelColorSwatches.forBaseColor(
+    subscription?.color ?? kDefaultChannelColorSwatchBaseColor,
+  );
 }

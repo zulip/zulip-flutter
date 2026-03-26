@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../api/model/model.dart';
 import '../../api/route/users.dart';
@@ -39,7 +40,7 @@ class SetStatusPage extends StatefulWidget {
 
 class _SetStatusPageState extends State<SetStatusPage> {
   late final TextEditingController statusTextController;
-  late final ValueNotifier<UserStatusChange> statusChange;
+  late final Rx<UserStatusChange> statusChange;
 
   UserStatus get oldStatus => widget.oldStatus;
   UserStatus get newStatus => statusChange.value.apply(widget.oldStatus);
@@ -61,28 +62,28 @@ class _SetStatusPageState extends State<SetStatusPage> {
           text: asChange(text, old: oldStatus.text),
         );
       });
-    statusChange =
-        ValueNotifier(UserStatusChange(text: OptionNone(), emoji: OptionNone()))
-          ..addListener(() {
-            final text = statusChange.value.text.or(oldStatus.text) ?? '';
+    statusChange = Rx<UserStatusChange>(
+      UserStatusChange(text: OptionNone(), emoji: OptionNone()),
+    );
+    ever(statusChange, (UserStatusChange change) {
+      final text = change.text.or(oldStatus.text) ?? '';
 
-            // Ignore updating the status text field if it already has the same
-            // text. It can happen in the following cases:
-            //   1. Only the emoji is changed.
-            //   2. The same status is chosen consecutively from the suggested
-            //      statuses list.
-            //   3. This listener is called as a result of the change in status
-            //      text field.
-            if (text == statusTextController.text) return;
+      // Ignore updating the status text field if it already has the same
+      // text. It can happen in the following cases:
+      //   1. Only the emoji is changed.
+      //   2. The same status is chosen consecutively from the suggested
+      //      statuses list.
+      //   3. This listener is called as a result of the change in status
+      //      text field.
+      if (text == statusTextController.text) return;
 
-            statusTextController.text = text;
-          });
+      statusTextController.text = text;
+    });
   }
 
   @override
   void dispose() {
     statusTextController.dispose();
-    statusChange.dispose();
     super.dispose();
   }
 
@@ -169,31 +170,26 @@ class _SetStatusPageState extends State<SetStatusPage> {
       appBar: ZulipAppBar(
         title: Text(zulipLocalizations.setStatusPageTitle),
         actions: [
-          ValueListenableBuilder(
-            valueListenable: statusChange,
-            builder: (_, _, _) {
-              return _ActionButton(
-                label: zulipLocalizations.statusClearButtonLabel,
-                icon: ZulipIcons.remove,
-                onPressed: newStatus == UserStatus.zero
-                    ? null
-                    : handleStatusClear,
-              );
-            },
-          ),
-          ValueListenableBuilder(
-            valueListenable: statusChange,
-            builder: (_, change, _) {
-              return _ActionButton(
-                label: zulipLocalizations.statusSaveButtonLabel,
-                icon: ZulipIcons.check,
-                onPressed: switch ((change.text, change.emoji)) {
-                  (OptionNone(), OptionNone()) => null,
-                  _ => handleStatusSave,
-                },
-              );
-            },
-          ),
+          Obx(() {
+            return _ActionButton(
+              label: zulipLocalizations.statusClearButtonLabel,
+              icon: ZulipIcons.remove,
+              onPressed: newStatus == UserStatus.zero
+                  ? null
+                  : handleStatusClear,
+            );
+          }),
+          Obx(() {
+            final change = statusChange.value;
+            return _ActionButton(
+              label: zulipLocalizations.statusSaveButtonLabel,
+              icon: ZulipIcons.check,
+              onPressed: switch ((change.text, change.emoji)) {
+                (OptionNone(), OptionNone()) => null,
+                _ => handleStatusSave,
+              },
+            );
+          }),
         ],
       ),
       body: SafeArea(
@@ -228,20 +224,18 @@ class _SetStatusPageState extends State<SetStatusPage> {
                     icon: Row(
                       spacing: 4,
                       children: [
-                        ValueListenableBuilder(
-                          valueListenable: statusChange,
-                          builder: (_, change, _) {
-                            final emoji = change.emoji.or(oldStatus.emoji);
-                            return emoji == null
-                                ? const Icon(ZulipIcons.smile, size: 24)
-                                : UserStatusEmoji(
-                                    emoji: emoji,
-                                    size: 24,
-                                    animationMode:
-                                        ImageAnimationMode.animateConditionally,
-                                  );
-                          },
-                        ),
+                        Obx(() {
+                          final change = statusChange.value;
+                          final emoji = change.emoji.or(oldStatus.emoji);
+                          return emoji == null
+                              ? const Icon(ZulipIcons.smile, size: 24)
+                              : UserStatusEmoji(
+                                  emoji: emoji,
+                                  size: 24,
+                                  animationMode:
+                                      ImageAnimationMode.animateConditionally,
+                                );
+                        }),
                         Icon(ZulipIcons.chevron_down, size: 16),
                       ],
                     ),

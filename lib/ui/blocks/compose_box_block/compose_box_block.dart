@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/domains/channels/channels_service.dart';
 import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../../model/store.dart';
@@ -303,10 +304,12 @@ class ComposeBoxState extends State<ComposeBoxBlock>
   Widget? _bannerComposingNotAllowed(BuildContext context) {
     final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final streams = ChannelsService.to.streams;
+    final subscriptions = ChannelsService.to.subscriptions;
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
-        final channel = store.streams[streamId];
+        final channel = streams[streamId];
         if (channel == null || !store.selfHasContentAccess(channel)) {
           return Banner(
             intent: BannerIntent.info,
@@ -380,6 +383,8 @@ class ComposeBoxState extends State<ComposeBoxBlock>
   Widget build(BuildContext context) {
     final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final streams = ChannelsService.to.streams;
+    final subscriptions = ChannelsService.to.subscriptions;
 
     final bannerComposingNotAllowed = _bannerComposingNotAllowed(context);
     if (bannerComposingNotAllowed != null) {
@@ -399,11 +404,11 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     switch (narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
-        final channel = store.streams[streamId];
+        final channel = streams[streamId];
         // (If the channel is unknown, we should have already decided
         // what to show.)
         assert(channel != null);
-        final subscription = store.subscriptions[streamId];
+        final subscription = subscriptions[streamId];
         if (channel != null && subscription == null) {
           banner = Banner(
             intent: BannerIntent.warning,
