@@ -33,6 +33,7 @@ extension UserChecks on Subject<User> {
   Subject<String> get email => has((x) => x.email, 'email');
   Subject<String> get fullName => has((x) => x.fullName, 'fullName');
   Subject<String> get dateJoined => has((x) => x.dateJoined, 'dateJoined');
+  Subject<bool> get isImportedStub => has((x) => x.isImportedStub, 'isImportedStub');
   Subject<bool> get isActive => has((x) => x.isActive, 'isActive');
   Subject<bool> get isBot => has((x) => x.isBot, 'isBot');
   Subject<int?> get botType => has((x) => x.botType, 'botType');

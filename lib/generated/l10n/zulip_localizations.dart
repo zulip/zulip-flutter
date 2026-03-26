@@ -282,6 +282,18 @@ abstract class ZulipLocalizations {
   /// **'Send direct message'**
   String get profileButtonSendDirectMessage;
 
+  /// Label in the profile data table for when the user joined.
+  ///
+  /// In en, this message translates to:
+  /// **'Date joined'**
+  String get profileDateJoinedLabel;
+
+  /// Label in the profile data table for when the user was imported, shown instead of date joined when the user is an imported stub.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported on'**
+  String get profileDateImportedLabel;
+
   /// Message that appears on the user profile page when the profile cannot be shown.
   ///
   /// In en, this message translates to:
