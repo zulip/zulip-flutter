@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../api/model/model.dart';
+import '../../../../../../get/services/store_service.dart';
 import '../../../../../../model/message_list.dart';
 import '../../../../../../model/narrow.dart';
 import '../../../../../widgets/sticky_header.dart';
@@ -28,9 +29,14 @@ class MessageItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final item = this.item;
+    final store = requirePerAccountStore();
+    final isMe = item.message.senderId == store.selfUserId;
     Widget child = ColoredBox(
       color: designVariables.bgMessageRegular,
       child: Column(
+        crossAxisAlignment: isMe
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           switch (item) {
             MessageListMessageItem() => MessageWithPossibleSender(

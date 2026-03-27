@@ -1318,6 +1318,7 @@ class _MessageActionSheetHeader extends StatelessWidget {
             // TODO(#10) offer text selection; the Figma asks for it here:
             //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3483-30210&m=dev
             child: MessageContent(
+              isMe: false,
               message: message,
               content: parseMessageContent(message),
             ),
