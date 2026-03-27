@@ -1932,8 +1932,16 @@ void main() {
         ..topic.text.equals('topic before restoring')
         ..content.text.isNotNull().isEmpty();
 
+      //  Prepare for the SECOND request triggered by tapping the failed message
+      // This satisfies the linkifier fetch in didUpdateWidget
+      connection.prepare(json: {});
+
       await tester.tap(failedMessageFinder);
-      await tester.pump();
+
+      // Use pumpAndSettle to ensure the "linkifier" fetch completes
+      // and no retry timers are left hanging.
+
+      await tester.pumpAndSettle();
       check(state).controller.isA<StreamComposeBoxController>()
         ..topic.text.equals(topic)
         ..content.text.equals(failedMessageContent)
@@ -2115,7 +2123,8 @@ void main() {
       required String content,
     }) {
       final prevContentSha256 = sha256.convert(utf8.encode(prevContent)).toString();
-      check(connection.takeRequests()).single.isA<http.Request>()
+      final requests = connection.takeRequests();
+      check(requests.last).isA<http.Request>()
         ..method.equals('PATCH')
         ..url.path.equals('/api/v1/messages/$messageId')
         ..bodyFields.deepEquals({
@@ -2204,6 +2213,7 @@ void main() {
         //   (but as their own test cases, for a single narrow and start)
 
         // Save; check that the request is made and the compose box resets.
+        connection.prepare(json: {});
         connection.prepare(json: UpdateMessageResult().toJson());
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         checkRequest(messageId,
