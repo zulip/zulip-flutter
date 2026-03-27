@@ -86,12 +86,6 @@ class AddAccountPage extends GetView<LoginController> {
 class LoginPage extends GetView<LoginController> {
   const LoginPage({super.key});
 
-  static Route<void> buildRoute({
-    required GetServerSettingsResult serverSettings,
-  }) {
-    return _LoginSequenceRoute(page: LoginPage());
-  }
-
   static Future<void> handleWebAuthUrl(Uri url) async {
     return Get.find<LoginController>().handleWebAuthUrl(url);
   }

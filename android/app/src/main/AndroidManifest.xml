@@ -4,6 +4,11 @@
        https://developer.android.com/build/manage-manifests#inspect_the_merged_manifest_and_find_conflicts -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
    <uses-permission android:name="android.permission.INTERNET"/>
+   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+   <uses-permission android:name="android.permission.WAKE_LOCK"/>
+   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+   <uses-permission android:name="android.permission.VIBRATE"/>
+   <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
    <application
         android:label="Zulip"
         android:name="${applicationName}"
@@ -56,5 +61,25 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        
+        <!-- Boot receiver for starting background service -->
+        <receiver android:name=".BootReceiver" android:enabled="true" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+        
+        <!-- WorkManager initializer -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 </manifest>

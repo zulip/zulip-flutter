@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import '../api/route/realm.dart';
+import '../notifications/push_notification_service.dart';
 import 'services/account_service.dart';
 import 'services/domains/channels/channels_service.dart';
 import 'services/domains/presence/presence_service.dart';
@@ -55,32 +55,31 @@ class AppRoutes {
 
 class AppPages {
   static void _setCurrentAccount() {
-    final globalStore = GlobalService.to.globalStore;
-    if (globalStore == null) return;
-    final accountId = globalStore.lastVisitedAccount?.id ?? 0;
-    if (accountId > 0) {
-      StoreService.to.setGlobalStore(globalStore);
+    final args = Get.arguments as Map<String, dynamic>?;
+    final accountId = args?['accountId'] as int?;
 
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore != null) {
+      StoreService.to.setGlobalStore(globalStore);
+    }
+
+    if (accountId != null && accountId > 0) {
       StoreService.to.setCurrentAccount(accountId);
+    } else if (globalStore != null) {
+      final lastAccountId = globalStore.lastVisitedAccount?.id;
+      if (lastAccountId != null && lastAccountId > 0) {
+        StoreService.to.setCurrentAccount(lastAccountId);
+      }
     }
   }
 
   static final List<GetPage<dynamic>> pages = [
     GetPage<dynamic>(
-      name: AppRoutes.login,
-      page: () {
-        final args = Get.arguments as Map<String, dynamic>? ?? {};
-        final serverSettings =
-            args['serverSettings'] as GetServerSettingsResult;
-        return LoginPage(serverSettings: serverSettings);
-      },
-    ),
-    GetPage<dynamic>(
       name: AppRoutes.addAccount,
       page: () => const AddAccountPage(),
       binding: LoginBinding(),
     ),
-    GetPage(name: AppRoutes.login, page: () => LoginPage()),
+    GetPage<dynamic>(name: AppRoutes.login, page: () => const LoginPage()),
     GetPage<dynamic>(
       name: AppRoutes.home,
       page: () {
@@ -162,6 +161,7 @@ class InitialBinding extends Bindings {
     Get.lazyPut<GlobalService>(() => GlobalService());
     Get.lazyPut<AccountService>(() => AccountService());
     Get.lazyPut<UnreadsService>(() => UnreadsService());
+    Get.lazyPut<PushNotificationService>(() => PushNotificationService());
 
     Get.lazyPut<UsersService>(() => UsersService());
     Get.lazyPut<PresenceService>(() => PresenceService());

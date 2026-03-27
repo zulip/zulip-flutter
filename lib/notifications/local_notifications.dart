@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'dart:math';
 import 'dart:typed_data'; // Для Int64List
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:html/parser.dart' show parse;
 
 class NotificationHelper {
@@ -128,6 +129,8 @@ class LocalNotificationsService {
   }) async {
     final notificationId = NotificationHelper.generateId();
     final cleanBody = stripHtml(body);
+
+    unawaited(Get.snackbar(title, cleanBody).show());
 
     if (Platform.isAndroid) {
       return _showAndroid(

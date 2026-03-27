@@ -18,32 +18,35 @@ class ExperimentalFeaturesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final globalSettings = GlobalService.to.settingsStore;
-    final flags = GlobalSettingsStore.experimentalFeatureFlags;
-    assert(flags.isNotEmpty);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
-      ),
-      body: globalSettings == null
-          ? const SizedBox.shrink()
-          : Column(
-              children: [
-                ListTile(
-                  title: Text(
-                    zulipLocalizations.experimentalFeatureSettingsWarning,
-                  ),
-                ),
-                for (final flag in flags)
-                  SwitchListTile.adaptive(
+    return Obx(() {
+      GlobalService.to.settingsChanged.value;
+      final globalSettings = GlobalService.to.currentSettingsStore.value;
+      final flags = GlobalSettingsStore.experimentalFeatureFlags;
+      assert(flags.isNotEmpty);
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
+        ),
+        body: globalSettings == null
+            ? const SizedBox.shrink()
+            : Column(
+                children: [
+                  ListTile(
                     title: Text(
-                      flag.name,
-                    ), // no i18n; these are developer-facing settings
-                    value: globalSettings.getBool(flag),
-                    onChanged: (value) => globalSettings.setBool(flag, value),
+                      zulipLocalizations.experimentalFeatureSettingsWarning,
+                    ),
                   ),
-              ],
-            ),
-    );
+                  for (final flag in flags)
+                    SwitchListTile.adaptive(
+                      title: Text(flag.name),
+                      value: globalSettings.getBool(flag),
+                      onChanged: (value) {
+                        globalSettings.setBool(flag, value);
+                      },
+                    ),
+                ],
+              ),
+      );
+    });
   }
 }

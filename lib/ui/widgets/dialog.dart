@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../generated/l10n/zulip_localizations.dart';
 import '../themes/content_theme.dart';
@@ -123,9 +124,8 @@ DialogStatus<void> showErrorDialog({
   Uri? learnMoreButtonUrl,
 }) {
   final zulipLocalizations = ZulipLocalizations.of(context);
-  final future = showDialog<void>(
-    context: context,
-    builder: (BuildContext context) => AlertDialog.adaptive(
+  final future = Get.dialog(
+    AlertDialog.adaptive(
       title: Text(title),
       content: message != null ? _adaptiveContent(Text(message)) : null,
       actions: [

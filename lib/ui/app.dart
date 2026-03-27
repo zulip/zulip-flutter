@@ -319,29 +319,27 @@ class _TrackNavigationStack extends NavigatorObserver with NavigationStack {
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    assert(identical(routes.lastOrNull, route));
-    routes.removeLast();
-    assert(identical(routes.lastOrNull, previousRoute));
+    if (routes.isNotEmpty && identical(routes.lastOrNull, route)) {
+      routes.removeLast();
+    }
   }
 
   @override
   void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
     final index = routes.lastIndexOf(route);
-    assert(index >= 0);
-    routes.removeAt(index);
-    assert(
-      (previousRoute == null && index == 0) ||
-          (previousRoute != null && routes[index - 1] == previousRoute),
-    );
+    if (index >= 0) {
+      routes.removeAt(index);
+    }
   }
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    assert(newRoute != null); // TODO(upstream) why doesn't signature say this?
-    assert(oldRoute != null); // TODO(upstream) why doesn't signature say this?
-    final index = routes.lastIndexOf(oldRoute!);
-    assert(index >= 0);
-    routes[index] = newRoute!;
+    if (newRoute != null && oldRoute != null) {
+      final index = routes.lastIndexOf(oldRoute);
+      if (index >= 0) {
+        routes[index] = newRoute;
+      }
+    }
   }
 
   // No didChangeTop; it summarizes changes that the observer was already

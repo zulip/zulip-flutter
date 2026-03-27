@@ -52,31 +52,46 @@ class NotificationOpenService {
     try {
       switch (defaultTargetPlatform) {
         case TargetPlatform.iOS:
-          // On iOS, the notification tap that causes a launch of the app is
-          // handled a bit differently than on Android where all types of
-          // notification tap events are served via the
-          // `notificationTapEventsStream`.
-          _notifDataFromLaunch = await _notifPigeonApi
-              .getNotificationDataFromLaunch();
+          try {
+            _notifDataFromLaunch = await _notifPigeonApi
+                .getNotificationDataFromLaunch();
+          } catch (e) {
+            debugPrint(
+              'NotificationOpenService: getNotificationDataFromLaunch failed: $e',
+            );
+          }
 
-          _notifPigeonApi.notificationTapEventsStream().listen(
-            _navigateForNotification,
-          );
+          _setupNotificationTapListener();
 
         case TargetPlatform.android:
-          _notifPigeonApi.notificationTapEventsStream().listen(
-            _navigateForNotification,
-          );
+          _setupNotificationTapListener();
 
         case TargetPlatform.fuchsia:
         case TargetPlatform.linux:
         case TargetPlatform.macOS:
         case TargetPlatform.windows:
-          // Do nothing; we don't offer notifications on these platforms.
           break;
       }
     } finally {
-      _initializedSignal!.complete();
+      _initializedSignal?.complete();
+    }
+  }
+
+  void _setupNotificationTapListener() {
+    try {
+      final stream = _notifPigeonApi.notificationTapEventsStream();
+      stream.listen(
+        _navigateForNotification,
+        onError: (Object e, StackTrace st) {
+          debugPrint(
+            'NotificationOpenService: notificationTapEvents stream error: $e',
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint(
+        'NotificationOpenService: notificationTapEventsStream failed: $e',
+      );
     }
   }
 

@@ -24,6 +24,9 @@ class StoreService extends GetxService {
   GlobalStore? _globalStore;
 
   void setGlobalStore(GlobalStore store) {
+    if (_globalStore != null) {
+      _globalStore!.removeListener(_onGlobalStoreChanged);
+    }
     _globalStore = store;
     store.addListener(_onGlobalStoreChanged);
   }

@@ -1323,7 +1323,13 @@ class LiveGlobalStore extends GlobalStore {
   static Future<void> _maybeDisableOsBackup(File databaseFile) async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:
-        await IosNativeHostApi().setExcludedFromBackup(databaseFile.path);
+        try {
+          await IosNativeHostApi().setExcludedFromBackup(databaseFile.path);
+        } catch (e) {
+          debugPrint(
+            'IosNativeHostApi.setExcludedFromBackup failed (expected if plugin not ready): $e',
+          );
+        }
 
       case TargetPlatform.android:
         // On Android, backups are disabled for all files.
