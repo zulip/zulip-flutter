@@ -70,8 +70,9 @@ class ShareService {
     final navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
-    if (!context.mounted)
+    if (!context.mounted) {
       return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
+    }
 
     final globalStore = GlobalStoreWidget.of(context);
 

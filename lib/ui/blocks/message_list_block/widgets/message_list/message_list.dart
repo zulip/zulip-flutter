@@ -6,6 +6,7 @@ import '../../../../../get/services/store_service.dart';
 import '../../../../../model/message_list.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../../model/store.dart';
+import '../../../../utils/page.dart';
 import '../../../compose_box_block/compose_box_block.dart';
 import '../../message_list.dart';
 import '../../../../widgets/scrolling.dart';
@@ -21,6 +22,7 @@ import 'empty_message_list_placeholder.dart';
 import 'message/message_item.dart';
 import 'message_list_history_start.dart';
 import 'message_list_loading_more.dart';
+import 'messages_list_service.dart';
 
 /// The message list.
 ///
@@ -60,6 +62,7 @@ class _MessageListState extends State<MessageList> {
   @override
   void initState() {
     super.initState();
+    MessagesListService.pageContext = PageRoot.contextOf(context);
     _onStoreChanged();
     scrollController.addListener(_scrollChanged);
     ever(StoreService.to.currentStore, (_) => _onStoreChanged());

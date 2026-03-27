@@ -19,14 +19,17 @@ import 'website_preview.dart';
 
 /// A list of DOM nodes to display in block layout.
 class BlockContentList extends StatelessWidget {
-  const BlockContentList({super.key, required this.nodes});
+  const BlockContentList({super.key, required this.nodes, this.isMe = false});
 
+  final bool isMe;
   final List<BlockContentNode> nodes;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: isMe
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         ...nodes.map((node) {
           return switch (node) {
@@ -35,9 +38,9 @@ class BlockContentList extends StatelessWidget {
               // just use an empty Text.
               const Text(''),
             ThematicBreakNode() => const ThematicBreak(),
-            ParagraphNode() => Paragraph(node: node),
-            HeadingNode() => Heading(node: node),
-            QuotationNode() => Quotation(node: node),
+            ParagraphNode() => Paragraph(node: node, isMe: isMe),
+            HeadingNode() => Heading(node: node, isMe: isMe),
+            QuotationNode() => Quotation(node: node, isMe: isMe),
             ListNode() => ListNodeWidget(node: node),
             SpoilerNode() => Spoiler(node: node),
             CodeBlockNode() => CodeBlock(node: node),

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:get/get.dart' hide Value;
@@ -186,12 +188,7 @@ class LoginController extends GetxController {
     }
     inProgress.value = false;
 
-    unawaited(
-      Get.toNamed<dynamic>(
-        AppRoutes.login,
-        arguments: {'serverSettings': serverSettings},
-      ),
-    );
+    unawaited(Get.toNamed(AppRoutes.login, arguments: serverSettings));
   }
 
   Future<void> handleWebAuthUrl(Uri url) async {

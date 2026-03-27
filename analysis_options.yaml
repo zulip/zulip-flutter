@@ -3,6 +3,9 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  errors:
+    inference_failure_on_function_invocation: ignore
+    inference_failure_on_instance_creation: ignore
   language:
     strict-inference: true
     strict-raw-types: true

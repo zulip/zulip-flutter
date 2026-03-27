@@ -13,27 +13,49 @@ import 'widgets/block_content_list.dart';
 class MessageContent extends StatelessWidget {
   const MessageContent({
     super.key,
+    required this.isMe,
     required this.message,
     required this.content,
   });
 
+  final bool isMe;
   final Message message;
   final ZulipMessageContent content;
 
   @override
   Widget build(BuildContext context) {
     final content = this.content;
-    return InheritedMessage(
-      message: message,
-      child: DefaultTextStyle(
-        style: ContentTheme.of(context).textStylePlainParagraph,
-        child: switch (content) {
-          ZulipContent() => BlockContentList(nodes: content.nodes),
-          PollContent() => PollWidget(
-            messageId: message.id,
-            poll: content.poll,
-          ),
-        },
+    return Container(
+      margin: EdgeInsets.only(
+        top: 4,
+        right: isMe ? 0 : 40,
+        left: isMe ? 40 : 0,
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: isMe
+            ? Color.fromRGBO(62, 106, 151, 1)
+            : Color.fromRGBO(33, 48, 64, 1),
+        borderRadius: BorderRadius.circular(12).copyWith(
+          topLeft: isMe ? null : Radius.circular(0),
+          topRight: !isMe ? null : Radius.circular(0),
+        ),
+      ),
+      child: InheritedMessage(
+        message: message,
+        child: DefaultTextStyle(
+          style: ContentTheme.of(context).textStylePlainParagraph,
+          child: switch (content) {
+            ZulipContent() => BlockContentList(
+              nodes: content.nodes,
+              isMe: isMe,
+            ),
+            PollContent() => PollWidget(
+              messageId: message.id,
+              poll: content.poll,
+            ),
+          },
+        ),
       ),
     );
   }

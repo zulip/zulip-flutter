@@ -45,6 +45,7 @@ class SenderRow extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final sender = store.getUser(message.senderId);
+    final isMe = message.senderId == store.selfUserId;
     final timestamp = timestampStyle.format(
       message.timestamp,
       now: DateTime.now(),
@@ -57,6 +58,10 @@ class SenderRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: localizedTextBaseline(context),
         children: [
@@ -72,6 +77,9 @@ class SenderRow extends StatelessWidget {
                       ),
                     ),
               child: Row(
+                mainAxisAlignment: isMe
+                    ? MainAxisAlignment.end
+                    : MainAxisAlignment.start,
                 children: [
                   Avatar(
                     size: 32,

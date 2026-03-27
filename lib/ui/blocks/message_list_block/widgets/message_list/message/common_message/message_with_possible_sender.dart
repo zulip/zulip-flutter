@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../../../../../../../api/model/model.dart';
@@ -7,8 +5,9 @@ import '../../../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../../../get/services/store_service.dart';
 import '../../../../../../../model/message_list.dart';
 import '../../../../../../../model/narrow.dart';
-import '../../../../../../widgets/action_sheet.dart';
 import '../../../../../../widgets/button.dart';
+import '../../../../../../widgets/custom_swipe_to.dart';
+import '../../../../../../widgets/focused_menu.dart';
 import '../../../../../content_block/content.dart';
 import '../../../../../../widgets/emoji_reaction.dart';
 import '../../../../../../values/icons.dart';
@@ -17,6 +16,7 @@ import '../../../../../../values/text.dart';
 import '../../../../../../values/theme.dart';
 import '../../../../message_list_block.dart';
 import '../../../sender_row.dart';
+import '../../messages_list_service.dart';
 import 'edit_message_status_row.dart';
 import 'restore_edit_message_gesture_detector.dart';
 
@@ -34,11 +34,17 @@ class MessageWithPossibleSender extends StatelessWidget {
   final Narrow narrow;
   final MessageListMessageItem item;
 
+  void _answerMessage(BuildContext context) {
+    MessagesListService.answerMessage(item);
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
     final message = item.message;
+
+    final isMe = message.senderId == store.selfUserId;
 
     final zulipLocalizations = ZulipLocalizations.of(context);
     String? editStateText;
@@ -66,7 +72,11 @@ class MessageWithPossibleSender extends StatelessWidget {
       );
     }
 
-    Widget content = MessageContent(message: message, content: item.content);
+    Widget content = MessageContent(
+      isMe: isMe,
+      message: message,
+      content: item.content,
+    );
 
     final editMessageErrorStatus = store.getEditMessageErrorStatus(message.id);
     if (editMessageErrorStatus != null) {
@@ -87,15 +97,15 @@ class MessageWithPossibleSender extends StatelessWidget {
       }
     }
 
-    final tapOpensConversation = switch (narrow) {
-      CombinedFeedNarrow() ||
-      ChannelNarrow() ||
-      TopicNarrow() ||
-      DmNarrow() => false,
-      MentionsNarrow() ||
-      StarredMessagesNarrow() ||
-      KeywordSearchNarrow() => true,
-    };
+    // final tapOpensConversation = switch (narrow) {
+    //   CombinedFeedNarrow() ||
+    //   ChannelNarrow() ||
+    //   TopicNarrow() ||
+    //   DmNarrow() => false,
+    //   MentionsNarrow() ||
+    //   StarredMessagesNarrow() ||
+    //   KeywordSearchNarrow() => true,
+    // };
 
     final showAsMuted =
         store.isUserMuted(message.senderId) &&
@@ -103,104 +113,123 @@ class MessageWithPossibleSender extends StatelessWidget {
           context,
         )!.isMutedMessageRevealed(message.id);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: tapOpensConversation
-          ? () => unawaited(
-              Navigator.push(
-                context,
-                MessageListBlockPage.buildRoute(
-                  context: context,
-                  narrow: SendableNarrow.ofMessage(
-                    message,
-                    selfUserId: store.selfUserId,
-                  ),
-                  // TODO(#1655) "this view does not mark messages as read on scroll"
-                  initAnchorMessageId: message.id,
-                ),
-              ),
-            )
-          : null,
-      onLongPress: showAsMuted
-          ? null
-          : () => showMessageActionSheet(context: context, message: message),
-      onSecondaryTap: showAsMuted
-          ? null
-          : () => showMessageActionSheet(context: context, message: message),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Column(
-          children: [
-            if (item.showSender)
-              SenderRow(
-                message: message,
-                timestampStyle: MessageTimestampStyle.timeOnly,
-              ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: localizedTextBaseline(context),
+    return CustomSwipeTo(
+      onLeftSwipe: (details) {
+        _answerMessage(context);
+      },
+      child: FocusedMessageMenu(
+        isMy: isMe,
+        item: item,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          // onTap: tapOpensConversation
+          //     ? () => unawaited(
+          //         Navigator.push(
+          //           context,
+          //           MessageListBlockPage.buildRoute(
+          //             context: context,
+          //             narrow: SendableNarrow.ofMessage(
+          //               message,
+          //               selfUserId: store.selfUserId,
+          //             ),
+          //             // TODO(#1655) "this view does not mark messages as read on scroll"
+          //             initAnchorMessageId: message.id,
+          //           ),
+          //         ),
+          //       )
+          //     : null,
+          // onLongPress: showAsMuted
+          //     ? null
+          //     : () =>
+          //           showMessageActionSheet(context: context, message: message),
+          // onSecondaryTap: showAsMuted
+          //     ? null
+          //     : () => showMessageActionSheet(context: context, message: message),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Column(
+              crossAxisAlignment: isMe
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
-                const SizedBox(width: 16),
-                Expanded(
-                  child: showAsMuted
-                      ? Align(
-                          alignment: AlignmentDirectional.topStart,
-                          child: ZulipWebUiKitButton(
-                            label: zulipLocalizations.revealButtonLabel,
-                            icon: ZulipIcons.eye,
-                            size: ZulipWebUiKitButtonSize.small,
-                            intent: ZulipWebUiKitButtonIntent.neutral,
-                            attention: ZulipWebUiKitButtonAttention.minimal,
-                            onPressed: () {
-                              MessageListBlockPage.ancestorOf(
-                                context,
-                              ).revealMutedMessage(message.id);
-                            },
-                          ),
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            content,
-                            if ((message.reactions?.total ?? 0) > 0)
-                              ReactionChipsList(
-                                messageId: message.id,
-                                reactions: message.reactions!,
+                if (item.showSender)
+                  SenderRow(
+                    message: message,
+                    timestampStyle: MessageTimestampStyle.timeOnly,
+                  ),
+                Row(
+                  mainAxisAlignment: isMe
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: localizedTextBaseline(context),
+                  children: [
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: showAsMuted
+                          ? Align(
+                              alignment: AlignmentDirectional.topStart,
+                              child: ZulipWebUiKitButton(
+                                label: zulipLocalizations.revealButtonLabel,
+                                icon: ZulipIcons.eye,
+                                size: ZulipWebUiKitButtonSize.small,
+                                intent: ZulipWebUiKitButtonIntent.neutral,
+                                attention: ZulipWebUiKitButtonAttention.minimal,
+                                onPressed: () {
+                                  MessageListBlockPage.ancestorOf(
+                                    context,
+                                  ).revealMutedMessage(message.id);
+                                },
                               ),
-                            if (editMessageErrorStatus != null)
-                              EditMessageStatusRow(
-                                messageId: message.id,
-                                status: editMessageErrorStatus,
-                              )
-                            else if (editStateText != null)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Text(
-                                  editStateText,
-                                  textAlign: TextAlign.end,
-                                  style: TextStyle(
-                                    color: designVariables.labelEdited,
-                                    fontSize: 12,
-                                    height: (12 / 12),
-                                    letterSpacing: proportionalLetterSpacing(
-                                      context,
-                                      0.05,
-                                      baseFontSize: 12,
-                                    ),
+                            )
+                          : Column(
+                              crossAxisAlignment: isMe
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                content,
+                                if ((message.reactions?.total ?? 0) > 0)
+                                  ReactionChipsList(
+                                    messageId: message.id,
+                                    reactions: message.reactions!,
                                   ),
-                                ),
-                              )
-                            else
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                              ),
-                          ],
-                        ),
+                                if (editMessageErrorStatus != null)
+                                  EditMessageStatusRow(
+                                    messageId: message.id,
+                                    status: editMessageErrorStatus,
+                                  )
+                                else if (editStateText != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                    child: Text(
+                                      editStateText,
+                                      textAlign: TextAlign.end,
+                                      style: TextStyle(
+                                        color: designVariables.labelEdited,
+                                        fontSize: 12,
+                                        height: (12 / 12),
+                                        letterSpacing:
+                                            proportionalLetterSpacing(
+                                              context,
+                                              0.05,
+                                              baseFontSize: 12,
+                                            ),
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                  ),
+                              ],
+                            ),
+                    ),
+                    SizedBox(width: 16, child: star),
+                  ],
                 ),
-                SizedBox(width: 16, child: star),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

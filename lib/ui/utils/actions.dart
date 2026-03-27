@@ -352,8 +352,9 @@ abstract final class ZulipAction {
   }) async {
     final store = requirePerAccountStore();
     final channel = store.streams[channelId];
-    if (channel == null || channel is Subscription)
+    if (channel == null || channel is Subscription) {
       return; // TODO could give feedback
+    }
 
     try {
       await channels_api.subscribeToChannel(

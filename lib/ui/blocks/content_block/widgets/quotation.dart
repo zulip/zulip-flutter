@@ -4,9 +4,10 @@ import '../../../../model/content.dart';
 import 'block_content_list.dart';
 
 class Quotation extends StatelessWidget {
-  const Quotation({super.key, required this.node});
+  const Quotation({super.key, required this.node, this.isMe = false});
 
   final QuotationNode node;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class Quotation extends StatelessWidget {
             ),
           ),
         ),
-        child: BlockContentList(nodes: node.nodes),
+        child: BlockContentList(nodes: node.nodes, isMe: isMe),
       ),
     );
   }

@@ -20,7 +20,7 @@ class RecentDmConversationsItem extends StatelessWidget {
   final int unreadCount;
   final OnDmSelectCallback onDmSelect;
 
-  static const double _avatarSize = 32;
+  static const double _avatarSize = 48;
 
   @override
   Widget build(BuildContext context) {
@@ -81,53 +81,65 @@ class RecentDmConversationsItem extends StatelessWidget {
       color: backgroundColor,
       child: InkWell(
         onTap: () => onDmSelect(narrow),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
-                child: AvatarShape(
-                  size: _avatarSize,
-                  borderRadius: 3,
-                  backgroundColor: userIdForPresence != null
-                      ? backgroundColor
-                      : null,
-                  userIdForPresence: userIdForPresence,
-                  child: avatar,
-                ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 0),
+              child: AvatarShape(
+                size: _avatarSize,
+                borderRadius: 99,
+                backgroundColor: userIdForPresence != null
+                    ? backgroundColor
+                    : null,
+                userIdForPresence: userIdForPresence,
+                child: avatar,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text.rich(
-                    style: TextStyle(
-                      fontSize: 17,
-                      height: (20 / 17),
-                      // TODO(design) check if this is the right variable
-                      color: designVariables.labelMenuButton,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 48),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.withValues(alpha: 0.25),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    title,
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              unreadCount > 0
-                  ? Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 16),
-                      child: CounterBadge(
-                        kind: CounterBadgeKind.unread,
-                        channelIdForBackground: null,
-                        count: unreadCount,
+                padding: const EdgeInsets.only(top: 8, bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text.rich(
+                      style: TextStyle(
+                        fontSize: 17,
+                        height: 1.15,
+                        // TODO(design) check if this is the right variable
+                        color: designVariables.labelMenuButton,
                       ),
-                    )
-                  : const SizedBox(),
-            ],
-          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      title,
+                    ),
+                    // TODO Добавить последнее сообщение чата
+                    Text('', maxLines: 2, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            unreadCount > 0
+                ? Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 16),
+                    child: CounterBadge(
+                      kind: CounterBadgeKind.unread,
+                      channelIdForBackground: null,
+                      count: unreadCount,
+                    ),
+                  )
+                : const SizedBox(),
+          ],
         ),
       ),
     );

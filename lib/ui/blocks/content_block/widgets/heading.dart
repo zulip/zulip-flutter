@@ -6,9 +6,10 @@ import '../../../values/text.dart';
 import 'helpers.dart';
 
 class Heading extends StatelessWidget {
-  const Heading({super.key, required this.node});
+  const Heading({super.key, required this.node, this.isMe = false});
 
   final HeadingNode node;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +25,7 @@ class Heading extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 15, bottom: 5),
       child: contentBuildBlockInlineContainer(
+        textAlign: isMe ? TextAlign.end : TextAlign.start,
         style: TextStyle(fontSize: kBaseFontSize * emHeight, height: 1.4)
             // Could set boldness relative to ambient text style, which itself
             // might be bolder than normal (e.g. in spoiler headers).

@@ -4,8 +4,9 @@ import '../../../../model/content.dart';
 import 'helpers.dart';
 
 class Paragraph extends StatelessWidget {
-  const Paragraph({super.key, required this.node});
+  const Paragraph({super.key, required this.node, this.isMe = false});
 
+  final bool isMe;
   final ParagraphNode node;
 
   @override
@@ -17,6 +18,7 @@ class Paragraph extends StatelessWidget {
     final text = contentBuildBlockInlineContainer(
       node: node,
       style: DefaultTextStyle.of(context).style,
+      textAlign: isMe ? TextAlign.end : TextAlign.start,
     );
 
     // If the paragraph didn't actually have a `p` element in the HTML,
