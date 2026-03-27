@@ -45,5 +45,6 @@ class HomeController extends GetxController {
     Get.toNamed<dynamic>(AppRoutes.settings);
   }
 
-  bool get isMobile => Platform.isAndroid || Platform.isIOS;
+  bool get isMobile =>
+      Platform.isAndroid || (Platform.isIOS && Get.context!.isPhone);
 }

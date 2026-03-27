@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:path/path.dart' as path;
 
 import '../../../../../api/exception.dart';
@@ -341,16 +342,16 @@ class _ContentInputState extends State<ContentInput> {
                       },
                     ),
                     if (!Platform.isMacOS && !Platform.isWindows)
-                    FocusedMenuItem(
-                      trailingIcon: Icon(
-                        ZulipIcons.camera,
-                        color: designVariables.foreground.withFadedAlpha(0.5),
+                      FocusedMenuItem(
+                        trailingIcon: Icon(
+                          ZulipIcons.camera,
+                          color: designVariables.foreground.withFadedAlpha(0.5),
+                        ),
+                        title: Text('Камера'),
+                        onPressed: () {
+                          _handlePress(context, ComposeBoxService.openCamera);
+                        },
                       ),
-                      title: Text('Камера'),
-                      onPressed: () {
-                        _handlePress(context, ComposeBoxService.openCamera);
-                      },
-                    ),
                   ],
                   child: SizedBox(
                     height: composeButtonSize,
@@ -364,7 +365,8 @@ class _ContentInputState extends State<ContentInput> {
               Expanded(
                 child: Focus(
                   onKeyEvent: (FocusNode node, KeyEvent event) {
-                    if (!(Platform.isAndroid || Platform.isIOS)) {
+                    if (!(Platform.isAndroid ||
+                        (Platform.isIOS && Get.context!.isPhone))) {
                       if (event is KeyDownEvent) {
                         final hardwareKeyboard = HardwareKeyboard.instance;
                         if ((hardwareKeyboard.isControlPressed ||

@@ -13,21 +13,38 @@ class BackgroundService extends GetxService {
   static BackgroundService get instance => Get.find<BackgroundService>();
 
   static const _channel = MethodChannel('zulip/background');
+  static const _readyChannel = MethodChannel('zulip/ready');
   Timer? _backgroundFetchTimer;
+  bool _isInitialized = false;
 
   Future<void> start() async {
+    if (_isInitialized) return;
+
+    // Wait for native to signal it's ready before trying to start
+    _readyChannel.setMethodCallHandler(_handleReadyCall);
+
+    debugPrint('BackgroundService: Waiting for native to be ready...');
+  }
+
+  Future<void> _handleReadyCall(MethodCall call) async {
+    if (call.method == 'onNativeReady') {
+      debugPrint('BackgroundService: Native is ready, starting...');
+      await _tryStart();
+    }
+  }
+
+  Future<void> _tryStart() async {
     try {
       if (Platform.isIOS) {
         await _channel.invokeMethod('startBackgroundFetch');
-        _channel.setMethodCallHandler(_handleMethodCall);
       } else if (Platform.isAndroid) {
         await _channel.invokeMethod('startBackgroundService');
-        _channel.setMethodCallHandler(_handleMethodCall);
       }
+      _channel.setMethodCallHandler(_handleMethodCall);
+      _isInitialized = true;
+      debugPrint('BackgroundService: Started successfully');
     } catch (e) {
-      debugPrint(
-        'BackgroundService start failed (platform channel not available): $e',
-      );
+      debugPrint('BackgroundService start failed: $e');
     }
   }
 
@@ -117,6 +134,12 @@ class BackgroundService extends GetxService {
 
   Future<void> _handleSilentPush(Map<dynamic, dynamic> payload) async {
     debugPrint('BackgroundService: Received silent push: $payload');
+    await _fetchNewMessages();
+  }
+
+  /// Manually trigger background fetch - useful for testing
+  Future<void> triggerBackgroundFetch() async {
+    debugPrint('BackgroundService: Manual trigger called');
     await _fetchNewMessages();
   }
 

@@ -18,7 +18,6 @@ import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../host/ios_native.g.dart';
 import '../log.dart';
-import '../notifications/local_notifications.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
@@ -840,7 +839,7 @@ class PerAccountStore extends PerAccountStoreBase
   //|//////////////////////////////
   // Streams, topics, and stuff about them.
 
-  @protected
+
   @override
   ChannelStore get channelStore => _channels;
   final ChannelStoreImpl _channels;
@@ -1042,11 +1041,7 @@ class PerAccountStore extends PerAccountStoreBase
         notifyListeners();
 
       case MessageEvent():
-        assert(
-          debugLog(
-            "server event: message ${jsonEncode(event.message.toJson())}",
-          ),
-        );
+
         // Assert against malformed events that might be created in test code.
         assert(event.message.matchContent == null);
         assert(event.message.matchTopic == null);
@@ -1057,15 +1052,6 @@ class PerAccountStore extends PerAccountStoreBase
         recentSenders.handleMessage(event.message); // TODO(#824)
         topics.handleMessageEvent(event);
 
-        if (event.message.isMeMessage) {
-          unawaited(
-            LocalNotificationsService().showNotification(
-              title: event.message.senderFullName,
-              body: event.message.content,
-              groupKey: event.message.senderId.toString(),
-            ),
-          );
-        }
       // When adding anything here (to handle [MessageEvent]),
       // it probably belongs in [reconcileMessages] too.
 

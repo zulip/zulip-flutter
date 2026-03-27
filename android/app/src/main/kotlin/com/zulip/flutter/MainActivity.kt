@@ -48,9 +48,9 @@ class MainActivity : FlutterActivity() {
   }
 
   private fun startBackgroundWorkManager() {
-    val workRequest = PeriodicWorkRequestBuilder<BackgroundWorker>(15, TimeUnit.MINUTES)
+    val workRequest = PeriodicWorkRequestBuilder<BackgroundWorker>(5, TimeUnit.MINUTES)
       .build()
-    
+
     WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
       "zulip_background_fetch",
       ExistingPeriodicWorkPolicy.KEEP,
@@ -103,13 +103,13 @@ class BackgroundWorker(
       applicationContext,
       "zulip/background"
     )
-    
+
     try {
       backgroundChannel.invokeMethod("onBackgroundFetch", null)
     } catch (e: Exception) {
       e.printStackTrace()
     }
-    
+
     return Result.success()
   }
 }

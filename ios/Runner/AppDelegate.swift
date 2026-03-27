@@ -20,10 +20,29 @@ import BackgroundTasks
         name: "zulip/push_tokens",
         binaryMessenger: controller.binaryMessenger
       )
+      
       backgroundChannel = FlutterMethodChannel(
         name: "zulip/background",
         binaryMessenger: controller.binaryMessenger
       )
+      backgroundChannel?.setMethodCallHandler { [weak self] call, result in
+        switch call.method {
+        case "startBackgroundFetch":
+          self?.setupBackgroundFetch(application)
+          result(nil)
+        case "startBackgroundService":
+          result(nil)
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
+      
+      // Signal Flutter that native is ready
+      let readyChannel = FlutterMethodChannel(
+        name: "zulip/ready",
+        binaryMessenger: controller.binaryMessenger
+      )
+      readyChannel.invokeMethod("onNativeReady", arguments: nil)
     }
 
     UNUserNotificationCenter.current().delegate = self
@@ -45,9 +64,14 @@ import BackgroundTasks
     }
 
     // Register for background fetch
-    application.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
+    // Note: We'll also register when Flutter calls startBackgroundFetch
     
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+  
+  private func setupBackgroundFetch(_ application: UIApplication) {
+    application.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
+    print("AppDelegate: Background fetch enabled")
   }
 
   // Background fetch handler
@@ -81,19 +105,29 @@ import BackgroundTasks
     print("Failed to register for remote notifications: \(error.localizedDescription)")
   }
 
-  // Called when a background notification is received
+  // Called when a background notification is received (iOS 10+)
   override func application(
     _ application: UIApplication,
     didReceiveRemoteNotification userInfo: [AnyHashable: Any],
     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
   ) {
     // Handle background notification
-    print("Received background notification: \(userInfo)")
+    print("AppDelegate: Received background notification: \(userInfo)")
     
-    // Forward to notification tap listener
-    notificationTapEventListener?.onNotificationTapEvent(payload: userInfo)
-    
-    completionHandler(.newData)
+    // Check if it's a silent push (content-available: 1)
+    if let contentAvailable = userInfo["content-available"] as? Int, contentAvailable == 1 {
+      print("AppDelegate: Silent push received, fetching new messages...")
+      
+      // Call Flutter background fetch handler
+      backgroundChannel?.invokeMethod("onSilentPush", arguments: userInfo) { result in
+        completionHandler(.newData)
+      }
+    } else {
+      // Regular notification tap
+      print("AppDelegate: Regular notification tap")
+      notificationTapEventListener?.onNotificationTapEvent(payload: userInfo)
+      completionHandler(.newData)
+    }
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {

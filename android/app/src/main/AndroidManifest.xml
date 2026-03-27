@@ -3,20 +3,20 @@
      and follow these instructions:
        https://developer.android.com/build/manage-manifests#inspect_the_merged_manifest_and_find_conflicts -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-   <uses-permission android:name="android.permission.INTERNET"/>
-   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-   <uses-permission android:name="android.permission.WAKE_LOCK"/>
-   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-   <uses-permission android:name="android.permission.VIBRATE"/>
-   <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
-   <application
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <application
         android:label="Zulip"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="@xml/full_backup_content"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        >
+    >
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -31,12 +31,12 @@
                  while the Flutter UI initializes. After that, this theme continues
                  to determine the Window background behind the Flutter UI. -->
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme"
+            />
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
             <intent-filter>
@@ -61,15 +61,15 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        
+
         <!-- Boot receiver for starting background service -->
         <receiver android:name=".BootReceiver" android:enabled="true" android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
-        
+
         <!-- WorkManager initializer -->
         <provider
             android:name="androidx.startup.InitializationProvider"
