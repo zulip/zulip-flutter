@@ -84,16 +84,13 @@ class AddAccountPage extends GetView<LoginController> {
 }
 
 class LoginPage extends GetView<LoginController> {
-  const LoginPage({super.key, required this.serverSettings});
+  const LoginPage({super.key});
 
   static Route<void> buildRoute({
     required GetServerSettingsResult serverSettings,
   }) {
-    Get.find<LoginController>().serverSettings = serverSettings;
-    return _LoginSequenceRoute(page: LoginPage(serverSettings: serverSettings));
+    return _LoginSequenceRoute(page: LoginPage());
   }
-
-  final GetServerSettingsResult serverSettings;
 
   static Future<void> handleWebAuthUrl(Uri url) async {
     return Get.find<LoginController>().handleWebAuthUrl(url);
@@ -103,9 +100,10 @@ class LoginPage extends GetView<LoginController> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final serverSettings = Get.arguments as GetServerSettingsResult?;
 
     final externalAuthenticationMethods =
-        serverSettings.externalAuthenticationMethods;
+        serverSettings!.externalAuthenticationMethods;
 
     final loginContent = Column(
       mainAxisAlignment: MainAxisAlignment.center,

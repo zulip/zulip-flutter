@@ -62,6 +62,7 @@ class AppPages {
       page: () => const AddAccountPage(),
       binding: LoginBinding(),
     ),
+    GetPage(name: AppRoutes.login, page: () => LoginPage()),
     GetPage<dynamic>(
       name: AppRoutes.home,
       page: () {

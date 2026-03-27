@@ -11,14 +11,18 @@ import '../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../get/services/store_service.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../utils/page.dart';
+import '../../../../values/constants.dart';
+import '../../../../values/icons.dart';
 import '../../../../widgets/autocomplete.dart';
 import '../../../../extensions/color.dart';
+import '../../../../widgets/focused_menu.dart';
 import '../../../message_list_block/message_list_block.dart';
 import '../../compose_box.dart';
 import '../../../../widgets/dialog.dart';
 import '../../../../widgets/inset_shadow.dart';
 import '../../../../values/theme.dart';
 import '../../compose_box_block.dart';
+import '../../compose_box_service.dart';
 
 class ContentInput extends StatefulWidget {
   const ContentInput({
@@ -27,14 +31,18 @@ class ContentInput extends StatefulWidget {
     required this.controller,
     required this.getDestination,
     this.hintText,
+    this.sendButton,
     this.enabled = true,
+    this.showPrefix = true,
   });
 
   final Narrow narrow;
   final ComposeBoxController controller;
   final String? hintText;
   final bool enabled;
+  final bool showPrefix;
   final MessageDestination Function() getDestination;
+  final Widget? sendButton;
 
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(
@@ -268,6 +276,28 @@ class _ContentInputState extends State<ContentInput> {
     }
   }
 
+  void _handlePress(
+    BuildContext context,
+    Future<Iterable<FileToUpload>> Function(BuildContext context) getFiles,
+  ) async {
+    final files = await getFiles(context);
+    if (files.isEmpty) {
+      return; // Nothing to do (getFiles handles user feedback)
+    }
+
+    // https://github.com/dart-lang/linter/issues/4007
+    // ignore: use_build_context_synchronously
+    if (!context.mounted) {
+      return;
+    }
+
+    await widget.controller.uploadFiles(
+      context: context,
+      files: files,
+      shouldRequestFocus: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -281,75 +311,136 @@ class _ContentInputState extends State<ContentInput> {
           top: ContentInput._verticalPadding,
           bottom: 0,
           color: designVariables.composeBoxBg,
-          child: Focus(
-            onKeyEvent: (FocusNode node, KeyEvent event) {
-              if (!(Platform.isAndroid || Platform.isIOS)) {
-                if (event is KeyDownEvent) {
-                  final hardwareKeyboard = HardwareKeyboard.instance;
-                  if ((hardwareKeyboard.isControlPressed ||
-                          hardwareKeyboard.isMetaPressed) &&
-                      event.logicalKey == LogicalKeyboardKey.enter) {
-                    widget.controller.content.text += '\n';
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _scrollController.jumpTo(
-                        _scrollController.position.maxScrollExtent,
-                      );
-                    });
-                    return KeyEventResult.handled;
-                  } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-                    if (widget.controller.content.text.isNotEmpty) {
-                      _enterHandle();
-                    }
+          child: Row(
+            spacing: 4,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (widget.showPrefix)
+                FocusedMenu(
+                  enableTap: true,
+                  menuWidth: 170,
+                  menuItems: [
+                    FocusedMenuItem(
+                      trailingIcon: Icon(
+                        Icons.file_present_outlined,
+                        color: designVariables.foreground.withFadedAlpha(0.5),
+                      ),
+                      title: Text('Файл'),
+                      onPressed: () {
+                        _handlePress(context, ComposeBoxService.pickFiles);
+                      },
+                    ),
+                    FocusedMenuItem(
+                      trailingIcon: Icon(
+                        ZulipIcons.image,
+                        color: designVariables.foreground.withFadedAlpha(0.5),
+                      ),
+                      title: Text('Фото или видео'),
+                      onPressed: () {
+                        _handlePress(context, ComposeBoxService.pickMedia);
+                      },
+                    ),
+                    if (!Platform.isMacOS && !Platform.isWindows)
+                    FocusedMenuItem(
+                      trailingIcon: Icon(
+                        ZulipIcons.camera,
+                        color: designVariables.foreground.withFadedAlpha(0.5),
+                      ),
+                      title: Text('Камера'),
+                      onPressed: () {
+                        _handlePress(context, ComposeBoxService.openCamera);
+                      },
+                    ),
+                  ],
+                  child: SizedBox(
+                    height: composeButtonSize,
+                    width: composeButtonSize,
+                    child: Icon(
+                      ZulipIcons.attach_file,
+                      color: designVariables.foreground.withFadedAlpha(0.5),
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: Focus(
+                  onKeyEvent: (FocusNode node, KeyEvent event) {
+                    if (!(Platform.isAndroid || Platform.isIOS)) {
+                      if (event is KeyDownEvent) {
+                        final hardwareKeyboard = HardwareKeyboard.instance;
+                        if ((hardwareKeyboard.isControlPressed ||
+                                hardwareKeyboard.isMetaPressed) &&
+                            event.logicalKey == LogicalKeyboardKey.enter) {
+                          widget.controller.content.text += '\n';
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _scrollController.jumpTo(
+                              _scrollController.position.maxScrollExtent,
+                            );
+                          });
+                          return KeyEventResult.handled;
+                        } else if (event.logicalKey ==
+                            LogicalKeyboardKey.enter) {
+                          if (widget.controller.content.text.isNotEmpty) {
+                            _enterHandle();
+                          }
 
-                    return KeyEventResult.handled;
-                  }
-                }
-              }
-              return KeyEventResult.ignored;
-            },
-            child: TextField(
-              enabled: widget.enabled,
-              controller: widget.controller.content,
-              scrollController: _scrollController,
-              focusNode: widget.controller.contentFocusNode,
-              contentInsertionConfiguration: ContentInsertionConfiguration(
-                onContentInserted: (content) =>
-                    _handleContentInserted(context, content),
-              ),
-              // Let the content show through the `contentPadding` so that
-              // our [InsetShadowBox] can fade it smoothly there.
-              clipBehavior: Clip.none,
-              style: TextStyle(
-                fontSize: ContentInput._fontSize,
-                height: ContentInput._lineHeightRatio,
-                color: designVariables.textInput,
-              ),
-              // From the spec at
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-              // > Compose box has the height to fit 2 lines. This is [done] to
-              // > have a bigger hit area for the user to start the input. […]
-              minLines: 1,
-              maxLines: 7,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                // This padding ensures that the user can always scroll long
-                // content entirely out of the top or bottom shadow if desired.
-                // With this and the `minLines: 2` above, an empty content input
-                // gets 60px vertical distance (with no text-size scaling)
-                // between the top of the top shadow and the bottom of the
-                // bottom shadow. That's a bit more than the 54px given in the
-                // Figma, and we can revisit if needed, but it's tricky to get
-                // that 54px distance while also making the scrolling work like
-                // this and offering two lines of touchable area.
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: ContentInput._verticalPadding,
+                          return KeyEventResult.handled;
+                        }
+                      }
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    constraints: BoxConstraints(minHeight: composeButtonSize),
+                    child: TextField(
+                      enabled: widget.enabled,
+                      controller: widget.controller.content,
+                      scrollController: _scrollController,
+                      focusNode: widget.controller.contentFocusNode,
+                      contentInsertionConfiguration:
+                          ContentInsertionConfiguration(
+                            onContentInserted: (content) =>
+                                _handleContentInserted(context, content),
+                          ),
+                      // Let the content show through the `contentPadding` so that
+                      // our [InsetShadowBox] can fade it smoothly there.
+                      clipBehavior: Clip.none,
+                      style: TextStyle(
+                        fontSize: ContentInput._fontSize,
+                        height: ContentInput._lineHeightRatio,
+                        color: designVariables.textInput,
+                      ),
+                      // From the spec at
+                      //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+                      // > Compose box has the height to fit 2 lines. This is [done] to
+                      // > have a bigger hit area for the user to start the input. […]
+                      minLines: 1,
+                      maxLines: 7,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: InputDecoration(
+                        // This padding ensures that the user can always scroll long
+                        // content entirely out of the top or bottom shadow if desired.
+                        // With this and the `minLines: 2` above, an empty content input
+                        // gets 60px vertical distance (with no text-size scaling)
+                        // between the top of the top shadow and the bottom of the
+                        // bottom shadow. That's a bit more than the 54px given in the
+                        // Figma, and we can revisit if needed, but it's tricky to get
+                        // that 54px distance while also making the scrolling work like
+                        // this and offering two lines of touchable area.
+                        // contentPadding: const EdgeInsets.symmetric(
+                        //   vertical: ContentInput._verticalPadding,
+                        // ),
+                        hintText: 'Сообщение...',
+                        hintStyle: TextStyle(
+                          color: designVariables.textInput.withFadedAlpha(0.5),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                hintText: widget.hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withFadedAlpha(0.5),
-                ),
               ),
-            ),
+              if (widget.sendButton != null) widget.sendButton!,
+            ],
           ),
         ),
       ),

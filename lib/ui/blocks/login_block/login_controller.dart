@@ -188,12 +188,7 @@ class LoginController extends GetxController {
     }
     inProgress.value = false;
 
-    unawaited(
-      Get.toNamed<dynamic>(
-        AppRoutes.login,
-        arguments: {'serverSettings': serverSettings},
-      ),
-    );
+    unawaited(Get.toNamed(AppRoutes.login, arguments: serverSettings));
   }
 
   Future<void> handleWebAuthUrl(Uri url) async {

@@ -193,7 +193,7 @@ class _FocusedMessageMenuState extends State<FocusedMessageMenu> {
                           // ),
                         ],
                     blurSize: 20,
-                    menuWidth: 250,
+                    menuWidth: 200,
                     blurBackgroundColor: Colors.black54,
                     bottomOffsetHeight: 100,
                     menuOffset: 8,
@@ -218,18 +218,19 @@ class FocusedMenu extends StatefulWidget {
   final double? menuWidth;
   final List<FocusedMenuItem> menuItems;
   final BoxDecoration? menuBoxDecoration;
-  final Function onPressed;
   final Duration? duration;
   final double? blurSize;
   final Color? blurBackgroundColor;
   final double? bottomOffsetHeight;
   final double? menuOffset;
   final bool? isLeftPos;
+  final bool enableTap;
+  final bool enableLongTap;
+  final bool enableSecondaryTap;
 
   const FocusedMenu({
     super.key,
     required this.child,
-    required this.onPressed,
     required this.menuItems,
     this.duration,
     this.menuBoxDecoration,
@@ -240,6 +241,9 @@ class FocusedMenu extends StatefulWidget {
     this.bottomOffsetHeight,
     this.menuOffset,
     this.isLeftPos,
+    this.enableTap = false,
+    this.enableLongTap = false,
+    this.enableSecondaryTap = false,
   });
 
   @override
@@ -266,12 +270,21 @@ class FocusedMenuState extends State<FocusedMenu> {
   Widget build(BuildContext context) {
     return GestureDetector(
       key: containerKey,
-      onLongPress: () {
-        openMenu(context);
-      },
-      onSecondaryTap: () {
-        openMenu(context);
-      },
+      onTap: widget.enableTap
+          ? () {
+              openMenu(context);
+            }
+          : null,
+      onLongPress: widget.enableLongTap
+          ? () {
+              openMenu(context);
+            }
+          : null,
+      onSecondaryTap: widget.enableSecondaryTap
+          ? () {
+              openMenu(context);
+            }
+          : null,
       child: widget.child,
     );
   }
@@ -376,7 +389,9 @@ class _FocusedMenuDetails extends StatelessWidget {
                 sigmaY: blurSize ?? 4,
               ),
               child: Container(
-                color: (blurBackgroundColor ?? Colors.black).withValues(alpha: 0.7),
+                color: (blurBackgroundColor ?? Colors.black).withValues(
+                  alpha: 0.7,
+                ),
               ),
             ),
           ),
@@ -466,10 +481,10 @@ class _FocusedMenuCard extends StatelessWidget {
         color: item.backgroundColor ?? Colors.black,
         height: 41,
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          spacing: 6,
           children: <Widget>[
-            item.title,
             if (item.trailingIcon != null) ...[item.trailingIcon!],
+            item.title,
           ],
         ),
       ),

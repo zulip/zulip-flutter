@@ -14,11 +14,13 @@ class FixedDestinationContentInput extends StatelessWidget {
     required this.narrow,
     required this.controller,
     required this.getDestination,
+    required this.sendButton,
   });
 
   final SendableNarrow narrow;
   final FixedDestinationComposeBoxController controller;
   final MessageDestination Function() getDestination;
+  final Widget sendButton;
 
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -62,9 +64,11 @@ class FixedDestinationContentInput extends StatelessWidget {
       controller: controller,
       child: ContentInput(
         narrow: narrow,
+        showPrefix: true,
         controller: controller,
         hintText: _hintText(context),
         getDestination: getDestination,
+        sendButton: sendButton,
       ),
     );
   }

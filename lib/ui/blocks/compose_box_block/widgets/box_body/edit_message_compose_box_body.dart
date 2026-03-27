@@ -24,7 +24,7 @@ class EditMessageComposeBoxBody extends ComposeBoxBody {
   Widget? buildTopicInput() => null;
 
   @override
-  Widget buildContentInput() => EditMessageContentInput(
+  Widget buildContentInput(Widget sendButton) => EditMessageContentInput(
     narrow: narrow,
     controller: controller,
     getDestination: () => EditDestination(),
