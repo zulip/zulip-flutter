@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../get/app_pages.dart';
@@ -226,39 +224,42 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
 
         final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
 
-        return GetMaterialApp(
-          onGenerateTitle: (BuildContext context) {
-            return ZulipLocalizations.of(context).zulipAppTitle;
-          },
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-          supportedLocales: ZulipLocalizations.supportedLocales,
-          theme: zulipThemeData(context),
-          initialBinding: InitialBinding(),
-          getPages: AppPages.pages,
-          initialRoute: lastVisitedAccountId != null
-              ? AppRoutes.home
-              : AppRoutes.addAccount,
-          navigatorKey: ZulipApp.navigatorKey,
-          navigatorObservers: [
-            if (widget.navigatorObservers != null)
-              ...widget.navigatorObservers!,
-            _PreventEmptyStack(),
-            _navStackTracker,
-            _UpdateLastVisitedAccount(globalStore),
-          ],
-          builder: (BuildContext context, Widget? child) {
-            if (!ZulipApp.ready.value) {
-              SchedulerBinding.instance.addPostFrameCallback(
-                (_) => widget._declareReady(),
+        return Obx(() {
+          GlobalService.to.settingsChanged.value;
+          return GetMaterialApp(
+            onGenerateTitle: (BuildContext context) {
+              return ZulipLocalizations.of(context).zulipAppTitle;
+            },
+            localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+            supportedLocales: ZulipLocalizations.supportedLocales,
+            theme: zulipThemeData(context),
+            initialBinding: InitialBinding(),
+            getPages: AppPages.pages,
+            initialRoute: lastVisitedAccountId != null
+                ? AppRoutes.home
+                : AppRoutes.addAccount,
+            navigatorKey: ZulipApp.navigatorKey,
+            navigatorObservers: [
+              if (widget.navigatorObservers != null)
+                ...widget.navigatorObservers!,
+              _PreventEmptyStack(),
+              _navStackTracker,
+              _UpdateLastVisitedAccount(globalStore),
+            ],
+            builder: (BuildContext context, Widget? child) {
+              if (!ZulipApp.ready.value) {
+                SchedulerBinding.instance.addPostFrameCallback(
+                  (_) => widget._declareReady(),
+                );
+              }
+              GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(
+                context,
               );
-            }
-            GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(
-              context,
-            );
-            return child!;
-          },
-          onGenerateRoute: (_) => null,
-        );
+              return child!;
+            },
+            onGenerateRoute: (_) => null,
+          );
+        });
       },
     );
   }

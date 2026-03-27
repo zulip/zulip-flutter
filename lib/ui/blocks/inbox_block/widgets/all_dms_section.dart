@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../widgets/sticky_header.dart';
-import '../inbox.dart';
+import '../inbox_controller.dart';
 import '../inbox_section_data_model.dart';
 import 'headers/inbox_all_dms_header_item.dart';
 import 'inbox_dm_item.dart';
@@ -16,7 +16,7 @@ class AllDmsSection extends StatelessWidget {
 
   final AllDmsSectionData data;
   final bool collapsed;
-  final InboxPageState pageState;
+  final InboxPageStateTemplate pageState;
 
   @override
   Widget build(BuildContext context) {

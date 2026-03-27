@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../model/content.dart';
@@ -15,7 +16,7 @@ class Spoiler extends StatefulWidget {
 }
 
 class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
-  bool expanded = false;
+  final RxBool expanded = false.obs;
 
   late final AnimationController _controller = AnimationController(
     duration: const Duration(milliseconds: 400),
@@ -33,15 +34,13 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
   }
 
   void _handleTap() {
-    setState(() {
-      if (!expanded) {
-        _controller.forward();
-        expanded = true;
-      } else {
-        _controller.reverse();
-        expanded = false;
-      }
-    });
+    if (!expanded.value) {
+      _controller.forward();
+      expanded.value = true;
+    } else {
+      _controller.reverse();
+      expanded.value = false;
+    }
   }
 
   @override

@@ -35,28 +35,54 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
     switch ((attention, intent)) {
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
+      case (
+        ZulipWebUiKitButtonAttention.minimal,
+        ZulipWebUiKitButtonIntent.neutral,
+      ):
         return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(0.3),
+          WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(
+            0.3,
+          ),
           ~WidgetState.pressed: designVariables.neutralButtonBg.withAlpha(0),
         });
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
+      case (
+        ZulipWebUiKitButtonAttention.medium,
+        ZulipWebUiKitButtonIntent.neutral,
+      ):
+      case (
+        ZulipWebUiKitButtonAttention.high,
+        ZulipWebUiKitButtonIntent.neutral,
+      ):
+      case (
+        ZulipWebUiKitButtonAttention.minimal,
+        ZulipWebUiKitButtonIntent.warning,
+      ):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
+      case (
+        ZulipWebUiKitButtonAttention.medium,
+        ZulipWebUiKitButtonIntent.warning,
+      ):
         return WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttMediumIntWarningActive,
           ~WidgetState.pressed: designVariables.btnBgAttMediumIntWarningNormal,
         });
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
+      case (
+        ZulipWebUiKitButtonAttention.high,
+        ZulipWebUiKitButtonIntent.warning,
+      ):
         return WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttHighIntWarningActive,
           ~WidgetState.pressed: designVariables.btnBgAttHighIntWarningNormal,
         });
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+      case (
+        ZulipWebUiKitButtonAttention.minimal,
+        ZulipWebUiKitButtonIntent.info,
+      ):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
+      case (
+        ZulipWebUiKitButtonAttention.medium,
+        ZulipWebUiKitButtonIntent.info,
+      ):
         return WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttMediumIntInfoActive,
           ~WidgetState.pressed: designVariables.btnBgAttMediumIntInfoNormal,
@@ -71,27 +97,54 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
   Color _labelColor(DesignVariables designVariables) {
     switch ((attention, intent)) {
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
+      case (
+        ZulipWebUiKitButtonAttention.minimal,
+        ZulipWebUiKitButtonIntent.neutral,
+      ):
         // TODO nit: don't fade in pressed state
         return designVariables.neutralButtonLabel.withFadedAlpha(0.85);
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
+      case (
+        ZulipWebUiKitButtonAttention.medium,
+        ZulipWebUiKitButtonIntent.neutral,
+      ):
+      case (
+        ZulipWebUiKitButtonAttention.high,
+        ZulipWebUiKitButtonIntent.neutral,
+      ):
+      case (
+        ZulipWebUiKitButtonAttention.minimal,
+        ZulipWebUiKitButtonIntent.warning,
+      ):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
+      case (
+        ZulipWebUiKitButtonAttention.medium,
+        ZulipWebUiKitButtonIntent.warning,
+      ):
         return designVariables.btnLabelAttMediumIntWarning;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
+      case (
+        ZulipWebUiKitButtonAttention.high,
+        ZulipWebUiKitButtonIntent.warning,
+      ):
         return designVariables.btnLabelAttHighIntWarning;
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+      case (
+        ZulipWebUiKitButtonAttention.minimal,
+        ZulipWebUiKitButtonIntent.info,
+      ):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
+      case (
+        ZulipWebUiKitButtonAttention.medium,
+        ZulipWebUiKitButtonIntent.info,
+      ):
         return designVariables.btnLabelAttMediumIntInfo;
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
         return designVariables.btnLabelAttHigh;
     }
   }
 
-  TextStyle _labelStyle(BuildContext context, {required TextScaler textScaler}) {
+  TextStyle _labelStyle(
+    BuildContext context, {
+    required TextScaler textScaler,
+  }) {
     final designVariables = DesignVariables.of(context);
     // Normal-size values chosen from the Figma frame for zulip-flutter's
     // compose box:
@@ -106,12 +159,14 @@ class ZulipWebUiKitButton extends StatelessWidget {
       height: _forSize(1, 1.20 /* 1.25 */),
       letterSpacing: _forSize(
         0,
-        proportionalLetterSpacing(context, textScaler: textScaler,
+        proportionalLetterSpacing(
+          context,
+          textScaler: textScaler,
           0.006,
-          baseFontSize: 17 /* 16 */),
+          baseFontSize: 17 /* 16 */,
+        ),
       ),
-    ).merge(weightVariableTextStyle(context,
-        wght: 600)); // 500
+    ).merge(weightVariableTextStyle(context, wght: 600)); // 500
   }
 
   BorderSide _borderSide(DesignVariables designVariables) {
@@ -127,17 +182,17 @@ class ZulipWebUiKitButton extends StatelessWidget {
         //   and half the width.
         return BorderSide(
           color: designVariables.btnShadowAttMed.withFadedAlpha(0.5),
-          width: 0.5);
+          width: 0.5,
+        );
       case ZulipWebUiKitButtonAttention.high:
         return BorderSide.none;
     }
   }
 
-  T _forSize<T>(T small, T normal) =>
-    switch (size) {
-      ZulipWebUiKitButtonSize.small => small,
-      ZulipWebUiKitButtonSize.normal => normal,
-    };
+  T _forSize<T>(T small, T normal) => switch (size) {
+    ZulipWebUiKitButtonSize.small => small,
+    ZulipWebUiKitButtonSize.normal => normal,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +209,9 @@ class ZulipWebUiKitButton extends StatelessWidget {
     // - helps prioritize more important content (like message content); #1023
     // - prevents the vertical padding added by [MaterialTapTargetSize.padded]
     //   from shrinking to zero as the button grows to accommodate a larger label
-    final textScaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5);
+    final textScaler = MediaQuery.textScalerOf(
+      context,
+    ).clamp(maxScaleFactor: 1.5);
 
     final buttonHeight = _forSize(24, 28);
 
@@ -176,7 +233,8 @@ class ZulipWebUiKitButton extends StatelessWidget {
           foregroundColor: labelColor,
           shape: RoundedRectangleBorder(
             side: _borderSide(designVariables),
-            borderRadius: BorderRadius.circular(_forSize(6, 4))),
+            borderRadius: BorderRadius.circular(_forSize(6, 4)),
+          ),
           splashFactory: NoSplash.splashFactory,
 
           // These three arguments make the button `buttonHeight` tall,
@@ -192,12 +250,17 @@ class ZulipWebUiKitButton extends StatelessWidget {
         onPressed: onPressed,
         label: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 240),
-          child: Text(label,
+          child: Text(
+            label,
             textScaler: textScaler,
             maxLines: 1,
             style: _labelStyle(context, textScaler: textScaler),
             textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis))));
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -270,7 +333,10 @@ class ZulipIconButton extends StatelessWidget {
         splashFactory: NoSplash.splashFactory,
         highlightColor: touchFeedbackColor,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)))));
+          borderRadius: BorderRadius.all(Radius.circular(4)),
+        ),
+      ),
+    );
   }
 }
 
@@ -284,12 +350,8 @@ class AnimatedScaleOnPress extends StatefulWidget {
     required this.child,
   });
 
-  /// The terminal scale to animate to.
   final double scaleEnd;
-
-  /// The duration over which to animate the scale change.
   final Duration duration;
-
   final Widget child;
 
   @override
@@ -297,7 +359,7 @@ class AnimatedScaleOnPress extends StatefulWidget {
 }
 
 class _AnimatedScaleOnPressState extends State<AnimatedScaleOnPress> {
-  double _scale = 1;
+  double _scale = 1.0;
 
   void _changeScale(double scale) {
     setState(() {
@@ -309,8 +371,6 @@ class _AnimatedScaleOnPressState extends State<AnimatedScaleOnPress> {
     final box = context.findRenderObject() as RenderBox?;
     if (box == null) return;
 
-    // The pointer may be out of the child widget's bounds. When this happens,
-    // the child should be full-size even if the primary pointer is down.
     if (!box.size.contains(box.globalToLocal(event.position))) {
       _changeScale(1.0);
     }
@@ -327,15 +387,10 @@ class _AnimatedScaleOnPressState extends State<AnimatedScaleOnPress> {
       },
       onPointerUp: (event) {
         if ((event.buttons & kPrimaryButton) == 0) {
-          // `.buttons` are the pointer buttons which are pressed
-          // immediately after the action that caused the event.
-          // When the primary button is up, the button should be full-size.
           _changeScale(1);
         }
       },
       onPointerCancel: (_) {
-        // Return child to full-size on system-level interruption
-        // (e.g., notification, app backgrounding).
         _changeScale(1);
       },
       onPointerMove: (event) {
@@ -345,16 +400,15 @@ class _AnimatedScaleOnPressState extends State<AnimatedScaleOnPress> {
         scale: _scale,
         duration: widget.duration,
         curve: Curves.easeOut,
-        child: widget.child));
+        child: widget.child,
+      ),
+    );
   }
 }
 
 /// The rounded-rectangle shape and 1-pixel spacing for a run of [ZulipMenuItemButton]s.
 class MenuButtonsShape extends StatelessWidget {
-  const MenuButtonsShape({
-    super.key,
-    required this.buttons,
-  });
+  const MenuButtonsShape({super.key, required this.buttons});
 
   final List<Widget> buttons;
 
@@ -362,8 +416,8 @@ class MenuButtonsShape extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(7),
-      child: Column(spacing: 1,
-        children: buttons));
+      child: Column(spacing: 1, children: buttons),
+    );
   }
 }
 
@@ -401,8 +455,8 @@ class ZulipMenuItemButton extends StatelessWidget {
   final Widget? toggle;
 
   double get itemSpacingAndEndPadding => switch (style) {
-    ZulipMenuItemButtonStyle.menu
-      || ZulipMenuItemButtonStyle.menuDestructive => 16,
+    ZulipMenuItemButtonStyle.menu ||
+    ZulipMenuItemButtonStyle.menuDestructive => 16,
     ZulipMenuItemButtonStyle.list => 12,
   };
 
@@ -412,7 +466,9 @@ class ZulipMenuItemButton extends StatelessWidget {
       if (ancestor != null) return true;
       throw FlutterError.fromParts([
         ErrorSummary('No MenuButtonsShape ancestor found.'),
-        ErrorDescription('ZulipMenuItemButton widgets require a MenuButtonsShape ancestor.'),
+        ErrorDescription(
+          'ZulipMenuItemButton widgets require a MenuButtonsShape ancestor.',
+        ),
       ]);
     }());
     return true;
@@ -422,18 +478,27 @@ class ZulipMenuItemButton extends StatelessWidget {
     switch (style) {
       case ZulipMenuItemButtonStyle.menu:
         return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.20),
-          ~WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(0.12),
+          WidgetState.pressed: designVariables.contextMenuItemBg.withFadedAlpha(
+            0.20,
+          ),
+          ~WidgetState.pressed: designVariables.contextMenuItemBg
+              .withFadedAlpha(0.12),
         });
       case ZulipMenuItemButtonStyle.menuDestructive:
         return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.contextMenuItemBgDanger.withFadedAlpha(0.20),
-          ~WidgetState.pressed: designVariables.contextMenuItemBgDanger.withFadedAlpha(0.12),
+          WidgetState.pressed: designVariables.contextMenuItemBgDanger
+              .withFadedAlpha(0.20),
+          ~WidgetState.pressed: designVariables.contextMenuItemBgDanger
+              .withFadedAlpha(0.12),
         });
       case ZulipMenuItemButtonStyle.list:
         return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(0.7),
-          ~WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(0.35),
+          WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(
+            0.7,
+          ),
+          ~WidgetState.pressed: designVariables.listMenuItemBg.withFadedAlpha(
+            0.35,
+          ),
         });
     }
   }
@@ -441,15 +506,16 @@ class ZulipMenuItemButton extends StatelessWidget {
   Color _labelColor(DesignVariables designVariables) {
     return switch (style) {
       ZulipMenuItemButtonStyle.menu => designVariables.contextMenuItemText,
-      ZulipMenuItemButtonStyle.menuDestructive => designVariables.contextMenuItemTextDanger,
+      ZulipMenuItemButtonStyle.menuDestructive =>
+        designVariables.contextMenuItemTextDanger,
       ZulipMenuItemButtonStyle.list => designVariables.listMenuItemText,
     };
   }
 
   double _labelWght() {
     return switch (style) {
-      ZulipMenuItemButtonStyle.menu
-        || ZulipMenuItemButtonStyle.menuDestructive => 600,
+      ZulipMenuItemButtonStyle.menu ||
+      ZulipMenuItemButtonStyle.menuDestructive => 600,
       ZulipMenuItemButtonStyle.list => 500,
     };
   }
@@ -457,7 +523,8 @@ class ZulipMenuItemButton extends StatelessWidget {
   Color _iconColor(DesignVariables designVariables) {
     return switch (style) {
       ZulipMenuItemButtonStyle.menu => designVariables.contextMenuItemIcon,
-      ZulipMenuItemButtonStyle.menuDestructive => designVariables.contextMenuItemIconDanger,
+      ZulipMenuItemButtonStyle.menuDestructive =>
+        designVariables.contextMenuItemIconDanger,
       ZulipMenuItemButtonStyle.list => designVariables.listMenuItemIcon,
     };
   }
@@ -473,24 +540,32 @@ class ZulipMenuItemButton extends StatelessWidget {
 
     return MenuItemButton(
       trailingIcon: (icon != null || toggle != null)
-        ? Padding(
-            // This Material widget gives us 12px padding before the icon --
-            // or more or less, depending on Theme.of(context).visualDensity,
-            // hence the `assert` above.
-            padding: EdgeInsetsDirectional.only(start: itemSpacingAndEndPadding - 12),
+          ? Padding(
+              // This Material widget gives us 12px padding before the icon --
+              // or more or less, depending on Theme.of(context).visualDensity,
+              // hence the `assert` above.
+              padding: EdgeInsetsDirectional.only(
+                start: itemSpacingAndEndPadding - 12,
+              ),
 
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: itemSpacingAndEndPadding,
-              children: [
-                ?toggle,
-                if (icon != null) Icon(icon!, color: _iconColor(designVariables)),
-              ]))
-        : null,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: itemSpacingAndEndPadding,
+                children: [
+                  ?toggle,
+                  if (icon != null)
+                    Icon(icon!, color: _iconColor(designVariables)),
+                ],
+              ),
+            )
+          : null,
       style: MenuItemButton.styleFrom(
         minimumSize: Size.fromHeight(48),
-        padding: EdgeInsetsDirectional.only(start: 16, end: itemSpacingAndEndPadding),
+        padding: EdgeInsetsDirectional.only(
+          start: 16,
+          end: itemSpacingAndEndPadding,
+        ),
         foregroundColor: _labelColor(designVariables),
         splashFactory: NoSplash.splashFactory,
       ).copyWith(backgroundColor: _backgroundColor(designVariables)),
@@ -503,20 +578,32 @@ class ZulipMenuItemButton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: localizedTextBaseline(context),
           children: [
-            Flexible(child: Text(label,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 20, height: 24 / 20)
-                .merge(weightVariableTextStyle(context, wght: _labelWght())))),
-            if (subLabel != null)
-              Flexible(child: Text.rich(subLabel!,
+            Flexible(
+              child: Text(
+                label,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 16 / 16,
-                  color: _labelColor(designVariables).withFadedAlpha(0.70),
-                ).merge(weightVariableTextStyle(context, wght: _labelWght())))),
+                style: const TextStyle(
+                  fontSize: 20,
+                  height: 24 / 20,
+                ).merge(weightVariableTextStyle(context, wght: _labelWght())),
+              ),
+            ),
+            if (subLabel != null)
+              Flexible(
+                child: Text.rich(
+                  subLabel!,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    height: 16 / 16,
+                    color: _labelColor(designVariables).withFadedAlpha(0.70),
+                  ).merge(weightVariableTextStyle(context, wght: _labelWght())),
+                ),
+              ),
           ],
-        )));
+        ),
+      ),
+    );
   }
 }
 
@@ -549,11 +636,7 @@ enum ZulipMenuItemButtonStyle {
 /// See Figma:
 ///    https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6070-60682&m=dev
 class Toggle extends StatelessWidget {
-  const Toggle({
-    super.key,
-    required this.value,
-    required this.onChanged,
-  });
+  const Toggle({super.key, required this.value, required this.onChanged});
 
   final bool value;
   final ValueChanged<bool>? onChanged;
@@ -575,10 +658,10 @@ class Toggle extends StatelessWidget {
     final inactiveColorDisabled = inactiveColor.withFadedAlpha(0.4);
 
     final trackColor = WidgetStateColor.fromMap({
-      WidgetState.selected  & ~WidgetState.disabled: activeColor,
-      WidgetState.selected  &  WidgetState.disabled: activeColorDisabled,
+      WidgetState.selected & ~WidgetState.disabled: activeColor,
+      WidgetState.selected & WidgetState.disabled: activeColorDisabled,
       ~WidgetState.selected & ~WidgetState.disabled: inactiveColor,
-      ~WidgetState.selected &  WidgetState.disabled: inactiveColorDisabled,
+      ~WidgetState.selected & WidgetState.disabled: inactiveColorDisabled,
     });
 
     // TODO(#1636):
@@ -599,7 +682,11 @@ class Toggle extends StatelessWidget {
       padding: EdgeInsets.zero,
       splashRadius: 0,
       thumbIcon: WidgetStateProperty<Icon?>.fromMap({
-        WidgetState.selected: Icon(ZulipIcons.check, size: 16, color: activeColor),
+        WidgetState.selected: Icon(
+          ZulipIcons.check,
+          size: 16,
+          color: activeColor,
+        ),
         ~WidgetState.selected: null,
       }),
 

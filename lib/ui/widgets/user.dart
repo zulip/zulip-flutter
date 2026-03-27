@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../api/model/model.dart';
-import '../../get/services/domains/presence/presence_service.dart';
 import '../../get/services/domains/users/users_service.dart';
 import '../../get/services/store_service.dart';
 import '../../model/avatar_url.dart';
-import '../../model/binding.dart';
 import 'emoji.dart';
 import '../values/icons.dart';
 import 'image.dart';

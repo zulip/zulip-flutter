@@ -305,7 +305,6 @@ class ComposeBoxState extends State<ComposeBoxBlock>
     final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streams = ChannelsService.to.streams;
-    final subscriptions = ChannelsService.to.subscriptions;
     switch (widget.narrow) {
       case ChannelNarrow(:final streamId):
       case TopicNarrow(:final streamId):
@@ -381,7 +380,6 @@ class ComposeBoxState extends State<ComposeBoxBlock>
 
   @override
   Widget build(BuildContext context) {
-    final store = StoreService.to.requireStore;
     final zulipLocalizations = ZulipLocalizations.of(context);
     final streams = ChannelsService.to.streams;
     final subscriptions = ChannelsService.to.subscriptions;

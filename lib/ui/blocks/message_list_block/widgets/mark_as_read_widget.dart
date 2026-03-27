@@ -2,128 +2,91 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../get/services/domains/unreads/unreads_service.dart';
-import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
-import '../../../../model/unreads.dart';
 import '../../../themes/message_list_theme.dart';
 import '../../../utils/actions.dart';
 import '../../../values/icons.dart';
 
 import '../../../values/text.dart';
+import 'mark_as_read_controller.dart';
 
-class MarkAsReadWidget extends StatefulWidget {
+class MarkAsReadWidget extends StatelessWidget {
   const MarkAsReadWidget({super.key, required this.narrow});
 
   final Narrow narrow;
 
   @override
-  State<MarkAsReadWidget> createState() => _MarkAsReadWidgetState();
-}
-
-class _MarkAsReadWidgetState extends State<MarkAsReadWidget> {
-  Unreads? unreadsModel;
-
-  bool _loading = false;
-
-  void _unreadsModelChanged() {
-    setState(() {
-      // The actual state lives in [unreadsModel].
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
-    _onStoreChanged();
-  }
-
-  @override
-  void dispose() {
-    unreadsModel?.removeListener(_unreadsModelChanged);
-    super.dispose();
-  }
-
-  void _onStoreChanged() {
-    unreadsModel?.removeListener(_unreadsModelChanged);
-    final unreads = UnreadsService.to.unreads;
-    if (unreads != null) {
-      unreadsModel = unreads..addListener(_unreadsModelChanged);
-    }
-  }
-
-  void _handlePress(BuildContext context) async {
-    if (!context.mounted) return;
-    setState(() => _loading = true);
-    await ZulipAction.markNarrowAsRead(context, widget.narrow);
-    setState(() => _loading = false);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
-    final unreadCount = unreadsModel!.countInNarrow(widget.narrow);
-    final shouldHide = unreadCount == 0;
+    return GetBuilder<MarkAsReadController>(
+      init: MarkAsReadController(narrow: narrow),
+      tag: narrow.toString(),
+      builder: (controller) {
+        return Obx(() {
+          final zulipLocalizations = ZulipLocalizations.of(context);
+          final shouldHide = controller.shouldHide;
+          final loading = controller.loading.value;
 
-    final messageListTheme = MessageListTheme.of(context);
+          final messageListTheme = MessageListTheme.of(context);
 
-    return IgnorePointer(
-      ignoring: shouldHide,
-      child: MarkAsReadAnimation(
-        loading: _loading,
-        hidden: shouldHide,
-        child: SizedBox(
-          width: double.infinity,
-          // Design referenced from:
-          //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=132-9684&mode=design&t=jJwHzloKJ0TMOG4M-0
-          child: Padding(
-            // vertical padding adjusted for tap target height (48px) of button
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 10 - ((48 - 38) / 2),
-            ),
-            child: FilledButton.icon(
-              style:
-                  FilledButton.styleFrom(
-                    splashFactory: NoSplash.splashFactory,
-                    minimumSize: const Size.fromHeight(38),
-                    textStyle:
-                        // Restate [FilledButton]'s default, which inherits from
-                        // [zulipTypography]…
-                        Theme.of(context).textTheme.labelLarge!
-                        // …then clobber some attributes to follow Figma:
-                        .merge(
-                          TextStyle(
-                            fontSize: 18,
-                            letterSpacing: proportionalLetterSpacing(
-                              context,
-                              kButtonTextLetterSpacingProportion,
-                              baseFontSize: 18,
-                            ),
-                            height: (23 / 18),
-                          ).merge(weightVariableTextStyle(context, wght: 400)),
-                        ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                  ).copyWith(
-                    // Give the buttons a constant color regardless of whether their
-                    // state is disabled, pressed, etc.  We handle those states
-                    // separately, via MarkAsReadAnimation.
-                    foregroundColor: const WidgetStatePropertyAll(Colors.white),
-                    iconColor: const WidgetStatePropertyAll(Colors.white),
-                    backgroundColor: WidgetStatePropertyAll(
-                      messageListTheme.unreadMarker,
-                    ),
+          return IgnorePointer(
+            ignoring: shouldHide,
+            child: MarkAsReadAnimation(
+              loading: loading,
+              hidden: shouldHide,
+              child: SizedBox(
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10 - ((48 - 38) / 2),
                   ),
-              onPressed: _loading ? null : () => _handlePress(context),
-              icon: const Icon(ZulipIcons.message_checked),
-              label: Text(zulipLocalizations.markAllAsReadLabel),
+                  child: FilledButton.icon(
+                    style:
+                        FilledButton.styleFrom(
+                          splashFactory: NoSplash.splashFactory,
+                          minimumSize: const Size.fromHeight(38),
+                          textStyle: Theme.of(context).textTheme.labelLarge!
+                              .merge(
+                                TextStyle(
+                                  fontSize: 18,
+                                  letterSpacing: proportionalLetterSpacing(
+                                    context,
+                                    kButtonTextLetterSpacingProportion,
+                                    baseFontSize: 18,
+                                  ),
+                                  height: (23 / 18),
+                                ).merge(
+                                  weightVariableTextStyle(context, wght: 400),
+                                ),
+                              ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                        ).copyWith(
+                          foregroundColor: const WidgetStatePropertyAll(
+                            Colors.white,
+                          ),
+                          iconColor: const WidgetStatePropertyAll(Colors.white),
+                          backgroundColor: WidgetStatePropertyAll(
+                            messageListTheme.unreadMarker,
+                          ),
+                        ),
+                    onPressed: loading
+                        ? null
+                        : () async {
+                            controller.loading.value = true;
+                            await ZulipAction.markNarrowAsRead(context, narrow);
+                            controller.loading.value = false;
+                          },
+                    icon: const Icon(ZulipIcons.message_checked),
+                    label: Text(zulipLocalizations.markAllAsReadLabel),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
+          );
+        });
+      },
     );
   }
 }

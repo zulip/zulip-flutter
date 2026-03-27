@@ -37,7 +37,7 @@ class AllChannelsPageBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final channels = requirePerAccountStore().streams;
+    final channels = StoreService.to.channels.sortedStreams;
 
     if (channels.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
@@ -49,7 +49,6 @@ class AllChannelsPageBody extends StatelessWidget {
       itemCount: channels.length,
       itemBuilder: (context, index) {
         final stream = channels[index];
-        if (stream == null) return const SizedBox.shrink();
         return AllChannelsListEntry(channel: stream);
       },
     );

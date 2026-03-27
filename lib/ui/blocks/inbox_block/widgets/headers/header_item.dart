@@ -5,20 +5,15 @@ import '../../../../values/icons.dart';
 import '../../../../values/text.dart';
 import '../../../../values/theme.dart';
 import '../../../../widgets/counter_badge.dart';
-import '../../inbox.dart';
+import '../../inbox_controller.dart';
 import '../inbox_item_marker.dart';
 
 abstract class HeaderItem extends StatelessWidget {
   final bool collapsed;
-  final InboxPageState pageState;
+  final InboxPageStateTemplate pageState;
   final int count;
   final bool hasMention;
 
-  /// A build context within the [_StreamSection] or [_AllDmsSection].
-  ///
-  /// Used to ensure the [_StreamSection] or [_AllDmsSection] that encloses the
-  /// current [HeaderItem] is visible after being collapsed through this
-  /// [HeaderItem].
   final BuildContext sectionContext;
 
   const HeaderItem({

@@ -245,32 +245,34 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       ),
     );
 
-    final passwordField = TextFormField(
-      key: _passwordKey,
-      autofillHints: const [AutofillHints.password],
-      obscureText: widget.controller.obscurePassword.value,
-      keyboardType: widget.controller.obscurePassword.value
-          ? null
-          : TextInputType.visiblePassword,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return zulipLocalizations.loginErrorMissingPassword;
-        }
-        return null;
-      },
-      textInputAction: TextInputAction.go,
-      onFieldSubmitted: (value) => _submit(),
-      decoration: InputDecoration(
-        labelText: zulipLocalizations.loginPasswordLabel,
-        helperText: kLayoutPinningHelperText,
-        suffixIcon: Obx(
-          () => IconButton(
-            tooltip: zulipLocalizations.loginHidePassword,
-            onPressed: widget.controller.togglePasswordVisibility,
-            icon: const Icon(Icons.visibility),
-            isSelected: widget.controller.obscurePassword.value,
-            selectedIcon: const Icon(Icons.visibility_off),
+    final passwordField = Obx(
+      () => TextFormField(
+        key: _passwordKey,
+        autofillHints: const [AutofillHints.password],
+        obscureText: widget.controller.obscurePassword.value,
+        keyboardType: widget.controller.obscurePassword.value
+            ? null
+            : TextInputType.visiblePassword,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return zulipLocalizations.loginErrorMissingPassword;
+          }
+          return null;
+        },
+        textInputAction: TextInputAction.go,
+        onFieldSubmitted: (value) => _submit(),
+        decoration: InputDecoration(
+          labelText: zulipLocalizations.loginPasswordLabel,
+          helperText: kLayoutPinningHelperText,
+          suffixIcon: Obx(
+            () => IconButton(
+              tooltip: zulipLocalizations.loginHidePassword,
+              onPressed: widget.controller.togglePasswordVisibility,
+              icon: const Icon(Icons.visibility),
+              isSelected: widget.controller.obscurePassword.value,
+              selectedIcon: const Icon(Icons.visibility_off),
+            ),
           ),
         ),
       ),

@@ -467,7 +467,6 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = StoreService.to.requireStore;
     final streams = ChannelsService.to.streams;
     final subscriptions = ChannelsService.to.subscriptions;
     final channel = streams[option.channelId];

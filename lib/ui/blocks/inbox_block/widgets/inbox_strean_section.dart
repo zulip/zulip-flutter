@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../get/services/store_service.dart';
 import '../../../widgets/sticky_header.dart';
-import '../inbox.dart';
+import '../inbox_controller.dart';
 import '../inbox_section_data_model.dart';
 import 'headers/inbox_channel_header_item.dart';
 import 'inbox_topic_item.dart';
@@ -17,7 +17,7 @@ class InboxStreamSection extends StatelessWidget {
 
   final StreamSectionData data;
   final bool collapsed;
-  final InboxPageState pageState;
+  final InboxPageStateTemplate pageState;
 
   @override
   Widget build(BuildContext context) {

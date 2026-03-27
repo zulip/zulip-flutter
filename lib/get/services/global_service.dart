@@ -16,6 +16,7 @@ class GlobalService extends GetxService {
   final Rx<GlobalSettingsStore?> currentSettingsStore =
       Rx<GlobalSettingsStore?>(null);
   final RxBool isInitialized = false.obs;
+  final RxBool settingsChanged = false.obs;
 
   Future<void> initialize() async {
     final store = await ZulipBinding.instance.getGlobalStoreUniquely();
@@ -28,6 +29,10 @@ class GlobalService extends GetxService {
     currentGlobalStore.value = store;
     currentSettingsStore.value = store.settings;
     isInitialized.value = true;
+  }
+
+  void notifySettingsChanged() {
+    settingsChanged.value = !settingsChanged.value;
   }
 
   GlobalStore? get globalStore => currentGlobalStore.value;

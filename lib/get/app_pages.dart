@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../api/route/realm.dart';
 import 'services/account_service.dart';
 import 'services/domains/channels/channels_service.dart';
 import 'services/domains/presence/presence_service.dart';
@@ -65,6 +66,15 @@ class AppPages {
   }
 
   static final List<GetPage<dynamic>> pages = [
+    GetPage<dynamic>(
+      name: AppRoutes.login,
+      page: () {
+        final args = Get.arguments as Map<String, dynamic>? ?? {};
+        final serverSettings =
+            args['serverSettings'] as GetServerSettingsResult;
+        return LoginPage(serverSettings: serverSettings);
+      },
+    ),
     GetPage<dynamic>(
       name: AppRoutes.addAccount,
       page: () => const AddAccountPage(),

@@ -10,44 +10,11 @@ import '../../get/services/store_service.dart';
 import '../themes/content_theme.dart';
 import '../values/text.dart';
 
-class PollWidget extends StatefulWidget {
+class PollWidget extends StatelessWidget {
   const PollWidget({super.key, required this.messageId, required this.poll});
 
   final int messageId;
   final Poll poll;
-
-  @override
-  State<PollWidget> createState() => _PollWidgetState();
-}
-
-class _PollWidgetState extends State<PollWidget> {
-  @override
-  void initState() {
-    super.initState();
-    widget.poll.addListener(_modelChanged);
-  }
-
-  @override
-  void didUpdateWidget(covariant PollWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.poll != oldWidget.poll) {
-      oldWidget.poll.removeListener(_modelChanged);
-      widget.poll.addListener(_modelChanged);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.poll.removeListener(_modelChanged);
-    super.dispose();
-  }
-
-  void _modelChanged() {
-    setState(() {
-      // The actual state lives in the [Poll] model.
-      // This method was called because that just changed.
-    });
-  }
 
   void _toggleVote(PollOption option) async {
     final connection = StoreService.to.connection;
@@ -58,7 +25,7 @@ class _PollWidgetState extends State<PollWidget> {
     unawaited(
       sendSubmessage(
         connection,
-        messageId: widget.messageId,
+        messageId: messageId,
         submessageType: SubmessageType.widget,
         content: PollVoteEventSubmessage(key: option.key, op: op),
       ),
@@ -78,11 +45,8 @@ class _PollWidgetState extends State<PollWidget> {
       color: theme.colorPollNames,
     );
 
-    Text question = (widget.poll.question.isNotEmpty)
-        ? Text(
-            widget.poll.question,
-            style: textStyleBold.copyWith(fontSize: 18),
-          )
+    Text question = (poll.question.isNotEmpty)
+        ? Text(poll.question, style: textStyleBold.copyWith(fontSize: 18))
         : Text(
             zulipLocalizations.pollWidgetQuestionMissing,
             style: textStyleBold.copyWith(
@@ -92,9 +56,6 @@ class _PollWidgetState extends State<PollWidget> {
           );
 
     Widget buildOptionItem(PollOption option) {
-      // TODO(i18n): List formatting, like you can do in JavaScript:
-      //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya', 'Zixuan'])
-      //   // 'Chris、Greg、Alya、Zixuan'
       final voterNames = option.voters
           .map(UsersService.to.userDisplayName)
           .join(', ');
@@ -106,10 +67,6 @@ class _PollWidgetState extends State<PollWidget> {
           ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             child: Padding(
-              // For accessibility, the touch target is padded to be larger
-              // than the vote count box.  Still, we avoid padding at the
-              // start because we want to align all the poll options to the
-              // surrounding messages.
               padding: const EdgeInsetsDirectional.only(
                 end: 5,
                 top: verticalPadding,
@@ -125,9 +82,6 @@ class _PollWidgetState extends State<PollWidget> {
                 child: InkWell(
                   onTap: () => _toggleVote(option),
                   child: Padding(
-                    // Inner padding preserves whitespace even when the text's
-                    // width approaches the button's min-width (e.g. because
-                    // there are more than three digits).
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Center(
                       child: Text(
@@ -145,10 +99,6 @@ class _PollWidgetState extends State<PollWidget> {
           ),
           Expanded(
             child: Padding(
-              // This and the padding on the vote count box both extend the row
-              // by the same extent. This ensures that there still will be
-              // consistent spacing between rows when the text takes more
-              // vertical space than the vote count box.
               padding: const EdgeInsets.symmetric(vertical: verticalPadding),
               child: Wrap(
                 spacing: 5,
@@ -174,19 +124,16 @@ class _PollWidgetState extends State<PollWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         question,
-        // `verticalPadding` out of 6px comes from the first option row.
         const SizedBox(height: 6 - verticalPadding),
-        if (widget.poll.options.isEmpty)
+        if (poll.options.isEmpty)
           Padding(
-            // This is consistent with the option rows' padding.
             padding: const EdgeInsets.symmetric(vertical: verticalPadding),
             child: Text(
               zulipLocalizations.pollWidgetOptionsMissing,
               style: textStyleVoterNames.copyWith(fontStyle: FontStyle.italic),
             ),
           ),
-        for (final option in widget.poll.options) buildOptionItem(option),
-        // `verticalPadding` out of 5px comes from the last option row.
+        for (final option in poll.options) buildOptionItem(option),
         const SizedBox(height: 5 - verticalPadding),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
+import '../get/services/global_service.dart';
 import 'binding.dart';
 import 'database.dart';
 import 'narrow.dart';
@@ -99,8 +100,7 @@ enum LegacyUpgradeState {
   found,
 
   /// Legacy data was found and migrated.
-  migrated,
-  ;
+  migrated;
 
   static LegacyUpgradeState _default = unknown;
 }
@@ -142,7 +142,6 @@ enum GlobalSettingType {
   /// completion, either by merge or removal, so that the flag can be retired
   /// within a period of a few weeks or months.
   experimentalFeatureFlag,
-  ;
 }
 
 /// A bool-valued, account-independent setting the user might set.
@@ -179,8 +178,7 @@ enum BoolGlobalSetting {
 
   /// An experimental flag to enable rendering KaTeX even when some
   /// errors are encountered.
-  forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
-
+  forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false)
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   //   openFirstUnread  // v0.0.30
@@ -198,8 +196,7 @@ enum BoolGlobalSetting {
   static BoolGlobalSetting? byName(String name) => _byName[name];
 
   static final Map<String, BoolGlobalSetting> _byName = {
-    for (final v in values)
-      v.name: v,
+    for (final v in values) v.name: v,
   };
 }
 
@@ -237,8 +234,7 @@ enum IntGlobalSetting {
   /// another account is not visited during the same running session. For cases
   /// like these, it's the responsibility of the code that reads this value to
   /// check for the availability of the account that corresponds to this id.
-  lastVisitedAccountId,
-
+  lastVisitedAccountId
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   // (this list is empty so far)
@@ -247,8 +243,7 @@ enum IntGlobalSetting {
   static IntGlobalSetting? byName(String name) => _byName[name];
 
   static final Map<String, IntGlobalSetting> _byName = {
-    for (final v in values)
-      v.name: v,
+    for (final v in values) v.name: v,
   };
 }
 
@@ -265,8 +260,12 @@ class GlobalSettingsStore extends ChangeNotifier {
   });
 
   static final List<BoolGlobalSetting> experimentalFeatureFlags =
-    BoolGlobalSetting.values.where((setting) =>
-      setting.type == GlobalSettingType.experimentalFeatureFlag).toList();
+      BoolGlobalSetting.values
+          .where(
+            (setting) =>
+                setting.type == GlobalSettingType.experimentalFeatureFlag,
+          )
+          .toList();
 
   final GlobalStoreBackend _backend;
 
@@ -277,6 +276,7 @@ class GlobalSettingsStore extends ChangeNotifier {
     await _backend.doUpdateGlobalSettings(data);
     _data = _data.copyWithCompanion(data);
     notifyListeners();
+    GlobalService.to.notifySettingsChanged();
   }
 
   /// The user's choice of [ThemeSetting];
@@ -361,12 +361,12 @@ class GlobalSettingsStore extends ChangeNotifier {
       VisitFirstUnreadSetting.always => true,
       VisitFirstUnreadSetting.never => false,
       VisitFirstUnreadSetting.conversations => switch (narrow) {
-        TopicNarrow() || DmNarrow()
-          => true,
-        CombinedFeedNarrow() || ChannelNarrow()
-        || MentionsNarrow() || StarredMessagesNarrow()
-        || KeywordSearchNarrow()
-          => false,
+        TopicNarrow() || DmNarrow() => true,
+        CombinedFeedNarrow() ||
+        ChannelNarrow() ||
+        MentionsNarrow() ||
+        StarredMessagesNarrow() ||
+        KeywordSearchNarrow() => false,
       },
     };
   }
@@ -389,12 +389,12 @@ class GlobalSettingsStore extends ChangeNotifier {
       MarkReadOnScrollSetting.always => true,
       MarkReadOnScrollSetting.never => false,
       MarkReadOnScrollSetting.conversations => switch (narrow) {
-        TopicNarrow() || DmNarrow()
-          => true,
-        CombinedFeedNarrow() || ChannelNarrow()
-        || MentionsNarrow() || StarredMessagesNarrow()
-        || KeywordSearchNarrow()
-          => false,
+        TopicNarrow() || DmNarrow() => true,
+        CombinedFeedNarrow() ||
+        ChannelNarrow() ||
+        MentionsNarrow() ||
+        StarredMessagesNarrow() ||
+        KeywordSearchNarrow() => false,
       },
     };
   }
