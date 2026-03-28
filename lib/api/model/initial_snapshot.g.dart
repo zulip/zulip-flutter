@@ -116,7 +116,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
     json['realm_topics_policy'],
     unknownValue: RealmTopicsPolicy.unknown,
   ),
-  realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
+  realmMandatoryTopics: json['realm_mandatory_topics'] as bool?,
   realmName: json['realm_name'] as String,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
