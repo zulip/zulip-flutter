@@ -99,7 +99,7 @@ class InitialSnapshot {
   @JsonKey(unknownEnumValue: RealmTopicsPolicy.unknown)
   final RealmTopicsPolicy? realmTopicsPolicy; // TODO(server-11)
 
-  final bool realmMandatoryTopics;
+  final bool? realmMandatoryTopics; // TODO(server-11) Remove deprecated setting.
 
   final String realmName;
 
