@@ -65,7 +65,7 @@ extension PerAccountStoreChecks on Subject<PerAccountStore> {
   Subject<bool> get isRecoveringEventStream => has((x) => x.isRecoveringEventStream, 'isRecoveringEventStream');
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
   Subject<String> get zulipVersion => has((x) => x.zulipVersion, 'zulipVersion');
-  Subject<bool> get realmMandatoryTopics => has((x) => x.realmMandatoryTopics, 'realmMandatoryTopics');
+  Subject<bool?> get realmMandatoryTopics => has((x) => x.realmMandatoryTopics, 'realmMandatoryTopics');
   Subject<int> get maxFileUploadSizeMib => has((x) => x.maxFileUploadSizeMib, 'maxFileUploadSizeMib');
   Subject<Map<String, RealmDefaultExternalAccount>> get realmDefaultExternalAccounts => has((x) => x.realmDefaultExternalAccounts, 'realmDefaultExternalAccounts');
   Subject<List<CustomProfileField>> get customProfileFields => has((x) => x.customProfileFields, 'customProfileFields');

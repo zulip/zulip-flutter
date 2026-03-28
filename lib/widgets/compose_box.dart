@@ -160,7 +160,7 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   }
 
   // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
-  bool get mandatory => store.realmMandatoryTopics;
+  bool get mandatory => store.realmMandatoryTopics ?? false;
 
   @override int get maxLengthUnicodeCodePoints => store.maxTopicLength;
 
@@ -826,7 +826,7 @@ class _TopicInputState extends State<_TopicInput> {
     TextStyle hintStyle = topicTextStyle.copyWith(
       color: designVariables.textInput.withFadedAlpha(0.5));
 
-    if (store.realmMandatoryTopics) {
+    if (store.realmMandatoryTopics ?? false) {
       // Something short and not distracting.
       hintText = zulipLocalizations.composeBoxTopicHintText;
     } else {
