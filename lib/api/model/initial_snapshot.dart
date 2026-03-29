@@ -226,7 +226,6 @@ class InitialSnapshot {
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) {
-    // print("realm_linkifiers from server: ${json['realm_linkifiers']}");
     return _$InitialSnapshotFromJson(json);
   }
   Map<String, dynamic> toJson() => _$InitialSnapshotToJson(this);
@@ -247,7 +246,7 @@ class RealmLinkifier {
     required this.pattern,
     required this.urlTemplate,
     this.reverseTemplate,
-    this.alternativeUrlTemplates = const [],
+    required this.alternativeUrlTemplates ,
   });
 
   factory RealmLinkifier.fromJson(Map<String, dynamic> json) =>
