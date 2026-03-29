@@ -153,6 +153,21 @@ CustomProfileField customProfileField(
     displayInProfileSummary: displayInProfileSummary ?? false,
   );
 }
+RealmLinkifier realmLinkifier({
+  int? id,
+  String? pattern,
+  required String urlTemplate,
+  String? reverseTemplate,
+  List<String> alternativeUrlTemplates = const [],
+}) {
+  return RealmLinkifier(
+    id: id ?? 1,
+    pattern: pattern ?? r'#(?P<id>[0-9]+)',
+    urlTemplate: urlTemplate,
+    reverseTemplate: reverseTemplate,
+    alternativeUrlTemplates: alternativeUrlTemplates,
+  );
+}
 
 ServerEmojiData _immutableServerEmojiData({
     required Map<String, List<String>> codeToNames}) {
@@ -1396,6 +1411,7 @@ InitialSnapshot initialSnapshot({
   String? zulipMergeBase,
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
+  List<RealmLinkifier>? realmLinkifiers,
   int? maxChannelNameLength,
   int? maxTopicLength,
   int? serverPresencePingIntervalSeconds,
@@ -1457,6 +1473,7 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
+    realmLinkifiers: realmLinkifiers ?? [],
     maxChannelNameLength: maxChannelNameLength ?? 60,
     maxTopicLength: maxTopicLength ?? 60,
     serverPresencePingIntervalSeconds: serverPresencePingIntervalSeconds ?? 60,
