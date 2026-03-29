@@ -28,6 +28,10 @@ class InitialSnapshot {
   final int maxChannelNameLength;
   final int maxTopicLength;
 
+  // for linkifier
+  @JsonKey(defaultValue: [])
+  final List<RealmLinkifier> realmLinkifiers;
+
   final int serverPresencePingIntervalSeconds;
   final int serverPresenceOfflineThresholdSeconds;
 
@@ -173,6 +177,7 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.realmLinkifiers,
     required this.maxChannelNameLength,
     required this.maxTopicLength,
     required this.serverPresencePingIntervalSeconds,
@@ -220,10 +225,34 @@ class InitialSnapshot {
     required this.serverReportMessageTypes,
   });
 
-  factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>
-    _$InitialSnapshotFromJson(json);
-
+  factory InitialSnapshot.fromJson(Map<String, dynamic> json) {
+    return _$InitialSnapshotFromJson(json);
+  }
   Map<String, dynamic> toJson() => _$InitialSnapshotToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmLinkifier {
+  final int id;
+  final String pattern;
+  final String urlTemplate;
+  final String? reverseTemplate;
+  @JsonKey(defaultValue: [])
+  final List<String> alternativeUrlTemplates;
+
+
+  RealmLinkifier({
+    required this.id,
+    required this.pattern,
+    required this.urlTemplate,
+    this.reverseTemplate,
+    required this.alternativeUrlTemplates ,
+  });
+
+  factory RealmLinkifier.fromJson(Map<String, dynamic> json) =>
+      _$RealmLinkifierFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmLinkifierToJson(this);
 }
 
 @JsonEnum(valueField: 'apiValue')
@@ -502,3 +531,4 @@ class UnreadHuddleSnapshot {
 
   Map<String, dynamic> toJson() => _$UnreadHuddleSnapshotToJson(this);
 }
+
