@@ -22,6 +22,11 @@ InitialSnapshot _$InitialSnapshotFromJson(
   customProfileFields: (json['custom_profile_fields'] as List<dynamic>)
       .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
       .toList(),
+  realmLinkifiers:
+      (json['realm_linkifiers'] as List<dynamic>?)
+          ?.map((e) => RealmLinkifier.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      [],
   maxChannelNameLength: (json['max_stream_name_length'] as num).toInt(),
   maxTopicLength: (json['max_topic_length'] as num).toInt(),
   serverPresencePingIntervalSeconds:
@@ -176,6 +181,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'custom_profile_fields': instance.customProfileFields,
   'max_stream_name_length': instance.maxChannelNameLength,
   'max_topic_length': instance.maxTopicLength,
+  'realm_linkifiers': instance.realmLinkifiers,
   'server_presence_ping_interval_seconds':
       instance.serverPresencePingIntervalSeconds,
   'server_presence_offline_threshold_seconds':
@@ -245,6 +251,28 @@ const _$RealmWildcardMentionPolicyEnumMap = {
   RealmWildcardMentionPolicy.nobody: 6,
   RealmWildcardMentionPolicy.moderators: 7,
 };
+
+RealmLinkifier _$RealmLinkifierFromJson(Map<String, dynamic> json) =>
+    RealmLinkifier(
+      id: (json['id'] as num).toInt(),
+      pattern: json['pattern'] as String,
+      urlTemplate: json['url_template'] as String,
+      reverseTemplate: json['reverse_template'] as String?,
+      alternativeUrlTemplates:
+          (json['alternative_url_templates'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
+    );
+
+Map<String, dynamic> _$RealmLinkifierToJson(RealmLinkifier instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'pattern': instance.pattern,
+      'url_template': instance.urlTemplate,
+      'reverse_template': instance.reverseTemplate,
+      'alternative_url_templates': instance.alternativeUrlTemplates,
+    };
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
   Map<String, dynamic> json,
