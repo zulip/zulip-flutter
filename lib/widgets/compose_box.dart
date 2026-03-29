@@ -1043,8 +1043,9 @@ class _FixedDestinationContentInput extends StatelessWidget {
       case DmNarrow(otherRecipientIds: [final otherUserId]):
         final store = PerAccountStoreWidget.of(context);
         final user = store.getUser(otherUserId);
-        if (user == null)
+        if (user == null) {
           return zulipLocalizations.composeBoxGenericContentHint;
+        }
         // TODO write a test where the user is muted
         return zulipLocalizations.composeBoxDmContentHint(
           store.userDisplayName(otherUserId, replaceIfMuted: false),
