@@ -7,6 +7,7 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'channel_colors.dart';
 import 'color.dart';
 import 'icons.dart';
 import 'message_list.dart';
@@ -376,6 +377,7 @@ class InboxDmItem extends StatelessWidget {
 class InboxChannelHeaderItem extends StatelessWidget {
   const InboxChannelHeaderItem({
     super.key,
+    this.isSticky = false,
     required this.subscription,
     required this.collapsed,
     required this.pageState,
@@ -383,6 +385,9 @@ class InboxChannelHeaderItem extends StatelessWidget {
     required this.hasMention,
     required this.sectionContext,
   });
+
+  /// Whether this is the widget that gets passed to [StickyHeaderItem.header].
+  final bool isSticky;
 
   final Subscription subscription;
   final bool collapsed;
@@ -413,6 +418,22 @@ class InboxChannelHeaderItem extends StatelessWidget {
     showChannelActionSheet(sectionContext, channelId: subscription.streamId);
   }
 
+  BoxDecoration _solidBackground(ChannelColorSwatch swatch) =>
+    BoxDecoration(color: swatch.barBackground);
+
+  BoxDecoration _gradientBackground(ChannelColorSwatch swatch) => BoxDecoration(
+    gradient: LinearGradient(
+      begin: .topCenter,
+      end: .bottomCenter,
+      colors: [
+        // TODO(design) is this the right color?
+        //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422786
+        swatch.barBackground,
+        swatch.barBackground.withValues(alpha: 0),
+      ],
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -420,55 +441,57 @@ class InboxChannelHeaderItem extends StatelessWidget {
     final swatch = colorSwatchFor(context, subscription);
 
     Widget result = Material(
-      color: collapsed
-        ? designVariables.background // TODO(design) check if this is the right variable
-        : swatch.barBackground,
-      child: InkWell(
-        // TODO use onRowTap to handle taps that are not on the collapse button.
-        //   Probably we should give the collapse button a 44px or 48px square
-        //   touch target:
-        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
-        //   But that's in tension with the Figma, which gives these header rows
-        //   40px min height.
-        onTap: _onCollapseButtonTap,
-        onLongPress: _onLongPress,
-        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 12, 8),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            Icon(size: 18,
-              color: collapsed
-                ? swatch.iconOnPlainBackground
-                : swatch.iconOnBarBackground,
-              iconDataForStream(subscription)),
-            const SizedBox(width: 8),
-            // Pin the chevron to the end of the channel name.
-            // Let the name grow until the chevron has no room after it,
-            // truncating overflow with "...".
-            Expanded(child: Row(mainAxisSize: .min, children: [
-              Flexible(
-                child: Text(
-                  style: TextStyle(
-                    fontSize: 17,
-                    height: (20 / 17),
-                    color: designVariables.textMessage,
-                  ).merge(weightVariableTextStyle(context, wght: 600)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  subscription.name)),
-              const SizedBox(width: 6),
-              Icon(size: 20,
-                color: designVariables.textMessage.withFadedAlpha(0.5),
-                // TODO(design) hide icon when uncollapsed?
-                //   Discussion: https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422785
-                collapsed ? ZulipIcons.chevron_down : ZulipIcons.chevron_up),
-            ])),
-            const SizedBox(width: 8),
-            if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-            CounterBadge(
-              // TODO(design) use CounterKind.quantity, following Figma
-              kind: CounterBadgeKind.unread,
-              channelIdForBackground: subscription.streamId,
-              count: count),
-          ]))));
+      color: designVariables.background, // TODO(design) check if this is the right variable
+      child: DecoratedBox(
+        decoration: (collapsed || isSticky)
+          // TODO(design) settle whether to use a solid background:
+          //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2423220
+          ? _solidBackground(swatch)
+          : _gradientBackground(swatch),
+        child: InkWell(
+          // TODO use onRowTap to handle taps that are not on the collapse button.
+          //   Probably we should give the collapse button a 44px or 48px square
+          //   touch target:
+          //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
+          //   But that's in tension with the Figma, which gives these header rows
+          //   40px min height.
+          onTap: _onCollapseButtonTap,
+          onLongPress: _onLongPress,
+          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 12, 8),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Icon(size: 18,
+                color: swatch.iconOnBarBackground,
+                iconDataForStream(subscription)),
+              const SizedBox(width: 8),
+              // Pin the chevron to the end of the channel name.
+              // Let the name grow until the chevron has no room after it,
+              // truncating overflow with "...".
+              Expanded(child: Row(mainAxisSize: .min, children: [
+                Flexible(
+                  child: Text(
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: (20 / 17),
+                      color: designVariables.textMessage,
+                    ).merge(weightVariableTextStyle(context, wght: 600)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    subscription.name)),
+                const SizedBox(width: 6),
+                Icon(size: 20,
+                  color: designVariables.textMessage.withFadedAlpha(0.5),
+                  // TODO(design) hide icon when uncollapsed?
+                  //   Discussion: https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422785
+                  collapsed ? ZulipIcons.chevron_down : ZulipIcons.chevron_up),
+              ])),
+              const SizedBox(width: 8),
+              if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+              CounterBadge(
+                // TODO(design) use CounterKind.quantity, following Figma
+                kind: CounterBadgeKind.unread,
+                channelIdForBackground: subscription.streamId,
+                count: count),
+            ])))));
 
     return Semantics(container: true,
       child: result);
@@ -489,18 +512,25 @@ class _StreamSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subscription = PerAccountStoreWidget.of(context).subscriptions[data.streamId]!;
-    final header = InboxChannelHeaderItem(
-      subscription: subscription,
-      count: data.count,
-      hasMention: data.hasMention,
-      collapsed: collapsed,
-      pageState: pageState,
-      sectionContext: context,
-    );
     return StickyHeaderItem(
-      header: header,
+      header: InboxChannelHeaderItem(
+        isSticky: true,
+        subscription: subscription,
+        count: data.count,
+        hasMention: data.hasMention,
+        collapsed: collapsed,
+        pageState: pageState,
+        sectionContext: context,
+      ),
       child: Column(children: [
-        header,
+        InboxChannelHeaderItem(
+          subscription: subscription,
+          count: data.count,
+          hasMention: data.hasMention,
+          collapsed: collapsed,
+          pageState: pageState,
+          sectionContext: context,
+        ),
         if (!collapsed) ...data.items.map((item) {
           return InboxTopicItem(streamId: data.streamId, data: item);
         }),
