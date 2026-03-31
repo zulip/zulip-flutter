@@ -591,48 +591,53 @@ class InboxTopicItem extends StatelessWidget {
           someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
           child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 12, 0),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              SizedBox(
-                width: 42,
-                child: Align(
-                  // When the system text-size setting rises,
-                  // let the checkmark icon grow startward into the margin
-                  // so the topic text stays aligned with channel-header text.
-                  // (Note: "center" in .centerEnd is inert:
-                  // this Align shrink-wraps to its child's height.)
-                  alignment: .centerEnd,
-                  child: topic.isResolved
-                    ? InlineIcon(
-                        // Compare icon style in the topic list; probably these
-                        // should stay in sync.
-                        icon: ZulipIcons.check,
+            child: Center(
+              widthFactor: 1,
+              child: Row(
+                crossAxisAlignment: .baseline,
+                textBaseline: localizedTextBaseline(context),
+                children: [
+                  SizedBox(
+                    width: 42,
+                    child: Align(
+                      // When the system text-size setting rises,
+                      // let the checkmark icon grow startward into the margin
+                      // so the topic text stays aligned with channel-header text.
+                      // (Note: "center" in .centerEnd is inert:
+                      // this Align shrink-wraps to its child's height.)
+                      alignment: .centerEnd,
+                      child: topic.isResolved
+                        ? InlineIcon(
+                            // Compare icon style in the topic list; probably these
+                            // should stay in sync.
+                            icon: ZulipIcons.check,
+                            fontSize: 17,
+                            textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+                            color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4))
+                        : null)),
+                  SizedBox(width: 8),
+                  Expanded(child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      style: TextStyle(
                         fontSize: 17,
-                        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-                        color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4))
-                    : null)),
-              SizedBox(width: 8),
-              Expanded(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  style: TextStyle(
-                    fontSize: 17,
-                    height: (20 / 17),
-                    fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                    color: designVariables.textMessage,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
-              const SizedBox(width: 8),
-              InboxRowTrailingMarkers(
-                hasMention: hasMention,
-                visibilityIcon: visibilityIcon,
-                unreadCountBadge: CounterBadge(
-                  // TODO(design) use CounterKind.quantity, following Figma
-                  kind: CounterBadgeKind.unread,
-                  channelIdForBackground: streamId,
-                  count: count)),
-            ])))));
+                        height: (20 / 17),
+                        fontStyle: topic.displayName == null ? FontStyle.italic : null,
+                        color: designVariables.textMessage,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
+                  const SizedBox(width: 8),
+                  InboxRowTrailingMarkers(
+                    hasMention: hasMention,
+                    visibilityIcon: visibilityIcon,
+                    unreadCountBadge: CounterBadge(
+                      // TODO(design) use CounterKind.quantity, following Figma
+                      kind: CounterBadgeKind.unread,
+                      channelIdForBackground: streamId,
+                      count: count)),
+                ]))))));
 
     return Semantics(container: true,
       child: result);
