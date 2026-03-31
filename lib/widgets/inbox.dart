@@ -7,6 +7,7 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
+import 'color.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -342,7 +343,7 @@ class InboxDmItem extends StatelessWidget {
             MessageListPage.buildRoute(context: context, narrow: narrow));
         },
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
-          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(25, 0, 16, 0),
+          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(12, 0, 16, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               DmConversationAvatar(narrow: narrow, backgroundColor: backgroundColor),
               const SizedBox(width: 6),
@@ -432,29 +433,36 @@ class InboxChannelHeaderItem extends StatelessWidget {
         //   40px min height.
         onTap: _onCollapseButtonTap,
         onLongPress: _onLongPress,
-        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(0, 0, 16, 0),
+        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 16, 8),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            Padding(padding: const EdgeInsets.all(10),
-              child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
-                collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
             Icon(size: 18,
               color: collapsed
                 ? swatch.iconOnPlainBackground
                 : swatch.iconOnBarBackground,
               iconDataForStream(subscription)),
-            const SizedBox(width: 5),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
-                ).merge(weightVariableTextStyle(context, wght: 600)),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                subscription.name))),
+            const SizedBox(width: 8),
+            // Pin the chevron to the end of the channel name.
+            // Let the name grow until the chevron has no room after it,
+            // truncating overflow with "...".
+            Expanded(child: Row(mainAxisSize: .min, children: [
+              Flexible(
+                child: Text(
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: (20 / 17),
+                    // TODO(design) check if this is the right variable
+                    color: designVariables.labelMenuButton,
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  subscription.name)),
+              const SizedBox(width: 6),
+              Icon(size: 20,
+                color: designVariables.textMessage.withFadedAlpha(0.5),
+                // TODO(design) hide icon when uncollapsed?
+                //   Discussion: https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422785
+                collapsed ? ZulipIcons.chevron_down : ZulipIcons.chevron_up),
+            ])),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
             CounterBadge(
@@ -537,7 +545,7 @@ class InboxTopicItem extends StatelessWidget {
           topic: topic,
           someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(63, 0, 16, 0),
+          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(50, 0, 16, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               Expanded(child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
