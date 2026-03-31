@@ -292,8 +292,11 @@ class _NewDmButtonState extends State<_NewDmButton> {
 
 /// An avatar or icon representing a DM conversation.
 ///
-/// See Figma:
+/// See Figma where this appears in the recent DMs page:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6556-31152&m=dev
+///
+/// And the Inbox page:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=16056-6330&m=dev
 class DmConversationAvatar extends StatelessWidget {
   const DmConversationAvatar({
     super.key,
