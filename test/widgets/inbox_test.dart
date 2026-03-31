@@ -195,7 +195,7 @@ void main() {
       check(find.descendant(
         of: findHeader,
         matching: find.byIcon(
-          expectCollapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down))).findsOne();
+          expectCollapsed ? ZulipIcons.chevron_down : ZulipIcons.chevron_up))).findsOne();
 
       final swatch = colorSwatchFor(element, subscription);
 
@@ -654,8 +654,8 @@ void main() {
             of: findChannelHeader(subscription.streamId),
             matching: find.byWidgetPredicate((widget) =>
               widget is Icon
-              && (widget.icon == ZulipIcons.arrow_down
-                  || widget.icon == ZulipIcons.arrow_right))));
+              && (widget.icon == ZulipIcons.chevron_up
+                  || widget.icon == ZulipIcons.chevron_down))));
           await tester.pump();
         }
 
