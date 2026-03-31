@@ -359,7 +359,8 @@ class InboxDmItem extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   title))),
-              const SizedBox(width: 12),
+              // 6 in Figma, but 8 is consistent with channel and topic rows
+              const SizedBox(width: 8),
               if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
               CounterBadge(
                 // TODO(design) use CounterKind.quantity, following Figma
@@ -463,7 +464,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
                 //   Discussion: https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422785
                 collapsed ? ZulipIcons.chevron_down : ZulipIcons.chevron_up),
             ])),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
             CounterBadge(
               // TODO(design) use CounterKind.quantity, following Figma
@@ -560,7 +561,7 @@ class InboxTopicItem extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   topic.displayName ?? store.realmEmptyTopicDisplayName))),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
               if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
               CounterBadge(
