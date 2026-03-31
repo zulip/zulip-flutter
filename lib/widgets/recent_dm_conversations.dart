@@ -310,6 +310,19 @@ class DmConversationAvatar extends StatelessWidget {
 
   static const double _avatarSize = 32;
 
+  static IconData? _iconForNumParticipants(int count) {
+    return switch (count) {
+      3 => ZulipIcons.group_dm,
+      4 => ZulipIcons.group_dm_4,
+      5 => ZulipIcons.group_dm_5,
+      6 => ZulipIcons.group_dm_6,
+      7 => ZulipIcons.group_dm_7,
+      8 => ZulipIcons.group_dm_8,
+      9 => ZulipIcons.group_dm_9,
+      _ => null,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
@@ -324,10 +337,33 @@ class DmConversationAvatar extends StatelessWidget {
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
         userIdForPresence = otherUserId;
       default:
-        avatar = ColoredBox(color: designVariables.avatarPlaceholderBg,
-          child: Center(
-            child: Icon(color: designVariables.avatarPlaceholderIcon,
-              ZulipIcons.group_dm)));
+        final allRecipientsCount = narrow.allRecipientIds.length;
+        if (allRecipientsCount < 10) {
+          final icon = _iconForNumParticipants(allRecipientsCount);
+          assert(icon != null);
+          avatar = Padding(
+            padding: EdgeInsets.all(4),
+            child: Icon(
+              size: 24,
+              color: designVariables.groupIcon,
+              icon));
+        } else {
+          avatar = DecoratedBox(
+            decoration: BoxDecoration(
+              color: designVariables.groupIcon,
+              borderRadius: BorderRadius.circular(_avatarSize / 2),
+            ),
+            child: Center(
+              child: Text(
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: designVariables.bgMessageRegular,
+                  fontSize: 17,
+                  height: 19 / 17,
+                  letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 17),
+                ).merge(weightVariableTextStyle(context, wght: 500)),
+                allRecipientsCount.toString())));
+        }
     }
 
     return AvatarShape(
