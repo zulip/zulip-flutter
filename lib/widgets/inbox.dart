@@ -550,7 +550,6 @@ class InboxTopicItem extends StatelessWidget {
                 topic.displayName ?? store.realmEmptyTopicDisplayName))),
             const SizedBox(width: 12),
             if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-            // TODO(design) copies the "@" marker color; is there a better color?
             if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
             Padding(padding: const EdgeInsetsDirectional.only(end: 16),
               child: CounterBadge(
