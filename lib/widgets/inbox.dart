@@ -341,6 +341,9 @@ class InboxDmItem extends StatelessWidget {
     Widget result = Material(
       color: backgroundColor,
       child: InkWell(
+        splashFactory: NoSplash.splashFactory,
+        // TODO(design) this is ad hoc
+        highlightColor: designVariables.foreground.withFadedAlpha(0.05),
         onTap: () {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
@@ -452,6 +455,9 @@ class InboxChannelHeaderItem extends StatelessWidget {
           ? _solidBackground(swatch)
           : _gradientBackground(swatch),
         child: InkWell(
+          splashFactory: NoSplash.splashFactory,
+          // TODO(design) this is ad hoc
+          highlightColor: swatch.barBackground.withFadedAlpha(0.5),
           // TODO use onRowTap to handle taps that are not on the collapse button.
           //   Probably we should give the collapse button a 44px or 48px square
           //   touch target:
@@ -558,6 +564,8 @@ class InboxTopicItem extends StatelessWidget {
       :topic, :count, :hasMention, :lastUnreadId) = data;
 
     final store = PerAccountStoreWidget.of(context);
+    final subscription = store.subscriptions[streamId];
+    final swatch = colorSwatchFor(context, subscription);
 
     final designVariables = DesignVariables.of(context);
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
@@ -566,6 +574,9 @@ class InboxTopicItem extends StatelessWidget {
     Widget result = Material(
       color: designVariables.background, // TODO(design) check if this is the right variable
       child: InkWell(
+        splashFactory: NoSplash.splashFactory,
+        // TODO(design) this is ad hoc
+        highlightColor: swatch.barBackground.withFadedAlpha(0.25),
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
           Navigator.push(context,
