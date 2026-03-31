@@ -569,6 +569,12 @@ class InlineIconGeometryData {
 
   // Values are ad hoc unless otherwise specified.
   static final Map<IconData, InlineIconGeometryData> _inlineIconGeometries = {
+    ZulipIcons.check: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
     ZulipIcons.at_sign: InlineIconGeometryData._(
       sizeFactor: 16 / 17,
       alphabeticBaselineFactor: 3 / 16,
@@ -637,6 +643,7 @@ class InlineIcon extends StatelessWidget {
     required this.color,
     this.padBefore = false,
     this.padAfter = false,
+    this.visible = true,
   });
 
   final IconData icon;
@@ -656,6 +663,11 @@ class InlineIcon extends StatelessWidget {
   final bool padBefore;
   final bool padAfter;
 
+  /// Whether the icon is visible.
+  ///
+  /// Pass false to hide the icon but maintain its size.
+  final bool visible;
+
   /// Creates an [InlineIcon] wrapped in a [WidgetSpan].
   ///
   /// The [WidgetSpan] has [PlaceholderAlignment.baseline].
@@ -666,6 +678,7 @@ class InlineIcon extends StatelessWidget {
     required Color? color,
     bool padBefore = false,
     bool padAfter = false,
+    bool visible = true,
   }) {
     return WidgetSpan(
       alignment: PlaceholderAlignment.baseline,
@@ -679,6 +692,7 @@ class InlineIcon extends StatelessWidget {
         color: color,
         padBefore: padBefore,
         padAfter: padAfter,
+        visible: visible,
       ));
   }
 
@@ -717,6 +731,17 @@ class InlineIcon extends StatelessWidget {
         ),
         child: result);
     }
+
+    result = Visibility(
+      visible: visible,
+
+      // To set [maintainSize] true, apparently we have to set
+      // [maintainState] and [maintainAnimation] true too; sure.
+      maintainState: true,
+      maintainAnimation: true,
+      maintainSize: true,
+
+      child: result);
 
     return result;
   }

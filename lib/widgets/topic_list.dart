@@ -272,20 +272,15 @@ class _TopicItem extends StatelessWidget {
           padding: EdgeInsetsDirectional.fromSTEB(6, 8, 12, 8),
           child: Row(
             spacing: 8,
-            // In the Figma design, the text and icons on the topic item row
-            // are aligned to the start on the cross axis
-            // (i.e., `align-items: flex-start`).  The icons are padded down
-            // 2px relative to the start, to visibly sit on the baseline.
-            // To account for scaled text, we align everything on the row
-            // to [CrossAxisAlignment.center] instead ([Row]'s default),
-            // like we do for the topic items on the inbox page.
-            // TODO(#1528): align to baseline (and therefore to first line of
-            //   topic name), but with adjustment for icons
-            // CZO discussion:
-            //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/topic.20list.20item.20alignment/near/2173252
+            crossAxisAlignment: .baseline,
+            textBaseline: localizedTextBaseline(context),
             children: [
-              // A null [Icon.icon] makes a blank space.
-              _IconMarker(icon: topic.isResolved ? ZulipIcons.check : null),
+              InlineIcon(
+                icon: ZulipIcons.check,
+                fontSize: 17,
+                textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+                color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4),
+                visible: topic.isResolved),
               Expanded(child: Opacity(
                 opacity: opacity,
                 child: Text(
@@ -308,22 +303,5 @@ class _TopicItem extends StatelessWidget {
                       count: unreadCount,
                       channelIdForBackground: null))),
             ]))));
-  }
-}
-
-class _IconMarker extends StatelessWidget {
-  const _IconMarker({required this.icon});
-
-  final IconData? icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final textScaler = MediaQuery.textScalerOf(context);
-    // Since we align the icons to [CrossAxisAlignment.center], the top padding
-    // from the Figma design is omitted.
-    return Icon(icon,
-      size: textScaler.clamp(maxScaleFactor: 1.5).scale(16),
-      color: designVariables.textMessage.withFadedAlpha(0.4));
   }
 }
