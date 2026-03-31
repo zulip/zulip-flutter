@@ -343,7 +343,7 @@ class InboxDmItem extends StatelessWidget {
         },
         onLongPress: () => showDmActionSheet(context, narrow: narrow),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
-          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(12, 0, 16, 0),
+          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               DmConversationAvatar(narrow: narrow, backgroundColor: backgroundColor),
               const SizedBox(width: 6),
@@ -433,7 +433,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
         //   40px min height.
         onTap: _onCollapseButtonTap,
         onLongPress: _onLongPress,
-        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 16, 8),
+        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 12, 8),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Icon(size: 18,
               color: collapsed
@@ -545,7 +545,7 @@ class InboxTopicItem extends StatelessWidget {
           topic: topic,
           someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(50, 0, 16, 0),
+          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(50, 0, 12, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               Expanded(child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
