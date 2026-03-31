@@ -691,6 +691,7 @@ class InlineIcon extends StatelessWidget {
     required this.icon,
     required this.fontSize,
     this.baselineType,
+    this.textScaler,
     required this.color,
     this.padBefore = false,
     this.padAfter = false,
@@ -703,6 +704,11 @@ class InlineIcon extends StatelessWidget {
   ///
   /// If null, [localizedTextBaseline] is used.
   final TextBaseline? baselineType;
+
+  /// The [TextScaler] to apply.
+  ///
+  /// If null, [MediaQuery.textScalerOf] is used.
+  final TextScaler? textScaler;
 
   final Color? color;
   final bool padBefore;
@@ -726,6 +732,8 @@ class InlineIcon extends StatelessWidget {
         icon: icon,
         fontSize: fontSize,
         baselineType: baselineType,
+        // TODO(#735) remove [TextScaler.noScaling] (works around double-scale bug)
+        textScaler: TextScaler.noScaling,
         color: color,
         padBefore: padBefore,
         padAfter: padAfter,
@@ -735,6 +743,7 @@ class InlineIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final baselineType = this.baselineType ?? localizedTextBaseline(context);
+    final textScaler = this.textScaler ?? MediaQuery.textScalerOf(context);
 
     final InlineIconGeometryData(
       :sizeFactor,
@@ -742,7 +751,7 @@ class InlineIcon extends StatelessWidget {
       :paddingFactor,
     ) = InlineIconGeometryData.forIcon(icon);
 
-    final size = sizeFactor * fontSize;
+    final size = sizeFactor * textScaler.scale(fontSize);
 
     final effectiveBaselineOffset = switch (baselineType) {
       // I.e., consider the baseline to be farther up than the icon's bottom edge,
