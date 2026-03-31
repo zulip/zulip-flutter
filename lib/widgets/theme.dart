@@ -195,6 +195,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     fabShadow: const Color(0xff2b0e8a).withValues(alpha: 0.4),
     folderText: const Color(0xff596680),
     foreground: const Color(0xff000000),
+    groupIcon: const Color(0xff7199fe), // blue/350
     icon: const Color(0xff6159e1),
     iconSelected: const Color(0xff222222),
     labelCounterQuantity: const Color(0xff222222).withValues(alpha: 0.6),
@@ -303,6 +304,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     fabShadow: const Color(0xff18171c),
     folderText: const Color(0xff8793ab),
     foreground: const Color(0xffffffff),
+    groupIcon: const Color(0xff84a8fd), // blue/300
     icon: const Color(0xff7977fe),
     iconSelected: Colors.white.withValues(alpha: 0.8),
     labelCounterQuantity: const Color(0xffffffff).withValues(alpha: 0.7),
@@ -420,6 +422,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.fabShadow,
     required this.folderText,
     required this.foreground,
+    required this.groupIcon,
     required this.icon,
     required this.iconSelected,
     required this.labelCounterQuantity,
@@ -529,6 +532,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color fabShadow;
   final Color folderText;
   final Color foreground;
+  final Color groupIcon;
   final Color icon;
   final Color iconSelected;
   final Color labelCounterQuantity;
@@ -632,6 +636,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? fabShadow,
     Color? folderText,
     Color? foreground,
+    Color? groupIcon,
     Color? icon,
     Color? iconSelected,
     Color? labelCounterQuantity,
@@ -730,6 +735,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       fabShadow: fabShadow ?? this.fabShadow,
       folderText: folderText ?? this.folderText,
       foreground: foreground ?? this.foreground,
+      groupIcon: groupIcon ?? this.groupIcon,
       icon: icon ?? this.icon,
       iconSelected: iconSelected ?? this.iconSelected,
       labelCounterQuantity: labelCounterQuantity ?? this.labelCounterQuantity,
@@ -835,6 +841,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       fabShadow: Color.lerp(fabShadow, other.fabShadow, t)!,
       folderText: Color.lerp(folderText, other.folderText, t)!,
       foreground: Color.lerp(foreground, other.foreground, t)!,
+      groupIcon: Color.lerp(groupIcon, other.groupIcon, t)!,
       icon: Color.lerp(icon, other.icon, t)!,
       iconSelected: Color.lerp(iconSelected, other.iconSelected, t)!,
       labelCounterQuantity: Color.lerp(labelCounterQuantity, other.labelCounterQuantity, t)!,
