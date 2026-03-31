@@ -340,29 +340,28 @@ class InboxDmItem extends StatelessWidget {
         },
         onLongPress: () => showDmActionSheet(context, narrow: narrow),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                title))),
-            const SizedBox(width: 12),
-            if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
-            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: CounterBadge(
+          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(63, 0, 16, 0),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Expanded(child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: (20 / 17),
+                    // TODO(design) check if this is the right variable
+                    color: designVariables.labelMenuButton,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  title))),
+              const SizedBox(width: 12),
+              if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
+              CounterBadge(
                 // TODO(design) use CounterKind.quantity, following Figma
                 kind: CounterBadgeKind.unread,
                 channelIdForBackground: null,
-                count: count)),
-          ]))));
+                count: count),
+            ])))));
 
     return Semantics(container: true,
       child: result);
@@ -429,37 +428,37 @@ class InboxChannelHeaderItem extends StatelessWidget {
         //   40px min height.
         onTap: _onCollapseButtonTap,
         onLongPress: _onLongPress,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsets.all(10),
-            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
-              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
-          Icon(size: 18,
-            color: collapsed
-              ? swatch.iconOnPlainBackground
-              : swatch.iconOnBarBackground,
-            iconDataForStream(subscription)),
-          const SizedBox(width: 5),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              subscription.name))),
-          const SizedBox(width: 12),
-          if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-          Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: CounterBadge(
+        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(0, 0, 16, 0),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Padding(padding: const EdgeInsets.all(10),
+              child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
+                collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
+            Icon(size: 18,
+              color: collapsed
+                ? swatch.iconOnPlainBackground
+                : swatch.iconOnBarBackground,
+              iconDataForStream(subscription)),
+            const SizedBox(width: 5),
+            Expanded(child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                style: TextStyle(
+                  fontSize: 17,
+                  height: (20 / 17),
+                  // TODO(design) check if this is the right variable
+                  color: designVariables.labelMenuButton,
+                ).merge(weightVariableTextStyle(context, wght: 600)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                subscription.name))),
+            const SizedBox(width: 12),
+            if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+            CounterBadge(
               // TODO(design) use CounterKind.quantity, following Figma
               kind: CounterBadgeKind.unread,
               channelIdForBackground: subscription.streamId,
-              count: count)),
-        ])));
+              count: count),
+          ]))));
 
     return Semantics(container: true,
       child: result);
@@ -534,31 +533,30 @@ class InboxTopicItem extends StatelessWidget {
           topic: topic,
           someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                topic.displayName ?? store.realmEmptyTopicDisplayName))),
-            const SizedBox(width: 12),
-            if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-            if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: CounterBadge(
+          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(63, 0, 16, 0),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Expanded(child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: (20 / 17),
+                    fontStyle: topic.displayName == null ? FontStyle.italic : null,
+                    // TODO(design) check if this is the right variable
+                    color: designVariables.labelMenuButton,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  topic.displayName ?? store.realmEmptyTopicDisplayName))),
+              const SizedBox(width: 12),
+              if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
+              if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
+              CounterBadge(
                 // TODO(design) use CounterKind.quantity, following Figma
                 kind: CounterBadgeKind.unread,
                 channelIdForBackground: streamId,
-                count: count)),
-          ]))));
+                count: count),
+            ])))));
 
     return Semantics(container: true,
       child: result);
