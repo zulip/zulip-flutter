@@ -276,6 +276,8 @@ class _TopicItem extends StatelessWidget {
             textBaseline: localizedTextBaseline(context),
             children: [
               InlineIcon(
+                // Compare icon style in the inbox; probably these
+                // should stay in sync.
                 icon: ZulipIcons.check,
                 fontSize: 17,
                 textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
