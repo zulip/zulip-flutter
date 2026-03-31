@@ -11,6 +11,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/topic_list.dart';
 
 import '../api/fake_api.dart';
@@ -177,6 +178,10 @@ void main() {
     of: topicItemFinder.at(index),
     matching: finder);
 
+  InlineIcon checkmarkIconAt(WidgetTester tester, int index) =>
+    tester.widget<InlineIcon>(findInTopicItemAt(index, find.byWidgetPredicate(
+      (w) => w is InlineIcon && w.icon == ZulipIcons.check)));
+
   testWidgets('sort topics by maxId', (tester) async {
     await prepare(tester, topics: [
       eg.getChannelTopicsEntry(name: 'A', maxId: 3),
@@ -255,9 +260,10 @@ void main() {
     await prepare(tester, channel: channel,
       topics: [eg.getChannelTopicsEntry(maxId: 109, name: 'foo')],
       messages: messages);
+
     await tester.longPress(topicItemFinder);
     await tester.pump(Duration(milliseconds: 150)); // bottom-sheet animation
-    check(findInTopicItemAt(0, find.byIcon(ZulipIcons.check))).findsNothing();
+    check(checkmarkIconAt(tester, 0).visible).isFalse();
     check(findInTopicItemAt(0, find.text('foo'))).findsOne();
 
     connection.prepare(json: {});
@@ -270,7 +276,7 @@ void main() {
       newTopic: eg.t('foo').resolve(),
       propagateMode: .changeAll));
     await tester.pump();
-    check(findInTopicItemAt(0, find.byIcon(ZulipIcons.check))).findsOne();
+    check(checkmarkIconAt(tester, 0).visible).isTrue();
     check(findInTopicItemAt(0, find.text('foo'))).findsOne();
   });
 
@@ -286,12 +292,10 @@ void main() {
     check(findInTopicItemAt(0, find.text('✔ resolved'))).findsNothing();
 
     check(findInTopicItemAt(0, find.text('resolved'))).findsOne();
-    check(findInTopicItemAt(0, find.byIcon(ZulipIcons.check).hitTestable()))
-      .findsOne();
+    check(checkmarkIconAt(tester, 0).visible).isTrue();
 
     check(findInTopicItemAt(1, find.text('unresolved'))).findsOne();
-    check(findInTopicItemAt(1, find.byType(Icon)).hitTestable())
-      .findsNothing();
+    check(checkmarkIconAt(tester, 1).visible).isFalse();
   });
 
   testWidgets('handle empty topics', (tester) async {
