@@ -590,8 +590,27 @@ class InboxTopicItem extends StatelessWidget {
           topic: topic,
           someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(50, 0, 12, 0),
+          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 12, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              SizedBox(
+                width: 42,
+                child: Align(
+                  // When the system text-size setting rises,
+                  // let the checkmark icon grow startward into the margin
+                  // so the topic text stays aligned with channel-header text.
+                  // (Note: "center" in .centerEnd is inert:
+                  // this Align shrink-wraps to its child's height.)
+                  alignment: .centerEnd,
+                  child: topic.isResolved
+                    ? InlineIcon(
+                        // Compare icon style in the topic list; probably these
+                        // should stay in sync.
+                        icon: ZulipIcons.check,
+                        fontSize: 17,
+                        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+                        color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4))
+                    : null)),
+              SizedBox(width: 8),
               Expanded(child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
@@ -603,7 +622,7 @@ class InboxTopicItem extends StatelessWidget {
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  topic.displayName ?? store.realmEmptyTopicDisplayName))),
+                  topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
               const SizedBox(width: 8),
               InboxRowTrailingMarkers(
                 hasMention: hasMention,
