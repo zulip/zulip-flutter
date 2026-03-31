@@ -293,10 +293,10 @@ class InboxFolderHeaderItem extends StatelessWidget {
               overflow: .ellipsis,
               style: TextStyle(
                 color: designVariables.folderText,
-                fontSize: 16,
-                height: 20 / 16,
-                letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
-              ).merge(weightVariableTextStyle(context, wght: 600)),
+                fontSize: 17,
+                height: 20 / 17,
+                letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 17),
+              ).merge(weightVariableTextStyle(context, wght: 700)),
               label.toUpperCase())),
         ])));
 
@@ -352,9 +352,8 @@ class InboxDmItem extends StatelessWidget {
                 child: Text(
                   style: TextStyle(
                     fontSize: 17,
-                    height: (20 / 17),
-                    // TODO(design) check if this is the right variable
-                    color: designVariables.labelMenuButton,
+                    height: (19 / 17),
+                    color: designVariables.textMessage,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -451,8 +450,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 17,
                     height: (20 / 17),
-                    // TODO(design) check if this is the right variable
-                    color: designVariables.labelMenuButton,
+                    color: designVariables.textMessage,
                   ).merge(weightVariableTextStyle(context, wght: 600)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -555,10 +553,9 @@ class InboxTopicItem extends StatelessWidget {
                     fontSize: 17,
                     height: (20 / 17),
                     fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                    // TODO(design) check if this is the right variable
-                    color: designVariables.labelMenuButton,
+                    color: designVariables.textMessage,
                   ),
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   topic.displayName ?? store.realmEmptyTopicDisplayName))),
               const SizedBox(width: 8),
