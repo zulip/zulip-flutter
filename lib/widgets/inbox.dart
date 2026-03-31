@@ -283,8 +283,11 @@ class InboxFolderHeaderItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    Widget result = ColoredBox(
-      color: designVariables.background, // TODO(design) check if this is the right variable
+    Widget result = DecoratedBox(
+      decoration: BoxDecoration(
+        color: designVariables.background, // TODO(design) check if this is the right variable
+        border: Border(top: BorderSide(color: designVariables.borderBar)),
+      ),
       child: Padding(
         padding: EdgeInsetsDirectional.fromSTEB(14, 10, 12, 10),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, spacing: 8, children: [
