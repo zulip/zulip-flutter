@@ -10,6 +10,7 @@ import 'action_sheet.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'recent_dm_conversations.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
@@ -332,18 +333,21 @@ class InboxDmItem extends StatelessWidget {
       _ => narrow.otherRecipientIds.map(store.userDisplayName).join(', '),
     };
 
+    final backgroundColor = designVariables.background; // TODO(design) check if this is the right variable
     Widget result = Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
+      color: backgroundColor,
       child: InkWell(
         onTap: () {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
         },
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(63, 0, 16, 0),
+        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(25, 0, 16, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              DmConversationAvatar(narrow: narrow, backgroundColor: backgroundColor),
+              const SizedBox(width: 6),
               Expanded(child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: 3),
                 child: Text(
                   style: TextStyle(
                     fontSize: 17,
