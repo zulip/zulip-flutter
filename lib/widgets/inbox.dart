@@ -366,12 +366,13 @@ class InboxDmItem extends StatelessWidget {
                   title))),
               // 6 in Figma, but 8 is consistent with channel and topic rows
               const SizedBox(width: 8),
-              if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
-              CounterBadge(
-                // TODO(design) use CounterKind.quantity, following Figma
-                kind: CounterBadgeKind.unread,
-                channelIdForBackground: null,
-                count: count),
+              InboxRowTrailingMarkers(
+                hasMention: hasMention,
+                unreadCountBadge: CounterBadge(
+                  // TODO(design) use CounterKind.quantity, following Figma
+                  kind: CounterBadgeKind.unread,
+                  channelIdForBackground: null,
+                  count: count)),
             ])))));
 
     return Semantics(container: true,
@@ -494,12 +495,13 @@ class InboxChannelHeaderItem extends StatelessWidget {
                   collapsed ? ZulipIcons.chevron_down : ZulipIcons.chevron_up),
               ])),
               const SizedBox(width: 8),
-              if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-              CounterBadge(
-                // TODO(design) use CounterKind.quantity, following Figma
-                kind: CounterBadgeKind.unread,
-                channelIdForBackground: subscription.streamId,
-                count: count),
+              InboxRowTrailingMarkers(
+                hasMention: hasMention,
+                unreadCountBadge: CounterBadge(
+                  // TODO(design) use CounterKind.quantity, following Figma
+                  kind: CounterBadgeKind.unread,
+                  channelIdForBackground: subscription.streamId,
+                  count: count)),
             ])))));
 
     return Semantics(container: true,
@@ -602,13 +604,14 @@ class InboxTopicItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   topic.displayName ?? store.realmEmptyTopicDisplayName))),
               const SizedBox(width: 8),
-              if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-              if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-              CounterBadge(
-                // TODO(design) use CounterKind.quantity, following Figma
-                kind: CounterBadgeKind.unread,
-                channelIdForBackground: streamId,
-                count: count),
+              InboxRowTrailingMarkers(
+                hasMention: hasMention,
+                visibilityIcon: visibilityIcon,
+                unreadCountBadge: CounterBadge(
+                  // TODO(design) use CounterKind.quantity, following Figma
+                  kind: CounterBadgeKind.unread,
+                  channelIdForBackground: streamId,
+                  count: count)),
             ])))));
 
     return Semantics(container: true,
@@ -616,20 +619,48 @@ class InboxTopicItem extends StatelessWidget {
   }
 }
 
-class _IconMarker extends StatelessWidget {
-  const _IconMarker({required this.icon});
+/// A short, baseline-aligned row, optionally containing
+/// an unread badge, @ icon, and topic visibility icon.
+///
+/// This encapsulates the baseline alignment and a few style choices
+/// that should be consistent between the inbox and the topic-list page.
+class InboxRowTrailingMarkers extends StatelessWidget {
+  const InboxRowTrailingMarkers({
+    super.key,
+    this.hasMention = false,
+    this.visibilityIcon,
+    this.unreadCountBadge,
+  });
 
-  final IconData icon;
+  final bool hasMention;
+  final IconData? visibilityIcon;
+  final Widget? unreadCountBadge;
+
+  Widget _buildIcon(BuildContext context, IconData icon, {required bool padAfter}) {
+    return InlineIcon(
+      icon: icon,
+      fontSize: 17,
+      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+      color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4),
+      padAfter: padAfter,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    // Design for icon markers based on Figma screen:
-    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 4),
-      // This color comes from the Figma screen for the "@" marker, but not
-      // the topic visibility markers.
-      child: Icon(icon, size: 14, color: designVariables.inboxItemIconMarker));
+    final hasBadge = unreadCountBadge != null;
+    final hasVisibility = visibilityIcon != null;
+    return Row(
+      mainAxisSize: .min,
+      crossAxisAlignment: .baseline,
+      textBaseline: localizedTextBaseline(context),
+      children: [
+        if (hasMention)
+          _buildIcon(context, ZulipIcons.at_sign,
+            padAfter: hasVisibility || hasBadge),
+        if (hasVisibility)
+          _buildIcon(context, visibilityIcon!, padAfter: hasBadge),
+        ?unreadCountBadge,
+      ]);
   }
 }

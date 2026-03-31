@@ -10,6 +10,7 @@ import 'action_sheet.dart';
 import 'app_bar.dart';
 import 'color.dart';
 import 'icons.dart';
+import 'inbox.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
@@ -299,19 +300,16 @@ class _TopicItem extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
-                Opacity(opacity: opacity, child: Row(
-                  spacing: 4,
-                  children: [
-                    if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-                    if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-                    if (unreadCount > 0)
+                Opacity(opacity: opacity,
+                  child: InboxRowTrailingMarkers(
+                    hasMention: hasMention,
+                    visibilityIcon: visibilityIcon,
+                    unreadCountBadge: unreadCount == 0 ? null :
                       CounterBadge(
                         kind: CounterBadgeKind.unread,
                         count: unreadCount,
-                        channelIdForBackground: null),
-                  ])),
-              ])),
-        )));
+                        channelIdForBackground: null))),
+              ])))));
   }
 }
 
