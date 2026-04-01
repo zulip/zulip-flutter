@@ -183,6 +183,17 @@ class MessageListPage extends StatefulWidget {
     this.initAnchorMessageId,
   });
 
+  /// The maximum width for the messages.
+  ///
+  /// This helps with readability, eye strain, and user focus
+  /// when the screen is very wide.
+  // TODO(design) this can look a bit silly on very large tablets in landscape,
+  //   where the app bar and compose box stretch to full width,
+  //   leaving the messages in a centered ~half-width column.
+  //   The right eventual solution might be to fit more UI on the screen,
+  //   such as sidebars (like in web), subject to breakpoints.
+  static const double maxContentWidth = 760;
+
   static AccountRoute<void> buildRoute({
     int? accountId,
     BuildContext? context,
@@ -1089,7 +1100,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // to position its padding over the device insets and centers content.
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
+          constraints: const BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
           child: NotificationListener<ScrollMetricsNotification>(
             onNotification: _handleScrollMetricsNotification,
             child: Stack(
