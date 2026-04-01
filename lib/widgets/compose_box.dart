@@ -1434,8 +1434,6 @@ class _ComposeBoxContainer extends StatelessWidget {
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
 
-    // TODO(design): Maybe put a max width on the compose box, like we do on
-    //   the message list itself; if so, remember to update ComposeBox's dartdoc.
     return Container(width: double.infinity,
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: designVariables.borderBar)),
@@ -1493,26 +1491,28 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
     final topicInput = buildTopicInput();
     final sendButton = buildSendButton();
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Theme(
-          data: inputThemeData,
-          child: Column(children: [
-            ?topicInput,
-            buildContentInput(),
-          ]))),
-      SizedBox(
-        height: _composeButtonSize,
-        child: IconButtonTheme(
-          data: iconButtonThemeData,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(children: composeButtons),
-              ?sendButton,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Theme(
+            data: inputThemeData,
+            child: Column(children: [
+              ?topicInput,
+              buildContentInput(),
             ]))),
-    ]);
+        SizedBox(
+          height: _composeButtonSize,
+          child: IconButtonTheme(
+            data: iconButtonThemeData,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(children: composeButtons),
+                ?sendButton,
+              ]))),
+      ]));
   }
 }
 
@@ -1752,6 +1752,9 @@ class EditMessageComposeBoxController extends ComposeBoxController {
 /// A banner to display over or instead of interactive compose-box content.
 ///
 /// Must have a [PageRoot] ancestor.
+///
+/// The content is constrained horizontally by the "safe area"
+/// between the device insets and by [MessageListPage.maxContentWidth].
 class _Banner extends StatelessWidget {
   const _Banner({
     required this.intent,
@@ -1827,22 +1830,26 @@ class _Banner extends StatelessWidget {
         minimum: EdgeInsetsDirectional.only(start: 8, end: padEnd ? 8 : 0)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
           .resolve(Directionality.of(context)),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(start: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  child: Text(
-                    style: labelTextStyle,
-                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-                    label))),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                trailing!,
-              ],
-            ]))));
+        child: Align(
+          alignment: .topCenter, // Center the content when its max width is reached.
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      child: Text(
+                        style: labelTextStyle,
+                        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+                        label))),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 8),
+                    trailing!,
+                  ],
+                ]))))));
   }
 }
 
@@ -1978,8 +1985,11 @@ class _EditMessageBannerTrailing extends StatelessWidget {
 
 /// The compose box.
 ///
-/// Takes the full screen width, covering the horizontal insets with its surface.
+/// Takes the full screen width,
+/// covering the horizontal device insets with its surface.
 /// Also covers the bottom inset with its surface.
+/// The content is constrained horizontally by the "safe area"
+/// between the device insets and by [MessageListPage.maxContentWidth].
 class ComposeBox extends StatefulWidget {
   ComposeBox({super.key, required this.narrow})
     : assert(ComposeBox.hasComposeBox(narrow));

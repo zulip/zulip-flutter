@@ -183,13 +183,15 @@ class MessageListPage extends StatefulWidget {
     this.initAnchorMessageId,
   });
 
-  /// The maximum width for the messages.
+  /// The maximum width for the messages
+  /// and for the content of the compose box and its banner.
   ///
   /// This helps with readability, eye strain, and user focus
   /// when the screen is very wide.
   // TODO(design) this can look a bit silly on very large tablets in landscape,
-  //   where the app bar and compose box stretch to full width,
-  //   leaving the messages in a centered ~half-width column.
+  //   where the app bar and compose box stretch to full width, leaving
+  //   the messages and compose-box content in a centered ~half-width column:
+  //     https://github.com/zulip/zulip-flutter/pull/2225#issuecomment-4174040384
   //   The right eventual solution might be to fit more UI on the screen,
   //   such as sidebars (like in web), subject to breakpoints.
   static const double maxContentWidth = 760;
