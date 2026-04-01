@@ -2020,13 +2020,12 @@ class DmRecipientHeader extends StatelessWidget {
   }
 }
 
-TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle}) {
+TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
     color: DesignVariables.of(context).title,
     fontSize: 16,
     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
     height: (18 / 16),
-    fontStyle: fontStyle,
   ).merge(weightVariableTextStyle(context, wght: 600));
 }
 
