@@ -1816,6 +1816,23 @@ void main() {
         check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
       });
 
+      testWidgets('show resolved-topic check icon', (tester) async {
+        final message = eg.streamMessage(
+          stream: stream, topic: '✔ some topic');
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message], subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        final headerFinder = find.byType(StreamMessageRecipientHeader);
+        check(find.descendant(of: headerFinder,
+          matching: find.byWidgetPredicate(
+            (w) => w is InlineIcon && w.icon == ZulipIcons.check))).findsOne();
+        check(find.descendant(of: headerFinder,
+          matching: find.textContaining('some topic', findRichText: true))).findsOne();
+        check(find.descendant(of: headerFinder,
+          matching: find.textContaining('✔', findRichText: true))).findsNothing();
+      });
+
       testWidgets('show topic visibility icon when followed', (tester) async {
         await setupMessageListPage(tester,
           narrow: const CombinedFeedNarrow(),
