@@ -831,12 +831,51 @@ class InlineIcon extends StatelessWidget {
   }
 }
 
+/// An [InlineSpan] with a [ZulipIcons.check] icon (if resolved) and topic name.
+///
+/// Pass this to [Text.rich], which can be styled arbitrarily.
+/// Pass the [fontSize] and [color] of surrounding text
+/// so that the icon is sized and colored appropriately.
+///
+/// For a span with a channel name/icon and optional topic,
+/// see [channelTopicLabelSpan].
+InlineSpan topicLabelSpan({
+  required BuildContext context,
+  required TopicName topic,
+  required double fontSize,
+  required Color color,
+}) {
+  final store = PerAccountStoreWidget.of(context);
+  final baselineType = localizedTextBaseline(context);
+
+  final unresolved = topic.unresolve();
+
+  return TextSpan(children: [
+    if (topic.isResolved)
+      InlineIcon.asWidgetSpan(
+        icon: ZulipIcons.check,
+        fontSize: fontSize,
+        baselineType: baselineType,
+        color: color,
+        padAfter: true),
+    if (unresolved.displayName != null)
+      TextSpan(text: unresolved.displayName)
+    else
+      TextSpan(
+        style: TextStyle(fontStyle: FontStyle.italic),
+        text: store.realmEmptyTopicDisplayName),
+  ]);
+}
+
 /// An [InlineSpan] with a channel privacy icon, channel name,
 /// and optionally a chevron-right icon plus topic.
 ///
 /// Pass this to [Text.rich], which can be styled arbitrarily.
 /// Pass the [fontSize] and [color] of surrounding text
 /// so that the icons are sized and colored appropriately.
+///
+/// For a span with just the topic (including checkmark icon as applicable)
+/// see [topicLabelSpan].
 InlineSpan channelTopicLabelSpan({
   required BuildContext context,
   required int channelId,
@@ -874,19 +913,11 @@ InlineSpan channelTopicLabelSpan({
         color: color,
         padBefore: true,
         padAfter: true),
-      if (topic.isResolved)
-        InlineIcon.asWidgetSpan(
-          icon: ZulipIcons.check,
-          fontSize: fontSize,
-          baselineType: baselineType,
-          color: color,
-          padAfter: true),
-      if (topic.unresolve().displayName != null)
-        TextSpan(text: topic.unresolve().displayName)
-      else
-        TextSpan(
-          style: TextStyle(fontStyle: FontStyle.italic),
-          text: store.realmEmptyTopicDisplayName),
+      topicLabelSpan(
+        context: context,
+        topic: topic,
+        fontSize: fontSize,
+        color: color),
     ],
   ]);
 }
