@@ -874,8 +874,9 @@ void main() {
 
       final topicRow = find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.text(
-          effectiveTopic.displayName ?? eg.defaultRealmEmptyTopicDisplayName));
+        matching: find.textContaining(
+          effectiveTopic.unresolve().displayName ?? eg.defaultRealmEmptyTopicDisplayName,
+          findRichText: true));
       await tester.longPress(topicRow);
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));

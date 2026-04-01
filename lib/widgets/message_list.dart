@@ -615,16 +615,21 @@ class MessageListAppBarTitle extends StatelessWidget {
   }) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    // (We customize titleTextStyle for Zulip; see zulipThemeData.)
+    final titleTextStyle = Theme.of(context).appBarTheme.titleTextStyle!;
     final icon = stream == null ? null
       : iconDataForTopicVisibilityPolicy(
           store.topicVisibilityPolicy(stream.streamId, topic));
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName, style: TextStyle(
-          fontSize: 13,
-          fontStyle: topic.displayName == null ? FontStyle.italic : null,
-        ).merge(weightVariableTextStyle(context)))),
+        Flexible(child: Text.rich(
+          topicLabelSpan(
+            context: context,
+            topic: topic,
+            fontSize: 13,
+            color: titleTextStyle.color!),
+          style: TextStyle(fontSize: 13).merge(weightVariableTextStyle(context)))),
         if (icon != null)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 4),
