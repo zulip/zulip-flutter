@@ -874,8 +874,15 @@ InlineSpan channelTopicLabelSpan({
         color: color,
         padBefore: true,
         padAfter: true),
-      if (topic.displayName != null)
-        TextSpan(text: topic.displayName)
+      if (topic.isResolved)
+        InlineIcon.asWidgetSpan(
+          icon: ZulipIcons.check,
+          fontSize: fontSize,
+          baselineType: baselineType,
+          color: color,
+          padAfter: true),
+      if (topic.unresolve().displayName != null)
+        TextSpan(text: topic.unresolve().displayName)
       else
         TextSpan(
           style: TextStyle(fontStyle: FontStyle.italic),
