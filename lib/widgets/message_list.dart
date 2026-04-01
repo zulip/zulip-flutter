@@ -1909,18 +1909,22 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           ]));
     }
 
+    final topicStyle = recipientHeaderTextStyle(context);
     final topicWidget = Padding(
       padding: const EdgeInsets.symmetric(vertical: 11),
       child: Row(
         children: [
           Flexible(
-            child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName,
+            child: Text.rich(
+              topicLabelSpan(
+                context: context,
+                topic: topic,
+                fontSize: topicStyle.fontSize!,
+                color: topicStyle.color!),
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,
-              style: recipientHeaderTextStyle(context,
-                fontStyle: topic.displayName == null ? FontStyle.italic : null,
-              ))),
+              style: topicStyle)),
           const SizedBox(width: 4),
           Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
