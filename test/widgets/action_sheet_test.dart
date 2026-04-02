@@ -1757,11 +1757,11 @@ void main() {
         await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
       }
 
-      void checkLoadingState(PerAccountStore store, ComposeContentController contentController, {
+      void checkLoadingState(PerAccountStore store, Narrow narrow, ComposeContentController contentController, {
         required TextEditingValue valueBefore,
         required Message message,
       }) {
-        check(contentController).value.equals((ComposeContentController(store: store)
+        check(contentController).value.equals((ComposeContentController(store: store, narrow: narrow)
           ..value = valueBefore
           ..insertPadded(quoteAndReplyPlaceholder(
               GlobalLocalizations.zulipLocalizations, store, message: message))
@@ -1769,12 +1769,12 @@ void main() {
         check(contentController).validationErrors.contains(ContentValidationError.quoteAndReplyInProgress);
       }
 
-      void checkSuccessState(PerAccountStore store, ComposeContentController contentController, {
+      void checkSuccessState(PerAccountStore store, Narrow narrow, ComposeContentController contentController, {
         required TextEditingValue valueBefore,
         required Message message,
         required String rawContent,
       }) {
-        final builder = ComposeContentController(store: store)
+        final builder = ComposeContentController(store: store, narrow: narrow)
           ..value = valueBefore
           ..insertPadded(quoteAndReply(store, message: message, rawContent: rawContent));
         if (!valueBefore.selection.isValid) {
@@ -1788,7 +1788,8 @@ void main() {
 
       testWidgets('in channel narrow with different, non-vacuous topic', (tester) async {
         final message = eg.streamMessage(topic: 'some topic');
-        await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
+        final narrow = ChannelNarrow(message.streamId);
+        await setupToMessageActionSheet(tester, message: message, narrow: narrow);
 
         final composeBoxController = findComposeBoxController(tester) as StreamComposeBoxController;
         final contentController = composeBoxController.content;
@@ -1802,10 +1803,10 @@ void main() {
         final valueBefore = contentController.value;
         prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
         await tapQuoteAndReplyButton(tester);
-        checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
+        checkLoadingState(store, narrow, contentController, valueBefore: valueBefore, message: message);
         await tester.pump(Duration.zero); // message is fetched; compose box updates
         check(composeBoxController.contentFocusNode.hasFocus).isTrue();
-        checkSuccessState(store, contentController,
+        checkSuccessState(store, narrow, contentController,
           valueBefore: valueBefore, message: message, rawContent: 'Hello world');
         check(topicController).textNormalized.equals('other topic');
       });
@@ -1813,7 +1814,8 @@ void main() {
       testWidgets('in channel narrow with empty topic', (tester) async {
         // Regression test for https://github.com/zulip/zulip-flutter/issues/1469
         final message = eg.streamMessage(topic: 'some topic');
-        await setupToMessageActionSheet(tester, message: message, narrow: ChannelNarrow(message.streamId));
+        final narrow = ChannelNarrow(message.streamId);
+        await setupToMessageActionSheet(tester, message: message, narrow: narrow);
 
         final composeBoxController = findComposeBoxController(tester) as StreamComposeBoxController;
         final contentController = composeBoxController.content;
@@ -1827,10 +1829,10 @@ void main() {
         final valueBefore = contentController.value;
         prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
         await tapQuoteAndReplyButton(tester);
-        checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
+        checkLoadingState(store, narrow, contentController, valueBefore: valueBefore, message: message);
         await tester.pump(Duration.zero); // message is fetched; compose box updates
         check(composeBoxController.contentFocusNode.hasFocus).isTrue();
-        checkSuccessState(store, contentController,
+        checkSuccessState(store, narrow, contentController,
           valueBefore: valueBefore, message: message, rawContent: 'Hello world');
         check(topicController).textNormalized.equals('some topic');
       });
@@ -1838,7 +1840,8 @@ void main() {
       group('in topic narrow', () {
         testWidgets('smoke', (tester) async {
           final message = eg.streamMessage();
-          await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+          final narrow = TopicNarrow.ofMessage(message);
+          await setupToMessageActionSheet(tester, message: message, narrow: narrow);
 
           final composeBoxController = findComposeBoxController(tester)!;
           final contentController = composeBoxController.content;
@@ -1846,10 +1849,10 @@ void main() {
           final valueBefore = contentController.value;
           prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
           await tapQuoteAndReplyButton(tester);
-          checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
+          checkLoadingState(store, narrow, contentController, valueBefore: valueBefore, message: message);
           await tester.pump(Duration.zero); // message is fetched; compose box updates
           check(composeBoxController.contentFocusNode.hasFocus).isTrue();
-          checkSuccessState(store, contentController,
+          checkSuccessState(store, narrow, contentController,
             valueBefore: valueBefore, message: message, rawContent: 'Hello world');
         });
 
@@ -1875,8 +1878,8 @@ void main() {
       group('in DM narrow', () {
         testWidgets('smoke', (tester) async {
           final message = eg.dmMessage(from: eg.selfUser, to: [eg.otherUser]);
-          await setupToMessageActionSheet(tester,
-            message: message, narrow: DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
+          final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
+          await setupToMessageActionSheet(tester, message: message, narrow: narrow);
 
           final composeBoxController = findComposeBoxController(tester)!;
           final contentController = composeBoxController.content;
@@ -1884,10 +1887,10 @@ void main() {
           final valueBefore = contentController.value;
           prepareRawContentResponseSuccess(message: message, rawContent: 'Hello world');
           await tapQuoteAndReplyButton(tester);
-          checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
+          checkLoadingState(store, narrow, contentController, valueBefore: valueBefore, message: message);
           await tester.pump(Duration.zero); // message is fetched; compose box updates
           check(composeBoxController.contentFocusNode.hasFocus).isTrue();
-          checkSuccessState(store, contentController,
+          checkSuccessState(store, narrow, contentController,
             valueBefore: valueBefore, message: message, rawContent: 'Hello world');
         });
 
@@ -1916,7 +1919,8 @@ void main() {
 
       testWidgets('request has an error', (tester) async {
         final message = eg.streamMessage();
-        await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+        final narrow = TopicNarrow.ofMessage(message);
+        await setupToMessageActionSheet(tester, message: message, narrow: narrow);
 
         final composeBoxController = findComposeBoxController(tester)!;
         final contentController = composeBoxController.content;
@@ -1924,7 +1928,7 @@ void main() {
         final valueBefore = contentController.value = TextEditingValue.empty;
         prepareRawContentResponseError();
         await tapQuoteAndReplyButton(tester);
-        checkLoadingState(store, contentController, valueBefore: valueBefore, message: message);
+        checkLoadingState(store, narrow, contentController, valueBefore: valueBefore, message: message);
         await tester.pump(Duration.zero); // error arrives; error dialog shows
 
         await tester.tap(find.byWidget(checkErrorDialog(tester,

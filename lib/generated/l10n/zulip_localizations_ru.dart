@@ -1199,6 +1199,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Оповестить тему';
 
   @override
+  String get topicAutocompleteChannelOptionLabel => '(link to channel)';
+
+  @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get systemGroupNameEveryoneOnInternet => 'Все пользователи интернета';
 
   @override
