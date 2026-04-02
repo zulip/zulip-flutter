@@ -252,7 +252,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   int _nextUploadTag = 0;
 
   final Map<int, ({int messageId, String placeholder})> _quoteAndReplies = {};
-  final Map<int, ({String filename, String placeholder})> _uploads = {};
+  final Map<int, ({String filename, String placeholder, bool isImageOrAudio})> _uploads = {};
 
   /// A probably-reasonable place to insert Markdown, such as for a file upload.
   ///
@@ -352,12 +352,17 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerUploadEnd on the
   /// upload's success or failure.
-  int registerUploadStart(String filename, ZulipLocalizations zulipLocalizations) {
+  int registerUploadStart(String filename, ZulipLocalizations zulipLocalizations,
+      String? mimeType, PerAccountStore store) {
     final tag = _nextUploadTag;
     _nextUploadTag += 1;
     final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
-    final placeholder = inlineLink(linkText, '');
-    _uploads[tag] = (filename: filename, placeholder: placeholder);
+    final isImageOrAudio = mimeType != null
+      && (mimeType.startsWith('image/') || mimeType.startsWith('audio/'));
+    String placeholder = isImageOrAudio
+      ? inlineImageOrAudio(linkText, '', store: store)
+      : inlineLink(linkText, '');
+    _uploads[tag] = (filename: filename, placeholder: placeholder, isImageOrAudio: isImageOrAudio);
     notifyListeners(); // _uploads change could affect validationErrors
     value = value.replaced(insertionIndex(), '$placeholder\n\n');
     return tag;
@@ -367,18 +372,26 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// To indicate success, pass the URL string to be used for the Markdown link.
   /// If `url` is null, failure is assumed.
-  void registerUploadEnd(int tag, String? url) {
+  void registerUploadEnd(int tag, String? url, PerAccountStore store) {
     final val = _uploads[tag];
     assert(val != null, 'registerUploadEnd called twice for same tag');
-    final (:filename, :placeholder) = val!;
+    final (:filename, :placeholder, :isImageOrAudio) = val!;
     final int startIndex = text.indexOf(placeholder);
     final replacementRange = startIndex >= 0
       ? TextRange(start: startIndex, end: startIndex + placeholder.length)
       : insertionIndex();
 
+    String replacement = '';
+    if (url != null) {
+      if (isImageOrAudio) {
+        replacement = inlineImageOrAudio(filename, url, store: store);
+      } else {
+        replacement = inlineLink(filename, url);
+      }
+    }
     value = value.replaced(
       replacementRange,
-      url == null ? '' : inlineLink(filename, url));
+      replacement);
     _uploads.remove(tag);
     notifyListeners(); // _uploads change could affect validationErrors
   }
@@ -1003,7 +1016,7 @@ Future<void> _uploadFiles({
   final List<(int, FileToUpload)> uploadsInProgress = [];
   for (final file in rightSizeFiles) {
     final tag = contentController.registerUploadStart(file.filename,
-      zulipLocalizations);
+      zulipLocalizations, file.mimeType, store);
     uploadsInProgress.add((tag, file));
   }
   if (shouldRequestFocus && !contentFocusNode.hasFocus) {
@@ -1029,7 +1042,7 @@ Future<void> _uploadFiles({
         title: zulipLocalizations.errorFailedToUploadFileTitle(filename),
         message: e.toString());
     } finally {
-      contentController.registerUploadEnd(tag, url);
+      contentController.registerUploadEnd(tag, url, store);
     }
   }
 }
