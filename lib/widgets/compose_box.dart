@@ -852,17 +852,17 @@ class _TopicInputState extends State<_TopicInput> {
 
     final decoration = InputDecoration(hintText: hintText, hintStyle: hintStyle);
 
-    return TopicAutocomplete(
-      streamId: widget.streamId,
-      controller: widget.controller.topic,
-      focusNode: widget.controller.topicFocusNode,
-      contentFocusNode: widget.controller.contentFocusNode,
-      fieldViewBuilder: (context) => Container(
-        padding: const EdgeInsets.only(top: 10, bottom: 9),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(
-          width: 1,
-          color: designVariables.foreground.withFadedAlpha(0.2)))),
-        child: TextField(
+    return Container(
+      padding: const EdgeInsets.only(top: 10, bottom: 9),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(
+        width: 1,
+        color: designVariables.foreground.withFadedAlpha(0.2)))),
+      child: TopicAutocomplete(
+        streamId: widget.streamId,
+        controller: widget.controller.topic,
+        focusNode: widget.controller.topicFocusNode,
+        contentFocusNode: widget.controller.contentFocusNode,
+        fieldViewBuilder: (context) => TextField(
           controller: widget.controller.topic,
           focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
