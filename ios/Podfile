@@ -1,5 +1,4 @@
-# This should match the iOS Deployment Target
-# (in Xcode, that's in project > Runner > Info)
+# This should match IPHONEOS_DEPLOYMENT_TARGET in ios/Flutter/Zulip.xcconfig
 # and MinimumOSVersion in ios/Flutter/AppFrameworkInfo.plist.
 platform :ios, '15.0'
 

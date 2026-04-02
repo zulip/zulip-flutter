@@ -7,6 +7,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:path_provider_foundation/path_provider_foundation.dart';
 
 import '../api/core.dart';
 import '../api/exception.dart';
@@ -18,6 +19,7 @@ import '../api/backoff.dart';
 import '../api/route/realm.dart';
 import '../host/ios_native.g.dart';
 import '../log.dart';
+import '../notifications/ios_service.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
@@ -1194,21 +1196,112 @@ class LiveGlobalStore extends GlobalStore {
 
   /// The file path to use for the app database.
   static Future<File> _dbFile() async {
-    // What directory should we use?
-    //   path_provider's getApplicationSupportDirectory:
-    //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
-    //       -> empirically /data/data/com.zulipmobile/files/
-    //     on iOS, -> "Library/Application Support" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsapplicationsupportdirectory
-    //     on Linux, -> "${XDG_DATA_HOME:-~/.local/share}/com.zulip.flutter/"
-    //     All seem reasonable.
-    //   path_provider's getApplicationDocumentsDirectory:
-    //     on Android, -> Flutter's PathUtils.getDataDirectory -> https://developer.android.com/reference/android/content/Context#getDir(java.lang.String,%20int)
-    //       with https://developer.android.com/reference/android/content/Context#MODE_PRIVATE
-    //     on iOS, "Document directory" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsdocumentdirectory
-    //     on Linux, -> `xdg-user-dir DOCUMENTS` -> e.g. ~/Documents
-    //     That Linux answer is definitely not a fit.  Harder to tell about the rest.
-    final dir = await getApplicationSupportDirectory();
-    return File(p.join(dir.path, 'zulip.db'));
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+        // On iOS, we store the database file in an iOS App Group container.
+        return _iosDbFile();
+
+      default:
+        // What directory should we use on other platforms?
+        //   path_provider's getApplicationSupportDirectory:
+        //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
+        //       -> empirically /data/data/com.zulipmobile/files/
+        //     on Linux, -> "${XDG_DATA_HOME:-~/.local/share}/com.zulip.flutter/"
+        //     Both seem reasonable.
+        //   path_provider's getApplicationDocumentsDirectory:
+        //     on Android, -> Flutter's PathUtils.getDataDirectory -> https://developer.android.com/reference/android/content/Context#getDir(java.lang.String,%20int)
+        //       with https://developer.android.com/reference/android/content/Context#MODE_PRIVATE
+        //     on Linux, -> `xdg-user-dir DOCUMENTS` -> e.g. ~/Documents
+        //     That Linux answer is definitely not a fit.  Harder to tell about Android.
+        final dir = await getApplicationSupportDirectory();
+        return File(p.join(dir.path, 'zulip.db'));
+    }
+  }
+
+  static Future<String> _getIosAppGroupContainerPath() async {
+    assert(defaultTargetPlatform == TargetPlatform.iOS);
+
+    // The iOS App Group identifier specified in the Xcode config
+    // for both the Runner target and the NotificationService target.
+    //
+    // This group identifier is used to access the shared file system,
+    // across the different targets which are sandboxed from each other.
+    // See: https://developer.apple.com/documentation/xcode/configuring-app-groups
+    //
+    // Generally this identifier should never be changed, because doing so
+    // will reset the filesystem, causing the creation of new database from
+    // scratch.
+    //
+    // This should match ZULIP_APP_GROUP_IDENTIFIER in
+    // ios/Flutter/Zulip.xcconfig.
+    const iosAppGroupIdentifier = 'group.com.zulip.app';
+
+    final pathProviderFoundation = PathProviderFoundation();
+    final containerDbDir = await pathProviderFoundation.getContainerPath(
+      appGroupIdentifier: iosAppGroupIdentifier);
+
+    // From the Apple docs for `containerURL(forSecurityApplicationGroupIdentifier:)`
+    // which is what `pathProviderFoundation.getContainerPath` calls,
+    // this return value will only be null if the group identifier is invalid.
+    //   https://developer.apple.com/documentation/foundation/filemanager/containerurl(forsecurityapplicationgroupidentifier:)
+    return containerDbDir!;
+  }
+
+  /// The file path to use for the app database on iOS.
+  ///
+  /// When executing on the main Runner Xcode target, it may move the database
+  /// file from its filesystem to the iOS App Group container, if not already
+  /// copied.
+  ///
+  /// This move is required for other Xcode targets (e.g.
+  /// NotificationService, and in future ShareExtension, etc) to be able to
+  /// access the same app database, as they do not have access to the main
+  /// Runner target's filesystem because each of them run in a separate
+  /// sandbox.
+  ///
+  /// If the database file is not already in the iOS App Group container when
+  /// executing on the NotificationService target, it will throw an exception.
+  /// Because it will not have access to the database file in the Runner
+  /// target's filesystem and thus it can't move the file.
+  ///
+  /// Returns a file path in the iOS app group container to use for the app
+  /// database.
+  static Future<File> _iosDbFile() async {
+    assert(defaultTargetPlatform == TargetPlatform.iOS);
+
+    final containerPath = await _getIosAppGroupContainerPath();
+    final containerDbFile = File(p.join(containerPath, 'zulip.db'));
+    if (await containerDbFile.exists()) {
+      assert(debugLog('Database file in iOS app group container '
+                      'already exists: $containerDbFile'));
+      return containerDbFile;
+    }
+
+    if (IosNotificationService.isExecutingInExtension) {
+      // The database file hasn't been copied to iOS App Group container yet.
+      throw Exception('Database file not found in the iOS App Group '
+        'container.');
+    }
+
+    // Move the database file from Runner target's filesystem which was stored
+    // at the directory path returned from path_provider's
+    // `getApplicationSupportDirectory` function, and it returns the following
+    // path:
+    //   "Library/Application Support" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsapplicationsupportdirectory
+    final nonContainerDbDir = await getApplicationSupportDirectory();
+    final nonContainerDbFile = File(p.join(nonContainerDbDir.path, 'zulip.db'));
+    if (await nonContainerDbFile.exists()) {
+      assert(debugLog('Moving $nonContainerDbFile '
+                      'to iOS app group container path: $containerDbFile'));
+      // Dart doc for this function says that this function may have problems
+      // with moving/renaming files between different filesystems. But I have
+      // confirmed that this function is working fine for moving the file
+      // to the app group container path on iOS device running iOS 26.3.1 and
+      // also on iOS Simulator running iOS 15.5 .
+      await nonContainerDbFile.rename(containerDbFile.path);
+    }
+
+    return containerDbFile;
   }
 
   /// Excludes the provided database file from OS backups.
