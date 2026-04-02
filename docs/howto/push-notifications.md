@@ -17,15 +17,15 @@ push notifications.
 
 When testing Zulip's push notifications:
 
-* Try simulating a PM conversation between two users: one on the
+* Try simulating a DM conversation between two users: one on the
   mobile device, and one from your desktop.  For example, if you've
   logged in as "Iago" on your mobile device, log in as "Polonius" via
-  a web browser, and send a PM from Polonius to Iago.
+  a web browser, and send a DM from Polonius to Iago.
 
 * Test different types of messages that will cause different types of
-  notifications: a 1:1 PM conversation, a group PM conversation, an
-  @-mention in a stream, a stream with notifications turned on, even
-  an @-mention in a 1:1 or group PM conversation.
+  notifications: a 1:1 DM conversation, a group DM conversation, an
+  @-mention in a channel, a channel with notifications turned on, even
+  an @-mention in a 1:1 or group DM conversation.
 
 * Make sure "mobile push notifications" are on in the mobile user's
   Zulip settings!
@@ -115,7 +115,7 @@ Then, each time you test:
 
 2. Follow the general tips above to cause a push notification.  For
    example, log in from a browser as a different user, and send the
-   mobile user a PM.
+   mobile user a DM.
 
    You should see a push notification appear on the mobile device!
 
@@ -203,7 +203,7 @@ on, using the web app's settings interface.  See also the
 troubleshooting items below.
 
 If none of those resolve the issue, please ask for help
-in [#mobile-dev-help](https://chat.zulip.org/#narrow/stream/516-mobile-dev-help) on
+in [#mobile-dev-help](https://chat.zulip.org/#narrow/channel/516-mobile-dev-help) on
 chat.zulip.org, so we can debug.
 
 
