@@ -60,8 +60,7 @@ class PushDeviceManager extends PerAccountStoreBase {
   /// This is an entry in [devices].
   ClientDevice? get thisDevice => _devices[account.deviceId];
 
-  bool get _e2eeAvailable => zulipFeatureLevel >= 468 // TODO(server-12)
-    && defaultTargetPlatform == TargetPlatform.android; // TODO(#1764)
+  bool get _e2eeAvailable => zulipFeatureLevel >= 468; // TODO(server-12)
 
   void handleDeviceEvent(DeviceEvent event) {
     switch (event) {
@@ -237,8 +236,15 @@ class PushDeviceManager extends PerAccountStoreBase {
         _ => throw StateError('unexpected platform: $defaultTargetPlatform'),
       };
 
-      final pushRegistration = PushRegistration( // TODO(#1764) also iosAppId
-        tokenKind: tokenKind, token: token,
+      String? iosAppId;
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        final packageInfo = await ZulipBinding.instance.packageInfo;
+        iosAppId = packageInfo!.packageName;
+      }
+      final pushRegistration = PushRegistration(
+        iosAppId: iosAppId,
+        tokenKind: tokenKind,
+        token: token,
         timestamp: timestamp);
       final encryptedPushRegistration = await _encryptToBouncer(
         bouncerPublicKey, jsonEncode(pushRegistration));
