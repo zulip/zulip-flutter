@@ -92,7 +92,7 @@ The `user_id` is that of `iago@zulip.com` in the Zulip dev environment.
 
 These canned payloads assume that EXTERNAL_HOST has its default value
 for the dev server. If you've
-[set EXTERNAL_HOST to use an IP address](https://github.com/zulip/zulip-mobile/blob/main/docs/howto/dev-server.md#4-set-external_host)
+[set EXTERNAL_HOST to use an IP address](dev-server.md#4-set-external_host)
 in order to enable your device to connect to the dev server, you'll
 need to adjust the `realm_url` fields. You can do this by a
 find-and-replace for `localhost`; for example,
@@ -219,7 +219,7 @@ for setting up a dev server.
 
 If you want to run the dev server on a different machine than the Mac
 host, you'll need to follow extra steps
-[documented here](https://github.com/zulip/zulip-mobile/blob/main/docs/howto/dev-server.md)
+[documented here](dev-server.md)
 to make it possible for the app running on the iOS Simulator to
 connect to the dev server.
 
