@@ -546,23 +546,25 @@ class _ContentInput extends StatelessWidget {
       shouldRequestFocus: true);
   }
 
+  /// Max height of the content input,
+  /// including the shadowed strips at top and bottom.
+  ///
+  /// Chosen to show up to 7-and-a-bit lines,
+  /// clipping part of the 8th line intentionally
+  /// so it's clear the view is scrollable.
+  /// The fraction of the 8th line is chosen
+  /// such that the text field plus shadow insets is 178px tall
+  /// when the text-size setting is 1x, to follow the Figma:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+  ///
+  /// If the text-size setting is more than 1.5x,
+  /// this just clamps to a constant 263px,
+  /// to not encroach more on message-list content.
   static double maxHeight(BuildContext context) {
     final clampingTextScaler = MediaQuery.textScalerOf(context)
       .clamp(maxScaleFactor: 1.5);
     final scaledLineHeight = clampingTextScaler.scale(_fontSize) * _lineHeightRatio;
 
-    // Reserve space to fully show the first 7th lines and just partially
-    // clip the 8th line, where the height matches the spec at
-    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-    // > Maximum size of the compose box is suggested to be 178px. Which
-    // > has 7 fully visible lines of text
-    //
-    // The partial line hints that the content input is scrollable.
-    //
-    // Using the ambient TextScale means this works for different values of the
-    // system text-size setting. We clamp to a max scale factor to limit
-    // how tall the content input can get; that's to save room for the message
-    // list. The user can still scroll the input to see everything.
     return _verticalPadding + 7.727 * scaledLineHeight;
   }
 
