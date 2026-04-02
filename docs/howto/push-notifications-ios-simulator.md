@@ -1,7 +1,7 @@
 # Testing Push Notifications on iOS Simulator
 
 For documentation on testing push notifications on Android or a real
-iOS device, see https://github.com/zulip/zulip-mobile/blob/main/docs/howto/push-notifications.md
+iOS device, see [push-notifications.md](push-notifications.md).
 
 This doc describes how to test client-side changes on iOS Simulator.
 It will demonstrate how to use APNs payloads the server sends to
