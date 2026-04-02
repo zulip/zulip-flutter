@@ -299,20 +299,14 @@ still in alpha or beta), then we'll want to:
 
 ### Possible future solution
 
-We believe that given an appropriate dev certificate, it should be
-possible to send notifications to a dev build of the app through
+Better yet, for many development purposes, would be to be able to
+dispense with a local dev server, and still get notifications from
+zulipchat.com and chat.zulip.org in a development build of the app.
+
+The ingredient that'd be needed for that is to get a production
+Zulip server, or the production bouncer it talks to,
+to optionally send notifications through
 Apple's sandbox instance of APNs.
-
-Open questions include how to teach the Zulip server and/or bouncer to
-talk to the sandbox APNs.
-
-* ~~A good first step would be to do so from a development server,
-  without involving the bouncer.~~ (This step is done; it's the current
-  workaround, described above.)
-
-* To make the development experience as good as it is on Android,
-  though, it should be possible to get notifications from
-  zulipchat.com and chat.zulip.org in a development build of the app.
 
 * One way to arrange that might be to have the production bouncer talk
   to either the production or staging instance of APNs; the client
