@@ -236,6 +236,52 @@ as of this writing, the error went away after doing so.
 [error-plan-missing]: https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/notifications.20from.20dev.20server/near/2163051
 
 
+##### Error: BadDeviceToken
+
+When the dev server tries to send a notification,
+you might get in the server log an error like this one
+(reformatted for readability):
+
+```
+INFO [zerver.lib.push_notifications] Sending push notifications to mobile clients for user 11
+…
+INFO [zerver.lib.push_notifications] APNs: Removing invalid/expired token FD524D9B9018CB7340051C26E4F99304F71D4B37E2164265AB0BBA3543225331 (BadDeviceToken)
+…
+INFO [zerver.lib.push_notifications] Deleting push tokens based on response from bouncer: Android: [], Apple: ['FD524D9B9018CB7340051C26E4F99304F71D4B37E2164265AB0BBA3543225331']
+```
+
+This can happen when you're using a release build of the app
+(such as the one from TestFlight or the App Store),
+which the server's sandbox-only certificate is unable to send to.
+To fix it, use a debug build of the app.
+
+
+##### Error: TopicDisallowed
+
+When the dev server tries to send a notification,
+you might get in the server log an error like this one
+(reformatted for readability):
+
+```
+INFO [zerver.lib.push_notifications] Sending push notifications to mobile clients for user 11
+INFO [zilencer.views] Sending mobile push notifications for remote user 1db86aa5-1327-4c03-8db8-c8189aa23b0c:<id:11><uuid:29acb8b2-4500-4268-80e5-219fd9af2c2d>: 0 via FCM devices, 1 via APNs devices
+INFO [zerver.lib.push_notifications] APNs: Sending notification for remote user 1db86aa5-1327-4c03-8db8-c8189aa23b0c:<id:11><uuid:29acb8b2-4500-4268-80e5-219fd9af2c2d> to 1 devices (skipped 0 duplicates)
+WARN [zerver.lib.push_notifications] APNs: Failed to send for user <id:11><uuid:29acb8b2-4500-4268-80e5-219fd9af2c2d> to device 34FBEF8A439C8F9B6CC6AEFC42CDFD2A9618FFA3E0C8C50B9A56CB96D3F2D727: TopicDisallowed
+```
+
+This can happen when the app's bundle ID
+(which gets used as an APNs "topic")
+is different from the one your server's APNs certificate is for.
+To fix it, either get a certificate for the desired topic,
+or edit the app's bundle ID to match the certificate.
+
+To edit the bundle ID, try a command like:
+```
+$ perl -i -0pe 's/org\.zulip\.Zulip/OTHER_NAME/g' \
+    -- $(git grep -l org.zulip.Zulip)
+```
+
+
 ### Another workaround (if the first doesn't work)
 
 Make a release build of the app, and upload it [as an alpha][].
