@@ -135,7 +135,8 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: ZulipAppBar(
         // TODO write a test where the user is muted
-        title: Text(store.userDisplayName(userId, replaceIfMuted: false))),
+        title: Text(store.userDisplayName(userId, replaceIfMuted: false)),
+        showRealmIcon: false),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(
@@ -318,7 +319,9 @@ class _ProfileErrorPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     return Scaffold(
-      appBar: ZulipAppBar(title: Text(zulipLocalizations.errorDialogTitle)),
+      appBar: ZulipAppBar(
+        title: Text(zulipLocalizations.errorDialogTitle),
+        showRealmIcon: false),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),

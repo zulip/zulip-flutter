@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../generated/l10n/zulip_localizations.dart';
+import 'app.dart';
+import 'home.dart';
+import 'image.dart';
+import 'page.dart';
 import 'store.dart';
+import 'theme.dart';
+import 'user.dart';
 
 /// A custom [AppBar] with a loading indicator.
 ///
@@ -19,16 +26,24 @@ class ZulipAppBar extends AppBar {
     super.titleSpacing,
     Widget? title,
     Widget Function(bool willCenterTitle)? buildTitle,
-    super.centerTitle,
+    bool? centerTitle,
     super.backgroundColor,
     super.shape,
     super.actions,
+    required bool showRealmIcon,
   }) :
     assert((title == null) != (buildTitle == null)),
     super(
+      leading: showRealmIcon ? const _RealmIcon() : null,
+      leadingWidth: showRealmIcon ? _realmIconWidth : null,
+      centerTitle: showRealmIcon ? true : centerTitle,
       bottom: _ZulipAppBarBottom(backgroundColor: backgroundColor),
-      title: title ?? _Title(centerTitle: centerTitle, actions: actions, buildTitle: buildTitle!)
+      title: title ?? _Title(
+        centerTitle: showRealmIcon ? true: centerTitle,
+        actions: actions,
+        buildTitle: buildTitle!)
     );
+    static const _realmIconWidth = 50.0;
 }
 
 class _Title extends StatelessWidget {
@@ -81,5 +96,49 @@ class _ZulipAppBarBottom extends StatelessWidget implements PreferredSizeWidget 
     final store = PerAccountStoreWidget.of(context);
     if (!store.isRecoveringEventStream) return const SizedBox.shrink();
     return LinearProgressIndicator(minHeight: 4.0, backgroundColor: backgroundColor);
+  }
+}
+
+class _RealmIcon extends StatelessWidget {
+  const _RealmIcon();
+
+  void _handleSwitchAccount(BuildContext context) {
+    Navigator.push(context,
+      MaterialWidgetRoute(page: const ChooseAccountPage()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Tooltip(
+          message: zulipLocalizations.switchAccountButtonTooltip,
+          child: PressableOpacity(
+            onTap: () => _handleSwitchAccount(context),
+            child: Padding(
+              padding: const EdgeInsets.all(7),
+              child: AvatarShape(
+                size: 28,
+                borderRadius: 4,
+                child: RealmContentNetworkImage(
+                  store.resolvedRealmIcon,
+                  filterQuality: FilterQuality.medium,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const _RealmIconPlaceholder())))))));
+  }
+}
+
+class _RealmIconPlaceholder extends StatelessWidget {
+  const _RealmIconPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(color: designVariables.avatarPlaceholderBg));
   }
 }

@@ -182,7 +182,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
                 });
             }),
         ],
-      ),
+        showRealmIcon: false),
       body: SafeArea(
         bottom: false,
         minimum: EdgeInsets.symmetric(horizontal: 8),
