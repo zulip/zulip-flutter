@@ -46,6 +46,15 @@ class Topics extends PerAccountStoreBase with ChangeNotifier {
 
   final Map<int, Future<List<GetChannelTopicsEntry>>> _channelTopicsFetching = {};
 
+  /// Latest message ID of [topic] in channel with [channelId].
+  ///
+  /// Returns `null` either when the topic doesn't exist or the topics for the
+  /// channel are not fetched yet. To make sure the topics are already fetched,
+  /// await on [getChannelTopics] before calling this method.
+  int? latestMessageInChannelTopic(int channelId, TopicName topic) {
+    return _latestMessageIdsByChannelTopic[channelId]?[topic];
+  }
+
   /// Get the topics in a channel; typically making a request to the server.
   ///
   /// This will avoid making redundant requests for the same data,
