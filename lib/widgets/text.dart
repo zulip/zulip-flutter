@@ -569,6 +569,36 @@ class InlineIconGeometryData {
 
   // Values are ad hoc unless otherwise specified.
   static final Map<IconData, InlineIconGeometryData> _inlineIconGeometries = {
+    ZulipIcons.check: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
+    ZulipIcons.at_sign: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
+    ZulipIcons.mute: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
+    ZulipIcons.unmute: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
+    ZulipIcons.follow: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
     ZulipIcons.globe: InlineIconGeometryData._(
       sizeFactor: 0.8,
       alphabeticBaselineFactor: 1 / 8,
@@ -597,50 +627,155 @@ class InlineIconGeometryData {
   );
 }
 
-/// An icon, sized and aligned for use in a span of text.
-WidgetSpan iconWidgetSpan({
-  required IconData icon,
+/// An [Icon] that is sized, aligned, and (optionally) padded for use in text.
+///
+/// Use [InlineIcon.asWidgetSpan] for a [WidgetSpan] wrapping one of these.
+///
+/// [icon] must be square and have a corresponding entry in
+/// [InlineIconGeometryData].
+class InlineIcon extends StatelessWidget {
+  const InlineIcon({
+    super.key,
+    required this.icon,
+    required this.fontSize,
+    this.baselineType,
+    this.textScaler,
+    required this.color,
+    this.padBefore = false,
+    this.padAfter = false,
+    this.visible = true,
+  });
+
+  final IconData icon;
+  final double fontSize;
+
+  /// The [TextBaseline] to apply (alphabetic or ideographic).
+  ///
+  /// If null, [localizedTextBaseline] is used.
+  final TextBaseline? baselineType;
+
+  /// The [TextScaler] to apply.
+  ///
+  /// If null, [MediaQuery.textScalerOf] is used.
+  final TextScaler? textScaler;
+
+  final Color? color;
+  final bool padBefore;
+  final bool padAfter;
+
+  /// Whether the icon is visible.
+  ///
+  /// Pass false to hide the icon but maintain its size.
+  final bool visible;
+
+  /// Creates an [InlineIcon] wrapped in a [WidgetSpan].
+  ///
+  /// The [WidgetSpan] has [PlaceholderAlignment.baseline].
+  static InlineSpan asWidgetSpan({
+    required IconData icon,
+    required double fontSize,
+    required TextBaseline baselineType,
+    required Color? color,
+    bool padBefore = false,
+    bool padAfter = false,
+    bool visible = true,
+  }) {
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.baseline,
+      baseline: baselineType,
+      child: InlineIcon(
+        icon: icon,
+        fontSize: fontSize,
+        baselineType: baselineType,
+        // TODO(#735) remove [TextScaler.noScaling] (works around double-scale bug)
+        textScaler: TextScaler.noScaling,
+        color: color,
+        padBefore: padBefore,
+        padAfter: padAfter,
+        visible: visible,
+      ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final baselineType = this.baselineType ?? localizedTextBaseline(context);
+    final textScaler = this.textScaler ?? MediaQuery.textScalerOf(context);
+
+    final InlineIconGeometryData(
+      :sizeFactor,
+      :alphabeticBaselineFactor,
+      :paddingFactor,
+    ) = InlineIconGeometryData.forIcon(icon);
+
+    final size = sizeFactor * textScaler.scale(fontSize);
+
+    final effectiveBaselineOffset = switch (baselineType) {
+      TextBaseline.alphabetic => alphabeticBaselineFactor * size,
+      TextBaseline.ideographic => 0.0,
+    };
+
+    Widget result = Icon(size: size, color: color, icon);
+
+    if (effectiveBaselineOffset != 0) {
+      result = Transform.translate(
+        offset: Offset(0, effectiveBaselineOffset),
+        child: result);
+    }
+
+    if (padBefore || padAfter) {
+      final padding = paddingFactor * size;
+      result = Padding(
+        padding: EdgeInsetsDirectional.only(
+          start: padBefore ? padding : 0,
+          end: padAfter ? padding : 0,
+        ),
+        child: result);
+    }
+
+    result = Visibility(
+      visible: visible,
+
+      // To set [maintainSize] true, apparently we have to set
+      // [maintainState] and [maintainAnimation] true too; sure.
+      maintainState: true,
+      maintainAnimation: true,
+      maintainSize: true,
+
+      child: result);
+
+    return result;
+  }
+}
+
+/// An [InlineSpan] with a [ZulipIcons.check] icon (if resolved) and topic name.
+///
+/// Pass this to [Text.rich], which can be styled arbitrarily.
+/// Pass the [fontSize] and [color] of surrounding text
+/// so that the icons are sized and colored appropriately.
+InlineSpan topicLabelSpan({
+  required BuildContext context,
+  required TopicName topic,
   required double fontSize,
-  required TextBaseline baselineType,
-  required Color? color,
-  bool padBefore = false,
-  bool padAfter = false,
+  required Color color,
 }) {
-  final InlineIconGeometryData(
-    :sizeFactor,
-    :alphabeticBaselineFactor,
-    :paddingFactor,
-  ) = InlineIconGeometryData.forIcon(icon);
+  final store = PerAccountStoreWidget.of(context);
+  final baselineType = localizedTextBaseline(context);
 
-  final size = sizeFactor * fontSize;
-
-  final effectiveBaselineOffset = switch (baselineType) {
-    TextBaseline.alphabetic => alphabeticBaselineFactor * size,
-    TextBaseline.ideographic => 0.0,
-  };
-
-  Widget child = Icon(size: size, color: color, icon);
-
-  if (effectiveBaselineOffset != 0) {
-    child = Transform.translate(
-      offset: Offset(0, effectiveBaselineOffset),
-      child: child);
-  }
-
-  if (padBefore || padAfter) {
-    final padding = paddingFactor * size;
-    child = Padding(
-      padding: EdgeInsetsDirectional.only(
-        start: padBefore ? padding : 0,
-        end: padAfter ? padding : 0,
-      ),
-      child: child);
-  }
-
-  return WidgetSpan(
-    alignment: PlaceholderAlignment.baseline,
-    baseline: baselineType,
-    child: child);
+  return TextSpan(children: [
+    if (topic.isResolved)
+      InlineIcon.asWidgetSpan(
+        icon: ZulipIcons.check,
+        fontSize: fontSize,
+        baselineType: baselineType,
+        color: color,
+        padAfter: true),
+    if (topic.unresolve().displayName != null)
+      TextSpan(text: topic.unresolve().displayName)
+    else
+      TextSpan(
+        style: TextStyle(fontStyle: FontStyle.italic),
+        text: store.realmEmptyTopicDisplayName),
+  ]);
 }
 
 /// An [InlineSpan] with a channel privacy icon, channel name,
@@ -666,7 +801,7 @@ InlineSpan channelTopicLabelSpan({
 
   return TextSpan(children: [
     if (channelIcon != null)
-      iconWidgetSpan(
+      InlineIcon.asWidgetSpan(
         icon: channelIcon,
         fontSize: fontSize,
         baselineType: baselineType,
@@ -679,19 +814,18 @@ InlineSpan channelTopicLabelSpan({
         style: TextStyle(fontStyle: FontStyle.italic),
         text: zulipLocalizations.unknownChannelName),
     if (topic != null) ...[
-      iconWidgetSpan(
+      InlineIcon.asWidgetSpan(
         icon: ZulipIcons.chevron_right,
         fontSize: fontSize,
         baselineType: baselineType,
         color: color,
         padBefore: true,
         padAfter: true),
-      if (topic.displayName != null)
-        TextSpan(text: topic.displayName)
-      else
-        TextSpan(
-          style: TextStyle(fontStyle: FontStyle.italic),
-          text: store.realmEmptyTopicDisplayName),
+      topicLabelSpan(
+        context: context,
+        topic: topic,
+        fontSize: fontSize,
+        color: color),
     ],
   ]);
 }

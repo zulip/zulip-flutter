@@ -874,8 +874,9 @@ void main() {
 
       final topicRow = find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.text(
-          effectiveTopic.displayName ?? eg.defaultRealmEmptyTopicDisplayName));
+        matching: find.textContaining(
+          effectiveTopic.unresolve().displayName ?? eg.defaultRealmEmptyTopicDisplayName,
+          findRichText: true));
       await tester.longPress(topicRow);
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
@@ -895,7 +896,9 @@ void main() {
 
       await tester.longPress(find.descendant(
         of: find.byType(RecipientHeader),
-        matching: find.text(effectiveMessage.topic.displayName!)));
+        matching: find.textContaining(
+          effectiveMessage.topic.unresolve().displayName!,
+          findRichText: true)));
       // sheet appears onscreen; default duration of bottom-sheet enter animation
       await tester.pump(const Duration(milliseconds: 250));
     }
