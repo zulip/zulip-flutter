@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
@@ -549,23 +550,25 @@ class _ContentInput extends StatelessWidget {
   /// Max height of the content input,
   /// including the shadowed strips at top and bottom.
   ///
-  /// Chosen to show up to 7-and-a-bit lines,
-  /// clipping part of the 8th line intentionally
-  /// so it's clear the view is scrollable.
-  /// The fraction of the 8th line is chosen
-  /// such that the text field plus shadow insets is 178px tall
-  /// when the text-size setting is 1x, to follow the Figma:
+  /// Chosen to show as many lines as possible without exceeding 178px
+  /// (267px if text is scaled >=1.5x)
+  /// and to clip the last visible line about three-quarters of the way through
+  /// to make it clear the view is scrollable.
+  /// The exact clip point is the opaque far edge of the inset shadow,
+  /// and it's chosen such that the text field plus shadow insets is 178px tall
+  /// with 1x text scaling, to follow the Figma:
   ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-  ///
-  /// If the text-size setting is more than 1.5x,
-  /// this just clamps to a constant 263px,
-  /// to not encroach more on message-list content.
   static double maxHeight(BuildContext context) {
-    final clampingTextScaler = MediaQuery.textScalerOf(context)
-      .clamp(maxScaleFactor: 1.5);
-    final scaledLineHeight = clampingTextScaler.scale(_fontSize) * _lineHeightRatio;
+    final scaledFontSize = MediaQuery.textScalerOf(context).scale(_fontSize);
+    final effectiveScaleFactor = scaledFontSize / _fontSize;
 
-    return _verticalPadding + 7.727 * scaledLineHeight;
+    final clampedMaxHeight = clampDouble(effectiveScaleFactor, 1, 1.5) * 178;
+
+    final scaledLineHeight = scaledFontSize * _lineHeightRatio;
+    final base = _verticalPadding + 0.727 * scaledLineHeight;
+    final numFullLines =
+      ((clampedMaxHeight - base) / scaledLineHeight).floor();
+    return base + numFullLines * scaledLineHeight;
   }
 
   static const _verticalPadding = 8.0;

@@ -1765,8 +1765,8 @@ void main() {
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + scaleFactor * 7.727 * lineHeight,
-        maxVisibleLines: 8);
+        maxHeight: verticalPadding + scaleFactor * 8.727 * lineHeight,
+        maxVisibleLines: 9);
     });
 
     testWidgets('higher text scale factor', (tester) async {
@@ -1787,8 +1787,7 @@ void main() {
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        // not 2x because of clamping
-        maxHeight: verticalPadding + 1.5 * 7.727 * lineHeight,
+        maxHeight: verticalPadding + scaleFactor * 5.727 * lineHeight,
         maxVisibleLines: 6);
     });
   });
