@@ -81,6 +81,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Отправить личное сообщение';
 
   @override
+  String get profileDateJoinedLabel => 'Date joined';
+
+  @override
+  String get profileDateImportedLabel => 'Imported on';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'Не удалось показать профиль пользователя.';
 

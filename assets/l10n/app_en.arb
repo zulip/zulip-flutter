@@ -88,6 +88,14 @@
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
+  "profileDateJoinedLabel": "Date joined",
+  "@profileDateJoinedLabel": {
+    "description": "Label in the profile data table for when the user joined."
+  },
+  "profileDateImportedLabel": "Imported on",
+  "@profileDateImportedLabel": {
+    "description": "Label in the profile data table for when the user was imported, shown instead of date joined when the user is an imported stub."
+  },
   "errorCouldNotShowUserProfile": "Could not show user profile.",
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
