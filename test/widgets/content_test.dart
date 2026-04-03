@@ -21,6 +21,7 @@ import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../api/fake_api.dart';
@@ -1225,6 +1226,62 @@ void main() {
         check(find.text('Administrators')).findsOne();
         check(find.text('@Administrators')).findsNothing();
       });
+    });
+
+    group('@-mention tap tests', () {
+      void testMentionNavigation(
+        String description,
+        String html, {
+        User? user,
+        int? expectedUserId,
+      }) {
+        testWidgets(description, (tester) async {
+          final pushedRoutes = <Route<dynamic>>[];
+          final testNavObserver = TestNavigatorObserver()
+            ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+          await prepareContent(tester,
+            plainContent(html), navObservers: [testNavObserver],
+            wrapWithPerAccountStoreWidget: true,
+            initialSnapshot: eg.initialSnapshot(realmUsers: [
+              eg.selfUser,
+              ?user,
+            ]));
+
+          assert(pushedRoutes.length == 1);
+          pushedRoutes.removeLast();
+          await tester.tap(find.byType(Mention));
+          if (expectedUserId != null) {
+            check(pushedRoutes).single.isA<WidgetRoute>()
+              .page.isA<ProfilePage>()
+              .userId.equals(expectedUserId);
+          } else {
+            check(pushedRoutes).isEmpty();
+          }
+        });
+      }
+
+      testMentionNavigation('tapping on user mention navigates to profile page',
+        ContentExample.userMentionPlain.html,
+        user: eg.user(userId: 2187),
+        expectedUserId: 2187);
+
+      testMentionNavigation('tapping on silent user mention navigates to profile page',
+        ContentExample.userMentionSilent.html,
+        user: eg.user(userId: 2187),
+        expectedUserId: 2187);
+
+      testMentionNavigation('tapping on an unknown user navigates to ProfilePage (which handles this case)',
+        '<p><span class="user-mention" data-user-id="999">@Unknown User</span></p>',
+        expectedUserId: 999);
+
+      testMentionNavigation('tapping plain group @-mention does nothing',
+        ContentExample.groupMentionPlain.html,
+        expectedUserId: null);
+
+      testMentionNavigation('tapping plain channel wildcard @-mention does nothing',
+        ContentExample.channelWildcardMentionPlain.html,
+        expectedUserId: null);
     });
   });
 
