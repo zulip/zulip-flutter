@@ -330,6 +330,89 @@ void main() {
       });
     });
 
+    group('insertAsOwnLine', () {
+      // Like `parseMarkedText` in test/model/autocomplete_test.dart,
+      //   but a bit different -- could maybe deduplicate some.
+      TextEditingValue parseMarkedText(String markedText) {
+        final textBuffer = StringBuffer();
+        int? insertionPoint;
+        int i = 0;
+        for (final char in markedText.codeUnits) {
+          if (char == 94 /* ^ */) {
+            if (insertionPoint != null) {
+              throw Exception('Test error: too many ^ in input');
+            }
+            insertionPoint = i;
+            continue;
+          }
+          textBuffer.writeCharCode(char);
+          i++;
+        }
+        if (insertionPoint == null) {
+          throw Exception('Test error: expected ^ in input');
+        }
+        return TextEditingValue(text: textBuffer.toString(), selection: TextSelection.collapsed(offset: insertionPoint));
+      }
+
+      /// Test the given `insertAsOwnLine` call, in a convenient format.
+      ///
+      /// In valueBefore, represent the insertion point as "^".
+      /// In expectedValue, represent the collapsed selection as "^".
+      void testInsertAsOwnLine(String description, String valueBefore, String textToInsert, String expectedValue) {
+        test(description, () {
+          store = eg.store();
+          final controller = ComposeContentController(store: store);
+          controller.value = parseMarkedText(valueBefore);
+          controller.insertAsOwnLine(textToInsert);
+          check(controller.value).equals(parseMarkedText(expectedValue));
+        });
+      }
+
+      testInsertAsOwnLine('empty; insert one line',
+        '^', 'a\n', 'a\n^');
+      testInsertAsOwnLine('empty; insert two lines',
+        '^', 'a\nb\n', 'a\nb\n^');
+
+      group('insert at end', () {
+        testInsertAsOwnLine('one empty line; insert one line',
+          '\n^', 'a\n', '\na\n^');
+        testInsertAsOwnLine('one line, incomplete; insert one line',
+          'a^', 'b\n', 'a\nb\n^');
+        testInsertAsOwnLine('one line, complete; insert one line',
+          'a\n^', 'b\n', 'a\nb\n^');
+      });
+
+      group('insert at start', () {
+        testInsertAsOwnLine('one line, incomplete; insert one line',
+          '^a', 'b\n', '\nb\n^a');
+        testInsertAsOwnLine('one line, complete; insert one line',
+          '^a\n', 'b\n', '\nb\n^a\n');
+      });
+
+      group('insert in middle', () {
+        testInsertAsOwnLine('middle of line',
+          'a^a\n', 'b\n', 'a\nb\n^a\n');
+        testInsertAsOwnLine('start of non-empty line, after non-empty line',
+          'a\n^b\n', 'c\n', 'a\n\nc\n^b\n');
+      });
+
+      test('expanded selection uses selection end', () {
+        store = eg.store();
+        final controller = ComposeContentController(store: store);
+        controller.value = const TextEditingValue(
+          text: 'abc',
+          selection: TextSelection(baseOffset: 0, extentOffset: 2),
+        );
+
+        controller.insertAsOwnLine('x\n');
+
+        check(controller.value).equals(const TextEditingValue(
+          text: 'ab\nx\nc',
+          selection: TextSelection(baseOffset: 0, extentOffset: 5),
+        ));
+      });
+    });
+
     group('ContentValidationError.empty', () {
       late ComposeContentController controller;
 
@@ -1165,7 +1248,7 @@ void main() {
         checkNoDialog(tester);
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+          .equals('see image: \n[Uploading image.jpg…]()\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1181,7 +1264,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: \n[image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1213,7 +1296,7 @@ void main() {
         checkNoDialog(tester);
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+          .equals('see image: \n[Uploading image.jpg…]()\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1229,7 +1312,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: \n[image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1263,12 +1346,12 @@ void main() {
       await tester.tap(find.byIcon(ZulipIcons.image));
       await tester.pump();
       check(controller!.content.text)
-        .equals('[Uploading 한국어 파일.txt…]()\n\n');
+        .equals('[Uploading 한국어 파일.txt…]()\n');
 
       await tester.pump(Duration.zero);
       check(controller!.content.text)
         .equals('[한국어 파일.txt]('
-          '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt)\n\n');
+          '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt)\n');
     });
 
     group('attach from keyboard', () {
@@ -1314,7 +1397,7 @@ void main() {
 
         await tester.pump();
         check(controller!.content.text)
-          .equals('see image: [Uploading test.gif…]()\n\n');
+          .equals('see image: \n[Uploading test.gif…]()\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1330,7 +1413,7 @@ void main() {
 
         await tester.pump(Duration.zero);
         check(controller!.content.text)
-          .equals('see image: [test.gif]($uploadUrl)\n\n');
+          .equals('see image: \n[test.gif]($uploadUrl)\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -2207,7 +2290,7 @@ void main() {
         connection.prepare(json: UpdateMessageResult().toJson());
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         checkRequest(messageId,
-          prevContent: 'foo', content: 'some new content[file.jpg](/path/file.jpg)');
+          prevContent: 'foo', content: 'some new content\n[file.jpg](/path/file.jpg)');
         await tester.pump(Duration.zero);
         checkNotInEditingMode(tester, narrow: narrow);
 
