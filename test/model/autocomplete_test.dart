@@ -137,10 +137,82 @@ void main() {
     doTest('email support@ with details of the issue^', null);
     doTest('email support@^ with details of the issue', null);
 
-    doTest('Ask @**Chris Bobbe**^', null); doTest('Ask @_**Chris Bobbe**^', null);
-    doTest('Ask @**Chris Bobbe^**', null); doTest('Ask @_**Chris Bobbe^**', null);
-    doTest('Ask @**Chris^ Bobbe**', null); doTest('Ask @_**Chris^ Bobbe**', null);
-    doTest('Ask @**^Chris Bobbe**', null); doTest('Ask @_**^Chris Bobbe**', null);
+    // Accept syntax like "@**foo**" (as from the user finishing an autocomplete
+    // and then scrolling back to edit it), but leave the starting "**" and ending
+    // "**" out of the query.
+    doTest('Ask @**Chris Bobbe**^', null);
+    doTest('Ask @_**Chris Bobbe**^', null);
+    doTest('Ask ~@**Chris Bobbe^**', mention('Chris Bobbe'));
+    doTest('Ask ~@_**Chris Bobbe^**', silentMention('Chris Bobbe'));
+    doTest('Ask ~@**Chris^ Bobbe**', mention('Chris'));
+    doTest('Ask ~@_**Chris^ Bobbe**', silentMention('Chris'));
+    doTest('Ask ~@**^Chris Bobbe**', mention(''));
+    doTest('Ask ~@_**^Chris Bobbe**', silentMention(''));
+
+    // Accept syntax like "@**foo" (as from the user finishing an autocomplete
+    // and then hitting backspace to edit it), but leave the "**" out of the query.
+    doTest('Ask ~@**Chris Bobbe^', mention('Chris Bobbe'));
+    doTest('Ask ~@_**Chris Bobbe^', silentMention('Chris Bobbe'));
+    doTest('Ask ~@**Chris^ Bobbe', mention('Chris'));
+    doTest('Ask ~@_**Chris^ Bobbe', silentMention('Chris'));
+    doTest('Ask ~@**^Chris Bobbe', mention(''));
+    doTest('Ask ~@_**^Chris Bobbe', silentMention(''));
+    doTest('Ask ~@**Chris  Bobbe^', mention('Chris  Bobbe'));
+    doTest('Ask ~@_**Chris  Bobbe^', silentMention('Chris  Bobbe'));
+
+    // "*" at the very end of the string should be valid.
+    doTest('Ask ~@**Chris*^', mention('Chris'));
+    doTest('Ask ~@_**Chris*^', silentMention('Chris'));
+
+    doTest('Ask @** ^', null);
+    doTest('Ask @_** ^', null);
+    doTest('Ask @** Chris^', null);
+    doTest('Ask ~@**Chris ^', mention('Chris '));
+
+    // Tests for `fullNameAndEmailCharExclusions`
+    doTest('Ask @**Chris`^', null);
+    doTest('Ask @**Chris`Bobbe^', null);
+    doTest('Ask @**Chris\\^', null);
+    doTest('Ask @**Chris\\Bobbe^', null);
+    doTest('Ask @**Chris>^', null);
+    doTest('Ask @**Chris>Bobbe^', null);
+    doTest('Ask @**Chris"^', null);
+    doTest('Ask @**Chris"Bobbe^', null);
+    doTest('Ask @**Chr*is^', null);
+    doTest('Ask @_**Chr*is^', null);
+
+    // Three asterisks
+    doTest('Ask ~@***^', mention(''));
+    doTest('Ask ~@_***^', silentMention(''));
+
+    // Four asterisks
+    doTest('Ask @****^', null);
+    doTest('Ask @_****^', null);
+
+    // "**" are not allowed inside the query.
+    doTest('Ask @**Chris**Bobbe^', null);
+
+    doTest('~@_**ab^', silentMention('ab'), maxChannelName: 1);
+    doTest('~@**abc^', mention('abc'), maxChannelName: 1);
+    doTest('~@**ab^', mention('ab'), maxChannelName: 1);
+
+    // Three asterisks but fully closed.
+    doTest('Ask ~@***^**', mention(''));
+    doTest('Ask ~@_***^**', silentMention(''));
+
+    // " ' " (Apostrophe) and "-" are allowed inside the query.
+    doTest('Ask ~@**O\'Connor^', mention('O\'Connor'));
+    doTest('Ask ~@**Mary-Jane^', mention('Mary-Jane'));
+    doTest('Ask ~@**Jean-Luc Picard^', mention('Jean-Luc Picard'));
+
+    // "\n" not allowed inside the query.
+    doTest('Ask @**Chris\nBobbe^', null);
+    doTest('Ask @**\nChris^', null);
+
+    // Cursor placed before should be invalid query.
+    doTest('Ask ^@**Chris Bobbe', null);
+    doTest('Ask @*^*Chris Bobbe', null);
+
 
     doTest('`@chris^', null); doTest('`@_chris^', null);
 
@@ -187,12 +259,17 @@ void main() {
     doTest('~@Родион Романович Раскольников^', mention('Родион Романович Раскольников'));
     doTest('~@_Родион Романович Раскольнико^', silentMention('Родион Романович Раскольнико'));
 
-    // "@" sign can be (3 + 2 * maxChannelName) utf-16 code units
+    // "@" sign can be (4 + 2 * maxChannelName) utf-16 code units
     // away to the left of the cursor.
     doTest('If ~@chris^ is around, please ask him.', mention('chris'), maxChannelName: 10);
     doTest('If ~@_chris is^ around, please ask him.', silentMention('chris is'), maxChannelName: 10);
     doTest('If @chris is around, please ask him.^', null, maxChannelName: 10);
     doTest('If @_chris is around, please ask him.^', null, maxChannelName: 10);
+    // "🙂" is 2 utf-16 code units.
+    doTest('Ask ~@**Chris 🙂^', mention('Chris 🙂'), maxChannelName: 8);
+    doTest('Ask ~@_**Chris 🙂^', silentMention('Chris 🙂'), maxChannelName: 8);
+    doTest('Ask ~@**🙂🙂^', mention('🙂🙂'), maxChannelName: 4);
+    doTest('~@**🙂^', mention('🙂'), maxChannelName: 1);
 
     // Emoji (":smile:").
 
@@ -350,7 +427,8 @@ void main() {
     // away to the left of the cursor.
     doTest('check ~#**mobile dev^ team', channelLink('mobile dev'), maxChannelName: 5);
     doTest('check ~#mobile dev t^eam', channelLink('mobile dev t'), maxChannelName: 5);
-    doTest('check #mobile dev te^am', null, maxChannelName: 5);
+    doTest('check ~#mobile dev te^am', channelLink('mobile dev te'), maxChannelName: 5);
+    doTest('check #mobile dev tea^m', null, maxChannelName: 5);
     doTest('check #mobile dev team for more info^', null, maxChannelName: 5);
     // '🙂' is 2 utf-16 code units.
     doTest('check ~#**🙂🙂🙂🙂🙂^', channelLink('🙂🙂🙂🙂🙂'), maxChannelName: 5);
