@@ -72,16 +72,17 @@ extension ComposeContentAutocomplete on ComposeContentController {
       final ComposeAutocompleteQuery query;
       if (charAtPos == '@') {
         final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-        query = MentionAutocompleteQuery(match[2] ?? match[3] ?? match[4]!, silent: match[1]! == '_');
+        if (match is! RegExpMatch) continue;
+        query = MentionAutocompleteQuery(match.namedGroup('mentionGroup')!,
+          silent: match[1]! == '_');
       } else if (charAtPos == ':') {
         final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
       } else if (charAtPos == '#') {
         final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-        query = ChannelLinkAutocompleteQuery(match[1] ?? match[2]!);
+        if (match is! RegExpMatch) continue;
+        query = ChannelLinkAutocompleteQuery(match.namedGroup('channelGroup')!);
       } else {
         continue;
       }
@@ -122,15 +123,15 @@ final RegExp _mentionIntentRegex = (() {
       // Case '@chris bobbe': No "*" before or after the query.
       // Reject on whitespace and "*" right after "@" or "@_". Emails can't start
       // with either, and full_name can't either (it's run through Python's `.strip()`).
-      + r'(?!\*|\s)([^' + fullNameAndEmailCharExclusions + r']*)'
+      + r'(?<mentionGroup>(?!\*|\s)([^' + fullNameAndEmailCharExclusions + r']*))'
       + r'|'
       // Case '@**chris bobbe': If query starts with "**" then reject if it does
       // have any "*" afterwards.
-      + r'\*\*(?!\s)([^' + fullNameAndEmailCharExclusions + r']*)'
+      + r'\*\*(?!\s)(?<mentionGroup>([^' + fullNameAndEmailCharExclusions + r']*))'
       + r'|'
       // Case '@**chris bobbe*': If query starts with "**" then it can end with a "*";
       // For the case when user backspaced through one star afer finishing an autocomplete.
-      + r'\*\*(?!\s)([^' + fullNameAndEmailCharExclusions + r']*)\*$'
+      + r'\*\*(?!\s)(?<mentionGroup>([^' + fullNameAndEmailCharExclusions + r']*))\*$'
     + r')$',
     unicode: true);
 })();
@@ -214,8 +215,6 @@ final RegExp _channelLinkIntentRegex = () {
   // TODO: match the server constraints
   const nameCharExclusions = r'\r\n';
 
-  // TODO(upstream): maybe use duplicate-named capture groups for better readability?
-  //   https://github.com/dart-lang/sdk/issues/61337
   return RegExp(unicode: true,
     before
     + r'#'
@@ -226,20 +225,20 @@ final RegExp _channelLinkIntentRegex = () {
     // option, instead of clearing the entire query and starting from scratch.
     + r'(?:'
       // Case '#channel': right after '#', reject whitespace as well as '**'.
-      + r'(?!\s|\*\*)([^' + nameCharExclusions + r']*)'
+      + r'(?<channelGroup>(?!\s|\*\*)([^' + nameCharExclusions + r']*))'
       + r'|'
       // Case '#**channel': right after '#**', reject whitespace.
       // Also, make sure that the remaining query doesn't contain '**',
       // otherwise '#**channel**' (which is a completed channel link syntax) and
       // any text followed by that will always match.
       + r'\*\*(?!\s)'
-      + r'((?:'
+      + r'(?<channelGroup>((?:'
         + r'[^*' + nameCharExclusions + r']'
         + r'|'
         + r'\*[^*' + nameCharExclusions + r']'
         + r'|'
         + r'\*$'
-      + r')*)'
+      + r')*))'
     + r')$');
 }();
 
