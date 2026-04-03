@@ -111,7 +111,12 @@ InitialSnapshot _$InitialSnapshotFromJson(
     _$RealmWildcardMentionPolicyEnumMap,
     json['realm_wildcard_mention_policy'],
   ),
-  realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
+  realmTopicsPolicy: $enumDecodeNullable(
+    _$RealmTopicsPolicyEnumMap,
+    json['realm_topics_policy'],
+    unknownValue: RealmTopicsPolicy.unknown,
+  ),
+  realmMandatoryTopics: json['realm_mandatory_topics'] as bool?,
   realmName: json['realm_name'] as String,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
@@ -205,6 +210,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_can_delete_own_message_group': instance.realmCanDeleteOwnMessageGroup,
   'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
+  'realm_topics_policy': _$RealmTopicsPolicyEnumMap[instance.realmTopicsPolicy],
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_name': instance.realmName,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
@@ -244,6 +250,12 @@ const _$RealmWildcardMentionPolicyEnumMap = {
   RealmWildcardMentionPolicy.admins: 5,
   RealmWildcardMentionPolicy.nobody: 6,
   RealmWildcardMentionPolicy.moderators: 7,
+};
+
+const _$RealmTopicsPolicyEnumMap = {
+  RealmTopicsPolicy.allowEmptyTopic: 'allow_empty_topic',
+  RealmTopicsPolicy.disableEmptyTopic: 'disable_empty_topic',
+  RealmTopicsPolicy.unknown: 'unknown',
 };
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
