@@ -618,10 +618,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -1487,7 +1487,7 @@
   "errorRequestFailed": "Netzwerkanfrage fehlgeschlagen: HTTP Status {httpStatus}",
   "errorResolveTopicFailedTitle": "Thema konnte nicht als gelöst markiert werden",
   "errorServerMessage": "Der Server sagte:\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} nutzt Zulip Server {zulipVersion}, welche nicht unterstützt wird. Die unterstützte Mindestversion ist Zulip Server {minSupportedZulipVersion}.",
+  "errorServerVersionNotAllowedMessage": "{url} nutzt Zulip Server {zulipVersion}, welche nicht unterstützt wird. Die unterstützte Mindestversion ist Zulip Server {minAllowedZulipVersion}.",
   "errorSharingAccountNotLoggedIn": "Es ist kein Konto angemeldet. Bitte logge dich in ein Konto ein und versuche es erneut.",
   "errorSharingFailed": "Teilen fehlgeschlagen",
   "errorSharingTitle": "Teilen des Inhalts fehlgeschlagen",

@@ -182,8 +182,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
         serverSettings = await globalStore.fetchServerSettings(url!);
 
         final zulipVersionData = ZulipVersionData.fromServerSettings(serverSettings);
-        if (zulipVersionData.isUnsupported) {
-          throw ServerVersionUnsupportedException(zulipVersionData);
+        if (zulipVersionData.isNotAllowed) {
+          throw ServerVersionNotAllowedException(zulipVersionData);
         }
       } catch (e) {
         if (!context.mounted) return;
@@ -191,11 +191,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
         String? message;
         Uri? learnMoreButtonUrl;
         switch (e) {
-          case ServerVersionUnsupportedException(:final data):
-            message = zulipLocalizations.errorServerVersionUnsupportedMessage(
+          case ServerVersionNotAllowedException(:final data):
+            message = zulipLocalizations.errorServerVersionNotAllowedMessage(
               url.toString(),
               data.zulipVersion,
-              kMinSupportedZulipVersion);
+              kMinAllowedZulipVersion);
             learnMoreButtonUrl = kServerSupportDocUrl;
           default:
             // TODO(#105) give more helpful feedback; see `fetchServerSettings`

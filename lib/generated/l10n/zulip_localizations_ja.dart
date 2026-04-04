@@ -753,12 +753,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorContentToInsertIsEmpty => '挿入しようとしたファイルが空、またはアクセスできません。';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url で動作している Zulip Server $zulipVersion はサポート対象外です。サポートされる最小バージョンは Zulip Server $minSupportedZulipVersion です。';
+    return '$url で動作している Zulip Server $zulipVersion はサポート対象外です。サポートされる最小バージョンは Zulip Server $minAllowedZulipVersion です。';
   }
 
   @override
@@ -803,6 +803,22 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   @override
   String get serverUrlValidationErrorUnsupportedScheme =>
       'サーバーURLは http:// または https:// で始まる必要があります。';
+
+  @override
+  String serverCompatBannerAdminMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+  }
+
+  @override
+  String serverCompatBannerUserMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+  }
+
+  @override
+  String get serverCompatBannerDismissLabel => 'Dismiss';
+
+  @override
+  String get serverCompatBannerLearnMoreLabel => 'Learn more';
 
   @override
   String get spoilerDefaultHeaderText => '内容を隠す';

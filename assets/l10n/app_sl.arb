@@ -555,10 +555,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -1394,7 +1394,7 @@
   "errorRequestFailed": "Omrežna zahteva je spodletela: Stanje HTTP {httpStatus}",
   "errorResolveTopicFailedTitle": "Neuspela označitev teme kot razrešene",
   "errorServerMessage": "Strežnik je sporočil:\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} uporablja strežnik Zulip {zulipVersion}, ki ni podprt. Najnižja podprta različica je strežnik Zulip {minSupportedZulipVersion}.",
+  "errorServerVersionNotAllowedMessage": "{url} uporablja strežnik Zulip {zulipVersion}, ki ni podprt. Najnižja podprta različica je strežnik Zulip {minAllowedZulipVersion}.",
   "errorSharingAccountNotLoggedIn": "Noben račun ni prijavljen. Prijavite se v račun in poskusite znova.",
   "errorSharingFailed": "Deljenje ni uspelo",
   "errorSharingTitle": "Deljenje vsebine ni uspelo",
