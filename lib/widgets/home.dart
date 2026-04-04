@@ -756,6 +756,21 @@ class _ChannelsButton extends _NavigationBarMenuButton {
   }
 
   @override
+  Widget? buildTrailing(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final unreads = store.unreads;
+    final unreadCount =
+      unreads.countInCombinedFeedNarrow() - unreads.countInDms();
+    if (unreadCount == 0) return null;
+    return CounterBadge(
+      kind: CounterBadgeKind.unread,
+      style: CounterBadgeStyle.mainMenu,
+      count: unreadCount,
+      channelIdForBackground: null,
+    );
+  }
+
+  @override
   _HomePageTab get navigationTarget => _HomePageTab.channels;
 }
 
