@@ -987,6 +987,9 @@ class ViewReactionsUserItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    final labelColor = designVariables.labelMenuButton;
+    final isSelf = userId == store.selfUserId;
+    final baseName = store.userDisplayName(userId);
 
     return InkWell(
       onTap: () => _onPressed(context),
@@ -1003,15 +1006,26 @@ class ViewReactionsUserItem extends StatelessWidget {
             backgroundColor: designVariables.bgContextMenu,
             userId: userId),
           Flexible(
-            child: Text(
+            child: Text.rich(
+              TextSpan(children: [
+                TextSpan(
+                  text: baseName,
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 17 / 17,
+                    color: designVariables.textMessage,
+                  ).merge(weightVariableTextStyle(context, wght: 500))),
+                if (isSelf)
+                  TextSpan(
+                    text: ' (you)',
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: 17 / 17,
+                      color: labelColor.withValues(alpha: 0.6),
+                    ).merge(weightVariableTextStyle(context, wght: 400)))
+              ]),
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 17,
-                height: 17 / 17,
-                color: designVariables.textMessage,
-              ).merge(weightVariableTextStyle(context, wght: 500)),
-              store.userDisplayName(userId))),
+              overflow: TextOverflow.ellipsis)),
         ])));
   }
 }
