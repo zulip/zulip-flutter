@@ -462,7 +462,7 @@ class EmojiAutocompleteItem extends StatelessWidget {
 class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicAutocompleteResult> {
   const TopicAutocomplete({
     super.key,
-    required this.streamId,
+    required this.channelId,
     required ComposeTopicController super.controller,
     required super.focusNode,
     required this.contentFocusNode,
@@ -471,7 +471,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
 
   final FocusNode contentFocusNode;
 
-  final int streamId;
+  final int channelId;
 
   @override
   ComposeTopicController get controller => super.controller as ComposeTopicController;
@@ -482,7 +482,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
   @override
   TopicAutocompleteView initViewModel(BuildContext context, TopicAutocompleteQuery query) {
     final store = PerAccountStoreWidget.of(context);
-    return TopicAutocompleteView.init(store: store, streamId: streamId, query: query);
+    return TopicAutocompleteView.init(store: store, channelId: channelId, query: query);
   }
 
   void _onTapOption(BuildContext context, TopicAutocompleteResult option) {

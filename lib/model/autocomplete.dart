@@ -559,13 +559,13 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     // See also [MentionAutocompleteQuery._rankUserResult];
     // that ranking takes precedence over this.
 
-    int? streamId;
+    int? channelId;
     TopicName? topic;
     switch (narrow) {
       case ChannelNarrow():
-        streamId = narrow.streamId;
+        channelId = narrow.channelId;
       case TopicNarrow():
-        streamId = narrow.streamId;
+        channelId = narrow.channelId;
         topic = narrow.topic;
       case DmNarrow():
         break;
@@ -576,20 +576,20 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
     return (userA, userB) => _compareByRelevance(userA, userB,
-      streamId: streamId, topic: topic,
+      channelId: channelId, topic: topic,
       store: store);
   }
 
   static int _compareByRelevance(User userA, User userB, {
-    required int? streamId,
+    required int? channelId,
     required TopicName? topic,
     required PerAccountStore store,
   }) {
     // TODO(#618): give preference to subscribed users first
 
-    if (streamId != null) {
+    if (channelId != null) {
       final recencyResult = compareByRecency(userA, userB,
-        streamId: streamId,
+        streamId: channelId,
         topic: topic,
         store: store);
       if (recencyResult != 0) return recencyResult;
@@ -1221,20 +1221,20 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   TopicAutocompleteView._({
     required super.store,
     required super.query,
-    required this.streamId,
+    required this.channelId,
   });
 
   factory TopicAutocompleteView.init({
     required PerAccountStore store,
-    required int streamId,
+    required int channelId,
     required TopicAutocompleteQuery query,
   }) {
-    return TopicAutocompleteView._(store: store, streamId: streamId, query: query)
+    return TopicAutocompleteView._(store: store, channelId: channelId, query: query)
       .._fetch();
   }
 
   /// The channel/stream the eventual message will be sent to.
-  final int streamId;
+  final int channelId;
 
   Iterable<TopicName> _topics = [];
 
@@ -1245,7 +1245,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// fetched topics.
   Future<void> _fetch() async {
     // TODO: handle fetch failure
-    _topics = (await store.topics.getChannelTopics(streamId)).map((e) => e.name);
+    _topics = (await store.topics.getChannelTopics(channelId)).map((e) => e.name);
     return _startSearch();
   }
 
@@ -1364,9 +1364,10 @@ class ChannelLinkAutocompleteView extends AutocompleteView<ChannelLinkAutocomple
 
     int? channelId;
     switch (narrow) {
-      case ChannelNarrow(:var streamId):
-      case TopicNarrow(:var streamId):
-        channelId = streamId;
+      case ChannelNarrow():
+        channelId = narrow.channelId;
+      case TopicNarrow():
+        channelId = narrow.channelId;
       case DmNarrow():
         break;
       case CombinedFeedNarrow():
