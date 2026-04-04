@@ -20,6 +20,7 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection) {
       'user_settings_object': true,
       'include_deactivated_groups': true,
       'empty_topic_name': true,
+      'linkifier_url_template': true
     },
   });
 }

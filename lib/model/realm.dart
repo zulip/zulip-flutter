@@ -94,6 +94,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
 
   List<CustomProfileField> get customProfileFields;
 
+  //linkifiers
+  List<RealmLinkifier> get realmLinkifiers;
   //|//////////////////////////////////////////////////////////////
   // Methods that examine the settings.
 
@@ -216,6 +218,10 @@ mixin ProxyRealmStore on RealmStore {
   int get maxTopicLength => realmStore.maxTopicLength;
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
+
+  @override
+  List<RealmLinkifier> get realmLinkifiers => realmStore.realmLinkifiers;
+
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
     realmStore.selfHasPassedWaitingPeriod(byDate: byDate);
@@ -270,7 +276,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
-    customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
+    customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields),
+    realmLinkifiers = initialSnapshot.realmLinkifiers;
 
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) {
@@ -452,6 +459,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   @override
   List<CustomProfileField> customProfileFields;
+
+  @override
+  final List<RealmLinkifier> realmLinkifiers;
 
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
     // TODO(server): The realm-wide field objects have an `order` property,
