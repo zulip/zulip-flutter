@@ -1,4 +1,51 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+
+import 'theme.dart';
+
+/// A base [InputDecoration] for "filled"-style text inputs.
+///
+/// Callers should use [InputDecoration.copyWith] to add field-specific
+/// properties like [InputDecoration.hintText], [InputDecoration.labelText],
+/// or [InputDecoration.suffixIcon].
+///
+/// [filledInputTextStyle] is recommended for styling the text-input's value,
+/// i.e., the text the user has typed. That's not a job of [InputDecoration].
+InputDecoration baseFilledInputDecoration(DesignVariables designVariables) {
+  return InputDecoration(
+    hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
+    // TODO(design) is this the right variable?
+    errorStyle: TextStyle(color: designVariables.contextMenuItemTextDanger),
+    isDense: true,
+    contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+    filled: true,
+    fillColor: designVariables.bgSearchInput,
+
+    // "underline" not because we want an underline (we unset it using
+    // [BorderSide.none]) but because it causes [InputDecorator] to handle the
+    // label text's "floating" state by putting the label in a reserved space
+    // inside the input's filled area (see `filled: true`) instead of making it
+    // straddle the top edge of the filled area. Requested by Alya:
+    //   https://github.com/zulip/zulip-flutter/pull/2184#issuecomment-3993219258
+    // When no label text is specified (see [InputDecoration.labelText]),
+    // the extra space is not reserved.
+    // TODO(#2183) revisit if changing
+    border: UnderlineInputBorder(
+      borderRadius: BorderRadius.circular(10),
+      borderSide: BorderSide.none));
+}
+
+/// A [TextStyle] for the user-entered text in "filled"-style text inputs.
+///
+/// This is intended to be paired with [baseFilledInputDecoration].
+TextStyle filledInputTextStyle(DesignVariables designVariables) => TextStyle(
+  // Font size and height from
+  //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10806-25228&m=dev
+  fontSize: 19,
+  height: 26 / 19,
+
+  // https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10867-99284&m=dev
+  color: designVariables.textInput,
+);
 
 /// A space to use for [InputDecoration.helperText] so the layout doesn't jump.
 ///

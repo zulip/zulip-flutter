@@ -241,7 +241,6 @@ class _NewDmSearchBar extends StatelessWidget {
     return TextField(
       controller: controller,
       autofocus: true,
-      cursorColor: designVariables.foreground,
       style: TextStyle(
         color: designVariables.textMessage,
         fontSize: 17,
