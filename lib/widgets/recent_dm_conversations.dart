@@ -279,7 +279,11 @@ class _NewDmButtonState extends State<_NewDmButton> {
         curve: Curves.easeOut,
         padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 20, 12),
         decoration: BoxDecoration(
-          color: fabBgColor,
+          gradient: const LinearGradient(
+            colors: [Colors.black, Color(0xFF0066FF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(28),
           boxShadow: [BoxShadow(
             color: designVariables.fabShadow,

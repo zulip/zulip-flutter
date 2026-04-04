@@ -20,6 +20,8 @@ import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/store.dart';
 import 'package:zulip/widgets/counter_badge.dart';
 import 'package:zulip/widgets/user.dart';
+import 'package:zulip/widgets/voice_recording_modal.dart';
+import 'package:zulip/widgets/audio_player.dart';
 
 extension ChannelColorSwatchChecks on Subject<ChannelColorSwatch> {
   Subject<Color> get base => has((s) => s.base, 'base');
@@ -116,5 +118,13 @@ extension ToggleChecks on Subject<Toggle> {
 
 extension LightboxHeroChecks on Subject<LightboxHero> {
   Subject<BuildContext> get messageImageContext => has((x) => x.messageImageContext, 'messageImageContext');
+  Subject<Uri> get src => has((x) => x.src, 'src');
+}
+
+extension VoiceRecordingModalChecks on Subject<VoiceRecordingModal> {
+  Subject<VoidCallback?> get onRecordingComplete => has((x) => x.onRecordingComplete, 'onRecordingComplete');
+}
+
+extension AudioPlayerBottomSheetChecks on Subject<AudioPlayerBottomSheet> {
   Subject<Uri> get src => has((x) => x.src, 'src');
 }

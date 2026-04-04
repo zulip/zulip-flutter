@@ -12,6 +12,7 @@ import 'color.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'skeleton.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -163,7 +164,18 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
   Widget build(BuildContext context) {
     final channelTopics = topicsModel!.channelTopics(widget.streamId);
     if (channelTopics == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Column(
+        children: [
+          const SizedBox(height: 16),
+          SizedBox(height: 40, child: SkeletonLoader(borderRadius: 8)),
+          const SizedBox(height: 8),
+          SizedBox(height: 40, child: SkeletonLoader(borderRadius: 8)),
+          const SizedBox(height: 8),
+          SizedBox(height: 40, child: SkeletonLoader(borderRadius: 8)),
+          const SizedBox(height: 8),
+          SizedBox(height: 40, child: SkeletonLoader(borderRadius: 8)),
+        ],
+      );
     }
 
     if (channelTopics.isEmpty) {

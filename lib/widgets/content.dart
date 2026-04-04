@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -6,13 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart' as intl;
+import 'package:video_player/video_player.dart';
 
+import '../api/core.dart';
 import '../api/model/model.dart';
 import '../api/model/permission.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
 import 'actions.dart';
+import 'audio_player.dart';
 import 'code_block.dart';
 import 'dialog.dart';
 import 'icons.dart';
@@ -23,6 +27,7 @@ import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
 import 'scrolling.dart';
+import 'skeleton.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -288,7 +293,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 }
 
 /// The font size for message content in a plain unstyled paragraph.
-const double kBaseFontSize = 17;
+const double kBaseFontSize = 15;
 
 /// The entire content of a message, aka its body.
 ///
@@ -339,10 +344,59 @@ class BlockContentList extends StatelessWidget {
 
   final List<BlockContentNode> nodes;
 
+  bool _isInlineVideoFilenameParagraph(ParagraphNode paragraph, InlineVideoNode inlineVideo) {
+    if (paragraph.nodes.length != 1) return false;
+    final singleNode = paragraph.nodes.single;
+    if (singleNode is! LinkNode) return false;
+    if (singleNode.url != inlineVideo.srcUrl) return false;
+    return singleNode.nodes.length == 1 && singleNode.nodes.single is TextNode;
+  }
+
+  bool _isImagePreviewFilenameParagraph(ParagraphNode paragraph, ImagePreviewNodeList previewList) {
+    if (paragraph.nodes.length != 1) return false;
+    final singleNode = paragraph.nodes.single;
+    if (singleNode is! LinkNode) return false;
+    if (!(singleNode.nodes.length == 1 && singleNode.nodes.single is TextNode)) {
+      return false;
+    }
+
+    return previewList.imagePreviews.any((preview) =>
+      singleNode.url == preview.originalSrc
+      || (preview.src is ImageNodeSrcOther && singleNode.url == (preview.src as ImageNodeSrcOther).value));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filteredNodes = <BlockContentNode>[];
+    for (int i = 0; i < nodes.length; i++) {
+      final node = nodes[i];
+
+      if (node is ParagraphNode) {
+        BlockContentNode? followingPreviewNode;
+        for (int j = i + 1; j < nodes.length; j++) {
+          final candidate = nodes[j];
+          if (candidate is ImagePreviewNodeList || candidate is InlineVideoNode) {
+            followingPreviewNode = candidate;
+            break;
+          }
+          if (candidate is! ParagraphNode) break;
+        }
+
+        if (followingPreviewNode is InlineVideoNode
+            && _isInlineVideoFilenameParagraph(node, followingPreviewNode)) {
+          continue;
+        }
+        if (followingPreviewNode is ImagePreviewNodeList
+            && _isImagePreviewFilenameParagraph(node, followingPreviewNode)) {
+          continue;
+        }
+      }
+
+      filteredNodes.add(node);
+    }
+
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      ...nodes.map((node) {
+      ...filteredNodes.map((node) {
         return switch (node) {
           LineBreakNode() =>
             // This goes in a Column.  So to get the effect of a newline,
@@ -643,7 +697,7 @@ class MessageImagePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return _Image(node: node, size: MessageMediaContainer.size,
       buildContainer: (onTap, child) {
-        return MessageMediaContainer(onTap: onTap, child: child);
+        return MessageMediaContainer(onTap: onTap, borderRadius: 9, child: child);
       });
   }
 }
@@ -660,21 +714,21 @@ class MessageInlineVideo extends StatelessWidget {
     final resolvedSrc = store.tryResolveUrl(node.srcUrl);
 
     return MessageMediaContainer(
+      mediaSize: MessageMediaContainer.videoSize,
+      borderRadius: 9,
       onTap: resolvedSrc == null ? null : () { // TODO(log)
         Navigator.of(context).push(getVideoLightboxRoute(
           context: context,
           message: message,
           src: resolvedSrc));
       },
-      child: Container(
-        color: Colors.black, // Web has the same color in light and dark mode.
+      child: Stack(
         alignment: Alignment.center,
-        // To avoid potentially confusing UX, do not show play icon as
-        // we also disable onTap above.
-        child: resolvedSrc == null ? null : const Icon( // TODO(log)
-          Icons.play_arrow_rounded,
-          color: Colors.white, // Web has the same color in light and dark mode.
-          size: 32)));
+        children: [
+          _InlineVideoThumbnail(src: resolvedSrc),
+          if (resolvedSrc != null) const _MessageVideoPlayButton(),
+        ],
+      ));
   }
 }
 
@@ -689,6 +743,8 @@ class MessageEmbedVideo extends StatelessWidget {
     final previewImageSrcUrl = store.tryResolveUrl(node.previewImageSrcUrl);
 
     return MessageMediaContainer(
+      mediaSize: MessageMediaContainer.videoSize,
+      borderRadius: 9,
       onTap: () => _launchUrl(context, node.hrefUrl),
       child: Stack(
         alignment: Alignment.center,
@@ -696,14 +752,164 @@ class MessageEmbedVideo extends StatelessWidget {
           if (previewImageSrcUrl != null) // TODO(log)
             RealmContentNetworkImage(
               previewImageSrcUrl,
+              fit: BoxFit.cover,
               filterQuality: FilterQuality.medium),
+          if (previewImageSrcUrl == null)
+            const ColoredBox(color: Colors.black),
           // Show the "play" icon even when previewImageSrcUrl didn't resolve;
           // the action uses hrefUrl, which might still work.
-          const Icon(
-            Icons.play_arrow_rounded,
-            color: Colors.white, // Web has the same color in light and dark mode.
-            size: 32),
+          const _MessageVideoPlayButton(),
         ]));
+  }
+}
+
+class _InlineVideoThumbnail extends StatefulWidget {
+  const _InlineVideoThumbnail({required this.src});
+
+  final Uri? src;
+
+  @override
+  State<_InlineVideoThumbnail> createState() => _InlineVideoThumbnailState();
+}
+
+class _InlineVideoThumbnailState extends State<_InlineVideoThumbnail> {
+  VideoPlayerController? _controller;
+  Uri? _controllerSrc;
+  bool _initializing = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    unawaited(_initializeIfNeeded());
+  }
+
+  @override
+  void didUpdateWidget(covariant _InlineVideoThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.src != oldWidget.src) {
+      _disposeController();
+      unawaited(_initializeIfNeeded());
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposeController();
+    super.dispose();
+  }
+
+  void _disposeController() {
+    final oldController = _controller;
+    _controller = null;
+    _controllerSrc = null;
+    _initializing = false;
+    unawaited(oldController?.dispose());
+  }
+
+  Future<void> _initializeIfNeeded() async {
+    final src = widget.src;
+    if (src == null) return;
+    if (_initializing) return;
+    if (_controller != null && _controllerSrc == src) return;
+
+    _initializing = true;
+    final store = PerAccountStoreWidget.of(context);
+    final controller = VideoPlayerController.networkUrl(src, httpHeaders: {
+      if (src.origin == store.account.realmUrl.origin) ...authHeader(
+        email: store.account.email,
+        apiKey: store.account.apiKey,
+      ),
+      ...userAgentHeader(),
+    });
+
+    try {
+      await controller.initialize();
+      if (!mounted || widget.src != src) {
+        await controller.dispose();
+        return;
+      }
+      await controller.setVolume(0);
+      await controller.seekTo(const Duration(milliseconds: 300));
+      if (!mounted || widget.src != src) {
+        await controller.dispose();
+        return;
+      }
+      final previousController = _controller;
+      setState(() {
+        _controller = controller;
+        _controllerSrc = src;
+      });
+      await previousController?.dispose();
+    } catch (_) {
+      await controller.dispose();
+    } finally {
+      _initializing = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = _controller;
+    if (widget.src == null || controller == null || !controller.value.isInitialized) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          const ColoredBox(color: Colors.black),
+          if (widget.src != null)
+            Center(
+                child: SkeletonLoader(
+                  width: 18,
+                  height: 18,
+                  shape: BoxShape.circle,
+                ),
+            ),
+        ],
+      );
+    }
+
+    final videoSize = controller.value.size;
+    final previewWidth = videoSize.width > 0 ? videoSize.width : MessageMediaContainer.videoSize.width;
+    final previewHeight = videoSize.height > 0 ? videoSize.height : MessageMediaContainer.videoSize.height;
+
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: previewWidth,
+          height: previewHeight,
+          child: VideoPlayer(controller),
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageVideoPlayButton extends StatelessWidget {
+  const _MessageVideoPlayButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipOval(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.black.withValues(alpha: 0.35),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.45),
+              width: 1,
+            ),
+          ),
+          child: const Icon(
+            Icons.play_arrow_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -712,16 +918,23 @@ class MessageMediaContainer extends StatelessWidget {
     super.key,
     required this.onTap,
     required this.child,
+    this.mediaSize = size,
+    this.borderRadius = 0,
   });
 
   final void Function()? onTap;
   final Widget? child;
+  final Size mediaSize;
+  final double borderRadius;
 
   /// The container's size, in logical pixels.
-  static const size = Size(150, 100);
+  static const size = Size(260, 200);
+  static const videoSize = Size(260, 200);
 
   @override
   Widget build(BuildContext context) {
+    final innerRadius = borderRadius > 0 ? borderRadius - 1 : 0.0;
+
     return GestureDetector(
       onTap: onTap,
       child: UnconstrainedBox(
@@ -730,13 +943,25 @@ class MessageMediaContainer extends StatelessWidget {
           // TODO clean up this padding by imitating web less precisely;
           //   in particular, avoid adding loose whitespace at end of message.
           padding: const EdgeInsetsDirectional.only(end: 5, bottom: 5),
-          child: ColoredBox(
-            color: ContentTheme.of(context).colorMessageMediaContainerBackground,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: ContentTheme.of(context).colorMessageMediaContainerBackground,
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(1),
-              child: SizedBox.fromSize(
-                size: size,
-                child: child))))));
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(innerRadius),
+                child: SizedBox.fromSize(
+                  size: mediaSize,
+                  child: child,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1093,6 +1318,16 @@ class _InlineContentBuilder {
           style: const TextStyle(fontStyle: FontStyle.italic));
 
       case LinkNode():
+        if (_isVoiceMessageLink(node)) {
+          final context = _context!;
+          return WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: _VoiceMessageLinkButton(
+              onTap: () => _launchUrl(context, node.url),
+            ),
+          );
+        }
+
         final recognizer = widget.linkRecognizers?[node];
         assert(recognizer != null);
         _pushRecognizer(recognizer);
@@ -1186,6 +1421,73 @@ class _InlineContentBuilder {
     //   const TextSpan(text: _kInlineCodeRightBracket),
     // ]);
   }
+
+  bool _isVoiceMessageLink(LinkNode node) {
+    final context = _context;
+    if (context == null) return false;
+
+    final store = PerAccountStoreWidget.of(context);
+    final resolvedUrl = store.tryResolveUrl(node.url);
+    if (resolvedUrl == null) return false;
+
+    final internalLink = parseInternalLink(resolvedUrl, store);
+    if (internalLink is! UserUploadLink) return false;
+    if (!_isAudioUploadPath(internalLink.path)) return false;
+
+    final filename = _uploadFilenameFromPath(internalLink.path).toLowerCase();
+    return filename.startsWith('voice_message_');
+  }
+}
+
+class _VoiceMessageLinkButton extends StatelessWidget {
+  const _VoiceMessageLinkButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF8494FF), Color(0xFF6367FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Voice message',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 const kInlineCodeFontSizeFactor = 0.825;
@@ -1238,7 +1540,10 @@ class Mention extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: backgroundPillColor,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF000000), Color(0xFF0066FF)]),
         borderRadius: const BorderRadius.all(Radius.circular(3))),
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
@@ -1249,7 +1554,7 @@ class Mention extends StatelessWidget {
         linkRecognizers: null,
 
         // TODO(#647) when self-user is mentioned, make bold, and change font color.
-        style: ambientTextStyle,
+        style: ambientTextStyle.copyWith(color: Colors.white),
 
         nodes: nodes));
   }
@@ -1356,9 +1661,11 @@ class InlineImage extends StatelessWidget {
         constraints: BoxConstraints.loose(size),
         child: AspectRatio(
           aspectRatio: size.aspectRatio,
-          child: ColoredBox(
-            color: ContentTheme.of(context).colorMessageMediaContainerBackground,
-            child: child))));
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: ColoredBox(
+              color: ContentTheme.of(context).colorMessageMediaContainerBackground,
+              child: child)))));
   }
 }
 
@@ -1602,13 +1909,57 @@ void _launchUrl(BuildContext context, String urlString) async {
 
     case UserUploadLink():
       final tempUrl = await ZulipAction.getFileTemporaryUrl(context, internalLink);
-      if (!context.mounted) return null;
+      if (!context.mounted) return;
       if (tempUrl == null) return;
-      await PlatformActions.launchUrl(context, tempUrl);
+      if (_isAudioUploadPath(internalLink.path)) {
+        // Get message info from inherited widget
+        final message = InheritedMessage.of(context);
+        await showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: false,
+          isDismissible: true,
+          enableDrag: true,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.35,
+          ),
+          backgroundColor: Colors.transparent,
+          barrierColor: Colors.black.withValues(alpha: 0.3),
+          builder: (context) => AudioPlayerBottomSheet(
+            src: tempUrl,
+            title: _uploadFilenameFromPath(internalLink.path),
+            userName: message.senderFullName,
+            sentTime: DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000),
+          ),
+        );
+      } else {
+        await PlatformActions.launchUrl(context, tempUrl);
+      }
 
     case null:
       await PlatformActions.launchUrl(context, url);
   }
+}
+
+bool _isAudioUploadPath(String uploadPath) {
+  final lowerPath = uploadPath.toLowerCase();
+  const audioExtensions = <String>{
+    '.aac',
+    '.flac',
+    '.m4a',
+    '.mp3',
+    '.oga',
+    '.ogg',
+    '.opus',
+    '.wav',
+    '.webm',
+  };
+  return audioExtensions.any(lowerPath.endsWith);
+}
+
+String _uploadFilenameFromPath(String uploadPath) {
+  final lastSegment = uploadPath.split('/').last;
+  if (lastSegment.isEmpty) return 'Audio';
+  return Uri.decodeComponent(lastSegment);
 }
 
 //
