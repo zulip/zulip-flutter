@@ -94,6 +94,12 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
 
   List<CustomProfileField> get customProfileFields;
 
+  /// The ID of the primary pronoun-type custom profile field, if any.
+  ///
+  /// If the realm has multiple pronoun fields, this is the first one
+  /// in [customProfileFields]. Returns null if no pronoun field exists.
+  int? get primaryPronounFieldId;
+
   //|//////////////////////////////////////////////////////////////
   // Methods that examine the settings.
 
@@ -140,6 +146,18 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
       return TopicName('');
     }
     return topic;
+  }
+
+  /// The pronoun text for [user] from the primary pronoun field, or null.
+  ///
+  /// Returns null if the realm has no pronoun-type custom profile field,
+  /// or if the user has no value for that field.
+  String? primaryPronounsFor(User user) {
+    final fieldId = primaryPronounFieldId;
+    if (fieldId == null) return null;
+    final value = user.profileData?[fieldId]?.value;
+    if (value == null || value.isEmpty) return null;
+    return value;
   }
 
   /// Whether the self-user has passed the realm's waiting period
@@ -216,6 +234,8 @@ mixin ProxyRealmStore on RealmStore {
   int get maxTopicLength => realmStore.maxTopicLength;
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
+  @override
+  int? get primaryPronounFieldId => realmStore.primaryPronounFieldId;
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
     realmStore.selfHasPassedWaitingPeriod(byDate: byDate);
@@ -452,6 +472,14 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   @override
   List<CustomProfileField> customProfileFields;
+
+  @override
+  int? get primaryPronounFieldId {
+    for (final field in customProfileFields) {
+      if (field.type == CustomProfileFieldType.pronouns) return field.id;
+    }
+    return null;
+  }
 
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
     // TODO(server): The realm-wide field objects have an `order` property,
