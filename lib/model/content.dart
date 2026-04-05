@@ -1142,9 +1142,14 @@ sealed class EmojiNode extends InlineContentNode {
 }
 
 class UnicodeEmojiNode extends EmojiNode {
-  const UnicodeEmojiNode({super.debugHtmlNode, required this.emojiUnicode});
+  const UnicodeEmojiNode({
+    super.debugHtmlNode,
+    required this.emojiUnicode,
+    required this.emojiCode,
+  });
 
   final String emojiUnicode;
+  final String emojiCode;
 
   @override
   bool operator ==(Object other) {
@@ -1158,6 +1163,7 @@ class UnicodeEmojiNode extends EmojiNode {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('emojiUnicode', emojiUnicode));
+    properties.add(StringProperty('emojiCode', emojiCode));
   }
 }
 
@@ -1496,7 +1502,11 @@ class _ZulipInlineContentParser {
         .group(1)!;
       final unicode = tryParseEmojiCodeToUnicode(emojiCode);
       if (unicode == null) return unimplemented();
-      return UnicodeEmojiNode(emojiUnicode: unicode, debugHtmlNode: debugHtmlNode);
+      return UnicodeEmojiNode(
+        emojiUnicode: unicode,
+        debugHtmlNode: debugHtmlNode,
+        emojiCode: emojiCode,
+      );
     }
 
     if (localName == 'img') {

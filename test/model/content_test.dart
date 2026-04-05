@@ -225,21 +225,21 @@ class ContentExample {
     ":thumbs_up:",
     expectedText: '\u{1f44d}', // "👍"
     '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'));
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}', emojiCode: '1f44d'));
 
   static final emojiUnicodeClassesFlipped = ContentExample.inline(
     'Unicode emoji, encoded in span element, class order reversed',
     null, // ":thumbs_up:" (hypothetical server variation)
     expectedText: '\u{1f44d}', // "👍"
     '<p><span aria-label="thumbs up" class="emoji-1f44d emoji" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'));
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}', emojiCode: '1f44d'));
 
   static final emojiUnicodeMultiCodepoint = ContentExample.inline(
     'Unicode emoji, encoded in span element, multiple codepoints',
     ":transgender_flag:",
     expectedText: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}', // "🏳️‍⚧️"
     '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}'));
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}', emojiCode: '1f3f3-fe0f-200d-26a7-fe0f'));
 
   static final emojiUnicodeLiteral = ContentExample.inline(
     'Unicode emoji, not encoded in span element',
