@@ -1725,7 +1725,9 @@ void main() {
         final content = List.generate(numLines, (_) => 'foo').join('\n');
         await enterContent(tester, content);
         await tester.pump();
-        final newHeight = tester.getRect(contentInputFinder).height;
+        final newHeight = tester.getRect(contentInputFinder).height
+          // max-height is applied to the Padding around the content-input field
+          + 2 * verticalPadding;
         if (newHeight == height) {
           break;
         }
