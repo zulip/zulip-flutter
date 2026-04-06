@@ -1719,9 +1719,11 @@ void main() {
     /// In the [maxVisibleLines] check, the partly-visible line at the bottom
     /// is considered visible.
     Future<void> checkContentInputMaxHeight(WidgetTester tester, {
-      required double maxHeight,
+      required double scaleFactor,
       required int maxVisibleLines,
     }) async {
+      tester.platformDispatcher.textScaleFactorTestValue = scaleFactor;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
 
@@ -1740,55 +1742,41 @@ void main() {
         }
         height = newHeight;
       }
-      check(height).isNotNull().isCloseTo(maxHeight, 0.5);
+      final expectedMaxHeight =
+        verticalPadding + scaleFactor * (maxVisibleLines - 0.273) * lineHeight;
+      check(height).isNotNull().isCloseTo(expectedMaxHeight, 0.5);
       // The last line added did not stretch the content input,
       // so only the lines before it are at least partially visible.
       check(numLines - 1).equals(maxVisibleLines);
     }
 
     testWidgets('normal text scale factor', (tester) async {
-      const scaleFactor = 1.0;
-      tester.platformDispatcher.textScaleFactorTestValue = scaleFactor;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
 
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + scaleFactor * 7.727 * lineHeight,
-        maxVisibleLines: 8);
+        scaleFactor: 1.0, maxVisibleLines: 8);
     });
 
     testWidgets('lower text scale factor', (tester) async {
-      const scaleFactor = 0.8;
-      tester.platformDispatcher.textScaleFactorTestValue = scaleFactor;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + scaleFactor * 8.727 * lineHeight,
-        maxVisibleLines: 9);
+        scaleFactor: 0.8, maxVisibleLines: 9);
     });
 
     testWidgets('higher text scale factor', (tester) async {
-      const scaleFactor = 1.5;
-      tester.platformDispatcher.textScaleFactorTestValue = scaleFactor;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + scaleFactor * 7.727 * lineHeight,
-        maxVisibleLines: 8);
+        scaleFactor: 1.5, maxVisibleLines: 8);
     });
 
     testWidgets('higher text scale factor exceeding 1.5x threshold', (tester) async {
-      const scaleFactor = 2.0;
-      tester.platformDispatcher.textScaleFactorTestValue = scaleFactor;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + scaleFactor * 5.727 * lineHeight,
-        maxVisibleLines: 6);
+        scaleFactor: 2.0, maxVisibleLines: 6);
     });
   });
 
