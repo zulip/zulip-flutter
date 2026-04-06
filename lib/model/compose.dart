@@ -199,10 +199,17 @@ const _channelTopicAvoidedCharsReplacements = {
 };
 
 final _channelTopicAvoidedCharsRegex = RegExp(r'[`>*&[\]]|\$\$');
+final _channelTopicAvoidedCharsReplacementsRegex =
+  RegExp(_channelTopicAvoidedCharsReplacements.values.join('|'));
 
 String escapeChannelTopicAvoidedChars(String str) {
   return str.replaceAllMapped(_channelTopicAvoidedCharsRegex,
     (match) => _channelTopicAvoidedCharsReplacements[match[0]]!);
+}
+
+String unescapeChannelTopicAvoidedChars(String str) {
+  return str.replaceAllMapped(_channelTopicAvoidedCharsReplacementsRegex,
+    (match) => _channelTopicAvoidedCharsReplacements.map((k, v) => MapEntry(v, k))[match[0]]!);
 }
 
 /// Markdown link for channel or topic whose name includes characters that
