@@ -99,6 +99,11 @@ extension ComposeContentAutocomplete on ComposeContentController {
           query = TopicLinkAutocompleteQuery(topicIntentMatch.namedGroup('rawQuery')!,
             channelName: topicIntentMatch.namedGroup('channelName'));
         }
+      } else if (charAtPos == '[') {
+        final match = _fallbackTopicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
+        if (match == null) continue;
+        final channelName = unescapeChannelTopicAvoidedChars(match.namedGroup('escapedChannelName')!);
+        query = TopicLinkAutocompleteQuery(match.namedGroup('rawQuery')!, channelName: channelName);
       } else {
         continue;
       }
@@ -229,7 +234,8 @@ const _channelOrTopicNameCharExclusions = r'\r\n';
 /// with or without text after it.
 ///
 /// The query also cannot contain `>`, the channel/topic delimiter,
-/// so that `#**channel>query` fall through to [_topicLinkIntentRegex],
+/// so that `#**channel>query` and `[#…](#narrow…)>query` fall through to
+/// [_topicLinkIntentRegex] and [_fallbackTopicLinkIntentRegex],
 /// which [ComposeContentAutocomplete.autocompleteIntent] checks after this one.
 /// So a channel whose name contains `>` stops autocompleting once the user
 /// types the `>`. That seems acceptable but we can revisit if prompted.
@@ -290,7 +296,8 @@ final RegExp _channelLinkIntentRegex = () {
 ///
 /// The `channelName` group cannot contain `>`; the first `>` is the delimiter.
 /// In the syntax channel autocomplete inserts, the name never contains `>`:
-/// a channel with `>` in its actual name gets the fallback syntax instead.
+/// a channel with `>` in its actual name gets the fallback syntax instead
+/// ([_fallbackTopicLinkIntentRegex]).
 /// So this only affects a hand-typed `#**a>b>query`,
 /// which is taken as channel `a` and query `b>query`.
 ///
@@ -329,6 +336,30 @@ final RegExp _topicLinkIntentRegex = () {
         + r'\*$'
       + r')*)'
     + r')$');
+}();
+
+/// Matches the text before the cursor as a #channel>topic autocomplete intent
+/// for a channel linked with the fallback Markdown syntax:
+/// `[#escapedChannelName](#narrow/…)>query`.
+///
+/// This is the text channel autocomplete inserts when the channel's name
+/// has characters that [channelLink] avoids in the `#**channel**` syntax;
+/// it isn't something a user would type by hand.
+/// The name in it is escaped by [escapeChannelTopicAvoidedChars],
+/// so the characters that function escapes cannot appear in the name here.
+/// (In particular `>`, the delimiter, and `]`, which closes the link text.)
+///
+/// Used like [_channelLinkIntentRegex] but at the `[`, which may follow
+/// anything. As there, the query cannot begin with whitespace,
+/// and neither the channel name nor the query contains a line break.
+///
+/// Groups: `escapedChannelName` (unescape before looking the channel up)
+/// and `rawQuery` (always present, possibly empty).
+final RegExp _fallbackTopicLinkIntentRegex = () {
+  return RegExp(unicode: true,
+    r'\[#(?<escapedChannelName>[^>\]' + _channelOrTopicNameCharExclusions + r']+)\]\(#[^)]+\)'
+    + r'>'
+    + r'(?!\s)(?<rawQuery>[^' + _channelOrTopicNameCharExclusions + r']*)$');
 }();
 
 /// The text controller's recognition that the user might want autocomplete UI.
