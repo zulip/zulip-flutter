@@ -124,6 +124,70 @@ extension ComposeTopicAutocomplete on ComposeTopicController {
   }
 }
 
+/// A [TextInputFormatter] for the compose content input that replaces
+/// a channel (fallback) link followed by a ">" with a pending topic link
+/// autocomplete syntax.
+///
+///   - "#**…** >" or "#**…**>" is replaced with "#**…>"
+///   - "[#…](#…) >" is replaced with "[#…](#…)>"
+class PendingTopicLinkAutocompleteFormatter extends TextInputFormatter {
+  const PendingTopicLinkAutocompleteFormatter(this.store);
+
+  final PerAccountStore store;
+
+  // To avoid spending a lot of time searching for a channel link
+  // in long messages, we bound how far back we look for the link's start.
+  int get _maxLookbackForChannelLink {
+    // Longest channel link is the channel fallback link:
+    //   [#escapedChannelName](#narrow/channel/channelId-slugifiedChannelName) >
+    return 2 // [#
+      // Largest length of an escaped channel name (see `compose.escapeChannelTopicAvoidedChars`).
+      + 5 * store.maxChannelNameLength
+      + 18 // ](#narrow/channel/
+      + 19 // largest channel ID (9223372036854775807 — largest int) length
+      + 1  // hyphen character (-)
+      // Largest length of a slugified channel name (see `internal_link.narrowLinkFragment`).
+      + 3 * store.maxChannelNameLength
+      + 3; // ) >
+  }
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final selection = newValue.selection;
+    final text = newValue.text;
+    if (!selection.isCollapsed || text.isEmpty) return newValue;
+
+    final cursorPosition = selection.baseOffset;
+    if (text[cursorPosition - 1] != '>') return newValue;
+
+    final textUntilCursor = text.substring(0, cursorPosition);
+    final earliest = max(0, cursorPosition - _maxLookbackForChannelLink);
+
+    for (int pos = cursorPosition - 1; pos >= earliest; pos--) {
+      final charAtPos = textUntilCursor[pos];
+      if (charAtPos == '#') {
+        final channelLinkMatch = _channelLinkWithTopicDelimiterRegex.matchAsPrefix(textUntilCursor, pos);
+        if (channelLinkMatch == null) continue;
+        final channel = store.streamsByName[channelLinkMatch[1]];
+        if (channel == null) break;
+        return newValue.replaced(
+          TextRange(start: pos, end: cursorPosition),
+          channelLink(channel, pendingTopicAutocomplete: true, store: store));
+      } else if (charAtPos == '[') {
+        final channelFallbackLinkMatch = _channelFallbackLinkWithTopicDelimiterRegex.matchAsPrefix(textUntilCursor, pos);
+        if (channelFallbackLinkMatch == null) continue;
+        final channelName = unescapeChannelTopicAvoidedChars(channelFallbackLinkMatch[1]!);
+        final channel = store.streamsByName[channelName];
+        if (channel == null) break;
+        return newValue.replaced(
+          TextRange(start: pos, end: cursorPosition),
+          channelLink(channel, pendingTopicAutocomplete: true, store: store));
+      }
+    }
+    return newValue;
+  }
+}
+
 final RegExp _mentionIntentRegex = (() {
   // What's likely to come before an @-mention: the start of the string,
   // whitespace, or punctuation. Letters are unlikely; in that case an email
@@ -256,6 +320,54 @@ final RegExp _channelLinkIntentRegex = () {
         + r'[^*' + nameCharExclusions + r']\*$'
       + r')*)'
     + r')$');
+}();
+
+/// Matches "#**…** >", a completed channel link syntax followed by an optional
+/// space followed by ">".
+///
+/// This indicates that the user wants to initiate a topic autocomplete
+/// interaction for the channel. The match will then be replaced with "#**…>"
+/// which will end up initiating the topic autocomplete interaction.
+///
+/// See [PendingTopicLinkAutocompleteFormatter] where this is used.
+final RegExp _channelLinkWithTopicDelimiterRegex = () {
+  // What's likely to come just before "#**…** >" syntax: the start of the
+  // string, whitespace, or punctuation. Letters are unlikely.
+  //
+  // Only some punctuation, like "(", is actually likely here. We don't
+  // currently try to be specific about that.
+  const before = r'(?<=^|\s|\p{Punctuation})';
+
+  // In a channel name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L56
+  //
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'*>\r\n';
+
+  return RegExp(unicode: true,
+      before + r'#\*\*([^' + nameCharExclusions + r']+)\*\*\s?>$');
+}();
+
+/// Matches "[#…](#…) >", a channel fallback link followed by a space and ">".
+///
+/// This indicates that the user wants to initiate a topic autocomplete
+/// interaction for the channel. The match will then be replaced with "[#…](…)>"
+/// which will end up initiating the topic autocomplete interaction.
+///
+/// See [PendingTopicLinkAutocompleteFormatter] where this is used.
+final RegExp _channelFallbackLinkWithTopicDelimiterRegex = () {
+  // In a channel name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L56
+  //
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'>\r\n';
+
+  return RegExp(unicode: true,
+    r'\[#([^' + nameCharExclusions + r']+)\]\(#[^)]+\)\s>$');
 }();
 
 final RegExp _topicLinkIntentRegex = () {
