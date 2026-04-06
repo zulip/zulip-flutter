@@ -96,6 +96,11 @@ extension ComposeContentAutocomplete on ComposeContentController {
           query = TopicLinkAutocompleteQuery(topicIntentMatch.namedGroup('rawQuery')!,
             channelName: topicIntentMatch.namedGroup('channelName'));
         }
+      } else if (charAtPos == '[') {
+        final match = _fallbackTopicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
+        if (match == null) continue;
+        final channelName = unescapeChannelTopicAvoidedChars(match.namedGroup('escapedChannelName')!);
+        query = TopicLinkAutocompleteQuery(match.namedGroup('rawQuery')!, channelName: channelName);
       } else {
         continue;
       }
@@ -308,6 +313,30 @@ final RegExp _topicLinkIntentRegex = () {
         + r'\*$'
       + r')*)'
     + r')$');
+}();
+
+final RegExp _fallbackTopicLinkIntentRegex = () {
+  // In a channel/topic name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L65
+  // Of those, `\r` and `\n` are the only ones likely to be typed,
+  // so excluding just them is enough in practice.
+  // TODO: incorporate the server constraints
+  //
+  // The query below takes the same rule: a topic query is a prospective
+  // topic name.
+  const nameCharExclusions = r'\r\n';
+
+  return RegExp(unicode: true,
+    // Exclude the ">" character, which is the delimiter before the topic,
+    // so that a complete "[#channel > topic](#narrow…)" link isn't matched as a
+    // channel-only one. Here the channel name appears escaped, and escaping
+    // maps ">" to "&gt;" (see `compose.escapeChannelTopicAvoidedChars`),
+    // so a literal ">" here is never part of the name.
+    r'\[#(?<escapedChannelName>[^>' + nameCharExclusions + r']+)\]\(#[^)]+\)'
+    + r'>'
+    + r'(?!\s)(?<rawQuery>[^' + nameCharExclusions + r']*)$');
 }();
 
 /// The text controller's recognition that the user might want autocomplete UI.
