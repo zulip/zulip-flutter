@@ -312,6 +312,12 @@ abstract class ZulipLocalizations {
   /// **'To upload files, please grant Zulip additional permissions in Settings.'**
   String get permissionsDeniedReadExternalStorage;
 
+  /// Message for dialog asking the user to grant permissions for microphone access.
+  ///
+  /// In en, this message translates to:
+  /// **'To record voice messages, please grant Zulip microphone access in Settings.'**
+  String get permissionsDeniedMicrophoneAccess;
+
   /// Label in the channel action sheet for subscribing to the channel.
   ///
   /// In en, this message translates to:
@@ -980,6 +986,30 @@ abstract class ZulipLocalizations {
   /// **'Take a photo'**
   String get composeBoxAttachFromCameraTooltip;
 
+  /// Tooltip for compose box icon to record a voice message.
+  ///
+  /// In en, this message translates to:
+  /// **'Record voice message'**
+  String get composeBoxRecordVoiceTooltip;
+
+  /// Label shown while recording a voice message.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording'**
+  String get composeBoxRecordingLabel;
+
+  /// Tooltip for cancel button while recording a voice message.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel recording'**
+  String get composeBoxRecordingCancelTooltip;
+
+  /// Tooltip for stop button while recording a voice message.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop recording'**
+  String get composeBoxRecordingStopTooltip;
+
   /// Hint text for content input when sending a message.
   ///
   /// In en, this message translates to:
@@ -1304,6 +1334,18 @@ abstract class ZulipLocalizations {
   /// **'Video duration'**
   String get lightboxVideoDuration;
 
+  /// Tooltip for play button in the inline audio player.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get audioPlayerPlayTooltip;
+
+  /// Tooltip for pause button in the inline audio player.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get audioPlayerPauseTooltip;
+
   /// Title for login page.
   ///
   /// In en, this message translates to:
@@ -1463,6 +1505,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Unable to play the video.'**
   String get errorVideoPlayerFailed;
+
+  /// Error message when an audio file fails to play.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to play the audio.'**
+  String get errorAudioPlayerFailed;
+
+  /// Error message when a voice recording cannot be saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the recording.'**
+  String get errorFailedToRecordAudio;
 
   /// Error message when URL is empty
   ///

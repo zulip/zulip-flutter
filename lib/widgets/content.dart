@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart' as intl;
+import 'package:video_player/video_player.dart';
 
+import '../api/core.dart';
 import '../api/model/model.dart';
 import '../api/model/permission.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -14,6 +16,7 @@ import '../model/content.dart';
 import '../model/internal_link.dart';
 import 'actions.dart';
 import 'code_block.dart';
+import 'color.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'image.dart';
@@ -648,6 +651,231 @@ class MessageImagePreview extends StatelessWidget {
   }
 }
 
+String _formatAudioDuration(Duration value) {
+  final hours = value.inHours.toString().padLeft(2, '0');
+  final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
+  final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
+  return '${hours == '00' ? '' : '$hours:'}$minutes:$seconds';
+}
+
+class MessageInlineAudio extends StatefulWidget {
+  const MessageInlineAudio({super.key, required this.node});
+
+  final InlineAudioNode node;
+
+  @override
+  State<MessageInlineAudio> createState() => _MessageInlineAudioState();
+}
+
+class _MessageInlineAudioState extends State<MessageInlineAudio> {
+  VideoPlayerController? _controller;
+  bool _initializing = false;
+  bool _hasError = false;
+  Duration _dragPosition = Duration.zero;
+  bool _isDragging = false;
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_handleControllerUpdate);
+    _controller?.dispose();
+    _controller = null;
+    super.dispose();
+  }
+
+  void _handleControllerUpdate() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _ensureController() async {
+    if (_controller != null || _initializing || _hasError) return;
+    final store = PerAccountStoreWidget.of(context);
+    final resolvedSrc = store.tryResolveUrl(widget.node.srcUrl);
+    if (resolvedSrc == null) return; // TODO(log)
+
+    setState(() {
+      _initializing = true;
+    });
+
+    final controller = VideoPlayerController.networkUrl(resolvedSrc, httpHeaders: {
+      if (resolvedSrc.origin == store.account.realmUrl.origin) ...authHeader(
+        email: store.account.email,
+        apiKey: store.account.apiKey,
+      ),
+      ...userAgentHeader(),
+    });
+    controller.addListener(_handleControllerUpdate);
+
+    try {
+      await controller.initialize();
+    } catch (error) {
+      controller.removeListener(_handleControllerUpdate);
+      await controller.dispose();
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      showErrorDialog(
+        context: context,
+        title: zulipLocalizations.errorDialogTitle,
+        message: zulipLocalizations.errorAudioPlayerFailed,
+      );
+      setState(() {
+        _initializing = false;
+        _hasError = true;
+      });
+      return;
+    }
+
+    if (!mounted) {
+      controller.removeListener(_handleControllerUpdate);
+      await controller.dispose();
+      return;
+    }
+
+    setState(() {
+      _controller = controller;
+      _initializing = false;
+    });
+  }
+
+  Future<void> _togglePlay() async {
+    await _ensureController();
+    final controller = _controller;
+    if (controller == null) return;
+    if (controller.value.isPlaying) {
+      await controller.pause();
+    } else {
+      await controller.play();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final contentTheme = ContentTheme.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final resolvedSrc = store.tryResolveUrl(widget.node.srcUrl);
+
+    final controller = _controller;
+    final isInitialized = controller?.value.isInitialized ?? false;
+    final isPlaying = controller?.value.isPlaying ?? false;
+    final isBuffering = controller?.value.isBuffering ?? false;
+    final duration = isInitialized ? controller!.value.duration : Duration.zero;
+    final position = isInitialized ? controller!.value.position : Duration.zero;
+    final effectivePosition = _isDragging ? _dragPosition : position;
+    final maxMs = duration.inMilliseconds;
+    final sliderMax = maxMs > 0 ? maxMs.toDouble() : 1.0;
+    final sliderValue = maxMs > 0
+      ? effectivePosition.inMilliseconds.clamp(0, maxMs).toDouble()
+      : 0.0;
+    final durationText = _formatAudioDuration(duration);
+    final positionText = _formatAudioDuration(effectivePosition);
+
+    final playIcon = _initializing || isBuffering
+      ? const SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : Icon(
+          isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+          color: designVariables.icon,
+          size: 28,
+        );
+
+    final canPlay = !_hasError && resolvedSrc != null;
+
+    final labelStyle = DefaultTextStyle.of(context).style.copyWith(
+      fontSize: 14,
+      color: designVariables.textMessage,
+    );
+    final metaStyle = DefaultTextStyle.of(context).style.copyWith(
+      fontSize: 12,
+      color: designVariables.textMessage.withFadedAlpha(0.6),
+    );
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 5, bottom: 5),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: contentTheme.colorMessageMediaContainerBackground,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: designVariables.borderBar),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            IconButton(
+              tooltip: isPlaying
+                ? zulipLocalizations.audioPlayerPauseTooltip
+                : zulipLocalizations.audioPlayerPlayTooltip,
+              icon: playIcon,
+              onPressed: canPlay
+                ? () => unawaited(_togglePlay())
+                : null,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
+            const SizedBox(width: 6),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SizedBox(
+                width: 180,
+                child: Text(
+                  widget.node.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: labelStyle,
+                ),
+              ),
+              SizedBox(
+                width: 180,
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
+                    activeTrackColor: designVariables.icon,
+                    inactiveTrackColor: designVariables.borderBar,
+                  ),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Slider(
+                      value: sliderValue,
+                      max: sliderMax,
+                      onChangeStart: isInitialized ? (value) {
+                        setState(() {
+                          _dragPosition = Duration(milliseconds: value.toInt());
+                          _isDragging = true;
+                        });
+                      } : null,
+                      onChanged: isInitialized ? (value) {
+                        setState(() {
+                          _dragPosition = Duration(milliseconds: value.toInt());
+                        });
+                      } : null,
+                      onChangeEnd: isInitialized ? (value) async {
+                        final newPosition = Duration(milliseconds: value.toInt());
+                        await controller!.seekTo(newPosition);
+                        if (!mounted) return;
+                        setState(() {
+                          _dragPosition = newPosition;
+                          _isDragging = false;
+                        });
+                      } : null,
+                    ),
+                  ),
+                ),
+              ),
+            ]),
+            const SizedBox(width: 8),
+            Text('$positionText / $durationText', style: metaStyle),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
 class MessageInlineVideo extends StatelessWidget {
   const MessageInlineVideo({super.key, required this.node});
 
@@ -1115,6 +1343,10 @@ class _InlineContentBuilder {
       case ImageEmojiNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: MessageImageEmoji(node: node));
+
+      case InlineAudioNode():
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: MessageInlineAudio(node: node));
 
       case InlineImageNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,

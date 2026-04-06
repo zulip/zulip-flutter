@@ -108,6 +108,10 @@
   "@permissionsDeniedReadExternalStorage": {
     "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
+  "permissionsDeniedMicrophoneAccess": "To record voice messages, please grant Zulip microphone access in Settings.",
+  "@permissionsDeniedMicrophoneAccess": {
+    "description": "Message for dialog asking the user to grant permissions for microphone access."
+  },
   "actionSheetOptionSubscribe": "Subscribe",
   "@actionSheetOptionSubscribe": {
     "description": "Label in the channel action sheet for subscribing to the channel."
@@ -602,6 +606,22 @@
   "@composeBoxAttachFromCameraTooltip": {
     "description": "Tooltip for compose box icon to attach an image from the camera to the message."
   },
+  "composeBoxRecordVoiceTooltip": "Record voice message",
+  "@composeBoxRecordVoiceTooltip": {
+    "description": "Tooltip for compose box icon to record a voice message."
+  },
+  "composeBoxRecordingLabel": "Recording",
+  "@composeBoxRecordingLabel": {
+    "description": "Label shown while recording a voice message."
+  },
+  "composeBoxRecordingCancelTooltip": "Cancel recording",
+  "@composeBoxRecordingCancelTooltip": {
+    "description": "Tooltip for cancel button while recording a voice message."
+  },
+  "composeBoxRecordingStopTooltip": "Stop recording",
+  "@composeBoxRecordingStopTooltip": {
+    "description": "Tooltip for stop button while recording a voice message."
+  },
   "composeBoxGenericContentHint": "Type a message",
   "@composeBoxGenericContentHint": {
     "description": "Hint text for content input when sending a message."
@@ -848,6 +868,14 @@
   "@lightboxVideoDuration": {
     "description": "The total duration of the video playing in the lightbox."
   },
+  "audioPlayerPlayTooltip": "Play",
+  "@audioPlayerPlayTooltip": {
+    "description": "Tooltip for play button in the inline audio player."
+  },
+  "audioPlayerPauseTooltip": "Pause",
+  "@audioPlayerPauseTooltip": {
+    "description": "Tooltip for pause button in the inline audio player."
+  },
   "loginPageTitle": "Log in",
   "@loginPageTitle": {
     "description": "Title for login page."
@@ -978,6 +1006,14 @@
   "errorVideoPlayerFailed": "Unable to play the video.",
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
+  },
+  "errorAudioPlayerFailed": "Unable to play the audio.",
+  "@errorAudioPlayerFailed": {
+    "description": "Error message when an audio file fails to play."
+  },
+  "errorFailedToRecordAudio": "Could not save the recording.",
+  "@errorFailedToRecordAudio": {
+    "description": "Error message when a voice recording cannot be saved."
   },
   "serverUrlValidationErrorEmpty": "Please enter a URL.",
   "@serverUrlValidationErrorEmpty": {

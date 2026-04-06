@@ -1218,6 +1218,34 @@ class InlineImageNode extends ImageNode implements InlineContentNode {
   int get hashCode => Object.hash('InlineImageNode', super.hashCode);
 }
 
+class InlineAudioNode extends InlineContentNode {
+  const InlineAudioNode({
+    super.debugHtmlNode,
+    required this.srcUrl,
+    required this.title,
+  });
+
+  final String srcUrl;
+  final String title;
+
+  @override
+  bool operator ==(Object other) {
+    return other is InlineAudioNode
+      && other.srcUrl == srcUrl
+      && other.title == title;
+  }
+
+  @override
+  int get hashCode => Object.hash('InlineAudioNode', srcUrl, title);
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('srcUrl', srcUrl));
+    properties.add(StringProperty('title', title));
+  }
+}
+
 class MathInlineNode extends MathNode implements InlineContentNode {
   const MathInlineNode({
     super.debugHtmlNode,
@@ -1531,11 +1559,11 @@ class _ZulipInlineContentParser {
         _ => Uri.tryParse(srcAttr)?.pathSegments.lastOrNull ?? srcAttr,
       };
 
-      final link = LinkNode(
-        url: srcAttr,
-        nodes: [TextNode(title)]);
-      (_linkNodes ??= []).add(link);
-      return link;
+      return InlineAudioNode(
+        srcUrl: srcAttr,
+        title: title,
+        debugHtmlNode: debugHtmlNode,
+      );
     }
 
     if (localName == 'span' && className == 'katex') {

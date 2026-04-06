@@ -99,6 +99,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
 
   @override
+  String get permissionsDeniedMicrophoneAccess =>
+      'To record voice messages, please grant Zulip microphone access in Settings.';
+
+  @override
   String get actionSheetOptionSubscribe => 'Подписаться';
 
   @override
@@ -524,6 +528,18 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Сделать снимок';
 
   @override
+  String get composeBoxRecordVoiceTooltip => 'Record voice message';
+
+  @override
+  String get composeBoxRecordingLabel => 'Recording';
+
+  @override
+  String get composeBoxRecordingCancelTooltip => 'Cancel recording';
+
+  @override
+  String get composeBoxRecordingStopTooltip => 'Stop recording';
+
+  @override
   String get composeBoxGenericContentHint => 'Ввести сообщение';
 
   @override
@@ -720,6 +736,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get lightboxVideoDuration => 'Длительность видео';
 
   @override
+  String get audioPlayerPlayTooltip => 'Play';
+
+  @override
+  String get audioPlayerPauseTooltip => 'Pause';
+
+  @override
   String get loginPageTitle => 'Вход в систему';
 
   @override
@@ -826,6 +848,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorVideoPlayerFailed => 'Не удается воспроизвести видео.';
+
+  @override
+  String get errorAudioPlayerFailed => 'Unable to play the audio.';
+
+  @override
+  String get errorFailedToRecordAudio => 'Could not save the recording.';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Пожалуйста, введите URL-адрес.';

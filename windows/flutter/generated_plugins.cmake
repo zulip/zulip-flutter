@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
   firebase_core
+  record_windows
   share_plus
   sodium_libs
   sqlite3_flutter_libs

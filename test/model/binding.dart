@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
@@ -82,6 +83,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetNotifications();
     _resetPickFiles();
     _resetPickImage();
+    _resetAudioRecorder();
     _resetWakelock();
   }
 
@@ -386,6 +388,17 @@ class TestZulipBinding extends ZulipBinding {
     _pickImageCalls = null;
   }
 
+  FakeAudioRecorder get audioRecorder => _audioRecorder ??= FakeAudioRecorder();
+  FakeAudioRecorder? _audioRecorder;
+
+  void _resetAudioRecorder() {
+    _audioRecorder?.reset();
+    _audioRecorder = null;
+  }
+
+  @override
+  AudioRecorder createAudioRecorder() => audioRecorder;
+
   /// Consume the log of calls made to `ZulipBinding.instance.pickImage()`.
   ///
   /// This returns a list of the arguments to all calls made
@@ -414,6 +427,9 @@ class TestZulipBinding extends ZulipBinding {
     (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
     return pickImageResult;
   }
+
+  @override
+  Future<Directory> getTemporaryDirectory() async => Directory.systemTemp;
 
   /// Returns the current status of wakelock, which can be
   /// changed via [toggleWakelock].
@@ -920,6 +936,47 @@ class FakeNotificationPigeonApi implements NotificationPigeonApi {
   Stream<NotificationTapEvent> notificationTapEventsStream() {
     return _notificationTapEventsStreamController.stream;
   }
+}
+
+class FakeAudioRecorder implements AudioRecorder {
+  bool hasPermissionResult = true;
+  String? lastStartPath;
+  String? stopResultPath;
+  PlatformException? startException;
+  PlatformException? stopException;
+  bool _isRecording = false;
+
+  void reset() {
+    hasPermissionResult = true;
+    lastStartPath = null;
+    stopResultPath = null;
+    startException = null;
+    stopException = null;
+    _isRecording = false;
+  }
+
+  @override
+  Future<bool> hasPermission() async => hasPermissionResult;
+
+  @override
+  Future<bool> get isRecording async => _isRecording;
+
+  @override
+  Future<void> start({required String path}) async {
+    if (startException != null) throw startException!;
+    lastStartPath = path;
+    _isRecording = true;
+  }
+
+  @override
+  Future<String?> stop() async {
+    if (stopException != null) throw stopException!;
+    _isRecording = false;
+    return stopResultPath ?? lastStartPath;
+  }
+
+  @override
+  Future<void> dispose() async {}
 }
 
 typedef AndroidNotificationHostApiNotifyCall = ({

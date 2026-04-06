@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:file_picker/file_picker.dart' as file_picker;
@@ -7,6 +8,8 @@ import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messagin
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
+import 'package:record/record.dart' as record;
+import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:sodium_libs/sodium_libs.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
@@ -25,6 +28,14 @@ typedef UrlLaunchMode = url_launcher.LaunchMode;
 
 /// Alias for [firebase_messaging.RemoteMessage].
 typedef FirebaseRemoteMessage = firebase_messaging.RemoteMessage;
+
+abstract class AudioRecorder {
+  Future<bool> hasPermission();
+  Future<bool> get isRecording;
+  Future<void> start({required String path});
+  Future<String?> stop();
+  Future<void> dispose();
+}
 
 /// A singleton service providing the app's data and use of Flutter plugins.
 ///
@@ -212,6 +223,14 @@ abstract class ZulipBinding {
     required image_picker.ImageSource source,
     bool requestFullMetadata,
   });
+
+  /// Get a temporary directory, via package:path_provider.
+  ///
+  /// This wraps [path_provider.getTemporaryDirectory].
+  Future<Directory> getTemporaryDirectory();
+
+  /// Create a recorder for voice-message capture, via package:record.
+  AudioRecorder createAudioRecorder();
 
   /// Enables or disables keeping the screen on, via package:wakelock_plus.
   ///
@@ -540,7 +559,43 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
+  Future<Directory> getTemporaryDirectory() {
+    return path_provider.getTemporaryDirectory();
+  }
+
+  @override
+  AudioRecorder createAudioRecorder() => _RecordAudioRecorder();
+
+  @override
   Future<void> toggleWakelock({required bool enable}) async {
     return wakelock_plus.WakelockPlus.toggle(enable: enable);
   }
+}
+
+class _RecordAudioRecorder implements AudioRecorder {
+  final record.AudioRecorder _record = record.AudioRecorder();
+
+  @override
+  Future<bool> hasPermission() => _record.hasPermission();
+
+  @override
+  Future<bool> get isRecording => _record.isRecording();
+
+  @override
+  Future<void> start({required String path}) {
+    return _record.start(
+      record.RecordConfig(
+        encoder: record.AudioEncoder.aacLc,
+        bitRate: 128000,
+        sampleRate: 44100,
+      ),
+      path: path,
+    );
+  }
+
+  @override
+  Future<String?> stop() => _record.stop();
+
+  @override
+  Future<void> dispose() => _record.dispose();
 }

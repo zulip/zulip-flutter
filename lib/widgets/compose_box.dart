@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:app_settings/app_settings.dart';
@@ -1034,6 +1035,14 @@ Future<void> _uploadFiles({
   }
 }
 
+String _formatRecordingDuration(Duration duration) {
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+  final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+  if (hours == 0) return '$minutes:$seconds';
+  return '${hours.toString().padLeft(2, '0')}:$minutes:$seconds';
+}
+
 abstract class _AttachUploadsButton extends StatelessWidget {
   const _AttachUploadsButton({required this.controller, required this.enabled});
 
@@ -1239,6 +1248,110 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
       mimeType: result.mimeType
         ?? lookupMimeType(result.path, headerBytes: headerBytes),
     )];
+  }
+}
+
+class _RecordVoiceButton extends StatelessWidget {
+  const _RecordVoiceButton({
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  final bool enabled;
+  final Future<void> Function() onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return SizedBox(
+      width: _composeButtonSize,
+      child: IconButton(
+        icon: Icon(Icons.mic,
+          color: designVariables.foreground.withFadedAlpha(0.5)),
+        tooltip: zulipLocalizations.composeBoxRecordVoiceTooltip,
+        onPressed: enabled ? () => unawaited(onPressed()) : null,
+      ),
+    );
+  }
+}
+
+class _VoiceRecordingBar extends StatelessWidget {
+  const _VoiceRecordingBar({
+    required this.elapsed,
+    required this.onStop,
+    required this.onCancel,
+  });
+
+  final Duration elapsed;
+  final VoidCallback onStop;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final labelStyle = TextStyle(
+      color: designVariables.textMessage,
+      fontSize: 14,
+      height: 1.2,
+    ).merge(weightVariableTextStyle(context, wght: 600));
+    final timerStyle = TextStyle(
+      color: designVariables.textMessage.withFadedAlpha(0.6),
+      fontSize: 13,
+      height: 1.2,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: designVariables.bgBotBar,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: designVariables.borderBar),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: designVariables.btnLabelAttMediumIntDanger,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Row(children: [
+                Text(zulipLocalizations.composeBoxRecordingLabel, style: labelStyle),
+                const SizedBox(width: 8),
+                Text(_formatRecordingDuration(elapsed), style: timerStyle),
+              ]),
+            ),
+            IconButton(
+              tooltip: zulipLocalizations.composeBoxRecordingCancelTooltip,
+              icon: Icon(Icons.close, color: designVariables.icon),
+              onPressed: onCancel,
+              style: IconButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(32, 32),
+              ),
+            ),
+            IconButton(
+              tooltip: zulipLocalizations.composeBoxRecordingStopTooltip,
+              icon: Icon(Icons.stop_rounded,
+                color: designVariables.btnLabelAttMediumIntDanger),
+              onPressed: onStop,
+              style: IconButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(32, 32),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
   }
 }
 
@@ -1448,12 +1561,29 @@ class _ComposeBoxContainer extends StatelessWidget {
   }
 }
 
+class _VoiceRecordingUiState {
+  const _VoiceRecordingUiState({
+    required this.isRecording,
+    required this.elapsed,
+    required this.onStart,
+    required this.onStop,
+    required this.onCancel,
+  });
+
+  final bool isRecording;
+  final Duration elapsed;
+  final Future<void> Function() onStart;
+  final Future<void> Function() onStop;
+  final Future<void> Function() onCancel;
+}
+
 /// The text inputs, compose-button row, and send button for the compose box.
 abstract class _ComposeBoxBody extends StatelessWidget {
   /// The narrow on view in the message list.
   Narrow get narrow;
 
   ComposeBoxController get controller;
+  _VoiceRecordingUiState get voiceRecording;
 
   Widget? buildTopicInput();
   Widget buildContentInput();
@@ -1484,11 +1614,17 @@ abstract class _ComposeBoxBody extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(4)))));
 
-    final composeButtonsEnabled = getComposeButtonsEnabled(context);
+    final recordingState = voiceRecording;
+    final composeButtonsEnabled =
+      getComposeButtonsEnabled(context) && !recordingState.isRecording;
     final composeButtons = [
       _AttachFileButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachMediaButton(controller: controller, enabled: composeButtonsEnabled),
       _AttachFromCameraButton(controller: controller, enabled: composeButtonsEnabled),
+      _RecordVoiceButton(
+        enabled: composeButtonsEnabled,
+        onPressed: recordingState.onStart,
+      ),
     ];
 
     final topicInput = buildTopicInput();
@@ -1501,6 +1637,12 @@ abstract class _ComposeBoxBody extends StatelessWidget {
           child: Column(children: [
             ?topicInput,
             buildContentInput(),
+            if (recordingState.isRecording)
+              _VoiceRecordingBar(
+                elapsed: recordingState.elapsed,
+                onStop: () => unawaited(recordingState.onStop()),
+                onCancel: () => unawaited(recordingState.onCancel()),
+              ),
           ]))),
       SizedBox(
         height: _composeButtonSize,
@@ -1521,13 +1663,20 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 /// This offers a text input for the topic to send to,
 /// in addition to a text input for the message content.
 class _StreamComposeBoxBody extends _ComposeBoxBody {
-  _StreamComposeBoxBody({required this.narrow, required this.controller});
+  _StreamComposeBoxBody({
+    required this.narrow,
+    required this.controller,
+    required this.voiceRecording,
+  });
 
   @override
   final ChannelNarrow narrow;
 
   @override
   final StreamComposeBoxController controller;
+
+  @override
+  final _VoiceRecordingUiState voiceRecording;
 
   @override Widget buildTopicInput() => _TopicInput(
     streamId: narrow.streamId,
@@ -1549,13 +1698,20 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
 }
 
 class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
-  _FixedDestinationComposeBoxBody({required this.narrow, required this.controller});
+  _FixedDestinationComposeBoxBody({
+    required this.narrow,
+    required this.controller,
+    required this.voiceRecording,
+  });
 
   @override
   final SendableNarrow narrow;
 
   @override
   final FixedDestinationComposeBoxController controller;
+
+  @override
+  final _VoiceRecordingUiState voiceRecording;
 
   @override Widget? buildTopicInput() => null;
 
@@ -1574,13 +1730,20 @@ class _FixedDestinationComposeBoxBody extends _ComposeBoxBody {
 
 /// A compose box for editing an already-sent message.
 class _EditMessageComposeBoxBody extends _ComposeBoxBody {
-  _EditMessageComposeBoxBody({required this.narrow, required this.controller});
+  _EditMessageComposeBoxBody({
+    required this.narrow,
+    required this.controller,
+    required this.voiceRecording,
+  });
 
   @override
   final Narrow narrow;
 
   @override
   final EditMessageComposeBoxController controller;
+
+  @override
+  final _VoiceRecordingUiState voiceRecording;
 
   @override Widget? buildTopicInput() => null;
 
@@ -2040,6 +2203,15 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
 
+  late final AudioRecorder _audioRecorder =
+    ZulipBinding.instance.createAudioRecorder();
+  Timer? _recordingTimer;
+  DateTime? _recordingStartTime;
+  bool _isRecording = false;
+  Duration _recordingElapsed = Duration.zero;
+  String? _recordingPath;
+  String? _recordingFilename;
+
   @override
   void restoreMessageNotSent(int localMessageId) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -2109,6 +2281,173 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       if (await dialog.result != true) return true;
     }
     return false;
+  }
+
+  _VoiceRecordingUiState _voiceRecordingUiState() => _VoiceRecordingUiState(
+    isRecording: _isRecording,
+    elapsed: _recordingElapsed,
+    onStart: _startVoiceRecording,
+    onStop: _stopVoiceRecording,
+    onCancel: _cancelVoiceRecording,
+  );
+
+  Future<Directory> _recordingTempDir() async {
+    try {
+      return await ZulipBinding.instance.getTemporaryDirectory();
+    } catch (_) {
+      return Directory.systemTemp;
+    }
+  }
+
+  Future<void> _startVoiceRecording() async {
+    if (_isRecording) return;
+    final hasPermission = await _audioRecorder.hasPermission();
+    if (!mounted) return;
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    if (!hasPermission) {
+      final dialog = showSuggestedActionDialog(context: context,
+        title: zulipLocalizations.permissionsNeededTitle,
+        message: zulipLocalizations.permissionsDeniedMicrophoneAccess,
+        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
+      final shouldOpenSettings = await dialog.result;
+      if (!mounted) return;
+      if (shouldOpenSettings == true) {
+        unawaited(AppSettings.openAppSettings());
+      }
+      return;
+    }
+
+    final tempDir = await _recordingTempDir();
+    if (!mounted) return;
+    final now = ZulipBinding.instance.utcNow();
+    final timestamp = '${now.year}'
+      '${now.month.toString().padLeft(2, '0')}'
+      '${now.day.toString().padLeft(2, '0')}'
+      '-${now.hour.toString().padLeft(2, '0')}'
+      '${now.minute.toString().padLeft(2, '0')}'
+      '${now.second.toString().padLeft(2, '0')}';
+    final filename = 'voice-message-$timestamp.m4a';
+    final filePath = path.join(tempDir.path, filename);
+
+    try {
+      await _audioRecorder.start(path: filePath);
+    } catch (e) {
+      if (!mounted) return;
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorDialogTitle,
+        message: e.toString());
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _isRecording = true;
+      _recordingStartTime = now;
+      _recordingElapsed = Duration.zero;
+      _recordingFilename = filename;
+      _recordingPath = filePath;
+    });
+
+    _recordingTimer?.cancel();
+    _recordingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || _recordingStartTime == null) return;
+      setState(() {
+        _recordingElapsed =
+          ZulipBinding.instance.utcNow().difference(_recordingStartTime!);
+      });
+    });
+  }
+
+  Future<void> _stopVoiceRecording() async {
+    if (!_isRecording) return;
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+    String? recordedPath;
+    try {
+      recordedPath = await _audioRecorder.stop();
+    } catch (e) {
+      if (!mounted) return;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      _resetRecordingState();
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorDialogTitle,
+        message: e.toString());
+      return;
+    }
+
+    final filename = _recordingFilename;
+    final pathValue = recordedPath ?? _recordingPath;
+    _resetRecordingState();
+    if (!mounted) return;
+    setState(() {});
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    if (pathValue == null) {
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorDialogTitle,
+        message: zulipLocalizations.errorFailedToRecordAudio);
+      return;
+    }
+
+    final file = File(pathValue);
+    if (!await file.exists()) {
+      if (!mounted) return;
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorDialogTitle,
+        message: zulipLocalizations.errorFailedToRecordAudio);
+      return;
+    }
+    final length = await file.length();
+    if (length == 0) {
+      if (!mounted) return;
+      showErrorDialog(context: context,
+        title: zulipLocalizations.errorDialogTitle,
+        message: zulipLocalizations.errorFailedToRecordAudio);
+      return;
+    }
+
+    final upload = FileToUpload(
+      content: file.openRead(),
+      length: length,
+      filename: filename ?? path.basename(pathValue),
+      mimeType: lookupMimeType(pathValue),
+    );
+    if (!mounted) return;
+    await controller.uploadFiles(
+      context: context,
+      files: [upload],
+      shouldRequestFocus: true,
+    );
+  }
+
+  Future<void> _cancelVoiceRecording() async {
+    if (!_isRecording) return;
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+    final pathValue = _recordingPath;
+    try {
+      await _audioRecorder.stop();
+    } catch (_) {
+      // Ignore errors while canceling.
+    }
+    _resetRecordingState();
+    if (!mounted) return;
+    setState(() {});
+
+    if (pathValue != null) {
+      final file = File(pathValue);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+  }
+
+  void _resetRecordingState() {
+    _recordingStartTime = null;
+    _recordingElapsed = Duration.zero;
+    _recordingFilename = null;
+    _recordingPath = null;
+    _isRecording = false;
   }
 
   void _editByRestoringFailedEdit(int messageId) {
@@ -2224,6 +2563,11 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   void dispose() {
+    _recordingTimer?.cancel();
+    if (_isRecording) {
+      unawaited(_audioRecorder.stop());
+    }
+    unawaited(_audioRecorder.dispose());
     controller.dispose();
     super.dispose();
   }
@@ -2328,17 +2672,30 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     }
 
     final controller = this.controller;
+    final recordingUiState = _voiceRecordingUiState();
     switch (controller) {
       case StreamComposeBoxController(): {
         narrow as ChannelNarrow;
-        body = _StreamComposeBoxBody(controller: controller, narrow: narrow);
+        body = _StreamComposeBoxBody(
+          controller: controller,
+          narrow: narrow,
+          voiceRecording: recordingUiState,
+        );
       }
       case FixedDestinationComposeBoxController(): {
         narrow as SendableNarrow;
-        body = _FixedDestinationComposeBoxBody(controller: controller, narrow: narrow);
+        body = _FixedDestinationComposeBoxBody(
+          controller: controller,
+          narrow: narrow,
+          voiceRecording: recordingUiState,
+        );
       }
       case EditMessageComposeBoxController(): {
-        body = _EditMessageComposeBoxBody(controller: controller, narrow: narrow);
+        body = _EditMessageComposeBoxBody(
+          controller: controller,
+          narrow: narrow,
+          voiceRecording: recordingUiState,
+        );
         banner = _Banner(
           intent: _BannerIntent.info,
           label: zulipLocalizations.composeBoxBannerLabelEditMessage,

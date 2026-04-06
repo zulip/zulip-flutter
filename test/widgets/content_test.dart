@@ -1619,21 +1619,11 @@ void main() {
         wrapWithPerAccountStoreWidget: true);
     }
 
-    testWidgets('tapping on audio link opens it in browser', (tester) async {
+    testWidgets('shows audio bubble with filename', (tester) async {
       await prepare(tester, ContentExample.audioInline.html);
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-      final connection = store.connection as FakeApiConnection;
-
-      final url = eg.realmUrl.resolve('/temp/token/crab-rave.mp3');
-      connection.prepare(json: GetFileTemporaryUrlResult(url: url.path).toJson());
-      await tapText(tester, find.text('crab-rave.mp3'));
-      await tester.pump(Duration.zero);
-
-      final expectedLaunchMode = defaultTargetPlatform == TargetPlatform.iOS ?
-        LaunchMode.externalApplication : LaunchMode.inAppBrowserView;
-      check(testBinding.takeLaunchUrlCalls())
-        .single.equals((url: url, mode: expectedLaunchMode));
-    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+      check(find.byType(MessageInlineAudio)).findsOne();
+      check(find.text('crab-rave.mp3')).findsOne();
+    });
   });
 
   group('MessageImageEmoji', () {

@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
@@ -1372,6 +1373,91 @@ void main() {
     });
   });
 
+  group('voice recording', () {
+    Future<void> prepare(WidgetTester tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final channel = eg.stream();
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow, subscriptions: [eg.subscription(channel)]);
+    }
+
+    testWidgets('start shows recording bar', (tester) async {
+      await prepare(tester);
+      testBinding.audioRecorder.hasPermissionResult = true;
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+
+      await tester.tap(find.byIcon(Icons.mic));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1));
+
+      check(find.text(zulipLocalizations.composeBoxRecordingLabel)).findsOne();
+      check(find.byIcon(Icons.stop_rounded)).findsOne();
+    });
+
+    testWidgets('stop uploads recording', (tester) async {
+      await prepare(tester);
+      testBinding.audioRecorder.hasPermissionResult = true;
+
+      connection.prepare(delay: const Duration(milliseconds: 200), json:
+        UploadFileResult(url: '/user_uploads/1/voice-message.m4a').toJson());
+
+      await tester.tap(find.byIcon(Icons.mic));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1));
+
+      final recordingPath = testBinding.audioRecorder.lastStartPath;
+      check(recordingPath).isNotNull();
+      final file = File(recordingPath!);
+      await tester.runAsync(() async {
+        await file.writeAsBytes([1, 2, 3, 4]);
+      });
+
+      await tester.tap(find.byIcon(Icons.stop_rounded));
+      await tester.pump();
+
+      final filename = path.basename(recordingPath);
+      bool sawUploading = false;
+      for (var i = 0; i < 50; i++) {
+        if (controller!.content.text.contains('Uploading $filename')) {
+          sawUploading = true;
+          break;
+        }
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 1)));
+        await tester.pump();
+      }
+      check(sawUploading).isTrue();
+
+      for (var i = 0; i < 20; i++) {
+        if (connection.lastRequest != null) break;
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+
+      final request = connection.lastRequest;
+      check(request).isNotNull();
+      final multipartRequest = request! as http.MultipartRequest;
+      check(multipartRequest)
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/user_uploads');
+
+      final filePart = multipartRequest.files.single;
+      check(filePart)
+        ..filename.equals(filename)
+        ..length.equals(4);
+
+      for (var i = 0; i < 20; i++) {
+        if (controller!.content.text.contains('/user_uploads/1/voice-message.m4a')) {
+          break;
+        }
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      check(controller!.content.text)
+        .equals('[$filename](/user_uploads/1/voice-message.m4a)\n\n');
+    });
+  });
+
   group('error banner', () {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
@@ -1389,6 +1475,7 @@ void main() {
       check(attachButtonFinder(ZulipIcons.attach_file).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(ZulipIcons.image).evaluate().length).equals(areShown ? 1 : 0);
       check(attachButtonFinder(ZulipIcons.camera).evaluate().length).equals(areShown ? 1 : 0);
+      check(attachButtonFinder(Icons.mic).evaluate().length).equals(areShown ? 1 : 0);
     }
 
     void checkBannerWithLabel(String label, {required bool isShown}) {

@@ -1410,7 +1410,10 @@ class ContentExample {
     '![crab-rave.mp3](/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3)',
     '<p><audio controls preload="metadata" src="/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3" title="crab-rave.mp3"></audio></p>', [
     ParagraphNode(links: null, nodes: [
-      LinkNode(url: '/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3', nodes: [TextNode('crab-rave.mp3')]),
+      InlineAudioNode(
+        srcUrl: '/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3',
+        title: 'crab-rave.mp3',
+      ),
     ]),
   ]);
 
@@ -1419,7 +1422,10 @@ class ContentExample {
     '![](/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3)',
     '<p><audio controls preload="metadata" src="/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3"></audio></p>', [
     ParagraphNode(links: null, nodes: [
-      LinkNode(url: '/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3', nodes: [TextNode('crab-rave.mp3')]),
+      InlineAudioNode(
+        srcUrl: '/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/crab-rave.mp3',
+        title: 'crab-rave.mp3',
+      ),
     ]),
   ]);
 
