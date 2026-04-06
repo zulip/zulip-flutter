@@ -125,6 +125,14 @@ void main() {
     check(completers(1)).length.equals(1);
   });
 
+  test('GlobalStore get/setServerCompatBannerDismissed', () async {
+    final globalStore = eg.globalStore(accounts: [account1]);
+
+    check(globalStore.getServerCompatBannerDismissed(account1.id)).isFalse();
+    globalStore.setServerCompatBannerDismissed(account1.id);
+    check(globalStore.getServerCompatBannerDismissed(account1.id)).isTrue();
+  });
+
   test('GlobalStore.perAccount loading fails with HTTP status code 401', () => awaitFakeAsync((async) async {
     final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
     final future = globalStore.perAccount(eg.selfAccount.id);

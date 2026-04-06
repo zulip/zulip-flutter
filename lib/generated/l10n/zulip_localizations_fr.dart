@@ -828,6 +828,22 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
+  String serverCompatBannerAdminMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+  }
+
+  @override
+  String serverCompatBannerUserMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+  }
+
+  @override
+  String get serverCompatBannerDismissLabel => 'Dismiss';
+
+  @override
+  String get serverCompatBannerLearnMoreLabel => 'Learn more';
+
+  @override
   String errorInvalidApiKeyMessage(String url) {
     return 'Votre compte à l\'adresse $url n\'a pas pu être authentifié. Merci d\'essayer de vous reconnecter ou utilisez un autre compte.';
   }

@@ -3,12 +3,16 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../api/core.dart';
+import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
 import 'action_sheet.dart';
+import 'actions.dart';
 import 'app.dart';
 import 'app_bar.dart';
+import 'banner.dart';
 import 'button.dart';
 import 'color.dart';
 import 'icons.dart';
@@ -123,16 +127,21 @@ class _HomePageState extends State<HomePage> {
           namesRoute: true,
           child: Text(_currentTabTitle)),
         actions: _currentTabAppBarActions),
-      body: Semantics(
-        role: SemanticsRole.tabPanel,
-        identifier: HomePage.contentSemanticsIdentifier,
-        container: true,
-        explicitChildNodes: true,
-        child: Stack(
-          children: [
-            for (final (tab, body) in pageBodies)
-              Offstage(offstage: tab != _tab.value, child: body),
-          ])),
+      body: Column(
+        children: [
+          _ServerCompatBanner(),
+          Expanded(
+            child: Semantics(
+              role: SemanticsRole.tabPanel,
+              identifier: HomePage.contentSemanticsIdentifier,
+              container: true,
+              explicitChildNodes: true,
+              child: Stack(
+                children: [
+                  for (final (tab, body) in pageBodies)
+                    Offstage(offstage: tab != _tab.value, child: body),
+                ]))),
+        ]),
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
   }
 }
@@ -848,5 +857,44 @@ class _AboutZulipButton extends MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(AboutZulipPage.buildRoute(context));
+  }
+}
+
+class _ServerCompatBanner extends StatelessWidget {
+  const _ServerCompatBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final globalStore = GlobalStoreWidget.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final showCompatBanner =
+      store.zulipFeatureLevel < kMinSupportedZulipFeatureLevel
+      && !globalStore.getServerCompatBannerDismissed(store.accountId);
+    final isAtLeastAdmin = store.selfUser.role.isAtLeast(UserRole.administrator);
+    final label = isAtLeastAdmin
+      ? zulipLocalizations.serverCompatBannerAdminMessage(
+          store.realmUrl.toString(), store.zulipVersion)
+      : zulipLocalizations.serverCompatBannerUserMessage(
+          store.realmUrl.toString(), store.zulipVersion);
+    if (!showCompatBanner) return const SizedBox.shrink();
+    return ZulipBanner(
+      intent: .danger,
+      label: label,
+      actions: [
+        ZulipWebUiKitButton(
+          label: zulipLocalizations.serverCompatBannerLearnMoreLabel,
+          size: .small,
+          intent: .danger,
+          attention: .low,
+          onPressed: () => PlatformActions.launchUrl(context, kServerSupportDocUrl)),
+        ZulipWebUiKitButton(
+          label: zulipLocalizations.serverCompatBannerDismissLabel,
+          size: .small,
+          intent: .danger,
+          attention: .medium,
+          onPressed: () => globalStore
+            .setServerCompatBannerDismissed(store.accountId)),
+      ]);
   }
 }

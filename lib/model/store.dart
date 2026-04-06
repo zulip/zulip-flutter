@@ -461,6 +461,28 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Remove an account from the underlying data store.
   Future<void> doRemoveAccount(int accountId);
 
+  //|//////////////////////////////////////////////////////////////
+  // Session data that lasts through the lifetime of this [GlobalStore].
+  //
+
+  /// The account IDs for which the server-compat banner has been dismissed.
+  final Set<int> _serverCompatBannerDismissedForAccounts = {};
+
+  /// Whether the server-compat banner has been dismissed for `accountId`.
+  ///
+  /// This dismissal only lasts through the current app session.
+  bool getServerCompatBannerDismissed(int accountId) {
+    return _serverCompatBannerDismissedForAccounts.contains(accountId);
+  }
+
+  /// Mark the server-compat banner as dismissed for `accountId`.
+  ///
+  /// This dismissal only lasts through the current app session.
+  void setServerCompatBannerDismissed(int accountId) {
+    _serverCompatBannerDismissedForAccounts.add(accountId);
+    notifyListeners();
+  }
+
   //
   // End of data.
   //|//////////////////////////////////////////////////////////////
