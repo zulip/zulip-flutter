@@ -1711,6 +1711,12 @@ void main() {
     final stream = eg.stream();
     final narrow = eg.topicNarrow(stream.streamId, 'foo');
 
+    /// Adds lines of content until the input stops getting taller,
+    /// then checks the height against [maxHeight] and the
+    /// number of visible lines against [maxVisibleLines].
+    ///
+    /// In the [maxVisibleLines] check, the partly-visible line at the bottom
+    /// is considered visible.
     Future<void> checkContentInputMaxHeight(WidgetTester tester, {
       required double maxHeight,
       required int maxVisibleLines,
