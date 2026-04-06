@@ -90,6 +90,13 @@ extension ComposeContentAutocomplete on ComposeContentController {
           query = TopicLinkAutocompleteQuery(
             topicIntentMatch[1] ?? topicIntentMatch[3]!, channelId: channelId);
         }
+      } else if (charAtPos == '[') {
+        final fallbackTopicIntentMatch = _fallbackTopicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        if (fallbackTopicIntentMatch == null) continue;
+        final channelName = unescapeChannelTopicAvoidedChars(fallbackTopicIntentMatch[1]!);
+        final channelId = store.streamsByName[channelName]?.streamId;
+        if (channelId == null) break;
+        query = TopicLinkAutocompleteQuery(fallbackTopicIntentMatch[2]!, channelId: channelId);
       } else {
         continue;
       }
@@ -292,6 +299,21 @@ final RegExp _topicLinkIntentRegex = () {
         + r'\*$'
       + r')*)'
     + r')$');
+}();
+
+final RegExp _fallbackTopicLinkIntentRegex = () {
+  // In a channel/topic name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L65
+  //
+  // TODO: incorporate the server constraints
+  const nameCharExclusions = r'\r\n';
+
+  return RegExp(unicode: true,
+    r'\[#([^>' + nameCharExclusions + r']+)\]\(#[^)]+\)'
+    + r'>'
+    + r'(?!\s)([^' + nameCharExclusions + r']*)$');
 }();
 
 /// The text controller's recognition that the user might want autocomplete UI.
