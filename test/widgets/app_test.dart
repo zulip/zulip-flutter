@@ -8,6 +8,7 @@ import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/home.dart';
+import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/page.dart';
 
 import '../example_data.dart' as eg;
@@ -366,6 +367,16 @@ void main() {
       await tester.tap(find.text(eg.otherAccount.email));
       await tester.pump();
       check(testBinding.globalStore).lastVisitedAccount.equals(eg.otherAccount);
+    });
+
+    testWidgets('shows icon image when realmIcon is non-null', (tester) async {
+      final account = eg.account(
+        user: eg.user(),
+        realmIcon: Uri.parse('https://example.com/icon.png'),
+        realmName: 'Example Realm');
+      await setupChooseAccountPage(tester, accounts: [account]);
+
+      check(find.byType(RealmIconNetworkImage).evaluate()).isNotEmpty();
     });
 
     testWidgets('shows realm name when realmName is non-null', (tester) async {
