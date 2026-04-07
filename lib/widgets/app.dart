@@ -494,7 +494,7 @@ class ChooseAccountPage extends StatelessWidget {
                     for (final (:accountId, :account) in globalStore.accountEntries)
                       _buildAccountItem(context,
                         accountId: accountId,
-                        title: Text(account.realmUrl.toString()),
+                        title: Text(account.realmName ?? account.realmUrl.toString()),
                         subtitle: Text(account.email)),
                   ]))),
                 const SizedBox(height: 12),
