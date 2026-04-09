@@ -1406,53 +1406,38 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.mic));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 1));
+      await tester.pump(const Duration(milliseconds: 100));
 
       final recordingPath = testBinding.audioRecorder.lastStartPath;
       check(recordingPath).isNotNull();
       final file = File(recordingPath!);
-      await tester.runAsync(() async {
-        await file.writeAsBytes([1, 2, 3, 4]);
-      });
+      await tester.runAsync(() => file.writeAsBytes([1, 2, 3, 4]));
 
-      await tester.tap(find.byIcon(Icons.stop_rounded));
+      await tester.runAsync(() async {
+        await tester.tap(find.byIcon(Icons.stop_rounded));
+      });
+      await tester.pump();
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 50)));
       await tester.pump();
 
+      checkNoDialog(tester);
+
       final filename = path.basename(recordingPath);
-      bool sawUploading = false;
-      for (var i = 0; i < 50; i++) {
-        if (controller!.content.text.contains('Uploading $filename')) {
-          sawUploading = true;
-          break;
-        }
-        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 1)));
-        await tester.pump();
-      }
-      check(sawUploading).isTrue();
+      check(controller!.content.text).contains('Uploading $filename');
 
-      for (var i = 0; i < 20; i++) {
-        if (connection.lastRequest != null) break;
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-
-      final request = connection.lastRequest;
-      check(request).isNotNull();
-      final multipartRequest = request! as http.MultipartRequest;
-      check(multipartRequest)
+      check(connection.lastRequest!).isA<http.MultipartRequest>()
         ..method.equals('POST')
-        ..url.path.equals('/api/v1/user_uploads');
+        ..url.path.equals('/api/v1/user_uploads')
+        ..files.single.which((it) => it
+          ..field.equals('file')
+          ..filename.equals(filename)
+          ..length.equals(4)
+          ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+              .completes((it) => it.deepEquals([1, 2, 3, 4]))
+        );
 
-      final filePart = multipartRequest.files.single;
-      check(filePart)
-        ..filename.equals(filename)
-        ..length.equals(4);
+      await tester.pump(const Duration(seconds: 1));
 
-      for (var i = 0; i < 20; i++) {
-        if (controller!.content.text.contains('/user_uploads/1/voice-message.m4a')) {
-          break;
-        }
-        await tester.pump(const Duration(milliseconds: 50));
-      }
       check(controller!.content.text)
         .equals('[$filename](/user_uploads/1/voice-message.m4a)\n\n');
     });
