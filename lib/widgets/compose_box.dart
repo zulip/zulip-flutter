@@ -716,7 +716,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final streamName = store.streams[widget.narrow.channelId]?.name
+    final channelName = store.streams[widget.narrow.channelId]?.name
       ?? zulipLocalizations.unknownChannelName;
     final hintTopic = _hintTopic();
     final hintDestination = hintTopic == null
@@ -724,8 +724,8 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       // Zulip expresses channels and topics, not any normal English punctuation,
       // so don't make sense to translate. See:
       //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-      ? '#$streamName'
-      : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
+      ? '#$channelName'
+      : '#$channelName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
     return _TypingNotifier(
       destination: TopicNarrow(widget.narrow.channelId,
@@ -891,14 +891,14 @@ class _FixedDestinationContentInput extends StatelessWidget {
     switch (narrow) {
       case TopicNarrow(:final channelId, :final topic):
         final store = PerAccountStoreWidget.of(context);
-        final streamName = store.streams[channelId]?.name
+        final channelName = store.streams[channelId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
           // No i18n of this use of "#" and ">" string; those are part of how
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
+          '#$channelName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
