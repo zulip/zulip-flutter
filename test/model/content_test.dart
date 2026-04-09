@@ -253,21 +253,25 @@ class ContentExample {
     ":flutter:",
     '<p><img alt=":flutter:" class="emoji" src="/user_avatars/2/emoji/images/204.png" title="flutter"></p>',
     const ImageEmojiNode(
-      src: '/user_avatars/2/emoji/images/204.png', alt: ':flutter:'));
+      src: '/user_avatars/2/emoji/images/204.png',
+      alt: ':flutter:',
+      emojiName: 'flutter'));
 
   static final emojiCustomInvalidUrl = ContentExample.inline(
     'custom emoji with invalid URL',
     null, // hypothetical, to test for a risk of crashing
     '<p><img alt=":invalid:" class="emoji" src="::not a URL::" title="invalid"></p>',
     const ImageEmojiNode(
-      src: '::not a URL::', alt: ':invalid:'));
+      src: '::not a URL::', alt: ':invalid:', emojiName: 'invalid'));
 
   static final emojiZulipExtra = ContentExample.inline(
     'Zulip extra emoji',
     ":zulip:",
     '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
     const ImageEmojiNode(
-      src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
+      src: '/static/generated/emoji/images/emoji/unicode/zulip.png',
+      alt: ':zulip:',
+      emojiName: 'zulip'));
 
   static final inlineImage = ContentExample.inline(
     'inline image',
