@@ -192,8 +192,8 @@ void main() {
     if (expectCollapsed != null) {
       check(find.descendant(
         of: findHeader,
-        matching: find.byIcon(
-          expectCollapsed ? ZulipIcons.chevron_down : ZulipIcons.chevron_up))).findsOne();
+        matching: find.byIcon(ZulipIcons.chevron_down)))
+          .findsExactly(expectCollapsed ? 1 : 0);
 
       // TODO could test bar background (not finding a way just now to
       //   expect a gradient to be painted)
@@ -632,12 +632,7 @@ void main() {
       group('stream section', () {
         Future<void> tapCollapseIcon(WidgetTester tester, Subscription subscription) async {
           checkChannelHeader(tester, subscription);
-          await tester.tap(find.descendant(
-            of: findChannelHeader(subscription.streamId),
-            matching: find.byWidgetPredicate((widget) =>
-              widget is Icon
-              && (widget.icon == ZulipIcons.chevron_up
-                  || widget.icon == ZulipIcons.chevron_down))));
+          await tester.tap(findChannelHeader(subscription.streamId));
           await tester.pump();
         }
 

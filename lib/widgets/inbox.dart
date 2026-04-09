@@ -488,12 +488,12 @@ class InboxChannelHeaderItem extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     subscription.name)),
-                const SizedBox(width: 6),
-                Icon(size: 20,
-                  color: designVariables.textMessage.withFadedAlpha(0.5),
-                  // TODO(design) hide icon when uncollapsed?
-                  //   Discussion: https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422785
-                  collapsed ? ZulipIcons.chevron_down : ZulipIcons.chevron_up),
+                if (collapsed) ...[
+                  const SizedBox(width: 6),
+                  Icon(size: 20,
+                    color: designVariables.textMessage.withFadedAlpha(0.5),
+                    ZulipIcons.chevron_down),
+                ],
               ])),
               const SizedBox(width: 8),
               InboxRowTrailingMarkers(
