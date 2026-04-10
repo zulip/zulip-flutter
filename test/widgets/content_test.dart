@@ -366,6 +366,7 @@ void main() {
 
   group('MessageImagePreview, MessageImagePreviewList', () {
     Future<void> prepare(WidgetTester tester, String html, {
+      InitialSnapshot? initialSnapshot,
       List<NavigatorObserver> navObservers = const [],
     }) async {
       await prepareContent(tester,
@@ -374,7 +375,8 @@ void main() {
         messageContent(html),
         // We try to resolve image URLs on the self-account's realm.
         // For URLs on the self-account's realm, we include the auth credential.
-        wrapWithPerAccountStoreWidget: true);
+        wrapWithPerAccountStoreWidget: true,
+        initialSnapshot: initialSnapshot);
     }
 
     group('single image; URLs handled correctly', () {
@@ -640,6 +642,34 @@ void main() {
       return eg.realmUrl.resolve(value);
     }
 
+    testWidgets('preview size matches realm setting, medium upsizing', (tester) async {
+      final example = ContentExample.imagePreviewSingle;
+      await prepare(tester,
+          example.html,
+          initialSnapshot: eg.initialSnapshot(
+              realmMediaPreviewSize: RealmMediaPreviewSize.medium));
+
+      final size = tester.getSize(find.byType(RealmContentNetworkImage));
+
+      // RealmMediaPreviewSize.large gives an upsizing of 1.5 over default size.
+      check(size.height).equals(100 * 1.5);
+      check(size.width).equals(150 * 1.5);
+    });
+
+    testWidgets('preview size matches realm setting, large upsizing', (tester) async {
+      final example = ContentExample.imagePreviewSingle;
+      await prepare(tester,
+        example.html,
+        initialSnapshot: eg.initialSnapshot(
+          realmMediaPreviewSize: RealmMediaPreviewSize.large));
+
+      final size = tester.getSize(find.byType(RealmContentNetworkImage));
+
+      // RealmMediaPreviewSize.large gives an upsizing of 2.0 over default size.
+      check(size.height).equals(100 * 2.0);
+      check(size.width).equals(150 * 2.0);
+    });
+
     testWidgets('multiple images', (tester) async {
       final example = ContentExample.imagePreviewCluster;
       await prepare(tester, example.html);
@@ -705,7 +735,9 @@ void main() {
   });
 
   group("MessageInlineVideo", () {
-    Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html) async {
+    Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html, {
+      InitialSnapshot? initialSnapshot,
+    }) async {
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
@@ -718,7 +750,8 @@ void main() {
         // image's URL on the self-account's realm. If it's on the
         // self-account's realm, we'll request it with the auth credential.
         // TODO(#656) in above comment, change "we will" to "we do"
-        wrapWithPerAccountStoreWidget: true);
+        wrapWithPerAccountStoreWidget: true,
+        initialSnapshot: initialSnapshot);
       // `tester.pumpWidget` in prepareContent introduces an initial route;
       // remove it so consumers only have newly pushed routes.
       assert(pushedRoutes.length == 1);
@@ -733,6 +766,39 @@ void main() {
       await tester.tap(find.byIcon(Icons.play_arrow_rounded));
       check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
         .fullscreenDialog.isTrue(); // opened lightbox
+    });
+
+    testWidgets('preview size matches realm setting, medium upsizing', (tester) async {
+      const example = ContentExample.videoEmbedVimeo;
+      await prepare(tester, example.html,
+          initialSnapshot: eg.initialSnapshot(
+              realmMediaPreviewSize: RealmMediaPreviewSize.medium));
+
+      // Capture thumbnail which comes in widget tree before the play icon.
+      final thumbnailBox = tester.getSize(find.ancestor(
+          of: find.byIcon(Icons.play_arrow_rounded),
+          matching: find.byType(SizedBox)));
+
+
+      // RealmMediaPreviewSize.medium gives an upsizing of 1.5 over default size.
+      check(thumbnailBox.height).equals(100.0 * 1.5);
+      check(thumbnailBox.width).equals(150.0 * 1.5);
+    });
+
+    testWidgets('preview size matches realm setting, large upsizing', (tester) async {
+      const example = ContentExample.videoEmbedVimeo;
+      await prepare(tester, example.html,
+        initialSnapshot: eg.initialSnapshot(
+          realmMediaPreviewSize: RealmMediaPreviewSize.large));
+
+      // Capture thumbnail which comes in widget tree before the play icon.
+      final thumbnailBox = tester.getSize(find.ancestor(
+          of: find.byIcon(Icons.play_arrow_rounded),
+          matching: find.byType(SizedBox)));
+
+      // RealmMediaPreviewSize.large gives an upsizing of 2.0 over default size.
+      check(thumbnailBox.height).equals(100.0 * 2.0);
+      check(thumbnailBox.width).equals(150.0 * 2.0);
     });
   });
 
