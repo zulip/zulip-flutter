@@ -1759,14 +1759,29 @@ void main() {
   group('InlineImage', () {
     late TransitionDurationObserver transitionDurationObserver;
 
-    Future<void> prepare(WidgetTester tester, String html) async {
+    Future<void> prepare(
+      WidgetTester tester,
+      String html, {
+        InitialSnapshot? initialSnapshot,
+      }
+    ) async {
       transitionDurationObserver = TransitionDurationObserver();
       await prepareContent(tester,
         // Message is needed for the image's lightbox.
         messageContent(html),
         navObservers: [transitionDurationObserver],
         // We try to resolve the image's URL on the self-account's realm.
-        wrapWithPerAccountStoreWidget: true);
+        wrapWithPerAccountStoreWidget: true,
+        initialSnapshot: initialSnapshot);
+    }
+
+    Size getImageExpectedSize({
+      required double width,
+      required double height,
+      required double devicePixelRatio,
+      required double sizeMultiplier,
+    }) {
+      return Size(width, height) / devicePixelRatio * sizeMultiplier;
     }
 
     testWidgets('smoke: inline image', (tester) async {
@@ -1800,6 +1815,48 @@ void main() {
       await transitionDurationObserver.pumpPastTransition(tester);
       check(find.byType(InteractiveViewer)).findsOne(); // recognize the lightbox
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('preview size matches realm setting, medium upsizing', (tester) async {
+      final example = ContentExample.inlineImage;
+      final alt = 'image.png';
+      await prepare(tester,
+          example.html,
+          initialSnapshot: eg.initialSnapshot(
+              realmMediaPreviewSize: RealmMediaPreviewSize.medium));
+
+      final size = tester.getSize(find.byTooltip(alt));
+
+      // RealmMediaPreviewSize.medium gives an upsizing of 1.5 over default size.
+      final expectedSize = getImageExpectedSize(
+        width: 186,
+        height: 142,
+        devicePixelRatio: tester.view.devicePixelRatio,
+        sizeMultiplier: 1.5,
+      );
+      check(size.height).equals(expectedSize.height);
+      check(size.width).equals(expectedSize.width);
+    });
+
+    testWidgets('preview size matches realm setting, large upsizing', (tester) async {
+      final example = ContentExample.inlineImage;
+      final alt = 'image.png';
+      await prepare(tester,
+        example.html,
+        initialSnapshot: eg.initialSnapshot(
+          realmMediaPreviewSize: RealmMediaPreviewSize.large));
+
+      final size = tester.getSize(find.byTooltip(alt));
+
+      // RealmMediaPreviewSize.large gives an upsizing of 2.0 over default size.
+      final expectedSize = getImageExpectedSize(
+        width: 186,
+        height: 142,
+        devicePixelRatio: tester.view.devicePixelRatio,
+        sizeMultiplier: 2.0,
+      );
+      check(size.height).equals(expectedSize.height);
+      check(size.width).equals(expectedSize.width);
     });
   });
 

@@ -1366,17 +1366,19 @@ class InlineImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final sizeMultiplier = store.realmMediaPreviewSize.multiplier;
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
 
     // Follow web's max-height behavior (10em);
     // see image_box_em in web/src/postprocess_content.ts.
-    final maxHeight = ambientTextStyle.fontSize! * 10;
+    final maxHeight = ambientTextStyle.fontSize! * 10 * sizeMultiplier;
 
     final imageSize = (node.originalWidth != null && node.originalHeight != null)
-      ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio
+      ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio * sizeMultiplier
       // Layout plan when original dimensions are unknown:
       // a [MessageMediaContainer]-sized and -colored rectangle.
-      : MessageMediaContainer.size;
+      : MessageMediaContainer.size * sizeMultiplier;
 
     // (a) Don't let tall, thin images take up too much vertical space,
     //     which could be annoying to scroll through. And:
