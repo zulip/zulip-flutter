@@ -432,6 +432,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Не вдалося редагувати повідомлення';
 
   @override
+  String get errorCouldNotAppendCallUrl => 'Fail to get call URL';
+
+  @override
   String get successLinkCopied => 'Посилання скопійовано';
 
   @override
@@ -524,6 +527,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get composeBoxAttachFromCameraTooltip => 'Зробити фото';
 
   @override
+  String get composeBoxAddVideoCallTooltip => 'Add video call';
+
+  @override
+  String get composeBoxAddVoiceCallTooltip => 'Add voice call';
+
+  @override
   String get composeBoxGenericContentHint => 'Ввести повідомлення';
 
   @override
@@ -581,6 +590,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String composeBoxUploadingFilename(String filename) {
     return 'Завантаження $filename…';
   }
+
+  @override
+  String get composeBoxVideoCallLinkText => 'Join video call.';
+
+  @override
+  String get composeBoxVoiceCallLinkText => 'Join voice call.';
 
   @override
   String composeBoxLoadingMessage(int messageId) {
