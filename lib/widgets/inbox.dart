@@ -282,6 +282,11 @@ class InboxFolderHeaderItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
+
+    // TODO(#2259) actually show the trailing markers;
+    //   we use this just to anticipate doing that.
+    const fontSize = InboxRowTrailingMarkers.fontSize;
+
     Widget result = DecoratedBox(
       decoration: BoxDecoration(
         color: designVariables.background, // TODO(design) check if this is the right variable
@@ -296,9 +301,9 @@ class InboxFolderHeaderItem extends StatelessWidget {
               overflow: .ellipsis,
               style: TextStyle(
                 color: designVariables.folderText,
-                fontSize: 17,
-                height: 20 / 17,
-                letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 17),
+                fontSize: fontSize,
+                height: 20 / fontSize,
+                letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: fontSize),
               ).merge(weightVariableTextStyle(context, wght: 700)),
               label.toUpperCase())),
         ])));
@@ -358,8 +363,8 @@ class InboxDmItem extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 3),
                 child: Text(
                   style: TextStyle(
-                    fontSize: 17,
-                    height: (19 / 17),
+                    fontSize: InboxRowTrailingMarkers.fontSize,
+                    height: (19 / InboxRowTrailingMarkers.fontSize),
                     color: designVariables.textMessage,
                   ),
                   maxLines: 2,
@@ -481,8 +486,8 @@ class InboxChannelHeaderItem extends StatelessWidget {
                 Flexible(
                   child: Text(
                     style: TextStyle(
-                      fontSize: 17,
-                      height: (20 / 17),
+                      fontSize: InboxRowTrailingMarkers.fontSize,
+                      height: (20 / InboxRowTrailingMarkers.fontSize),
                       color: designVariables.textMessage,
                     ).merge(weightVariableTextStyle(context, wght: 600)),
                     maxLines: 1,
@@ -611,7 +616,7 @@ class InboxTopicItem extends StatelessWidget {
                             // Compare icon style in the topic list; probably these
                             // should stay in sync.
                             icon: ZulipIcons.check,
-                            fontSize: 17,
+                            fontSize: InboxRowTrailingMarkers.fontSize,
                             textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
                             color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4))
                         : null)),
@@ -620,8 +625,8 @@ class InboxTopicItem extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(
                       style: TextStyle(
-                        fontSize: 17,
-                        height: (20 / 17),
+                        fontSize: InboxRowTrailingMarkers.fontSize,
+                        height: (20 / InboxRowTrailingMarkers.fontSize),
                         fontStyle: topic.displayName == null ? FontStyle.italic : null,
                         color: designVariables.textMessage,
                       ),
@@ -661,10 +666,13 @@ class InboxRowTrailingMarkers extends StatelessWidget {
   final IconData? visibilityIcon;
   final Widget? unreadCountBadge;
 
+  /// The font size used for the row's text, and therefore for the icons here.
+  static const fontSize = 17.0;
+
   Widget _buildIcon(BuildContext context, IconData icon, {required bool padAfter}) {
     return InlineIcon(
       icon: icon,
-      fontSize: 17,
+      fontSize: fontSize,
       textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
       color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4),
       padAfter: padAfter,
