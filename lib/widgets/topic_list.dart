@@ -284,15 +284,15 @@ class _TopicItem extends StatelessWidget {
                     // should stay in sync.
                     visible: topic.isResolved,
                     icon: ZulipIcons.check,
-                    fontSize: 17,
+                    fontSize: InboxRowTrailingMarkers.fontSize,
                     textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
                     color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4)),
                   Expanded(child: Opacity(
                     opacity: opacity,
                     child: Text(
                       style: TextStyle(
-                        fontSize: 17,
-                        height: 20 / 17,
+                        fontSize: InboxRowTrailingMarkers.fontSize,
+                        height: 20 / InboxRowTrailingMarkers.fontSize,
                         fontStyle: topic.displayName == null ? FontStyle.italic : null,
                         color: designVariables.textMessage,
                       ),
