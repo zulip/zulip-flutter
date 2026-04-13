@@ -210,7 +210,7 @@ abstract class ZulipLocalizations {
   /// **'Settings'**
   String get settingsPageTitle;
 
-  /// Tooltip message for main-menu button leading to the choose-account page.
+  /// Tooltip message for the realm icon in app bar and main-menu button, both leading to the choose-account page.
   ///
   /// In en, this message translates to:
   /// **'Switch account'**

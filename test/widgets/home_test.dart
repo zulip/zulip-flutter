@@ -14,6 +14,7 @@ import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -440,6 +441,31 @@ void main () {
     });
   });
 
+  group('_RealmIcon', () {
+    testWidgets('realm icon is shown in app bar', (tester) async {
+      prepareBoringImageHttpClient();
+      await prepare(tester);
+
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage))).findsOne();
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('tapping realm icon navigates to choose-account page', (tester) async {
+      prepareBoringImageHttpClient();
+      await prepare(tester);
+
+      await tester.tap(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage)));
+      await tester.pumpAndSettle();
+
+      check(find.byType(ChooseAccountPage)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
   group('_LoadingPlaceholderPage', () {
     const loadPerAccountDuration = Duration(seconds: 30);
     assert(loadPerAccountDuration > kTryAnotherAccountWaitPeriod);
@@ -644,6 +670,86 @@ void main () {
         + Duration(milliseconds: 1));
       // No additional wait for loadPerAccount.
       checkOnHomePage(tester, expectedAccount: eg.selfAccount);
+    });
+  });
+
+  group('PressableOpacity', () {
+    Future<void> prepareButton(
+      WidgetTester tester, {
+      required VoidCallback onTap,
+      required Widget child,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: PressableOpacity(
+                onTap: onTap,
+                child: child)))));
+    }
+
+    testWidgets('opacity changes to 0.5 when pressed', (tester) async {
+      int tapCount = 0;
+
+      await prepareButton(
+        tester,
+        onTap: () => tapCount++,
+        child: const SizedBox(
+          width: 100,
+          height: 100,
+          child: Text('Test')));
+
+      final animatedOpacityFinder = find.byType(AnimatedOpacity);
+      var widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(1.0);
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Test')));
+      await tester.pump();
+      widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(0.5);
+
+      await gesture.up();
+      await tester.pump();
+      widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(1.0);
+    });
+
+    testWidgets('onTap callback is invoked when tapped', (tester) async {
+      int tapCount = 0;
+
+      await prepareButton(
+        tester,
+        onTap: () => tapCount++,
+        child: const SizedBox(
+          width: 100,
+          height: 100,
+          child: Text('Tap Me')));
+
+      await tester.tap(find.text('Tap Me'));
+      await tester.pump();
+      check(tapCount).equals(1);
+    });
+
+    testWidgets('opacity is restored when tap is cancelled', (tester) async {
+      await prepareButton(
+        tester,
+        onTap: () {},
+        child: const SizedBox(
+          width: 100,
+          height: 100,
+          child: Text('Test')));
+
+      final animatedOpacityFinder = find.byType(AnimatedOpacity);
+
+      final gesture = await tester.startGesture(tester.getCenter(find.text('Test')));
+      await tester.pump();
+      var widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(0.5);
+
+      await gesture.cancel();
+      await tester.pump();
+      widget = tester.widget<AnimatedOpacity>(animatedOpacityFinder);
+      check(widget.opacity).equals(1.0);
     });
   });
 

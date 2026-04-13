@@ -523,7 +523,7 @@ abstract class _MessageListAppBar {
       shape: removeAppBarBottomBorder
         ? const Border()
         : null, // i.e., inherit
-    );
+      showRealmIcon: false);
   }
 }
 

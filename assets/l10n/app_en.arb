@@ -41,7 +41,7 @@
   },
   "switchAccountButtonTooltip": "Switch account",
   "@switchAccountButtonTooltip": {
-    "description": "Tooltip message for main-menu button leading to the choose-account page."
+    "description": "Tooltip message for the realm icon in app bar and main-menu button, both leading to the choose-account page."
   },
   "tryAnotherAccountMessage": "Your account at {url} is taking a while to load.",
   "@tryAnotherAccountMessage": {
