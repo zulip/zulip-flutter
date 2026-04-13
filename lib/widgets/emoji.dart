@@ -53,6 +53,21 @@ class EmojiWidget extends StatelessWidget {
       ?? Text(textEmojiForEmojiName(emojiDisplay.emojiName));
   }
 
+  static InlineSpan asWidgetSpan({
+    required EmojiDisplay emojiDisplay,
+    required double fontSize,
+    required TextScaler textScaler,
+  }) {
+    final size = textScaler.scale(fontSize) * (17 / 14.5);
+
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: EmojiWidget(
+        emojiDisplay: emojiDisplay,
+        squareDimension: size,
+        imagePlaceholderStyle: EmojiImagePlaceholderStyle.text));
+  }
+
   @override
   Widget build(BuildContext context) {
     final emojiDisplay = this.emojiDisplay;
