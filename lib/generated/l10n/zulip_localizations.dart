@@ -636,6 +636,18 @@ abstract class ZulipLocalizations {
   /// **'Could not fetch message source.'**
   String get errorCouldNotFetchMessageSource;
 
+  /// Error message when loading messages initially failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load messages.'**
+  String get errorCouldNotLoadMessages;
+
+  /// Label for a button to retry a failed action.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get tryAgainButton;
+
   /// Error title on failure in opening a file someone previously uploaded to Zulip
   ///
   /// In en, this message translates to:

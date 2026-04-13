@@ -291,6 +291,12 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
       'Nepodarilo sa nahrať zdroj správy';
 
   @override
+  String get errorCouldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get tryAgainButton => 'Try again';
+
+  @override
   String get errorCouldNotAccessUploadedFileTitle =>
       'Could not access uploaded file';
 
