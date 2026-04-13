@@ -257,6 +257,15 @@ class ContentExample {
       alt: ':flutter:',
       emojiName: 'flutter'));
 
+  static final emojiCustomAnimated = ContentExample.inline(
+      'custom animated emoji',
+      ":slackzulip:",
+      '<p><img alt=":slackzulip:" class="emoji" src="/user_avatars/2/emoji/images/2c8d985d.gif" title="slackzulip"></p>',
+      const ImageEmojiNode(
+        src: '/user_avatars/2/emoji/images/2c8d985d.gif',
+        alt: ':slackzulip:',
+        emojiName: 'slackzulip'));
+
   static final emojiCustomInvalidUrl = ContentExample.inline(
     'custom emoji with invalid URL',
     null, // hypothetical, to test for a risk of crashing
@@ -1905,6 +1914,7 @@ void main() async {
   testParseExample(ContentExample.emojiUnicodeMultiCodepoint);
   testParseExample(ContentExample.emojiUnicodeLiteral);
   testParseExample(ContentExample.emojiCustom);
+  testParseExample(ContentExample.emojiCustomAnimated);
   testParseExample(ContentExample.emojiCustomInvalidUrl);
   testParseExample(ContentExample.emojiZulipExtra);
 
