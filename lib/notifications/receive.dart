@@ -279,8 +279,13 @@ class NotificationService {
       // plaintext notification.  It's normal to potentially get these when
       // either client or server is first upgraded to add E2EE support, because
       // the two subsystems register for push notifications independently.
-      // Just ignore the legacy notification;  // TODO(log)
-      // we'll deal separately (TODO(#1764)) with getting the server to stop sending them.
+      //
+      // (At FL 483+, registering for E2EE notifications will cause the server
+      // to usually stop sending legacy notifications; but even then, if the
+      // user has other devices that are still registered only for legacy
+      // notifications, this device will potentially continue to get them too.)
+      //
+      // Just ignore the legacy notification.  // TODO(log)
       return;
     }
 
