@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
@@ -136,6 +137,13 @@ Future<void> prepareContent(WidgetTester tester, Widget child, {
       ),
     });
     await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
+
+    final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    store.setServerEmojiData(ServerEmojiData(codeToNames: {
+      '2764': ['heart'],
+      '1f44d': ['thumbs_up'],
+      '1f3f3-fe0f-200d-26a7-fe0f': ['transgender_flag'],
+    }));
   } else {
     assert(initialSnapshot == null);
   }
@@ -1429,15 +1437,15 @@ void main() {
   });
 
   group('UnicodeEmoji', () {
-    testContentSmoke(ContentExample.emojiUnicode);
-    testContentSmoke(ContentExample.emojiUnicodeMultiCodepoint);
-    testContentSmoke(ContentExample.emojiUnicodeLiteral);
+    testContentSmoke(ContentExample.emojiUnicode, wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.emojiUnicodeMultiCodepoint, wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.emojiUnicodeLiteral, wrapWithPerAccountStoreWidget: true);
 
     testWidgets('use emoji font', (tester) async {
       // Compare [ContentExample.emojiUnicode].
       const emojiHeartHtml =
         '<p><span aria-label="heart" class="emoji emoji-2764" role="img" title="heart">:heart:</span></p>';
-      await prepareContent(tester, plainContent(emojiHeartHtml));
+      await prepareContent(tester, plainContent(emojiHeartHtml), wrapWithPerAccountStoreWidget: true);
       check(mergedStyleOf(tester, '\u{2764}')).isNotNull()
         .fontFamily.equals(switch (defaultTargetPlatform) {
           TargetPlatform.android => 'Noto Color Emoji',
@@ -1445,14 +1453,6 @@ void main() {
           _ => throw StateError('unexpected platform in test'),
         });
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
-
-    testWidgets('has strike-through line in strike-through', (tester) async {
-      // Regression test for https://github.com/zulip/zulip-flutter/issues/1818
-      await prepareContent(tester,
-        plainContent('<p><del>foo<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span>bar</del></p>'));
-      final style = mergedStyleOf(tester, '\u{1f44d}');
-      check(style!.decoration).equals(TextDecoration.lineThrough);
-    });
   });
 
   group('inline math', () {

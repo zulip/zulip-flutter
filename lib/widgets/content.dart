@@ -11,6 +11,7 @@ import '../api/model/model.dart';
 import '../api/model/permission.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
+import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import 'actions.dart';
 import 'code_block.dart';
@@ -1110,8 +1111,18 @@ class _InlineContentBuilder {
           child: Mention(ambientTextStyle: widget.style, node: node));
 
       case UnicodeEmojiNode():
-        return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
-          style: ContentTheme.of(_context!).textStyleEmoji);
+        final store = PerAccountStoreWidget.of(_context!);
+        final emojiName = store.getUnicodeEmojiNameByCode(node.emojiCode);
+
+        return emojiName == null
+          ? WidgetSpan(alignment: PlaceholderAlignment.middle, child: const SizedBox.shrink())
+          : EmojiWidget.asWidgetSpan(
+              emojiDisplay: UnicodeEmojiDisplay(
+                emojiName: emojiName,
+                emojiUnicode: node.emojiUnicode,
+              ).resolve(store.userSettings),
+              fontSize: widget.style.fontSize!,
+              textScaler: MediaQuery.textScalerOf(_context!));
 
       case ImageEmojiNode():
         final store = PerAccountStoreWidget.of(_context!);
