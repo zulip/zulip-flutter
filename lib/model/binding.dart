@@ -344,11 +344,6 @@ class PackageInfo {
 // in global scope of the generated file. This is a helper class to
 // namespace the notification related Pigeon API under a single class.
 class NotificationPigeonApi {
-  final _hostApi = notif_pigeon.NotificationHostApi();
-
-  Future<notif_pigeon.NotificationDataFromLaunch?> getNotificationDataFromLaunch() =>
-    _hostApi.getNotificationDataFromLaunch();
-
   /// An event stream that emits a notification payload
   /// when a notification is tapped.
   ///

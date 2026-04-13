@@ -33,66 +33,20 @@ class NotificationOpenService {
     _instance = null;
   }
 
-  NotificationDataFromLaunch? _notifDataFromLaunch;
+  void start() {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+        _notifPigeonApi.notificationTapEventsStream()
+          .listen(_navigateForNotification);
 
-  /// A [Future] that completes to signal that the initialization of
-  /// [NotificationNavigationService] has completed
-  /// (with either success or failure).
-  ///
-  /// Null if [start] hasn't been called.
-  Future<void>? get initialized => _initializedSignal?.future;
-
-  Completer<void>? _initializedSignal;
-
-  Future<void> start() async {
-    assert(_initializedSignal == null);
-    _initializedSignal = Completer<void>();
-    try {
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.iOS:
-          // On iOS, the notification tap that causes a launch of the app is
-          // handled a bit differently than on Android where all types of
-          // notification tap events are served via the
-          // `notificationTapEventsStream`.
-          _notifDataFromLaunch = await _notifPigeonApi.getNotificationDataFromLaunch();
-
-          _notifPigeonApi.notificationTapEventsStream()
-            .listen(_navigateForNotification);
-
-        case TargetPlatform.android:
-          _notifPigeonApi.notificationTapEventsStream()
-            .listen(_navigateForNotification);
-
-        case TargetPlatform.fuchsia:
-        case TargetPlatform.linux:
-        case TargetPlatform.macOS:
-        case TargetPlatform.windows:
-          // Do nothing; we don't offer notifications on these platforms.
-          break;
-      }
-    } finally {
-      _initializedSignal!.complete();
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+        // Do nothing; we don't offer notifications on these platforms.
+        break;
     }
-  }
-
-  /// Provides the route to open if the app was launched through a tap on
-  /// a notification.
-  ///
-  /// Returns null if app launch wasn't triggered by a notification, or if
-  /// an error occurs while determining the route for the notification.
-  /// In the latter case an error dialog is also shown.
-  ///
-  /// The context argument should be a descendant of the app's main [Navigator].
-  AccountRoute<void>? routeForNotificationFromLaunch({required BuildContext context}) {
-    assert(defaultTargetPlatform == TargetPlatform.iOS);
-    final data = _notifDataFromLaunch;
-    if (data == null) return null;
-    assert(debugLog('opened notif: ${jsonEncode(data.payload)}'));
-
-    final notifNavData = _tryParseIosApnsPayload(context, data.payload);
-    if (notifNavData == null) return null; // TODO(log)
-
-    return routeForNotification(context: context, data: notifNavData);
   }
 
   /// Finds the account associated with the given notification.
@@ -118,25 +72,6 @@ class NotificationOpenService {
       return null;
     }
     return account;
-  }
-
-  /// Provides the route to open by parsing the notification payload.
-  ///
-  /// Returns null and shows an error dialog if the associated account is not
-  /// found in the global store.
-  ///
-  /// The context argument should be a descendant of the app's main [Navigator].
-  static AccountRoute<void>? routeForNotification({
-    required BuildContext context,
-    required NotificationOpenPayload data,
-  }) {
-    final account = _accountForNotification(context: context, data: data);
-    if (account == null) return null;
-
-    return MessageListPage.buildRoute(
-      accountId: account.id,
-      // TODO(#1565): Open at specific message, not just conversation
-      narrow: data.narrow);
   }
 
   /// Navigate appropriately for opening the given notification.
