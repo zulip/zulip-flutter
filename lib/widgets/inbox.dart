@@ -611,13 +611,7 @@ class InboxTopicItem extends StatelessWidget {
                       // this Align shrink-wraps to its child's height.)
                       alignment: .centerEnd,
                       child: topic.isResolved
-                        ? InlineIcon(
-                            // Compare icon style in the topic list; probably these
-                            // should stay in sync.
-                            icon: ZulipIcons.check,
-                            fontSize: InboxRowTrailingMarkers.fontSize,
-                            textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-                            color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4))
+                        ? InboxRowMarkerIcon(icon: ZulipIcons.check)
                         : null)),
                   SizedBox(width: 8),
                   Expanded(child: Padding(
@@ -648,6 +642,38 @@ class InboxTopicItem extends StatelessWidget {
   }
 }
 
+/// An [InlineIcon] styled for use as a marker in inbox rows.
+///
+/// This encapsulates style details that should stay in sync
+/// across the inbox and topic-list pages.
+class InboxRowMarkerIcon extends StatelessWidget {
+  const InboxRowMarkerIcon({
+    super.key,
+    required this.icon,
+    this.visible = true,
+    this.padBefore = false,
+    this.padAfter = false,
+  });
+
+  final IconData icon;
+  final bool visible;
+  final bool padBefore;
+  final bool padAfter;
+
+  @override
+  Widget build(BuildContext context) {
+    return InlineIcon(
+      icon: icon,
+      fontSize: InboxRowTrailingMarkers.fontSize,
+      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+      color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4),
+      visible: visible,
+      padBefore: padBefore,
+      padAfter: padAfter,
+    );
+  }
+}
+
 /// A short, baseline-aligned row, optionally containing
 /// an unread badge, @ icon, and topic visibility icon.
 ///
@@ -669,13 +695,7 @@ class InboxRowTrailingMarkers extends StatelessWidget {
   static const fontSize = 17.0;
 
   Widget _buildIcon(BuildContext context, IconData icon, {required bool padAfter}) {
-    return InlineIcon(
-      icon: icon,
-      fontSize: fontSize,
-      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-      color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4),
-      padAfter: padAfter,
-    );
+    return InboxRowMarkerIcon(icon: icon, padAfter: padAfter);
   }
 
   @override
