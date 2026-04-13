@@ -1173,7 +1173,12 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   @JsonKey(fromJson: _reactionsFromJson, toJson: _reactionsToJson)
   Reactions? reactions; // null is equivalent to an empty [Reactions]
 
-  final int recipientId;
+  // The `recipient_id` field in the API doesn't add any information,
+  // so we ignore it.  It's not clear it belongs in the API in the first place:
+  //   https://chat.zulip.org/#narrow/channel/19-documentation/topic/recipient_id/near/1203219
+  //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/recipient_id.20and.20sender_id/near/1211949
+  // final int recipientId;  // ignored
+
   final String senderEmail;
   final String senderFullName;
   final String senderRealmStr;
@@ -1228,7 +1233,6 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
     required this.isMeMessage,
     required this.lastEditTimestamp,
     required this.reactions,
-    required this.recipientId,
     required this.senderEmail,
     required this.senderFullName,
     required super.senderId,
@@ -1333,7 +1337,6 @@ class StreamMessage extends Message<StreamConversation> {
     required super.isMeMessage,
     required super.lastEditTimestamp,
     required super.reactions,
-    required super.recipientId,
     required super.senderEmail,
     required super.senderFullName,
     required super.senderId,
@@ -1395,7 +1398,6 @@ class DmMessage extends Message<DmConversation> {
     required super.isMeMessage,
     required super.lastEditTimestamp,
     required super.reactions,
-    required super.recipientId,
     required super.senderEmail,
     required super.senderFullName,
     required super.senderId,
