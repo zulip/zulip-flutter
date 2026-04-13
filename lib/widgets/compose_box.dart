@@ -10,7 +10,9 @@ import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 
 import '../api/exception.dart';
+import '../api/model/linkifier.dart';
 import '../api/model/model.dart';
+import '../api/route/linkifier.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
@@ -410,6 +412,222 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   }
 }
 
+class _LinkifyNotifier extends StatefulWidget {
+  const _LinkifyNotifier({required this.controller, required this.child});
+
+  final ComposeBoxController controller;
+  final Widget child;
+
+  @override
+  State<_LinkifyNotifier> createState() => _LinkifyNotifierState();
+}
+
+class _LinkifyNotifierState extends State<_LinkifyNotifier>
+    with WidgetsBindingObserver {
+  bool hasLoadedLinkifiers = false;
+  List<LinkifierData> linkifiers = [];
+  bool _isApplyingLinkifiers = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.content.addListener(_contentChanged);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  Future<void> fetchLinkifiers() async {
+    try {
+      final store = PerAccountStoreWidget.of(context);
+      final data = await getLinkifiers(store.connection);
+      setState(() {
+        linkifiers.clear();
+        linkifiers.addAll(data.linkifiers);
+        hasLoadedLinkifiers = true;
+      });
+    } catch (error) {
+      debugPrint("Error fetching linkifiers: $error");
+      setState(() {
+        hasLoadedLinkifiers = false;
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _LinkifyNotifier oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      oldWidget.controller.content.removeListener(_contentChanged);
+      widget.controller.content.addListener(_contentChanged);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        fetchLinkifiers();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.content.removeListener(_contentChanged);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _contentChanged() {
+    if (!hasLoadedLinkifiers) {
+      return;
+    }
+    if (_isApplyingLinkifiers) {
+      return;
+    }
+
+    // apply patterns only when the linkifier data has loaded.
+    final TextEditingValue value = widget.controller.content.value;
+    String text = value.text;
+    TextSelection selection = value.selection;
+
+    // replace URL matches with the reverse_template shortcut, if available.
+    bool changed = false;
+
+    for (final item in linkifiers) {
+      final reverseTemplate = item.reverseTemplate;
+      if (reverseTemplate == null || reverseTemplate.isEmpty) {
+        continue;
+      }
+
+      final templates = <String>[
+        item.urlTemplate,
+        ...item.alternativeUrlTemplates,
+      ];
+
+      for (final template in templates) {
+        final (regexPattern, groupNames) = _templateToRegex(template);
+        RegExp? regex;
+        try {
+          regex = RegExp(regexPattern, unicode: true);
+        } catch (e) {
+          debugPrint("Invalid URL template regex '$template': $e");
+          continue;
+        }
+
+        final result = _replaceAllMappedWithSelection(
+          regex,
+          text,
+          selection,
+          (match) => _applyReverseTemplate(reverseTemplate, match, groupNames),
+        );
+
+        if (result.text != text) {
+          changed = true;
+          text = result.text;
+          selection = result.selection;
+        }
+      }
+    }
+
+    if (changed) {
+      _isApplyingLinkifiers = true;
+      widget.controller.content.value = value.copyWith(
+        text: text,
+        selection: selection,
+        composing: TextRange.empty,
+      );
+      _isApplyingLinkifiers = false;
+    }
+  }
+
+  (String, List<String>) _templateToRegex(String template) {
+    final placeholder = RegExp(r'\{([a-zA-Z_][a-zA-Z0-9_]*)\}');
+    final parts = <String>[];
+    final groupNames = <String>[];
+    int lastIndex = 0;
+    for (final match in placeholder.allMatches(template)) {
+      parts.add(RegExp.escape(template.substring(lastIndex, match.start)));
+      final name = match[1]!;
+      // Capture non-whitespace to avoid gobbling trailing text.
+      parts.add('([^\\s]+)');
+      groupNames.add(name);
+      lastIndex = match.end;
+    }
+    parts.add(RegExp.escape(template.substring(lastIndex)));
+    return (parts.join(), groupNames);
+  }
+
+  String _applyReverseTemplate(
+    String template,
+    Match match,
+    List<String> groupNames,
+  ) {
+    return template.replaceAllMapped(
+      RegExp(r'\{([a-zA-Z_][a-zA-Z0-9_]*)\}'),
+      (m) {
+        final name = m[1]!;
+        final index = groupNames.indexOf(name);
+        if (index == -1) return m[0]!;
+        return match.group(index + 1) ?? m[0]!;
+      },
+    );
+  }
+
+  ({String text, TextSelection selection}) _replaceAllMappedWithSelection(
+    RegExp regex,
+    String text,
+    TextSelection selection,
+    String Function(Match match) replacer,
+  ) {
+    final buffer = StringBuffer();
+    int lastIndex = 0;
+    int deltaBeforeBase = 0;
+    int deltaBeforeExtent = 0;
+
+    for (final match in regex.allMatches(text)) {
+      buffer.write(text.substring(lastIndex, match.start));
+      final replacement = replacer(match);
+      buffer.write(replacement);
+
+      final int removedLength = match.end - match.start;
+      final int addedLength = replacement.length;
+      final int delta = addedLength - removedLength;
+
+      if (selection.isValid) {
+        if (match.start < selection.baseOffset) {
+          deltaBeforeBase += delta;
+        }
+        if (match.start < selection.extentOffset) {
+          deltaBeforeExtent += delta;
+        }
+      }
+
+      lastIndex = match.end;
+    }
+    buffer.write(text.substring(lastIndex));
+
+    if (!selection.isValid) {
+      return (text: buffer.toString(), selection: selection);
+    }
+
+    final int newBase = max(
+      0,
+      min(buffer.length, selection.baseOffset + deltaBeforeBase),
+    );
+    final int newExtent = max(
+      0,
+      min(buffer.length, selection.extentOffset + deltaBeforeExtent),
+    );
+
+    return (
+      text: buffer.toString(),
+      selection: selection.copyWith(
+        baseOffset: newBase,
+        extentOffset: newExtent,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
 class _TypingNotifier extends StatefulWidget {
   const _TypingNotifier({
     required this.destination,
@@ -731,10 +949,13 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       destination: TopicNarrow(widget.narrow.streamId,
         TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
-      child: _ContentInput(
-        narrow: widget.narrow,
+      child: _LinkifyNotifier(
         controller: widget.controller,
-        hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination)));
+        child: _ContentInput(
+          narrow: widget.narrow,
+          controller: widget.controller,
+          hintText: zulipLocalizations.composeBoxChannelContentHint(hintDestination)),
+      ));
   }
 }
 
@@ -919,12 +1140,15 @@ class _FixedDestinationContentInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _TypingNotifier(
-      destination: narrow,
-      controller: controller,
-      child: _ContentInput(
-        narrow: narrow,
+        destination: narrow,
         controller: controller,
-        hintText: _hintText(context)));
+        child: _LinkifyNotifier(
+          controller: controller,
+          child: _ContentInput(
+              narrow: narrow,
+              controller: controller,
+              hintText: _hintText(context)),
+        ));
   }
 }
 
