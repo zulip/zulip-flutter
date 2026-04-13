@@ -8,7 +8,6 @@ import '../model/topics.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'app_bar.dart';
-import 'color.dart';
 import 'icons.dart';
 import 'inbox.dart';
 import 'message_list.dart';
@@ -279,14 +278,9 @@ class _TopicItem extends StatelessWidget {
                 crossAxisAlignment: .baseline,
                 textBaseline: localizedTextBaseline(context),
                 children: [
-                  InlineIcon(
-                    // Compare icon style in the inbox; probably these
-                    // should stay in sync.
-                    visible: topic.isResolved,
+                  InboxRowMarkerIcon(
                     icon: ZulipIcons.check,
-                    fontSize: InboxRowTrailingMarkers.fontSize,
-                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-                    color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4)),
+                    visible: topic.isResolved),
                   Expanded(child: Opacity(
                     opacity: opacity,
                     child: Text(
