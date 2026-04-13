@@ -58,7 +58,12 @@ class EmojiWidget extends StatelessWidget {
     required double fontSize,
     required TextScaler textScaler,
   }) {
-    final size = textScaler.scale(fontSize) * (17 / 14.5);
+    final sizeFactor = 17 / 14.5;
+    final size = switch(emojiDisplay) {
+      UnicodeEmojiDisplay() => textScaler.scale(fontSize) * sizeFactor * sizeFactor,
+      ImageEmojiDisplay() => textScaler.scale(fontSize) * sizeFactor,
+      TextEmojiDisplay() => textScaler.scale(fontSize),
+    };
 
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
