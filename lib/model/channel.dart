@@ -583,16 +583,16 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
         }
 
       case SubscriptionRemoveEvent():
-        for (final streamId in event.channelIds) {
-          assert(streams.containsKey(streamId));
-          assert(streams[streamId] is Subscription);
-          assert(streamsByName.containsKey(streams[streamId]!.name));
-          assert(streamsByName[streams[streamId]!.name] is Subscription);
-          assert(subscriptions.containsKey(streamId));
-          final subscription = subscriptions.remove(streamId);
+        for (final channelId in event.channelIds) {
+          assert(streams.containsKey(channelId));
+          assert(streams[channelId] is Subscription);
+          assert(streamsByName.containsKey(streams[channelId]!.name));
+          assert(streamsByName[streams[channelId]!.name] is Subscription);
+          assert(subscriptions.containsKey(channelId));
+          final subscription = subscriptions.remove(channelId);
           if (subscription == null) continue; // TODO(log)
           final stream = ZulipStream.fromSubscription(subscription);
-          streams[streamId] = stream;
+          streams[channelId] = stream;
           streamsByName[subscription.name] = stream;
         }
 
