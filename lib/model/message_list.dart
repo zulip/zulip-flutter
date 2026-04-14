@@ -676,8 +676,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// see [RevealedMutedMessagesState] in lib/widgets/message_list.dart.
   ///
   /// See also [_allMessagesVisible].
-  // When updating this, check [_allMessagesVisible], [_canAffectVisibility],
-  // and [_mutedUsersEventCanAffectVisibility] to see whether they need to be
+  // When updating this, check [_allMessagesVisible], [_willAffectVisibility],
+  // and [_mutedUsersEventWillAffectVisibility] to see whether they need to be
   // updated too.
   // Also check the unread-count methods in [Unreads] to make sure they count
   // exactly the unread messages for which this would return true.
@@ -762,7 +762,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  UserTopicVisibilityEffect _canAffectVisibility(UserTopicEvent event) {
+  UserTopicVisibilityEffect _willAffectVisibility(UserTopicEvent event) {
     switch (narrow) {
       case CombinedFeedNarrow():
         return store.willAffectIfTopicVisible(event);
@@ -782,7 +782,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  MutedUsersVisibilityEffect _mutedUsersEventCanAffectVisibility(MutedUsersEvent event) {
+  MutedUsersVisibilityEffect _mutedUsersEventWillAffectVisibility(MutedUsersEvent event) {
     switch(narrow) {
       case CombinedFeedNarrow():
         return store.willAffectShouldMuteDmConversation(event);
@@ -1074,7 +1074,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   void handleUserTopicEvent(UserTopicEvent event) {
-    switch (_canAffectVisibility(event)) {
+    switch (_willAffectVisibility(event)) {
       case UserTopicVisibilityEffect.none:
         return;
 
@@ -1106,7 +1106,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   void handleMutedUsersEvent(MutedUsersEvent event) {
-    switch (_mutedUsersEventCanAffectVisibility(event)) {
+    switch (_mutedUsersEventWillAffectVisibility(event)) {
       case MutedUsersVisibilityEffect.none:
         return;
 
