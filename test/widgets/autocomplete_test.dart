@@ -19,6 +19,7 @@ import 'package:zulip/widgets/compose_box.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/user.dart';
 
 import '../api/fake_api.dart';
@@ -688,6 +689,25 @@ void main() {
       await tester.pumpAndSettle();
 
       check(find.text('general chat')).findsOne();
+    });
+
+    testWidgets('show resolved-topic check icon', (tester) async {
+      final topic = eg.getChannelTopicsEntry(name: '✔ some topic');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic]);
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'some');
+      await tester.enterText(topicInputFinder, 'some t');
+      await tester.pumpAndSettle();
+
+      final itemFinder = find.ancestor(
+        of: find.textContaining('some topic', findRichText: true),
+        matching: find.byType(InkWell));
+      check(find.descendant(of: itemFinder,
+        matching: find.byWidgetPredicate(
+          (w) => w is InlineIcon && w.icon == ZulipIcons.check))).findsOne();
+      check(find.descendant(of: itemFinder,
+        matching: find.textContaining('✔', findRichText: true))).findsNothing();
     });
 
     testWidgets('autocomplete to realmEmptyTopicDisplayName sets topic to empty string', (tester) async {

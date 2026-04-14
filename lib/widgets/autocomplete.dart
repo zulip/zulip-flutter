@@ -501,20 +501,11 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
 
     final designVariables = DesignVariables.of(context);
 
-    TextStyle style = TextStyle(
+    final style = TextStyle(
       fontSize: 17,
       height: 20 / 17,
       color: designVariables.contextMenuItemLabel,
     ).merge(weightVariableTextStyle(context, wght: 500));
-
-    final String text;
-    if (option.topic.displayName == null) {
-      final store = PerAccountStoreWidget.of(context);
-      text = store.realmEmptyTopicDisplayName;
-      style = style.copyWith(fontStyle: FontStyle.italic);
-    } else {
-      text = option.topic.displayName!;
-    }
 
     return InkWell(
       onTap: () {
@@ -530,10 +521,14 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
           padding: const EdgeInsetsDirectional.fromSTEB(12, 2, 10, 2),
           child: Align(
             alignment: AlignmentDirectional.centerStart,
-            child: Text(
+            child: Text.rich(
+              topicLabelSpan(
+                context: context,
+                topic: option.topic,
+                fontSize: style.fontSize!,
+                color: style.color!),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: style,
-              text)))));
+              style: style)))));
   }
 }
