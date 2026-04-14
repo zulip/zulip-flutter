@@ -504,6 +504,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
     TextStyle style = TextStyle(
       fontSize: 17,
       height: 20 / 17,
+      color: designVariables.contextMenuItemLabel,
     ).merge(weightVariableTextStyle(context, wght: 500));
 
     final String text;
