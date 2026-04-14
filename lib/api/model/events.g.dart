@@ -589,8 +589,8 @@ SubscriptionRemoveEvent _$SubscriptionRemoveEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionRemoveEvent(
   id: (json['id'] as num).toInt(),
-  streamIds:
-      (SubscriptionRemoveEvent._readStreamIds(json, 'stream_ids')
+  channelIds:
+      (SubscriptionRemoveEvent._readChannelIds(json, 'stream_ids')
               as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
@@ -602,14 +602,14 @@ Map<String, dynamic> _$SubscriptionRemoveEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_ids': instance.streamIds,
+  'stream_ids': instance.channelIds,
 };
 
 SubscriptionUpdateEvent _$SubscriptionUpdateEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionUpdateEvent(
   id: (json['id'] as num).toInt(),
-  streamId: (json['stream_id'] as num).toInt(),
+  channelId: (json['stream_id'] as num).toInt(),
   property: $enumDecode(
     _$SubscriptionPropertyEnumMap,
     json['property'],
@@ -624,7 +624,7 @@ Map<String, dynamic> _$SubscriptionUpdateEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_id': instance.streamId,
+  'stream_id': instance.channelId,
   'property': instance.property,
   'value': instance.value,
 };
@@ -645,7 +645,7 @@ SubscriptionPeerAddEvent _$SubscriptionPeerAddEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionPeerAddEvent(
   id: (json['id'] as num).toInt(),
-  streamIds: (json['stream_ids'] as List<dynamic>)
+  channelIds: (json['stream_ids'] as List<dynamic>)
       .map((e) => (e as num).toInt())
       .toList(),
   userIds: (json['user_ids'] as List<dynamic>)
@@ -659,7 +659,7 @@ Map<String, dynamic> _$SubscriptionPeerAddEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_ids': instance.streamIds,
+  'stream_ids': instance.channelIds,
   'user_ids': instance.userIds,
 };
 
@@ -667,7 +667,7 @@ SubscriptionPeerRemoveEvent _$SubscriptionPeerRemoveEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionPeerRemoveEvent(
   id: (json['id'] as num).toInt(),
-  streamIds: (json['stream_ids'] as List<dynamic>)
+  channelIds: (json['stream_ids'] as List<dynamic>)
       .map((e) => (e as num).toInt())
       .toList(),
   userIds: (json['user_ids'] as List<dynamic>)
@@ -681,7 +681,7 @@ Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_ids': instance.streamIds,
+  'stream_ids': instance.channelIds,
   'user_ids': instance.userIds,
 };
 

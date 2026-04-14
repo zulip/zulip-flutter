@@ -390,7 +390,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> removeSubscriptions(List<int> channelIds) async {
-    await handleEvent(SubscriptionRemoveEvent(id: 1, streamIds: channelIds));
+    await handleEvent(SubscriptionRemoveEvent(id: 1, channelIds: channelIds));
   }
 
   Future<void> addChannelFolder(ChannelFolder channelFolder) async {

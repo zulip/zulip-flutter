@@ -95,7 +95,7 @@ void main() {
         {'stream_id': 123, 'name': 'name 1'},
         {'stream_id': 456, 'name': 'name 2'},
       ],
-    }) as SubscriptionRemoveEvent).streamIds.jsonEquals([123, 456]);
+    }) as SubscriptionRemoveEvent).channelIds.jsonEquals([123, 456]);
   });
 
   test('subscription/update: convert color correctly', () {

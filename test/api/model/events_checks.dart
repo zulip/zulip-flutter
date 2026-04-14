@@ -37,7 +37,7 @@ extension RealmUserUpdateEventChecks on Subject<RealmUserUpdateEvent> {
 }
 
 extension SubscriptionRemoveEventChecks on Subject<SubscriptionRemoveEvent> {
-  Subject<List<int>> get streamIds => has((e) => e.streamIds, 'streamIds');
+  Subject<List<int>> get channelIds => has((e) => e.channelIds, 'channelIds');
 }
 
 extension SubscriptionUpdateEventChecks on Subject<SubscriptionUpdateEvent> {

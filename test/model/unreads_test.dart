@@ -228,7 +228,7 @@ void main() {
       check(model.countInChannelNarrow(stream.streamId)).equals(5);
 
       await store.handleEvent(SubscriptionUpdateEvent(id: 1,
-        streamId: stream.streamId,
+        channelId: stream.streamId,
         property: SubscriptionProperty.isMuted, value: true));
       check(model.countInChannel      (stream.streamId)).equals(2);
       check(model.countInChannelNarrow(stream.streamId)).equals(5);

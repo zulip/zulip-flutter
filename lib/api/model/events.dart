@@ -855,16 +855,16 @@ class SubscriptionRemoveEvent extends SubscriptionEvent {
   @JsonKey(includeToJson: true)
   String get op => 'remove';
 
-  @JsonKey(readValue: _readStreamIds)
-  final List<int> streamIds;
+  @JsonKey(readValue: _readChannelIds)
+  final List<int> channelIds;
 
-  static List<int> _readStreamIds(Map<dynamic, dynamic> json, String key) {
+  static List<int> _readChannelIds(Map<dynamic, dynamic> json, String key) {
     return (json['subscriptions'] as List<dynamic>)
       .map((e) => (e as Map<String, dynamic>)['stream_id'] as int)
       .toList();
   }
 
-  SubscriptionRemoveEvent({required super.id, required this.streamIds});
+  SubscriptionRemoveEvent({required super.id, required this.channelIds});
 
   factory SubscriptionRemoveEvent.fromJson(Map<String, dynamic> json) =>
     _$SubscriptionRemoveEventFromJson(json);
@@ -880,7 +880,8 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
   @JsonKey(includeToJson: true)
   String get op => 'update';
 
-  final int streamId;
+  @JsonKey(name: 'stream_id')
+  final int channelId;
 
   @JsonKey(unknownEnumValue: SubscriptionProperty.unknown)
   final SubscriptionProperty property;
@@ -917,7 +918,7 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
 
   SubscriptionUpdateEvent({
     required super.id,
-    required this.streamId,
+    required this.channelId,
     required this.property,
     required this.value,
   });
@@ -936,12 +937,13 @@ class SubscriptionPeerAddEvent extends SubscriptionEvent {
   @JsonKey(includeToJson: true)
   String get op => 'peer_add';
 
-  List<int> streamIds;
+  @JsonKey(name: 'stream_ids')
+  List<int> channelIds;
   List<int> userIds;
 
   SubscriptionPeerAddEvent({
     required super.id,
-    required this.streamIds,
+    required this.channelIds,
     required this.userIds,
   });
 
@@ -959,12 +961,13 @@ class SubscriptionPeerRemoveEvent extends SubscriptionEvent {
   @JsonKey(includeToJson: true)
   String get op => 'peer_remove';
 
-  List<int> streamIds;
+  @JsonKey(name: 'stream_ids')
+  List<int> channelIds;
   List<int> userIds;
 
   SubscriptionPeerRemoveEvent({
     required super.id,
-    required this.streamIds,
+    required this.channelIds,
     required this.userIds,
   });
 

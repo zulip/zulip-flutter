@@ -583,7 +583,7 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
         }
 
       case SubscriptionRemoveEvent():
-        for (final streamId in event.streamIds) {
+        for (final streamId in event.channelIds) {
           assert(streams.containsKey(streamId));
           assert(streams[streamId] is Subscription);
           assert(streamsByName.containsKey(streams[streamId]!.name));
@@ -597,9 +597,9 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
         }
 
       case SubscriptionUpdateEvent():
-        final subscription = subscriptions[event.streamId];
+        final subscription = subscriptions[event.channelId];
         if (subscription == null) return; // TODO(log)
-        assert(identical(streams[event.streamId], subscription));
+        assert(identical(streams[event.channelId], subscription));
         assert(identical(streamsByName[subscription.name], subscription));
         switch (event.property) {
           case SubscriptionProperty.color:

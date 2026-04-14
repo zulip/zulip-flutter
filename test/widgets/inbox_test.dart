@@ -690,7 +690,7 @@ void main() {
             expectCollapsed: false, findSectionContent: findSectionContent);
 
           final newColor = Colors.orange.argbInt;
-          await store.handleEvent(SubscriptionUpdateEvent(id: 1, streamId: 1,
+          await store.handleEvent(SubscriptionUpdateEvent(id: 1, channelId: 1,
             property: SubscriptionProperty.color, value: newColor));
           check(subscription.color).equals(Colors.orange.argbInt);
           await tester.pump();

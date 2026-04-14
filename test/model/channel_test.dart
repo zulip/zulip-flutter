@@ -83,7 +83,7 @@ void main() {
       checkUnified(store);
 
       await store.handleEvent(SubscriptionRemoveEvent(id: 1,
-        streamIds: [stream.streamId]));
+        channelIds: [stream.streamId]));
       checkUnified(store);
 
       await store.handleEvent(SubscriptionAddEvent(id: 1,
@@ -136,7 +136,7 @@ void main() {
       check(store.subscriptions[stream.streamId]!.color).equals(0xFFFF0000);
 
       await store.handleEvent(SubscriptionUpdateEvent(id: 1,
-        streamId: stream.streamId,
+        channelId: stream.streamId,
         property: SubscriptionProperty.color,
         value: 0xFFFF00FF));
       check(store.subscriptions[stream.streamId]!.color).equals(0xFFFF00FF);
@@ -150,7 +150,7 @@ void main() {
       check(store.subscriptions[stream.streamId]!.isMuted).isFalse();
 
       await store.handleEvent(SubscriptionUpdateEvent(id: 1,
-        streamId: stream.streamId,
+        channelId: stream.streamId,
         property: SubscriptionProperty.isMuted,
         value: true));
       check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
