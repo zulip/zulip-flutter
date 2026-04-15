@@ -43,7 +43,10 @@ class ZulipWebUiKitButton extends StatelessWidget {
   ///
   /// When adding a case here,
   /// update [_backgroundColorActive] and [_labelColor] too.
-  Color _backgroundColorNormal(DesignVariables designVariables) {
+  static Color _backgroundColorNormal(DesignVariables designVariables, {
+    required ZulipWebUiKitButtonAttention attention,
+    required ZulipWebUiKitButtonIntent intent,
+  }) {
     switch ((attention, intent)) {
       case (.minimal, .neutral):
         return Colors.transparent;
@@ -79,7 +82,10 @@ class ZulipWebUiKitButton extends StatelessWidget {
   ///
   /// When adding a case here,
   /// update [_backgroundColorNormal] and [_labelColor] too.
-  Color _backgroundColorActive(DesignVariables designVariables) {
+  static Color _backgroundColorActive(DesignVariables designVariables, {
+    required ZulipWebUiKitButtonAttention attention,
+    required ZulipWebUiKitButtonIntent intent,
+  }) {
     switch ((attention, intent)) {
       case (.minimal, .neutral):
         return designVariables.neutralButtonBg.withFadedAlpha(0.3);
@@ -137,7 +143,11 @@ class ZulipWebUiKitButton extends StatelessWidget {
   ///
   /// When adding a case here,
   /// update [_backgroundColorNormal] and [_backgroundColorActive] too.
-  Color _labelColor(DesignVariables designVariables) {
+  static Color _labelColor(DesignVariables designVariables, {
+    required ZulipWebUiKitButtonAttention attention,
+    required ZulipWebUiKitButtonIntent intent,
+    required bool isDisabled,
+  }) {
     Color result;
     switch ((attention, intent)) {
       case (.minimal, .neutral):
@@ -170,8 +180,8 @@ class ZulipWebUiKitButton extends StatelessWidget {
         result = designVariables.btnLabelAttHigh;
     }
 
-    return onPressed == null
-      ? result.withFadedAlpha(0.5) // disabled state
+    return isDisabled
+      ? result.withFadedAlpha(0.5)
       : result;
   }
 
@@ -185,7 +195,10 @@ class ZulipWebUiKitButton extends StatelessWidget {
     // Discussion:
     //   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023880851
     return TextStyle(
-      color: _labelColor(designVariables),
+      color: _labelColor(designVariables,
+        attention: attention,
+        intent: intent,
+        isDisabled: onPressed == null),
       fontSize: _forSize(16, 17 /* 16 */),
       height: _forSize(1, 1.20 /* 1.25 */),
       letterSpacing: _forSize(
@@ -243,8 +256,13 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
     final buttonHeight = _forSize(24, 28);
 
-    final labelColor = _labelColor(designVariables);
-    final backgroundColorNormal = _backgroundColorNormal(designVariables);
+    final labelColor = _labelColor(designVariables,
+      attention: attention,
+      intent: intent,
+      isDisabled: onPressed == null);
+    final backgroundColorNormal = _backgroundColorNormal(designVariables,
+      attention: attention,
+      intent: intent);
     final backgroundColor = onPressed == null
       ? backgroundColorNormal.withFadedAlpha(0.5) // disabled state
       : backgroundColorNormal;
@@ -282,7 +300,8 @@ class ZulipWebUiKitButton extends StatelessWidget {
         // state-mapped overlay, pass it here on the underlying [ButtonStyle].
         overlayColor: WidgetStateProperty.fromMap({
           WidgetState.pressed: _overlayFor(backgroundColorNormal,
-            _backgroundColorActive(designVariables)),
+            _backgroundColorActive(designVariables,
+              attention: attention, intent: intent)),
           WidgetState.any: Colors.transparent,
         })),
       onPressed: onPressed,
