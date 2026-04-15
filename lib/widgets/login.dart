@@ -16,6 +16,7 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/server_support.dart';
 import '../model/store.dart';
+import 'button.dart';
 import 'dialog.dart';
 import 'home.dart';
 import 'input.dart';
@@ -645,13 +646,15 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       decoration: baseFilledInputDecoration(designVariables).copyWith(
         label: Text(zulipLocalizations.loginPasswordLabel),
         helperText: kLayoutPinningHelperText,
-        suffixIcon: IconButton(
+        suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.large.surface),
+        suffixIcon: ZulipIconButton(
+          icon: Icons.visibility,
+          isSelected: _obscurePassword,
+          selectedIcon: Icons.visibility_off,
           tooltip: zulipLocalizations.loginHidePassword,
           onPressed: _handlePasswordVisibilityPress,
-          icon: const Icon(Icons.visibility),
-          isSelected: _obscurePassword,
-          selectedIcon: const Icon(Icons.visibility_off),
-        )));
+          size: .large,
+          backgroundWhenPressed: false)));
 
     return Form(
       // TODO(#110) Try to highlight CZO / Zulip Cloud realms in autofill
