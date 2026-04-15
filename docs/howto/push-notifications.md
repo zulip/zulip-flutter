@@ -301,27 +301,16 @@ development basically infeasible.
 
 #### Tip: setting the iOS build number
 
-(This subsection hasn't actually been tested; it's lightly adapted
-from instructions that worked in the legacy app.
-If you try it out, be sure to watch for any wrong details,
-and then please update this doc with what you learn.)
+For making a throwaway alpha build like this approach calls for,
+you'll want to set the [iOS build number][].
 
-For making a throwaway alpha build like this approach calls for, you
-may find something like the following command helpful.  It sets the
-[iOS build number][], aka `CFBundleVersion` (which we normally leave
-set to 1.0) to a new value so the new build can coexist on TestFlight
-with previous builds:
+In a Flutter app, this is set through `pubspec.yaml`, as
+the portion after the `+` in the `version` field.
+(The portion before the `+` is the user-facing [version number][].)
 
-    $ set-buildno () {
-        version="$1" perl -i -0pe '
-            s|<key>CFBundleVersion</key> \s* <string>\K [0-9.]+
-             |$ENV{version}|xs
-          ' ios/Flutter/AppFrameworkInfo.plist &&
-        git commit -am "version: Bump iOS build number to $1."
-      }
-    $ set-buildno 1.1
-
-More specifically, the rule appears to be:
+The build number needs to be set so that the new build can
+coexist on TestFlight with previous and future builds.
+Specifically, the rule appears to be:
 
  * The user-facing version number must be strictly greater than the
    last one published to the App Store.
@@ -336,8 +325,18 @@ still in alpha or beta), then we'll want to:
  * Increment the user-facing version number.
 
  * To avoid confusion when we next release, use a build number
-   starting with "0." -- so e.g. `set-buildno 0.0.1` or `set-buildno
-   0.20200204.1`.
+   starting with "0." -- e.g., `0.0.1` or `0.20260414.1`.
+
+For example if `pubspec.yaml` currently has a line like this,
+reflecting a version that's already in the App Store:
+```
+version: 30.0.271+271
+```
+
+then you might edit it to read like this:
+```
+version: 30.0.272+0.20260414.1
+```
 
 [iOS build number]: https://developer.apple.com/documentation/bundleresources/information_property_list/cfbundleversion
 [version number]: https://developer.apple.com/documentation/bundleresources/information_property_list/cfbundleshortversionstring
