@@ -615,16 +615,21 @@ class MessageListAppBarTitle extends StatelessWidget {
   }) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    // (We customize titleTextStyle for Zulip; see zulipThemeData.)
+    final titleTextStyle = Theme.of(context).appBarTheme.titleTextStyle!;
     final icon = stream == null ? null
       : iconDataForTopicVisibilityPolicy(
           store.topicVisibilityPolicy(stream.streamId, topic));
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName, style: TextStyle(
-          fontSize: 13,
-          fontStyle: topic.displayName == null ? FontStyle.italic : null,
-        ).merge(weightVariableTextStyle(context)))),
+        Flexible(child: Text.rich(
+          topicLabelSpan(
+            context: context,
+            topic: topic,
+            fontSize: 13,
+            color: titleTextStyle.color!),
+          style: TextStyle(fontSize: 13).merge(weightVariableTextStyle(context)))),
         if (icon != null)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 4),
@@ -1904,18 +1909,22 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           ]));
     }
 
+    final topicStyle = recipientHeaderTextStyle(context);
     final topicWidget = Padding(
       padding: const EdgeInsets.symmetric(vertical: 11),
       child: Row(
         children: [
           Flexible(
-            child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName,
+            child: Text.rich(
+              topicLabelSpan(
+                context: context,
+                topic: topic,
+                fontSize: topicStyle.fontSize!,
+                color: topicStyle.color!),
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,
-              style: recipientHeaderTextStyle(context,
-                fontStyle: topic.displayName == null ? FontStyle.italic : null,
-              ))),
+              style: topicStyle)),
           const SizedBox(width: 4),
           Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
@@ -2011,13 +2020,12 @@ class DmRecipientHeader extends StatelessWidget {
   }
 }
 
-TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle}) {
+TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
     color: DesignVariables.of(context).title,
     fontSize: 16,
     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
     height: (18 / 16),
-    fontStyle: fontStyle,
   ).merge(weightVariableTextStyle(context, wght: 600));
 }
 

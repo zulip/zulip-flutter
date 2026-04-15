@@ -114,29 +114,26 @@ void main () {
       await store.addMessage(eg.streamMessage(stream: channel));
       await tester.pump();
 
-      Finder findIcon(IconData icon) =>
-        find.widgetWithIcon(InboxChannelHeaderItem, icon);
+      final findChevron = find.widgetWithIcon(
+        InboxChannelHeaderItem, ZulipIcons.chevron_down);
 
-      check(findIcon(ZulipIcons.arrow_down)).findsOne();
-      check(findIcon(ZulipIcons.arrow_right)).findsNothing();
+      // Uncollapsed: no chevron visible.
+      check(findChevron).findsNothing();
 
       // Collapsing the header updates inbox's internal state.
-      await tester.tap(findIcon(ZulipIcons.arrow_down));
+      await tester.tap(find.byType(InboxChannelHeaderItem));
       await tester.pump();
-      check(findIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(findIcon(ZulipIcons.arrow_right)).findsOne();
+      check(findChevron).findsOne();
 
       // Switch to channels view.
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
-      check(findIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(findIcon(ZulipIcons.arrow_right)).findsNothing();
+      check(findChevron).findsNothing();
 
       // The header should remain collapsed when we return to the inbox.
       await tester.tap(find.byIcon(ZulipIcons.inbox));
       await tester.pump();
-      check(findIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(findIcon(ZulipIcons.arrow_right)).findsOne();
+      check(findChevron).findsOne();
     });
 
     testWidgets('update app bar title and actions when switching between views', (tester) async {

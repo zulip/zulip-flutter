@@ -35,6 +35,7 @@ import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/topic_list.dart';
@@ -249,6 +250,22 @@ void main() {
         messages: [eg.streamMessage(stream: channel, topic: '')]);
       checkAppBarChannelTopic(
         channel.name, eg.defaultRealmEmptyTopicDisplayName);
+    });
+
+    testWidgets('show resolved-topic check icon in topic narrow', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: eg.topicNarrow(channel.streamId, '✔ some topic'),
+        subscriptions: [eg.subscription(channel)],
+        messages: [eg.streamMessage(stream: channel, topic: '✔ some topic')]);
+      final appBarFinder = find.byType(MessageListAppBarTitle);
+      check(find.descendant(of: appBarFinder,
+        matching: find.byWidgetPredicate(
+          (w) => w is InlineIcon && w.icon == ZulipIcons.check))).findsOne();
+      check(find.descendant(of: appBarFinder,
+        matching: find.textContaining('some topic', findRichText: true))).findsOne();
+      check(find.descendant(of: appBarFinder,
+        matching: find.textContaining('✔', findRichText: true))).findsNothing();
     });
 
     void testChannelIconInChannelRow(IconData expectedIcon, {
@@ -1797,6 +1814,23 @@ void main() {
         await tester.pump();
         check(findInMessageList('stream name')).isEmpty();
         check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
+      });
+
+      testWidgets('show resolved-topic check icon', (tester) async {
+        final message = eg.streamMessage(
+          stream: stream, topic: '✔ some topic');
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message], subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        final headerFinder = find.byType(StreamMessageRecipientHeader);
+        check(find.descendant(of: headerFinder,
+          matching: find.byWidgetPredicate(
+            (w) => w is InlineIcon && w.icon == ZulipIcons.check))).findsOne();
+        check(find.descendant(of: headerFinder,
+          matching: find.textContaining('some topic', findRichText: true))).findsOne();
+        check(find.descendant(of: headerFinder,
+          matching: find.textContaining('✔', findRichText: true))).findsNothing();
       });
 
       testWidgets('show topic visibility icon when followed', (tester) async {
