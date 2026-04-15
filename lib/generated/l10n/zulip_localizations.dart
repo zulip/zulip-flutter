@@ -1464,6 +1464,18 @@ abstract class ZulipLocalizations {
   /// **'Your Zulip organization URL'**
   String get loginRealmUrlLabel;
 
+  /// Helper text below the Zulip organization URL entry field on the login page.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the address you would use to open Zulip in a browser.'**
+  String get loginRealmUrlHelperText;
+
+  /// Tooltip for the 'help' icon button for the org-URL input in the login flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get loginRealmUrlHelpButton;
+
   /// Icon label for button to hide password in input form.
   ///
   /// In en, this message translates to:

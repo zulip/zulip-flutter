@@ -175,6 +175,18 @@ void main() {
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });
 
+    testWidgets('help icon button launches the server-URL doc', (tester) async {
+      await prepare(tester);
+
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      await tester.tap(find.byTooltip(zulipLocalizations.loginRealmUrlHelpButton));
+      await tester.pump();
+
+      check(testBinding.takeLaunchUrlCalls()).deepEquals([(
+        url: Uri.parse('https://zulip.com/help/logging-in#find-the-zulip-log-in-url'),
+        mode: UrlLaunchMode.inAppBrowserView)]);
+    });
+
     // TODO other errors
   });
 
