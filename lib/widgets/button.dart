@@ -386,6 +386,8 @@ class ZulipIconButton extends StatelessWidget {
     this.size = .medium,
     this.intent,
     this.backgroundWhenPressed = true,
+    this.isSelected,
+    this.selectedIcon,
   });
 
   final IconData icon;
@@ -399,6 +401,12 @@ class ZulipIconButton extends StatelessWidget {
   /// Corresponds to the "bg" param for the Zulip Web UI Kit component:
   ///   https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=8-1680&m=dev
   final bool backgroundWhenPressed;
+
+  /// A value for the underlying [IconButton.isSelected].
+  final bool? isSelected;
+
+  /// A value for the underlying [IconButton.selectedIcon].
+  final IconData? selectedIcon;
 
   Color _iconColor(DesignVariables designVariables) {
     if (intent == null) return designVariables.icon;
@@ -434,13 +442,17 @@ class ZulipIconButton extends StatelessWidget {
     });
   }
 
+  /// Make an [Icon] for an [IconData],
+  /// uniformly for [icon] and (when specified) [selectedIcon].
+  Icon _buildIcon(IconData data) => Icon(data);
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
     return IconButton(
       iconSize: size.icon,
-      icon: Icon(icon),
+      icon: _buildIcon(icon),
       onPressed: onPressed,
       tooltip: tooltip,
       style: IconButton.styleFrom(
@@ -458,7 +470,10 @@ class ZulipIconButton extends StatelessWidget {
         // [IconButton.styleFrom]'s overlayColor takes a single [Color] (and
         // wraps it with M3-default state-layer alphas). To use our own
         // state-mapped overlay, pass it here on the underlying [ButtonStyle].
-        overlayColor: _overlayColor(designVariables)));
+        overlayColor: _overlayColor(designVariables)),
+      isSelected: isSelected,
+      selectedIcon: selectedIcon != null ? _buildIcon(selectedIcon!) : null,
+    );
   }
 }
 
