@@ -454,12 +454,14 @@ class _LoginPageState extends State<LoginPage> {
 
     final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
     final emailAuthEnabled = widget.serverSettings.emailAuthEnabled;
+    final ldapEnabled = widget.serverSettings.authenticationMethods.ldap;
+    final showPasswordForm = emailAuthEnabled || ldapEnabled;
 
     final loginContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      if (emailAuthEnabled)
+      if (showPasswordForm)
         _UsernamePasswordForm(loginPageState: this),
       if (externalAuthenticationMethods.isNotEmpty) ...[
-        if (emailAuthEnabled)
+        if (showPasswordForm)
           _AlternativeAuthDivider(),
         ...externalAuthenticationMethods.map((method) {
           final icon = method.displayIcon;

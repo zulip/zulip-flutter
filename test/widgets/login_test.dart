@@ -375,19 +375,33 @@ void main() {
       // TODO test _inProgress logic
     });
 
-    group('email auth visibility', () { // another name for username/password auth
+    group('password auth visibility', () {
       testWidgets('hides username/password fields and login button', (tester) async {
-        final serverSettings = eg.serverSettings(emailAuthEnabled: false);
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          authenticationMethods: eg.authMethods(ldap: false));
         await prepare(tester, serverSettings);
         check(findUsernameInput).findsNothing();
         check(findPasswordInput).findsNothing();
         check(findSubmitButton).findsNothing();
       });
 
+      testWidgets('shows fields when email auth disabled but LDAP enabled', (tester) async {
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          authenticationMethods: eg.authMethods(ldap: true),
+        );
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsOne();
+        check(findPasswordInput).findsOne();
+        check(findSubmitButton).findsOne();
+      });
+
       testWidgets('shows external auth methods without divider', (tester) async {
         prepareBoringImageHttpClient(); // icon on social-auth button
         final serverSettings = eg.serverSettings(
           emailAuthEnabled: false,
+          authenticationMethods: eg.authMethods(ldap: false),
           externalAuthenticationMethods: [googleAuthMethod]);
         await prepare(tester, serverSettings);
         check(find.textContaining('Google')).findsOne();
