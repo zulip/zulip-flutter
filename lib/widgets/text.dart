@@ -544,7 +544,8 @@ class InlineIconGeometryData {
   /// as a fraction of the surrounding text's font size.
   final double sizeFactor;
 
-  /// Where to assign the icon's baseline, as a fraction of the icon's size,
+  /// How far above the icon's bottom edge to assign the icon's baseline,
+  /// as a fraction of the icon's size,
   /// when the span is rendered with [TextBaseline.alphabetic].
   ///
   /// This is ignored when the span is rendered with [TextBaseline.ideographic];
@@ -663,7 +664,9 @@ class InlineIcon extends StatelessWidget {
     final size = sizeFactor * fontSize;
 
     final effectiveBaselineOffset = switch (baselineType) {
-      TextBaseline.alphabetic => alphabeticBaselineFactor * size,
+      // I.e., consider the baseline to be farther up than the icon's bottom edge,
+      // at a smaller y-value.
+      TextBaseline.alphabetic => -alphabeticBaselineFactor * size,
       TextBaseline.ideographic => 0.0,
     };
 
@@ -671,7 +674,9 @@ class InlineIcon extends StatelessWidget {
 
     if (effectiveBaselineOffset != 0) {
       result = Transform.translate(
-        offset: Offset(0, effectiveBaselineOffset),
+        // Scoot the icon downward (to greater y-values) by the magnitude of
+        // effectiveBaselineOffset.
+        offset: Offset(0, -effectiveBaselineOffset),
         child: result);
     }
 
