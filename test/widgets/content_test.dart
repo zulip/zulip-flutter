@@ -1711,6 +1711,14 @@ void main() {
         wrapWithPerAccountStoreWidget: true);
     }
 
+    testWidgets('smoke: audio file with .flac extension', (tester) async {
+      await prepare(tester, ContentExample.audioInlineFlac.html);
+      check(find.text(
+          '![foo-bar.flac](/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/foo-bar.flac)'))
+          .findsNothing();
+      check(find.text('foo-bar.flac')).findsOne();
+    });
+
     testWidgets('tapping on audio link opens it in browser', (tester) async {
       await prepare(tester, ContentExample.audioInline.html);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);

@@ -253,7 +253,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   int _nextUploadTag = 0;
 
   final Map<int, ({int messageId, String placeholder})> _quoteAndReplies = {};
-  final Map<int, ({String filename, String placeholder})> _uploads = {};
+  final Map<int, ({String filename, String placeholder, bool isSupportedInlineAudioImage})> _uploads = {};
 
   /// A probably-reasonable place to insert Markdown, such as for a file upload.
   ///
@@ -353,12 +353,16 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerUploadEnd on the
   /// upload's success or failure.
-  int registerUploadStart(String filename, ZulipLocalizations zulipLocalizations) {
+  int registerUploadStart(String filename, ZulipLocalizations zulipLocalizations,
+      bool isSupportedInlineAudioImage) {
     final tag = _nextUploadTag;
     _nextUploadTag += 1;
     final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
-    final placeholder = inlineLink(linkText, '');
-    _uploads[tag] = (filename: filename, placeholder: placeholder);
+    final placeholder = isSupportedInlineAudioImage
+      ? imageAudioLink(linkText, '', zulipFeatureLevel: store.zulipFeatureLevel)
+      : inlineLink(linkText, '');
+    _uploads[tag] = (filename: filename, placeholder: placeholder,
+      isSupportedInlineAudioImage: isSupportedInlineAudioImage);
     notifyListeners(); // _uploads change could affect validationErrors
     value = value.replaced(insertionIndex(), '$placeholder\n\n');
     return tag;
@@ -371,15 +375,22 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   void registerUploadEnd(int tag, String? url) {
     final val = _uploads[tag];
     assert(val != null, 'registerUploadEnd called twice for same tag');
-    final (:filename, :placeholder) = val!;
+    final (:filename, :placeholder, :isSupportedInlineAudioImage) = val!;
     final int startIndex = text.indexOf(placeholder);
     final replacementRange = startIndex >= 0
       ? TextRange(start: startIndex, end: startIndex + placeholder.length)
       : insertionIndex();
 
+    final replacement =
+      url != null
+      ? isSupportedInlineAudioImage
+        ? imageAudioLink(filename, url, zulipFeatureLevel: store.zulipFeatureLevel)
+        : inlineLink(filename, url)
+      : '';
+
     value = value.replaced(
       replacementRange,
-      url == null ? '' : inlineLink(filename, url));
+      replacement);
     _uploads.remove(tag);
     notifyListeners(); // _uploads change could affect validationErrors
   }
@@ -1009,7 +1020,7 @@ Future<void> _uploadFiles({
   final List<(int, FileToUpload)> uploadsInProgress = [];
   for (final file in rightSizeFiles) {
     final tag = contentController.registerUploadStart(file.filename,
-      zulipLocalizations);
+      zulipLocalizations, isSupportedInlineMedia(mimeType: file.mimeType));
     uploadsInProgress.add((tag, file));
   }
   if (shouldRequestFocus && !contentFocusNode.hasFocus) {
@@ -1019,12 +1030,17 @@ Future<void> _uploadFiles({
   for (final (tag, file) in uploadsInProgress) {
     final FileToUpload(:content, :length, :filename, :mimeType) = file;
     String? url;
+
+    // mime package maps '.flac' files to 'audio/x-flac' MIME type which is
+    // depreciated 'audio/x-flac', so we translate it to standard 'audio/flac'.
+    // Discussion: https://chat.zulip.org/#narrow/channel/9-issues/topic/flutter.20client.20maps.20.2Eflac.20to.20.60audio.2Fx-flac.60.20MIME.20type/near/2435827
+    final translatedMimeType = mimeType == 'audio/x-flac' ? 'audio/flac' : mimeType;
     try {
       final result = await uploadFile(store.connection,
         content: content,
         length: length,
         filename: filename,
-        contentType: mimeType,
+        contentType: translatedMimeType,
       );
       url = result.url;
     } catch (e) {
