@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -538,6 +539,90 @@ class _TextWithLinkState extends State<TextWithLink> {
   }
 }
 
+/// A widget that reports its baseline as offset by [dy]
+/// from its child's baseline.
+///
+/// At layout time, passes its constraints through to its child
+/// and takes the same size as its child.
+/// A positive [dy] shifts the reported baseline downward
+/// (toward larger y values).
+///
+/// If the child has no baseline, the child's bottom edge is used,
+/// matching the convention used by [Baseline] and by [WidgetSpan]
+/// with [PlaceholderAlignment.baseline].
+// TODO(upstream) contribute this upstream?
+//   There's no upstream widget for this as of 2026-04-16.
+class AdjustBaseline extends SingleChildRenderObjectWidget {
+  const AdjustBaseline({
+    super.key,
+    required this.dy,
+    required Widget super.child,
+  });
+
+  final double dy;
+
+  @override
+  RenderAdjustBaseline createRenderObject(BuildContext context) {
+    return RenderAdjustBaseline(dy: dy);
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderAdjustBaseline renderObject,
+  ) {
+    renderObject.dy = dy;
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('dy', dy));
+  }
+}
+
+class RenderAdjustBaseline extends RenderProxyBox {
+  RenderAdjustBaseline({required this._dy, RenderBox? child})
+    : super(child);
+
+  double get dy => _dy;
+  double _dy;
+  set dy(double value) {
+    if (_dy == value) return;
+    _dy = value;
+    markNeedsLayout();
+  }
+
+  @override
+  double? computeDistanceToActualBaseline(TextBaseline baseline) {
+    final child = this.child!; // AdjustBaseline.child is required
+    final childBaseline = child.getDistanceToActualBaseline(baseline);
+    if (childBaseline != null) return childBaseline + dy;
+    // Fall back to the child's bottom edge when the child reports no
+    // baseline, matching [RenderBox.getDistanceToBaseline]'s convention.
+    return child.size.height + dy;
+  }
+
+  @override
+  @protected
+  double? computeDryBaseline(BoxConstraints constraints, TextBaseline baseline) {
+    final child = this.child!; // AdjustBaseline.child is required
+    final childBaseline = child.getDryBaseline(constraints, baseline);
+    if (childBaseline != null) return childBaseline + dy;
+    // Fall back to the child's bottom edge,
+    // like in [computeDistanceToActualBaseline],
+    // so that dry and actual baselines agree for baseline-less children.
+    // TODO is this a perf concern? See [RenderBox.getDryLayout].
+    return child.getDryLayout(constraints).height + dy;
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('dy', dy));
+  }
+}
+
 /// Data to size and position a square icon in a span of text.
 class InlineIconGeometryData {
   /// What size the icon should be,
@@ -673,10 +758,8 @@ class InlineIcon extends StatelessWidget {
     Widget result = Icon(size: size, color: color, icon);
 
     if (effectiveBaselineOffset != 0) {
-      result = Transform.translate(
-        // Scoot the icon downward (to greater y-values) by the magnitude of
-        // effectiveBaselineOffset.
-        offset: Offset(0, -effectiveBaselineOffset),
+      result = AdjustBaseline(
+        dy: effectiveBaselineOffset,
         child: result);
     }
 

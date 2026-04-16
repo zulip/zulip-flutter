@@ -468,4 +468,128 @@ void main() {
       check(calls).equals(0);
     });
   });
+
+  group('AdjustBaseline', () {
+    const textKey = ValueKey('adjust-baseline-text');
+    // A small font size, well under the Baseline target below,
+    // so there's plenty of room for positive and negative dy values.
+    const textWidget = Text('hi', key: textKey, style: TextStyle(fontSize: 20));
+
+    // Wrap [textWidget] in a Baseline widget at a fixed baseline target,
+    // optionally interposing an [AdjustBaseline] with the given [dy].
+    // Return the Text's screen y-coordinate, which reflects where
+    // the parent Baseline widget ends up positioning it based on
+    // the reported baseline of its child.
+    Future<double> pumpAndMeasure(WidgetTester tester, {
+      required double? dy,
+    }) async {
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(child: SizedBox(
+          width: 200, height: 200,
+          child: Baseline(
+            baseline: 100, baselineType: .alphabetic,
+            child: dy == null
+              ? textWidget
+              : AdjustBaseline(dy: dy, child: textWidget))))));
+      return tester.getTopLeft(find.byKey(textKey)).dy;
+    }
+
+    testWidgets('takes same size as child', (tester) async {
+      await tester.pumpWidget(Center(
+        child: AdjustBaseline(dy: 5,
+          child: const SizedBox(width: 100, height: 80))));
+      final renderObject = tester.renderObject<RenderAdjustBaseline>(
+        find.byType(AdjustBaseline));
+      check(renderObject.size).equals(const Size(100, 80));
+    });
+
+    for (final dy in [7.0, -3.0, 0.0]) {
+      testWidgets('shifts actual baseline by dy = $dy', (tester) async {
+        final yReference = await pumpAndMeasure(tester, dy: null);
+        final yShifted = await pumpAndMeasure(tester, dy: dy);
+        // A positive dy moves the reported baseline downward,
+        // so the Baseline widget positions the child higher (smaller y)
+        // to land the baseline at its target.
+        check(yShifted - yReference).equals(-dy);
+      });
+    }
+
+    testWidgets('shifts dry baseline by dy', (tester) async {
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(child: AdjustBaseline(dy: 9, child: textWidget))));
+      final renderObject = tester.renderObject<RenderAdjustBaseline>(
+        find.byType(AdjustBaseline));
+      final constraints = renderObject.constraints;
+      final childDry = renderObject.child!
+        .getDryBaseline(constraints, .alphabetic);
+      check(renderObject.getDryBaseline(constraints, .alphabetic))
+        .equals(childDry! + 9);
+    });
+
+    group('no-baseline child', () {
+      // A [SizedBox] has no baseline of its own; its bottom edge
+      // should be used instead.
+      const sizedBoxKey = ValueKey('adjust-baseline-sized');
+      const sizedBoxChild = SizedBox(key: sizedBoxKey, width: 20, height: 30);
+
+      testWidgets('shifts actual baseline using child bottom', (tester) async {
+        // Without AdjustBaseline, Baseline widget falls back to
+        // SizedBox.size.height (= 30) as the baseline, positioning the
+        // SizedBox at top = 100 - 30 = 70. With AdjustBaseline(dy: 3),
+        // the reported baseline is 30 + 3 = 33, positioning the SizedBox
+        // 3 units higher.
+        Future<double> measure({required bool wrapped}) async {
+          await tester.pumpWidget(Directionality(
+            textDirection: TextDirection.ltr,
+            child: Center(child: SizedBox(
+              width: 200, height: 200,
+              child: Baseline(
+                baseline: 100, baselineType: .alphabetic,
+                child: wrapped
+                  ? const AdjustBaseline(dy: 3, child: sizedBoxChild)
+                  : sizedBoxChild)))));
+          return tester.getTopLeft(find.byKey(sizedBoxKey)).dy;
+        }
+        final yReference = await measure(wrapped: false);
+        final yShifted = await measure(wrapped: true);
+        check(yShifted - yReference).equals(-3);
+      });
+
+      testWidgets('shifts dry baseline using child bottom', (tester) async {
+        await tester.pumpWidget(Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(child: AdjustBaseline(dy: 4, child: sizedBoxChild))));
+        final renderObject = tester.renderObject<RenderAdjustBaseline>(
+          find.byType(AdjustBaseline));
+        final constraints = renderObject.constraints;
+        check(renderObject.child!
+          .getDryBaseline(constraints, .alphabetic)).isNull();
+        check(renderObject.getDryBaseline(constraints, .alphabetic))
+          .equals(renderObject.child!.getDryLayout(constraints).height + 4);
+      });
+    });
+
+    testWidgets('updates reported baseline when dy changes', (tester) async {
+      final y5 = await pumpAndMeasure(tester, dy: 5);
+      final y12 = await pumpAndMeasure(tester, dy: 12);
+      check(y12 - y5).equals(-7);
+    });
+
+    testWidgets('no relayout when dy setter is called with same value', (tester) async {
+      await tester.pumpWidget(Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(child: AdjustBaseline(dy: 5, child: textWidget))));
+      final renderObject = tester.renderObject<RenderAdjustBaseline>(
+        find.byType(AdjustBaseline));
+      check(renderObject.debugNeedsLayout).isFalse();
+      renderObject.dy = 5;
+      check(renderObject.debugNeedsLayout).isFalse();
+      renderObject.dy = 6;
+      check(renderObject.debugNeedsLayout).isTrue();
+      await tester.pump();
+      check(renderObject.debugNeedsLayout).isFalse();
+    });
+  });
 }
