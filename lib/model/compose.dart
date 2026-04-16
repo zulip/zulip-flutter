@@ -257,6 +257,32 @@ String inlineLink(String visibleText, String destination) {
   return '[$visibleText]($destination)';
 }
 
+const supportedInlineAudioTypes = [
+  'audio/aac',
+  'audio/flac',
+  'audio/mp4',
+  'audio/mpeg',
+  'audio/vnd.wave',
+  'audio/wav',
+  'audio/webm',
+  'audio/x-wav'];
+
+const supportedInlineImageTypes = [
+  'image/avif',
+  'image/gif',
+  'image/heic',
+  'image/jpeg',
+  'image/png',
+  'image/tiff',
+  'image/webp'];
+
+/// Whether a file with this mimeType has server support for inline formatting.
+///
+/// For supported audio and image types, see [supportedInlineAudioTypes] and
+/// [supportedInlineImageTypes] respectively.
+bool isSupportedInlineMedia({required String? mimeType}) =>
+    supportedInlineAudioTypes.contains(mimeType) || supportedInlineImageTypes.contains(mimeType);
+
 /// What we show while fetching the target message's raw Markdown.
 ///
 /// Like [quoteAndReply], but the message content is replaced with a placeholder.
