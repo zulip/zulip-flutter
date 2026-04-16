@@ -257,6 +257,26 @@ String inlineLink(String visibleText, String destination) {
   return '[$visibleText]($destination)';
 }
 
+/// https://spec.commonmark.org/0.30/#image-description
+///
+/// Zulip uses the Markdown image syntax (`![](...)`) for server supported
+/// inline images and inline media such as audio. This emits that syntax for
+/// [visibleText] and [destination].
+///
+/// For supported audio and image types, see [supportedInlineAudioTypes] and
+/// [supportedInlineImageTypes] respectively.
+String imageAudioLink(String visibleText, String destination, {
+  required int zulipFeatureLevel,
+}) {
+  // While the Audio Inline syntax was introduced in server-11(FL-405),
+  // it is not recommended for widespread use until 12(FL-467). Discussion:
+  // https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/which.20FL.20for.20inline.20audio.20syntax/with/2429954
+  // TODO(server-12): simplify and remove comment
+  return zulipFeatureLevel >= 467
+    ? '![$visibleText]($destination)'
+    : '[$visibleText]($destination)';
+}
+
 const supportedInlineAudioTypes = [
   'audio/aac',
   'audio/flac',

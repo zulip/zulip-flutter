@@ -384,6 +384,29 @@ hello
     check(inlineLink('Uploading file.txt…', '')).equals('[Uploading file.txt…]()');
     check(inlineLink('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png'))
       .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+    check(inlineLink('foo_bar.mp3', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/foo_bar.mp3'))
+      .equals('[foo_bar.mp3](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/foo_bar.mp3)');
+  });
+
+  test('imageAudioLink', () {
+    final store = eg.store();
+    check(imageAudioLink('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png',
+        zulipFeatureLevel: store.zulipFeatureLevel))
+      .equals('![IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+    check(imageAudioLink('foo_bar.mp3', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/foo_bar.mp3',
+        zulipFeatureLevel: store.zulipFeatureLevel))
+      .equals('![foo_bar.mp3](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/foo_bar.mp3)');
+  });
+
+  test('imageAudioLink with FL<467', () { // TODO(server-12): remove this test
+    final store = eg.store(account: eg.account(user: eg.selfUser, zulipFeatureLevel: 466),
+      initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: 466));
+    check(imageAudioLink('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png',
+        zulipFeatureLevel: store.zulipFeatureLevel))
+      .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+    check(imageAudioLink('foo_bar.mp3', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/foo_bar.mp3',
+        zulipFeatureLevel: store.zulipFeatureLevel))
+      .equals('[foo_bar.mp3](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/foo_bar.mp3)');
   });
 
   test('isSupportedInlineImageAudio, image', () {
