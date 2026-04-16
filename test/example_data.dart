@@ -102,8 +102,16 @@ const int recentZulipFeatureLevel = 476;
 const int futureZulipFeatureLevel = 9999;
 const int ancientZulipFeatureLevel = kMinSupportedZulipFeatureLevel - 1;
 
+AuthenticationMethods authMethods({
+  bool ldap = false,
+}) {
+  return AuthenticationMethods(
+    ldap: ldap,
+  );
+}
+
 GetServerSettingsResult serverSettings({
-  Map<String, bool>? authenticationMethods,
+  AuthenticationMethods? authenticationMethods,
   List<ExternalAuthenticationMethod>? externalAuthenticationMethods,
   int? zulipFeatureLevel,
   String? zulipVersion,
@@ -119,7 +127,7 @@ GetServerSettingsResult serverSettings({
   bool? realmWebPublicAccessEnabled,
 }) {
   return GetServerSettingsResult(
-    authenticationMethods: authenticationMethods ?? {},
+    authenticationMethods: authenticationMethods ?? authMethods(),
     externalAuthenticationMethods: externalAuthenticationMethods ?? [],
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
     zulipVersion: zulipVersion ?? recentZulipVersion,

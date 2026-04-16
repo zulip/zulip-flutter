@@ -11,8 +11,8 @@ part of 'realm.dart';
 GetServerSettingsResult _$GetServerSettingsResultFromJson(
   Map<String, dynamic> json,
 ) => GetServerSettingsResult(
-  authenticationMethods: Map<String, bool>.from(
-    json['authentication_methods'] as Map,
+  authenticationMethods: AuthenticationMethods.fromJson(
+    json['authentication_methods'] as Map<String, dynamic>,
   ),
   externalAuthenticationMethods:
       (json['external_authentication_methods'] as List<dynamic>)
@@ -54,6 +54,14 @@ Map<String, dynamic> _$GetServerSettingsResultToJson(
   'realm_description': instance.realmDescription,
   'realm_web_public_access_enabled': instance.realmWebPublicAccessEnabled,
 };
+
+AuthenticationMethods _$AuthenticationMethodsFromJson(
+  Map<String, dynamic> json,
+) => AuthenticationMethods(ldap: json['ldap'] as bool);
+
+Map<String, dynamic> _$AuthenticationMethodsToJson(
+  AuthenticationMethods instance,
+) => <String, dynamic>{'ldap': instance.ldap};
 
 ExternalAuthenticationMethod _$ExternalAuthenticationMethodFromJson(
   Map<String, dynamic> json,
