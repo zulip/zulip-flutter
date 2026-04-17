@@ -160,6 +160,9 @@ void main() {
               'token_kind': tokenKind,
               'token': token,
               'timestamp': testBinding.utcNow().millisecondsSinceEpoch ~/ 1000,
+              'ios_app_id': defaultTargetPlatform == TargetPlatform.iOS
+                ? (await testBinding.packageInfo)!.packageName
+                : null,
             });
         }
       }
