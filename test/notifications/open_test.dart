@@ -33,7 +33,7 @@ import '../widgets/checks.dart';
 import '../widgets/dialog_checks.dart';
 import 'display_test.dart';
 
-Map<String, Object?> messageApnsPayload(
+Map<String, Object?> messageLegacyApnsPayload(
   Message zulipMessage, {
   String? streamName,
   Account? account,
@@ -146,29 +146,51 @@ void main() {
       check(pushedRoutes).isEmpty();
     }
 
-    Uri androidNotificationUrlForMessage(Account account, Message message) {
-      final data = messageFcmMessage(message, account: account);
+    Uri notificationUrlForMessage(Account account, Message message) {
+      final data = notifPayloadNewMessage(message, account: account);
       return NotificationOpenPayload(
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var channelId, :var topic) =>
+        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
           TopicNarrow(channelId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
+        NotifPayloadDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildAndroidNotificationUrl();
+      }).buildNotificationUrl();
     }
 
-    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
+    Map<String, Object?> messageApnsPayload(
+      Account account,
+      Message message, {
+      bool encrypted = true,
+    }) {
+      final Map<String, Object?> payload;
+      if (encrypted) {
+        final notificationUrl = notificationUrlForMessage(account, message);
+        payload = {
+          'notification_url': notificationUrl.toString(),
+        };
+      } else {
+        payload = messageLegacyApnsPayload(message, account: account);
+      }
+      return payload;
+    }
+
+    Future<void> openNotification(
+      WidgetTester tester,
+      Account account,
+      Message message, {
+      bool encrypted = true,
+    }) async {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
-          final intentDataUrl = androidNotificationUrlForMessage(account, message);
+          final intentDataUrl = notificationUrlForMessage(account, message);
           testBinding.notificationPigeonApi.addNotificationTapEvent(
             AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
           await tester.idle(); // let navigateForNotification find navigator
 
         case TargetPlatform.iOS:
-          final payload = messageApnsPayload(message, account: account);
+          final payload = messageApnsPayload(account, message, encrypted: encrypted);
           testBinding.notificationPigeonApi.addNotificationTapEvent(
             IosNotificationTapEvent(payload: payload));
           await tester.idle(); // let navigateForNotification find navigator
@@ -178,19 +200,24 @@ void main() {
       }
     }
 
-    void setupNotificationDataForLaunch(WidgetTester tester, Account account, Message message) {
+    void setupNotificationDataForLaunch(
+      WidgetTester tester,
+      Account account,
+      Message message, {
+      bool encrypted = true,
+    }) {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
           // Set up an event to be emitted from
           // `notificationPigeonApi.notificationTapEventsStream`.
-          final intentDataUrl = androidNotificationUrlForMessage(account, message);
+          final intentDataUrl = notificationUrlForMessage(account, message);
           testBinding.notificationPigeonApi.addNotificationTapEvent(
             AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
 
         case TargetPlatform.iOS:
           // Set up a value to return for
           // `notificationPigeonApi.getNotificationDataFromLaunch`.
-          final payload = messageApnsPayload(message, account: account);
+          final payload = messageApnsPayload(account, message, encrypted: encrypted);
           testBinding.notificationPigeonApi.setNotificationDataFromLaunch(
             NotificationDataFromLaunch(payload: payload));
 
@@ -220,8 +247,9 @@ void main() {
       Account account,
       Message message, {
       bool expectHomePageReplaced = false,
+      bool encrypted = true,
     }) async {
-      await openNotification(tester, account, message);
+      await openNotification(tester, account, message, encrypted: encrypted);
       if (expectHomePageReplaced) {
         takeHomePageReplacement(account.id);
       } else {
@@ -238,6 +266,14 @@ void main() {
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
+   testWidgets('stream message: iOS legacy plaintext', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+      await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage(),
+        encrypted: false);
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
     testWidgets('direct message', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -245,6 +281,15 @@ void main() {
       await checkOpenNotification(tester, eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('direct message: iOS legacy plaintext', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+      await checkOpenNotification(tester, eg.selfAccount,
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+        encrypted: false);
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
     testWidgets('account queried by realmUrl origin component', (tester) async {
       addTearDown(testBinding.reset);
@@ -352,6 +397,23 @@ void main() {
       takeHomePageRouteForAccount(account.id); // because associated account
       matchesNavigation(check(pushedRoutes).single, account, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('at app launch: iOS legacy plaintext', (tester) async {
+      addTearDown(testBinding.reset);
+      final account = eg.selfAccount;
+      final message = eg.streamMessage();
+      setupNotificationDataForLaunch(tester, account, message, encrypted: false);
+
+      // Now start the app.
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      await prepare(tester, early: true);
+      check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
+
+      // Once the app is ready, we navigate to the conversation.
+      await tester.pump();
+      takeHomePageRouteForAccount(account.id); // because associated account
+      matchesNavigation(check(pushedRoutes).single, account, message);
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
     testWidgets('uses associated account as initial account; if initial route', (tester) async {
       addTearDown(testBinding.reset);
@@ -548,8 +610,8 @@ void main() {
         userId: 1001,
         narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
       );
-      var url = payload.buildAndroidNotificationUrl();
-      check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+      var url = payload.buildNotificationUrl();
+      check(NotificationOpenPayload.parseNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
@@ -560,23 +622,23 @@ void main() {
         userId: 1001,
         narrow: eg.topicNarrow(1, 'topic A'),
       );
-      url = payload.buildAndroidNotificationUrl();
-      check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+      url = payload.buildNotificationUrl();
+      check(NotificationOpenPayload.parseNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
     });
 
-    group('parseIosApnsPayload', () {
+    group('parseLegacyIosApnsPayload', () {
       test('smoke one-one DM', () {
         final userA = eg.user(userId: 1001);
         final userB = eg.user(userId: 1002);
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageApnsPayload(eg.dmMessage(from: userB, to: [userA]),
+        final payload = messageLegacyApnsPayload(eg.dmMessage(from: userB, to: [userA]),
           account: account);
-        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+        check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
@@ -590,9 +652,9 @@ void main() {
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageApnsPayload(eg.dmMessage(from: userC, to: [userA, userB]),
+        final payload = messageLegacyApnsPayload(eg.dmMessage(from: userC, to: [userA, userB]),
           account: account);
-        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+        check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
@@ -604,11 +666,11 @@ void main() {
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageApnsPayload(eg.streamMessage(
+        final payload = messageLegacyApnsPayload(eg.streamMessage(
           stream: eg.stream(streamId: 1),
           topic: 'topic A'),
           account: account);
-        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+        check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()
@@ -617,13 +679,13 @@ void main() {
       });
     });
 
-    group('buildAndroidNotificationUrl', () {
+    group('buildNotificationUrl', () {
       test('smoke DM', () {
         final url = NotificationOpenPayload(
           realmUrl: Uri.parse('http://chat.example'),
           userId: 1001,
           narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
-        ).buildAndroidNotificationUrl();
+        ).buildNotificationUrl();
         check(url)
           ..scheme.equals('zulip')
           ..host.equals('notification')
@@ -640,7 +702,7 @@ void main() {
           realmUrl: Uri.parse('http://chat.example'),
           userId: 1001,
           narrow: eg.topicNarrow(1, 'topic A'),
-        ).buildAndroidNotificationUrl();
+        ).buildNotificationUrl();
         check(url)
           ..scheme.equals('zulip')
           ..host.equals('notification')
@@ -654,7 +716,7 @@ void main() {
       });
     });
 
-    group('parseAndroidNotificationUrl', () {
+    group('parseNotificationUrl', () {
       test('smoke DM', () {
         final url = Uri(
           scheme: 'zulip',
@@ -665,7 +727,7 @@ void main() {
             'narrow_type': 'dm',
             'all_recipient_ids': '1001,1002',
           });
-        check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+        check(NotificationOpenPayload.parseNotificationUrl(url))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
@@ -684,7 +746,7 @@ void main() {
             'channel_id': '1',
             'topic': 'topic A',
           });
-        check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+        check(NotificationOpenPayload.parseNotificationUrl(url))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()
@@ -743,7 +805,7 @@ void main() {
           },
         ];
         for (final params in testCases) {
-          check(() => NotificationOpenPayload.parseAndroidNotificationUrl(Uri(
+          check(() => NotificationOpenPayload.parseNotificationUrl(Uri(
             scheme: 'zulip',
             host: 'notification',
             queryParameters: params,
@@ -769,7 +831,7 @@ void main() {
             'channel_id': '1',
             'topic': 'topic A',
           });
-        check(() => NotificationOpenPayload.parseAndroidNotificationUrl(url))
+        check(() => NotificationOpenPayload.parseNotificationUrl(url))
           .throws<FormatException>();
       });
 
@@ -784,7 +846,7 @@ void main() {
             'channel_id': '1',
             'topic': 'topic A',
           });
-        check(() => NotificationOpenPayload.parseAndroidNotificationUrl(url))
+        check(() => NotificationOpenPayload.parseNotificationUrl(url))
           .throws<FormatException>();
       });
     });

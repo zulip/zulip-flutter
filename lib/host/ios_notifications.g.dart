@@ -80,6 +80,7 @@ class ImprovedNotificationContent {
   ImprovedNotificationContent({
     required this.title,
     required this.body,
+    required this.userInfo,
   });
 
   /// The new title to use for the notification.
@@ -88,10 +89,13 @@ class ImprovedNotificationContent {
   /// The new body to use for the notification.
   String body;
 
+  Map<Object?, Object?> userInfo;
+
   List<Object?> _toList() {
     return <Object?>[
       title,
       body,
+      userInfo,
     ];
   }
 
@@ -103,6 +107,7 @@ class ImprovedNotificationContent {
     return ImprovedNotificationContent(
       title: result[0]! as String,
       body: result[1]! as String,
+      userInfo: (result[2] as Map<Object?, Object?>?)!.cast<Object?, Object?>(),
     );
   }
 
