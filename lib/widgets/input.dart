@@ -87,6 +87,16 @@ class PopupMenuList extends StatelessWidget {
   final int itemCount;
   final NullableIndexedWidgetBuilder itemBuilder;
 
+  /// The popup menu's style, as a [MenuStyle].
+  static MenuStyle styleAsMenuStyle(DesignVariables designVariables) {
+    return MenuStyle(
+      backgroundColor: WidgetStatePropertyAll(_backgroundColor(designVariables)),
+      shape: WidgetStatePropertyAll(_shape(designVariables)),
+      padding: WidgetStatePropertyAll(_verticalPadding + _horizontalPadding),
+      elevation: WidgetStatePropertyAll(_elevation),
+    );
+  }
+
   /// The vertical content padding.
   ///
   /// See [_verticalShadowInset], which is related.
@@ -112,24 +122,34 @@ class PopupMenuList extends StatelessWidget {
   /// (Touch feedback is still affected, but at least that's a temporary state.)
   static const _verticalShadowInset = EdgeInsets.symmetric(vertical: 6);
 
+  static Color _backgroundColor(DesignVariables designVariables) =>
+    designVariables.contextMenuBg;
+
+  static OutlinedBorder _shape(DesignVariables designVariables) {
+    return RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(6)),
+      side: BorderSide(color: designVariables.contextMenuBorder));
+  }
+
+  static const _elevation = 4.0; // TODO tune the shadow effect
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
+    final backgroundColor = _backgroundColor(designVariables);
     return Material(
-      color: designVariables.contextMenuBg,
+      color: backgroundColor,
       clipBehavior: .hardEdge,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(6)),
-        side: BorderSide(color: designVariables.contextMenuBorder)),
-      elevation: 4.0, // TODO tune the shadow effect
+      shape: _shape(designVariables),
+      elevation: _elevation,
       child: Padding(
         padding: _horizontalPadding,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxHeight),
           child: InsetShadowBox(
             top: _verticalShadowInset.top, bottom: _verticalShadowInset.bottom,
-            color: designVariables.contextMenuBg,
+            color: backgroundColor,
             child: ListView.builder(
               controller: scrollController,
               padding: _verticalPadding,
