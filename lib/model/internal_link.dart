@@ -388,8 +388,8 @@ int? _parseStreamOperand(String operand, ChannelStore store) {
   // so that links in old conversations continue to work.
   final String? streamName = decodeHashComponent(operand);
   if (streamName == null) return null;
-  final stream = store.channelsByName[streamName];
-  if (stream != null) return stream.streamId;
+  final channel = store.channelsByName[streamName];
+  if (channel != null) return channel.streamId;
 
   if (newFormatStreamId != null) {
     // Neither format found a stream, so it's hidden or doesn't exist. But
