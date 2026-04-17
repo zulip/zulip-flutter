@@ -274,6 +274,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Löschen der Nachricht fehlgeschlagen';
 
   @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'Thema als gelesen markieren';
 
   @override

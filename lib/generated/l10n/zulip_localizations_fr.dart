@@ -274,6 +274,12 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Échec de la suppression du message';
 
   @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead =>
       'Marquer la conversation comme lue';
 

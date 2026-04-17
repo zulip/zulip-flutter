@@ -276,6 +276,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Kasowanie wiadomości bez powodzenia';
 
   @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead =>
       'Oznacz wątek jako przeczytany';
 

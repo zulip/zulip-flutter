@@ -276,6 +276,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Не вдалося видалити повідомлення';
 
   @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'Позначити тему як прочитану';
 
   @override

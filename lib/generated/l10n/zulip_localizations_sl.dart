@@ -274,6 +274,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get errorDeleteMessageFailedTitle => 'Sporočila se ne da izbrisati';
 
   @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'Označi temo kot prebrano';
 
   @override

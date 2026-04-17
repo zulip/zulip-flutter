@@ -262,6 +262,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorDeleteMessageFailedTitle => 'メッセージの削除に失敗しました';
 
   @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'トピックを既読にする';
 
   @override

@@ -277,6 +277,12 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Non è stato possibile eliminare il messaggio';
 
   @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead =>
       'Segna l\'argomento come letto';
 

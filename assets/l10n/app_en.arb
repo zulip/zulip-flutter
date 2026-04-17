@@ -313,6 +313,14 @@
   "@errorDeleteMessageFailedTitle": {
     "description": "Error title when deleting a message failed."
   },
+  "reportMessageSuccess": "Message reported",
+  "@reportMessageSuccess": {
+    "description": "Snackbar message shown after successfully reporting a message."
+  },
+  "errorReportMessageFailedTitle": "Failed to report message",
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
+  },
   "actionSheetOptionMarkTopicAsRead": "Mark topic as read",
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."

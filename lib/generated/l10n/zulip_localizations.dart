@@ -594,6 +594,18 @@ abstract class ZulipLocalizations {
   /// **'Failed to delete message'**
   String get errorDeleteMessageFailedTitle;
 
+  /// Snackbar message shown after successfully reporting a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Message reported'**
+  String get reportMessageSuccess;
+
+  /// Error title when reporting a message failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to report message'**
+  String get errorReportMessageFailedTitle;
+
   /// Option to mark a specific topic as read in the action sheet.
   ///
   /// In en, this message translates to:
