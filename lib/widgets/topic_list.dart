@@ -65,17 +65,17 @@ class _TopicListAppBarTitle extends StatelessWidget {
   final int channelId;
   final bool willCenterTitle;
 
-  Widget _buildStreamRow(BuildContext context) {
+  Widget _buildChannelRow(BuildContext context) {
     // TODO(#1039) implement a consistent app bar design here
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final stream = store.channels[channelId];
+    final channel = store.channels[channelId];
     final channelIconColor = colorSwatchFor(context,
       store.subscriptions[channelId]).iconOnBarBackground;
 
     // A null [Icon.icon] makes a blank space.
-    final icon = stream != null ? iconDataForStream(stream) : null;
+    final icon = channel != null ? iconDataForStream(channel) : null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       // TODO(design): The vertical alignment of the stream privacy icon is a bit ad hoc.
@@ -86,7 +86,7 @@ class _TopicListAppBarTitle extends StatelessWidget {
         Padding(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
           child: Icon(size: 18, icon, color: channelIconColor)),
         Flexible(child: Text(
-          stream?.name ?? zulipLocalizations.unknownChannelName,
+          channel?.name ?? zulipLocalizations.unknownChannelName,
           style: TextStyle(
             fontSize: 20,
             height: 30 / 20,
@@ -111,7 +111,7 @@ class _TopicListAppBarTitle extends StatelessWidget {
             showTopicListButton: false);
         },
         child: Align(alignment: alignment,
-          child: _buildStreamRow(context))));
+          child: _buildChannelRow(context))));
   }
 }
 
