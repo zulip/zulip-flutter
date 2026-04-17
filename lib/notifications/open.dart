@@ -243,7 +243,7 @@ class NotificationOpenService {
     required Uri url,
   }) {
     try {
-      return NotificationOpenPayload.parseAndroidNotificationUrl(url);
+      return NotificationOpenPayload.parseNotificationUrl(url);
     } on FormatException catch (e, st) {
       assert(debugLog('$e\n$st'));
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -331,9 +331,9 @@ class NotificationOpenPayload {
   }
 
   /// Parses the internal Android notification url, that was created using
-  /// [buildAndroidNotificationUrl], and retrieves the information required
+  /// [buildNotificationUrl], and retrieves the information required
   /// for navigation.
-  factory NotificationOpenPayload.parseAndroidNotificationUrl(Uri url) {
+  factory NotificationOpenPayload.parseNotificationUrl(Uri url) {
     if (url case Uri(
       scheme: 'zulip',
       host: 'notification',
@@ -379,7 +379,7 @@ class NotificationOpenPayload {
     }
   }
 
-  Uri buildAndroidNotificationUrl() {
+  Uri buildNotificationUrl() {
     return Uri(
       scheme: 'zulip',
       host: 'notification',
