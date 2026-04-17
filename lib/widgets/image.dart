@@ -213,3 +213,45 @@ extension ImageThumbnailLocatorExtension on ImageThumbnailLocator {
     return result;
   }
 }
+
+/// Like [Image.network], but includes [userAgentHeader] for realm images.
+///
+/// Use this to display realm icons, avatars, or other images that don't
+/// require authentication. Unlike [RealmContentNetworkImage], this widget
+/// does not require a [PerAccountStoreWidget] ancestor and does not include
+/// authentication headers.
+///
+/// The image will be cached according to the cache behavior of [Image.network],
+/// which may mean the cache is shared between realms.
+///
+/// See also:
+///   * [RealmContentNetworkImage], which includes authentication headers for
+///     on-realm images and requires a [PerAccountStoreWidget] ancestor.
+class RealmIconNetworkImage extends StatelessWidget {
+  const RealmIconNetworkImage(
+    this.src, {
+    super.key,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.errorBuilder,
+  });
+
+  final Uri src;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final ImageErrorWidgetBuilder? errorBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      src.toString(),
+      width: width,
+      height: height,
+      fit: fit,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: errorBuilder,
+      headers: userAgentHeader());
+  }
+}
