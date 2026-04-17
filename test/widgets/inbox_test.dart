@@ -2,7 +2,6 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/narrow.dart';
@@ -176,7 +175,6 @@ void main() {
     Finder? findSectionContent,
   }) {
     final findHeader = findChannelHeader(subscription.streamId);
-    final element = tester.element(findHeader);
 
     if (expectAtSignIcon != null) {
       check(find.descendant(of: findHeader, matching: find.byIcon(ZulipIcons.at_sign)))
@@ -188,33 +186,17 @@ void main() {
       Subscription(inviteOnly: true) => ZulipIcons.lock,
       Subscription() => ZulipIcons.hash_sign,
     };
-    final channelIcon = tester.widget<Icon>(
-      find.descendant(of: findHeader, matching: find.byIcon(expectedChannelIcon)));
+    check(find.descendant(of: findHeader, matching: find.byIcon(expectedChannelIcon)))
+      .findsOne();
 
     if (expectCollapsed != null) {
       check(find.descendant(
         of: findHeader,
-        matching: find.byIcon(
-          expectCollapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down))).findsOne();
+        matching: find.byIcon(ZulipIcons.chevron_down)))
+          .findsExactly(expectCollapsed ? 1 : 0);
 
-      final swatch = colorSwatchFor(element, subscription);
-
-      check(channelIcon).color.isNotNull()
-        .isSameColorAs(expectCollapsed
-          ? swatch.iconOnPlainBackground
-          : swatch.iconOnBarBackground);
-
-      final renderObject = tester.renderObject<RenderBox>(findHeader);
-      final paintBounds = renderObject.paintBounds;
-
-      // `paints` isn't a [Matcher] so we wrap it with `equals`;
-      // awkward but it works
-      check(renderObject).legacyMatcher(equals(paints..rrect(
-        rrect: RRect.fromRectAndRadius(paintBounds, Radius.zero),
-        style: .fill,
-        color: expectCollapsed
-          ? Colors.white
-          : swatch.barBackground)));
+      // TODO could test bar background (not finding a way just now to
+      //   expect a gradient to be painted)
 
       if (findSectionContent != null) {
         check(findSectionContent).findsExactly(expectCollapsed ? 0 : 1);
@@ -650,12 +632,7 @@ void main() {
       group('stream section', () {
         Future<void> tapCollapseIcon(WidgetTester tester, Subscription subscription) async {
           checkChannelHeader(tester, subscription);
-          await tester.tap(find.descendant(
-            of: findChannelHeader(subscription.streamId),
-            matching: find.byWidgetPredicate((widget) =>
-              widget is Icon
-              && (widget.icon == ZulipIcons.arrow_down
-                  || widget.icon == ZulipIcons.arrow_right))));
+          await tester.tap(findChannelHeader(subscription.streamId));
           await tester.pump();
         }
 

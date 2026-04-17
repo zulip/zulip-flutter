@@ -165,7 +165,7 @@ void main() {
             // TODO(#232): syntax like `check(find(…), findsOneWidget)`
             tester.widget(find.descendant(
               of: find.byWidget(shape.child),
-              matching: find.byIcon(ZulipIcons.group_dm),
+              matching: find.byIcon(ZulipIcons.group_dm_3),
             ));
         }
       }
