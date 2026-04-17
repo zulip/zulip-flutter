@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
+import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
@@ -259,17 +260,7 @@ class NotificationDisplayManager {
     // changed, which is a rare edge case but probably good. The main effect is that
     // group-DM threads (pending #794) get titled with the latest sender, rather than
     // the first.
-    messagingStyle.conversationTitle = switch (data.recipient) {
-      NotifPayloadChannelRecipient(:var channelName?, :var topic) =>
-        '#$channelName > ${topic.displayName}',
-      NotifPayloadChannelRecipient(:var topic) =>
-        '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
-      NotifPayloadDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
-        zulipLocalizations.notifGroupDmConversationLabel(
-          data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
-      NotifPayloadDmRecipient() =>
-        data.senderFullName,
-    };
+    messagingStyle.conversationTitle = titleForNotifPayload(data, zulipLocalizations);
 
     messagingStyle.messages.add(MessagingStyleMessage(
       text: data.content,
@@ -416,9 +407,23 @@ class NotificationDisplayManager {
       //
       // Even though we enable the `autoCancel` flag for summary notification
       // during creation, the summary notification doesn't get auto canceled if
-      // child notifications are canceled programatically as done above.
+      // child notifications are canceled programmatically as done above.
       await _androidHost.cancel(tag: groupKey, id: kNotificationId);
     }
+  }
+
+  static String titleForNotifPayload(NotifPayloadNewMessage data, ZulipLocalizations zulipLocalizations) {
+    return switch (data.recipient) {
+      NotifPayloadChannelRecipient(:var channelName?, :var topic) =>
+        '#$channelName > ${topic.displayName}',
+      NotifPayloadChannelRecipient(:var topic) =>
+        '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
+      NotifPayloadDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
+        zulipLocalizations.notifGroupDmConversationLabel(
+          data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
+      NotifPayloadDmRecipient() =>
+        data.senderFullName,
+    };
   }
 
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
