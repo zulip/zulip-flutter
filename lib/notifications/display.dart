@@ -216,15 +216,15 @@ class NotificationDisplayManager {
     await NotificationChannelManager.ensureChannel();
   }
 
-  static void onFcmMessage(FcmMessageWithIdentity data, Account account) async {
+  static void onNotifPayload(NotifPayloadWithIdentity data, Account account) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
     switch (data) {
-      case MessageFcmMessage(): await _onMessageFcmMessage(data, account);
-      case RemoveFcmMessage(): await _onRemoveFcmMessage(data);
+      case NotifPayloadNewMessage(): await _onNotifPayloadNewMessage(data, account);
+      case NotifPayloadRemove(): await _onNotifPayloadRemove(data);
     }
   }
 
-  static Future<void> _onMessageFcmMessage(MessageFcmMessage data, Account account) async {
+  static Future<void> _onNotifPayloadNewMessage(NotifPayloadNewMessage data, Account account) async {
     assert(debugLog('notif message content: ${data.content}'));
     assert(account.realmUrl.origin == data.realmUrl.origin
         && account.userId == data.userId);
@@ -248,9 +248,9 @@ class NotificationDisplayManager {
           name: zulipLocalizations.notifSelfUser),
         messages: [],
         isGroupConversation: switch (data.recipient) {
-          FcmMessageChannelRecipient() => true,
-          FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 => true,
-          FcmMessageDmRecipient() => false,
+          NotifPayloadChannelRecipient() => true,
+          NotifPayloadDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 => true,
+          NotifPayloadDmRecipient() => false,
         });
     }
 
@@ -260,14 +260,14 @@ class NotificationDisplayManager {
     // group-DM threads (pending #794) get titled with the latest sender, rather than
     // the first.
     messagingStyle.conversationTitle = switch (data.recipient) {
-      FcmMessageChannelRecipient(:var channelName?, :var topic) =>
+      NotifPayloadChannelRecipient(:var channelName?, :var topic) =>
         '#$channelName > ${topic.displayName}',
-      FcmMessageChannelRecipient(:var topic) =>
+      NotifPayloadChannelRecipient(:var topic) =>
         '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
-      FcmMessageDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
+      NotifPayloadDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
         zulipLocalizations.notifGroupDmConversationLabel(
           data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
-      FcmMessageDmRecipient() =>
+      NotifPayloadDmRecipient() =>
         data.senderFullName,
     };
 
@@ -283,9 +283,9 @@ class NotificationDisplayManager {
       realmUrl: data.realmUrl,
       userId: data.userId,
       narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var channelId, :var topic) =>
+        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
           TopicNarrow(channelId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
+        NotifPayloadDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
       }).buildAndroidNotificationUrl();
 
@@ -302,7 +302,7 @@ class NotificationDisplayManager {
       messagingStyle: messagingStyle,
       number: messagingStyle.messages.length,
       extras: {
-        // Used to decide when a `RemoveFcmMessage` event should clear this notification.
+        // Used to decide when a `NotifPayloadRemove` event should clear this notification.
         kExtraLastMessageId: data.messageId.toString(),
       },
 
@@ -355,7 +355,7 @@ class NotificationDisplayManager {
     );
   }
 
-  static Future<void> _onRemoveFcmMessage(RemoveFcmMessage data) async {
+  static Future<void> _onNotifPayloadRemove(NotifPayloadRemove data) async {
     // We have an FCM message telling us that some Zulip messages were read
     // and should no longer appear as notifications.  We'll remove their
     // conversations' notifications, if appropriate, and then the whole
@@ -446,15 +446,15 @@ class NotificationDisplayManager {
   /// A key we use in [Notification.extras] for the [Message.id] of the
   /// latest Zulip message in the notification's conversation.
   ///
-  /// We use this to determine if a [RemoveFcmMessage] event should
+  /// We use this to determine if a [NotifPayloadRemove] event should
   /// clear that specific notification.
   @visibleForTesting
   static const kExtraLastMessageId = 'lastZulipMessageId';
 
-  static String _conversationKey(MessageFcmMessage data, String groupKey) {
+  static String _conversationKey(NotifPayloadNewMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
-      FcmMessageChannelRecipient(:var channelId, :var topic) => 'stream:$channelId:${topic.canonicalize()}',
-      FcmMessageDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',
+      NotifPayloadChannelRecipient(:var channelId, :var topic) => 'stream:$channelId:${topic.canonicalize()}',
+      NotifPayloadDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',
     };
     return '$groupKey|$conversation';
   }
