@@ -26,18 +26,18 @@ void main() {
     };
 
     void checkParseFails(Map<String, Object?> data) {
-      check(() => FcmMessage.fromJson(data)).throws<void>();
+      check(() => NotifPayload.fromJson(data)).throws<void>();
     }
 
-    group('FcmMessage', () {
+    group('NotifPayload', () {
       test('parse fails on missing or bad type', () {
-        check(FcmMessage.fromJson({})).isA<UnexpectedFcmMessage>();
-        check(FcmMessage.fromJson({'type': 'nonsense'})).isA<UnexpectedFcmMessage>();
-        check(FcmMessage.fromJson({'event': 'nonsense'})).isA<UnexpectedFcmMessage>();
+        check(NotifPayload.fromJson({})).isA<UnexpectedNotifPayload>();
+        check(NotifPayload.fromJson({'type': 'nonsense'})).isA<UnexpectedNotifPayload>();
+        check(NotifPayload.fromJson({'event': 'nonsense'})).isA<UnexpectedNotifPayload>();
       });
     });
 
-    group('MessageFcmMessage', () {
+    group('NotifPayloadNewMessage', () {
       // These JSON test data aim to reflect what current servers send.
       // We ignore some of the fields; see tests.
 
@@ -110,8 +110,8 @@ void main() {
         "recipient_type": "private",
       };
 
-      MessageFcmMessage parse(Map<String, dynamic> json) {
-        return FcmMessage.fromJson(json) as MessageFcmMessage;
+      NotifPayloadNewMessage parse(Map<String, dynamic> json) {
+        return NotifPayload.fromJson(json) as NotifPayloadNewMessage;
       }
 
       test("fields get parsed right in happy path", () {
@@ -124,7 +124,7 @@ void main() {
           ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url'] as String))
           ..senderFullName.equals(streamJson['sender_full_name'] as String)
           ..messageId.equals(12345)
-          ..recipient.isA<FcmMessageChannelRecipient>().which((it) => it
+          ..recipient.isA<NotifPayloadChannelRecipient>().which((it) => it
             ..channelId.equals(42)
             ..channelName.equals(streamJson['channel_name'] as String)
             ..topic.jsonEquals(streamJson['topic']!))
@@ -132,11 +132,11 @@ void main() {
           ..time.equals(1546300800);
 
         check(parse(groupDmJson))
-          .recipient.isA<FcmMessageDmRecipient>()
+          .recipient.isA<NotifPayloadDmRecipient>()
           .allRecipientIds.deepEquals([123, 234, 345]);
 
         check(parse(dmJson))
-          .recipient.isA<FcmMessageDmRecipient>()
+          .recipient.isA<NotifPayloadDmRecipient>()
           .allRecipientIds.deepEquals([123, 234]);
       });
 
@@ -145,12 +145,12 @@ void main() {
           .realmName.isNull();
 
         check(parse({ ...streamJson }..remove('channel_name')))
-          .recipient.isA<FcmMessageChannelRecipient>().which((it) => it
+          .recipient.isA<NotifPayloadChannelRecipient>().which((it) => it
             ..channelId.equals(42)
             ..channelName.isNull());
 
         check(parse({ ...streamJsonPreE2ee }..remove('stream')))
-          .recipient.isA<FcmMessageChannelRecipient>().which((it) => it
+          .recipient.isA<NotifPayloadChannelRecipient>().which((it) => it
             ..channelId.equals(42)
             ..channelName.isNull());
       });
@@ -243,7 +243,7 @@ void main() {
       });
     });
 
-    group('RemoveFcmMessage', () {
+    group('NotifPayloadRemove', () {
       final baseJson = {
         ...baseBaseJson,
         'type': 'remove',
@@ -259,8 +259,8 @@ void main() {
         'zulip_message_id': '123',
       };
 
-      RemoveFcmMessage parse(Map<String, dynamic> json) {
-        return FcmMessage.fromJson(json) as RemoveFcmMessage;
+      NotifPayloadRemove parse(Map<String, dynamic> json) {
+        return NotifPayload.fromJson(json) as NotifPayloadRemove;
       }
 
       test('fields get parsed right in happy path', () {
@@ -567,36 +567,36 @@ void main() {
   });
 }
 
-extension UnexpectedFcmMessageChecks on Subject<UnexpectedFcmMessage> {
+extension UnexpectedNotifPayloadChecks on Subject<UnexpectedNotifPayload> {
   Subject<Map<String, dynamic>> get json => has((x) => x.json, 'json');
 }
 
-extension FcmMessageWithIdentityChecks on Subject<FcmMessageWithIdentity> {
+extension NotifPayloadWithIdentityChecks on Subject<NotifPayloadWithIdentity> {
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
   Subject<String?> get realmName => has((x) => x.realmName, 'realmName');
   Subject<int> get userId => has((x) => x.userId, 'userId');
 }
 
-extension MessageFcmMessageChecks on Subject<MessageFcmMessage> {
+extension NotifPayloadNewMessageChecks on Subject<NotifPayloadNewMessage> {
   Subject<int> get senderId => has((x) => x.senderId, 'senderId');
   Subject<Uri> get senderAvatarUrl => has((x) => x.senderAvatarUrl, 'senderAvatarUrl');
   Subject<String> get senderFullName => has((x) => x.senderFullName, 'senderFullName');
-  Subject<FcmMessageRecipient> get recipient => has((x) => x.recipient, 'recipient');
+  Subject<NotifPayloadRecipient> get recipient => has((x) => x.recipient, 'recipient');
   Subject<int> get messageId => has((x) => x.messageId, 'messageId');
   Subject<int> get time => has((x) => x.time, 'time');
   Subject<String> get content => has((x) => x.content, 'content');
 }
 
-extension FcmMessageChannelRecipientChecks on Subject<FcmMessageChannelRecipient> {
+extension NotifPayloadChannelRecipientChecks on Subject<NotifPayloadChannelRecipient> {
   Subject<int> get channelId => has((x) => x.channelId, 'channelId');
   Subject<String?> get channelName => has((x) => x.channelName, 'channelName');
   Subject<TopicName> get topic => has((x) => x.topic, 'topic');
 }
 
-extension FcmMessageDmRecipientChecks on Subject<FcmMessageDmRecipient> {
+extension NotifPayloadDmRecipientChecks on Subject<NotifPayloadDmRecipient> {
   Subject<List<int>> get allRecipientIds => has((x) => x.allRecipientIds, 'allRecipientIds');
 }
 
-extension RemoveFcmMessageChecks on Subject<RemoveFcmMessage> {
+extension NotifPayloadRemoveChecks on Subject<NotifPayloadRemove> {
   Subject<List<int>> get messageIds => has((x) => x.messageIds, 'messageIds');
 }

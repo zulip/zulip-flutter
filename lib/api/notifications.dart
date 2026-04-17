@@ -10,8 +10,12 @@ part 'notifications.g.dart';
 
 /// An FCM message whose contents are encrypted end-to-end from the Zulip server.
 ///
-/// Once decrypted, the contents will become an [FcmMessage].
-/// See there also for background on FCM and FCM messages.
+/// Firebase Cloud Messaging (FCM) is the service run by Google that we use
+/// for delivering notifications to Android devices.  A decrypted FCM message
+/// may be to tell us we should show a notification, or something else like
+/// to remove one (because the user read the underlying Zulip message).
+///
+/// Once decrypted, the contents will become a [NotifPayload].
 ///
 /// API docs:
 ///   https://zulip.com/api/mobile-notifications#data-sent-to-fcm
@@ -31,61 +35,44 @@ class EncryptedFcmMessage {
   Map<String, dynamic> toJson() => _$EncryptedFcmMessageToJson(this);
 }
 
-/// Parsed version of an FCM message, of any plaintext type.
+/// Parsed version of a notification payload, of any plaintext type.
 ///
 /// This represents the data either decrypted from an [EncryptedFcmMessage],
 /// or (TODO(server-12)) delivered in plaintext directly as an FCM payload.
 ///
 /// For partial API docs, see:
 ///   https://zulip.com/api/mobile-notifications
-///
-/// Firebase Cloud Messaging (FCM) is the service run by Google that we use
-/// for delivering notifications to Android devices.  An FCM message may
-/// be to tell us we should show a notification, or something else like
-/// to remove one (because the user read the underlying Zulip message).
-///
-/// The word "message" can be confusing in this context,
-/// and in our notification code we usually stick to more specific phrases:
-///
-///  * An "FCM message" is one of the blobs we receive over FCM; what FCM docs
-///    call a "message", and is also known as a "data notification".
-///
-///    One of these might correspond to zero, one, or more actual notifications
-///    we show in the UI.
-///
-///  * A "Zulip message" is the thing that in other Zulip contexts we call
-///    simply a "message": a [Message], the central item in the Zulip app model.
-sealed class FcmMessage {
-  FcmMessage();
+sealed class NotifPayload {
+  NotifPayload();
 
-  factory FcmMessage.fromJson(Map<String, dynamic> json) {
+  factory NotifPayload.fromJson(Map<String, dynamic> json) {
     final notifType = json['type'] ?? json['event']; // TODO(server-12)
     switch (notifType) {
-      case 'message': return MessageFcmMessage.fromJson(json);
-      case 'remove': return RemoveFcmMessage.fromJson(json);
-      default: return UnexpectedFcmMessage.fromJson(json);
+      case 'message': return NotifPayloadNewMessage.fromJson(json);
+      case 'remove': return NotifPayloadRemove.fromJson(json);
+      default: return UnexpectedNotifPayload.fromJson(json);
     }
   }
 
   Map<String, dynamic> toJson();
 }
 
-/// An [FcmMessage] of a type (a value of `event`) we didn't know about.
-class UnexpectedFcmMessage extends FcmMessage {
+/// A [NotifPayload] of a type (a value of `event`) we didn't know about.
+class UnexpectedNotifPayload extends NotifPayload {
   final Map<String, dynamic> json;
 
-  UnexpectedFcmMessage.fromJson(this.json);
+  UnexpectedNotifPayload.fromJson(this.json);
 
   @override
   Map<String, dynamic> toJson() => json;
 }
 
-/// Base class for [FcmMessage]s that identify what Zulip account they're for.
+/// Base class for [NotifPayload]s that identify what Zulip account they're for.
 ///
 /// This includes all known types of FCM messages from Zulip
-/// (all [FcmMessage] subclasses other than [UnexpectedFcmMessage]),
+/// (all [NotifPayload] subclasses other than [UnexpectedNotifPayload]),
 /// and it seems likely that it always will.
-sealed class FcmMessageWithIdentity extends FcmMessage {
+sealed class NotifPayloadWithIdentity extends NotifPayload {
   // final String server; // ignore; never used, gone with E2EE notifs
   // final int realmId; // ignore; never used, gone with E2EE notifs
 
@@ -106,7 +93,7 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
   @JsonKey(readValue: _readIntOrString) // TODO(server-12)
   final int userId;
 
-  FcmMessageWithIdentity({
+  NotifPayloadWithIdentity({
     required this.realmUrl,
     required this.realmName,
     required this.userId,
@@ -122,11 +109,8 @@ sealed class FcmMessageWithIdentity extends FcmMessage {
 ///
 /// This corresponds to a Zulip message for which the user wants to
 /// see a notification.
-///
-/// The word "message" can be confusing in this context.
-/// See [FcmMessage] for discussion.
 @JsonSerializable(fieldRename: FieldRename.snake)
-class MessageFcmMessage extends FcmMessageWithIdentity {
+class NotifPayloadNewMessage extends NotifPayloadWithIdentity {
   @JsonKey(includeToJson: true)
   String get type => 'message';
 
@@ -137,7 +121,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   final String senderFullName;
 
   @JsonKey(includeToJson: false, readValue: _readWhole)
-  final FcmMessageRecipient recipient;
+  final NotifPayloadRecipient recipient;
 
   @JsonKey(readValue: _readMessageId)
   final int messageId;
@@ -151,7 +135,7 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   /// zulip/zulip:zerver/lib/push_notifications.py .
   final String content;
 
-  MessageFcmMessage({
+  NotifPayloadNewMessage({
     required super.realmUrl,
     required super.realmName,
     required super.userId,
@@ -171,19 +155,19 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
 
   static Object? _readWhole(Map<dynamic, dynamic> json, String key) => json;
 
-  factory MessageFcmMessage.fromJson(Map<String, dynamic> json) {
+  factory NotifPayloadNewMessage.fromJson(Map<String, dynamic> json) {
     assert((json['type'] ?? json['event']) == 'message'); // TODO(server-12)
-    return _$MessageFcmMessageFromJson(json);
+    return _$NotifPayloadNewMessageFromJson(json);
   }
 
   @override
   Map<String, dynamic> toJson() {
-    final result = _$MessageFcmMessageToJson(this);
+    final result = _$NotifPayloadNewMessageToJson(this);
     final recipient = this.recipient;
     switch (recipient) {
-      case FcmMessageDmRecipient(:var allRecipientIds):
+      case NotifPayloadDmRecipient(:var allRecipientIds):
         result['recipient_user_ids'] = allRecipientIds;
-      case FcmMessageChannelRecipient():
+      case NotifPayloadChannelRecipient():
         result['channel_id'] = recipient.channelId;
         if (recipient.channelName != null) result['channel_name'] = recipient.channelName;
         result['topic'] = recipient.topic;
@@ -192,22 +176,22 @@ class MessageFcmMessage extends FcmMessageWithIdentity {
   }
 }
 
-/// Data identifying where a Zulip message was sent, as part of an [FcmMessage].
-sealed class FcmMessageRecipient {
-  FcmMessageRecipient();
+/// Data identifying where a Zulip message was sent, as part of a [NotifPayload].
+sealed class NotifPayloadRecipient {
+  NotifPayloadRecipient();
 
-  factory FcmMessageRecipient.fromJson(Map<String, dynamic> json) {
+  factory NotifPayloadRecipient.fromJson(Map<String, dynamic> json) {
     // There's also a `recipient_type` field, but we don't really need it.
     // The presence or absence of `channel_id`/`stream_id` is just as informative.
     return (json.containsKey('channel_id') || json.containsKey('stream_id')) // TODO(server-12)
-      ? FcmMessageChannelRecipient.fromJson(json)
-      : FcmMessageDmRecipient.fromJson(json);
+      ? NotifPayloadChannelRecipient.fromJson(json)
+      : NotifPayloadDmRecipient.fromJson(json);
   }
 }
 
-/// An [FcmMessageRecipient] for a Zulip message to a stream.
+/// A [NotifPayloadRecipient] for a Zulip message to a stream.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
-class FcmMessageChannelRecipient extends FcmMessageRecipient {
+class NotifPayloadChannelRecipient extends NotifPayloadRecipient {
   @JsonKey(readValue: _readChannelId)
   final int channelId;
 
@@ -219,7 +203,7 @@ class FcmMessageChannelRecipient extends FcmMessageRecipient {
 
   final TopicName topic;
 
-  FcmMessageChannelRecipient({required this.channelId, required this.channelName, required this.topic});
+  NotifPayloadChannelRecipient({required this.channelId, required this.channelName, required this.topic});
 
   static Object? _readChannelId(Map<dynamic, dynamic> json, String key) {
     return json['channel_id']
@@ -230,18 +214,18 @@ class FcmMessageChannelRecipient extends FcmMessageRecipient {
     return json['channel_name'] ?? json['stream']; // TODO(server-12)
   }
 
-  factory FcmMessageChannelRecipient.fromJson(Map<String, dynamic> json) =>
-    _$FcmMessageChannelRecipientFromJson(json);
+  factory NotifPayloadChannelRecipient.fromJson(Map<String, dynamic> json) =>
+    _$NotifPayloadChannelRecipientFromJson(json);
 }
 
-/// An [FcmMessageRecipient] for a Zulip message that was a DM.
-class FcmMessageDmRecipient extends FcmMessageRecipient {
+/// A [NotifPayloadRecipient] for a Zulip message that was a DM.
+class NotifPayloadDmRecipient extends NotifPayloadRecipient {
   final List<int> allRecipientIds;
 
-  FcmMessageDmRecipient({required this.allRecipientIds});
+  NotifPayloadDmRecipient({required this.allRecipientIds});
 
-  factory FcmMessageDmRecipient.fromJson(Map<String, dynamic> json) {
-    return FcmMessageDmRecipient(allRecipientIds: switch (json) {
+  factory NotifPayloadDmRecipient.fromJson(Map<String, dynamic> json) {
+    return NotifPayloadDmRecipient(allRecipientIds: switch (json) {
       // TODO(server-12) accept only the recipient_user_ids form
       {'recipient_user_ids': List<dynamic> userIds} =>
         userIds.map((id) => id as int).toList(),
@@ -270,7 +254,7 @@ class FcmMessageDmRecipient extends FcmMessageRecipient {
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class RemoveFcmMessage extends FcmMessageWithIdentity {
+class NotifPayloadRemove extends NotifPayloadWithIdentity {
   @JsonKey(includeToJson: true)
   String get type => 'remove';
 
@@ -282,7 +266,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
   final List<int> messageIds;
   // final String? zulipMessageId; // obsolete; ignore
 
-  RemoveFcmMessage({
+  NotifPayloadRemove({
     required super.realmUrl,
     required super.realmName,
     required super.userId,
@@ -294,13 +278,13 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
       ?? const _IntListConverter().fromJson(json['zulip_message_ids'] as String); // TODO(server-12)
   }
 
-  factory RemoveFcmMessage.fromJson(Map<String, dynamic> json) {
+  factory NotifPayloadRemove.fromJson(Map<String, dynamic> json) {
     assert((json['type'] ?? json['event']) == 'remove'); // TODO(server-12)
-    return _$RemoveFcmMessageFromJson(json);
+    return _$NotifPayloadRemoveFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() => _$RemoveFcmMessageToJson(this);
+  Map<String, dynamic> toJson() => _$NotifPayloadRemoveToJson(this);
 }
 
 //|//////////////////////////////////////////////////////////////
@@ -313,7 +297,7 @@ class RemoveFcmMessage extends FcmMessageWithIdentity {
 ///
 /// See pre-E2EE server implementation for reference:
 ///   https://github.com/zulip/zulip/blob/10.x/zerver/lib/push_notifications.py#L963
-sealed class LegacyFcmMessage implements FcmMessage {
+sealed class LegacyFcmMessage implements NotifPayload {
   LegacyFcmMessage();
 
   factory LegacyFcmMessage.fromJson(Map<String, dynamic> json) {
@@ -329,7 +313,7 @@ sealed class LegacyFcmMessage implements FcmMessage {
 }
 
 /// A [LegacyFcmMessage] of a type (a value of `event`) we didn't know about.
-class UnexpectedLegacyFcmMessage extends LegacyFcmMessage implements UnexpectedFcmMessage {
+class UnexpectedLegacyFcmMessage extends LegacyFcmMessage implements UnexpectedNotifPayload {
   @override
   final Map<String, dynamic> json;
 
@@ -340,7 +324,7 @@ class UnexpectedLegacyFcmMessage extends LegacyFcmMessage implements UnexpectedF
 }
 
 /// Base class for [LegacyFcmMessage]s that identify what Zulip account they're for.
-sealed class LegacyFcmMessageWithIdentity extends LegacyFcmMessage implements FcmMessageWithIdentity {
+sealed class LegacyFcmMessageWithIdentity extends LegacyFcmMessage implements NotifPayloadWithIdentity {
   // final String server; // ignore; never used, gone with E2EE notifs
   // final int realmId; // ignore; never used, gone with E2EE notifs
 
@@ -381,7 +365,7 @@ sealed class LegacyFcmMessageWithIdentity extends LegacyFcmMessage implements Fc
 /// This corresponds to a Zulip message for which the user wants to
 /// see a notification.
 @JsonSerializable(fieldRename: FieldRename.snake)
-class MessageLegacyFcmMessage extends LegacyFcmMessageWithIdentity implements MessageFcmMessage {
+class MessageLegacyFcmMessage extends LegacyFcmMessageWithIdentity implements NotifPayloadNewMessage {
   @override
   @JsonKey(includeToJson: true, name: 'event')
   String get type => 'message';
@@ -455,7 +439,7 @@ class MessageLegacyFcmMessage extends LegacyFcmMessageWithIdentity implements Me
 }
 
 /// Data identifying where a Zulip message was sent, as part of a [LegacyFcmMessage].
-sealed class LegacyFcmMessageRecipient implements FcmMessageRecipient {
+sealed class LegacyFcmMessageRecipient implements NotifPayloadRecipient {
   LegacyFcmMessageRecipient();
 
   factory LegacyFcmMessageRecipient.fromJson(Map<String, dynamic> json) {
@@ -469,7 +453,7 @@ sealed class LegacyFcmMessageRecipient implements FcmMessageRecipient {
 
 /// A [LegacyFcmMessageRecipient] for a Zulip message to a stream.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
-class LegacyFcmMessageChannelRecipient extends LegacyFcmMessageRecipient implements FcmMessageChannelRecipient {
+class LegacyFcmMessageChannelRecipient extends LegacyFcmMessageRecipient implements NotifPayloadChannelRecipient {
   @override
   @JsonKey(name: 'stream_id')
   @_IntConverter()
@@ -492,7 +476,7 @@ class LegacyFcmMessageChannelRecipient extends LegacyFcmMessageRecipient impleme
 }
 
 /// A [LegacyFcmMessageRecipient] for a Zulip message that was a DM.
-class LegacyFcmMessageDmRecipient extends LegacyFcmMessageRecipient implements FcmMessageDmRecipient {
+class LegacyFcmMessageDmRecipient extends LegacyFcmMessageRecipient implements NotifPayloadDmRecipient {
   @override
   final List<int> allRecipientIds;
 
@@ -524,7 +508,7 @@ class LegacyFcmMessageDmRecipient extends LegacyFcmMessageRecipient implements F
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
-class RemoveLegacyFcmMessage extends LegacyFcmMessageWithIdentity implements RemoveFcmMessage {
+class RemoveLegacyFcmMessage extends LegacyFcmMessageWithIdentity implements NotifPayloadRemove {
   @override
   @JsonKey(includeToJson: true, name: 'event')
   String get type => 'remove';
