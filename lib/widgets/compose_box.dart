@@ -716,7 +716,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final channelName = store.streams[widget.narrow.channelId]?.name
+    final channelName = store.channels[widget.narrow.channelId]?.name
       ?? zulipLocalizations.unknownChannelName;
     final hintTopic = _hintTopic();
     final hintDestination = hintTopic == null
@@ -891,7 +891,7 @@ class _FixedDestinationContentInput extends StatelessWidget {
     switch (narrow) {
       case TopicNarrow(:final channelId, :final topic):
         final store = PerAccountStoreWidget.of(context);
-        final channelName = store.streams[channelId]?.name
+        final channelName = store.channels[channelId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
           // No i18n of this use of "#" and ">" string; those are part of how
@@ -2251,7 +2251,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     switch (widget.narrow) {
       case ChannelNarrow(:final channelId):
       case TopicNarrow(:final channelId):
-        final channel = store.streams[channelId];
+        final channel = store.channels[channelId];
         if (channel == null || !store.selfHasContentAccess(channel)) {
           return _Banner(
             intent: _BannerIntent.info,
@@ -2323,7 +2323,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     switch (narrow) {
       case ChannelNarrow(:final channelId):
       case TopicNarrow(:final channelId):
-        final channel = store.streams[channelId];
+        final channel = store.channels[channelId];
         // (If the channel is unknown, we should have already decided
         // what to show.)
         assert(channel != null);
