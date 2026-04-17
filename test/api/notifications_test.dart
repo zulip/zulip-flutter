@@ -319,6 +319,256 @@ void main() {
       });
     });
   });
+
+  // TODO(server-12) remove legacy non-E2EE notification tests.
+  group('Legacy plaintext types', () {
+    final baseBaseJson = {
+      "realm_uri": "https://zulip.example.com/",  // TODO(server-9)
+      "realm_url": "https://zulip.example.com/",
+      "realm_name": "Example Organization",
+      "user_id": "234",
+    };
+
+    void checkParseFails(Map<String, String> data) {
+      check(() => LegacyFcmMessage.fromJson(data)).throws<void>();
+    }
+
+    group('LegacyFcmMessage', () {
+      test('parse fails on missing or bad event type', () {
+        check(LegacyFcmMessage.fromJson({})).isA<UnexpectedLegacyFcmMessage>();
+        check(LegacyFcmMessage.fromJson({'event': 'nonsense'})).isA<UnexpectedLegacyFcmMessage>();
+      });
+    });
+
+    group('MessageLegacyFcmMessage', () {
+      // These JSON test data aim to reflect what current servers send.
+      // We ignore some of the fields; see tests.
+
+      final baseJson = {
+        ...baseBaseJson,
+        "event": "message",
+
+        "sender_id": "123",
+        "sender_email": "sender@example.com",
+        "sender_avatar_url": "https://zulip.example.com/avatar/123.jpeg",
+        "sender_full_name": "A Sender",
+
+        "time": "1546300800",
+        "zulip_message_id": "12345",
+
+        "content": "This is a message",
+        "content_truncated": "This is a m…",
+      };
+
+      final streamJson = {
+        ...baseJson,
+        "recipient_type": "stream",
+        "stream_id": "42",
+        "stream": "denmark",
+        "topic": "play",
+      };
+
+      final groupDmJson = {
+        ...baseJson,
+        "recipient_type": "private",
+        "pm_users": "123,234,345",
+      };
+
+      final dmJson = {
+        ...baseJson,
+        "recipient_type": "private",
+      };
+
+      MessageLegacyFcmMessage parse(Map<String, dynamic> json) {
+        return LegacyFcmMessage.fromJson(json) as MessageLegacyFcmMessage;
+      }
+
+      test("fields get parsed right in happy path", () {
+        check(parse(streamJson))
+          ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
+          ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
+          ..realmName.equals(baseBaseJson['realm_name'] as String)
+          ..userId.equals(234)
+          ..senderId.equals(123)
+          ..senderAvatarUrl.equals(Uri.parse(streamJson['sender_avatar_url'] as String))
+          ..senderFullName.equals(streamJson['sender_full_name'] as String)
+          ..messageId.equals(12345)
+          ..recipient.isA<LegacyFcmMessageChannelRecipient>().which((it) => it
+            ..channelId.equals(42)
+            ..channelName.equals(streamJson['stream'] as String)
+            ..topic.jsonEquals(streamJson['topic']!))
+          ..content.equals(streamJson['content'] as String)
+          ..time.equals(1546300800);
+
+        check(parse(groupDmJson))
+          .recipient.isA<LegacyFcmMessageDmRecipient>()
+          .allRecipientIds.deepEquals([123, 234, 345]);
+
+        check(parse(dmJson))
+          .recipient.isA<LegacyFcmMessageDmRecipient>()
+          .allRecipientIds.deepEquals([123, 234]);
+      });
+
+      test('optional fields missing cause no error', () {
+        check(parse({ ...streamJson }..remove('realm_name')))
+          .realmName.isNull();
+
+        check(parse({ ...streamJson }..remove('stream')))
+          .recipient.isA<LegacyFcmMessageChannelRecipient>().which((it) => it
+            ..channelId.equals(42)
+            ..channelName.isNull());
+      });
+
+      test('toJson round-trips', () {
+        void checkRoundTrip(Map<String, String> json) {
+          check(parse(json).toJson())
+            .deepEquals({ ...json }
+              ..remove('recipient_type') // Redundant with stream_id.
+              ..remove('content_truncated') // Redundant with content.
+              ..remove('sender_email') // Redundant with sender_id.
+            );
+        }
+
+        checkRoundTrip(streamJson);
+        checkRoundTrip(groupDmJson);
+        checkRoundTrip(dmJson);
+        checkRoundTrip({ ...streamJson }..remove('stream'));
+      });
+
+      test('ignored fields missing have no effect', () {
+        final baseline = parse(streamJson);
+        check(parse({ ...streamJson }..remove('recipient_type'))).jsonEquals(baseline);
+        check(parse({ ...streamJson }..remove('server'))).jsonEquals(baseline);
+        check(parse({ ...streamJson }..remove('realm_id'))).jsonEquals(baseline);
+        check(parse({ ...streamJson }..remove('content_truncated'))).jsonEquals(baseline);
+        check(parse({ ...streamJson }..remove('sender_email'))).jsonEquals(baseline);
+      });
+
+      test('obsolete or novel fields have no effect', () {
+        final baseline = parse(dmJson);
+        void checkInert(Map<String, String> extraJson) =>
+          check(parse({ ...dmJson, ...extraJson })).jsonEquals(baseline);
+
+        // Cut in 2017, in zulip/zulip@c007b9ea4.
+        checkInert({ 'user': 'client@example.com' });
+
+        // Cut in 2023, in zulip/zulip@5d8897b90.
+        checkInert({ 'alert': 'New private message from A Sender' });
+
+        // Hypothetical future field.
+        checkInert({ 'awesome_feature': 'enabled' });
+      });
+
+      test('uses deprecated fields when newer fields are missing', () {
+        final baseline = parse(dmJson);
+
+        // FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
+        final jsonSansRealm =
+          { ...dmJson }..remove('realm_url')..remove('realm_uri');
+        check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' }))
+          .jsonEquals(baseline);
+      });
+
+      group("parse failures on malformed 'message'", () {
+        int n = 1;
+        test("${n++}", () => checkParseFails({ ...dmJson }
+                                              ..remove('realm_url')
+                                              ..remove('realm_uri'))); // TODO(server-9)
+        test(skip: true, // Dart's Uri.parse is lax in what it accepts.
+            "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': 'zulip.example.com' }));
+        test(skip: true, // Dart's Uri.parse is lax in what it accepts.
+            "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': '/examplecorp' }));
+
+        test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': 'abc' }));
+        test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': '12,34' }));
+        test("${n++}", () => checkParseFails({ ...streamJson }..remove('topic')));
+        test("${n++}", () => checkParseFails({ ...groupDmJson, 'pm_users': 'abc,34' }));
+        test("${n++}", () => checkParseFails({ ...groupDmJson, 'pm_users': '12,abc' }));
+        test("${n++}", () => checkParseFails({ ...groupDmJson, 'pm_users': '12,' }));
+
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_avatar_url')));
+        test(skip: true, // Dart's Uri.parse is lax in what it accepts.
+            "${n++}", () => checkParseFails({ ...dmJson, 'sender_avatar_url': '/avatar/123.jpeg' }));
+        test(skip: true, // Dart's Uri.parse is lax in what it accepts.
+            "${n++}", () => checkParseFails({ ...dmJson, 'sender_avatar_url': '' }));
+
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_id')));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('sender_full_name')));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('zulip_message_id')));
+        test("${n++}", () => checkParseFails({ ...dmJson, 'zulip_message_id': '12,34' }));
+        test("${n++}", () => checkParseFails({ ...dmJson, 'zulip_message_id': 'abc' }));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('content')));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('time')));
+        test("${n++}", () => checkParseFails({ ...dmJson, 'time': '12:34' }));
+      });
+    });
+
+    group('RemoveLegacyFcmMessage', () {
+      final baseJson = {
+        ...baseBaseJson,
+        'event': 'remove',
+
+        'zulip_message_ids': '123,234',
+        'zulip_message_id': '123',
+      };
+
+      RemoveLegacyFcmMessage parse(Map<String, dynamic> json) {
+        return LegacyFcmMessage.fromJson(json) as RemoveLegacyFcmMessage;
+      }
+
+      test('fields get parsed right in happy path', () {
+        check(parse(baseJson))
+          ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
+          ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
+          ..realmName.equals(baseJson['realm_name'] as String)
+          ..userId.equals(234)
+          ..messageIds.deepEquals([123, 234]);
+      });
+
+      test('toJson round-trips', () {
+        check(parse(baseJson).toJson())
+          .deepEquals({ ...baseJson }..remove('zulip_message_id'));
+      });
+
+      test('ignored fields missing have no effect', () {
+        final baseline = parse(baseJson);
+        check(parse({ ...baseJson }..remove('server'))).jsonEquals(baseline);
+        check(parse({ ...baseJson }..remove('realm_id'))).jsonEquals(baseline);
+        check(parse({ ...baseJson }..remove('zulip_message_id'))).jsonEquals(baseline);
+      });
+
+      test('obsolete or novel fields have no effect', () {
+        final baseline = parse(baseJson);
+        check(parse({ ...baseJson, 'awesome_feature': 'enabled' })).jsonEquals(baseline);
+      });
+
+      test('uses deprecated fields when newer fields are missing', () {
+        final baseline = parse(baseJson);
+
+        // FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
+        final jsonSansRealm =
+          { ...baseJson }..remove('realm_url')..remove('realm_uri');
+        check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' }))
+          .jsonEquals(baseline);
+      });
+
+      group('parse failures on malformed data', () {
+        int n = 1;
+
+        test("${n++}", () => checkParseFails({ ...baseJson }
+                                              ..remove('realm_url')
+                                              ..remove('realm_uri'))); // TODO(server-9)
+        test(skip: true, // Dart's Uri.parse is lax in what it accepts.
+            "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': 'zulip.example.com' }));
+        test(skip: true, // Dart's Uri.parse is lax in what it accepts.
+            "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': '/examplecorp' }));
+
+        for (final badIntList in ["abc,34", "12,abc", "12,", ""]) {
+          test("${n++}", () => checkParseFails({ ...baseJson, 'zulip_message_ids': badIntList }));
+        }
+      });
+    });
+  });
 }
 
 extension UnexpectedFcmMessageChecks on Subject<UnexpectedFcmMessage> {
