@@ -149,6 +149,9 @@ void main() {
         if (token != null) {
           final tokenKind = (defaultTargetPlatform == TargetPlatform.android)
             ? 'fcm' : 'apns';
+          final iosAppId = defaultTargetPlatform == TargetPlatform.iOS
+            ? (await testBinding.packageInfo)!.packageName
+            : null;
           final tokenId = NotificationService.computeTokenId(token);
           check(request).bodyFields
             ..['token_kind'].equals(tokenKind)
@@ -160,6 +163,7 @@ void main() {
               'token_kind': tokenKind,
               'token': token,
               'timestamp': testBinding.utcNow().millisecondsSinceEpoch ~/ 1000,
+              'ios_app_id': ?iosAppId,
             });
         }
       }

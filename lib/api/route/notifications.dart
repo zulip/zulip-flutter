@@ -73,12 +73,15 @@ class PushRegistration {
   final PushTokenKind tokenKind;
   final String token;
   final int timestamp;
-  // final String? iosAppId; // TODO(#1764)
+
+  @JsonKey(includeIfNull: false)
+  final String? iosAppId;
 
   PushRegistration({
     required this.tokenKind,
     required this.token,
     required this.timestamp,
+    required this.iosAppId,
   });
 
   Map<String, dynamic> toJson() => _$PushRegistrationToJson(this);

@@ -237,8 +237,15 @@ class PushDeviceManager extends PerAccountStoreBase {
         _ => throw StateError('unexpected platform: $defaultTargetPlatform'),
       };
 
-      final pushRegistration = PushRegistration( // TODO(#1764) also iosAppId
-        tokenKind: tokenKind, token: token,
+      String? iosAppId;
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        final packageInfo = await ZulipBinding.instance.packageInfo;
+        iosAppId = packageInfo!.packageName;
+      }
+      final pushRegistration = PushRegistration(
+        iosAppId: iosAppId,
+        tokenKind: tokenKind,
+        token: token,
         timestamp: timestamp);
       final encryptedPushRegistration = await _encryptToBouncer(
         bouncerPublicKey, jsonEncode(pushRegistration));
