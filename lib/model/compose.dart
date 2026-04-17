@@ -265,7 +265,13 @@ const supportedInlineAudioTypes = [
   'audio/vnd.wave',
   'audio/wav',
   'audio/webm',
-  'audio/x-wav'];
+  'audio/x-wav',
+  // mime package always assign files with `.flac` extension with depreciated
+  // flac MIME type, i.e 'audio/x-flac'. But, server only supports 'audio/flac'.
+  // We should 'audio/x-flac' into 'audio/flac' MIME type before sending the
+  // `contentType` of file to be uploaded. Discussion:
+  // https://chat.zulip.org/#narrow/channel/9-issues/topic/flutter.20client.20maps.20.2Eflac.20to.20.60audio.2Fx-flac.60.20MIME.20type/near/2436142
+  'audio/x-flac'];
 
 const supportedInlineImageTypes = [
   'image/avif',
