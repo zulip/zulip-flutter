@@ -240,10 +240,10 @@ class NotificationService {
     final plaintext = await PushKeyStore.decryptNotification(
       pushKey.pushKey, parsed.encryptedData);
     final rawData = jsonUtf8Decoder.convert(plaintext) as Map<String, dynamic>;
-    final data = FcmMessage.fromJson(rawData);
+    final data = NotifPayload.fromJson(rawData);
     switch (data) {
-      case FcmMessageWithIdentity(): break;
-      case UnexpectedFcmMessage(): return; // TODO(log)
+      case NotifPayloadWithIdentity(): break;
+      case UnexpectedNotifPayload(): return; // TODO(log)
     }
 
     if (!(account.realmUrl.origin == data.realmUrl.origin
@@ -251,7 +251,7 @@ class NotificationService {
       throw Exception("bad notif payload: realm/userId fails to match push key");
     }
 
-    NotificationDisplayManager.onFcmMessage(data, account);
+    NotificationDisplayManager.onNotifPayload(data, account);
   }
 
   static Future<void> _onPlaintextRemoteMessage(Map<String, dynamic> rawData) async {
@@ -289,6 +289,6 @@ class NotificationService {
       return;
     }
 
-    NotificationDisplayManager.onFcmMessage(data, account);
+    NotificationDisplayManager.onNotifPayload(data, account);
   }
 }

@@ -21,66 +21,69 @@ Map<String, dynamic> _$EncryptedFcmMessageToJson(
   'encrypted_data': base64Encode(instance.encryptedData),
 };
 
-MessageFcmMessage _$MessageFcmMessageFromJson(Map<String, dynamic> json) =>
-    MessageFcmMessage(
-      realmUrl: Uri.parse(
-        FcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
-      ),
-      realmName: json['realm_name'] as String?,
-      userId: (_readIntOrString(json, 'user_id') as num).toInt(),
-      senderId: (_readIntOrString(json, 'sender_id') as num).toInt(),
-      senderAvatarUrl: Uri.parse(json['sender_avatar_url'] as String),
-      senderFullName: json['sender_full_name'] as String,
-      recipient: FcmMessageRecipient.fromJson(
-        MessageFcmMessage._readWhole(json, 'recipient') as Map<String, dynamic>,
-      ),
-      messageId: (MessageFcmMessage._readMessageId(json, 'message_id') as num)
-          .toInt(),
-      content: json['content'] as String,
-      time: (_readIntOrString(json, 'time') as num).toInt(),
-    );
-
-Map<String, dynamic> _$MessageFcmMessageToJson(MessageFcmMessage instance) =>
-    <String, dynamic>{
-      'realm_url': instance.realmUrl.toString(),
-      'realm_name': instance.realmName,
-      'user_id': instance.userId,
-      'type': instance.type,
-      'sender_id': instance.senderId,
-      'sender_avatar_url': instance.senderAvatarUrl.toString(),
-      'sender_full_name': instance.senderFullName,
-      'message_id': instance.messageId,
-      'time': instance.time,
-      'content': instance.content,
-    };
-
-FcmMessageChannelRecipient _$FcmMessageChannelRecipientFromJson(
+NotifPayloadNewMessage _$NotifPayloadNewMessageFromJson(
   Map<String, dynamic> json,
-) => FcmMessageChannelRecipient(
+) => NotifPayloadNewMessage(
+  realmUrl: Uri.parse(
+    NotifPayloadWithIdentity._readRealmUrl(json, 'realm_url') as String,
+  ),
+  realmName: json['realm_name'] as String?,
+  userId: (_readIntOrString(json, 'user_id') as num).toInt(),
+  senderId: (_readIntOrString(json, 'sender_id') as num).toInt(),
+  senderAvatarUrl: Uri.parse(json['sender_avatar_url'] as String),
+  senderFullName: json['sender_full_name'] as String,
+  recipient: NotifPayloadRecipient.fromJson(
+    NotifPayloadNewMessage._readWhole(json, 'recipient')
+        as Map<String, dynamic>,
+  ),
+  messageId: (NotifPayloadNewMessage._readMessageId(json, 'message_id') as num)
+      .toInt(),
+  content: json['content'] as String,
+  time: (_readIntOrString(json, 'time') as num).toInt(),
+);
+
+Map<String, dynamic> _$NotifPayloadNewMessageToJson(
+  NotifPayloadNewMessage instance,
+) => <String, dynamic>{
+  'realm_url': instance.realmUrl.toString(),
+  'realm_name': instance.realmName,
+  'user_id': instance.userId,
+  'type': instance.type,
+  'sender_id': instance.senderId,
+  'sender_avatar_url': instance.senderAvatarUrl.toString(),
+  'sender_full_name': instance.senderFullName,
+  'message_id': instance.messageId,
+  'time': instance.time,
+  'content': instance.content,
+};
+
+NotifPayloadChannelRecipient _$NotifPayloadChannelRecipientFromJson(
+  Map<String, dynamic> json,
+) => NotifPayloadChannelRecipient(
   channelId:
-      (FcmMessageChannelRecipient._readChannelId(json, 'channel_id') as num)
+      (NotifPayloadChannelRecipient._readChannelId(json, 'channel_id') as num)
           .toInt(),
   channelName:
-      FcmMessageChannelRecipient._readChannelName(json, 'channel_name')
+      NotifPayloadChannelRecipient._readChannelName(json, 'channel_name')
           as String?,
   topic: TopicName.fromJson(json['topic'] as String),
 );
 
-RemoveFcmMessage _$RemoveFcmMessageFromJson(Map<String, dynamic> json) =>
-    RemoveFcmMessage(
+NotifPayloadRemove _$NotifPayloadRemoveFromJson(Map<String, dynamic> json) =>
+    NotifPayloadRemove(
       realmUrl: Uri.parse(
-        FcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
+        NotifPayloadWithIdentity._readRealmUrl(json, 'realm_url') as String,
       ),
       realmName: json['realm_name'] as String?,
       userId: (_readIntOrString(json, 'user_id') as num).toInt(),
       messageIds:
-          (RemoveFcmMessage._readMessageIds(json, 'message_ids')
+          (NotifPayloadRemove._readMessageIds(json, 'message_ids')
                   as List<dynamic>)
               .map((e) => (e as num).toInt())
               .toList(),
     );
 
-Map<String, dynamic> _$RemoveFcmMessageToJson(RemoveFcmMessage instance) =>
+Map<String, dynamic> _$NotifPayloadRemoveToJson(NotifPayloadRemove instance) =>
     <String, dynamic>{
       'realm_url': instance.realmUrl.toString(),
       'realm_name': instance.realmName,
