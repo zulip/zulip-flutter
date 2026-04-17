@@ -12,6 +12,7 @@ import '../firebase_options.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/push_key.dart';
+import '../model/store.dart';
 import 'display.dart';
 import 'open.dart';
 
@@ -226,31 +227,10 @@ class NotificationService {
       return;
     }
 
-    final globalStore = await ZulipBinding.instance.getGlobalStore();
-    final pushKey = globalStore.pushKeys.getPushKeyById(parsed.pushKeyId);
-    if (pushKey == null) {
-      // Not a key we have; nothing we can do with this notification-message.
-      // This can happen if it's addressed to an account that's been logged out.
-      // (On logout we try to unregister the device, but that can fail if the
-      // device isn't able to reach the server at that time.)
-      return;
-    }
-    final account = globalStore.getAccount(pushKey.accountId)!;
+    final result = await decryptNotification(parsed.pushKeyId, parsed.encryptedData);
+    if (result == null) return;
 
-    final plaintext = await PushKeyStore.decryptNotification(
-      pushKey.pushKey, parsed.encryptedData);
-    final rawData = jsonUtf8Decoder.convert(plaintext) as Map<String, dynamic>;
-    final data = NotifPayload.fromJson(rawData);
-    switch (data) {
-      case NotifPayloadWithIdentity(): break;
-      case UnexpectedNotifPayload(): return; // TODO(log)
-    }
-
-    if (!(account.realmUrl.origin == data.realmUrl.origin
-          && account.userId == data.userId)) {
-      throw Exception("bad notif payload: realm/userId fails to match push key");
-    }
-
+    final (data, account) = result;
     NotificationDisplayManager.onNotifPayload(data, account);
   }
 
@@ -290,5 +270,41 @@ class NotificationService {
     }
 
     NotificationDisplayManager.onNotifPayload(data, account);
+  }
+
+  /// Decrypt an E2EE notification content.
+  ///
+  /// Returns a future resolving to null if it encounters an error.
+  static Future<(NotifPayloadWithIdentity, Account)?> decryptNotification(
+    int pushKeyId,
+    Uint8List encryptedData,
+  ) async {
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final pushKey = globalStore.pushKeys.getPushKeyById(pushKeyId);
+    if (pushKey == null) {
+      // Not a key we have; nothing we can do with this notification-message.
+      // This can happen if it's addressed to an account that's been logged out.
+      // (On logout we try to unregister the device, but that can fail if the
+      // device isn't able to reach the server at that time.)
+      return null; // TODO(log)
+    }
+    final account = globalStore.getAccount(pushKey.accountId)!;
+
+    final plaintext = await PushKeyStore.decryptNotification(
+      pushKey.pushKey, encryptedData);
+    final rawData = jsonUtf8Decoder.convert(plaintext) as Map<String, dynamic>;
+    final data = NotifPayload.fromJson(rawData);
+    switch (data) {
+      case NotifPayloadWithIdentity(): break;
+      case UnexpectedNotifPayload(): return null; // TODO(log)
+    }
+
+    if (!(account.realmUrl.origin == data.realmUrl.origin
+          && account.userId == data.userId)) {
+      assert(debugLog("bad notif payload: realm/userId fails to match push key"));
+      return null; // TODO(log)
+    }
+
+    return (data, account);
   }
 }
