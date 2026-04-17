@@ -270,15 +270,7 @@ class NotificationDisplayManager {
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
-    final intentDataUrl = NotificationOpenPayload(
-      realmUrl: data.realmUrl,
-      userId: data.userId,
-      narrow: switch (data.recipient) {
-        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
-          TopicNarrow(channelId, topic),
-        NotifPayloadDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildNotificationUrl();
+    final intentDataUrl = notificationUrlForNotifPayload(data);
 
     await _androidHost.notify(
       id: kNotificationId,
@@ -424,6 +416,18 @@ class NotificationDisplayManager {
       NotifPayloadDmRecipient() =>
         data.senderFullName,
     };
+  }
+
+  static Uri notificationUrlForNotifPayload(NotifPayloadNewMessage data) {
+    return NotificationOpenPayload(
+      realmUrl: data.realmUrl,
+      userId: data.userId,
+      narrow: switch (data.recipient) {
+        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
+          TopicNarrow(channelId, topic),
+        NotifPayloadDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildNotificationUrl();
   }
 
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
