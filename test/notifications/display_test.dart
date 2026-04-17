@@ -492,7 +492,7 @@ void main() {
           TopicNarrow(channelId, topic),
         NotifPayloadDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildAndroidNotificationUrl();
+      }).buildNotificationUrl();
       expectedSummaryText ??= account.realmName
         ?? data.realmName
         ?? data.realmUrl.toString();

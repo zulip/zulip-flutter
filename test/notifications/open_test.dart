@@ -146,7 +146,7 @@ void main() {
       check(pushedRoutes).isEmpty();
     }
 
-    Uri androidNotificationUrlForMessage(Account account, Message message) {
+    Uri notificationUrlForMessage(Account account, Message message) {
       final data = notifPayloadNewMessage(message, account: account);
       return NotificationOpenPayload(
         realmUrl: data.realmUrl,
@@ -156,13 +156,13 @@ void main() {
           TopicNarrow(channelId, topic),
         NotifPayloadDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildAndroidNotificationUrl();
+      }).buildNotificationUrl();
     }
 
     Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
-          final intentDataUrl = androidNotificationUrlForMessage(account, message);
+          final intentDataUrl = notificationUrlForMessage(account, message);
           testBinding.notificationPigeonApi.addNotificationTapEvent(
             AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
           await tester.idle(); // let navigateForNotification find navigator
@@ -183,7 +183,7 @@ void main() {
         case TargetPlatform.android:
           // Set up an event to be emitted from
           // `notificationPigeonApi.notificationTapEventsStream`.
-          final intentDataUrl = androidNotificationUrlForMessage(account, message);
+          final intentDataUrl = notificationUrlForMessage(account, message);
           testBinding.notificationPigeonApi.addNotificationTapEvent(
             AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
 
@@ -548,8 +548,8 @@ void main() {
         userId: 1001,
         narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
       );
-      var url = payload.buildAndroidNotificationUrl();
-      check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+      var url = payload.buildNotificationUrl();
+      check(NotificationOpenPayload.parseNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
@@ -560,8 +560,8 @@ void main() {
         userId: 1001,
         narrow: eg.topicNarrow(1, 'topic A'),
       );
-      url = payload.buildAndroidNotificationUrl();
-      check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+      url = payload.buildNotificationUrl();
+      check(NotificationOpenPayload.parseNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
         ..narrow.equals(payload.narrow);
@@ -617,13 +617,13 @@ void main() {
       });
     });
 
-    group('buildAndroidNotificationUrl', () {
+    group('buildNotificationUrl', () {
       test('smoke DM', () {
         final url = NotificationOpenPayload(
           realmUrl: Uri.parse('http://chat.example'),
           userId: 1001,
           narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
-        ).buildAndroidNotificationUrl();
+        ).buildNotificationUrl();
         check(url)
           ..scheme.equals('zulip')
           ..host.equals('notification')
@@ -640,7 +640,7 @@ void main() {
           realmUrl: Uri.parse('http://chat.example'),
           userId: 1001,
           narrow: eg.topicNarrow(1, 'topic A'),
-        ).buildAndroidNotificationUrl();
+        ).buildNotificationUrl();
         check(url)
           ..scheme.equals('zulip')
           ..host.equals('notification')
@@ -654,7 +654,7 @@ void main() {
       });
     });
 
-    group('parseAndroidNotificationUrl', () {
+    group('parseNotificationUrl', () {
       test('smoke DM', () {
         final url = Uri(
           scheme: 'zulip',
@@ -665,7 +665,7 @@ void main() {
             'narrow_type': 'dm',
             'all_recipient_ids': '1001,1002',
           });
-        check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+        check(NotificationOpenPayload.parseNotificationUrl(url))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
@@ -684,7 +684,7 @@ void main() {
             'channel_id': '1',
             'topic': 'topic A',
           });
-        check(NotificationOpenPayload.parseAndroidNotificationUrl(url))
+        check(NotificationOpenPayload.parseNotificationUrl(url))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()
@@ -743,7 +743,7 @@ void main() {
           },
         ];
         for (final params in testCases) {
-          check(() => NotificationOpenPayload.parseAndroidNotificationUrl(Uri(
+          check(() => NotificationOpenPayload.parseNotificationUrl(Uri(
             scheme: 'zulip',
             host: 'notification',
             queryParameters: params,
@@ -769,7 +769,7 @@ void main() {
             'channel_id': '1',
             'topic': 'topic A',
           });
-        check(() => NotificationOpenPayload.parseAndroidNotificationUrl(url))
+        check(() => NotificationOpenPayload.parseNotificationUrl(url))
           .throws<FormatException>();
       });
 
@@ -784,7 +784,7 @@ void main() {
             'channel_id': '1',
             'topic': 'topic A',
           });
-        check(() => NotificationOpenPayload.parseAndroidNotificationUrl(url))
+        check(() => NotificationOpenPayload.parseNotificationUrl(url))
           .throws<FormatException>();
       });
     });
