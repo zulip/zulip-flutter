@@ -650,7 +650,7 @@ class MessageListAppBarTitle extends StatelessWidget {
 
       case ChannelNarrow(:var channelId):
         final store = PerAccountStoreWidget.of(context);
-        final stream = store.streams[channelId];
+        final stream = store.channels[channelId];
         final alignment = willCenterTitle
           ? Alignment.center
           : AlignmentDirectional.centerStart;
@@ -666,7 +666,7 @@ class MessageListAppBarTitle extends StatelessWidget {
 
       case TopicNarrow(:var channelId, :var topic):
         final store = PerAccountStoreWidget.of(context);
-        final stream = store.streams[channelId];
+        final stream = store.channels[channelId];
         final alignment = willCenterTitle
           ? Alignment.center
           : AlignmentDirectional.centerStart;
@@ -1315,7 +1315,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           header: zulipLocalizations.emptyMessageListCombinedFeed);
 
       case ChannelNarrow(:final channelId) || TopicNarrow(:final channelId):
-        final channel = store.streams[channelId];
+        final channel = store.channels[channelId];
         if (channel == null) {
           return PageBodyEmptyContentPlaceholder(
             header: zulipLocalizations.emptyMessageListChannelUnavailable);
@@ -1852,7 +1852,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     if (!_containsDifferentChannels(narrow)) {
       streamWidget = const SizedBox(width: 16);
     } else {
-      final stream = store.streams[streamId];
+      final stream = store.channels[streamId];
       final streamName = stream?.name
         ?? message.conversation.displayRecipient
         ?? zulipLocalizations.unknownChannelName; // TODO(log)

@@ -17,14 +17,14 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('Unified stream/sub data', () {
-    /// Check that `streams`, `streamsByName`, and `subscriptions` all agree
+    /// Check that `channels`, `channelsByName`, and `subscriptions` all agree
     /// and point to the same objects where applicable.
     void checkUnified(ChannelStore store) {
-      check(store.streamsByName).length.equals(store.streams.length);
+      check(store.channelsByName).length.equals(store.channels.length);
       for (final MapEntry(key: streamId, value: stream)
-           in store.streams.entries) {
+           in store.channels.entries) {
         check(streamId).equals(stream.streamId);
-        check(store.streamsByName[stream.name]).identicalTo(stream);
+        check(store.channelsByName[stream.name]).identicalTo(stream);
         if (stream is Subscription) {
           check(store.subscriptions[streamId]).identicalTo(stream);
         } else {
@@ -34,7 +34,7 @@ void main() {
       for (final MapEntry(key: streamId, value: subscription)
            in store.subscriptions.entries) {
         check(streamId).equals(subscription.streamId);
-        check(store.streams[streamId]).identicalTo(subscription);
+        check(store.channels[streamId]).identicalTo(subscription);
       }
     }
 
@@ -62,12 +62,12 @@ void main() {
       await store.addSubscription(eg.subscription(stream1));
       checkUnified(store);
 
-      await store.handleEvent(eg.channelUpdateEvent(store.streams[stream1.streamId]!,
+      await store.handleEvent(eg.channelUpdateEvent(store.channels[stream1.streamId]!,
         property: ChannelPropertyName.name, value: 'new stream',
       ));
       checkUnified(store);
 
-      await store.handleEvent(eg.channelUpdateEvent(store.streams[stream1.streamId]!,
+      await store.handleEvent(eg.channelUpdateEvent(store.channels[stream1.streamId]!,
         property: ChannelPropertyName.channelPostPolicy,
         value: ChannelPostPolicy.administrators,
       ));

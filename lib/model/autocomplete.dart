@@ -1344,7 +1344,7 @@ class ChannelLinkAutocompleteView extends AutocompleteView<ChannelLinkAutocomple
     required PerAccountStore store,
     required Narrow narrow,
   }) {
-    return store.streams.values.sorted(_comparator(narrow: narrow));
+    return store.channels.values.sorted(_comparator(narrow: narrow));
   }
 
   /// Compare the channels the same way they would be sorted as

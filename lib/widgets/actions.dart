@@ -315,7 +315,7 @@ abstract final class ZulipAction {
     required int channelId,
   }) async {
     final store = PerAccountStoreWidget.of(context);
-    final channel = store.streams[channelId];
+    final channel = store.channels[channelId];
     if (channel == null || channel is Subscription) return; // TODO could give feedback
 
     try {

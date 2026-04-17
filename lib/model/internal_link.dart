@@ -85,7 +85,7 @@ String narrowLinkFragment(PerAccountStore store, Narrow narrow, {int? nearMessag
     switch (element) {
       case ApiNarrowChannel():
         final channelId = element.operand;
-        final name = store.streams[channelId]?.name ?? 'unknown';
+        final name = store.channels[channelId]?.name ?? 'unknown';
         final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
         fragment.write('$channelId-$slugifiedName');
       case ApiNarrowTopic():
@@ -380,7 +380,7 @@ int? _parseStreamOperand(String operand, ChannelStore store) {
   // "New" (2018) format: ${stream_id}-${stream_name} .
   final match = RegExp(r'^(\d+)(?:-.*)?$').firstMatch(operand);
   final newFormatStreamId = (match != null) ? int.parse(match.group(1)!, radix: 10) : null;
-  if (newFormatStreamId != null && store.streams.containsKey(newFormatStreamId)) {
+  if (newFormatStreamId != null && store.channels.containsKey(newFormatStreamId)) {
     return newFormatStreamId;
   }
 
@@ -388,7 +388,7 @@ int? _parseStreamOperand(String operand, ChannelStore store) {
   // so that links in old conversations continue to work.
   final String? streamName = decodeHashComponent(operand);
   if (streamName == null) return null;
-  final stream = store.streamsByName[streamName];
+  final stream = store.channelsByName[streamName];
   if (stream != null) return stream.streamId;
 
   if (newFormatStreamId != null) {

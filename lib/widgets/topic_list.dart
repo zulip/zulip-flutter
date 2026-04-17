@@ -70,7 +70,7 @@ class _TopicListAppBarTitle extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final stream = store.streams[channelId];
+    final stream = store.channels[channelId];
     final channelIconColor = colorSwatchFor(context,
       store.subscriptions[channelId]).iconOnBarBackground;
 
