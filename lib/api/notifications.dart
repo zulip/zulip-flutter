@@ -35,10 +35,11 @@ class EncryptedFcmMessage {
   Map<String, dynamic> toJson() => _$EncryptedFcmMessageToJson(this);
 }
 
-/// Parsed version of an FCM message, of any plaintext type.
-///
-/// This represents the data either decrypted from an [EncryptedFcmMessage],
-/// or (TODO(server-12)) delivered in plaintext directly as an FCM payload.
+//|//////////////////////////////////////////////////////////////
+// Types for parsing E2EE notification payloads.
+//
+
+/// Parsed version of decrypted data from an [EncryptedFcmMessage].
 ///
 /// For partial API docs, see:
 ///   https://zulip.com/api/mobile-notifications
@@ -46,8 +47,7 @@ sealed class NotifPayload {
   NotifPayload();
 
   factory NotifPayload.fromJson(Map<String, dynamic> json) {
-    final notifType = json['type'] ?? json['event']; // TODO(server-12)
-    switch (notifType) {
+    switch (json['type']) {
       case 'message': return NotifPayloadNewMessage.fromJson(json);
       case 'remove': return NotifPayloadRemove.fromJson(json);
       default: return UnexpectedNotifPayload.fromJson(json);
@@ -57,7 +57,7 @@ sealed class NotifPayload {
   Map<String, dynamic> toJson();
 }
 
-/// A [NotifPayload] of a type (a value of `event`) we didn't know about.
+/// A [NotifPayload] of a 'type' we didn't know about.
 class UnexpectedNotifPayload extends NotifPayload {
   final Map<String, dynamic> json;
 
@@ -69,28 +69,23 @@ class UnexpectedNotifPayload extends NotifPayload {
 
 /// Base class for [NotifPayload]s that identify what Zulip account they're for.
 ///
-/// This includes all known types of FCM messages from Zulip
+/// This includes all known types of notification payloads from Zulip
 /// (all [NotifPayload] subclasses other than [UnexpectedNotifPayload]),
 /// and it seems likely that it always will.
 sealed class NotifPayloadWithIdentity extends NotifPayload {
-  // final String server; // ignore; never used, gone with E2EE notifs
-  // final int realmId; // ignore; never used, gone with E2EE notifs
-
   /// The realm's own URL.
   ///
   /// This is a real, absolute URL which is the base for all URLs a client uses
   /// with this realm.  It corresponds to [GetServerSettingsResult.realmUri].
-  @JsonKey(readValue: _readRealmUrl) // TODO(server-9)
   final Uri realmUrl;
 
   /// The realm's name.
-  final String? realmName; // TODO(server-8)
+  final String? realmName;
 
   /// This user's ID within the server.
   ///
   /// Useful mainly in the case where the user has multiple accounts in the
   /// same realm.
-  @JsonKey(readValue: _readIntOrString) // TODO(server-12)
   final int userId;
 
   NotifPayloadWithIdentity({
@@ -98,34 +93,28 @@ sealed class NotifPayloadWithIdentity extends NotifPayload {
     required this.realmName,
     required this.userId,
   });
-
-  // TODO(server-9): FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
-  static String _readRealmUrl(Map<dynamic, dynamic> json, String key) {
-    return (json['realm_url'] ?? json['realm_uri']) as String;
-  }
 }
 
-/// Parsed version of an FCM message of type `message`.
+/// Parsed version of a notification payload of type `message`.
 ///
 /// This corresponds to a Zulip message for which the user wants to
 /// see a notification.
+///
+/// API docs:
+///   https://zulip.com/api/mobile-notifications#new-direct-message
 @JsonSerializable(fieldRename: FieldRename.snake)
 class NotifPayloadNewMessage extends NotifPayloadWithIdentity {
   @JsonKey(includeToJson: true)
   String get type => 'message';
 
-  @JsonKey(readValue: _readIntOrString) // TODO(server-12)
   final int senderId;
-  // final String senderEmail; // obsolete; ignore
   final Uri senderAvatarUrl;
   final String senderFullName;
 
   @JsonKey(includeToJson: false, readValue: _readWhole)
   final NotifPayloadRecipient recipient;
 
-  @JsonKey(readValue: _readMessageId)
   final int messageId;
-  @JsonKey(readValue: _readIntOrString) // TODO(server-12)
   final int time; // in Unix seconds UTC, like [Message.timestamp]
 
   /// The content of the Zulip message, rendered as plain text.
@@ -148,15 +137,10 @@ class NotifPayloadNewMessage extends NotifPayloadWithIdentity {
     required this.time,
   });
 
-  static Object? _readMessageId(Map<dynamic, dynamic> json, String key) {
-    return json['message_id']
-      ?? const _IntConverter().fromJson(json['zulip_message_id'] as String); // TODO(server-12)
-  }
-
   static Object? _readWhole(Map<dynamic, dynamic> json, String key) => json;
 
   factory NotifPayloadNewMessage.fromJson(Map<String, dynamic> json) {
-    assert((json['type'] ?? json['event']) == 'message'); // TODO(server-12)
+    assert(json['type'] == 'message');
     return _$NotifPayloadNewMessageFromJson(json);
   }
 
@@ -182,89 +166,53 @@ sealed class NotifPayloadRecipient {
 
   factory NotifPayloadRecipient.fromJson(Map<String, dynamic> json) {
     // There's also a `recipient_type` field, but we don't really need it.
-    // The presence or absence of `channel_id`/`stream_id` is just as informative.
-    return (json.containsKey('channel_id') || json.containsKey('stream_id')) // TODO(server-12)
+    // The presence or absence of `channel_id` is just as informative.
+    return (json.containsKey('channel_id'))
       ? NotifPayloadChannelRecipient.fromJson(json)
       : NotifPayloadDmRecipient.fromJson(json);
   }
 }
 
-/// A [NotifPayloadRecipient] for a Zulip message to a stream.
+/// A [NotifPayloadRecipient] for a Zulip message to a channel.
 @JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 class NotifPayloadChannelRecipient extends NotifPayloadRecipient {
-  @JsonKey(readValue: _readChannelId)
   final int channelId;
 
   // Current servers (as of 2025) always send the channel name.  But
   // future servers might not, once clients get the name from local data.
   // So might as well be ready.
-  @JsonKey(readValue: _readChannelName)
   final String? channelName;
 
   final TopicName topic;
 
   NotifPayloadChannelRecipient({required this.channelId, required this.channelName, required this.topic});
 
-  static Object? _readChannelId(Map<dynamic, dynamic> json, String key) {
-    return json['channel_id']
-      ?? const _IntConverter().fromJson(json['stream_id'] as String); // TODO(server-12)
-  }
-
-  static Object? _readChannelName(Map<dynamic, dynamic> json, String key) {
-    return json['channel_name'] ?? json['stream']; // TODO(server-12)
-  }
-
   factory NotifPayloadChannelRecipient.fromJson(Map<String, dynamic> json) =>
     _$NotifPayloadChannelRecipientFromJson(json);
 }
 
 /// A [NotifPayloadRecipient] for a Zulip message that was a DM.
+@JsonSerializable(fieldRename: FieldRename.snake, createToJson: false)
 class NotifPayloadDmRecipient extends NotifPayloadRecipient {
+  @JsonKey(name: 'recipient_user_ids')
   final List<int> allRecipientIds;
 
   NotifPayloadDmRecipient({required this.allRecipientIds});
 
-  factory NotifPayloadDmRecipient.fromJson(Map<String, dynamic> json) {
-    return NotifPayloadDmRecipient(allRecipientIds: switch (json) {
-      // TODO(server-12) accept only the recipient_user_ids form
-      {'recipient_user_ids': List<dynamic> userIds} =>
-        userIds.map((id) => id as int).toList(),
-
-      // Group DM conversations ("huddles") are represented with `pm_users`,
-      // which lists all the user IDs in the conversation.
-      // TODO check they're sorted.
-      {'pm_users': String pmUsers} => const _IntListConverter().fromJson(pmUsers),
-
-      // 1:1 DM conversations have no `pm_users`.  Knowing that it's a
-      // 1:1 DM, `sender_id` is enough to identify the conversation.
-      {'sender_id': String senderId, 'user_id': String userId} =>
-        _pairSet(_parseInt(senderId), _parseInt(userId)),
-
-      _ => throw Exception("bad recipient"),
-    });
-  }
-
-  /// The set {id1, id2}, represented as a sorted list.
-  // (In set theory this is called the "pair" of id1 and id2: https://en.wikipedia.org/wiki/Axiom_of_pairing .)
-  static List<int> _pairSet(int id1, int id2) {
-    if (id1 == id2) return [id1];
-    if (id1 < id2) return [id1, id2];
-    return [id2, id1];
-  }
+  factory NotifPayloadDmRecipient.fromJson(Map<String, dynamic> json) =>
+    _$NotifPayloadDmRecipientFromJson(json);
 }
 
+/// Parsed version of a notification payload of type `remove`.
+///
+/// API docs:
+///   https://zulip.com/api/mobile-notifications#remove-notifications
 @JsonSerializable(fieldRename: FieldRename.snake)
 class NotifPayloadRemove extends NotifPayloadWithIdentity {
   @JsonKey(includeToJson: true)
   String get type => 'remove';
 
-  // Servers have sent zulip_message_ids, obsoleting the singular zulip_message_id
-  // and just sending the first ID there redundantly, since 2019.
-  // See zulip-mobile@4acd07376.
-
-  @JsonKey(readValue: _readMessageIds)
   final List<int> messageIds;
-  // final String? zulipMessageId; // obsolete; ignore
 
   NotifPayloadRemove({
     required super.realmUrl,
@@ -273,13 +221,8 @@ class NotifPayloadRemove extends NotifPayloadWithIdentity {
     required this.messageIds,
   });
 
-  static Object? _readMessageIds(Map<dynamic, dynamic> json, String key) {
-    return json['message_ids']
-      ?? const _IntListConverter().fromJson(json['zulip_message_ids'] as String); // TODO(server-12)
-  }
-
   factory NotifPayloadRemove.fromJson(Map<String, dynamic> json) {
-    assert((json['type'] ?? json['event']) == 'remove'); // TODO(server-12)
+    assert(json['type'] == 'remove');
     return _$NotifPayloadRemoveFromJson(json);
   }
 
@@ -288,7 +231,7 @@ class NotifPayloadRemove extends NotifPayloadWithIdentity {
 }
 
 //|//////////////////////////////////////////////////////////////
-// Types for parsing only legacy plaintext notification payloads.
+// Types for parsing legacy plaintext notification payloads.
 //
 
 /// Parsed version of a legacy plaintext FCM message.
@@ -583,12 +526,6 @@ class _IntConverter extends JsonConverter<int, String> {
 
   @override
   String toJson(int value) => value.toString();
-}
-
-Object? _readIntOrString(Map<dynamic, dynamic> json, String key) {
-  final jsonValue = json[key];
-  if (jsonValue is String) return _parseInt(jsonValue);
-  return jsonValue;
 }
 
 int _parseInt(String string) => int.parse(string, radix: 10);

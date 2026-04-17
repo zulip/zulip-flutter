@@ -24,22 +24,19 @@ Map<String, dynamic> _$EncryptedFcmMessageToJson(
 NotifPayloadNewMessage _$NotifPayloadNewMessageFromJson(
   Map<String, dynamic> json,
 ) => NotifPayloadNewMessage(
-  realmUrl: Uri.parse(
-    NotifPayloadWithIdentity._readRealmUrl(json, 'realm_url') as String,
-  ),
+  realmUrl: Uri.parse(json['realm_url'] as String),
   realmName: json['realm_name'] as String?,
-  userId: (_readIntOrString(json, 'user_id') as num).toInt(),
-  senderId: (_readIntOrString(json, 'sender_id') as num).toInt(),
+  userId: (json['user_id'] as num).toInt(),
+  senderId: (json['sender_id'] as num).toInt(),
   senderAvatarUrl: Uri.parse(json['sender_avatar_url'] as String),
   senderFullName: json['sender_full_name'] as String,
   recipient: NotifPayloadRecipient.fromJson(
     NotifPayloadNewMessage._readWhole(json, 'recipient')
         as Map<String, dynamic>,
   ),
-  messageId: (NotifPayloadNewMessage._readMessageId(json, 'message_id') as num)
-      .toInt(),
+  messageId: (json['message_id'] as num).toInt(),
   content: json['content'] as String,
-  time: (_readIntOrString(json, 'time') as num).toInt(),
+  time: (json['time'] as num).toInt(),
 );
 
 Map<String, dynamic> _$NotifPayloadNewMessageToJson(
@@ -60,27 +57,27 @@ Map<String, dynamic> _$NotifPayloadNewMessageToJson(
 NotifPayloadChannelRecipient _$NotifPayloadChannelRecipientFromJson(
   Map<String, dynamic> json,
 ) => NotifPayloadChannelRecipient(
-  channelId:
-      (NotifPayloadChannelRecipient._readChannelId(json, 'channel_id') as num)
-          .toInt(),
-  channelName:
-      NotifPayloadChannelRecipient._readChannelName(json, 'channel_name')
-          as String?,
+  channelId: (json['channel_id'] as num).toInt(),
+  channelName: json['channel_name'] as String?,
   topic: TopicName.fromJson(json['topic'] as String),
+);
+
+NotifPayloadDmRecipient _$NotifPayloadDmRecipientFromJson(
+  Map<String, dynamic> json,
+) => NotifPayloadDmRecipient(
+  allRecipientIds: (json['recipient_user_ids'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
 );
 
 NotifPayloadRemove _$NotifPayloadRemoveFromJson(Map<String, dynamic> json) =>
     NotifPayloadRemove(
-      realmUrl: Uri.parse(
-        NotifPayloadWithIdentity._readRealmUrl(json, 'realm_url') as String,
-      ),
+      realmUrl: Uri.parse(json['realm_url'] as String),
       realmName: json['realm_name'] as String?,
-      userId: (_readIntOrString(json, 'user_id') as num).toInt(),
-      messageIds:
-          (NotifPayloadRemove._readMessageIds(json, 'message_ids')
-                  as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
+      userId: (json['user_id'] as num).toInt(),
+      messageIds: (json['message_ids'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList(),
     );
 
 Map<String, dynamic> _$NotifPayloadRemoveToJson(NotifPayloadRemove instance) =>

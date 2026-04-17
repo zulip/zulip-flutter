@@ -90,35 +90,30 @@ NotifPayloadNewMessage notifPayloadNewMessage(
   realmName ??= account.realmName;
   final narrow = SendableNarrow.ofMessage(zulipMessage, selfUserId: account.userId);
   return NotifPayload.fromJson({
-    "event": "message",
+    "type": "message",
 
-    "server": "zulip.example.cloud",
-    "realm_id": "4",
-    "realm_uri": account.realmUrl.toString(),
-    "user_id": account.userId.toString(),
     "realm_name": ?realmName,
+    "realm_url": account.realmUrl.toString(),
+    "user_id": account.userId,
 
-    "zulip_message_id": zulipMessage.id.toString(),
-    "time": zulipMessage.timestamp.toString(),
+    "message_id": zulipMessage.id,
+    "time": zulipMessage.timestamp,
     "content": zulipMessage.content,
 
-    "sender_id": zulipMessage.senderId.toString(),
+    "sender_id": zulipMessage.senderId,
     "sender_avatar_url": "${account.realmUrl}avatar/${zulipMessage.senderId}.jpeg",
-    "sender_full_name": zulipMessage.senderFullName.toString(),
+    "sender_full_name": zulipMessage.senderFullName,
 
     ...(switch (narrow) {
       TopicNarrow(:var channelId, :var topic) => {
-        "recipient_type": "stream",
-        "stream_id": channelId.toString(),
-        "stream": ?streamName,
+        "recipient_type": "channel",
+        "channel_id": channelId,
+        "channel_name": ?streamName,
         "topic": topic,
       },
-      DmNarrow(allRecipientIds: [_, _, _, ...]) => {
-        "recipient_type": "private",
-        "pm_users": narrow.allRecipientIds.join(","),
-      },
-      DmNarrow() => {
-        "recipient_type": "private",
+      DmNarrow(:var allRecipientIds) => {
+        "recipient_type": "direct",
+        "recipient_user_ids": allRecipientIds,
       },
     }),
   }) as NotifPayloadNewMessage;
@@ -171,14 +166,13 @@ MessageLegacyFcmMessage legacyMessageFcmMessage(
 NotifPayloadRemove notifPayloadRemove(List<Message> zulipMessages, {Account? account}) {
   account ??= eg.selfAccount;
   return NotifPayload.fromJson({
-    "event": "remove",
+    "type": "remove",
 
-    "server": "zulip.example.cloud",
-    "realm_id": "4",
-    "realm_uri": account.realmUrl.toString(),
-    "user_id": account.userId.toString(),
+    "realm_name": ?account.realmName,
+    "realm_url": account.realmUrl.toString(),
+    "user_id": account.userId,
 
-    "zulip_message_ids": zulipMessages.map((e) => e.id).join(','),
+    "message_ids": List<int>.unmodifiable(zulipMessages.map((e) => e.id)),
   }) as NotifPayloadRemove;
 }
 
