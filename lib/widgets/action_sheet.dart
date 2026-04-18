@@ -31,6 +31,7 @@ import 'message_list.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'read_receipts.dart';
+import 'report_message.dart';
 import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
@@ -1246,6 +1247,9 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   final isSenderMuted = store.isUserMuted(message.senderId);
 
+  final reportChannelId = store.realmModerationRequestChannelId;
+  final canReport = reportChannelId != null && reportChannelId != -1;
+
   final buttonSections = [
     [
       if (popularEmojiLoaded)
@@ -1268,6 +1272,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       if (_getShouldShowEditButton(pageContext, message))
         EditButton(message: message, pageContext: pageContext),
     ],
+    if (canReport)
+      [ReportMessageButton(message: message, pageContext: pageContext)],
     if (store.selfCanDeleteMessage(message.id, atDate: now))
       [DeleteMessageButton(message: message, pageContext: pageContext)],
   ];
@@ -1847,5 +1853,21 @@ class DeleteMessageButton extends MessageActionSheetMenuItemButton {
       final title = ZulipLocalizations.of(pageContext).errorDeleteMessageFailedTitle;
       showErrorDialog(context: pageContext, title: title, message: errorMessage);
     }
+  }
+}
+
+class ReportMessageButton extends MessageActionSheetMenuItemButton {
+  ReportMessageButton({super.key, required super.message, required super.pageContext});
+
+  @override
+  IconData get icon => ZulipIcons.flag;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) =>
+    zulipLocalizations.actionSheetOptionReportMessage;
+
+  @override
+  void onPressed() {
+    ReportMessageDialog.show(pageContext: pageContext, message: message);
   }
 }

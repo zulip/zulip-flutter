@@ -69,6 +69,9 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   int? realmMessageContentEditLimitSeconds,
   bool hasDeletePermission = true,
   bool? realmEnableReadReceipts,
+  int? zulipFeatureLevel,
+  int? realmModerationRequestChannelId = 1,
+  List<ReportMessageType>? serverReportMessageTypes,
   bool shouldSetServerEmojiData = true,
   bool useLegacyServerEmojiData = false,
   Future<void> Function()? beforeLongPress,
@@ -79,10 +82,12 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
 
   selfUser ??= eg.selfUser;
   assert(!(hasDeletePermission && selfUser.role == UserRole.guest));
-  final selfAccount = eg.account(user: selfUser);
+  final selfAccount = eg.account(user: selfUser,
+    zulipFeatureLevel: zulipFeatureLevel);
   await testBinding.globalStore.add(
     selfAccount,
     eg.initialSnapshot(
+      zulipFeatureLevel: zulipFeatureLevel,
       starredMessages: [
         if (message.flags.contains(MessageFlag.starred)) message.id,
       ],
@@ -90,6 +95,8 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
       realmAllowMessageEditing: realmAllowMessageEditing,
       realmMessageContentEditLimitSeconds: realmMessageContentEditLimitSeconds,
       realmEnableReadReceipts: realmEnableReadReceipts,
+      realmModerationRequestChannelId: realmModerationRequestChannelId,
+      serverReportMessageTypes: serverReportMessageTypes,
       realmCanDeleteAnyMessageGroup: hasDeletePermission
         ? eg.groupSetting(members: [selfUser.userId])
         : eg.groupSetting(members: []),
@@ -2853,6 +2860,37 @@ void main() {
 
         checkErrorDialog(tester, expectedTitle: 'Failed to delete message');
       });
+    });
+
+    group('ReportMessageButton', () {
+      final findButton = findButtonForLabel('Report message');
+
+      group('visibility', () {
+        testWidgets('shown when moderation channel is set', (tester) async {
+          final message = eg.streamMessage(flags: []);
+          await setupToMessageActionSheet(tester,
+            message: message, narrow: TopicNarrow.ofMessage(message));
+          check(findButton).findsOne();
+        });
+
+        testWidgets('hidden when moderation channel is unset', (tester) async {
+          final message = eg.streamMessage(flags: []);
+          await setupToMessageActionSheet(tester,
+            realmModerationRequestChannelId: -1,
+            message: message, narrow: TopicNarrow.ofMessage(message));
+          check(findButton).findsNothing();
+        });
+
+        testWidgets('legacy: hidden when feature does not exist', (tester) async {
+          final message = eg.streamMessage(flags: []);
+          await setupToMessageActionSheet(tester,
+            realmModerationRequestChannelId: null,
+            message: message, narrow: TopicNarrow.ofMessage(message));
+          check(findButton).findsNothing();
+        });
+      });
+
+      // See test/widgets/report_message_test.dart for further test coverage.
     });
 
     group('MessageActionSheetCancelButton', () {

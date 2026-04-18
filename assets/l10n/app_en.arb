@@ -313,6 +313,58 @@
   "@errorDeleteMessageFailedTitle": {
     "description": "Error title when deleting a message failed."
   },
+  "actionSheetOptionReportMessage": "Report message",
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
+  },
+  "reportMessageDialogTitle": "Report message",
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "reportMessageDescription": "Your report will be sent to the private moderation requests channel for this organization.",
+  "@reportMessageDescription": {
+    "description": "Explanatory text shown under the title in the report message dialog."
+  },
+  "messageReportTypeSpam": "Spam",
+  "@messageReportTypeSpam": {
+    "description": "Label for the 'Spam' report type in the report message dialog."
+  },
+  "messageReportTypeHarassment": "Harassment",
+  "@messageReportTypeHarassment": {
+    "description": "Label for the 'Harassment' report type in the report message dialog."
+  },
+  "messageReportTypeInappropriate": "Inappropriate content",
+  "@messageReportTypeInappropriate": {
+    "description": "Label for the 'Inappropriate content' report type in the report message dialog."
+  },
+  "messageReportTypeNorms": "Violates community norms",
+  "@messageReportTypeNorms": {
+    "description": "Label for the 'Violates community norms' report type in the report message dialog."
+  },
+  "messageReportTypeOther": "Other reason",
+  "@messageReportTypeOther": {
+    "description": "Label for the 'Other reason' report type in the report message dialog."
+  },
+  "reportMessageReasonLabel": "What’s the problem with this message?",
+  "@reportMessageReasonLabel": {
+    "description": "Label text for the report reason dropdown in the report message dialog."
+  },
+  "reportMessageDescriptionLabel": "Can you provide more details?",
+  "@reportMessageDescriptionLabel": {
+    "description": "Label text for the description field in the report message dialog."
+  },
+  "reportMessageReasonRequired": "Please select a reason.",
+  "@reportMessageReasonRequired": {
+    "description": "Validation error shown in the report message dialog when no report type is selected."
+  },
+  "reportMessageDescriptionRequired": "Please provide details.",
+  "@reportMessageDescriptionRequired": {
+    "description": "Validation error shown in the report message dialog when the report type is \"Other\" and no description is provided."
+  },
+  "reportMessageSubmitButton": "Submit",
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
   "reportMessageSuccess": "Message reported",
   "@reportMessageSuccess": {
     "description": "Snackbar message shown after successfully reporting a message."

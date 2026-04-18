@@ -594,6 +594,84 @@ abstract class ZulipLocalizations {
   /// **'Failed to delete message'**
   String get errorDeleteMessageFailedTitle;
 
+  /// Label for the 'Report message' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get actionSheetOptionReportMessage;
+
+  /// Title for the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Report message'**
+  String get reportMessageDialogTitle;
+
+  /// Explanatory text shown under the title in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Your report will be sent to the private moderation requests channel for this organization.'**
+  String get reportMessageDescription;
+
+  /// Label for the 'Spam' report type in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam'**
+  String get messageReportTypeSpam;
+
+  /// Label for the 'Harassment' report type in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment'**
+  String get messageReportTypeHarassment;
+
+  /// Label for the 'Inappropriate content' report type in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate content'**
+  String get messageReportTypeInappropriate;
+
+  /// Label for the 'Violates community norms' report type in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Violates community norms'**
+  String get messageReportTypeNorms;
+
+  /// Label for the 'Other reason' report type in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Other reason'**
+  String get messageReportTypeOther;
+
+  /// Label text for the report reason dropdown in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'What’s the problem with this message?'**
+  String get reportMessageReasonLabel;
+
+  /// Label text for the description field in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Can you provide more details?'**
+  String get reportMessageDescriptionLabel;
+
+  /// Validation error shown in the report message dialog when no report type is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a reason.'**
+  String get reportMessageReasonRequired;
+
+  /// Validation error shown in the report message dialog when the report type is "Other" and no description is provided.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide details.'**
+  String get reportMessageDescriptionRequired;
+
+  /// Label for the submit button in the report message dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get reportMessageSubmitButton;
+
   /// Snackbar message shown after successfully reporting a message.
   ///
   /// In en, this message translates to:

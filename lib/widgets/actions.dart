@@ -395,7 +395,7 @@ abstract final class ZulipAction {
     }
   }
 
-  /// Report a message to the server admins.
+  /// Report a message to the realm admins.
   ///
   /// On success, shows a success [SnackBar] and returns true.
   /// On failure, shows an error dialog and returns false.
