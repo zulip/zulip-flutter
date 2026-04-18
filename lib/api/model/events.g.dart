@@ -590,7 +590,7 @@ SubscriptionRemoveEvent _$SubscriptionRemoveEventFromJson(
 ) => SubscriptionRemoveEvent(
   id: (json['id'] as num).toInt(),
   channelIds:
-      (SubscriptionRemoveEvent._readChannelIds(json, 'stream_ids')
+      (SubscriptionRemoveEvent._readChannelIds(json, 'channel_ids')
               as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
@@ -602,7 +602,7 @@ Map<String, dynamic> _$SubscriptionRemoveEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_ids': instance.channelIds,
+  'channel_ids': instance.channelIds,
 };
 
 SubscriptionUpdateEvent _$SubscriptionUpdateEventFromJson(
