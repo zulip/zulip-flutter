@@ -94,6 +94,12 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
 
   List<CustomProfileField> get customProfileFields;
 
+  /// The ID of the primary pronoun-type custom profile field, if any.
+  ///
+  /// If the realm has multiple pronoun fields, this is the first one
+  /// in [customProfileFields] order. Returns null if no pronoun field exists.
+  int? get primaryPronounFieldId;
+
   //|//////////////////////////////////////////////////////////////
   // Methods that examine the settings.
 
@@ -217,6 +223,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
   @override
+  int? get primaryPronounFieldId => realmStore.primaryPronounFieldId;
+  @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
     realmStore.selfHasPassedWaitingPeriod(byDate: byDate);
   @override
@@ -270,7 +278,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
-    customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
+    customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields) {
+    primaryPronounFieldId = _computePrimaryPronounFieldId(customProfileFields);
+  }
 
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) {
@@ -453,6 +463,16 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   List<CustomProfileField> customProfileFields;
 
+  @override
+  late int? primaryPronounFieldId;
+
+  static int? _computePrimaryPronounFieldId(List<CustomProfileField> fields) {
+    for (final field in fields) {
+      if (field.type == CustomProfileFieldType.pronouns) return field.id;
+    }
+    return null;
+  }
+
   static List<CustomProfileField> _sortCustomProfileFields(List<CustomProfileField> initialCustomProfileFields) {
     // TODO(server): The realm-wide field objects have an `order` property,
     //   but the actual API appears to be that the fields should be shown in
@@ -487,6 +507,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   void handleCustomProfileFieldsEvent(CustomProfileFieldsEvent event) {
     customProfileFields = _sortCustomProfileFields(event.fields);
+    primaryPronounFieldId = _computePrimaryPronounFieldId(customProfileFields);
   }
 
   void handleRealmUserUpdateEvent(RealmUserUpdateEvent event) {
