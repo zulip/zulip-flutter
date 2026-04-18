@@ -158,3 +158,94 @@ class PopupMenuList extends StatelessWidget {
               itemBuilder: itemBuilder)))));
   }
 }
+
+/// Wraps a text field whose length limit is expressed in Unicode code
+/// points, the metric the Zulip server uses when validating text input.
+/// See e.g. `description` in
+///   https://zulip.com/api/report-message .
+///
+/// The [builder] callback receives a counter widget to pass to the
+/// field's [InputDecoration.counter]:
+///
+/// ```dart
+/// ZulipCodePointLengthLimit(
+///   controller: controller,
+///   maxLengthCodePoints: 1000,
+///   builder: (context, counter) => TextFormField(
+///     controller: controller,
+///     decoration: someDecoration.copyWith(counter: counter),
+///   ));
+/// ```
+///
+/// From the controller's current code-point length vs.
+/// [maxLengthCodePoints], this drives:
+///
+///  * the counter's text ("n/max") and color (red when over);
+///  * the field's cursor color (red when over, via an ambient
+///    [TextSelectionThemeData]);
+///  * [SemanticsProperties.currentValueLength] and
+///    [SemanticsProperties.maxValueLength] around the built subtree,
+///    for screen readers.
+///
+/// The caller's field shouldn't set [TextField.maxLength] or
+/// [TextField.cursorColor]; this wrapper takes over those.
+///
+/// This drives visual and semantic feedback only; it doesn't enforce or
+/// validate the limit.  Over-limit text can still be composed and
+/// submitted.  For form-submission rejection, pair this with
+/// [TextFormField.validator] (or the caller's equivalent).
+// TODO(design) ad hoc visuals
+class ZulipCodePointLengthLimit extends StatelessWidget {
+  const ZulipCodePointLengthLimit({
+    super.key,
+    required this.controller,
+    required this.maxLengthCodePoints,
+    required this.builder,
+  });
+
+  final TextEditingController controller;
+  final int maxLengthCodePoints;
+  final Widget Function(BuildContext context, Widget counter) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final theme = Theme.of(context);
+
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final length = controller.text.runes.length;
+        final exceeded = length > maxLengthCodePoints;
+
+        final counter = Semantics(
+          container: true,
+          liveRegion: true,
+          child: Text(
+            '$length/$maxLengthCodePoints',
+            style: TextStyle(
+              fontSize: 12,
+              height: 14 / 12,
+              color: exceeded
+                ? designVariables.contextMenuItemTextDanger
+                : designVariables.textInput,
+            ),
+            overflow: TextOverflow.ellipsis));
+
+        // Always wrap in Theme (with conditional data); a conditional
+        // wrap would remount the TextFormField across the threshold,
+        // losing focus.
+        return MergeSemantics(
+          child: Semantics(
+            maxValueLength: maxLengthCodePoints,
+            currentValueLength: length,
+            child: Theme(
+              data: exceeded
+                ? theme.copyWith(
+                    textSelectionTheme: theme.textSelectionTheme.copyWith(
+                      cursorColor: designVariables.contextMenuItemTextDanger))
+                : theme,
+              child: builder(context, counter))));
+      });
+  }
+}
