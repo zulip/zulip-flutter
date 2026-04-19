@@ -445,7 +445,13 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       ),
       id: (json['id'] as num).toInt(),
       isMeMessage: json['is_me_message'] as bool,
-      lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
+      lastEditTimestamp:
+          (Message._readLastEditTimestamp(json, 'last_edit_timestamp') as num?)
+              ?.toInt(),
+      lastMovedTimestamp:
+          (Message._readLastMovedTimestamp(json, 'last_moved_timestamp')
+                  as num?)
+              ?.toInt(),
       reactions: Message._reactionsFromJson(json['reactions']),
       senderEmail: json['sender_email'] as String,
       senderFullName: json['sender_full_name'] as String,
@@ -472,6 +478,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'id': instance.id,
       'is_me_message': instance.isMeMessage,
       'last_edit_timestamp': instance.lastEditTimestamp,
+      'last_moved_timestamp': instance.lastMovedTimestamp,
       'reactions': Message._reactionsToJson(instance.reactions),
       'sender_email': instance.senderEmail,
       'sender_full_name': instance.senderFullName,
@@ -501,7 +508,12 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
   ),
   id: (json['id'] as num).toInt(),
   isMeMessage: json['is_me_message'] as bool,
-  lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
+  lastEditTimestamp:
+      (Message._readLastEditTimestamp(json, 'last_edit_timestamp') as num?)
+          ?.toInt(),
+  lastMovedTimestamp:
+      (Message._readLastMovedTimestamp(json, 'last_moved_timestamp') as num?)
+          ?.toInt(),
   reactions: Message._reactionsFromJson(json['reactions']),
   senderEmail: json['sender_email'] as String,
   senderFullName: json['sender_full_name'] as String,
@@ -526,6 +538,7 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
   'id': instance.id,
   'is_me_message': instance.isMeMessage,
   'last_edit_timestamp': instance.lastEditTimestamp,
+  'last_moved_timestamp': instance.lastMovedTimestamp,
   'reactions': Message._reactionsToJson(instance.reactions),
   'sender_email': instance.senderEmail,
   'sender_full_name': instance.senderFullName,
