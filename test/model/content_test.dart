@@ -225,21 +225,21 @@ class ContentExample {
     ":thumbs_up:",
     expectedText: '\u{1f44d}', // "👍"
     '<p><span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'));
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}', emojiCode: '1f44d'));
 
   static final emojiUnicodeClassesFlipped = ContentExample.inline(
     'Unicode emoji, encoded in span element, class order reversed',
     null, // ":thumbs_up:" (hypothetical server variation)
     expectedText: '\u{1f44d}', // "👍"
     '<p><span aria-label="thumbs up" class="emoji-1f44d emoji" role="img" title="thumbs up">:thumbs_up:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}'));
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f44d}', emojiCode: '1f44d'));
 
   static final emojiUnicodeMultiCodepoint = ContentExample.inline(
     'Unicode emoji, encoded in span element, multiple codepoints',
     ":transgender_flag:",
     expectedText: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}', // "🏳️‍⚧️"
     '<p><span aria-label="transgender flag" class="emoji emoji-1f3f3-fe0f-200d-26a7-fe0f" role="img" title="transgender flag">:transgender_flag:</span></p>',
-    const UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}'));
+    const UnicodeEmojiNode(emojiUnicode: '\u{1f3f3}\u{fe0f}\u{200d}\u{26a7}\u{fe0f}', emojiCode: '1f3f3-fe0f-200d-26a7-fe0f'));
 
   static final emojiUnicodeLiteral = ContentExample.inline(
     'Unicode emoji, not encoded in span element',
@@ -253,21 +253,34 @@ class ContentExample {
     ":flutter:",
     '<p><img alt=":flutter:" class="emoji" src="/user_avatars/2/emoji/images/204.png" title="flutter"></p>',
     const ImageEmojiNode(
-      src: '/user_avatars/2/emoji/images/204.png', alt: ':flutter:'));
+      src: '/user_avatars/2/emoji/images/204.png',
+      alt: ':flutter:',
+      emojiName: 'flutter'));
+
+  static final emojiCustomAnimated = ContentExample.inline(
+      'custom animated emoji',
+      ":slackzulip:",
+      '<p><img alt=":slackzulip:" class="emoji" src="/user_avatars/2/emoji/images/2c8d985d.gif" title="slackzulip"></p>',
+      const ImageEmojiNode(
+        src: '/user_avatars/2/emoji/images/2c8d985d.gif',
+        alt: ':slackzulip:',
+        emojiName: 'slackzulip'));
 
   static final emojiCustomInvalidUrl = ContentExample.inline(
     'custom emoji with invalid URL',
     null, // hypothetical, to test for a risk of crashing
     '<p><img alt=":invalid:" class="emoji" src="::not a URL::" title="invalid"></p>',
     const ImageEmojiNode(
-      src: '::not a URL::', alt: ':invalid:'));
+      src: '::not a URL::', alt: ':invalid:', emojiName: 'invalid'));
 
   static final emojiZulipExtra = ContentExample.inline(
     'Zulip extra emoji',
     ":zulip:",
     '<p><img alt=":zulip:" class="emoji" src="/static/generated/emoji/images/emoji/unicode/zulip.png" title="zulip"></p>',
     const ImageEmojiNode(
-      src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
+      src: '/static/generated/emoji/images/emoji/unicode/zulip.png',
+      alt: ':zulip:',
+      emojiName: 'zulip'));
 
   static final inlineImage = ContentExample.inline(
     'inline image',
@@ -1901,6 +1914,7 @@ void main() async {
   testParseExample(ContentExample.emojiUnicodeMultiCodepoint);
   testParseExample(ContentExample.emojiUnicodeLiteral);
   testParseExample(ContentExample.emojiCustom);
+  testParseExample(ContentExample.emojiCustomAnimated);
   testParseExample(ContentExample.emojiCustomInvalidUrl);
   testParseExample(ContentExample.emojiZulipExtra);
 
