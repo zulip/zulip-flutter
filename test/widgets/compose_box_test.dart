@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
@@ -65,6 +66,7 @@ void main() {
     List<Subscription> subscriptions = const [],
     List<Message>? messages,
     bool? mandatoryTopics,
+    RealmTopicsPolicy? realmTopicsPolicy,
     int? zulipFeatureLevel,
     int? maxTopicLength,
   }) async {
@@ -91,6 +93,7 @@ void main() {
       streams: streams,
       subscriptions: subscriptions,
       zulipFeatureLevel: zulipFeatureLevel,
+      realmTopicsPolicy: realmTopicsPolicy,
       realmMandatoryTopics: mandatoryTopics,
       realmAllowMessageEditing: true,
       realmMessageContentEditLimitSeconds: null,
@@ -468,6 +471,7 @@ void main() {
 
     Future<void> prepare(WidgetTester tester, {
       required Narrow narrow,
+      RealmTopicsPolicy? realmTopicsPolicy,
       bool? mandatoryTopics,
       int? zulipFeatureLevel,
     }) async {
@@ -475,6 +479,7 @@ void main() {
         narrow: narrow,
         otherUsers: [eg.otherUser, eg.thirdUser],
         subscriptions: [eg.subscription(channel)],
+        realmTopicsPolicy: realmTopicsPolicy,
         mandatoryTopics: mandatoryTopics,
         zulipFeatureLevel: zulipFeatureLevel);
     }
@@ -501,7 +506,8 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
 
       testWidgets('with empty topic, topic input has focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -521,7 +527,8 @@ void main() {
       });
 
       testWidgets('with non-empty but vacuous topic, topic input has focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
         await enterTopic(tester, narrow: narrow,
           topic: eg.defaultRealmEmptyTopicDisplayName);
         await tester.pump();
@@ -532,7 +539,8 @@ void main() {
       });
 
       testWidgets('with empty topic, topic input has focus, then content input gains focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -549,7 +557,8 @@ void main() {
       });
 
       testWidgets('with empty topic, topic input has focus, then loses it', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -565,7 +574,8 @@ void main() {
       });
 
       testWidgets('with empty topic, content input has focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -589,7 +599,8 @@ void main() {
       });
 
       testWidgets('with empty topic, content input has focus, then topic input gains focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -606,7 +617,8 @@ void main() {
       });
 
       testWidgets('with empty topic, content input has focus, then loses it', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -623,7 +635,8 @@ void main() {
       });
 
       testWidgets('with non-empty topic', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -637,7 +650,8 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
 
       testWidgets('with empty topic', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: true);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic);
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name}');
@@ -653,7 +667,8 @@ void main() {
 
       group('with non-empty but vacuous topics', () {
         testWidgets('realm_empty_topic_display_name', (tester) async {
-          await prepare(tester, narrow: narrow, mandatoryTopics: true);
+          await prepare(tester, narrow: narrow,
+            realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic);
           await enterTopic(tester, narrow: narrow,
             topic: eg.defaultRealmEmptyTopicDisplayName);
           await tester.pump();
@@ -663,7 +678,8 @@ void main() {
         });
 
         testWidgets('"(no topic)"', (tester) async {
-          await prepare(tester, narrow: narrow, mandatoryTopics: true);
+          await prepare(tester, narrow: narrow,
+            realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic);
           await enterTopic(tester, narrow: narrow,
             topic: '(no topic)');
           await tester.pump();
@@ -674,13 +690,79 @@ void main() {
       });
 
       testWidgets('with non-empty topic', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: true);
+        await prepare(tester, narrow: narrow,
+          realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name} > new topic');
       });
+    });
+
+    group('to ChannelNarrow, topic policy resolution', () {
+
+      void doTest(String description, {
+        ChannelTopicsPolicy? channelTopicsPolicy,
+        RealmTopicsPolicy? realmTopicsPolicy,
+        bool? mandatoryTopics,
+        required bool expectAllowsEmpty,
+      }) {
+        assert(
+          (mandatoryTopics == null && channelTopicsPolicy != null && realmTopicsPolicy != null)
+          || (mandatoryTopics != null && channelTopicsPolicy == null && realmTopicsPolicy == null),
+          'Pass either channel/realm policies or mandatoryTopics.');
+
+        final narrow = ChannelNarrow(channel.streamId);
+        testWidgets(description, (tester) async {
+          final channelWithPolicy = eg.stream(
+            streamId: channel.streamId,
+            name: channel.name,
+            topicsPolicy: channelTopicsPolicy ?? ChannelTopicsPolicy.inherit);
+          await prepareComposeBox(tester,
+            narrow: narrow,
+            otherUsers: [eg.otherUser, eg.thirdUser],
+            subscriptions: [eg.subscription(channelWithPolicy)],
+            realmTopicsPolicy: realmTopicsPolicy,
+            mandatoryTopics: mandatoryTopics);
+
+          await enterTopic(tester, narrow: narrow, topic: '');
+          await tester.pump();
+          checkComposeBoxHintTexts(tester,
+            topicHintText: expectAllowsEmpty
+              ? 'Enter a topic (skip for “${eg.defaultRealmEmptyTopicDisplayName}”)'
+              : 'Topic',
+            contentHintText: 'Message #${channel.name}');
+        });
+      }
+
+      doTest('channel setting allows empty, realm setting allows empty',
+        channelTopicsPolicy: ChannelTopicsPolicy.allowEmptyTopic,
+        realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic,
+        expectAllowsEmpty: true);
+
+      doTest('channel setting allows empty, realm setting disables empty',
+        channelTopicsPolicy: ChannelTopicsPolicy.allowEmptyTopic,
+        realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic,
+        expectAllowsEmpty: true);
+
+      doTest('channel setting disables empty, realm setting allows empty',
+        channelTopicsPolicy: ChannelTopicsPolicy.disableEmptyTopic,
+        realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic,
+        expectAllowsEmpty: false);
+
+      doTest('channel setting disables empty, realm setting disables empty',
+        channelTopicsPolicy: ChannelTopicsPolicy.disableEmptyTopic,
+        realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic,
+        expectAllowsEmpty: false);
+
+      doTest('legacy: mandatoryTopics disables empty',
+        mandatoryTopics: true,
+        expectAllowsEmpty: false);
+
+      doTest('legacy: mandatoryTopics allows empty',
+        mandatoryTopics: false,
+        expectAllowsEmpty: true);
     });
 
     group('to TopicNarrow', () {
@@ -1039,7 +1121,9 @@ void main() {
 
     Future<void> setupAndTapSend(WidgetTester tester, {
       required String topicInputText,
-      required bool mandatoryTopics,
+      ChannelTopicsPolicy? channelTopicsPolicy,
+      RealmTopicsPolicy? realmTopicsPolicy,
+      bool? mandatoryTopics,
       int? zulipFeatureLevel,
     }) async {
       TypingNotifier.debugEnable = false;
@@ -1047,11 +1131,12 @@ void main() {
       MessageStoreImpl.debugOutboxEnable = false;
       addTearDown(MessageStoreImpl.debugReset);
 
-      channel = eg.stream();
+      channel = eg.stream(topicsPolicy: channelTopicsPolicy);
       final narrow = ChannelNarrow(channel.streamId);
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)],
         mandatoryTopics: mandatoryTopics,
+        realmTopicsPolicy: realmTopicsPolicy,
         zulipFeatureLevel: zulipFeatureLevel);
 
       await enterTopic(tester, narrow: narrow, topic: topicInputText);
@@ -1064,13 +1149,13 @@ void main() {
       check(connection.takeRequests()).isEmpty();
       checkErrorDialog(tester,
         expectedTitle: 'Message not sent',
-        expectedMessage: 'Topics are required in this organization.');
+        expectedMessage: 'Topics are required in this channel.');
     }
 
     testWidgets('empty topic -> ""', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '',
-        mandatoryTopics: false);
+        realmTopicsPolicy: RealmTopicsPolicy.allowEmptyTopic);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
@@ -1091,21 +1176,21 @@ void main() {
     testWidgets('if topics are mandatory, reject empty topic', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '',
-        mandatoryTopics: true);
+        realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic);
       checkMessageNotSent(tester);
     });
 
     testWidgets('if topics are mandatory, reject `realmEmptyTopicDisplayName`', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: eg.defaultRealmEmptyTopicDisplayName,
-        mandatoryTopics: true);
+        realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic);
       checkMessageNotSent(tester);
     });
 
     testWidgets('if topics are mandatory, reject "(no topic)"', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '(no topic)',
-        mandatoryTopics: true);
+        realmTopicsPolicy: RealmTopicsPolicy.disableEmptyTopic);
       checkMessageNotSent(tester);
     });
   });

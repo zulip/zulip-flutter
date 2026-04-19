@@ -212,6 +212,20 @@ mixin ChannelStore on UserStore {
     }
   }
 
+  ChannelTopicsPolicy effectiveTopicsPolicy(int streamId) {
+    final channelTopicsPolicy = streams[streamId]?.topicsPolicy;
+
+    if (channelTopicsPolicy case .inherit || null) {
+      final realmTopicsPolicy = this.realmTopicsPolicy
+        ?? (realmMandatoryTopics!
+              ? .disableEmptyTopic
+              : .allowEmptyTopic);
+      return ChannelTopicsPolicy.forRealmPolicy(realmTopicsPolicy);
+    }
+
+    return channelTopicsPolicy;
+  }
+
   bool selfHasContentAccess(ZulipStream channel) {
     // Compare web's stream_data.has_content_access.
     if (channel.isWebPublic) return true;
@@ -546,6 +560,8 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.inviteOnly = event.value as bool;
           case ChannelPropertyName.messageRetentionDays:
             stream.messageRetentionDays = event.value as int?;
+          case ChannelPropertyName.topicsPolicy:
+            stream.topicsPolicy = event.value as ChannelTopicsPolicy;
           case ChannelPropertyName.channelPostPolicy:
             stream.channelPostPolicy = event.value as ChannelPostPolicy;
           case ChannelPropertyName.folderId:

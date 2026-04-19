@@ -780,7 +780,7 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Topics are required in this organization.';
+      'Topics are required in this channel.';
 
   @override
   String get errorContentNotInsertedTitle => 'Content not inserted';
