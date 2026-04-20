@@ -1105,10 +1105,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Utilisez les boutons ci-dessous pour voir le fil groupé ou la liste des canaux.';
 
   @override
-  String get pinnedChannelsFolderName => 'Pinned channels';
+  String get pinnedChannelsFolderName => 'Canaux épinglés';
 
   @override
-  String get otherChannelsFolderName => 'Other channels';
+  String get otherChannelsFolderName => 'Autres canaux';
 
   @override
   String get recentDmConversationsPageTitle => 'Messages directs';

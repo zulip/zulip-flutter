@@ -1,1 +1,24 @@
-{}
+{
+  "@errorInvalidApiKeyMessage": {
+    "description": "Error message in the dialog for invalid API key.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      }
+    }
+  },
+  "@errorInvalidResponse": {
+    "description": "Error message when an API call returned an invalid response."
+  },
+  "@errorNetworkRequestFailed": {
+    "description": "Error message when a network request fails."
+  },
+  "@serverCompatBannerLearnMoreLabel": {
+    "description": "Label for the button in the server compatibility warning banner that opens the support policy doc."
+  },
+  "errorInvalidApiKeyMessage": "Ο λογαριασμός στη {url} δεν μπόρεσε να πιστοποιηθεί. Παρακαλώ προσπάθήσ να συνδεθείς ξανά ή χρησιμοποιήσε έναν άλλο λογαριασμό.",
+  "errorInvalidResponse": "Ο διακομιστής έστειλε μια μη έγκυρη απόκριση.",
+  "errorNetworkRequestFailed": "Αποτυχία αιτήματος δικτύου",
+  "serverCompatBannerLearnMoreLabel": "Μάθε περισσότερα"
+}
