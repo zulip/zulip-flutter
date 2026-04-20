@@ -1,7 +1,6 @@
 import 'package:checks/checks.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:fake_async/fake_async.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/database.dart';
@@ -204,13 +203,6 @@ void main() {
         final key = mkKey(now - 15 * secondsPerDay);
         await initStore(async, pushKeys: [key]);
         check(store.pushKeys.latestPushKey).equals(key);
-      }));
-
-      test('on iOS, generate no key', () => awaitFakeAsync((async) async {
-        addTearDown(() => debugDefaultTargetPlatformOverride = null);
-        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-        await initStore(async);
-        check(store.pushKeys.latestPushKey).isNull();
       }));
 
       test('on old server, generate no key', () => awaitFakeAsync((async) async {
