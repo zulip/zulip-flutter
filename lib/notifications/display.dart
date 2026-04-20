@@ -418,6 +418,18 @@ class NotificationDisplayManager {
     };
   }
 
+  static String subtitleForNotifPayloadOnIos(NotifPayloadNewMessage data) {
+    // Adapted from server implementation:
+    //   https://github.com/zulip/zulip/blob/11bf985d1/zerver/lib/push_notifications.py#L1087-L1124
+    // TODO handle subtitle for user/group/wildcard mentions
+    return switch (data.recipient) {
+      NotifPayloadChannelRecipient() => '${data.senderFullName}:',
+
+      // The title indicates the sender's name in both 1-1 and group DMs.
+      NotifPayloadDmRecipient() => '',
+    };
+  }
+
   static Uri notificationUrlForNotifPayload(NotifPayloadNewMessage data) {
     return NotificationOpenPayload(
       realmUrl: data.realmUrl,

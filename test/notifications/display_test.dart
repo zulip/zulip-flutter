@@ -31,7 +31,7 @@ import '../model/store_checks.dart';
 import '../test_images.dart';
 import '../api/notifications_test.dart';
 
-Future<Uint8List> _encryptNotification(Uint8List pushKey, Uint8List plaintext) async {
+Future<Uint8List> encryptNotification(Uint8List pushKey, Uint8List plaintext) async {
   // Compare [PushKeyStore.decryptNotification].
   final keyBytes = PushKeyStore.secretboxKeyFromPushKey(pushKey);
 
@@ -71,7 +71,7 @@ Future<RemoteMessage> encodeFcmMessage(NotifPayloadWithIdentity data) async {
       && account.userId == data.userId).single;
     final pushKey = testBinding.globalStore.pushKeys.perAccount(account.id)
       .latestPushKey!;
-    final encrypted = await _encryptNotification(pushKey.pushKey,
+    final encrypted = await encryptNotification(pushKey.pushKey,
       utf8.encode(jsonEncode(data)));
     payload = {
       'push_key_id': pushKey.pushKeyId.toString(),

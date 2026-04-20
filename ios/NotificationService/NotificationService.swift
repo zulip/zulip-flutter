@@ -63,6 +63,7 @@ class NotificationService: UNNotificationServiceExtension {
       switch result {
       case .success(let improvedNotificationContent):
         bestAttemptContent.title = improvedNotificationContent.title
+        bestAttemptContent.subtitle = improvedNotificationContent.subtitle
         bestAttemptContent.body = improvedNotificationContent.body
         contentHandler(bestAttemptContent)
 

@@ -21,6 +21,20 @@ Map<String, dynamic> _$EncryptedFcmMessageToJson(
   'encrypted_data': base64Encode(instance.encryptedData),
 };
 
+EncryptedApnsPayload _$EncryptedApnsPayloadFromJson(
+  Map<String, dynamic> json,
+) => EncryptedApnsPayload(
+  pushKeyId: (json['push_key_id'] as num).toInt(),
+  encryptedData: base64Decode(json['encrypted_data'] as String),
+);
+
+Map<String, dynamic> _$EncryptedApnsPayloadToJson(
+  EncryptedApnsPayload instance,
+) => <String, dynamic>{
+  'push_key_id': instance.pushKeyId,
+  'encrypted_data': base64Encode(instance.encryptedData),
+};
+
 NotifPayloadNewMessage _$NotifPayloadNewMessageFromJson(
   Map<String, dynamic> json,
 ) => NotifPayloadNewMessage(

@@ -140,6 +140,8 @@ struct NotificationContent: Hashable {
 struct ImprovedNotificationContent: Hashable {
   /// The new title to use for the notification.
   var title: String
+  /// The new subtitle to use for the notification.
+  var subtitle: String
   /// The new body to use for the notification.
   var body: String
 
@@ -147,16 +149,19 @@ struct ImprovedNotificationContent: Hashable {
   // swift-format-ignore: AlwaysUseLowerCamelCase
   static func fromList(_ pigeonVar_list: [Any?]) -> ImprovedNotificationContent? {
     let title = pigeonVar_list[0] as! String
-    let body = pigeonVar_list[1] as! String
+    let subtitle = pigeonVar_list[1] as! String
+    let body = pigeonVar_list[2] as! String
 
     return ImprovedNotificationContent(
       title: title,
+      subtitle: subtitle,
       body: body
     )
   }
   func toList() -> [Any?] {
     return [
       title,
+      subtitle,
       body,
     ]
   }

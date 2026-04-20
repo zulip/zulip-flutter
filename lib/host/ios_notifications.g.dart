@@ -79,11 +79,15 @@ class NotificationContent {
 class ImprovedNotificationContent {
   ImprovedNotificationContent({
     required this.title,
+    required this.subtitle,
     required this.body,
   });
 
   /// The new title to use for the notification.
   String title;
+
+  /// The new subtitle to use for the notification.
+  String subtitle;
 
   /// The new body to use for the notification.
   String body;
@@ -91,6 +95,7 @@ class ImprovedNotificationContent {
   List<Object?> _toList() {
     return <Object?>[
       title,
+      subtitle,
       body,
     ];
   }
@@ -102,7 +107,8 @@ class ImprovedNotificationContent {
     result as List<Object?>;
     return ImprovedNotificationContent(
       title: result[0]! as String,
-      body: result[1]! as String,
+      subtitle: result[1]! as String,
+      body: result[2]! as String,
     );
   }
 

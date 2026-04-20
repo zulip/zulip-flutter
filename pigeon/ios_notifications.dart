@@ -21,11 +21,15 @@ class NotificationContent {
 class ImprovedNotificationContent {
   const ImprovedNotificationContent({
     required this.title,
+    required this.subtitle,
     required this.body,
   });
 
   /// The new title to use for the notification.
   final String title;
+
+  /// The new subtitle to use for the notification.
+  final String subtitle;
 
   /// The new body to use for the notification.
   final String body;
