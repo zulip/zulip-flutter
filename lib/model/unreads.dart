@@ -193,7 +193,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   }
 
   /// The "broad" unread count for this channel,
-  /// using [ChannelStore.isTopicVisibleInStream].
+  /// using [ChannelStore.isTopicVisibleInChannel].
   ///
   /// This includes topics that have no visibility policy of their own,
   /// even if the channel itself is muted.
@@ -206,7 +206,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     if (topics == null) return 0;
     int c = 0;
     for (final entry in topics.entries) {
-      if (channelStore.isTopicVisibleInStream(channelId, entry.key)) {
+      if (channelStore.isTopicVisibleInChannel(channelId, entry.key)) {
         c = c + entry.value.length;
       }
     }
