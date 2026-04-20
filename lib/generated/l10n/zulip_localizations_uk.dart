@@ -82,6 +82,12 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Надіслати особисте повідомлення';
 
   @override
+  String get profileDateJoinedLabel => 'Date joined';
+
+  @override
+  String get profileDateImportedLabel => 'Imported on';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'Не вдалося показати профіль користувача.';
 
