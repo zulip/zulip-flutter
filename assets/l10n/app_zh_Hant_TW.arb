@@ -786,9 +786,6 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
-  },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
   },
@@ -887,6 +884,9 @@
   },
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
+  },
+  "@navBarFeedLabel": {
+    "description": "Label for the Feed button on the bottom navigation bar."
   },
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
@@ -1015,6 +1015,9 @@
   },
   "@recentDmConversationsEmptyPlaceholderMessage": {
     "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
+  },
+  "@recentDmConversationsPageShortLabel": {
+    "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
   },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
@@ -1414,7 +1417,7 @@
   "channelsEmptyPlaceholderHeader": "您尚未訂閱任何頻道。",
   "channelsEmptyPlaceholderMessage": "試著前往 <z-link>{allChannelsPageTitle}</z-link>，加入一些頻道吧。",
   "channelsPageTitle": "頻道",
-  "chooseAccountButtonAddAnAccount": "增添帳號",
+  "chooseAccountButtonAddAnAccount": "新增帳號",
   "chooseAccountPageLogOutButton": "登出",
   "chooseAccountPageTitle": "選取帳號",
   "combinedFeedPageTitle": "綜合動態",
@@ -1477,12 +1480,12 @@
   "emptyMessageListSearch": "沒有搜尋結果。",
   "emptyMessageListSelfDmHeader": "您尚未傳送任何私人訊息給自己！",
   "emptyMessageListSelfDmMessage": "使用此空間記錄個人筆記，或測試 Zulip 功能。",
-  "emptyMessageListStarredHeader": "您沒有任何星號標記訊息。",
+  "emptyMessageListStarredHeader": "您沒有任何星標訊息。",
   "emptyMessageListStarredMessage": "<z-link>星號標記</z-link>是追蹤重要訊息的好方法，例如您需要回頭處理的工作，或是實用的參考資料。若要將訊息加入星號，請長按訊息並點擊「{button}」",
   "errorAccountLoggedIn": "在 {server} 的帳號 {email} 已經存在帳號清單中。",
   "errorAccountLoggedInTitle": "帳號已經登入了",
-  "errorConnectingToServerDetails": "連接 Zulip {serverUrl} 時發生錯誤。將重試：\n\n{error}",
-  "errorConnectingToServerShort": "連接 Zulip 時發生錯誤。重試中…",
+  "errorConnectingToServerDetails": "連線 Zulip {serverUrl} 時發生錯誤。將重試：\n\n{error}",
+  "errorConnectingToServerShort": "連線 Zulip 時發生錯誤。重試中…",
   "errorContentNotInsertedTitle": "未插入內容",
   "errorContentToInsertIsEmpty": "要插入的檔案為空或無法存取。",
   "errorCopyingFailed": "複製失敗",
@@ -1557,7 +1560,7 @@
   "logOutConfirmationDialogConfirmButton": "登出",
   "logOutConfirmationDialogMessage": "要在未來使用此帳號，您將需要重新輸入您組織的網址和您的帳號資訊。",
   "logOutConfirmationDialogTitle": "登出？",
-  "loginAddAnAccountPageTitle": "增添帳號",
+  "loginAddAnAccountPageTitle": "新增帳號",
   "loginEmailLabel": "電子郵件地址",
   "loginErrorMissingEmail": "請輸入您的電子郵件地址。",
   "loginErrorMissingPassword": "請輸入您的密碼。",
@@ -1568,7 +1571,6 @@
   "loginMethodDividerSemanticLabel": "其他登入方式",
   "loginPageTitle": "登入",
   "loginPasswordLabel": "密碼",
-  "loginServerUrlLabel": "您的 Zulip 伺服器網址",
   "loginUsernameLabel": "使用者名稱",
   "mainMenuMyProfile": "我的設定檔",
   "manyPeopleTyping": "有些人正在輸入…",
@@ -1594,14 +1596,15 @@
   "messageListGroupYouWithYourself": "與自己的訊息",
   "messageNotSentLabel": "訊息未送出",
   "mutedUser": "已靜音的使用者",
+  "navBarFeedLabel": "動態",
   "navBarMenuLabel": "功能表",
   "navButtonAllChannels": "所有頻道",
   "newDmFabButtonLabel": "新增私訊",
   "newDmSheetComposeButtonLabel": "編寫",
   "newDmSheetNoUsersFound": "找不到使用者",
   "newDmSheetScreenTitle": "新增私訊",
-  "newDmSheetSearchHintEmpty": "增添一個或多個使用者",
-  "newDmSheetSearchHintSomeSelected": "增添其他使用者…",
+  "newDmSheetSearchHintEmpty": "新增一個或多個使用者",
+  "newDmSheetSearchHintSomeSelected": "新增其他使用者…",
   "noEarlierMessages": "沒有更早的訊息",
   "noStatusText": "無狀態文字",
   "notifGroupDmConversationLabel": "{senderFullName} 傳送給您和 {numOthers, plural, =1{1 位其他對象、} other{{numOthers} 位其他對象}}",
@@ -1624,6 +1627,7 @@
   "reactionChipsLabel": "反應",
   "recentDmConversationsEmptyPlaceholderHeader": "您尚未有任何私人訊息！",
   "recentDmConversationsEmptyPlaceholderMessage": "要不要開始一段對話呢？",
+  "recentDmConversationsPageShortLabel": "私訊",
   "recentDmConversationsPageTitle": "私人訊息",
   "recentDmConversationsSectionHeader": "私人訊息",
   "revealButtonLabel": "顯示訊息",
@@ -1647,7 +1651,7 @@
   "signInWithFoo": "使用 {method} 登入",
   "snackBarDetails": "詳細資訊",
   "spoilerDefaultHeaderText": "劇透",
-  "starredMessagesPageTitle": "已加星號的訊息",
+  "starredMessagesPageTitle": "星標訊息",
   "statusButtonLabelStatusSet": "狀態",
   "statusButtonLabelStatusUnset": "設定狀態",
   "statusClearButtonLabel": "清除",
@@ -1660,9 +1664,9 @@
   "successMessageTextCopied": "已複製訊息文字",
   "successTopicLinkCopied": "話題連結已複製",
   "switchAccountButtonTooltip": "切換帳號",
-  "themeSettingDark": "深色主題",
-  "themeSettingLight": "淺色主題",
-  "themeSettingSystem": "系統主題",
+  "themeSettingDark": "深色",
+  "themeSettingLight": "淺色",
+  "themeSettingSystem": "系統",
   "themeSettingTitle": "主題",
   "today": "今天",
   "topicListEmptyPlaceholderHeader": "這裡還沒有任何話題。",
@@ -1685,7 +1689,7 @@
   "upgradeWelcomeDialogDismiss": "開始吧",
   "upgradeWelcomeDialogLinkText": "查看公告部落格文章！",
   "upgradeWelcomeDialogMessage": "您將在更快、更流暢的版本中享受熟悉的體驗。",
-  "upgradeWelcomeDialogTitle": "歡迎使用新 Zulip 應用程式！",
+  "upgradeWelcomeDialogTitle": "歡迎使用新的 Zulip 應用程式！",
   "userActiveDate": "上次活躍於 {date}",
   "userActiveDaysAgo": "上次活躍於 {days, plural, =1{1 天前} other{{days} 天前}}",
   "userActiveHoursAgo": "上次活躍於 {hours, plural, =1{1 小時前} other{{hours} 小時前}}",

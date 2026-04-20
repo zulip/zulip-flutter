@@ -152,17 +152,35 @@
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
   },
   "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
   },
   "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel.",
@@ -336,6 +354,9 @@
   },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
   },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
@@ -680,9 +701,6 @@
   },
   "@loginPasswordLabel": {
     "description": "Label for password input field."
-  },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
   },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
@@ -1282,10 +1300,16 @@
   "composeBoxAttachFromCameraTooltip": "拍摄照片",
   "composeBoxAttachMediaTooltip": "上传图片或视频",
   "composeBoxBannerButtonCancel": "取消",
+  "composeBoxBannerButtonRefresh": "刷新",
   "composeBoxBannerButtonSave": "保存",
+  "composeBoxBannerButtonSubscribe": "订阅",
   "composeBoxBannerLabelCannotSendInChannel": "您没有足够的权限在此频道发送消息。",
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "你不能在这里发送消息。",
   "composeBoxBannerLabelDeactivatedDmRecipient": "您不能向被停用的用户发送消息。",
   "composeBoxBannerLabelEditMessage": "编辑消息",
+  "composeBoxBannerLabelUnknownDmRecipient": "你不能向未知用户发送消息。",
+  "composeBoxBannerLabelUnsubscribed": "对您消息的回复不会自动显示。",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "新消息将不会自动出现。",
   "composeBoxChannelContentHint": "发送消息到 {destination}",
   "composeBoxDmContentHint": "发送私信给 @{user}",
   "composeBoxEnterTopicOrSkipHintText": "输入话题（默认为“{defaultTopicName}”）",
@@ -1325,6 +1349,7 @@
   "errorContentNotInsertedTitle": "未插入内容",
   "errorContentToInsertIsEmpty": "要插入的文件为空或无法访问。",
   "errorCopyingFailed": "未能复制消息文本",
+  "errorCouldNotAccessUploadedFileTitle": "无法访问上传的文件",
   "errorCouldNotConnectTitle": "未能连接",
   "errorCouldNotEditMessageTitle": "未能编辑消息",
   "errorCouldNotFetchMessageSource": "未能获取原始消息。",
@@ -1403,7 +1428,6 @@
   "loginMethodDivider": "或",
   "loginPageTitle": "登入",
   "loginPasswordLabel": "密码",
-  "loginServerUrlLabel": "Zulip 服务器网址",
   "loginUsernameLabel": "用户名",
   "mainMenuMyProfile": "个人资料",
   "manyPeopleTyping": "多个用户正在输入…",

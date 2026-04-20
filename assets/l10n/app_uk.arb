@@ -774,9 +774,6 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
-  },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
   },
@@ -1555,7 +1552,6 @@
   "loginMethodDividerSemanticLabel": "Альтернативні способи входу",
   "loginPageTitle": "Увійти",
   "loginPasswordLabel": "Пароль",
-  "loginServerUrlLabel": "URL-адреса вашого сервера Zulip",
   "loginUsernameLabel": "Ім'я користувача",
   "mainMenuMyProfile": "Мій профіль",
   "manyPeopleTyping": "Кілька людей друкують…",

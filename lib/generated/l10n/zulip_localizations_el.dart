@@ -812,18 +812,19 @@ class ZulipLocalizationsEl extends ZulipLocalizations {
   String get serverCompatBannerDismissLabel => 'Dismiss';
 
   @override
-  String get serverCompatBannerLearnMoreLabel => 'Learn more';
+  String get serverCompatBannerLearnMoreLabel => 'Μάθε περισσότερα';
 
   @override
   String errorInvalidApiKeyMessage(String url) {
-    return 'Your account at $url could not be authenticated. Please try logging in again or use another account.';
+    return 'Ο λογαριασμός στη $url δεν μπόρεσε να πιστοποιηθεί. Παρακαλώ προσπάθήσ να συνδεθείς ξανά ή χρησιμοποιήσε έναν άλλο λογαριασμό.';
   }
 
   @override
-  String get errorInvalidResponse => 'The server sent an invalid response.';
+  String get errorInvalidResponse =>
+      'Ο διακομιστής έστειλε μια μη έγκυρη απόκριση.';
 
   @override
-  String get errorNetworkRequestFailed => 'Network request failed';
+  String get errorNetworkRequestFailed => 'Αποτυχία αιτήματος δικτύου';
 
   @override
   String errorMalformedResponse(int httpStatus) {

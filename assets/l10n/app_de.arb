@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -85,6 +88,9 @@
   },
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
+  },
+  "@actionSheetOptionViewProfile": {
+    "description": "Option to view the user's profile in the action sheet for a 1:1 DM conversation."
   },
   "@actionSheetOptionViewReadReceipts": {
     "description": "Label for the 'View read receipts' button in the message action sheet."
@@ -765,9 +771,6 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
-  },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
   },
@@ -1356,6 +1359,7 @@
   "actionSheetOptionMarkChannelAsRead": "Kanal als gelesen markieren",
   "actionSheetOptionMarkTopicAsRead": "Thema als gelesen markieren",
   "actionSheetOptionMuteTopic": "Thema stummschalten",
+  "actionSheetOptionPinChannel": "Oben anheften",
   "actionSheetOptionQuoteMessage": "Nachricht zitieren",
   "actionSheetOptionResolveTopic": "Als gelöst markieren",
   "actionSheetOptionSeeWhoReacted": "Wer hat reagiert",
@@ -1367,6 +1371,7 @@
   "actionSheetOptionUnresolveTopic": "Als ungelöst markieren",
   "actionSheetOptionUnstarMessage": "Markierung aufheben",
   "actionSheetOptionUnsubscribe": "Deabonnieren",
+  "actionSheetOptionViewProfile": "Profil ansehen",
   "actionSheetOptionViewReadReceipts": "Empfangsbestätigungen ansehen",
   "actionSheetReadReceipts": "Empfangsbestätigungen",
   "actionSheetReadReceiptsErrorReadCount": "Laden von Empfangsbestätigungen fehlgeschlagen.",
@@ -1528,7 +1533,6 @@
   "loginMethodDividerSemanticLabel": "Alternative Möglichkeiten zum Einloggen",
   "loginPageTitle": "Anmelden",
   "loginPasswordLabel": "Passwort",
-  "loginServerUrlLabel": "Deine Zulip Server URL",
   "loginUsernameLabel": "Benutzername",
   "mainMenuMyProfile": "Mein Profil",
   "manyPeopleTyping": "Mehrere Leute tippen…",

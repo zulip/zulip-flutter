@@ -1,542 +1,538 @@
 {
-  "tryAnotherAccountMessage": "Načítavanie vášho konta na adrese {url} chvílu trvá.",
-  "@tryAnotherAccountMessage": {
-    "description": "Message that appears on the loading screen after waiting for some time.",
-    "url": {
-      "type": "String",
-      "example": "http://chat.example.com/"
-    }
-  },
-  "aboutPageTapToView": "Klepnutím zobraziť",
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
-  "actionSheetOptionUnmuteTopic": "Zrušiť ztlmenia témy",
-  "@actionSheetOptionUnmuteTopic": {
-    "description": "Label for unmuting a topic on action sheet."
-  },
-  "actionSheetOptionFollowTopic": "Sledovať tému",
-  "@actionSheetOptionFollowTopic": {
-    "description": "Label for following a topic on action sheet."
-  },
-  "aboutPageAppVersion": "Verzia apliḱácie",
   "@aboutPageAppVersion": {
     "description": "Label for Zulip app version in About Zulip page"
   },
-  "aboutPageTitle": "O Zulipe",
-  "@aboutPageTitle": {
-    "description": "Title for About Zulip page."
-  },
-  "chooseAccountPageTitle": "Zvoliť účet",
-  "@chooseAccountPageTitle": {
-    "description": "Title for the page to choose between Zulip accounts."
-  },
-  "actionSheetOptionMuteTopic": "Stlmiť tému",
-  "@actionSheetOptionMuteTopic": {
-    "description": "Label for muting a topic on action sheet."
-  },
-  "aboutPageOpenSourceLicenses": "Licencia open-source",
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "actionSheetOptionUnfollowTopic": "Prestať sledovať tému",
-  "@actionSheetOptionUnfollowTopic": {
-    "description": "Label for unfollowing a topic on action sheet."
+  "@aboutPageTapToView": {
+    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
   },
-  "switchAccountButtonTooltip": "Zmeniť účet",
-  "@switchAccountButtonTooltip": {
-    "description": "Tooltip message for main-menu button leading to the choose-account page."
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
   },
-  "permissionsNeededOpenSettings": "Otvoriť nastavenia",
-  "@permissionsNeededOpenSettings": {
-    "description": "Button label for permissions dialog button that opens the system settings screen."
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
   },
-  "errorCouldNotFetchMessageSource": "Nepodarilo sa nahrať zdroj správy",
-  "@errorCouldNotFetchMessageSource": {
-    "description": "Error message when the source of a message could not be fetched."
-  },
-  "errorConnectingToServerDetails": "Nepodarilo sa pripojiť na Zulip server {serverUrl}. Skúsim znovu:\n\n{error}",
-  "@errorConnectingToServerDetails": {
-    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
-    "placeholders": {
-      "serverUrl": {
-        "type": "String",
-        "example": "http://example.com/"
-      },
-      "error": {
-        "type": "String",
-        "example": "Invalid format"
-      }
-    }
-  },
-  "loginServerUrlLabel": "Adresa vášho Zulip servera",
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
-  },
-  "errorMessageNotSent": "Správa nebola odoslaná",
-  "@errorMessageNotSent": {
-    "description": "Error message for compose box when a message could not be sent."
-  },
-  "errorMalformedResponse": "Server doručil zle naformátovanú odozvu; HTTP status {httpStatus}",
-  "@errorMalformedResponse": {
-    "description": "Error message when an API call fails because we could not parse the response.",
-    "placeholders": {
-      "httpStatus": {
-        "type": "int",
-        "example": "200"
-      }
-    }
-  },
-  "tryAnotherAccountButton": "Skúsiť iný účet",
-  "@tryAnotherAccountButton": {
-    "description": "Label for loading screen button prompting user to try another account."
-  },
-  "logOutConfirmationDialogTitle": "Chcete sa odhlásiť?",
-  "@logOutConfirmationDialogTitle": {
-    "description": "Title for a confirmation dialog for logging out."
-  },
-  "logOutConfirmationDialogConfirmButton": "Odhlásiť sa",
-  "@logOutConfirmationDialogConfirmButton": {
-    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
-  },
-  "chooseAccountButtonAddAnAccount": "Pridať účet",
-  "@chooseAccountButtonAddAnAccount": {
-    "description": "Label for ChooseAccountPage button to add an account"
-  },
-  "profileButtonSendDirectMessage": "Poslať priamu správu",
-  "@profileButtonSendDirectMessage": {
-    "description": "Label for button in profile screen to navigate to DMs with the shown user."
-  },
-  "actionSheetOptionCopyMessageText": "Skopírovať text správy",
   "@actionSheetOptionCopyMessageText": {
     "description": "Label for copy message text button on action sheet."
   },
-  "actionSheetOptionMarkAsUnread": "Označiť ako neprečítané od tejto správy",
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
   "@actionSheetOptionMarkAsUnread": {
     "description": "Label for mark as unread button on action sheet."
   },
-  "actionSheetOptionShare": "Zdielať",
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
   },
-  "actionSheetOptionStarMessage": "Ohviezdičkovať správu",
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
   },
-  "actionSheetOptionUnstarMessage": "Odhviezdičkovať správu",
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
   "@actionSheetOptionUnstarMessage": {
     "description": "Label for unstar button on action sheet."
   },
-  "errorWebAuthOperationalError": "Nastala neočakávaná chyba.",
-  "@errorWebAuthOperationalError": {
-    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  "@channelsPageTitle": {
+    "description": "Title for the page with a list of subscribed channels."
   },
-  "errorAccountLoggedInTitle": "Účet je už prihlásený",
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "@combinedFeedPageTitle": {
+    "description": "Page title for the 'Combined feed' message view."
+  },
+  "@dialogClose": {
+    "description": "Button label in dialogs to close."
+  },
+  "@dialogContinue": {
+    "description": "Button label in dialogs to proceed."
+  },
+  "@emojiPickerSearchEmoji": {
+    "description": "Hint text for the emoji picker search text field."
+  },
+  "@emojiReactionsMore": {
+    "description": "Label for a button opening the emoji picker."
+  },
   "@errorAccountLoggedInTitle": {
     "description": "Error title on attempting to log into an account that's already logged in."
   },
-  "errorCopyingFailed": "Kopírovanie zlyhalo",
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "error": {
+        "example": "Invalid format",
+        "type": "String"
+      },
+      "serverUrl": {
+        "example": "http://example.com/",
+        "type": "String"
+      }
+    }
+  },
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
   },
-  "errorFailedToUploadFileTitle": "Nepodarilo sa nahrať súbor: {filename}",
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "@errorDialogContinue": {
+    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
+  },
+  "@errorDialogTitle": {
+    "description": "Generic title for error dialog."
+  },
   "@errorFailedToUploadFileTitle": {
     "description": "Error title when the specified file failed to upload.",
     "placeholders": {
       "filename": {
-        "type": "String",
-        "example": "file.txt"
+        "example": "file.txt",
+        "type": "String"
       }
     }
   },
-  "errorLoginInvalidInputTitle": "Nesprávny vstup",
-  "@errorLoginInvalidInputTitle": {
-    "description": "Error title for login when input is invalid."
-  },
-  "errorLoginFailedTitle": "Nepodarilo sa prihlásiť",
-  "@errorLoginFailedTitle": {
-    "description": "Error title for login when signing into a Zulip server fails."
-  },
-  "errorLoginCouldNotConnect": "Nepodarilo sa pripojiť na server:\n{url}",
-  "@errorLoginCouldNotConnect": {
-    "description": "Error message when the app could not connect to the server.",
-    "placeholders": {
-      "url": {
-        "type": "String",
-        "example": "http://example.com/"
-      }
-    }
-  },
-  "errorMessageDoesNotSeemToExist": "Správa zrejme neexistuje.",
-  "@errorMessageDoesNotSeemToExist": {
-    "description": "Error message when loading a message that does not exist."
-  },
-  "errorQuotationFailed": "Nepodarila sa citácia",
-  "@errorQuotationFailed": {
-    "description": "Error message when quoting a message failed."
-  },
-  "errorConnectingToServerShort": "Chyba pri pripájaní na Zulip. Skúšam znovu…",
-  "@errorConnectingToServerShort": {
-    "description": "Short error message for a generic unknown error connecting to the server."
-  },
-  "errorMuteTopicFailed": "Nepodarilo sa ztíšiť tému",
-  "@errorMuteTopicFailed": {
-    "description": "Error message when muting a topic failed."
-  },
-  "errorUnmuteTopicFailed": "Nepodarilo sa odtíšiť tému",
-  "@errorUnmuteTopicFailed": {
-    "description": "Error message when unmuting a topic failed."
-  },
-  "dialogContinue": "Pokračovať",
-  "@dialogContinue": {
-    "description": "Button label in dialogs to proceed."
-  },
-  "dialogClose": "Zavrieť",
-  "@dialogClose": {
-    "description": "Button label in dialogs to close."
-  },
-  "lightboxCopyLinkTooltip": "Skopírovať odkaz",
-  "@lightboxCopyLinkTooltip": {
-    "description": "Tooltip in lightbox for the copy link action."
-  },
-  "loginPageTitle": "Prihlásiť sa",
-  "@loginPageTitle": {
-    "description": "Title for login page."
-  },
-  "loginFormSubmitLabel": "Prihlásiť sa",
-  "@loginFormSubmitLabel": {
-    "description": "Button text to submit login credentials."
-  },
-  "loginMethodDivider": "alebo",
-  "@loginMethodDivider": {
-    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
-  },
-  "signInWithFoo": "Prihlásiť sa pomocou {method}",
-  "@signInWithFoo": {
-    "description": "Button to use {method} to sign in to the app.",
-    "placeholders": {
-      "method": {
-        "type": "String",
-        "example": "Google"
-      }
-    }
-  },
-  "loginAddAnAccountPageTitle": "Pridať účet",
-  "@loginAddAnAccountPageTitle": {
-    "description": "Title for page to add a Zulip account."
-  },
-  "loginUsernameLabel": "Prihlasovacie meno",
-  "@loginUsernameLabel": {
-    "description": "Label for input when a username is required to log in."
-  },
-  "errorInvalidResponse": "Server poslal nesprávnu odpoveď",
-  "@errorInvalidResponse": {
-    "description": "Error message when an API call returned an invalid response."
-  },
-  "errorNetworkRequestFailed": "Zlyhala sieťová požiadavka",
-  "@errorNetworkRequestFailed": {
-    "description": "Error message when a network request fails."
-  },
-  "errorRequestFailed": "Zlyhala sieťová požiadavka: HTTP status {httpStatus}",
-  "@errorRequestFailed": {
-    "description": "Error message when an API call fails.",
-    "placeholders": {
-      "httpStatus": {
-        "type": "int",
-        "example": "500"
-      }
-    }
-  },
-  "errorVideoPlayerFailed": "Nepodarilo sa prehrať video",
-  "@errorVideoPlayerFailed": {
-    "description": "Error message when a video fails to play."
-  },
-  "serverUrlValidationErrorEmpty": "Vložte adresu.",
-  "@serverUrlValidationErrorEmpty": {
-    "description": "Error message when URL is empty"
-  },
-  "serverUrlValidationErrorNoUseEmail": "Vložte adresu servera, nie email.",
-  "@serverUrlValidationErrorNoUseEmail": {
-    "description": "Error message when URL looks like an email"
-  },
-  "markAsReadComplete": "Označiť {num, plural, =1{1 správu} other{{num} správy}} ako prečítanú.",
-  "@markAsReadComplete": {
-    "description": "Message when marking messages as read has completed.",
-    "placeholders": {
-      "num": {
-        "type": "int",
-        "example": "4"
-      }
-    }
-  },
-  "spoilerDefaultHeaderText": "Vyzradenie",
-  "@spoilerDefaultHeaderText": {
-    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
-  },
-  "loginHidePassword": "Skryť heslo",
-  "@loginHidePassword": {
-    "description": "Icon label for button to hide password in input form."
-  },
-  "loginEmailLabel": "Emailová adresa",
-  "@loginEmailLabel": {
-    "description": "Label for input when an email is required to log in."
-  },
-  "loginErrorMissingPassword": "Prosím zadaj heslo.",
-  "@loginErrorMissingPassword": {
-    "description": "Error message when an empty password was provided."
-  },
-  "errorDialogContinue": "OK",
-  "@errorDialogContinue": {
-    "description": "Button label in error dialogs to acknowledge the error and close the dialog."
-  },
-  "errorDialogTitle": "Chyba",
-  "@errorDialogTitle": {
-    "description": "Generic title for error dialog."
-  },
-  "loginPasswordLabel": "Heslo",
-  "@loginPasswordLabel": {
-    "description": "Label for password input field."
-  },
-  "loginErrorMissingUsername": "Prosím zadajte prihlasovacie meno.",
-  "@loginErrorMissingUsername": {
-    "description": "Error message when an empty username was provided."
-  },
-  "serverUrlValidationErrorInvalidUrl": "Vložte správnu adresu.",
-  "@serverUrlValidationErrorInvalidUrl": {
-    "description": "Error message when URL is not in a valid format."
-  },
-  "markAllAsReadLabel": "Označiť všetky správy ako prečítané",
-  "@markAllAsReadLabel": {
-    "description": "Button text to mark messages as read."
-  },
-  "markAsReadInProgress": "Označiť správy ako prečítané…",
-  "@markAsReadInProgress": {
-    "description": "Progress message when marking messages as read."
-  },
-  "serverUrlValidationErrorUnsupportedScheme": "Adresa servera musí začínať s http:// or https://.",
-  "@serverUrlValidationErrorUnsupportedScheme": {
-    "description": "Error message when URL has an unsupported scheme."
-  },
-  "errorMarkAsReadFailedTitle": "Neodarilo sa označiť správy ako prečítané",
-  "@errorMarkAsReadFailedTitle": {
-    "description": "Error title when mark as read action failed."
-  },
-  "markAsUnreadComplete": "Označiť {num, plural, =1{1 správy} other{{num} správ}} ako neprečítané.",
-  "@markAsUnreadComplete": {
-    "description": "Message when marking messages as unread has completed.",
-    "placeholders": {
-      "num": {
-        "type": "int",
-        "example": "4"
-      }
-    }
-  },
-  "errorMalformedResponseWithCause": "Server doručil zle naformátovanú odpoveď; HTTP status {httpStatus}; {details}",
-  "@errorMalformedResponseWithCause": {
-    "description": "Error message when an API call fails because we could not parse the response, with details of the failure.",
-    "placeholders": {
-      "httpStatus": {
-        "type": "int",
-        "example": "200"
-      },
-      "details": {
-        "type": "String",
-        "example": "type 'Null' is not a subtype of type 'String' in type cast"
-      }
-    }
-  },
-  "actionSheetOptionCopyMessageLink": "Skopírovať odkaz do správy",
-  "@actionSheetOptionCopyMessageLink": {
-    "description": "Label for copy message link button on action sheet."
-  },
-  "errorWebAuthOperationalErrorTitle": "Niečo sa pokazilo",
-  "@errorWebAuthOperationalErrorTitle": {
-    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
-  },
-  "errorServerMessage": "Odozva od servera:\n\n{message}",
-  "@errorServerMessage": {
-    "description": "Error message that quotes an error from the server.",
-    "placeholders": {
-      "message": {
-        "type": "String",
-        "example": "Invalid format"
-      }
-    }
-  },
-  "errorFilesTooLargeTitle": "{num, plural, =1{File} other{Files}} príliš veľký",
   "@errorFilesTooLargeTitle": {
     "description": "Error title when attached files are too large in size.",
     "placeholders": {
       "num": {
-        "type": "int",
-        "example": "4"
+        "example": "4",
+        "type": "int"
       }
     }
   },
-  "chooseAccountPageLogOutButton": "Odhásiť sa",
-  "@chooseAccountPageLogOutButton": {
-    "description": "Label for the 'Log out' button for an account on the choose-account page"
-  },
-  "errorHandlingEventTitle": "Chyba pri obsluhe Zulip udalosti. Pokúšam sa znovu…",
-  "@errorHandlingEventTitle": {
-    "description": "Error title on failing to handle a Zulip server event."
-  },
-  "snackBarDetails": "Detail",
-  "@snackBarDetails": {
-    "description": "Button label for snack bar button that opens a dialog with more details."
-  },
-  "errorHandlingEventDetails": "Chyba obsluhy Zulip udalosti na serveri {serverUrl}; skúsim znovu.\n\nChyba: {error}\n\nUdalosť: {event}",
   "@errorHandlingEventDetails": {
     "description": "Error details on failing to handle a Zulip server event.",
     "placeholders": {
-      "serverUrl": {
-        "type": "String",
-        "example": "https://chat.example.com"
-      },
       "error": {
-        "type": "String",
-        "example": "Unexpected null value"
+        "example": "Unexpected null value",
+        "type": "String"
       },
       "event": {
-        "type": "String",
-        "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')"
+        "example": "UpdateMessageEvent(id: 123, messageIds: [2345, 3456], newTopic: 'dinner')",
+        "type": "String"
+      },
+      "serverUrl": {
+        "example": "https://chat.example.com",
+        "type": "String"
       }
     }
   },
-  "loginErrorMissingEmail": "Prosím, vložte váš email.",
+  "@errorHandlingEventTitle": {
+    "description": "Error title on failing to handle a Zulip server event."
+  },
+  "@errorInvalidResponse": {
+    "description": "Error message when an API call returned an invalid response."
+  },
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {
+        "example": "http://example.com/",
+        "type": "String"
+      }
+    }
+  },
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "@errorMalformedResponse": {
+    "description": "Error message when an API call fails because we could not parse the response.",
+    "placeholders": {
+      "httpStatus": {
+        "example": "200",
+        "type": "int"
+      }
+    }
+  },
+  "@errorMalformedResponseWithCause": {
+    "description": "Error message when an API call fails because we could not parse the response, with details of the failure.",
+    "placeholders": {
+      "details": {
+        "example": "type 'Null' is not a subtype of type 'String' in type cast",
+        "type": "String"
+      },
+      "httpStatus": {
+        "example": "200",
+        "type": "int"
+      }
+    }
+  },
+  "@errorMarkAsReadFailedTitle": {
+    "description": "Error title when mark as read action failed."
+  },
+  "@errorMarkAsUnreadFailedTitle": {
+    "description": "Error title when mark as unread action failed."
+  },
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
+  },
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
+  "@errorNetworkRequestFailed": {
+    "description": "Error message when a network request fails."
+  },
+  "@errorNotificationOpenTitle": {
+    "description": "Error title when notification opening fails"
+  },
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "@errorReactionAddingFailedTitle": {
+    "description": "Error title when adding a message reaction fails"
+  },
+  "@errorReactionRemovingFailedTitle": {
+    "description": "Error title when removing a message reaction fails"
+  },
+  "@errorRequestFailed": {
+    "description": "Error message when an API call fails.",
+    "placeholders": {
+      "httpStatus": {
+        "example": "500",
+        "type": "int"
+      }
+    }
+  },
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "example": "Invalid format",
+        "type": "String"
+      }
+    }
+  },
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
+  "@errorVideoPlayerFailed": {
+    "description": "Error message when a video fails to play."
+  },
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "@inboxPageTitle": {
+    "description": "Title for the page with unreads."
+  },
+  "@lightboxCopyLinkTooltip": {
+    "description": "Tooltip in lightbox for the copy link action."
+  },
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "@loginAddAnAccountPageTitle": {
+    "description": "Title for page to add a Zulip account."
+  },
+  "@loginEmailLabel": {
+    "description": "Label for input when an email is required to log in."
+  },
   "@loginErrorMissingEmail": {
     "description": "Error message when an empty email was provided."
   },
-  "markAsUnreadInProgress": "Označiť správy ako neprečítané…",
-  "@markAsUnreadInProgress": {
-    "description": "Progress message when marking messages as unread."
+  "@loginErrorMissingPassword": {
+    "description": "Error message when an empty password was provided."
   },
-  "yesterday": "Včera",
-  "@yesterday": {
-    "description": "Term to use to reference the previous day."
+  "@loginErrorMissingUsername": {
+    "description": "Error message when an empty username was provided."
   },
-  "userRoleMember": "Člen",
-  "@userRoleMember": {
-    "description": "Label for UserRole.member"
+  "@loginFormSubmitLabel": {
+    "description": "Button text to submit login credentials."
   },
-  "combinedFeedPageTitle": "Zlúčený kanál",
-  "@combinedFeedPageTitle": {
-    "description": "Page title for the 'Combined feed' message view."
+  "@loginHidePassword": {
+    "description": "Icon label for button to hide password in input form."
   },
-  "mentionsPageTitle": "Spomenutia",
-  "@mentionsPageTitle": {
-    "description": "Page title for the 'Mentions' message view."
+  "@loginMethodDivider": {
+    "description": "Text on the divider between the username/password form and the third-party login options. Uppercase (for languages with letter case)."
   },
-  "mainMenuMyProfile": "Môj profil",
+  "@loginPageTitle": {
+    "description": "Title for login page."
+  },
+  "@loginPasswordLabel": {
+    "description": "Label for password input field."
+  },
+  "@loginUsernameLabel": {
+    "description": "Label for input when a username is required to log in."
+  },
   "@mainMenuMyProfile": {
     "description": "Label for main-menu button leading to the user's own profile."
   },
-  "notifSelfUser": "Ty",
+  "@manyPeopleTyping": {
+    "description": "Text to display when there are multiple users typing."
+  },
+  "@markAllAsReadLabel": {
+    "description": "Button text to mark messages as read."
+  },
+  "@markAsReadComplete": {
+    "description": "Message when marking messages as read has completed.",
+    "placeholders": {
+      "num": {
+        "example": "4",
+        "type": "int"
+      }
+    }
+  },
+  "@markAsReadInProgress": {
+    "description": "Progress message when marking messages as read."
+  },
+  "@markAsUnreadComplete": {
+    "description": "Message when marking messages as unread has completed.",
+    "placeholders": {
+      "num": {
+        "example": "4",
+        "type": "int"
+      }
+    }
+  },
+  "@markAsUnreadInProgress": {
+    "description": "Progress message when marking messages as unread."
+  },
+  "@mentionsPageTitle": {
+    "description": "Page title for the 'Mentions' message view."
+  },
+  "@messageIsEditedLabel": {
+    "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
+  "@messageIsMovedLabel": {
+    "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
   },
-  "onePersonTyping": "{typist} píše…",
   "@onePersonTyping": {
     "description": "Text to display when there is one user typing.",
     "placeholders": {
       "typist": {
-        "type": "String",
-        "example": "Alice"
+        "example": "Alice",
+        "type": "String"
       }
     }
   },
-  "twoPeopleTyping": "{typist} a {otherTypist} píšu…",
-  "@twoPeopleTyping": {
-    "description": "Text to display when there are two users typing.",
-    "placeholders": {
-      "typist": {
-        "type": "String",
-        "example": "Alice"
-      },
-      "otherTypist": {
-        "type": "String",
-        "example": "Bob"
-      }
-    }
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
   },
-  "manyPeopleTyping": "Niekoľko ludí píše…",
-  "@manyPeopleTyping": {
-    "description": "Text to display when there are multiple users typing."
-  },
-  "messageIsEditedLabel": "UPRAVENÉ",
-  "@messageIsEditedLabel": {
-    "description": "Label for an edited message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
-  },
-  "messageIsMovedLabel": "PRESUNUTÉ",
-  "@messageIsMovedLabel": {
-    "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
-  },
-  "errorReactionRemovingFailedTitle": "Odobranie reakcie zlyhalo",
-  "@errorReactionRemovingFailedTitle": {
-    "description": "Error title when removing a message reaction fails"
-  },
-  "errorReactionAddingFailedTitle": "Nepodarilo sa pridať reakciu",
-  "@errorReactionAddingFailedTitle": {
-    "description": "Error title when adding a message reaction fails"
-  },
-  "emojiReactionsMore": "viac",
-  "@emojiReactionsMore": {
-    "description": "Label for a button opening the emoji picker."
-  },
-  "emojiPickerSearchEmoji": "Hľadať emotikon",
-  "@emojiPickerSearchEmoji": {
-    "description": "Hint text for the emoji picker search text field."
-  },
-  "userRoleGuest": "Hosť",
-  "@userRoleGuest": {
-    "description": "Label for UserRole.guest"
-  },
-  "starredMessagesPageTitle": "Označené správy",
-  "@starredMessagesPageTitle": {
-    "description": "Page title for the 'Starred messages' message view."
-  },
-  "userRoleOwner": "Majiteľ",
-  "@userRoleOwner": {
-    "description": "Label for UserRole.owner"
-  },
-  "userRoleUnknown": "Neznáma",
-  "@userRoleUnknown": {
-    "description": "Label for UserRole.unknown"
-  },
-  "channelsPageTitle": "Kanály",
-  "@channelsPageTitle": {
-    "description": "Title for the page with a list of subscribed channels."
-  },
-  "errorMarkAsUnreadFailedTitle": "Zlyhalo označenie správ za prečítané",
-  "@errorMarkAsUnreadFailedTitle": {
-    "description": "Error title when mark as unread action failed."
-  },
-  "today": "Dnes",
-  "@today": {
-    "description": "Term to use to reference the current day."
-  },
-  "userRoleAdministrator": "Administrátor",
-  "@userRoleAdministrator": {
-    "description": "Label for UserRole.administrator"
-  },
-  "userRoleModerator": "Moderátor",
-  "@userRoleModerator": {
-    "description": "Label for UserRole.moderator"
-  },
-  "inboxPageTitle": "Inbox",
-  "@inboxPageTitle": {
-    "description": "Title for the page with unreads."
-  },
-  "recentDmConversationsPageTitle": "Priama správa",
-  "@recentDmConversationsPageTitle": {
-    "description": "Title for the page with a list of DM conversations."
-  },
-  "pollWidgetQuestionMissing": "Bez otázky.",
   "@pollWidgetQuestionMissing": {
     "description": "Text to display for a poll when the question is missing"
   },
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "@recentDmConversationsPageTitle": {
+    "description": "Title for the page with a list of DM conversations."
+  },
+  "@serverUrlValidationErrorEmpty": {
+    "description": "Error message when URL is empty"
+  },
+  "@serverUrlValidationErrorInvalidUrl": {
+    "description": "Error message when URL is not in a valid format."
+  },
+  "@serverUrlValidationErrorNoUseEmail": {
+    "description": "Error message when URL looks like an email"
+  },
+  "@serverUrlValidationErrorUnsupportedScheme": {
+    "description": "Error message when URL has an unsupported scheme."
+  },
+  "@signInWithFoo": {
+    "description": "Button to use {method} to sign in to the app.",
+    "placeholders": {
+      "method": {
+        "example": "Google",
+        "type": "String"
+      }
+    }
+  },
+  "@snackBarDetails": {
+    "description": "Button label for snack bar button that opens a dialog with more details."
+  },
+  "@spoilerDefaultHeaderText": {
+    "description": "The default header text in a spoiler block ( https://zulip.com/help/spoilers )."
+  },
+  "@starredMessagesPageTitle": {
+    "description": "Page title for the 'Starred messages' message view."
+  },
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
+  },
+  "@today": {
+    "description": "Term to use to reference the current day."
+  },
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "example": "http://chat.example.com/",
+      "type": "String"
+    }
+  },
+  "@twoPeopleTyping": {
+    "description": "Text to display when there are two users typing.",
+    "placeholders": {
+      "otherTypist": {
+        "example": "Bob",
+        "type": "String"
+      },
+      "typist": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@userRoleAdministrator": {
+    "description": "Label for UserRole.administrator"
+  },
+  "@userRoleGuest": {
+    "description": "Label for UserRole.guest"
+  },
+  "@userRoleMember": {
+    "description": "Label for UserRole.member"
+  },
+  "@userRoleModerator": {
+    "description": "Label for UserRole.moderator"
+  },
+  "@userRoleOwner": {
+    "description": "Label for UserRole.owner"
+  },
+  "@userRoleUnknown": {
+    "description": "Label for UserRole.unknown"
+  },
+  "@yesterday": {
+    "description": "Term to use to reference the previous day."
+  },
+  "aboutPageAppVersion": "Verzia apliḱácie",
+  "aboutPageOpenSourceLicenses": "Licencia open-source",
+  "aboutPageTapToView": "Klepnutím zobraziť",
+  "aboutPageTitle": "O Zulipe",
+  "actionSheetOptionCopyMessageLink": "Skopírovať odkaz do správy",
+  "actionSheetOptionCopyMessageText": "Skopírovať text správy",
+  "actionSheetOptionFollowTopic": "Sledovať tému",
+  "actionSheetOptionMarkAsUnread": "Označiť ako neprečítané od tejto správy",
+  "actionSheetOptionMuteTopic": "Stlmiť tému",
+  "actionSheetOptionShare": "Zdielať",
+  "actionSheetOptionStarMessage": "Ohviezdičkovať správu",
+  "actionSheetOptionUnfollowTopic": "Prestať sledovať tému",
+  "actionSheetOptionUnmuteTopic": "Zrušiť ztlmenia témy",
+  "actionSheetOptionUnstarMessage": "Odhviezdičkovať správu",
+  "channelsPageTitle": "Kanály",
+  "chooseAccountButtonAddAnAccount": "Pridať účet",
+  "chooseAccountPageLogOutButton": "Odhásiť sa",
+  "chooseAccountPageTitle": "Zvoliť účet",
+  "combinedFeedPageTitle": "Zlúčený kanál",
+  "dialogClose": "Zavrieť",
+  "dialogContinue": "Pokračovať",
+  "emojiPickerSearchEmoji": "Hľadať emotikon",
+  "emojiReactionsMore": "viac",
+  "errorAccountLoggedInTitle": "Účet je už prihlásený",
+  "errorConnectingToServerDetails": "Nepodarilo sa pripojiť na Zulip server {serverUrl}. Skúsim znovu:\n\n{error}",
+  "errorConnectingToServerShort": "Chyba pri pripájaní na Zulip. Skúšam znovu…",
+  "errorCopyingFailed": "Kopírovanie zlyhalo",
+  "errorCouldNotFetchMessageSource": "Nepodarilo sa nahrať zdroj správy",
+  "errorDialogContinue": "OK",
+  "errorDialogTitle": "Chyba",
+  "errorFailedToUploadFileTitle": "Nepodarilo sa nahrať súbor: {filename}",
+  "errorFilesTooLargeTitle": "{num, plural, =1{File} other{Files}} príliš veľký",
+  "errorHandlingEventDetails": "Chyba obsluhy Zulip udalosti na serveri {serverUrl}; skúsim znovu.\n\nChyba: {error}\n\nUdalosť: {event}",
+  "errorHandlingEventTitle": "Chyba pri obsluhe Zulip udalosti. Pokúšam sa znovu…",
+  "errorInvalidResponse": "Server poslal nesprávnu odpoveď",
+  "errorLoginCouldNotConnect": "Nepodarilo sa pripojiť na server:\n{url}",
+  "errorLoginFailedTitle": "Nepodarilo sa prihlásiť",
+  "errorLoginInvalidInputTitle": "Nesprávny vstup",
+  "errorMalformedResponse": "Server doručil zle naformátovanú odozvu; HTTP status {httpStatus}",
+  "errorMalformedResponseWithCause": "Server doručil zle naformátovanú odpoveď; HTTP status {httpStatus}; {details}",
+  "errorMarkAsReadFailedTitle": "Neodarilo sa označiť správy ako prečítané",
+  "errorMarkAsUnreadFailedTitle": "Zlyhalo označenie správ za prečítané",
+  "errorMessageDoesNotSeemToExist": "Správa zrejme neexistuje.",
+  "errorMessageNotSent": "Správa nebola odoslaná",
+  "errorMuteTopicFailed": "Nepodarilo sa ztíšiť tému",
+  "errorNetworkRequestFailed": "Zlyhala sieťová požiadavka",
   "errorNotificationOpenTitle": "Nepodarilo sa otvoriť oznámenie",
-  "@errorNotificationOpenTitle": {
-    "description": "Error title when notification opening fails"
-  }
+  "errorQuotationFailed": "Nepodarila sa citácia",
+  "errorReactionAddingFailedTitle": "Nepodarilo sa pridať reakciu",
+  "errorReactionRemovingFailedTitle": "Odobranie reakcie zlyhalo",
+  "errorRequestFailed": "Zlyhala sieťová požiadavka: HTTP status {httpStatus}",
+  "errorServerMessage": "Odozva od servera:\n\n{message}",
+  "errorUnmuteTopicFailed": "Nepodarilo sa odtíšiť tému",
+  "errorVideoPlayerFailed": "Nepodarilo sa prehrať video",
+  "errorWebAuthOperationalError": "Nastala neočakávaná chyba.",
+  "errorWebAuthOperationalErrorTitle": "Niečo sa pokazilo",
+  "inboxPageTitle": "Inbox",
+  "lightboxCopyLinkTooltip": "Skopírovať odkaz",
+  "logOutConfirmationDialogConfirmButton": "Odhlásiť sa",
+  "logOutConfirmationDialogTitle": "Chcete sa odhlásiť?",
+  "loginAddAnAccountPageTitle": "Pridať účet",
+  "loginEmailLabel": "Emailová adresa",
+  "loginErrorMissingEmail": "Prosím, vložte váš email.",
+  "loginErrorMissingPassword": "Prosím zadaj heslo.",
+  "loginErrorMissingUsername": "Prosím zadajte prihlasovacie meno.",
+  "loginFormSubmitLabel": "Prihlásiť sa",
+  "loginHidePassword": "Skryť heslo",
+  "loginMethodDivider": "alebo",
+  "loginPageTitle": "Prihlásiť sa",
+  "loginPasswordLabel": "Heslo",
+  "loginUsernameLabel": "Prihlasovacie meno",
+  "mainMenuMyProfile": "Môj profil",
+  "manyPeopleTyping": "Niekoľko ludí píše…",
+  "markAllAsReadLabel": "Označiť všetky správy ako prečítané",
+  "markAsReadComplete": "Označiť {num, plural, =1{1 správu} other{{num} správy}} ako prečítanú.",
+  "markAsReadInProgress": "Označiť správy ako prečítané…",
+  "markAsUnreadComplete": "Označiť {num, plural, =1{1 správy} other{{num} správ}} ako neprečítané.",
+  "markAsUnreadInProgress": "Označiť správy ako neprečítané…",
+  "mentionsPageTitle": "Spomenutia",
+  "messageIsEditedLabel": "UPRAVENÉ",
+  "messageIsMovedLabel": "PRESUNUTÉ",
+  "notifSelfUser": "Ty",
+  "onePersonTyping": "{typist} píše…",
+  "permissionsNeededOpenSettings": "Otvoriť nastavenia",
+  "pollWidgetQuestionMissing": "Bez otázky.",
+  "profileButtonSendDirectMessage": "Poslať priamu správu",
+  "recentDmConversationsPageTitle": "Priama správa",
+  "serverUrlValidationErrorEmpty": "Vložte adresu.",
+  "serverUrlValidationErrorInvalidUrl": "Vložte správnu adresu.",
+  "serverUrlValidationErrorNoUseEmail": "Vložte adresu servera, nie email.",
+  "serverUrlValidationErrorUnsupportedScheme": "Adresa servera musí začínať s http:// or https://.",
+  "signInWithFoo": "Prihlásiť sa pomocou {method}",
+  "snackBarDetails": "Detail",
+  "spoilerDefaultHeaderText": "Vyzradenie",
+  "starredMessagesPageTitle": "Označené správy",
+  "switchAccountButtonTooltip": "Zmeniť účet",
+  "today": "Dnes",
+  "tryAnotherAccountButton": "Skúsiť iný účet",
+  "tryAnotherAccountMessage": "Načítavanie vášho konta na adrese {url} chvílu trvá.",
+  "twoPeopleTyping": "{typist} a {otherTypist} píšu…",
+  "userRoleAdministrator": "Administrátor",
+  "userRoleGuest": "Hosť",
+  "userRoleMember": "Člen",
+  "userRoleModerator": "Moderátor",
+  "userRoleOwner": "Majiteľ",
+  "userRoleUnknown": "Neznáma",
+  "yesterday": "Včera"
 }

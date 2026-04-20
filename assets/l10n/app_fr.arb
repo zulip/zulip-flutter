@@ -786,9 +786,6 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
-  },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
   },
@@ -949,6 +946,9 @@
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
   },
+  "@otherChannelsFolderName": {
+    "description": "Label for the channel folder for other channels."
+  },
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
@@ -960,6 +960,9 @@
   },
   "@permissionsNeededTitle": {
     "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "@pinnedChannelsFolderName": {
+    "description": "Label for the channel folder for pinned channels."
   },
   "@pinnedSubscriptionsLabel": {
     "description": "Label for the list of pinned subscribed channels."
@@ -1607,7 +1610,6 @@
   "loginMethodDividerSemanticLabel": "Alternatives pour se connecter",
   "loginPageTitle": "Se connecter",
   "loginPasswordLabel": "Mot de passe",
-  "loginServerUrlLabel": "L'URL de votre serveur Zulip",
   "loginUsernameLabel": "Identifiant",
   "mainMenuMyProfile": "Mon profil",
   "manyPeopleTyping": "Plusieurs personnes sont en train d'écrire…",
@@ -1648,10 +1650,12 @@
   "notifSelfUser": "Vous",
   "onePersonTyping": "{typist} est en train d'écrire…",
   "openLinksWithInAppBrowser": "Ouvre les liens avec le navigateur intégré à l'application",
+  "otherChannelsFolderName": "Autres canaux",
   "permissionsDeniedCameraAccess": "Pour charger une image, merci d'accorder des autorisations supplémentaires à Zulip, dans les Paramètres.",
   "permissionsDeniedReadExternalStorage": "Pour téléverser des fichiers, merci d'accorder des autorisations supplémentaires à Zulip, dans les Paramètres.",
   "permissionsNeededOpenSettings": "Ouvrir les paramètres",
   "permissionsNeededTitle": "Permissions requises",
+  "pinnedChannelsFolderName": "Canaux épinglés",
   "pinnedSubscriptionsLabel": "Épinglés",
   "pollVoterNames": "({voterNames})",
   "pollWidgetOptionsMissing": "Ce sondage n'a pas encore d'options.",

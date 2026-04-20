@@ -136,7 +136,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Konnte nicht deabonnieren';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => 'Oben anheften';
 
   @override
   String get actionSheetOptionUnpinChannel => 'Unpin from top';
@@ -291,7 +291,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get actionSheetTitleGroupDm => 'Group DM';
 
   @override
-  String get actionSheetOptionViewProfile => 'View profile';
+  String get actionSheetOptionViewProfile => 'Profil ansehen';
 
   @override
   String get actionSheetOptionMarkDmConversationAsRead =>
