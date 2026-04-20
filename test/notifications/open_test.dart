@@ -33,7 +33,7 @@ import '../widgets/checks.dart';
 import '../widgets/dialog_checks.dart';
 import 'display_test.dart';
 
-Map<String, Object?> messageApnsPayload(
+Map<String, Object?> messageLegacyApnsPayload(
   Message zulipMessage, {
   String? streamName,
   Account? account,
@@ -159,7 +159,25 @@ void main() {
       }).buildNotificationUrl();
     }
 
-    Future<void> openNotification(WidgetTester tester, Account account, Message message) async {
+    Map<String, Object?> messageApnsPayload(
+      Account account,
+      Message message, {
+      bool encrypted = true,
+    }) {
+      if (encrypted) {
+        final notificationUrl = notificationUrlForMessage(account, message);
+        return { NotificationOpenPayload.kIosNotificationUrlKey: notificationUrl.toString() };
+      } else {
+        return messageLegacyApnsPayload(message, account: account);
+      }
+    }
+
+    Future<void> openNotification(
+      WidgetTester tester,
+      Account account,
+      Message message, {
+      bool encrypted = true,
+    }) async {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
           final intentDataUrl = notificationUrlForMessage(account, message);
@@ -168,7 +186,7 @@ void main() {
           await tester.idle(); // let navigateForNotification find navigator
 
         case TargetPlatform.iOS:
-          final payload = messageApnsPayload(message, account: account);
+          final payload = messageApnsPayload(account, message, encrypted: encrypted);
           testBinding.notificationPigeonApi.addNotificationTapEvent(
             IosNotificationTapEvent(payload: payload));
           await tester.idle(); // let navigateForNotification find navigator
@@ -178,7 +196,12 @@ void main() {
       }
     }
 
-    void setupNotificationDataForLaunch(WidgetTester tester, Account account, Message message) {
+    void setupNotificationDataForLaunch(
+      WidgetTester tester,
+      Account account,
+      Message message, {
+      bool encrypted = true,
+    }) {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
           // Set up an event to be emitted from
@@ -190,7 +213,7 @@ void main() {
         case TargetPlatform.iOS:
           // Set up a value to return for
           // `notificationPigeonApi.getNotificationDataFromLaunch`.
-          final payload = messageApnsPayload(message, account: account);
+          final payload = messageApnsPayload(account, message, encrypted: encrypted);
           testBinding.notificationPigeonApi.setNotificationDataFromLaunch(
             NotificationDataFromLaunch(payload: payload));
 
@@ -220,8 +243,9 @@ void main() {
       Account account,
       Message message, {
       bool expectHomePageReplaced = false,
+      bool encrypted = true,
     }) async {
-      await openNotification(tester, account, message);
+      await openNotification(tester, account, message, encrypted: encrypted);
       if (expectHomePageReplaced) {
         takeHomePageReplacement(account.id);
       } else {
@@ -238,6 +262,14 @@ void main() {
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
+   testWidgets('stream message: iOS legacy plaintext', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+      await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage(),
+        encrypted: false);
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
     testWidgets('direct message', (tester) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -245,6 +277,15 @@ void main() {
       await checkOpenNotification(tester, eg.selfAccount,
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('direct message: iOS legacy plaintext', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await prepare(tester);
+      await checkOpenNotification(tester, eg.selfAccount,
+        eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]),
+        encrypted: false);
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
     testWidgets('account queried by realmUrl origin component', (tester) async {
       addTearDown(testBinding.reset);
@@ -352,6 +393,23 @@ void main() {
       takeHomePageRouteForAccount(account.id); // because associated account
       matchesNavigation(check(pushedRoutes).single, account, message);
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('at app launch: iOS legacy plaintext', (tester) async {
+      addTearDown(testBinding.reset);
+      final account = eg.selfAccount;
+      final message = eg.streamMessage();
+      setupNotificationDataForLaunch(tester, account, message, encrypted: false);
+
+      // Now start the app.
+      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      await prepare(tester, early: true);
+      check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
+
+      // Once the app is ready, we navigate to the conversation.
+      await tester.pump();
+      takeHomePageRouteForAccount(account.id); // because associated account
+      matchesNavigation(check(pushedRoutes).single, account, message);
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
     testWidgets('uses associated account as initial account; if initial route', (tester) async {
       addTearDown(testBinding.reset);
@@ -567,16 +625,16 @@ void main() {
         ..narrow.equals(payload.narrow);
     });
 
-    group('parseIosApnsPayload', () {
+    group('parseLegacyIosApnsPayload', () {
       test('smoke one-one DM', () {
         final userA = eg.user(userId: 1001);
         final userB = eg.user(userId: 1002);
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageApnsPayload(eg.dmMessage(from: userB, to: [userA]),
+        final payload = messageLegacyApnsPayload(eg.dmMessage(from: userB, to: [userA]),
           account: account);
-        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+        check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
@@ -590,9 +648,9 @@ void main() {
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageApnsPayload(eg.dmMessage(from: userC, to: [userA, userB]),
+        final payload = messageLegacyApnsPayload(eg.dmMessage(from: userC, to: [userA, userB]),
           account: account);
-        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+        check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
@@ -604,11 +662,11 @@ void main() {
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageApnsPayload(eg.streamMessage(
+        final payload = messageLegacyApnsPayload(eg.streamMessage(
           stream: eg.stream(streamId: 1),
           topic: 'topic A'),
           account: account);
-        check(NotificationOpenPayload.parseIosApnsPayload(payload))
+        check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()

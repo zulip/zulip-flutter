@@ -8,6 +8,7 @@ import '../model/localizations.dart';
 import 'display.dart';
 
 import '../log.dart';
+import 'open.dart';
 import 'receive.dart';
 
 @pragma('vm:entry-point')
@@ -93,10 +94,19 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
       NotificationDisplayManager.titleForNotifPayload(data, zulipLocalizations);
     final subtitle =
       NotificationDisplayManager.subtitleForNotifPayloadOnIos(data);
+    final notificationUrl =
+      NotificationDisplayManager.notificationUrlForNotifPayload(data);
 
     return ImprovedNotificationContent(
       title: title,
       subtitle: subtitle,
-      body: data.content);
+      body: data.content,
+      userInfo: {
+        // Pass the notification URL to this custom data map, so when a
+        // notification is opened we can read this custom map to decide
+        // which conversation to open.
+        // See NotificationOpenService (in lib/notifications/ios_service.dart).
+        NotificationOpenPayload.kIosNotificationUrlKey: notificationUrl.toString(),
+      });
   }
 }

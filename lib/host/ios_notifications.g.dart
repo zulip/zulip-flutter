@@ -81,6 +81,7 @@ class ImprovedNotificationContent {
     required this.title,
     required this.subtitle,
     required this.body,
+    required this.userInfo,
   });
 
   /// The new title to use for the notification.
@@ -92,11 +93,18 @@ class ImprovedNotificationContent {
   /// The new body to use for the notification.
   String body;
 
+  /// The internal data to attach with the new notification.
+  ///
+  /// This replaces the raw APNs payload that was initially set from
+  /// the remote push notification.
+  Map<String, Object?> userInfo;
+
   List<Object?> _toList() {
     return <Object?>[
       title,
       subtitle,
       body,
+      userInfo,
     ];
   }
 
@@ -109,6 +117,7 @@ class ImprovedNotificationContent {
       title: result[0]! as String,
       subtitle: result[1]! as String,
       body: result[2]! as String,
+      userInfo: (result[3] as Map<Object?, Object?>?)!.cast<String, Object?>(),
     );
   }
 

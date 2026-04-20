@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/host/ios_notifications.g.dart';
 import 'package:zulip/model/database.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/notifications/ios_service.dart';
+import 'package:zulip/notifications/open.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
@@ -65,10 +67,23 @@ void main() {
     final result = await testBinding.iosNotifFlutterApi.didReceivePushNotification(
       NotificationContent(payload: payload));
 
+    final expectedNotificationUrl = NotificationOpenPayload(
+      realmUrl: data.realmUrl,
+      userId: data.userId,
+      narrow: switch (data.recipient) {
+        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
+          TopicNarrow(channelId, topic),
+        NotifPayloadDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      }).buildNotificationUrl();
+
     check(result)
       ..title.equals(expectedTitle)
       ..subtitle.equals(expectedSubtitle)
-      ..body.equals(data.content);
+      ..body.equals(data.content)
+      ..userInfo.deepEquals({
+        NotificationOpenPayload.kIosNotificationUrlKey: expectedNotificationUrl.toString(),
+      });
   }
 
   test('stream message', () async {
@@ -111,4 +126,5 @@ extension on Subject<ImprovedNotificationContent> {
   Subject<String> get title => has((x) => x.title, 'title');
   Subject<String> get subtitle => has((x) => x.subtitle, 'subtitle');
   Subject<String> get body => has((x) => x.body, 'body');
+  Subject<Map<Object?, Object?>> get userInfo => has((x) => x.userInfo, 'userInfo');
 }

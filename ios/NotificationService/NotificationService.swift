@@ -65,6 +65,7 @@ class NotificationService: UNNotificationServiceExtension {
         bestAttemptContent.title = improvedNotificationContent.title
         bestAttemptContent.subtitle = improvedNotificationContent.subtitle
         bestAttemptContent.body = improvedNotificationContent.body
+        bestAttemptContent.userInfo = improvedNotificationContent.userInfo as [AnyHashable : Any]
         contentHandler(bestAttemptContent)
 
       case .failure(let error):  // TODO(log)

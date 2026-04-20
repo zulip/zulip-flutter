@@ -23,6 +23,7 @@ class ImprovedNotificationContent {
     required this.title,
     required this.subtitle,
     required this.body,
+    required this.userInfo,
   });
 
   /// The new title to use for the notification.
@@ -33,6 +34,12 @@ class ImprovedNotificationContent {
 
   /// The new body to use for the notification.
   final String body;
+
+  /// The internal data to attach with the new notification.
+  ///
+  /// This replaces the raw APNs payload that was initially set from
+  /// the remote push notification.
+  final Map<String, Object?> userInfo;
 }
 
 /// Exposes an API from Dart code which can be called from Swift code.

@@ -144,6 +144,11 @@ struct ImprovedNotificationContent: Hashable {
   var subtitle: String
   /// The new body to use for the notification.
   var body: String
+  /// The internal data to attach with the new notification.
+  ///
+  /// This replaces the raw APNs payload that was initially set from
+  /// the remote push notification.
+  var userInfo: [String: Any?]
 
 
   // swift-format-ignore: AlwaysUseLowerCamelCase
@@ -151,11 +156,13 @@ struct ImprovedNotificationContent: Hashable {
     let title = pigeonVar_list[0] as! String
     let subtitle = pigeonVar_list[1] as! String
     let body = pigeonVar_list[2] as! String
+    let userInfo = pigeonVar_list[3] as! [String: Any?]
 
     return ImprovedNotificationContent(
       title: title,
       subtitle: subtitle,
-      body: body
+      body: body,
+      userInfo: userInfo
     )
   }
   func toList() -> [Any?] {
@@ -163,6 +170,7 @@ struct ImprovedNotificationContent: Hashable {
       title,
       subtitle,
       body,
+      userInfo,
     ]
   }
   static func == (lhs: ImprovedNotificationContent, rhs: ImprovedNotificationContent) -> Bool {
