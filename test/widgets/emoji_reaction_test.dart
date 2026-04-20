@@ -713,10 +713,12 @@ void main() {
       check(panel).containsSemantics(label: 'Votes for $emojiName (${expectUsers.length})');
 
       for (final user in expectUsers) {
+        final isSelf = user.userId == store.selfUserId;
+        final expectedLabel = isSelf ? '${user.fullName} (you)' : user.fullName;
         check(find.semantics.descendant(
           of: findPanel,
-          matching: find.semantics.byLabel(user.fullName)),
-        because: 'expect ${user.fullName}').findsOne();
+          matching: find.semantics.byLabel(expectedLabel)),
+        because: 'expect $expectedLabel').findsOne();
       }
     }
 
