@@ -136,14 +136,16 @@ enum ImageAnimationMode {
         // From reading code, this doesn't actually get set on iOS:
         //   https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408522293
         if (MediaQuery.disableAnimationsOf(context)) return false;
-
         if (
           defaultTargetPlatform == TargetPlatform.iOS
-          // TODO(#1924) On iOS 17+ (new in 2023), there's a more closely
-          //   relevant setting than "reduce motion". It's called "auto-play
-          //   animated images"; we should use that once Flutter exposes it.
-          && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion
+          && !WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.autoPlayAnimatedImages
         ) {
+          return false;
+        }
+        if (
+          defaultTargetPlatform == TargetPlatform.iOS
+          && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion
+        ){
           return false;
         }
 
