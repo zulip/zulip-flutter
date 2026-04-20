@@ -260,7 +260,7 @@ void main() {
       void testInsertPadded(String description, String valueBefore, String textToInsert, String expectedValue) {
         test(description, () {
           store = eg.store();
-          final controller = ComposeContentController(store: store);
+          final controller = ComposeContentController(store: store, narrow: ChannelNarrow(1));
           controller.value = parseMarkedText(valueBefore);
           controller.insertPadded(textToInsert);
           check(controller.value).equals(parseMarkedText(expectedValue));
@@ -342,7 +342,7 @@ void main() {
 
       testWidgets('requireNotEmpty: true (default)', (tester) async {
         store = eg.store();
-        controller = ComposeContentController(store: store);
+        controller = ComposeContentController(store: store, narrow: ChannelNarrow(1));
         addTearDown(controller.dispose);
         checkCountsAsEmpty('', true);
         checkCountsAsEmpty(' ', true);
@@ -351,7 +351,8 @@ void main() {
 
       testWidgets('requireNotEmpty: false', (tester) async {
         store = eg.store();
-        controller = ComposeContentController(store: store, requireNotEmpty: false);
+        controller = ComposeContentController(store: store, narrow: ChannelNarrow(1),
+          requireNotEmpty: false);
         addTearDown(controller.dispose);
         checkCountsAsEmpty('', false);
         checkCountsAsEmpty(' ', false);
@@ -1777,6 +1778,71 @@ void main() {
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
         scaleFactor: 2.0, maxVisibleLines: 6);
+    });
+  });
+
+  group('ComposeBox content input inputFormatters', () {
+    group('PendingTopicLinkAutocompleteFormatter', () {
+      String content(WidgetTester tester) =>
+        tester.widget<TextField>(contentInputFinder).controller!.text;
+
+      testWidgets('"#**…** >" is replaced with "#**…>"', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final channel = eg.stream(name: 'mobile');
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+
+        await enterContent(tester, 'check #**mobile** >');
+        check(content(tester)).equals('check #**mobile>');
+
+        await enterContent(tester, 'check #**mobile**>');
+        check(content(tester)).equals('check #**mobile>');
+      });
+
+      testWidgets('"[#…](#…) >" is replaced with "[#…](#…)>"', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final channel = eg.stream(streamId: 1, name: 'R&D');
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+
+        await enterContent(tester, 'check [#R&amp;D](#narrow/channel/1-R.26D) >');
+        check(content(tester)).equals('check [#R&amp;D](#narrow/channel/1-R.26D)>');
+      });
+
+      testWidgets('"#**…>…** >" with topic link stays unchanged', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final channel = eg.stream(name: 'mobile');
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        await enterContent(tester, 'check #**mobile>faq** >');
+        check(content(tester)).equals('check #**mobile>faq** >');
+
+        await enterContent(tester, 'check #**mobile>faq**>');
+        check(content(tester)).equals('check #**mobile>faq**>');
+      });
+
+      testWidgets('"[#…>…](#…) >" with topic fallback link stays unchanged', (tester) async {
+        TypingNotifier.debugEnable = false;
+        addTearDown(TypingNotifier.debugReset);
+
+        final channel = eg.stream(streamId: 1, name: 'R&D');
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId), streams: [channel]);
+
+        await enterContent(tester, 'check [#R&amp;D > faq](#narrow/channel/1-R.26D/topic/faq) >');
+        check(content(tester)).equals('check [#R&amp;D > faq](#narrow/channel/1-R.26D/topic/faq) >');
+      });
     });
   });
 
