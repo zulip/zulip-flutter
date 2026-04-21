@@ -2,6 +2,47 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* (iOS) Fix keyboard glitch in switching between topic and content
+  input.  (#1974)
+* Channel folders in the inbox.
+* Tap an @-mention to visit user profile.
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #2217
+  * #2168: fix #646.  Distinguish pill colors for types of mentions.
+  * #2219: fix #1974.  Flutter upgrade; fixes keyboard glitch on iOS
+    in channel compose box.
+  * #2167: fix #745.  Hide email/password login form when email auth
+    disabled.
+  * #2240: fix #2239.  Faster startup for @-mention autocomplete.
+  * #2261.  Flutter upgrade.
+  * #2265.
+  * #2225: fix #914.  Redesign autocomplete results list.
+  * #2186: fix #1765.  Channel folders in inbox.
+  * #2260.
+  * #2273.  Stop looking for `recipient_id` on messages.
+  * #2272.
+  * #2156: fix #1265.  Preparatory changes to iOS notifs.
+  * #1821: fix #1813, fix #1819, fix #1823.  Apply formatting more
+    to nested mentions, global times, and TeX math.
+  * #2203.
+  * #2275.
+  * #2184.  Harmonize text-input styles.
+  * #2075: fix #1867.  Tap an @-mention to go to user profile page.
+  * #2276.
+  * #2274.  Show username/password login form after all when LDAP auth
+    enabled (even when email auth disabled).
+  * #2114: fix #1272.  DM-conversation action sheet to view
+    user profile or mark as read.
+  * #2187: fix #1457.  Show warning banner on old servers.
+  * #2283.
+
 
 ## 30.0.271 (2026-03-11)
 
@@ -96,6 +137,8 @@
   * #2190
   * #1269: fix #1175. In autocomplete, we now reset the scroll position
     as the query changes.
+  * #2215
+  * #2047: Update translations.
 
 
 ## 30.0.270 (2026-01-26)
