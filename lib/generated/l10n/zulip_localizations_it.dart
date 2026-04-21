@@ -285,7 +285,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String actionSheetTitleDm(String user) {
-    return 'DMs with $user';
+    return 'Conversazione privata con $user';
   }
 
   @override
@@ -295,11 +295,11 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get actionSheetTitleGroupDm => 'Group DM';
 
   @override
-  String get actionSheetOptionViewProfile => 'View profile';
+  String get actionSheetOptionViewProfile => 'Vedi profilo';
 
   @override
   String get actionSheetOptionMarkDmConversationAsRead =>
-      'Mark conversation as read';
+      'Contrassegna conversazione come letta';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Qualcosa è andato storto';
@@ -763,7 +763,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Aggiungi account';
 
   @override
-  String get loginRealmUrlLabel => 'Your Zulip organization URL';
+  String get loginRealmUrlLabel => 'URL della tua organizzazione Zulip';
 
   @override
   String get loginHidePassword => 'Nascondi password';
@@ -831,7 +831,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get serverCompatBannerDismissLabel => 'Dismiss';
 
   @override
-  String get serverCompatBannerLearnMoreLabel => 'Learn more';
+  String get serverCompatBannerLearnMoreLabel => 'Per saperne di più';
 
   @override
   String errorInvalidApiKeyMessage(String url) {
@@ -1099,7 +1099,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get pinnedChannelsFolderName => 'Pinned channels';
 
   @override
-  String get otherChannelsFolderName => 'Other channels';
+  String get otherChannelsFolderName => 'Altri canali';
 
   @override
   String get recentDmConversationsPageTitle => 'Messaggi diretti';

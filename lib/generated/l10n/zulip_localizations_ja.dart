@@ -206,8 +206,8 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'このメッセージは <z-link>$count 人</z-link>に読まれています:',
-      one: 'このメッセージは <z-link>$count 人</z-link>に読まれています:',
+      other: ' このメッセージは <z-link>$count 人</z-link> に読まれています:',
+      one: ' このメッセージは <z-link>$count 人</z-link> に読まれています:',
     );
     return '$_temp0';
   }
@@ -605,7 +605,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get emptyMessageListChannelWithoutContentAccess =>
-      'このチャンネルに対する<z-link>コンテンツへのアクセス権</z-link>がありません。';
+      'このチャンネルの <z-link>コンテンツへのアクセス権</z-link> がありません。';
 
   @override
   String get emptyMessageListChannelUnavailable =>
@@ -643,7 +643,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get emptyMessageListMentionsHeader =>
-      'このビューには、あなたが<z-link>メンション</z-link>されたメッセージが表示されます。';
+      'このビューには、あなたが <z-link>メンション</z-link> されたメッセージが表示されます。';
 
   @override
   String get emptyMessageListMentionsMessage =>
@@ -654,7 +654,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String emptyMessageListStarredMessage(String button) {
-    return '<z-link>スター</z-link>を付けると、後で見返したいタスクや役立つ参考資料など、重要なメッセージを管理するのに便利です。メッセージにスターを付けるには、メッセージを長押しして「$button」をタップしてください。';
+    return '<z-link>スター</z-link> は、後で見返したいタスクや便利な参照資料など、重要なメッセージを記録しておくのに最適な方法です。メッセージにスターを付けるには、メッセージを長押しして「$button」をタップしてください。';
   }
 
   @override

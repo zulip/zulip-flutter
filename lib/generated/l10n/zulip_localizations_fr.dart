@@ -283,21 +283,21 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String actionSheetTitleDm(String user) {
-    return 'DMs with $user';
+    return 'MDs avec $user';
   }
 
   @override
-  String get actionSheetTitleSelfDm => 'DMs with yourself';
+  String get actionSheetTitleSelfDm => 'MDs avec vous-même';
 
   @override
-  String get actionSheetTitleGroupDm => 'Group DM';
+  String get actionSheetTitleGroupDm => 'MD de groupe';
 
   @override
-  String get actionSheetOptionViewProfile => 'View profile';
+  String get actionSheetOptionViewProfile => 'Voir le profil';
 
   @override
   String get actionSheetOptionMarkDmConversationAsRead =>
-      'Mark conversation as read';
+      'Marquer la conversation comme lue';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Une erreur s\'est produite';
@@ -771,7 +771,8 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Ajouter un compte';
 
   @override
-  String get loginRealmUrlLabel => 'Your Zulip organization URL';
+  String get loginRealmUrlLabel =>
+      'L\'adresse (URL) de Zulip pour votre organisation';
 
   @override
   String get loginHidePassword => 'Cacher le mot de passe';
@@ -829,19 +830,19 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String serverCompatBannerAdminMessage(String url, String zulipVersion) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+    return '$url exploite la version $zulipVersion de Zulip Server, qui n\'est plus supportée. Merci de mettre à jour votre serveur dès que possible.';
   }
 
   @override
   String serverCompatBannerUserMessage(String url, String zulipVersion) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+    return '$url exploite la version $zulipVersion de Zulip Server, qui n\'est plus supportée. Merci de contacter l\'administrateur de votre serveur pour planifier cette mise à jour.';
   }
 
   @override
-  String get serverCompatBannerDismissLabel => 'Dismiss';
+  String get serverCompatBannerDismissLabel => 'Ignorer';
 
   @override
-  String get serverCompatBannerLearnMoreLabel => 'Learn more';
+  String get serverCompatBannerLearnMoreLabel => 'En apprendre plus';
 
   @override
   String errorInvalidApiKeyMessage(String url) {
@@ -1105,10 +1106,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Utilisez les boutons ci-dessous pour voir le fil groupé ou la liste des canaux.';
 
   @override
-  String get pinnedChannelsFolderName => 'Pinned channels';
+  String get pinnedChannelsFolderName => 'Canaux épinglés';
 
   @override
-  String get otherChannelsFolderName => 'Other channels';
+  String get otherChannelsFolderName => 'Autres canaux';
 
   @override
   String get recentDmConversationsPageTitle => 'Messages directs';

@@ -11,11 +11,62 @@
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@actionSheetOptionDeleteMessage": {
+    "description": "Label for the 'Delete message' button in the message action sheet."
+  },
+  "@actionSheetOptionEditMessage": {
+    "description": "Label for the 'Edit message' button in the message action sheet."
+  },
+  "@actionSheetOptionFollowTopic": {
+    "description": "Label for following a topic on action sheet."
+  },
+  "@actionSheetOptionMuteTopic": {
+    "description": "Label for muting a topic on action sheet."
+  },
+  "@actionSheetOptionQuoteMessage": {
+    "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "@actionSheetOptionShare": {
+    "description": "Label for share button on action sheet."
+  },
+  "@actionSheetOptionStarMessage": {
+    "description": "Label for star button on action sheet."
+  },
+  "@actionSheetOptionSubscribe": {
+    "description": "Label in the channel action sheet for subscribing to the channel."
+  },
+  "@actionSheetOptionUnfollowTopic": {
+    "description": "Label for unfollowing a topic on action sheet."
+  },
+  "@actionSheetOptionUnmuteTopic": {
+    "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnstarMessage": {
+    "description": "Label for unstar button on action sheet."
+  },
+  "@actionSheetOptionUnsubscribe": {
+    "description": "Label in the channel action sheet for unsubscribing from the channel."
+  },
+  "@actionSheetReadReceipts": {
+    "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
   "@appVersionUnknownPlaceholder": {
     "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
+  },
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "@composeBoxAttachFilesTooltip": {
+    "description": "Tooltip for compose box icon to attach a file to the message."
   },
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
@@ -29,6 +80,21 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelEditMessage": {
+    "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxDmContentHint": {
+    "description": "Hint text for content input when sending a message to one other person.",
+    "placeholders": {
+      "user": {
+        "example": "channel name",
+        "type": "String"
+      }
+    }
+  },
+  "@composeBoxGroupDmContentHint": {
+    "description": "Hint text for content input when sending a message to a group."
+  },
   "@composeBoxSendTooltip": {
     "description": "Tooltip for send button in compose box."
   },
@@ -37,6 +103,9 @@
   },
   "@deleteMessageConfirmationDialogConfirmButton": {
     "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for deleting a message."
   },
   "@dialogCancel": {
     "description": "Button label in dialogs to cancel."
@@ -53,14 +122,35 @@
   "@emojiReactionsMore": {
     "description": "Label for a button opening the emoji picker."
   },
+  "@errorCopyingFailed": {
+    "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
   },
   "@errorDialogTitle": {
     "description": "Generic title for error dialog."
   },
+  "@errorLoginFailedTitle": {
+    "description": "Error title for login when signing into a Zulip server fails."
+  },
+  "@errorLoginInvalidInputTitle": {
+    "description": "Error title for login when input is invalid."
+  },
+  "@errorQuotationFailed": {
+    "description": "Error message when quoting a message failed."
+  },
+  "@errorSharingFailed": {
+    "description": "Error message when sharing a message failed."
+  },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
+  },
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
   },
   "@loginErrorMissingPassword": {
     "description": "Error message when an empty password was provided."
@@ -95,11 +185,26 @@
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
   },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
+  "@newDmFabButtonLabel": {
+    "description": "Label for the floating action button (FAB) that opens the new DM sheet."
+  },
   "@newDmSheetComposeButtonLabel": {
     "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
   },
+  "@newDmSheetScreenTitle": {
+    "description": "Title displayed at the top of the new DM screen."
+  },
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "@permissionsNeededOpenSettings": {
+    "description": "Button label for permissions dialog button that opens the system settings screen."
+  },
+  "@permissionsNeededTitle": {
+    "description": "Title for dialog asking the user to grant additional permissions."
   },
   "@pinnedSubscriptionsLabel": {
     "description": "Label for the list of pinned subscribed channels."
@@ -122,6 +227,12 @@
   "@reactionChipsLabel": {
     "description": "Text identifying the container of reaction chips on a message. (An accessibility label for assistive technology.)"
   },
+  "@recentDmConversationsPageShortLabel": {
+    "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
+  },
+  "@savingMessageEditLabel": {
+    "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
   "@searchMessagesClearButtonTooltip": {
     "description": "Tooltip for the 'x' button in the search text field."
   },
@@ -130,6 +241,9 @@
   },
   "@searchMessagesPageTitle": {
     "description": "Page title for the 'Search' message view."
+  },
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
   },
   "@snackBarDetails": {
     "description": "Button label for snack bar button that opens a dialog with more details."
@@ -145,6 +259,24 @@
   },
   "@statusSaveButtonLabel": {
     "description": "Label for the button that saves the user status, in 'Set status' page."
+  },
+  "@successLinkCopied": {
+    "description": "Success message after copy link action completed."
+  },
+  "@switchAccountButtonTooltip": {
+    "description": "Tooltip message for main-menu button leading to the choose-account page."
+  },
+  "@systemGroupNameAdministrators": {
+    "description": "Display name for the system group that includes all users with at least the administrator role."
+  },
+  "@systemGroupNameModerators": {
+    "description": "Display name for the system group that includes all users with at least the moderator role."
+  },
+  "@systemGroupNameNobody": {
+    "description": "Display name for the system group that includes nobody."
+  },
+  "@systemGroupNameOwners": {
+    "description": "Display name for the system group that includes all users with the owner role."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -166,6 +298,12 @@
   },
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
+  },
+  "@unsubscribeConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
+  },
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
   },
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
@@ -222,23 +360,51 @@
   "aboutPageOpenSourceLicenses": "Avatud lähtekoodiga tarkvara litsentsid",
   "aboutPageTapToView": "Vaatamiseks klõpsa",
   "aboutPageTitle": "Zulipi teave",
+  "actionSheetOptionDeleteMessage": "Kustuta sõnum",
+  "actionSheetOptionEditMessage": "Muuda sõnumit",
+  "actionSheetOptionFollowTopic": "Jälgi teemat",
+  "actionSheetOptionMuteTopic": "Summuta teema",
+  "actionSheetOptionQuoteMessage": "Tsiteeri sõnumit",
+  "actionSheetOptionShare": "Jaga",
+  "actionSheetOptionStarMessage": "Märgi sõnum tärniga",
+  "actionSheetOptionSubscribe": "Telli",
+  "actionSheetOptionUnfollowTopic": "Lõpeta teema jälgimine",
+  "actionSheetOptionUnmuteTopic": "Lõpeta teema summutamine",
+  "actionSheetOptionUnstarMessage": "Eemalda sõnumilt tärniga märkimine",
+  "actionSheetOptionUnsubscribe": "Loobu tellimusest",
+  "actionSheetReadReceipts": "Lugemisteatised",
+  "allChannelsPageTitle": "Kõik kanalid",
   "appVersionUnknownPlaceholder": "(…)",
   "channelsPageTitle": "Kanalid",
+  "chooseAccountPageLogOutButton": "Logi välja",
+  "chooseAccountPageTitle": "Vali kasutajakonto",
+  "composeBoxAttachFilesTooltip": "Lisa faile manuseks",
   "composeBoxBannerButtonCancel": "Katkesta",
   "composeBoxBannerButtonRefresh": "Värskenda andmeid",
   "composeBoxBannerButtonSave": "Salvesta",
   "composeBoxBannerButtonSubscribe": "Telli",
+  "composeBoxBannerLabelEditMessage": "Muuda sõnumit",
+  "composeBoxDmContentHint": "Sõnum kasutajale @{user}",
+  "composeBoxGroupDmContentHint": "Sõnum grupile",
   "composeBoxSendTooltip": "Saada",
   "composeBoxTopicHintText": "Teema",
   "deleteMessageConfirmationDialogConfirmButton": "Kustuta",
+  "deleteMessageConfirmationDialogTitle": "Kas kustutad sõnumi?",
   "dialogCancel": "Katkesta",
   "dialogClose": "Sulge",
   "dialogContinue": "Jätka",
   "discardDraftConfirmationDialogConfirmButton": "Loobu",
   "emojiReactionsMore": "näita veel",
+  "errorCopyingFailed": "Kopeerimine ei õnnestunud",
   "errorDialogContinue": "Sobib",
   "errorDialogTitle": "Viga",
+  "errorLoginFailedTitle": "Sisselogimine ei õnnestunud",
+  "errorLoginInvalidInputTitle": "Vigane sisend",
+  "errorQuotationFailed": "Tsiteerimine ei õnnestunud",
+  "errorSharingFailed": "Jagamine ei õnnestunud",
   "inboxPageTitle": "Sisendkaust",
+  "logOutConfirmationDialogConfirmButton": "Logi välja",
+  "logOutConfirmationDialogTitle": "Kas logid välja?",
   "loginErrorMissingPassword": "Palun sisesta oma salasõna.",
   "loginHidePassword": "Peida salasõna",
   "loginMethodDivider": "VÕI",
@@ -250,21 +416,35 @@
   "messageIsEditedLabel": "MUUDETUD",
   "messageIsMovedLabel": "TEISALDATUD",
   "navBarMenuLabel": "Menüü",
+  "navButtonAllChannels": "Kõik kanalid",
+  "newDmFabButtonLabel": "Uus otsesõnum",
   "newDmSheetComposeButtonLabel": "Koosta sõnum",
+  "newDmSheetScreenTitle": "Uus otsesõnum",
   "notifSelfUser": "Sina",
+  "permissionsNeededOpenSettings": "Ava seadistused",
+  "permissionsNeededTitle": "Vajalikud on õigused",
   "pinnedSubscriptionsLabel": "Esiletõstetud",
   "pollVoterNames": "({voterNames})",
   "preparingEditMessageContentInput": "Valmistun…",
   "reactedEmojiSelfUser": "Sina",
   "reactionChipsLabel": "Reageerimised",
+  "recentDmConversationsPageShortLabel": "Otsesõnumid",
+  "savingMessageEditLabel": "SALVESTAN MUUDATUST…",
   "searchMessagesClearButtonTooltip": "Tühjenda",
   "searchMessagesHintText": "Otsi",
   "searchMessagesPageTitle": "Otsing",
+  "settingsPageTitle": "Seadistused",
   "snackBarDetails": "Üksikasjad",
   "spoilerDefaultHeaderText": "Spoiler",
   "statusButtonLabelStatusSet": "Olek",
   "statusClearButtonLabel": "Tühjenda",
   "statusSaveButtonLabel": "Salvesta",
+  "successLinkCopied": "Link on kopeeritud",
+  "switchAccountButtonTooltip": "Vaheta kasutajakontot",
+  "systemGroupNameAdministrators": "Peakasutajad",
+  "systemGroupNameModerators": "Moderaatorid",
+  "systemGroupNameNobody": "Mitte keegi",
+  "systemGroupNameOwners": "Omanikud",
   "themeSettingDark": "Tume kujundus",
   "themeSettingLight": "Hele kujundus",
   "themeSettingSystem": "Süsteemi kujundus",
@@ -272,6 +452,8 @@
   "today": "Täna",
   "topicsButtonTooltip": "Teemad",
   "unpinnedSubscriptionsLabel": "Pole esiletõstetud",
+  "unsubscribeConfirmationDialogConfirmButton": "Loobu tellimusest",
+  "upgradeWelcomeDialogDismiss": "Alustame",
   "upgradeWelcomeDialogTitle": "Tere tulemast kasutama uut Zulipi rakendust!",
   "userIdle": "Jõude",
   "userRoleAdministrator": "Peakasutaja",

@@ -47,6 +47,9 @@
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
   },
+  "@actionSheetOptionMarkDmConversationAsRead": {
+    "description": "Option to mark a DM conversation as read in the action sheet."
+  },
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
   },
@@ -92,6 +95,9 @@
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
+  "@actionSheetOptionViewProfile": {
+    "description": "Option to view the user's profile in the action sheet for a 1:1 DM conversation."
+  },
   "@actionSheetOptionViewReadReceipts": {
     "description": "Label for the 'View read receipts' button in the message action sheet."
   },
@@ -112,6 +118,15 @@
   },
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
   },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
@@ -786,8 +801,8 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
+  "@loginRealmUrlLabel": {
+    "description": "Label in login page for Zulip realm/org URL entry."
   },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
@@ -949,6 +964,9 @@
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
   },
+  "@otherChannelsFolderName": {
+    "description": "Label for the channel folder for other channels."
+  },
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
@@ -1086,6 +1104,9 @@
         "type": "int"
       }
     }
+  },
+  "@serverCompatBannerLearnMoreLabel": {
+    "description": "Label for the button in the server compatibility warning banner that opens the support policy doc."
   },
   "@serverUrlValidationErrorEmpty": {
     "description": "Error message when URL is empty"
@@ -1420,6 +1441,7 @@
   "actionSheetOptionListOfTopics": "Elenco degli argomenti",
   "actionSheetOptionMarkAsUnread": "Segna come non letto da qui",
   "actionSheetOptionMarkChannelAsRead": "Segna il canale come letto",
+  "actionSheetOptionMarkDmConversationAsRead": "Contrassegna conversazione come letta",
   "actionSheetOptionMarkTopicAsRead": "Segna l'argomento come letto",
   "actionSheetOptionMuteTopic": "Silenzia argomento",
   "actionSheetOptionPinChannel": "Fissa in alto",
@@ -1435,11 +1457,13 @@
   "actionSheetOptionUnresolveTopic": "Segna come irrisolto",
   "actionSheetOptionUnstarMessage": "Messaggio normale",
   "actionSheetOptionUnsubscribe": "Disiscriversi",
+  "actionSheetOptionViewProfile": "Vedi profilo",
   "actionSheetOptionViewReadReceipts": "Visualizza le conferme di lettura",
   "actionSheetReadReceipts": "Conferme di lettura",
   "actionSheetReadReceiptsErrorReadCount": "Non è stato possibile caricare le conferme di lettura.",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Questo messaggio è stato <z-link>letto</z-link> da {count} persona:} other{Questo messaggio è stato <z-link>letto</z-link> da {count} persone:}}",
   "actionSheetReadReceiptsZeroReadCount": "Nessuno ha ancora letto questo messaggio.",
+  "actionSheetTitleDm": "Conversazione privata con {user}",
   "allChannelsEmptyPlaceholderHeader": "Non ci sono canali che puoi visualizzare in questa organizzazione.",
   "allChannelsPageTitle": "Tutti i canali",
   "appVersionUnknownPlaceholder": "(…)",
@@ -1601,7 +1625,7 @@
   "loginMethodDividerSemanticLabel": "Alternative per l'accesso",
   "loginPageTitle": "Accesso",
   "loginPasswordLabel": "Password",
-  "loginServerUrlLabel": "URL del server Zulip",
+  "loginRealmUrlLabel": "URL della tua organizzazione Zulip",
   "loginUsernameLabel": "Nomeutente",
   "mainMenuMyProfile": "Il mio profilo",
   "manyPeopleTyping": "Molte persone stanno scrivendo…",
@@ -1642,6 +1666,7 @@
   "notifSelfUser": "Tu",
   "onePersonTyping": "{typist} sta scrivendo…",
   "openLinksWithInAppBrowser": "Apri i collegamenti con il browser in-app",
+  "otherChannelsFolderName": "Altri canali",
   "permissionsDeniedCameraAccess": "Per caricare un'immagine, bisogna concedere a Zulip autorizzazioni aggiuntive nelle Impostazioni.",
   "permissionsDeniedReadExternalStorage": "Per caricare file, bisogna concedere a Zulip autorizzazioni aggiuntive nelle Impostazioni.",
   "permissionsNeededOpenSettings": "Apri le impostazioni",
@@ -1672,6 +1697,7 @@
   "seeWhoReactedSheetHeaderLabel": "Reazioni emoji ({num} totale)",
   "seeWhoReactedSheetNoReactions": "Questo messaggio non ha ricevuto reazioni.",
   "seeWhoReactedSheetUserListLabel": "Voti per {emojiName} ({num})",
+  "serverCompatBannerLearnMoreLabel": "Per saperne di più",
   "serverUrlValidationErrorEmpty": "Inserire un URL.",
   "serverUrlValidationErrorInvalidUrl": "Inserire un URL valido.",
   "serverUrlValidationErrorNoUseEmail": "Inserire l'URL del server, non il proprio indirizzo email.",

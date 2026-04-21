@@ -47,6 +47,9 @@
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
   },
+  "@actionSheetOptionMarkDmConversationAsRead": {
+    "description": "Option to mark a DM conversation as read in the action sheet."
+  },
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
   },
@@ -92,6 +95,9 @@
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
+  "@actionSheetOptionViewProfile": {
+    "description": "Option to view the user's profile in the action sheet for a 1:1 DM conversation."
+  },
   "@actionSheetOptionViewReadReceipts": {
     "description": "Label for the 'View read receipts' button in the message action sheet."
   },
@@ -112,6 +118,21 @@
   },
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@actionSheetTitleGroupDm": {
+    "description": "The title of an action sheet for a group DM conversation."
+  },
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
   },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
@@ -786,8 +807,8 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
+  "@loginRealmUrlLabel": {
+    "description": "Label in login page for Zulip realm/org URL entry."
   },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
@@ -949,6 +970,9 @@
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
   },
+  "@otherChannelsFolderName": {
+    "description": "Label for the channel folder for other channels."
+  },
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
@@ -960,6 +984,9 @@
   },
   "@permissionsNeededTitle": {
     "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "@pinnedChannelsFolderName": {
+    "description": "Label for the channel folder for pinned channels."
   },
   "@pinnedSubscriptionsLabel": {
     "description": "Label for the list of pinned subscribed channels."
@@ -1084,6 +1111,38 @@
       "num": {
         "example": "2",
         "type": "int"
+      }
+    }
+  },
+  "@serverCompatBannerAdminMessage": {
+    "description": "Banner message shown to server admins when the server version is no longer supported.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "9.0",
+        "type": "String"
+      }
+    }
+  },
+  "@serverCompatBannerDismissLabel": {
+    "description": "Label for the button that dismisses the server compatibility warning banner."
+  },
+  "@serverCompatBannerLearnMoreLabel": {
+    "description": "Label for the button in the server compatibility warning banner that opens the support policy doc."
+  },
+  "@serverCompatBannerUserMessage": {
+    "description": "Banner message shown to non-admin users when the server version is no longer supported.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "9.0",
+        "type": "String"
       }
     }
   },
@@ -1426,6 +1485,7 @@
   "actionSheetOptionListOfTopics": "Liste des conversations",
   "actionSheetOptionMarkAsUnread": "Marquer non lu à partir d'ici",
   "actionSheetOptionMarkChannelAsRead": "Marquer le canal comme lu",
+  "actionSheetOptionMarkDmConversationAsRead": "Marquer la conversation comme lue",
   "actionSheetOptionMarkTopicAsRead": "Marquer la conversation comme lue",
   "actionSheetOptionMuteTopic": "Mettre la conversation en sourdine",
   "actionSheetOptionPinChannel": "Épingler en haut",
@@ -1441,11 +1501,15 @@
   "actionSheetOptionUnresolveTopic": "Marquer comme non résolue",
   "actionSheetOptionUnstarMessage": "Retirer des favoris",
   "actionSheetOptionUnsubscribe": "Se désabonner",
+  "actionSheetOptionViewProfile": "Voir le profil",
   "actionSheetOptionViewReadReceipts": "Voir les accusés de lecture",
   "actionSheetReadReceipts": "Accusés de lecture",
   "actionSheetReadReceiptsErrorReadCount": "Échec du chargement des accusés de lecture.",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Ce message a été <z-link>lu</z-link> par {count} personne :} other{Ce message a été <z-link>lu</z-link> par {count} personnes :}}",
   "actionSheetReadReceiptsZeroReadCount": "Personne n'a encore lu ce message.",
+  "actionSheetTitleDm": "MDs avec {user}",
+  "actionSheetTitleGroupDm": "MD de groupe",
+  "actionSheetTitleSelfDm": "MDs avec vous-même",
   "allChannelsEmptyPlaceholderHeader": "Il n'y a pas de canal que vous pouvez voir dans cette organisation.",
   "allChannelsPageTitle": "Tous les canaux",
   "appVersionUnknownPlaceholder": "(…)",
@@ -1607,7 +1671,7 @@
   "loginMethodDividerSemanticLabel": "Alternatives pour se connecter",
   "loginPageTitle": "Se connecter",
   "loginPasswordLabel": "Mot de passe",
-  "loginServerUrlLabel": "L'URL de votre serveur Zulip",
+  "loginRealmUrlLabel": "L'adresse (URL) de Zulip pour votre organisation",
   "loginUsernameLabel": "Identifiant",
   "mainMenuMyProfile": "Mon profil",
   "manyPeopleTyping": "Plusieurs personnes sont en train d'écrire…",
@@ -1648,10 +1712,12 @@
   "notifSelfUser": "Vous",
   "onePersonTyping": "{typist} est en train d'écrire…",
   "openLinksWithInAppBrowser": "Ouvre les liens avec le navigateur intégré à l'application",
+  "otherChannelsFolderName": "Autres canaux",
   "permissionsDeniedCameraAccess": "Pour charger une image, merci d'accorder des autorisations supplémentaires à Zulip, dans les Paramètres.",
   "permissionsDeniedReadExternalStorage": "Pour téléverser des fichiers, merci d'accorder des autorisations supplémentaires à Zulip, dans les Paramètres.",
   "permissionsNeededOpenSettings": "Ouvrir les paramètres",
   "permissionsNeededTitle": "Permissions requises",
+  "pinnedChannelsFolderName": "Canaux épinglés",
   "pinnedSubscriptionsLabel": "Épinglés",
   "pollVoterNames": "({voterNames})",
   "pollWidgetOptionsMissing": "Ce sondage n'a pas encore d'options.",
@@ -1678,6 +1744,10 @@
   "seeWhoReactedSheetHeaderLabel": "Réactions émoji ({num} total)",
   "seeWhoReactedSheetNoReactions": "Aucune réaction associée à ce message.",
   "seeWhoReactedSheetUserListLabel": "Votes pour {emojiName} ({num})",
+  "serverCompatBannerAdminMessage": "{url} exploite la version {zulipVersion} de Zulip Server, qui n'est plus supportée. Merci de mettre à jour votre serveur dès que possible.",
+  "serverCompatBannerDismissLabel": "Ignorer",
+  "serverCompatBannerLearnMoreLabel": "En apprendre plus",
+  "serverCompatBannerUserMessage": "{url} exploite la version {zulipVersion} de Zulip Server, qui n'est plus supportée. Merci de contacter l'administrateur de votre serveur pour planifier cette mise à jour.",
   "serverUrlValidationErrorEmpty": "Merci de saisir une adresse Internet (URL).",
   "serverUrlValidationErrorInvalidUrl": "Merci de saisir une URL valide.",
   "serverUrlValidationErrorNoUseEmail": "Merci de saisir l'URL du serveur, et pas votre adresse électronique.",
