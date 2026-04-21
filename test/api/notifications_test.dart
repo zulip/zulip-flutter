@@ -218,8 +218,8 @@ void main() {
 
     group('LegacyFcmMessage', () {
       test('parse fails on missing or bad event type', () {
-        check(LegacyFcmMessage.fromJson({})).isA<UnexpectedLegacyFcmMessage>();
-        check(LegacyFcmMessage.fromJson({'event': 'nonsense'})).isA<UnexpectedLegacyFcmMessage>();
+        check(LegacyFcmMessage.fromJson({})).isA<UnexpectedFcmMessage>();
+        check(LegacyFcmMessage.fromJson({'event': 'nonsense'})).isA<UnexpectedFcmMessage>();
       });
     });
 

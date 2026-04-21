@@ -257,8 +257,8 @@ class NotificationService {
   static Future<void> _onPlaintextRemoteMessage(Map<String, dynamic> rawData) async {
     final data = LegacyFcmMessage.fromJson(rawData);
     switch (data) {
-      case LegacyFcmMessageWithIdentity(): break;
-      case UnexpectedLegacyFcmMessage(): return; // TODO(log)
+      case NotifPayloadWithIdentity(): break;
+      case UnexpectedNotifPayload(): return; // TODO(log)
     }
 
     final globalStore = await ZulipBinding.instance.getGlobalStore();

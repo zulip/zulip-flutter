@@ -243,11 +243,11 @@ class NotifPayloadRemove extends NotifPayloadWithIdentity {
 sealed class LegacyFcmMessage implements NotifPayload {
   LegacyFcmMessage();
 
-  factory LegacyFcmMessage.fromJson(Map<String, dynamic> json) {
+  static NotifPayload fromJson(Map<String, dynamic> json) {
     switch (json['event']) {
       case 'message': return MessageLegacyFcmMessage.fromJson(json);
       case 'remove': return RemoveLegacyFcmMessage.fromJson(json);
-      default: return UnexpectedLegacyFcmMessage.fromJson(json);
+      default: return UnexpectedFcmMessage.fromJson(json);
     }
   }
 
@@ -255,12 +255,16 @@ sealed class LegacyFcmMessage implements NotifPayload {
   Map<String, dynamic> toJson();
 }
 
-/// A [LegacyFcmMessage] of a type (a value of `event`) we didn't know about.
-class UnexpectedLegacyFcmMessage extends LegacyFcmMessage implements UnexpectedNotifPayload {
+/// An FCM message of a type (a value of `event`) we didn't know about,
+/// and not recognized as an [EncryptedFcmMessage] either.
+///
+/// The FCM message could have been intended as an E2EE notification
+/// or a legacy notification; hard to say, since we didn't understand it.
+class UnexpectedFcmMessage implements UnexpectedNotifPayload {
   @override
   final Map<String, dynamic> json;
 
-  UnexpectedLegacyFcmMessage.fromJson(this.json);
+  UnexpectedFcmMessage.fromJson(this.json);
 
   @override
   Map<String, dynamic> toJson() => json;
