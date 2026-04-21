@@ -6,14 +6,26 @@ import 'theme.dart';
 /// A base [InputDecoration] for "filled"-style text inputs.
 ///
 /// Callers should use [InputDecoration.copyWith] to add field-specific
-/// properties like [InputDecoration.hintText], [InputDecoration.labelText],
+/// properties like [InputDecoration.hintText], [InputDecoration.label],
 /// or [InputDecoration.suffixIcon].
 ///
 /// [filledInputTextStyle] is recommended for styling the text-input's value,
 /// i.e., the text the user has typed. That's not a job of [InputDecoration].
+///
+/// For label text, use [InputDecoration.label] with a plain [Text] widget,
+/// to work around [InputDecoration.labelText]
+/// truncating the text at one line instead of letting it wrap,
+/// in the label's non-floating position i.e. when the input is unfocused.
+/// (The label is ellipsized to one line in the floating i.e. focused state.)
+// TODO(#2183) revisit [InputDecoration.label] suggestion in dartdoc
 InputDecoration baseFilledInputDecoration(DesignVariables designVariables) {
   return InputDecoration(
     hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
+
+    // Without this, the label doesn't ellipsize to one line
+    // in its floating position, and overlaps with the input text.
+    floatingLabelStyle: TextStyle(overflow: .ellipsis),
+
     // TODO(design) is this the right variable?
     errorStyle: TextStyle(color: designVariables.contextMenuItemTextDanger),
     isDense: true,
