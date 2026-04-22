@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.272 (2026-04-21)
+
 ### Highlights for users
 
 * (iOS) Start getting end-to-end encrypted notifications from new
