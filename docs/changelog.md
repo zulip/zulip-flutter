@@ -4,8 +4,10 @@
 
 ### Highlights for users
 
+* (iOS) Start getting end-to-end encrypted notifications from new
+  servers. (#1764)
 * (iOS) Fix keyboard glitch in switching between topic and content
-  input.  (#1974)
+  input. (#1974)
 * Channel folders in the inbox.
 * Tap an @-mention to visit user profile.
 * Too many other improvements and fixes to describe them all here.
@@ -42,6 +44,14 @@
     user profile or mark as read.
   * #2187: fix #1457.  Show warning banner on old servers.
   * #2283.
+  * #2226.  Update translations.
+  * #2262: fix #350, fix part of #417, fix #2108, fix #1528.
+    Use distinct group-DM icons by group size; cut splash effect
+    in inbox; adjust text baselines more cleanly; harmonize
+    marker icons between inbox and topic list; baseline-align
+    content in inbox and topic-list items.
+  * #2279.
+  * #2230: fix #1764.  Use E2EE notifications on iOS too!
 
 
 ## 30.0.271 (2026-03-11)
