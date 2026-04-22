@@ -439,10 +439,8 @@ class InboxChannelHeaderItem extends StatelessWidget {
       begin: .topCenter,
       end: .bottomCenter,
       colors: [
-        // TODO(design) is this the right color?
-        //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422786
-        swatch.barBackgroundSolid,
-        swatch.barBackgroundSolid.withValues(alpha: 0),
+        swatch.barBackgroundGradientTop,
+        swatch.barBackgroundGradientBottom,
       ],
     ),
   );

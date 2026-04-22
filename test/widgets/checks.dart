@@ -27,6 +27,8 @@ extension ChannelColorSwatchChecks on Subject<ChannelColorSwatch> {
   Subject<Color> get iconOnPlainBackground => has((s) => s.iconOnPlainBackground, 'iconOnPlainBackground');
   Subject<Color> get iconOnBarBackground => has((s) => s.iconOnBarBackground, 'iconOnBarBackground');
   Subject<Color> get barBackgroundSolid => has((s) => s.barBackgroundSolid, 'barBackgroundSolid');
+  Subject<Color> get barBackgroundGradientTop => has((s) => s.barBackgroundGradientTop, 'barBackgroundGradientTop');
+  Subject<Color> get barBackgroundGradientBottom => has((s) => s.barBackgroundGradientBottom, 'barBackgroundGradientBottom');
 }
 
 extension ComposeBoxStateChecks on Subject<ComposeBoxState> {

@@ -263,6 +263,16 @@ void main() {
         runCheck(0xffa47462, const Color(0xffe7dad6));
         runCheck(0xffacc25d, const Color(0xffe9edd6));
       });
+
+      test('barBackgroundGradientTop', () {
+        check(ChannelColorSwatch.light(0xff76ce90)).barBackgroundGradientTop
+          .isSameColorAs(const Color(0xffddefe1));
+      });
+
+      test('barBackgroundGradientBottom', () {
+        check(ChannelColorSwatch.light(0xff76ce90)).barBackgroundGradientBottom
+          .isSameColorAs(const Color(0x00ddefe1));
+      });
     });
 
     group('dark', () {
@@ -459,6 +469,17 @@ void main() {
         runCheck(0xffa47462, const Color(0xff3d2d27));
         runCheck(0xffacc25d, const Color(0xff404627));
       });
+
+
+      test('barBackgroundGradientTop', () {
+        check(ChannelColorSwatch.dark(0xff76ce90)).barBackgroundGradientTop
+          .isSameColorAs(const Color(0x9f2e4935));
+      });
+
+      test('barBackgroundGradientBottom', () {
+        check(ChannelColorSwatch.dark(0xff76ce90)).barBackgroundGradientBottom
+          .isSameColorAs(const Color(0x202e4935));
+      });
     });
 
     test('lerp (different a, b)', () {
@@ -478,6 +499,10 @@ void main() {
               Color.lerp(swatchA.iconOnBarBackground, swatchB.iconOnBarBackground, t)!),
             ChannelColorVariant.barBackgroundSolid => (check(result).barBackgroundSolid,
               Color.lerp(swatchA.barBackgroundSolid, swatchB.barBackgroundSolid, t)!),
+            ChannelColorVariant.barBackgroundGradientTop => (check(result).barBackgroundGradientTop,
+              Color.lerp(swatchA.barBackgroundGradientTop, swatchB.barBackgroundGradientTop, t)!),
+            ChannelColorVariant.barBackgroundGradientBottom => (check(result).barBackgroundGradientBottom,
+              Color.lerp(swatchA.barBackgroundGradientBottom, swatchB.barBackgroundGradientBottom, t)!),
           };
           subject.isSameColorAs(expected);
         }

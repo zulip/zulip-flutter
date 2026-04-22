@@ -107,11 +107,23 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
   /// Use this in the message list, the "Inbox" view, and the "Channels" view.
   Color get barBackgroundSolid => this[ChannelColorVariant.barBackgroundSolid]!;
 
+  /// The top color of a gradient-shaded bar representing a channel,
+  /// as in the inbox.
+  Color get barBackgroundGradientTop => this[ChannelColorVariant.barBackgroundGradientTop]!;
+
+  /// The bottom color of a gradient-shaded bar representing a channel,
+  /// as in the inbox.
+  Color get barBackgroundGradientBottom => this[ChannelColorVariant.barBackgroundGradientBottom]!;
+
   static Map<ChannelColorVariant, Color> _computeLight(int base) {
     final baseAsColor = Color(base);
 
     final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
     final clamped20to75AsHsl = HSLColor.fromColor(clamped20to75);
+
+    final barBackgroundSolid = LabColor.fromColor(const Color(0xfff9f9f9))
+      .interpolate(LabColor.fromColor(clamped20to75), 0.22)
+      .toColor();
 
     return {
       ChannelColorVariant.base: baseAsColor,
@@ -149,10 +161,12 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
       //     <https://pub.dev/documentation/flutter_color_models/latest/flutter_color_models/ColorModel/interpolate.html>
       //   which does ordinary RGB mixing. Investigate and send a PR?
       // TODO fix bug where our results differ from the replit's (see unit tests)
-      ChannelColorVariant.barBackgroundSolid:
-        LabColor.fromColor(const Color(0xfff9f9f9))
-          .interpolate(LabColor.fromColor(clamped20to75), 0.22)
-          .toColor(),
+      ChannelColorVariant.barBackgroundSolid: barBackgroundSolid,
+
+      ChannelColorVariant.barBackgroundGradientTop: barBackgroundSolid,
+
+      ChannelColorVariant.barBackgroundGradientBottom:
+        barBackgroundSolid.withValues(alpha: 0),
     };
   }
 
@@ -160,6 +174,10 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
     final baseAsColor = Color(base);
 
     final clamped20to75 = clampLchLightness(baseAsColor, 20, 75);
+
+    final barBackgroundSolid = LabColor.fromColor(const Color(0xff000000))
+      .interpolate(LabColor.fromColor(clamped20to75), 0.38)
+      .toColor();
 
     return {
       // See comments in [_computeLight] about what these computations are based
@@ -187,10 +205,13 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
       // TODO fix bug where our results are unexpected (see unit tests)
       ChannelColorVariant.iconOnBarBackground: clamped20to75,
 
-      ChannelColorVariant.barBackgroundSolid:
-        LabColor.fromColor(const Color(0xff000000))
-          .interpolate(LabColor.fromColor(clamped20to75), 0.38)
-          .toColor(),
+      ChannelColorVariant.barBackgroundSolid: barBackgroundSolid,
+
+      ChannelColorVariant.barBackgroundGradientTop:
+        barBackgroundSolid.withFadedAlpha(0.625),
+
+      ChannelColorVariant.barBackgroundGradientBottom:
+        barBackgroundSolid.withFadedAlpha(0.125),
     };
   }
 
@@ -220,4 +241,6 @@ enum ChannelColorVariant {
   iconOnPlainBackground,
   iconOnBarBackground,
   barBackgroundSolid,
+  barBackgroundGradientTop,
+  barBackgroundGradientBottom,
 }
