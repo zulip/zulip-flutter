@@ -1834,7 +1834,7 @@ void main() {
           find.descendant(
             of: find.byType(StreamMessageRecipientHeader),
             matching: find.byType(ColoredBox),
-        ))).color.isNotNull().isSameColorAs(swatch.barBackground);
+        ))).color.isNotNull().isSameColorAs(swatch.barBackgroundSolid);
       });
 
       testWidgets('color of stream icon', (tester) async {

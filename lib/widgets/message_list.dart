@@ -470,7 +470,7 @@ abstract class _MessageListAppBar {
       case TopicNarrow(:final channelId):
         final subscription = store.subscriptions[channelId];
         appBarBackgroundColor =
-          colorSwatchFor(context, subscription).barBackground;
+          colorSwatchFor(context, subscription).barBackgroundSolid;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
         removeAppBarBottomBorder = true;
@@ -1859,7 +1859,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final topic = message.conversation.topic;
 
     final swatch = colorSwatchFor(context, store.subscriptions[streamId]);
-    final backgroundColor = swatch.barBackground;
+    final backgroundColor = swatch.barBackgroundSolid;
     final iconColor = swatch.iconOnBarBackground;
 
     final Widget streamWidget;

@@ -222,10 +222,10 @@ void main() {
         runCheck(0xffacc25d, const Color(0xff8ea43e));
       });
 
-      test('barBackground', () {
+      test('barBackgroundSolid', () {
         void runCheck(int base, Color expected) {
           check(ChannelColorSwatch.light(base))
-            .barBackground.isSameColorAs(expected);
+            .barBackgroundSolid.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -418,10 +418,10 @@ void main() {
         runCheck(0xffacc25d, const Color(0xffacc25d));
       });
 
-      test('barBackground', () {
+      test('barBackgroundSolid', () {
         void runCheck(int base, Color expected) {
           check(ChannelColorSwatch.dark(base))
-            .barBackground.isSameColorAs(expected);
+            .barBackgroundSolid.isSameColorAs(expected);
         }
 
         // Check against everything in ZULIP_ASSIGNMENT_COLORS
@@ -476,8 +476,8 @@ void main() {
               Color.lerp(swatchA.iconOnPlainBackground, swatchB.iconOnPlainBackground, t)!),
             ChannelColorVariant.iconOnBarBackground => (check(result).iconOnBarBackground,
               Color.lerp(swatchA.iconOnBarBackground, swatchB.iconOnBarBackground, t)!),
-            ChannelColorVariant.barBackground => (check(result).barBackground,
-              Color.lerp(swatchA.barBackground, swatchB.barBackground, t)!),
+            ChannelColorVariant.barBackgroundSolid => (check(result).barBackgroundSolid,
+              Color.lerp(swatchA.barBackgroundSolid, swatchB.barBackgroundSolid, t)!),
           };
           subject.isSameColorAs(expected);
         }

@@ -36,7 +36,7 @@ class TopicListPage extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final appBarBackgroundColor = colorSwatchFor(
-      context, store.subscriptions[channelId]).barBackground;
+      context, store.subscriptions[channelId]).barBackgroundSolid;
 
     return PageRoot(child: Scaffold(
       appBar: ZulipAppBar(

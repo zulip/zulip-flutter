@@ -91,21 +91,21 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
 
   /// The channel icon on a plain-colored surface, such as white.
   ///
-  /// For the icon on a [barBackground]-colored surface,
+  /// For the icon on a [barBackgroundSolid]-colored surface,
   /// use [iconOnBarBackground] instead.
   Color get iconOnPlainBackground => this[ChannelColorVariant.iconOnPlainBackground]!;
 
-  /// The channel icon on a [barBackground]-colored surface.
+  /// The channel icon on a [barBackgroundSolid]-colored surface.
   ///
   /// For the icon on a plain surface, use [iconOnPlainBackground] instead.
-  /// This color is chosen to enhance contrast with [barBackground]:
+  /// This color is chosen to enhance contrast with [barBackgroundSolid]:
   ///   <https://github.com/zulip/zulip/pull/27485>
   Color get iconOnBarBackground => this[ChannelColorVariant.iconOnBarBackground]!;
 
   /// The background color of a bar representing a channel, like a recipient bar.
   ///
   /// Use this in the message list, the "Inbox" view, and the "Channels" view.
-  Color get barBackground => this[ChannelColorVariant.barBackground]!;
+  Color get barBackgroundSolid => this[ChannelColorVariant.barBackgroundSolid]!;
 
   static Map<ChannelColorVariant, Color> _computeLight(int base) {
     final baseAsColor = Color(base);
@@ -149,7 +149,7 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
       //     <https://pub.dev/documentation/flutter_color_models/latest/flutter_color_models/ColorModel/interpolate.html>
       //   which does ordinary RGB mixing. Investigate and send a PR?
       // TODO fix bug where our results differ from the replit's (see unit tests)
-      ChannelColorVariant.barBackground:
+      ChannelColorVariant.barBackgroundSolid:
         LabColor.fromColor(const Color(0xfff9f9f9))
           .interpolate(LabColor.fromColor(clamped20to75), 0.22)
           .toColor(),
@@ -187,7 +187,7 @@ class ChannelColorSwatch extends ColorSwatch<ChannelColorVariant> {
       // TODO fix bug where our results are unexpected (see unit tests)
       ChannelColorVariant.iconOnBarBackground: clamped20to75,
 
-      ChannelColorVariant.barBackground:
+      ChannelColorVariant.barBackgroundSolid:
         LabColor.fromColor(const Color(0xff000000))
           .interpolate(LabColor.fromColor(clamped20to75), 0.38)
           .toColor(),
@@ -219,5 +219,5 @@ enum ChannelColorVariant {
   unreadCountBadgeBackground,
   iconOnPlainBackground,
   iconOnBarBackground,
-  barBackground,
+  barBackgroundSolid,
 }

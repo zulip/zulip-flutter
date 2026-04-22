@@ -432,7 +432,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
   }
 
   BoxDecoration _solidBackground(ChannelColorSwatch swatch) =>
-    BoxDecoration(color: swatch.barBackground);
+    BoxDecoration(color: swatch.barBackgroundSolid);
 
   BoxDecoration _gradientBackground(ChannelColorSwatch swatch) => BoxDecoration(
     gradient: LinearGradient(
@@ -441,8 +441,8 @@ class InboxChannelHeaderItem extends StatelessWidget {
       colors: [
         // TODO(design) is this the right color?
         //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422786
-        swatch.barBackground,
-        swatch.barBackground.withValues(alpha: 0),
+        swatch.barBackgroundSolid,
+        swatch.barBackgroundSolid.withValues(alpha: 0),
       ],
     ),
   );
@@ -464,7 +464,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
         child: InkWell(
           splashFactory: NoSplash.splashFactory,
           // TODO(design) this is ad hoc
-          highlightColor: swatch.barBackground.withFadedAlpha(0.5),
+          highlightColor: swatch.barBackgroundSolid.withFadedAlpha(0.5),
           // TODO use onRowTap to handle taps that are not on the collapse button.
           //   Probably we should give the collapse button a 44px or 48px square
           //   touch target:
@@ -584,7 +584,7 @@ class InboxTopicItem extends StatelessWidget {
       child: InkWell(
         splashFactory: NoSplash.splashFactory,
         // TODO(design) this is ad hoc
-        highlightColor: swatch.barBackground.withFadedAlpha(0.25),
+        highlightColor: swatch.barBackgroundSolid.withFadedAlpha(0.25),
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
           Navigator.push(context,
