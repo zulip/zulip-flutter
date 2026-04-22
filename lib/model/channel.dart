@@ -20,27 +20,27 @@ mixin ChannelStore on UserStore {
   @protected
   UserStore get userStore;
 
-  /// All known channels/streams, indexed by [ZulipStream.streamId].
+  /// All known channels, indexed by [ZulipStream.streamId].
   ///
-  /// The same [ZulipStream] objects also appear in [streamsByName].
+  /// The same [ZulipStream] objects also appear in [channelsByName].
   ///
   /// For channels the self-user is subscribed to, the value is in fact
   /// a [Subscription] object and also appears in [subscriptions].
-  Map<int, ZulipStream> get streams;
+  Map<int, ZulipStream> get channels;
 
-  /// All known channels/streams, indexed by [ZulipStream.name].
+  /// All known channels, indexed by [ZulipStream.name].
   ///
-  /// The same [ZulipStream] objects also appear in [streams].
+  /// The same [ZulipStream] objects also appear in [channels].
   ///
   /// For channels the self-user is subscribed to, the value is in fact
   /// a [Subscription] object and also appears in [subscriptions].
-  Map<String, ZulipStream> get streamsByName;
+  Map<String, ZulipStream> get channelsByName;
 
   /// All the channels the self-user is subscribed to, indexed by
   /// [Subscription.streamId], with subscription details.
   ///
-  /// The same [Subscription] objects are among the values in [streams]
-  /// and [streamsByName].
+  /// The same [Subscription] objects are among the values in [channels]
+  /// and [channelsByName].
   Map<int, Subscription> get subscriptions;
 
   /// All the channel folders, including archived ones, indexed by ID.
@@ -168,7 +168,7 @@ mixin ChannelStore on UserStore {
   /// The channel folder of [channelId],
   /// including the "PINNED" or "OTHER" pseudo-channels (e.g. for the inbox).
   UiChannelFolder uiChannelFolder(int channelId) =>
-    switch (streams[channelId]) {
+    switch (channels[channelId]) {
       Subscription(:final pinToTop) when pinToTop =>
         UiChannelFolderPseudoPinned(),
       ZulipStream(:final folderId) when folderId != null =>
@@ -377,10 +377,10 @@ mixin ProxyChannelStore on ChannelStore {
   ChannelStore get channelStore;
 
   @override
-  Map<int, ZulipStream> get streams => channelStore.streams;
+  Map<int, ZulipStream> get channels => channelStore.channels;
 
   @override
-  Map<String, ZulipStream> get streamsByName => channelStore.streamsByName;
+  Map<String, ZulipStream> get channelsByName => channelStore.channelsByName;
 
   @override
   Map<int, Subscription> get subscriptions => channelStore.subscriptions;
@@ -422,9 +422,9 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
     final subscriptions = Map.fromEntries(initialSnapshot.subscriptions.map(
       (subscription) => MapEntry(subscription.streamId, subscription)));
 
-    final streams = Map<int, ZulipStream>.of(subscriptions);
+    final channels = Map<int, ZulipStream>.of(subscriptions);
     for (final stream in initialSnapshot.streams) {
-      streams.putIfAbsent(stream.streamId, () => stream);
+      channels.putIfAbsent(stream.streamId, () => stream);
     }
 
     final channelFolders = Map.fromEntries((initialSnapshot.channelFolders ?? [])
@@ -442,8 +442,8 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
 
     return ChannelStoreImpl._(
       users: users,
-      streams: streams,
-      streamsByName: streams.map((_, stream) => MapEntry(stream.name, stream)),
+      channels: channels,
+      channelsByName: channels.map((_, channel) => MapEntry(channel.name, channel)),
       subscriptions: subscriptions,
       channelFolders: channelFolders,
       topicVisibility: topicVisibility,
@@ -452,17 +452,17 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
 
   ChannelStoreImpl._({
     required super.users,
-    required this.streams,
-    required this.streamsByName,
+    required this.channels,
+    required this.channelsByName,
     required this.subscriptions,
     required this.channelFolders,
     required this.topicVisibility,
   });
 
   @override
-  final Map<int, ZulipStream> streams;
+  final Map<int, ZulipStream> channels;
   @override
-  final Map<String, ZulipStream> streamsByName;
+  final Map<String, ZulipStream> channelsByName;
   @override
   final Map<int, Subscription> subscriptions;
   @override
@@ -490,27 +490,27 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
     switch (event) {
       case ChannelCreateEvent():
         assert(event.streams.every((stream) =>
-          !streams.containsKey(stream.streamId)
-          && !streamsByName.containsKey(stream.name)));
-        streams.addEntries(event.streams.map((stream) => MapEntry(stream.streamId, stream)));
-        streamsByName.addEntries(event.streams.map((stream) => MapEntry(stream.name, stream)));
+          !channels.containsKey(stream.streamId)
+          && !channelsByName.containsKey(stream.name)));
+        channels.addEntries(event.streams.map((stream) => MapEntry(stream.streamId, stream)));
+        channelsByName.addEntries(event.streams.map((stream) => MapEntry(stream.name, stream)));
         // (Don't touch `subscriptions`. If the user is subscribed to the stream,
         // details will come in a later `subscription` event.)
 
       case ChannelDeleteEvent():
         for (final channelId in event.channelIds) {
-          final channel = streams.remove(channelId);
+          final channel = channels.remove(channelId);
           if (channel == null) continue; // TODO(log)
           assert(channelId == channel.streamId);
-          assert(identical(channel, streamsByName[channel.name]));
+          assert(identical(channel, channelsByName[channel.name]));
           assert(subscriptions[channelId] == null
             || identical(subscriptions[channelId], channel));
-          streamsByName.remove(channel.name);
+          channelsByName.remove(channel.name);
           subscriptions.remove(channelId);
         }
 
       case ChannelUpdateEvent():
-        final stream = streams[event.streamId];
+        final stream = channels[event.streamId];
         if (stream == null) return; // TODO(log)
         assert(stream.streamId == event.streamId);
 
@@ -532,10 +532,10 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
           case ChannelPropertyName.name:
             final streamName = stream.name;
             assert(streamName == event.name);
-            assert(identical(streams[stream.streamId], streamsByName[streamName]));
+            assert(identical(channels[stream.streamId], channelsByName[streamName]));
             stream.name = event.value as String;
-            streamsByName.remove(streamName);
-            streamsByName[stream.name] = stream;
+            channelsByName.remove(streamName);
+            channelsByName[stream.name] = stream;
           case ChannelPropertyName.isArchived:
             stream.isArchived = event.value as bool;
           case ChannelPropertyName.description:
@@ -572,35 +572,35 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
     switch (event) {
       case SubscriptionAddEvent():
         for (final subscription in event.subscriptions) {
-          assert(streams.containsKey(subscription.streamId));
-          assert(streams[subscription.streamId] is! Subscription);
-          assert(streamsByName.containsKey(subscription.name));
-          assert(streamsByName[subscription.name] is! Subscription);
+          assert(channels.containsKey(subscription.streamId));
+          assert(channels[subscription.streamId] is! Subscription);
+          assert(channelsByName.containsKey(subscription.name));
+          assert(channelsByName[subscription.name] is! Subscription);
           assert(!subscriptions.containsKey(subscription.streamId));
-          streams[subscription.streamId] = subscription;
-          streamsByName[subscription.name] = subscription;
+          channels[subscription.streamId] = subscription;
+          channelsByName[subscription.name] = subscription;
           subscriptions[subscription.streamId] = subscription;
         }
 
       case SubscriptionRemoveEvent():
         for (final channelId in event.channelIds) {
-          assert(streams.containsKey(channelId));
-          assert(streams[channelId] is Subscription);
-          assert(streamsByName.containsKey(streams[channelId]!.name));
-          assert(streamsByName[streams[channelId]!.name] is Subscription);
+          assert(channels.containsKey(channelId));
+          assert(channels[channelId] is Subscription);
+          assert(channelsByName.containsKey(channels[channelId]!.name));
+          assert(channelsByName[channels[channelId]!.name] is Subscription);
           assert(subscriptions.containsKey(channelId));
           final subscription = subscriptions.remove(channelId);
           if (subscription == null) continue; // TODO(log)
           final stream = ZulipStream.fromSubscription(subscription);
-          streams[channelId] = stream;
-          streamsByName[subscription.name] = stream;
+          channels[channelId] = stream;
+          channelsByName[subscription.name] = stream;
         }
 
       case SubscriptionUpdateEvent():
         final subscription = subscriptions[event.channelId];
         if (subscription == null) return; // TODO(log)
-        assert(identical(streams[event.channelId], subscription));
-        assert(identical(streamsByName[subscription.name], subscription));
+        assert(identical(channels[event.channelId], subscription));
+        assert(identical(channelsByName[subscription.name], subscription));
         switch (event.property) {
           case SubscriptionProperty.color:
             subscription.color                  = event.value as int;

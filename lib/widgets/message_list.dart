@@ -581,8 +581,8 @@ class MessageListAppBarTitle extends StatelessWidget {
   final Narrow narrow;
   final bool willCenterTitle;
 
-  Widget _buildStreamRow(BuildContext context, {
-    ZulipStream? stream,
+  Widget _buildChannelRow(BuildContext context, {
+    ZulipStream? channel,
   }) {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -590,9 +590,9 @@ class MessageListAppBarTitle extends StatelessWidget {
     // A null [Icon.icon] makes a blank space.
     IconData? icon;
     Color? iconColor;
-    if (stream != null) {
-      icon = iconDataForStream(stream);
-      iconColor = colorSwatchFor(context, store.subscriptions[stream.streamId])
+    if (channel != null) {
+      icon = iconDataForStream(channel);
+      iconColor = colorSwatchFor(context, store.subscriptions[channel.streamId])
         .iconOnBarBackground;
     }
 
@@ -606,19 +606,19 @@ class MessageListAppBarTitle extends StatelessWidget {
         Icon(size: 16, color: iconColor, icon),
         const SizedBox(width: 4),
         Flexible(child: Text(
-          stream?.name ?? zulipLocalizations.unknownChannelName)),
+          channel?.name ?? zulipLocalizations.unknownChannelName)),
       ]);
   }
 
   Widget _buildTopicRow(BuildContext context, {
-    required ZulipStream? stream,
+    required ZulipStream? channel,
     required TopicName topic,
   }) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
-    final icon = stream == null ? null
+    final icon = channel == null ? null
       : iconDataForTopicVisibilityPolicy(
-          store.topicVisibilityPolicy(stream.streamId, topic));
+          store.topicVisibilityPolicy(channel.streamId, topic));
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -650,7 +650,7 @@ class MessageListAppBarTitle extends StatelessWidget {
 
       case ChannelNarrow(:var channelId):
         final store = PerAccountStoreWidget.of(context);
-        final stream = store.streams[channelId];
+        final channel = store.channels[channelId];
         final alignment = willCenterTitle
           ? Alignment.center
           : AlignmentDirectional.centerStart;
@@ -662,11 +662,11 @@ class MessageListAppBarTitle extends StatelessWidget {
               showChannelActionSheet(context, channelId: channelId);
             },
             child: Align(alignment: alignment,
-              child: _buildStreamRow(context, stream: stream))));
+              child: _buildChannelRow(context, channel: channel))));
 
       case TopicNarrow(:var channelId, :var topic):
         final store = PerAccountStoreWidget.of(context);
-        final stream = store.streams[channelId];
+        final channel = store.channels[channelId];
         final alignment = willCenterTitle
           ? Alignment.center
           : AlignmentDirectional.centerStart;
@@ -679,7 +679,7 @@ class MessageListAppBarTitle extends StatelessWidget {
                 showChannelActionSheet(context, channelId: channelId);
               },
               child: Align(alignment: alignment,
-                child: _buildStreamRow(context, stream: stream))),
+                child: _buildChannelRow(context, channel: channel))),
             GestureDetector(
               behavior: HitTestBehavior.translucent,
               onLongPress: () {
@@ -697,7 +697,7 @@ class MessageListAppBarTitle extends StatelessWidget {
                   someMessageIdInTopic: someMessage?.id);
               },
               child: Align(alignment: alignment,
-                child: _buildTopicRow(context, stream: stream, topic: topic))),
+                child: _buildTopicRow(context, channel: channel, topic: topic))),
           ]);
 
       case DmNarrow(:var otherRecipientIds):
@@ -1329,7 +1329,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           header: zulipLocalizations.emptyMessageListCombinedFeed);
 
       case ChannelNarrow(:final channelId) || TopicNarrow(:final channelId):
-        final channel = store.streams[channelId];
+        final channel = store.channels[channelId];
         if (channel == null) {
           return PageBodyEmptyContentPlaceholder(
             header: zulipLocalizations.emptyMessageListChannelUnavailable);
@@ -1862,16 +1862,16 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final backgroundColor = swatch.barBackground;
     final iconColor = swatch.iconOnBarBackground;
 
-    final Widget streamWidget;
+    final Widget channelWidget;
     if (!_containsDifferentChannels(narrow)) {
-      streamWidget = const SizedBox(width: 16);
+      channelWidget = const SizedBox(width: 16);
     } else {
-      final stream = store.streams[streamId];
-      final streamName = stream?.name
+      final channel = store.channels[streamId];
+      final channelName = channel?.name
         ?? message.conversation.displayRecipient
         ?? zulipLocalizations.unknownChannelName; // TODO(log)
 
-      streamWidget = GestureDetector(
+      channelWidget = GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => Navigator.push(context,
           MessageListPage.buildRoute(context: context,
@@ -1889,10 +1889,10 @@ class StreamMessageRecipientHeader extends StatelessWidget {
               padding: const EdgeInsets.only(left: 6, right: 6, bottom: 3),
               child: Icon(size: 16, color: iconColor,
                 // A null [Icon.icon] makes a blank space.
-                stream != null ? iconDataForStream(stream) : null)),
+                channel != null ? iconDataForStream(channel) : null)),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 11),
-              child: Text(streamName,
+              child: Text(channelName,
                 style: recipientHeaderTextStyle(context),
                 overflow: TextOverflow.ellipsis),
             ),
@@ -1944,7 +1944,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // TODO(#282): Long stream name will break layout; find a fix.
-            streamWidget,
+            channelWidget,
             Expanded(child: topicWidget),
             // TODO topic links?
             // Then web also has edit/resolve/mute buttons. Skip those for mobile.

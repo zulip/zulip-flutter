@@ -512,7 +512,7 @@ void showChannelActionSheet(BuildContext context, {
     && messageListPageNarrow.channelId == channelId;
 
   final unreadCount = store.unreads.countInChannelNarrow(channelId);
-  final channel = store.streams[channelId];
+  final channel = store.channels[channelId];
   final isSubscribed = channel is Subscription;
   final buttonSections = [
     if (!isSubscribed

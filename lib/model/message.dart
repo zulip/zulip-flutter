@@ -105,7 +105,7 @@ mixin MessageStore on ChannelStore {
 
     final ZulipStream? channel;
     if (message is StreamMessage) {
-      channel = streams[message.streamId];
+      channel = channels[message.streamId];
       if (channel == null) {
         assert(false); // TODO(log)
         return true;

@@ -1819,7 +1819,7 @@ void main() {
         // new store has the same boring data, in order to present a compose box
         // that allows composing, instead of a no-posting-permission banner
         ..accountId.equals(store.accountId)
-        ..streams.containsKey(channel.streamId);
+        ..channels.containsKey(channel.streamId);
 
       checkContentInputValue(tester, 'some content');
     });

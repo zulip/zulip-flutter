@@ -955,7 +955,7 @@ void main() {
       await store.addStream(stream);
       // Set up a situation that breaks our data structures' invariants:
       // a stream/channel found in the by-ID map is missing in the by-name map.
-      store.streamsByName.remove(stream.name);
+      store.channelsByName.remove(stream.name);
       // Then prepare an event on which handleEvent will throw
       // because it hits that broken invariant.
       connection.prepare(json: GetEventsResult(events: [
