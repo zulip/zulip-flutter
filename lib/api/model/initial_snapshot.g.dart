@@ -111,6 +111,10 @@ InitialSnapshot _$InitialSnapshotFromJson(
     _$RealmWildcardMentionPolicyEnumMap,
     json['realm_wildcard_mention_policy'],
   ),
+  realmMediaPreviewSize: $enumDecodeNullable(
+    _$RealmMediaPreviewSizeEnumMap,
+    json['realm_media_preview_size'],
+  ),
   realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
   realmName: json['realm_name'] as String,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
@@ -205,6 +209,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'realm_can_delete_own_message_group': instance.realmCanDeleteOwnMessageGroup,
   'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
+  'realm_media_preview_size': instance.realmMediaPreviewSize,
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_name': instance.realmName,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
@@ -244,6 +249,13 @@ const _$RealmWildcardMentionPolicyEnumMap = {
   RealmWildcardMentionPolicy.admins: 5,
   RealmWildcardMentionPolicy.nobody: 6,
   RealmWildcardMentionPolicy.moderators: 7,
+};
+
+const _$RealmMediaPreviewSizeEnumMap = {
+  RealmMediaPreviewSize.small: 100,
+  RealmMediaPreviewSize.medium: 150,
+  RealmMediaPreviewSize.large: 200,
+  RealmMediaPreviewSize.unknown: null,
 };
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
