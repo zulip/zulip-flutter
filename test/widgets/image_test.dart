@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/core.dart';
@@ -195,6 +196,71 @@ void main() {
         animationMode: ImageAnimationMode.animateNever);
       check(result.toString())
         .equals('https://chat.example/user_uploads/thumbnail/1/2/a/pic.jpg/840x560.webp?x=y#abc');
+    });
+  });
+
+  group('ImageAnimationMode.shouldAnimate', () {
+    Future<void> doCheck(WidgetTester tester, {
+      required TargetPlatform platform,
+      bool mediaQueryDisableAnimations = false,
+      bool reduceMotion = false,
+      required ImageAnimationMode mode,
+      required bool expected,
+    }) async {
+      addTearDown(testBinding.reset);
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+        FakeAccessibilityFeatures(reduceMotion: reduceMotion);
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+
+      debugDefaultTargetPlatformOverride = platform;
+      try {
+        await tester.pumpWidget(MediaQuery(
+          data: MediaQueryData(disableAnimations: mediaQueryDisableAnimations),
+          child: const Placeholder()));
+        final context = tester.element(find.byType(Placeholder));
+        check(mode.shouldAnimate(context)).equals(expected);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    }
+
+    testWidgets('animateAlways gives true regardless of device settings', (tester) async {
+      await doCheck(tester, mode: ImageAnimationMode.animateAlways, expected: true,
+        platform: .iOS,
+        mediaQueryDisableAnimations: true, reduceMotion: true);
+    });
+
+    testWidgets('animateNever gives false regardless of device settings', (tester) async {
+      await doCheck(tester, mode: ImageAnimationMode.animateNever, expected: false,
+        platform: .iOS);
+    });
+
+    group('animateConditionally', () {
+      const mode = ImageAnimationMode.animateConditionally;
+
+      testWidgets('MediaQuery.disableAnimations suppresses animation', (tester) async {
+        await doCheck(tester, mode: mode, expected: false,
+          platform: .android,
+          mediaQueryDisableAnimations: true);
+      });
+
+      testWidgets('Android ignores reduceMotion', (tester) async {
+        await doCheck(tester, mode: mode, expected: true,
+          platform: .android,
+          reduceMotion: true);
+      });
+
+      testWidgets('iOS: no animate when reduce-motion on', (tester) async {
+        await doCheck(tester, mode: mode, expected: false,
+          platform: .iOS,
+          reduceMotion: true);
+      });
+
+      testWidgets('iOS: animate when reduce-motion off', (tester) async {
+        await doCheck(tester, mode: mode, expected: true,
+          platform: .iOS,
+          reduceMotion: false);
+      });
     });
   });
 }
