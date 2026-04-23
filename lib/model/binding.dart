@@ -262,6 +262,17 @@ class IosDeviceInfo extends BaseDeviceInfo {
   /// See: https://developer.apple.com/documentation/uikit/uidevice/1620043-systemversion
   final String systemVersion;
 
+  /// The major component of the iOS version, from [systemVersion].
+  ///
+  /// Returns null if [systemVersion] can't be parsed.
+  ///
+  /// Callers should write e.g. `// TODO(ios-18)`
+  /// so we remember to simplify our code as our minimum iOS version advances.
+  // TODO(log) if can't be parsed
+  int? get majorVersion =>
+    // [IosDeviceInfo.systemVersion] is a dotted string, e.g. "17.5.1".
+    int.tryParse(systemVersion.split('.').first, radix: 10);
+
   const IosDeviceInfo({required this.systemVersion});
 }
 
