@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/content.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/image.dart';
@@ -202,14 +203,19 @@ void main() {
   group('ImageAnimationMode.shouldAnimate', () {
     Future<void> doCheck(WidgetTester tester, {
       required TargetPlatform platform,
+      BaseDeviceInfo? deviceInfo,
       bool mediaQueryDisableAnimations = false,
       bool reduceMotion = false,
+      bool autoPlayAnimatedImages = true,
       required ImageAnimationMode mode,
       required bool expected,
     }) async {
       addTearDown(testBinding.reset);
+      if (deviceInfo != null) testBinding.deviceInfoResult = deviceInfo;
       tester.platformDispatcher.accessibilityFeaturesTestValue =
-        FakeAccessibilityFeatures(reduceMotion: reduceMotion);
+        FakeAccessibilityFeatures(
+          reduceMotion: reduceMotion,
+          autoPlayAnimatedImages: autoPlayAnimatedImages);
       addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
 
       debugDefaultTargetPlatformOverride = platform;
@@ -227,7 +233,9 @@ void main() {
     testWidgets('animateAlways gives true regardless of device settings', (tester) async {
       await doCheck(tester, mode: ImageAnimationMode.animateAlways, expected: true,
         platform: .iOS,
-        mediaQueryDisableAnimations: true, reduceMotion: true);
+        deviceInfo: const IosDeviceInfo(systemVersion: '18.0'),
+        mediaQueryDisableAnimations: true, reduceMotion: true,
+        autoPlayAnimatedImages: false);
     });
 
     testWidgets('animateNever gives false regardless of device settings', (tester) async {
@@ -244,22 +252,60 @@ void main() {
           mediaQueryDisableAnimations: true);
       });
 
-      testWidgets('Android ignores reduceMotion', (tester) async {
+      testWidgets('Android ignores reduceMotion and autoPlayAnimatedImages', (tester) async {
         await doCheck(tester, mode: mode, expected: true,
           platform: .android,
-          reduceMotion: true);
+          reduceMotion: true, autoPlayAnimatedImages: false);
       });
 
-      testWidgets('iOS: no animate when reduce-motion on', (tester) async {
-        await doCheck(tester, mode: mode, expected: false,
-          platform: .iOS,
-          reduceMotion: true);
+      group('iOS 18+ (Flutter reports Auto-Play Animated Images)', () {
+        const ios18 = IosDeviceInfo(systemVersion: '18.0');
+
+        testWidgets('animate when auto-play on and reduce-motion off', (tester) async {
+          await doCheck(tester, mode: mode, expected: true,
+            platform: .iOS, deviceInfo: ios18,
+            reduceMotion: false, autoPlayAnimatedImages: true);
+        });
+
+        testWidgets('no animate when auto-play off', (tester) async {
+          await doCheck(tester, mode: mode, expected: false,
+            platform: .iOS, deviceInfo: ios18,
+            reduceMotion: false, autoPlayAnimatedImages: false);
+        });
+
+        testWidgets('animate when auto-play on even if reduce-motion on', (tester) async {
+          // On iOS 18+, [autoPlayAnimatedImages] reflects the user's explicit
+          // choice; respect it over the broader [reduceMotion] preference.
+          await doCheck(tester, mode: mode, expected: true,
+            platform: .iOS, deviceInfo: ios18,
+            reduceMotion: true, autoPlayAnimatedImages: true);
+        });
       });
 
-      testWidgets('iOS: animate when reduce-motion off', (tester) async {
-        await doCheck(tester, mode: mode, expected: true,
-          platform: .iOS,
-          reduceMotion: false);
+      group('iOS <18 (Flutter cannot read Auto-Play Animated Images)', () {
+        // Flutter always reports autoPlayAnimatedImages as true on iOS <18,
+        // regardless of the OS setting.
+
+        testWidgets('iOS 17: no animate when reduce-motion on', (tester) async {
+          await doCheck(tester, mode: mode, expected: false,
+            platform: .iOS,
+            deviceInfo: const IosDeviceInfo(systemVersion: '17.5'),
+            reduceMotion: true, autoPlayAnimatedImages: true);
+        });
+
+        testWidgets('iOS 17: animate when reduce-motion off', (tester) async {
+          await doCheck(tester, mode: mode, expected: true,
+            platform: .iOS,
+            deviceInfo: const IosDeviceInfo(systemVersion: '17.5'),
+            reduceMotion: false, autoPlayAnimatedImages: true);
+        });
+
+        testWidgets('unparseable systemVersion: fall back to reduce-motion', (tester) async {
+          await doCheck(tester, mode: mode, expected: false,
+            platform: .iOS,
+            deviceInfo: const IosDeviceInfo(systemVersion: 'garbage'),
+            reduceMotion: true, autoPlayAnimatedImages: true);
+        });
       });
     });
   });
