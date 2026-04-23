@@ -1423,6 +1423,15 @@ class ContentExample {
     ]),
   ]);
 
+  static const audioInlineFlac = ContentExample(
+    'audio file with .flac extension',
+    '![foo-bar.flac](/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/foo-bar.flac)',
+    '<p><audio controls preload="metadata" src="/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/foo-bar.flac"></audio></p>', [
+    ParagraphNode(links: null, nodes: [
+      LinkNode(url: '/user_uploads/2/f2/a_WnijOXIeRnI6OSxo9F6gZM/foo-bar.flac', nodes: [TextNode('foo-bar.flac')]),
+    ]),
+  ]);
+
   static const websitePreviewSmoke = ContentExample(
     'website preview smoke',
     'https://pub-14f7b5e1308d42b69c4a46608442a50c.r2.dev/image+title+description.html',
@@ -2147,6 +2156,7 @@ void main() async {
 
   testParseExample(ContentExample.audioInline);
   testParseExample(ContentExample.audioInlineNoTitle);
+  testParseExample(ContentExample.audioInlineFlac);
 
   testParseExample(ContentExample.websitePreviewSmoke);
   testParseExample(ContentExample.websitePreviewWithoutTitle);
