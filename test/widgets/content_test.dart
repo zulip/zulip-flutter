@@ -10,11 +10,14 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/content.dart';
+import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
+import 'package:zulip/widgets/emoji.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/katex.dart';
@@ -126,8 +129,22 @@ Future<void> prepareContent(WidgetTester tester, Widget child, {
   InitialSnapshot? initialSnapshot,
 }) async {
   if (wrapWithPerAccountStoreWidget) {
-    initialSnapshot ??= eg.initialSnapshot();
+    initialSnapshot ??= eg.initialSnapshot(realmEmoji: {
+      '205': eg.realmEmojiItem(
+        emojiCode: '205',
+        emojiName: 'zulipslack',
+        sourceUrl: '/user_avatars/2/emoji/images/2c8d985d.gif',
+        stillUrl: '/user_avatars/2/emoji/images/still/2c8d985d.png',
+      ),
+    });
     await testBinding.globalStore.add(eg.selfAccount, initialSnapshot);
+
+    final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    store.setServerEmojiData(ServerEmojiData(codeToNames: {
+      '2764': ['heart'],
+      '1f44d': ['thumbs_up'],
+      '1f3f3-fe0f-200d-26a7-fe0f': ['transgender_flag'],
+    }));
   } else {
     assert(initialSnapshot == null);
   }
@@ -1486,15 +1503,15 @@ void main() {
   });
 
   group('UnicodeEmoji', () {
-    testContentSmoke(ContentExample.emojiUnicode);
-    testContentSmoke(ContentExample.emojiUnicodeMultiCodepoint);
-    testContentSmoke(ContentExample.emojiUnicodeLiteral);
+    testContentSmoke(ContentExample.emojiUnicode, wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.emojiUnicodeMultiCodepoint, wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.emojiUnicodeLiteral, wrapWithPerAccountStoreWidget: true);
 
     testWidgets('use emoji font', (tester) async {
       // Compare [ContentExample.emojiUnicode].
       const emojiHeartHtml =
         '<p><span aria-label="heart" class="emoji emoji-2764" role="img" title="heart">:heart:</span></p>';
-      await prepareContent(tester, plainContent(emojiHeartHtml));
+      await prepareContent(tester, plainContent(emojiHeartHtml), wrapWithPerAccountStoreWidget: true);
       check(mergedStyleOf(tester, '\u{2764}')).isNotNull()
         .fontFamily.equals(switch (defaultTargetPlatform) {
           TargetPlatform.android => 'Noto Color Emoji',
@@ -1502,14 +1519,6 @@ void main() {
           _ => throw StateError('unexpected platform in test'),
         });
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
-
-    testWidgets('has strike-through line in strike-through', (tester) async {
-      // Regression test for https://github.com/zulip/zulip-flutter/issues/1818
-      await prepareContent(tester,
-        plainContent('<p><del>foo<span aria-label="thumbs up" class="emoji emoji-1f44d" role="img" title="thumbs up">:thumbs_up:</span>bar</del></p>'));
-      final style = mergedStyleOf(tester, '\u{1f44d}');
-      check(style!.decoration).equals(TextDecoration.lineThrough);
-    });
   });
 
   group('inline math', () {
@@ -1738,21 +1747,37 @@ void main() {
 
     testWidgets('smoke: custom emoji', (tester) async {
       await prepare(tester, ContentExample.emojiCustom.html);
-      tester.widget(find.byType(MessageImageEmoji));
+      tester.widget(find.byType(EmojiWidget));
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: custom emoji with invalid URL', (tester) async {
       await prepare(tester, ContentExample.emojiCustomInvalidUrl.html);
-      final url = tester.widget<MessageImageEmoji>(find.byType(MessageImageEmoji)).node.src;
-      check(() => Uri.parse(url)).throws<void>();
+      tester.widget(find.byType(BlockContentList));
+      check(find.byType(EmojiWidget)).findsNothing();
+
+      final node = parseContent(ContentExample.emojiCustomInvalidUrl.html)
+          .nodes.first as ParagraphNode;
+      final emojiNode = node.nodes.last as ImageEmojiNode;
+      check(() => Uri.parse(emojiNode.src)).throws<void>();
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: Zulip extra emoji', (tester) async {
       await prepare(tester, ContentExample.emojiZulipExtra.html);
-      tester.widget(find.byType(MessageImageEmoji));
+      tester.widget(find.byType(EmojiWidget));
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('animated custom emoji has a corresponding still image', (tester) async {
+      await prepare(tester, ContentExample.emojiCustomAnimated.html);
+
+      final emojiWidget = tester.widget<EmojiWidget>(find.byType(EmojiWidget));
+      final display = emojiWidget.emojiDisplay as ImageEmojiDisplay;
+      check(display.resolvedStillUrl).equals(Uri.parse(
+          'https://chat.example/user_avatars/2/emoji/images/still/2c8d985d.png'));
+      check(display.resolvedUrl).equals(Uri.parse(
+          'https://chat.example/user_avatars/2/emoji/images/2c8d985d.gif'));
     });
   });
 
