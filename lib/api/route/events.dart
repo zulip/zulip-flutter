@@ -7,6 +7,13 @@ import '../model/initial_snapshot.dart';
 part 'events.g.dart';
 
 /// https://zulip.com/api/register-queue
+///
+/// Unlike in most of our API bindings, this function hard-codes
+/// the values of many parameters rather than expose them to the caller.
+/// That's because those parameters control the shape of the data
+/// that the server returns, mostly in enabling modern rather than legacy APIs.
+/// The types in [InitialSnapshot] and the [Event] subclasses, and their
+/// deserialization logic, are written for the settings chosen here.
 Future<InitialSnapshot> registerQueue(ApiConnection connection) {
   return connection.post('registerQueue', InitialSnapshot.fromJson, 'register', {
     'apply_markdown': true,
