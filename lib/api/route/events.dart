@@ -16,9 +16,19 @@ part 'events.g.dart';
 /// deserialization logic, are written for the settings chosen here.
 Future<InitialSnapshot> registerQueue(ApiConnection connection) {
   return connection.post('registerQueue', InitialSnapshot.fromJson, 'register', {
+    // Parameters that change the scope of the data we get,
+    // and in principle could be exposed to the caller:
+    //   event_types and fetch_event_types omitted; get all events and all data
+    //   all_public_streams
+    //   narrow
+
+    // Parameters that don't make sense to expose to the caller,
+    // for the reasons in the dartdoc above.
+    // (We might change these; we'll just need to update types to match.)
     'apply_markdown': true,
-    'slim_presence': true,
     'client_gravatar': false, // TODO(#255): turn on
+    // 'include_subscribers': false, // the default
+    'slim_presence': true,
     'client_capabilities': {
       'notification_settings_null': true,
       'bulk_message_deletion': true,
