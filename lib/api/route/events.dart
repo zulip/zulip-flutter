@@ -14,8 +14,12 @@ part 'events.g.dart';
 /// that the server returns, mostly in enabling modern rather than legacy APIs.
 /// The types in [InitialSnapshot] and the [Event] subclasses, and their
 /// deserialization logic, are written for the settings chosen here.
-Future<InitialSnapshot> registerQueue(ApiConnection connection) {
+Future<InitialSnapshot> registerQueue(ApiConnection connection, {
+  IdleQueueTimeout? idleQueueTimeout,
+}) {
   return connection.post('registerQueue', InitialSnapshot.fromJson, 'register', {
+    'idle_queue_timeout': ?idleQueueTimeout,
+
     // Parameters that change the scope of the data we get,
     // and in principle could be exposed to the caller:
     //   event_types and fetch_event_types omitted; get all events and all data
@@ -39,6 +43,29 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection) {
       'empty_topic_name': true,
     },
   });
+}
+
+/// A value for `idleQueueTimeout` on [registerQueue].
+///
+/// https://zulip.com/api/register-queue#parameter-idle_queue_timeout
+class IdleQueueTimeout {
+  const IdleQueueTimeout.numeric(this._numeric) : _enum = null;
+
+  static const IdleQueueTimeout mobile = IdleQueueTimeout._(.mobile);
+
+  const IdleQueueTimeout._(this._enum) : _numeric = null;
+
+  final int? _numeric;
+  final _IdleQueueTimeout? _enum;
+
+  Object toJson() {
+    assert((_numeric != null) ^ (_enum != null));
+    return _numeric ?? _enum!.name;
+  }
+}
+
+enum _IdleQueueTimeout {
+  mobile;
 }
 
 /// https://zulip.com/api/get-events
