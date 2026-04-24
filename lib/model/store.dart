@@ -1483,7 +1483,7 @@ class UpdateMachine {
     while (true) {
       InitialSnapshot? result;
       try {
-        result = await registerQueue(connection);
+        result = await registerQueue(connection, idleQueueTimeout: .mobile);
       } catch (e, stackTrace) {
         stopAndThrowIfNoAccount();
         // TODO(#890): tell user if initial-fetch errors persist, or look non-transient

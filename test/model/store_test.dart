@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
@@ -596,7 +597,8 @@ void main() {
     void checkLastRequest() {
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
-        ..url.path.equals('/api/v1/register');
+        ..url.path.equals('/api/v1/register')
+        ..bodyFields['idle_queue_timeout'].equals(jsonEncode('mobile'));
     }
 
     test('smoke', () => awaitFakeAsync((async) async {
