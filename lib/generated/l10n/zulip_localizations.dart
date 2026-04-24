@@ -1518,6 +1518,18 @@ abstract class ZulipLocalizations {
   /// **'Unable to play the video.'**
   String get errorVideoPlayerFailed;
 
+  /// Body of a dialog suggesting the user open a video in the browser, after the app's video player failed to play it.
+  ///
+  /// In en, this message translates to:
+  /// **'Try opening it in your browser instead.'**
+  String get errorVideoPlayerFailedTryBrowser;
+
+  /// Button label to confirm opening a link in the browser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get dialogOpenInBrowser;
+
   /// Error message when URL is empty
   ///
   /// In en, this message translates to:

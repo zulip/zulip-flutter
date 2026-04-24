@@ -859,6 +859,13 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get errorVideoPlayerFailed => 'Nie da rady odtworzyć wideo.';
 
   @override
+  String get errorVideoPlayerFailedTryBrowser =>
+      'Try opening it in your browser instead.';
+
+  @override
+  String get dialogOpenInBrowser => 'Open in browser';
+
+  @override
   String get serverUrlValidationErrorEmpty => 'Proszę podaj URL.';
 
   @override

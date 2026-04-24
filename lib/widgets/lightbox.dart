@@ -8,6 +8,7 @@ import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/internal_link.dart';
 import 'actions.dart';
 import 'content.dart';
 import 'dialog.dart';
@@ -517,15 +518,37 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
     } catch (error) { // TODO(log)
       assert(debugLog("VideoPlayerController.initialize failed: $error"));
       if (!mounted) return;
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      final dialog = showErrorDialog(
-        context: context,
-        title: zulipLocalizations.errorDialogTitle,
-        message: zulipLocalizations.errorVideoPlayerFailed);
-      await dialog.result;
+      await _offerOpenInBrowser();
       if (!mounted) return;
       Navigator.pop(context); // Pops the lightbox
     }
+  }
+
+  /// Offer to open the video in a browser, when playing it here has failed.
+  Future<void> _offerOpenInBrowser() async {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final dialogStatus = showSuggestedActionDialog(
+      context: context,
+      title: zulipLocalizations.errorVideoPlayerFailed,
+      message: zulipLocalizations.errorVideoPlayerFailedTryBrowser,
+      actionButtonText: zulipLocalizations.dialogOpenInBrowser,
+    );
+    final shouldOpen = await dialogStatus.result;
+    if (!mounted) return;
+    if (shouldOpen != true) return;
+
+    final store = PerAccountStoreWidget.of(context);
+    Uri urlToLaunch = widget.src;
+    // For authenticated on-realm uploads, fetch a temp URL the browser
+    // can open without the user's auth credentials.
+    final internalLink = parseInternalLink(widget.src, store);
+    if (internalLink is UserUploadLink) {
+      final tempUrl = await ZulipAction.getFileTemporaryUrl(context, internalLink);
+      if (!mounted) return;
+      if (tempUrl == null) return;
+      urlToLaunch = tempUrl;
+    }
+    await PlatformActions.launchUrl(context, urlToLaunch);
   }
 
   @override
