@@ -355,7 +355,7 @@ class InboxDmItem extends StatelessWidget {
       child: InkWell(
         splashFactory: NoSplash.splashFactory,
         // TODO(design) this is ad hoc
-        highlightColor: designVariables.foreground.withFadedAlpha(0.05),
+        highlightColor: designVariables.bgCounterUnread.withFadedAlpha(0.5),
         onTap: () {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
@@ -471,7 +471,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
         child: InkWell(
           splashFactory: NoSplash.splashFactory,
           // TODO(design) this is ad hoc
-          highlightColor: swatch.barBackground.withFadedAlpha(0.5),
+          highlightColor: swatch.unreadCountBadgeBackground.withFadedAlpha(0.5),
           // TODO use onRowTap to handle taps that are not on the collapse button.
           //   Probably we should give the collapse button a 44px or 48px square
           //   touch target:
@@ -591,7 +591,7 @@ class InboxTopicItem extends StatelessWidget {
       child: InkWell(
         splashFactory: NoSplash.splashFactory,
         // TODO(design) this is ad hoc
-        highlightColor: swatch.barBackground.withFadedAlpha(0.25),
+        highlightColor: swatch.unreadCountBadgeBackground.withFadedAlpha(0.5),
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
           Navigator.push(context,
