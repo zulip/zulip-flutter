@@ -205,7 +205,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
           final item = items[index];
           switch (item) {
             case _InboxListItemFolderHeader():
-              return InboxFolderHeaderItem(label: item.label);
+              return InboxFolderHeaderItem(label: item.label, isFirst: index == 0);
             case _InboxListItemDmConversation(:final narrow, :final count, :final hasMention):
               return InboxDmItem(narrow: narrow, count: count, hasMention: hasMention);
             case _InboxListItemChannelSection(:var streamId):
@@ -272,12 +272,19 @@ class InboxChannelSectionTopicData {
 
 @visibleForTesting
 class InboxFolderHeaderItem extends StatelessWidget {
-  const InboxFolderHeaderItem({super.key, required this.label});
+  const InboxFolderHeaderItem({
+    super.key,
+    required this.label,
+    this.isFirst = false,
+  });
 
   /// The label for this folder header, not yet uppercased.
   ///
   /// The implementation will call [String.toUpperCase] on this.
   final String label;
+
+  /// Whether this is the first folder section.
+  final bool isFirst;
 
   @override
   Widget build(BuildContext context) {
@@ -287,13 +294,13 @@ class InboxFolderHeaderItem extends StatelessWidget {
     //   we use this just to anticipate doing that.
     const fontSize = InboxRowTrailingMarkers.fontSize;
 
-    Widget result = DecoratedBox(
-      decoration: BoxDecoration(
-        color: designVariables.background, // TODO(design) check if this is the right variable
-        border: Border(top: BorderSide(color: designVariables.borderBar)),
-      ),
+    final double topPadding = 10 + (isFirst ? 0 : 8);
+
+    Widget result = ColoredBox(
+      // TODO(design) check if this is the right variable
+      color: designVariables.background,
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(14, 10, 12, 10),
+        padding: EdgeInsetsDirectional.fromSTEB(14, topPadding, 12, 10),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, spacing: 8, children: [
           Expanded(
             child: Text(
