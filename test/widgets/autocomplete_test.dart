@@ -10,7 +10,6 @@ import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/emoji.dart';
-import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
@@ -134,9 +133,8 @@ Future<Finder> setupToTopicInput(WidgetTester tester, {
   await tester.pumpAndSettle();
 
   connection.prepare(json: GetChannelTopicsResult(topics: topics).toJson());
-  final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
   final finder = find.byWidgetPredicate((widget) => widget is TextField
-    && widget.decoration?.hintText == zulipLocalizations.composeBoxTopicHintText);
+    && widget.controller is ComposeTopicController);
   check(finder.evaluate()).isNotEmpty();
   return finder;
 }
