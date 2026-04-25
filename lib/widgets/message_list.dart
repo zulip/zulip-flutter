@@ -1084,7 +1084,17 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
 
   @override
   Widget build(BuildContext context) {
-    if (!model.fetched) return const Center(child: CircularProgressIndicator());
+    if (!model.fetched) {
+      return Center(
+        child: Semantics(
+          label: 'Loading messages', // TODO i18n
+          textDirection: TextDirection.ltr,
+          container: true,
+          liveRegion: true,
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     if (model.items.isEmpty && model.haveNewest && model.haveOldest) {
       return _EmptyMessageListPlaceholder(narrow: widget.narrow);
@@ -1423,10 +1433,15 @@ class _MessageListLoadingMore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 16.0),
-        child: CircularProgressIndicator())); // TODO perhaps a different indicator
+        child: Semantics(
+          label: 'Loading more messages',
+          textDirection: TextDirection.ltr,
+          container: true,
+          liveRegion: true,
+          child: CircularProgressIndicator()))); // TODO perhaps a different indicator
   }
 }
 

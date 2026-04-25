@@ -267,7 +267,12 @@ class BottomSheetEmptyContentPlaceholder extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final child = loading
-      ? CircularProgressIndicator()
+      ? Semantics(
+        label: 'Loading content',
+        textDirection: TextDirection.ltr,
+        container: true,
+        liveRegion: true,
+        child: CircularProgressIndicator())
       : Text(
           textAlign: TextAlign.center,
           style: TextStyle(
