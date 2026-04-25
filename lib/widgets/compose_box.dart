@@ -274,6 +274,13 @@ class ComposeContentController extends ComposeController<ContentValidationError>
       : TextRange.collapsed(text.length);
   }
 
+  /// Gets the text on the line where [insertionIndex] is located.
+  String _getLineAtInsertion(TextRange insertionIndex) {
+    final beforeCursor = insertionIndex.textBefore(text);
+    final afterCursor = insertionIndex.textAfter(text);
+    return '${beforeCursor.split('\n').last}${afterCursor.split('\n').first}';
+  }
+
   /// Inserts [newText] in [text], setting off with an empty line before and after.
   ///
   /// Assumes [newText] is not empty and consists entirely of complete lines
@@ -301,6 +308,22 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     } else {
       value = value.replaced(i, '$paddingBefore$newText\n');
     }
+  }
+
+  /// Inserts [newText] in [text], placing it on its own line.
+  ///
+  /// Assumes [newText] is not empty and consists entirely of complete lines
+  /// (each line ends with a newline).
+  ///
+  /// Inserts at [insertionIndex]. If insertion is in a non-empty line,
+  /// prepends a newline so the inserted text starts on its own line.
+  void insertAsOwnLine(String newText) {
+    assert(newText.isNotEmpty);
+    assert(newText.endsWith('\n'));
+    final i = insertionIndex();
+    final isCurrentLineEmpty = _getLineAtInsertion(i).trim().isEmpty;
+    final prefixNewline = isCurrentLineEmpty ? '' : '\n';
+    value = value.replaced(i, '$prefixNewline$newText');
   }
 
   /// Tells the controller that a quote-and-reply has started.
@@ -359,7 +382,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final placeholder = inlineLink(linkText, '');
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
-    value = value.replaced(insertionIndex(), '$placeholder\n\n');
+    insertAsOwnLine('$placeholder\n');
     return tag;
   }
 
