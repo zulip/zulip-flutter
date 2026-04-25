@@ -175,7 +175,7 @@ void main() {
   /// and write an appropriate content-has-rendered check directly.
   void testContentSmoke(ContentExample example, {bool wrapWithPerAccountStoreWidget = false}) {
     testWidgets('smoke: ${example.description}', (tester) async {
-      await prepareContent(tester, plainContent(example.html),
+      await prepareContent(tester, messageContent(example.html),
         wrapWithPerAccountStoreWidget: wrapWithPerAccountStoreWidget);
       assert(example.expectedText != null,
         'testContentExample requires expectedText');
@@ -832,7 +832,7 @@ void main() {
     bool wrapWithPerAccountStoreWidget = false,
   }) async {
     await prepareContent(tester, wrapWithPerAccountStoreWidget: wrapWithPerAccountStoreWidget,
-      plainContent(
+      messageContent(
         '<h1>header-plain $targetHtml</h1>\n'
         '<p>paragraph-plain $targetHtml</p>'));
 
