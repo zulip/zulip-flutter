@@ -1178,7 +1178,7 @@ class LiveGlobalStore extends GlobalStore {
     // we'd invest in this area more.  For example we'd try doing these
     // in parallel, or deferring some to be concurrent with loading server data.
     final stopwatch = Stopwatch()..start();
-    final file = await _dbFile();
+    final file = await dbFile();
     final db = AppDatabase(NativeDatabase.createInBackground(file));
     final t1 = stopwatch.elapsed;
     final globalSettings = await db.getGlobalSettings();
@@ -1217,7 +1217,7 @@ class LiveGlobalStore extends GlobalStore {
   }
 
   /// The file path to use for the app database.
-  static Future<File> _dbFile() async {
+  static Future<File> dbFile() async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:
         // On iOS, we store the database file in an iOS App Group container.
