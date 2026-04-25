@@ -173,9 +173,14 @@ void main() {
   /// check that the content has actually rendered.  For examples where there's
   /// no suitable value for [ContentExample.expectedText], use [prepareContent]
   /// and write an appropriate content-has-rendered check directly.
-  void testContentSmoke(ContentExample example, {bool wrapWithPerAccountStoreWidget = false}) {
+  void testContentSmoke(ContentExample example, {
+    bool wrapWithMessageContentWidget = false,
+    bool wrapWithPerAccountStoreWidget = false,
+  }) {
     testWidgets('smoke: ${example.description}', (tester) async {
-      await prepareContent(tester, plainContent(example.html),
+      await prepareContent(tester,
+        wrapWithMessageContentWidget
+          ? messageContent(example.html) : plainContent(example.html),
         wrapWithPerAccountStoreWidget: wrapWithPerAccountStoreWidget);
       assert(example.expectedText != null,
         'testContentExample requires expectedText');
@@ -829,12 +834,13 @@ void main() {
   Future<void> checkFontSizeRatio(WidgetTester tester, {
     required String targetHtml,
     required TargetFontSizeFinder targetFontSizeFinder,
+    bool wrapWithMessageContentWidget = false,
     bool wrapWithPerAccountStoreWidget = false,
   }) async {
+    final html = '<h1>header-plain $targetHtml</h1>\n<p>paragraph-plain $targetHtml</p>';
+
     await prepareContent(tester, wrapWithPerAccountStoreWidget: wrapWithPerAccountStoreWidget,
-      plainContent(
-        '<h1>header-plain $targetHtml</h1>\n'
-        '<p>paragraph-plain $targetHtml</p>'));
+      wrapWithMessageContentWidget ? messageContent(html) : plainContent(html));
 
     final headerRootSpan = tester.renderObject<RenderParagraph>(find.textContaining('header')).text;
     final headerPlainStyle = mergedStyleOfSubstring(headerRootSpan, 'header-plain ');
@@ -984,36 +990,52 @@ void main() {
 
   group('Mention', () {
     testContentSmoke(ContentExample.userMentionPlain,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.userMentionSilent,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.userMentionSilentClassOrderReversed,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.legacyUserMention,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionPlain,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionSilent,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionSilentClassOrderReversed,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.channelWildcardMentionPlain,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.channelWildcardMentionSilent,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.channelWildcardMentionSilentClassOrderReversed,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.legacyChannelWildcardMentionPlain,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.legacyChannelWildcardMentionSilent,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.legacyChannelWildcardMentionSilentClassOrderReversed,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.topicMentionPlain,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.topicMentionSilent,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.topicMentionSilentClassOrderReversed,
+      wrapWithMessageContentWidget: true,
       wrapWithPerAccountStoreWidget: true);
 
     Mention? findMentionInSpan(InlineSpan rootSpan) {
@@ -1036,6 +1058,7 @@ void main() {
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
       await checkFontSizeRatio(tester,
         targetHtml: '<span class="user-mention" data-user-id="13313">@Chris Bobbe</span>',
+        wrapWithMessageContentWidget: true,
         wrapWithPerAccountStoreWidget: true,
         targetFontSizeFinder: (rootSpan) {
           final widget = findMentionInSpan(rootSpan);
