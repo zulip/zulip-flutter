@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:mime/mime.dart';
 
-import '../api/core.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_intents.dart';
 import '../log.dart';
@@ -388,11 +387,10 @@ class _ChooseAccountForShareModalState extends State<ChooseAccountForShareModal>
             borderRadius: 4,
             child: resolvedRealmIconUrl == null
               ? const SizedBox.shrink()
-              : Image.network(
-                  resolvedRealmIconUrl.toString(),
-                  headers: userAgentHeader(),
-                  filterQuality: FilterQuality.medium,
-                  fit: BoxFit.cover)),
+              : RealmIconNetworkImage(
+                  resolvedRealmIconUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink())),
           title: Text(account.realmName ?? account.realmUrl.toString()),
           subtitle: Text(account.email));
       });
