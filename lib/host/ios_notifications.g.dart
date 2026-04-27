@@ -32,6 +32,16 @@ bool _deepEquals(Object? a, Object? b) {
 }
 
 
+/// The sound to use for the notification.
+enum IosNotificationSound {
+  /// This corresponds to `UNNotificationSound.default` on iOS,
+  /// i.e. the system's default notification sound.
+  /// See:
+  ///   https://developer.apple.com/documentation/usernotifications/unnotificationsound/default
+  ///   https://developer.apple.com/documentation/usernotifications/unnotificationsound
+  defaultSound,
+}
+
 /// The notification content of the incoming push notification.
 class NotificationContent {
   NotificationContent({
@@ -81,6 +91,7 @@ class ImprovedNotificationContent {
     required this.title,
     required this.subtitle,
     required this.body,
+    required this.sound,
     required this.userInfo,
   });
 
@@ -93,6 +104,9 @@ class ImprovedNotificationContent {
   /// The new body to use for the notification.
   String body;
 
+  /// The new sound to use for the notification.
+  IosNotificationSound sound;
+
   /// The internal data to attach with the new notification.
   ///
   /// This replaces the raw APNs payload that was initially set from
@@ -104,6 +118,7 @@ class ImprovedNotificationContent {
       title,
       subtitle,
       body,
+      sound,
       userInfo,
     ];
   }
@@ -117,7 +132,8 @@ class ImprovedNotificationContent {
       title: result[0]! as String,
       subtitle: result[1]! as String,
       body: result[2]! as String,
-      userInfo: (result[3] as Map<Object?, Object?>?)!.cast<String, Object?>(),
+      sound: result[3]! as IosNotificationSound,
+      userInfo: (result[4] as Map<Object?, Object?>?)!.cast<String, Object?>(),
     );
   }
 
@@ -147,11 +163,14 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is NotificationContent) {
+    }    else if (value is IosNotificationSound) {
       buffer.putUint8(129);
+      writeValue(buffer, value.index);
+    }    else if (value is NotificationContent) {
+      buffer.putUint8(130);
       writeValue(buffer, value.encode());
     }    else if (value is ImprovedNotificationContent) {
-      buffer.putUint8(130);
+      buffer.putUint8(131);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -162,8 +181,11 @@ class _PigeonCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 129:
-        return NotificationContent.decode(readValue(buffer)!);
+        final value = readValue(buffer) as int?;
+        return value == null ? null : IosNotificationSound.values[value];
       case 130:
+        return NotificationContent.decode(readValue(buffer)!);
+      case 131:
         return ImprovedNotificationContent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);

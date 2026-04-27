@@ -106,6 +106,16 @@ func deepHashIosNotifications(value: Any?, hasher: inout Hasher) {
 
     
 
+/// The sound to use for the notification.
+enum IosNotificationSound: Int {
+  /// This corresponds to `UNNotificationSound.default` on iOS,
+  /// i.e. the system's default notification sound.
+  /// See:
+  ///   https://developer.apple.com/documentation/usernotifications/unnotificationsound/default
+  ///   https://developer.apple.com/documentation/usernotifications/unnotificationsound
+  case defaultSound = 0
+}
+
 /// The notification content of the incoming push notification.
 ///
 /// Generated class from Pigeon that represents data sent in messages.
@@ -144,6 +154,8 @@ struct ImprovedNotificationContent: Hashable {
   var subtitle: String
   /// The new body to use for the notification.
   var body: String
+  /// The new sound to use for the notification.
+  var sound: IosNotificationSound
   /// The internal data to attach with the new notification.
   ///
   /// This replaces the raw APNs payload that was initially set from
@@ -156,12 +168,14 @@ struct ImprovedNotificationContent: Hashable {
     let title = pigeonVar_list[0] as! String
     let subtitle = pigeonVar_list[1] as! String
     let body = pigeonVar_list[2] as! String
-    let userInfo = pigeonVar_list[3] as! [String: Any?]
+    let sound = pigeonVar_list[3] as! IosNotificationSound
+    let userInfo = pigeonVar_list[4] as! [String: Any?]
 
     return ImprovedNotificationContent(
       title: title,
       subtitle: subtitle,
       body: body,
+      sound: sound,
       userInfo: userInfo
     )
   }
@@ -170,6 +184,7 @@ struct ImprovedNotificationContent: Hashable {
       title,
       subtitle,
       body,
+      sound,
       userInfo,
     ]
   }
@@ -184,8 +199,14 @@ private class IosNotificationsPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
     case 129:
-      return NotificationContent.fromList(self.readValue() as! [Any?])
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return IosNotificationSound(rawValue: enumResultAsInt)
+      }
+      return nil
     case 130:
+      return NotificationContent.fromList(self.readValue() as! [Any?])
+    case 131:
       return ImprovedNotificationContent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -195,11 +216,14 @@ private class IosNotificationsPigeonCodecReader: FlutterStandardReader {
 
 private class IosNotificationsPigeonCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
-    if let value = value as? NotificationContent {
+    if let value = value as? IosNotificationSound {
       super.writeByte(129)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? NotificationContent {
+      super.writeByte(130)
       super.writeValue(value.toList())
     } else if let value = value as? ImprovedNotificationContent {
-      super.writeByte(130)
+      super.writeByte(131)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)

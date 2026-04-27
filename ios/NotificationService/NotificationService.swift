@@ -65,6 +65,10 @@ class NotificationService: UNNotificationServiceExtension {
         bestAttemptContent.title = improvedNotificationContent.title
         bestAttemptContent.subtitle = improvedNotificationContent.subtitle
         bestAttemptContent.body = improvedNotificationContent.body
+        switch improvedNotificationContent.sound {
+        case .defaultSound:
+          bestAttemptContent.sound = UNNotificationSound.default
+        }
         bestAttemptContent.userInfo = improvedNotificationContent.userInfo as [AnyHashable: Any]
         contentHandler(bestAttemptContent)
 
