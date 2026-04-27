@@ -7,7 +7,6 @@ import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
-import 'channel_colors.dart';
 import 'color.dart';
 import 'icons.dart';
 import 'message_list.dart';
@@ -205,7 +204,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
           final item = items[index];
           switch (item) {
             case _InboxListItemFolderHeader():
-              return InboxFolderHeaderItem(label: item.label);
+              return InboxFolderHeaderItem(label: item.label, isFirst: index == 0);
             case _InboxListItemDmConversation(:final narrow, :final count, :final hasMention):
               return InboxDmItem(narrow: narrow, count: count, hasMention: hasMention);
             case _InboxListItemChannelSection(:var streamId):
@@ -272,12 +271,19 @@ class InboxChannelSectionTopicData {
 
 @visibleForTesting
 class InboxFolderHeaderItem extends StatelessWidget {
-  const InboxFolderHeaderItem({super.key, required this.label});
+  const InboxFolderHeaderItem({
+    super.key,
+    required this.label,
+    this.isFirst = false,
+  });
 
   /// The label for this folder header, not yet uppercased.
   ///
   /// The implementation will call [String.toUpperCase] on this.
   final String label;
+
+  /// Whether this is the first folder section.
+  final bool isFirst;
 
   @override
   Widget build(BuildContext context) {
@@ -287,13 +293,13 @@ class InboxFolderHeaderItem extends StatelessWidget {
     //   we use this just to anticipate doing that.
     const fontSize = InboxRowTrailingMarkers.fontSize;
 
-    Widget result = DecoratedBox(
-      decoration: BoxDecoration(
-        color: designVariables.background, // TODO(design) check if this is the right variable
-        border: Border(top: BorderSide(color: designVariables.borderBar)),
-      ),
+    final double topPadding = 10 + (isFirst ? 0 : 8);
+
+    Widget result = ColoredBox(
+      // TODO(design) check if this is the right variable
+      color: designVariables.background,
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(14, 10, 12, 10),
+        padding: EdgeInsetsDirectional.fromSTEB(14, topPadding, 12, 10),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, spacing: 8, children: [
           Expanded(
             child: Text(
@@ -348,7 +354,7 @@ class InboxDmItem extends StatelessWidget {
       child: InkWell(
         splashFactory: NoSplash.splashFactory,
         // TODO(design) this is ad hoc
-        highlightColor: designVariables.foreground.withFadedAlpha(0.05),
+        highlightColor: designVariables.bgCounterUnread.withFadedAlpha(0.5),
         onTap: () {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
@@ -431,22 +437,6 @@ class InboxChannelHeaderItem extends StatelessWidget {
     showChannelActionSheet(sectionContext, channelId: subscription.streamId);
   }
 
-  BoxDecoration _solidBackground(ChannelColorSwatch swatch) =>
-    BoxDecoration(color: swatch.barBackground);
-
-  BoxDecoration _gradientBackground(ChannelColorSwatch swatch) => BoxDecoration(
-    gradient: LinearGradient(
-      begin: .topCenter,
-      end: .bottomCenter,
-      colors: [
-        // TODO(design) is this the right color?
-        //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2422786
-        swatch.barBackground,
-        swatch.barBackground.withValues(alpha: 0),
-      ],
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -454,61 +444,57 @@ class InboxChannelHeaderItem extends StatelessWidget {
     final swatch = colorSwatchFor(context, subscription);
 
     Widget result = Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
-      child: DecoratedBox(
-        decoration: (collapsed || isSticky)
-          // TODO(design) settle whether to use a solid background:
-          //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2423220
-          ? _solidBackground(swatch)
-          : _gradientBackground(swatch),
-        child: InkWell(
-          splashFactory: NoSplash.splashFactory,
-          // TODO(design) this is ad hoc
-          highlightColor: swatch.barBackground.withFadedAlpha(0.5),
-          // TODO use onRowTap to handle taps that are not on the collapse button.
-          //   Probably we should give the collapse button a 44px or 48px square
-          //   touch target:
-          //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
-          //   But that's in tension with the Figma, which gives these header rows
-          //   40px min height.
-          onTap: _onCollapseButtonTap,
-          onLongPress: _onLongPress,
-          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 12, 8),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-              Icon(size: 18,
-                color: swatch.iconOnBarBackground,
-                iconDataForStream(subscription)),
-              const SizedBox(width: 8),
-              // Pin the chevron to the end of the channel name.
-              // Let the name grow until the chevron has no room after it,
-              // truncating overflow with "...".
-              Expanded(child: Row(mainAxisSize: .min, children: [
-                Flexible(
-                  child: Text(
-                    style: TextStyle(
-                      fontSize: InboxRowTrailingMarkers.fontSize,
-                      height: (20 / InboxRowTrailingMarkers.fontSize),
-                      color: designVariables.textMessage,
-                    ).merge(weightVariableTextStyle(context, wght: 600)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    subscription.name)),
-                if (collapsed) ...[
-                  const SizedBox(width: 6),
-                  Icon(size: 20,
-                    color: designVariables.textMessage.withFadedAlpha(0.5),
-                    ZulipIcons.chevron_down),
-                ],
-              ])),
-              const SizedBox(width: 8),
-              InboxRowTrailingMarkers(
-                hasMention: hasMention,
-                unreadCountBadge: CounterBadge(
-                  // TODO(design) use CounterKind.quantity, following Figma
-                  kind: CounterBadgeKind.unread,
-                  channelIdForBackground: subscription.streamId,
-                  count: count)),
-            ])))));
+      // The Figma uses a gradient background, which we decided we didn't like:
+      //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2443083
+      color: swatch.barBackground,
+      child: InkWell(
+        splashFactory: NoSplash.splashFactory,
+        // TODO(design) this is ad hoc
+        highlightColor: swatch.unreadCountBadgeBackground.withFadedAlpha(0.5),
+        // TODO use onRowTap to handle taps that are not on the collapse button.
+        //   Probably we should give the collapse button a 44px or 48px square
+        //   touch target:
+        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
+        //   But that's in tension with the Figma, which gives these header rows
+        //   40px min height.
+        onTap: _onCollapseButtonTap,
+        onLongPress: _onLongPress,
+        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 12, 8),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Icon(size: 18,
+              color: swatch.iconOnBarBackground,
+              iconDataForStream(subscription)),
+            const SizedBox(width: 8),
+            // Pin the chevron to the end of the channel name.
+            // Let the name grow until the chevron has no room after it,
+            // truncating overflow with "...".
+            Expanded(child: Row(mainAxisSize: .min, children: [
+              Flexible(
+                child: Text(
+                  style: TextStyle(
+                    fontSize: InboxRowTrailingMarkers.fontSize,
+                    height: (20 / InboxRowTrailingMarkers.fontSize),
+                    color: designVariables.textMessage,
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  subscription.name)),
+              if (collapsed) ...[
+                const SizedBox(width: 6),
+                Icon(size: 20,
+                  color: designVariables.textMessage.withFadedAlpha(0.5),
+                  ZulipIcons.chevron_down),
+              ],
+            ])),
+            const SizedBox(width: 8),
+            InboxRowTrailingMarkers(
+              hasMention: hasMention,
+              unreadCountBadge: CounterBadge(
+                // TODO(design) use CounterKind.quantity, following Figma
+                kind: CounterBadgeKind.unread,
+                channelIdForBackground: subscription.streamId,
+                count: count)),
+          ]))));
 
     return Semantics(container: true,
       child: result);
@@ -584,7 +570,7 @@ class InboxTopicItem extends StatelessWidget {
       child: InkWell(
         splashFactory: NoSplash.splashFactory,
         // TODO(design) this is ad hoc
-        highlightColor: swatch.barBackground.withFadedAlpha(0.25),
+        highlightColor: swatch.unreadCountBadgeBackground.withFadedAlpha(0.5),
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
           Navigator.push(context,
