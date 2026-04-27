@@ -17,12 +17,23 @@ class NotificationContent {
   final Map<Object?, Object?> payload;
 }
 
+/// The sound to use for the notification.
+enum IosNotificationSound {
+  /// This corresponds to `UNNotificationSound.default` on iOS,
+  /// i.e. the system's default notification sound.
+  /// See:
+  ///   https://developer.apple.com/documentation/usernotifications/unnotificationsound/default
+  ///   https://developer.apple.com/documentation/usernotifications/unnotificationsound
+  systemDefault
+}
+
 /// The improved notification content that will be displayed to the user.
 class ImprovedNotificationContent {
   const ImprovedNotificationContent({
     required this.title,
     required this.subtitle,
     required this.body,
+    required this.sound,
     required this.userInfo,
   });
 
@@ -34,6 +45,9 @@ class ImprovedNotificationContent {
 
   /// The new body to use for the notification.
   final String body;
+
+  /// The new sound to use for the notification.
+  final IosNotificationSound sound;
 
   /// The internal data to attach with the new notification.
   ///

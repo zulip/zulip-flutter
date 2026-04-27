@@ -101,6 +101,7 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
       title: title,
       subtitle: subtitle,
       body: data.content,
+      sound: IosNotificationSound.systemDefault,
       userInfo: {
         // Pass the notification URL to this custom data map, so when a
         // notification is opened we can read this custom map to decide
