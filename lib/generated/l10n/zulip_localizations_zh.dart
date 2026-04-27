@@ -1625,6 +1625,14 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get actionSheetOptionCopyTopicLink => '复制话题链接';
 
   @override
+  String actionSheetTitleDm(String user) {
+    return '与$user的私信';
+  }
+
+  @override
+  String get actionSheetTitleSelfDm => '与自己的私信';
+
+  @override
   String get errorWebAuthOperationalErrorTitle => '出现了一些问题';
 
   @override
@@ -1935,7 +1943,7 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get emptyMessageListSearch => '没有搜索结果。';
 
   @override
-  String get messageListGroupYouWithYourself => '与自己的私信';
+  String get messageListGroupYouWithYourself => '与自己的消息';
 
   @override
   String get contentValidationErrorTooLong => '消息的长度不能超过10000个字符。';
@@ -2019,7 +2027,13 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String topicValidationErrorTooLong(int maxLength) {
-    return '话题长度不应该超过 60 个字符。';
+    String _temp0 = intl.Intl.pluralLogic(
+      maxLength,
+      locale: localeName,
+      other: '$maxLength 字符',
+      one: '1 character',
+    );
+    return '话题长度不应该大于$_temp0。';
   }
 
   @override
