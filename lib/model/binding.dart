@@ -72,6 +72,10 @@ abstract class ZulipBinding {
     return instance!;
   }
 
+  /// Initialize the binding instance.
+  ///
+  /// This does the job of a constructor, but can be overridden in mixins
+  /// as well as in ordinary classes.
   @protected
   @mustCallSuper
   void initInstance() {
@@ -361,28 +365,12 @@ class NotificationPigeonApi {
     notif_pigeon.notificationTapEvents();
 }
 
-/// A concrete binding for use in the live application.
+/// An implementation of the app's data store binding for use in the live app.
 ///
 /// The global store returned by [getGlobalStore], and consequently by
 /// [GlobalStoreWidget.of] in application code, will be a [LiveGlobalStore].
 /// It therefore uses a live server and live, persistent local database.
-///
-/// Methods wrapping a plugin, like [launchUrl], invoke the actual
-/// underlying plugin method.
-class LiveZulipBinding extends ZulipBinding {
-  LiveZulipBinding() {
-    _deviceInfo = _prefetchDeviceInfo();
-    _packageInfo = _prefetchPackageInfo();
-  }
-
-  /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
-  static LiveZulipBinding ensureInitialized() {
-    if (ZulipBinding._instance == null) {
-      LiveZulipBinding();
-    }
-    return ZulipBinding.instance as LiveZulipBinding;
-  }
-
+mixin LiveZulipStoreBinding on ZulipBinding {
   @override
   Future<GlobalStore> getGlobalStore() {
     return _globalStoreFuture ??= LiveGlobalStore.load().then((store) {
@@ -409,6 +397,37 @@ class LiveZulipBinding extends ZulipBinding {
     return true;
   }
   bool _debugCalledGetGlobalStoreUniquely = false;
+
+  @visibleForTesting
+  void debugResetStore() {
+    assert(!(_globalStoreFuture != null && _globalStore == null),
+      // If we proceeded naively without this check, then the previous
+      // LiveGlobalStore.load().then(…) could clobber _globalStore later.
+      // If necessary, we could add some logic to support canceling/ignoring
+      // that previous call.
+      "attempted debugResetStore while in the middle of loading store");
+    _globalStore?.dispose();
+    _globalStore = null;
+    _globalStoreFuture = null;
+    assert(() {
+      _debugCalledGetGlobalStoreUniquely = false;
+      return true;
+    }());
+  }
+}
+
+/// An implementation of the app's miscellaneous needs from plugins and the
+/// device platform, for use in the live app.
+///
+/// Methods wrapping a plugin, like [launchUrl], invoke the actual
+/// underlying plugin method.
+mixin LiveZulipDeviceBinding on ZulipBinding {
+  @override
+  void initInstance() {
+    super.initInstance();
+    _deviceInfo = _prefetchDeviceInfo();
+    _packageInfo = _prefetchPackageInfo();
+  }
 
   @override
   Future<bool> canLaunchUrl(Uri url) => url_launcher.canLaunchUrl(url);
@@ -550,4 +569,23 @@ class LiveZulipBinding extends ZulipBinding {
   Future<void> toggleWakelock({required bool enable}) async {
     return wakelock_plus.WakelockPlus.toggle(enable: enable);
   }
+}
+
+/// A concrete binding for use in the live application.
+///
+/// The global store returned by [getGlobalStore], and consequently by
+/// [GlobalStoreWidget.of] in application code, will be a [LiveGlobalStore].
+/// It therefore uses a live server and live, persistent local database.
+///
+/// Methods wrapping a plugin, like [launchUrl], invoke the actual
+/// underlying plugin method.
+class LiveZulipBinding extends ZulipBinding with LiveZulipStoreBinding, LiveZulipDeviceBinding {
+  /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
+  static LiveZulipBinding ensureInitialized() {
+    if (ZulipBinding._instance == null) {
+      LiveZulipBinding();
+    }
+    return ZulipBinding.instance as LiveZulipBinding;
+  }
+
 }
