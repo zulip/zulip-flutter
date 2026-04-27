@@ -275,8 +275,12 @@ abstract final class ZulipAction {
     return fetchedMessage?.content;
   }
 
-  /// Fetch and parse a URL from [messages_api.getFileTemporaryUrl];
-  /// on failure, show an error dialog and return null.
+  /// Fetch and parse a URL from [messages_api.getFileTemporaryUrl].
+  ///
+  /// On failure, shows an error dialog; the returned future resolves when that
+  /// dialog has been dismissed, and the result is null.
+  /// This lets a caller pop a route that it's managing
+  /// without inadvertently popping the error-dialog route instead.
   static Future<Uri?> getFileTemporaryUrl(BuildContext context, UserUploadLink link) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -293,18 +297,20 @@ abstract final class ZulipAction {
         //   (support with reusable code)
         _ => null,
       };
-      showErrorDialog(context: context,
+      final dialogStatus = showErrorDialog(context: context,
         title: zulipLocalizations.errorCouldNotAccessUploadedFileTitle,
         message: errorMessage);
+      await dialogStatus.result;
       return null;
     }
     if (!context.mounted) return null;
 
     final tempUrl = PerAccountStoreWidget.of(context).tryResolveUrl(resultUrl);
     if (tempUrl == null) {
-      showErrorDialog(context: context,
+      final dialogStatus = showErrorDialog(context: context,
         title: zulipLocalizations.errorCouldNotAccessUploadedFileTitle,
         message: zulipLocalizations.errorInvalidResponse);
+      await dialogStatus.result;
       return null;
     }
 
@@ -436,7 +442,12 @@ abstract final class PlatformActions {
     }
   }
 
-  /// Opens a URL with [ZulipBinding.launchUrl], with an error dialog on failure.
+  /// Opens a URL with [ZulipBinding.launchUrl].
+  ///
+  /// On failure, shows an error dialog; the returned future resolves when that
+  /// dialog has been dismissed.
+  /// This lets a caller pop a route that it's managing
+  /// without inadvertently popping the error-dialog route instead.
   static Future<void> launchUrl(BuildContext context, Uri url) async {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
 
@@ -452,12 +463,13 @@ abstract final class PlatformActions {
       if (!context.mounted) return;
 
       final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(context: context,
+      final dialogStatus = showErrorDialog(context: context,
         title: zulipLocalizations.errorCouldNotOpenLinkTitle,
         message: [
           zulipLocalizations.errorCouldNotOpenLink(url.toString()),
           ?errorMessage,
         ].join("\n\n"));
+      await dialogStatus.result;
     }
   }
 }

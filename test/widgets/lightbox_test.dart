@@ -4,12 +4,15 @@ import 'dart:math';
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:video_player/video_player.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
@@ -24,6 +27,7 @@ import '../example_data.dart' as eg;
 import '../model/binding.dart';
 import '../model/content_test.dart';
 import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -31,6 +35,11 @@ import 'test_app.dart';
 const kTestVideoUrl = "https://a/video.mp4";
 const kTestUnsupportedVideoUrl = "https://a/unsupported.mp4";
 const kTestVideoDuration = Duration(seconds: 10);
+
+/// A `/user_uploads/…` URL on [eg.realmUrl], which the fake platform
+/// treats as unsupported (see [FakeVideoPlayerPlatform.createWithOptions]).
+final kTestUnsupportedOnRealmVideoUrl =
+  eg.realmUrl.resolve('/user_uploads/123/ab/unsupported.mp4');
 
 class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   static final FakeVideoPlayerPlatform instance = FakeVideoPlayerPlatform();
@@ -116,7 +125,8 @@ class FakeVideoPlayerPlatform extends VideoPlayerPlatform {
   @override
   Future<int?> createWithOptions(VideoCreationOptions options) async  {
     assert(!initialized);
-    if (options.dataSource.uri == kTestUnsupportedVideoUrl) {
+    if (options.dataSource.uri != null
+        && options.dataSource.uri!.contains('unsupported')) {
       _hasError = true;
       _streamController.addError(
         PlatformException(
@@ -494,6 +504,10 @@ void main() {
     FakeVideoPlayerPlatform.registerWith();
     final platform = FakeVideoPlayerPlatform.instance;
 
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+    late TransitionDurationObserver transitionDurationObserver;
+
     /// Find the position shown by the slider, and check the label agrees.
     Duration findSliderPosition(WidgetTester tester) {
       final sliderValue = tester.widget<Slider>(find.byType(Slider)).value;
@@ -538,9 +552,13 @@ void main() {
     }) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
       addTearDown(platform.reset);
 
+      transitionDurationObserver = TransitionDurationObserver();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: VideoLightboxPage(
           routeEntranceAnimation: kAlwaysCompleteAnimation,
           message: eg.streamMessage(),
@@ -573,12 +591,111 @@ void main() {
       check(platform.isPlaying).isTrue();
     });
 
-    testWidgets('unsupported video shows an error dialog', (tester) async {
-      await setupPage(tester, videoSrc: Uri.parse(kTestUnsupportedVideoUrl));
-      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-      await tester.tap(find.byWidget(checkErrorDialog(tester,
-        expectedTitle: zulipLocalizations.errorDialogTitle,
-        expectedMessage: zulipLocalizations.errorVideoPlayerFailed)));
+    group('unsupported video offers to open in browser', () {
+      testWidgets('cancel: no launch, no API request', (tester) async {
+        await setupPage(tester, videoSrc: Uri.parse(kTestUnsupportedVideoUrl));
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        final (_, cancelButton) = checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.errorVideoPlayerFailed,
+          expectedMessage: zulipLocalizations.errorVideoPlayerFailedTryBrowser,
+          expectedActionButtonText: zulipLocalizations.dialogOpenInBrowser);
+        await tester.tap(find.byWidget(cancelButton));
+        await tester.pump(); // close dialog
+
+        check(connection.takeRequests()).isEmpty();
+        check(testBinding.takeLaunchUrlCalls()).isEmpty();
+      });
+
+      testWidgets('on-realm upload: fetch temp URL then launch', (tester) async {
+        await setupPage(tester, videoSrc: kTestUnsupportedOnRealmVideoUrl);
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        final (actionButton, _) = checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.errorVideoPlayerFailed,
+          expectedMessage: zulipLocalizations.errorVideoPlayerFailedTryBrowser,
+          expectedActionButtonText: zulipLocalizations.dialogOpenInBrowser);
+
+        connection.prepare(json: GetFileTemporaryUrlResult(
+          url: '/temp/s3kr1t-auth-token/unsupported.mp4').toJson());
+        await tester.tap(find.byWidget(actionButton));
+        await tester.pump(Duration.zero); // await API request
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/v1/user_uploads/123/ab/unsupported.mp4');
+        await tester.pump(); // launch
+
+        final launchUrlCalls = testBinding.takeLaunchUrlCalls();
+        check(launchUrlCalls).length.equals(1);
+        check(launchUrlCalls.single.url).equals(
+          store.tryResolveUrl('/temp/s3kr1t-auth-token/unsupported.mp4')!);
+        await transitionDurationObserver.pumpPastTransition(tester); // pop lightbox
+        check(find.byType(VideoLightboxPage)).findsNothing();
+      });
+
+      testWidgets('off-realm URL: launch original URL directly', (tester) async {
+        await setupPage(tester, videoSrc: Uri.parse(kTestUnsupportedVideoUrl));
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        final (actionButton, _) = checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.errorVideoPlayerFailed,
+          expectedActionButtonText: zulipLocalizations.dialogOpenInBrowser);
+
+        await tester.tap(find.byWidget(actionButton));
+        await tester.pump(); // close dialog, launch
+
+        check(connection.takeRequests()).isEmpty();
+        final launchUrlCalls = testBinding.takeLaunchUrlCalls();
+        check(launchUrlCalls).length.equals(1);
+        check(launchUrlCalls.single.url).equals(Uri.parse(kTestUnsupportedVideoUrl));
+        await transitionDurationObserver.pumpPastTransition(tester); // pop lightbox
+        check(find.byType(VideoLightboxPage)).findsNothing();
+      });
+
+      testWidgets('off-realm URL: launch fails; error dialog shown, lightbox remains until dialog dismissed', (tester) async {
+        // Regression test for:
+        //   https://github.com/zulip/zulip-flutter/pull/2294#discussion_r3140781478
+        await setupPage(tester, videoSrc: Uri.parse(kTestUnsupportedVideoUrl));
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        final (actionButton, _) = checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.errorVideoPlayerFailed,
+          expectedActionButtonText: zulipLocalizations.dialogOpenInBrowser);
+
+        testBinding.launchUrlResult = false;
+        await tester.tap(find.byWidget(actionButton));
+        await tester.pump(); // close suggested-action dialog; attempt launch
+        await tester.pump(); // show error dialog
+
+        check(testBinding.takeLaunchUrlCalls()).length.equals(1);
+        final okButton = checkErrorDialog(tester,
+          expectedTitle: zulipLocalizations.errorCouldNotOpenLinkTitle);
+        check(find.byType(VideoLightboxPage)).findsOne();
+
+        await tester.tap(find.byWidget(okButton));
+        await transitionDurationObserver.pumpPastTransition(tester); // close error dialog; pop lightbox
+        check(find.byType(VideoLightboxPage)).findsNothing();
+      });
+
+      testWidgets('on-realm upload: temp URL fetch fails; error dialog shown, lightbox remains until dialog dismissed', (tester) async {
+        // Regression test for:
+        //   https://github.com/zulip/zulip-flutter/pull/2294#discussion_r3140781478
+        await setupPage(tester, videoSrc: kTestUnsupportedOnRealmVideoUrl);
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        final (actionButton, _) = checkSuggestedActionDialog(tester,
+          expectedTitle: zulipLocalizations.errorVideoPlayerFailed,
+          expectedActionButtonText: zulipLocalizations.dialogOpenInBrowser);
+
+        connection.prepare(httpException: http.ClientException('oops'));
+        await tester.tap(find.byWidget(actionButton));
+        await tester.pump(Duration.zero); // await API request
+        await tester.pump(); // show error dialog
+
+        check(testBinding.takeLaunchUrlCalls()).isEmpty();
+        final okButton = checkErrorDialog(tester,
+          expectedTitle: zulipLocalizations.errorCouldNotAccessUploadedFileTitle);
+        check(find.byType(VideoLightboxPage)).findsOne();
+
+        await tester.tap(find.byWidget(okButton));
+        await transitionDurationObserver.pumpPastTransition(tester); // close error dialog; pop lightbox
+        check(find.byType(VideoLightboxPage)).findsNothing();
+      });
     });
 
     testWidgets('toggles wakelock when playing state changes', (tester) async {

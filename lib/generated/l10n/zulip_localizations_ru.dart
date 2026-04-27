@@ -862,6 +862,13 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorVideoPlayerFailed => 'Не удается воспроизвести видео.';
 
   @override
+  String get errorVideoPlayerFailedTryBrowser =>
+      'Try opening it in your browser instead.';
+
+  @override
+  String get dialogOpenInBrowser => 'Open in browser';
+
+  @override
   String get serverUrlValidationErrorEmpty => 'Пожалуйста, введите URL-адрес.';
 
   @override
