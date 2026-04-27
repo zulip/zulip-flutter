@@ -6,8 +6,52 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/settings.dart';
 import 'actions.dart';
 import 'app.dart';
+import 'button.dart';
 import 'content.dart';
 import 'store.dart';
+import 'text.dart';
+import 'theme.dart';
+
+/// A Zulip-styled dialog that looks the same on Android and iOS.
+///
+/// Partly inspired by the "Organizations" dialog in an earlier Figma draft:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=440-17462&m=dev
+/// but partly ad hoc to make a nice experience for the report-message feature,
+/// which there wasn't a Figma design for when we implemented it.
+// TODO(design) replace the platform-specific dialogs with this,
+//   i.e. in showErrorDialog etc.?
+class ZulipDialog extends StatelessWidget {
+  const ZulipDialog({
+    super.key,
+    required this.title,
+    this.content,
+    required this.actions,
+  });
+
+  final String title;
+  final Widget? content;
+  final List<ZulipWebUiKitButton> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    return AlertDialog(
+      titlePadding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+      backgroundColor: designVariables.bgContextMenu,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(title,
+        style: TextStyle(
+          color: designVariables.title,
+          fontSize: 22,
+          height: 30 / 22,
+        ).merge(weightVariableTextStyle(context, wght: 600))),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+      content: content,
+      actionsPadding: EdgeInsets.fromLTRB(16, 4, 16, 12),
+      actions: actions);
+  }
+}
 
 /// A platform-appropriate action for [AlertDialog.adaptive]'s [actions] param.
 ///

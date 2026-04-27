@@ -266,6 +266,53 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get errorDeleteMessageFailedTitle => 'Failed to delete message';
 
   @override
+  String get actionSheetOptionReportMessage => 'Report message';
+
+  @override
+  String get reportMessageDialogTitle => 'Report message';
+
+  @override
+  String get reportMessageDescription =>
+      'Your report will be sent to the private moderation requests channel for this organization.';
+
+  @override
+  String get messageReportTypeSpam => 'Spam';
+
+  @override
+  String get messageReportTypeHarassment => 'Harassment';
+
+  @override
+  String get messageReportTypeInappropriate => 'Inappropriate content';
+
+  @override
+  String get messageReportTypeNorms => 'Violates community norms';
+
+  @override
+  String get messageReportTypeOther => 'Other reason';
+
+  @override
+  String get reportMessageReasonLabel =>
+      'What’s the problem with this message?';
+
+  @override
+  String get reportMessageDescriptionLabel => 'Can you provide more details?';
+
+  @override
+  String get reportMessageReasonRequired => 'Please select a reason.';
+
+  @override
+  String get reportMessageDescriptionRequired => 'Please provide details.';
+
+  @override
+  String get reportMessageSubmitButton => 'Submit';
+
+  @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
 
   @override

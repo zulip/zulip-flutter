@@ -6,14 +6,26 @@ import 'theme.dart';
 /// A base [InputDecoration] for "filled"-style text inputs.
 ///
 /// Callers should use [InputDecoration.copyWith] to add field-specific
-/// properties like [InputDecoration.hintText], [InputDecoration.labelText],
+/// properties like [InputDecoration.hintText], [InputDecoration.label],
 /// or [InputDecoration.suffixIcon].
 ///
 /// [filledInputTextStyle] is recommended for styling the text-input's value,
 /// i.e., the text the user has typed. That's not a job of [InputDecoration].
+///
+/// For label text, use [InputDecoration.label] with a plain [Text] widget,
+/// to work around [InputDecoration.labelText]
+/// truncating the text at one line instead of letting it wrap,
+/// in the label's non-floating position i.e. when the input is unfocused.
+/// (The label is ellipsized to one line in the floating i.e. focused state.)
+// TODO(#2183) revisit [InputDecoration.label] suggestion in dartdoc
 InputDecoration baseFilledInputDecoration(DesignVariables designVariables) {
   return InputDecoration(
     hintStyle: TextStyle(color: designVariables.labelSearchPrompt),
+
+    // Without this, the label doesn't ellipsize to one line
+    // in its floating position, and overlaps with the input text.
+    floatingLabelStyle: TextStyle(overflow: .ellipsis),
+
     // TODO(design) is this the right variable?
     errorStyle: TextStyle(color: designVariables.contextMenuItemTextDanger),
     isDense: true,
@@ -87,6 +99,16 @@ class PopupMenuList extends StatelessWidget {
   final int itemCount;
   final NullableIndexedWidgetBuilder itemBuilder;
 
+  /// The popup menu's style, as a [MenuStyle].
+  static MenuStyle styleAsMenuStyle(DesignVariables designVariables) {
+    return MenuStyle(
+      backgroundColor: WidgetStatePropertyAll(_backgroundColor(designVariables)),
+      shape: WidgetStatePropertyAll(_shape(designVariables)),
+      padding: WidgetStatePropertyAll(_verticalPadding + _horizontalPadding),
+      elevation: WidgetStatePropertyAll(_elevation),
+    );
+  }
+
   /// The vertical content padding.
   ///
   /// See [_verticalShadowInset], which is related.
@@ -112,29 +134,130 @@ class PopupMenuList extends StatelessWidget {
   /// (Touch feedback is still affected, but at least that's a temporary state.)
   static const _verticalShadowInset = EdgeInsets.symmetric(vertical: 6);
 
+  static Color _backgroundColor(DesignVariables designVariables) =>
+    designVariables.contextMenuBg;
+
+  static OutlinedBorder _shape(DesignVariables designVariables) {
+    return RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(6)),
+      side: BorderSide(color: designVariables.contextMenuBorder));
+  }
+
+  static const _elevation = 4.0; // TODO tune the shadow effect
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
+    final backgroundColor = _backgroundColor(designVariables);
     return Material(
-      color: designVariables.contextMenuBg,
+      color: backgroundColor,
       clipBehavior: .hardEdge,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(6)),
-        side: BorderSide(color: designVariables.contextMenuBorder)),
-      elevation: 4.0, // TODO tune the shadow effect
+      shape: _shape(designVariables),
+      elevation: _elevation,
       child: Padding(
         padding: _horizontalPadding,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxHeight),
           child: InsetShadowBox(
             top: _verticalShadowInset.top, bottom: _verticalShadowInset.bottom,
-            color: designVariables.contextMenuBg,
+            color: backgroundColor,
             child: ListView.builder(
               controller: scrollController,
               padding: _verticalPadding,
               shrinkWrap: true,
               itemCount: itemCount,
               itemBuilder: itemBuilder)))));
+  }
+}
+
+/// Wraps a text field whose length limit is expressed in Unicode code
+/// points, the metric the Zulip server uses when validating text input.
+/// See e.g. `description` in
+///   https://zulip.com/api/report-message .
+///
+/// The [builder] callback receives a counter widget to pass to the
+/// field's [InputDecoration.counter]:
+///
+/// ```dart
+/// ZulipCodePointLengthLimit(
+///   controller: controller,
+///   maxLengthCodePoints: 1000,
+///   builder: (context, counter) => TextFormField(
+///     controller: controller,
+///     decoration: someDecoration.copyWith(counter: counter),
+///   ));
+/// ```
+///
+/// From the controller's current code-point length vs.
+/// [maxLengthCodePoints], this drives:
+///
+///  * the counter's text ("n/max") and color (red when over);
+///  * the field's cursor color (red when over, via an ambient
+///    [TextSelectionThemeData]);
+///  * [SemanticsProperties.currentValueLength] and
+///    [SemanticsProperties.maxValueLength] around the built subtree,
+///    for screen readers.
+///
+/// The caller's field shouldn't set [TextField.maxLength] or
+/// [TextField.cursorColor]; this wrapper takes over those.
+///
+/// This drives visual and semantic feedback only; it doesn't enforce or
+/// validate the limit.  Over-limit text can still be composed and
+/// submitted.  For form-submission rejection, pair this with
+/// [TextFormField.validator] (or the caller's equivalent).
+// TODO(design) ad hoc visuals
+class ZulipCodePointLengthLimit extends StatelessWidget {
+  const ZulipCodePointLengthLimit({
+    super.key,
+    required this.controller,
+    required this.maxLengthCodePoints,
+    required this.builder,
+  });
+
+  final TextEditingController controller;
+  final int maxLengthCodePoints;
+  final Widget Function(BuildContext context, Widget counter) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final theme = Theme.of(context);
+
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final length = controller.text.runes.length;
+        final exceeded = length > maxLengthCodePoints;
+
+        final counter = Semantics(
+          container: true,
+          liveRegion: true,
+          child: Text(
+            '$length/$maxLengthCodePoints',
+            style: TextStyle(
+              fontSize: 12,
+              height: 14 / 12,
+              color: exceeded
+                ? designVariables.contextMenuItemTextDanger
+                : designVariables.textInput,
+            ),
+            overflow: TextOverflow.ellipsis));
+
+        // Always wrap in Theme (with conditional data); a conditional
+        // wrap would remount the TextFormField across the threshold,
+        // losing focus.
+        return MergeSemantics(
+          child: Semantics(
+            maxValueLength: maxLengthCodePoints,
+            currentValueLength: length,
+            child: Theme(
+              data: exceeded
+                ? theme.copyWith(
+                    textSelectionTheme: theme.textSelectionTheme.copyWith(
+                      cursorColor: designVariables.contextMenuItemTextDanger))
+                : theme,
+              child: builder(context, counter))));
+      });
   }
 }

@@ -161,6 +161,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnBgAttHighIntWarningActive: const Color(0xffeba002),
     btnBgAttHighIntWarningNormal: const Color(0xfffebe3d),
     btnBgAttLowIntDangerActive: const Color(0xffc0070a).withValues(alpha: 0.13),
+    btnBgAttLowIntInfoActive: const Color(0xff06037c).withValues(alpha: 0.09),
     btnBgAttMediumIntDangerActive: const Color(0xffe1392e).withValues(alpha: 0.23),
     btnBgAttMediumIntDangerNormal: const Color(0xffe1392e).withValues(alpha: 0.13),
     btnBgAttMediumIntInfoActive: const Color(0xff3c6bff).withValues(alpha: 0.22),
@@ -270,6 +271,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     btnBgAttHighIntWarningActive: const Color(0xffdb920d),
     btnBgAttHighIntWarningNormal: const Color(0xffdb920d),
     btnBgAttLowIntDangerActive: const Color(0xfff34c3e).withValues(alpha: 0.17),
+    btnBgAttLowIntInfoActive: const Color(0xff4d7bfd).withValues(alpha: 0.17),
     btnBgAttMediumIntDangerActive: const Color(0xfffd5f50).withValues(alpha: 0.12),
     btnBgAttMediumIntDangerNormal: const Color(0xfffd5f50).withValues(alpha: 0.12),
     btnBgAttMediumIntInfoActive: const Color(0xff97b6fe).withValues(alpha: 0.12),
@@ -388,6 +390,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.btnBgAttHighIntWarningActive,
     required this.btnBgAttHighIntWarningNormal,
     required this.btnBgAttLowIntDangerActive,
+    required this.btnBgAttLowIntInfoActive,
     required this.btnBgAttMediumIntDangerActive,
     required this.btnBgAttMediumIntDangerNormal,
     required this.btnBgAttMediumIntInfoActive,
@@ -498,6 +501,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color btnBgAttHighIntWarningActive;
   final Color btnBgAttHighIntWarningNormal;
   final Color btnBgAttLowIntDangerActive;
+  final Color btnBgAttLowIntInfoActive;
   final Color btnBgAttMediumIntDangerActive;
   final Color btnBgAttMediumIntDangerNormal;
   final Color btnBgAttMediumIntInfoActive;
@@ -602,6 +606,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? btnBgAttHighIntWarningActive,
     Color? btnBgAttHighIntWarningNormal,
     Color? btnBgAttLowIntDangerActive,
+    Color? btnBgAttLowIntInfoActive,
     Color? btnBgAttMediumIntDangerActive,
     Color? btnBgAttMediumIntDangerNormal,
     Color? btnBgAttMediumIntInfoActive,
@@ -701,6 +706,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnBgAttHighIntWarningActive: btnBgAttHighIntWarningActive ?? this.btnBgAttHighIntWarningActive,
       btnBgAttHighIntWarningNormal: btnBgAttHighIntWarningNormal ?? this.btnBgAttHighIntWarningNormal,
       btnBgAttLowIntDangerActive: btnBgAttLowIntDangerActive ?? this.btnBgAttLowIntDangerActive,
+      btnBgAttLowIntInfoActive: btnBgAttLowIntInfoActive ?? this.btnBgAttLowIntInfoActive,
       btnBgAttMediumIntDangerActive: btnBgAttMediumIntDangerActive ?? this.btnBgAttMediumIntDangerActive,
       btnBgAttMediumIntDangerNormal: btnBgAttMediumIntDangerNormal ?? this.btnBgAttMediumIntDangerNormal,
       btnBgAttMediumIntInfoActive: btnBgAttMediumIntInfoActive ?? this.btnBgAttMediumIntInfoActive,
@@ -807,6 +813,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       btnBgAttHighIntWarningActive: Color.lerp(btnBgAttHighIntWarningActive, other.btnBgAttHighIntWarningActive, t)!,
       btnBgAttHighIntWarningNormal: Color.lerp(btnBgAttHighIntWarningNormal, other.btnBgAttHighIntWarningNormal, t)!,
       btnBgAttLowIntDangerActive: Color.lerp(btnBgAttLowIntDangerActive, other.btnBgAttLowIntDangerActive, t)!,
+      btnBgAttLowIntInfoActive: Color.lerp(btnBgAttLowIntInfoActive, other.btnBgAttLowIntInfoActive, t)!,
       btnBgAttMediumIntDangerActive: Color.lerp(btnBgAttMediumIntDangerActive, other.btnBgAttMediumIntDangerActive, t)!,
       btnBgAttMediumIntDangerNormal: Color.lerp(btnBgAttMediumIntDangerNormal, other.btnBgAttMediumIntDangerNormal, t)!,
       btnBgAttMediumIntInfoActive: Color.lerp(btnBgAttMediumIntInfoActive, other.btnBgAttMediumIntInfoActive, t)!,

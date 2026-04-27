@@ -394,6 +394,47 @@ abstract final class ZulipAction {
       showErrorDialog(context: context, title: title, message: errorMessage);
     }
   }
+
+  /// Report a message to the realm admins.
+  ///
+  /// On success, shows a success [SnackBar] and returns true.
+  /// On failure, shows an error dialog and returns false.
+  static Future<bool> reportMessage(BuildContext context, {
+    required int messageId,
+    required String reportType,
+    required String? description,
+  }) async {
+    try {
+      await messages_api.reportMessage(
+        PerAccountStoreWidget.of(context).connection,
+        messageId: messageId,
+        reportType: reportType,
+        description: description,
+      );
+      if (!context.mounted) return false;
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(behavior: SnackBarBehavior.floating,
+          content: Text(zulipLocalizations.reportMessageSuccess)));
+      return true;
+    } catch (e) {
+      if (!context.mounted) return false;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      showErrorDialog(context: context,
+        title: ZulipLocalizations.of(context).errorReportMessageFailedTitle,
+        message: errorMessage);
+      return false;
+    }
+  }
 }
 
 /// Methods that act through platform APIs and show feedback in the UI.

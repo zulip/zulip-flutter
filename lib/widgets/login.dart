@@ -259,7 +259,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   .copyWith(
                     // TODO(#2183) follow design for label text
                     //   (or don't use it here?)
-                    labelText: zulipLocalizations.loginRealmUrlLabel,
+                    label: Text(zulipLocalizations.loginRealmUrlLabel),
                     errorText: errorText,
                     helperText: kLayoutPinningHelperText,
                     hintText: AddAccountPage._serverUrlHint,
@@ -621,9 +621,9 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       textInputAction: TextInputAction.next,
       style: filledInputTextStyle(designVariables),
       decoration: baseFilledInputDecoration(designVariables).copyWith(
-        labelText: requireEmailFormatUsernames
+        label: Text(requireEmailFormatUsernames
           ? zulipLocalizations.loginEmailLabel
-          : zulipLocalizations.loginUsernameLabel,
+          : zulipLocalizations.loginUsernameLabel),
         helperText: kLayoutPinningHelperText,
       ));
 
@@ -643,7 +643,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       onFieldSubmitted: (value) => _submit(),
       style: filledInputTextStyle(designVariables),
       decoration: baseFilledInputDecoration(designVariables).copyWith(
-        labelText: zulipLocalizations.loginPasswordLabel,
+        label: Text(zulipLocalizations.loginPasswordLabel),
         helperText: kLayoutPinningHelperText,
         suffixIcon: IconButton(
           tooltip: zulipLocalizations.loginHidePassword,
