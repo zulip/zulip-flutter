@@ -541,7 +541,7 @@ class LiveZulipBinding extends ZulipBinding {
     bool withReadStream = false,
     file_picker.FileType type = file_picker.FileType.any,
   }) async {
-    return file_picker.FilePicker.platform.pickFiles(
+    return file_picker.FilePicker.pickFiles(
       allowMultiple: allowMultiple,
       withReadStream: withReadStream,
       type: type,
