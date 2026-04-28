@@ -7,7 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messagin
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
-import 'package:sodium_libs/sodium_libs.dart';
+import 'package:sodium/sodium.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
@@ -168,11 +168,11 @@ abstract class ZulipBinding {
   /// or null if that hasn't resolved yet.
   PackageInfo? get syncPackageInfo;
 
-  /// Get the singleton for `package:sodium_libs` aka libsodium,
+  /// Get the singleton for `package:sodium` aka libsodium,
   /// used for cryptography.
   ///
   /// This wraps [SodiumInit.init].
-  Future<Sodium> sodiumInit();
+  FutureOr<Sodium> sodiumInit();
 
   /// Initialize Firebase, to use for notifications.
   ///
@@ -500,7 +500,7 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<Sodium> sodiumInit() => SodiumInit.init();
+  FutureOr<Sodium> sodiumInit() => SodiumInit.init();
 
   @override
   Future<void> firebaseInitializeApp({
