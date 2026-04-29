@@ -1,6 +1,6 @@
 # This should match IPHONEOS_DEPLOYMENT_TARGET in ios/Flutter/Zulip.xcconfig
 # and MinimumOSVersion in ios/Flutter/AppFrameworkInfo.plist.
-platform :ios, '15.0'
+platform :ios, '16.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
