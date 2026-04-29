@@ -189,12 +189,37 @@ on that is
    You can now delete the other files `/tmp/apns.key`, `/tmp/apns.csr`,
    and `/tmp/aps_development.cer`.
 
-4. Restart `tools/run-dev` to let the server pick up the change.
-   It should automatically see the file `zproject/apns-dev.pem`
-   and use it to communicate with the APNs sandbox server.
+4. Generate a bouncer public key and the corresponding private key
+   by running the following management command on the dev server:
+   ```
+   $ ./manage.py manage_push_registration_encryption_keys --add
+   ```
+
+   Output is a public/private keypair, base46-encoded:
+
+   ```
+   Added a new key pair:
+   - Public key: <etc.>
+   - Private key: <etc.>
+   ```
+
+   You'll use the "Public key" value in a later step.
+
+5. Restart `tools/run-dev` to let the server pick up the changes:
+   the push registration encryption keys generated in step 4, and
+   the file `zproject/apns-dev.pem` for communicating with the
+   APNs sandbox server.
+
+6. Then in the app, source `bouncerPublicKey` in
+   `lib/model/push_device.dart` from the "Public key" value from step 4,
+   instead of the corresponding value for the production bouncer.
+
+   Then hot restart the app to let the device registration take place
+   with the new public key.
 
 You should now be getting notifications on your iOS development build!
-
+(On a real device, though, a debug build shows E2EE notifications
+only as "New notification"; see the troubleshooting entry below.)
 
 #### Troubleshooting
 
@@ -206,6 +231,58 @@ If none of those resolve the issue, please ask for help
 in [#mobile-dev-help](https://chat.zulip.org/#narrow/channel/516-mobile-dev-help) on
 chat.zulip.org, so we can debug.
 
+##### "New notification" notification when running debug app on real device
+
+When running the debug build (`flutter run`) of the app on a
+real iPhone, the FlutterEngine in the NotificationService extension
+will not start, which will result in the NotificationService
+extension falling back to displaying the original notification's
+"alert", which for E2EE notifications says "New notification".
+And the following error will be logged:
+```
+Cannot create a FlutterEngine instance in debug mode without Flutter tooling or Xcode.
+
+To launch in debug mode in iOS 14+, run flutter run from Flutter tools, run from an IDE with a Flutter IDE plugin or run the iOS project from Xcode.
+Alternatively profile and release mode apps can be launched from the home screen.
+```
+
+We _think_ that on a real iPhone, iOS only allows JIT-compiled
+code to run when a debugger is attached to the process.
+This is generally the case for the Runner process (the main app)
+when doing `flutter run`.
+The NotificationService extension runs in a separate process,
+so its debug-mode FlutterEngine will not start without
+a debugger attached.
+
+To work around this, run the release version of the app
+(`flutter run --release`), or run the debug version on the
+iOS Simulator.
+
+##### Logs for NotificationService don't show up in `flutter run`/`flutter logs`
+
+Logs will not show up in `flutter run` or `flutter logs`
+because the code running in the NotificationService target runs in
+a separate process. And Flutter's tooling is not routing/reading
+logs from that process.
+
+One workaround is to use the Console app for reading the logstream
+from the NotificationService process by following these steps:
+1. Open the Console app.
+2. Select your device or simulator in the left sidebar.
+3. In the search bar, type "process:NotificationService" and press
+   Return/Enter.
+4. Press Start (with a "play" icon) to start streaming the logs
+   with the specified filter.
+5. Receive a notification, and that will result in some logs being
+   emitted.
+
+##### Can't hot reload/restart the Dart code running in NotificationService
+
+The Flutter tooling doesn't attach to the secondary FlutterEngine
+running in the NotificationService extension when doing a
+`flutter run`. There are no known workarounds for this;
+the only way to update the running code is by doing a complete
+build again (stopping `flutter run` and starting it again).
 
 ##### Error: Your plan doesn't allow sending push notifications
 
