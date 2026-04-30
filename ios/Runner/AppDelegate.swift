@@ -50,13 +50,11 @@ import UIKit
   override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
-    withCompletionHandler completionHandler: @escaping () -> Void
-  ) {
+  ) async {
     if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
       let userInfo = response.notification.request.content.userInfo
       notificationTapEventListener!.onNotificationTapEvent(payload: userInfo)
     }
-    completionHandler()
   }
 }
 
