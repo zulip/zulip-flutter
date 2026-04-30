@@ -18,7 +18,8 @@ import UIKit
 
     let controller = window?.rootViewController as! FlutterViewController
 
-    IosNativeHostApiSetup.setUp(binaryMessenger: controller.binaryMessenger, api: IosNativeHostApiImpl())
+    IosNativeHostApiSetup.setUp(
+      binaryMessenger: controller.binaryMessenger, api: IosNativeHostApiImpl())
 
     // Retrieve the remote notification payload from launch options;
     // this will be null if the launch wasn't triggered by a notification.
