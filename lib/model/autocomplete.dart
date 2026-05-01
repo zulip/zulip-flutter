@@ -213,7 +213,7 @@ final RegExp _channelLinkIntentRegex = () {
       // Case '#**channel': right after '#**', reject whitespace.
       // Also, make sure that the remaining query doesn't contain '**',
       // otherwise '#**channel**' (which is a completed channel link syntax) and
-      // any text followed by that will always match.
+      // any text following that will always match.
       + r'\*\*(?!\s)'
       + r'(?<rawQuery>(?:'
         + r'[^*' + nameCharExclusions + r']'
