@@ -70,9 +70,9 @@ extension ComposeContentAutocomplete on ComposeContentController {
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
       } else if (charAtPos == '#') {
-        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
         if (match == null) continue;
-        query = ChannelLinkAutocompleteQuery(match[1] ?? match[2]!);
+        query = ChannelLinkAutocompleteQuery(match.namedGroup('rawQuery')!);
       } else {
         continue;
       }
@@ -198,8 +198,6 @@ final RegExp _channelLinkIntentRegex = () {
   // TODO: match the server constraints
   const nameCharExclusions = r'\r\n';
 
-  // TODO(upstream): maybe use duplicate-named capture groups for better readability?
-  //   https://github.com/dart-lang/sdk/issues/61337
   return RegExp(unicode: true,
     before
     + r'#'
@@ -210,14 +208,14 @@ final RegExp _channelLinkIntentRegex = () {
     // option, instead of clearing the entire query and starting from scratch.
     + r'(?:'
       // Case '#channel': right after '#', reject whitespace as well as '**'.
-      + r'(?!\s|\*\*)([^' + nameCharExclusions + r']*)'
+      + r'(?!\s|\*\*)(?<rawQuery>[^' + nameCharExclusions + r']*)'
       + r'|'
       // Case '#**channel': right after '#**', reject whitespace.
       // Also, make sure that the remaining query doesn't contain '**',
       // otherwise '#**channel**' (which is a completed channel link syntax) and
       // any text followed by that will always match.
       + r'\*\*(?!\s)'
-      + r'((?:'
+      + r'(?<rawQuery>(?:'
         + r'[^*' + nameCharExclusions + r']'
         + r'|'
         + r'\*[^*' + nameCharExclusions + r']'
