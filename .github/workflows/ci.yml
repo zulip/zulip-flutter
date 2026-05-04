@@ -46,7 +46,7 @@ jobs:
       run: TERM=dumb tools/check --all --output ci android
 
   ios:
-    name: "iOS build"
+    name: "iOS build and lint"
     runs-on: macos-26
     steps:
     - uses: actions/checkout@v6

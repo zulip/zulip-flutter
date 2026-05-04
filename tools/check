@@ -533,6 +533,28 @@ run_ios() {
         ${opt_no_pub:+--no-pub}
     )
 
+    check_no_uncommitted_or_untracked ios/'*'.swift \
+    || return
+
+    if_verbose echo "Checking for style issues in Swift code..."
+
+    # Generated code (*.g.swift) is omitted from this check.
+    # shellcheck disable=SC2207  # filenames in our own tree, assume well-behaved
+    local swift_targets=(
+        $(git ls-files -- ios/'*'.swift :!:ios/'*'.g.swift)
+    )
+
+    # --in-place enables `tools/check --fix ios`; see `check_no_changes`.
+    # TODO: Once we have a dedicated code formatting check,
+    #       move this swift-format check there.
+    xcrun swift-format format --in-place \
+        --configuration ios/.swift-format \
+        "${swift_targets[@]}" \
+    || return
+
+    check_no_changes "changes to Swift files (swift-format)" ios/'*'.swift \
+    || return
+
     if_verbose echo "Building for iOS (in release mode)..."
 
     # Skip codesigning in CI.
