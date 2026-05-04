@@ -22,7 +22,7 @@ jobs:
       run: flutter pub get
 
     - name: Run tools/check
-      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android
+      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android --exclude ios
 
   android:
     name: "Android build and lint"

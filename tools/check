@@ -34,7 +34,7 @@ default_suites=(
     analyze test
     flutter_version
     build_runner l10n drift pigeon icons
-    android  # This takes multiple minutes in CI, so do it last.
+    android ios  # These take multiple minutes in CI, so do them last.
 )
 
 extra_suites=(
@@ -517,6 +517,32 @@ run_android() {
     flutter build appbundle
 }
 
+run_ios() {
+    # Omitted from this check:
+    #   pubspec.{yaml,lock} tools/check
+    files_check ios/ \
+    || return 0
+
+    # iOS builds require macOS and Xcode.
+    if [ "$(uname -s)" != "Darwin" ]; then
+        echo "Skipping ios suite (not on macOS)."
+        return 0
+    fi
+
+    local build_opts=(
+        ${opt_no_pub:+--no-pub}
+    )
+
+    if_verbose echo "Building for iOS (in release mode)..."
+
+    # Skip codesigning in CI.
+    if [ "${opt_output}" = ci ]; then
+        build_opts+=( --no-codesign )
+    fi
+
+    flutter build ipa "${build_opts[@]}"
+}
+
 run_shellcheck() {
     # Omitted from this check: nothing (nothing known, anyway).
     files_check tools/ '!*.'{dart,js,json} \
@@ -592,6 +618,7 @@ for suite in "${opt_suites[@]}"; do
         pigeon)       maybe_time "$suite" run_pigeon ;;
         icons)        maybe_time "$suite" run_icons ;;
         android)      maybe_time "$suite" run_android ;;
+        ios)          maybe_time "$suite" run_ios ;;
         shellcheck)   maybe_time "$suite" run_shellcheck ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )
