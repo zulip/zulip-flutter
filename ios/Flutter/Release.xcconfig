@@ -1,3 +1,7 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
 #include "Zulip.xcconfig"
+
+// Compile Swift with "-warnings-as-errors" but only in release builds, so that
+// it doesn't get in the way of quick local experiments for debugging.
+SWIFT_TREAT_WARNINGS_AS_ERRORS = YES
