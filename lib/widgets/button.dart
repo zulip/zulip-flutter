@@ -42,53 +42,53 @@ class ZulipWebUiKitButton extends StatelessWidget {
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
     WidgetStateColor result;
     switch ((attention, intent)) {
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
+      case (.minimal, .neutral):
         result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(0.3),
           ~WidgetState.pressed: designVariables.neutralButtonBg.withAlpha(0),
         });
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
+      case (.low,     .neutral):
+      case (.medium,  .neutral):
+      case (.high,    .neutral):
+      case (.minimal, .warning):
+      case (.low,     .warning):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
+      case (.medium,  .warning):
         result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttMediumIntWarningActive,
           ~WidgetState.pressed: designVariables.btnBgAttMediumIntWarningNormal,
         });
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
+      case (.high,    .warning):
         result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttHighIntWarningActive,
           ~WidgetState.pressed: designVariables.btnBgAttHighIntWarningNormal,
         });
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+      case (.minimal, .danger):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
+      case (.low,     .danger):
         result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive,
           ~WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive.withAlpha(0),
         });
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+      case (.medium,  .danger):
         result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttMediumIntDangerActive,
           ~WidgetState.pressed: designVariables.btnBgAttMediumIntDangerNormal,
         });
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+      case (.high,    .danger):
+      case (.minimal, .info):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
+      case (.low,     .info):
         return WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttLowIntInfoActive,
           ~WidgetState.pressed: designVariables.btnBgAttLowIntInfoActive.withAlpha(0),
         });
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
+      case (.medium,  .info):
         result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttMediumIntInfoActive,
           ~WidgetState.pressed: designVariables.btnBgAttMediumIntInfoNormal,
         });
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
+      case (.high,    .info):
         result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttHighIntInfoActive,
           ~WidgetState.pressed: designVariables.btnBgAttHighIntInfoNormal,
@@ -105,33 +105,33 @@ class ZulipWebUiKitButton extends StatelessWidget {
   Color _labelColor(DesignVariables designVariables) {
     Color result;
     switch ((attention, intent)) {
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
+      case (.minimal, .neutral):
         // TODO nit: don't fade in pressed state
         result = designVariables.neutralButtonLabel.withFadedAlpha(0.85);
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
+      case (.low,     .neutral):
+      case (.medium,  .neutral):
+      case (.high,    .neutral):
+      case (.minimal, .warning):
+      case (.low,     .warning):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
+      case (.medium,  .warning):
         result = designVariables.btnLabelAttMediumIntWarning;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
+      case (.high,    .warning):
         result = designVariables.btnLabelAttHighIntWarning;
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+      case (.minimal, .danger):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
+      case (.low,     .danger):
         result = designVariables.btnLabelAttLowIntDanger;
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+      case (.medium,  .danger):
         result = designVariables.btnLabelAttMediumIntDanger;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+      case (.high,    .danger):
+      case (.minimal, .info):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
+      case (.low,     .info):
         result = designVariables.btnLabelAttLowIntInfo;
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
+      case (.medium,  .info):
         result = designVariables.btnLabelAttMediumIntInfo;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
+      case (.high,    .info):
         result = designVariables.btnLabelAttHigh;
     }
 
