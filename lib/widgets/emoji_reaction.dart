@@ -977,9 +977,28 @@ class ViewReactionsUserItem extends StatelessWidget {
       ProfilePage.buildRoute(context: context, userId: userId));
   }
 
+  InlineSpan _displayNameSpan({
+    required BuildContext context,
+    required int userId,
+    required int selfUserId,
+    required String fullName,
+    required String youLabel,
+    required Color color,
+  }) {
+    if (userId != selfUserId) {
+      return TextSpan(text: fullName);
+    }
+    return TextSpan(text: fullName, children: [
+      TextSpan(
+        text: wrapInLocalizedParens(context, youLabel, addSpaceBeforeIfNotCjk: true),
+        style: TextStyle(color: color.withValues(alpha: 0.60))),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     return InkWell(
@@ -997,7 +1016,7 @@ class ViewReactionsUserItem extends StatelessWidget {
             backgroundColor: designVariables.bgContextMenu,
             userId: userId),
           Flexible(
-            child: Text(
+            child: Text.rich(
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -1005,7 +1024,13 @@ class ViewReactionsUserItem extends StatelessWidget {
                 height: 17 / 17,
                 color: designVariables.textMessage,
               ).merge(weightVariableTextStyle(context, wght: 500)),
-              store.userDisplayName(userId))),
+              _displayNameSpan(
+                context: context,
+                userId: userId,
+                selfUserId: store.selfUserId,
+                fullName: store.userDisplayName(userId),
+                youLabel: zulipLocalizations.you,
+                color: designVariables.textMessage))),
         ])));
   }
 }
