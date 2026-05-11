@@ -555,6 +555,30 @@ run_ios() {
     check_no_changes "changes to Swift files (swift-format)" ios/'*'.swift \
     || return
 
+    check_no_uncommitted_or_untracked ios/ macos/ \
+    || return
+
+    if_verbose echo "Checking for automated changes from Flutter tooling..."
+
+    flutter build ios "${build_opts[@]}" --config-only \
+    || return
+
+    # Check macos/ too, because desktop platforms are supported for dev:
+    #   https://github.com/zulip/zulip-flutter#desktop-support
+    # (This could live in its own suite. If doing that, we'd probably
+    # still want to run it in the same GitHub CI workflow as the iOS build,
+    # since GitHub's macOS-based runners use a lot of our free quota:
+    #   https://github.com/zulip/zulip-flutter/issues/329#issue-1950704934
+    # .)
+    flutter build macos "${build_opts[@]}" --config-only \
+    || return
+
+    check_no_changes "changes to ios" ios/ \
+    || return
+
+    check_no_changes "changes to macos" macos/ \
+    || return
+
     if_verbose echo "Building for iOS (in release mode)..."
 
     # Skip codesigning in CI.
