@@ -11,6 +11,7 @@ import '../api/route/messages.dart' as messages_api;
 import '../api/route/channels.dart' as channels_api;
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import '../model/realm.dart';
@@ -273,6 +274,45 @@ abstract final class ZulipAction {
     }
 
     return fetchedMessage?.content;
+  }
+
+  /// Adds or removes a reaction on the message corresponding to
+  /// the [messageId], showing an error dialog on failure.
+  /// Returns a Future resolving to true if operation succeeds.
+  static Future<void> addOrRemoveReaction({
+    required BuildContext context,
+    required bool doRemoveReaction,
+    required int messageId,
+    required EmojiCandidate emoji,
+    required String errorDialogTitle,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    String? errorMessage;
+    try {
+      await (doRemoveReaction ? removeReaction : addReaction).call(
+        store.connection,
+        messageId: messageId,
+        reactionType: emoji.emojiType,
+        emojiCode: emoji.emojiCode,
+        emojiName: emoji.emojiName,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+          // TODO(log)
+      }
+
+      showErrorDialog(context: context,
+        title: errorDialogTitle,
+        message: errorMessage);
+      return;
+    }
   }
 
   /// Fetch and parse a URL from [messages_api.getFileTemporaryUrl].

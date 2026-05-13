@@ -1375,7 +1375,7 @@ class ReactionButtons extends StatelessWidget {
     Navigator.pop(pageContext);
 
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
-    doAddOrRemoveReaction(
+    ZulipAction.addOrRemoveReaction(
       context: pageContext,
       doRemoveReaction: isSelfVoted,
       messageId: message.id,
@@ -1394,7 +1394,7 @@ class ReactionButtons extends StatelessWidget {
 
     final emoji = await showEmojiPickerSheet(pageContext: pageContext);
     if (emoji == null || !pageContext.mounted) return;
-    unawaited(doAddOrRemoveReaction(
+    unawaited(ZulipAction.addOrRemoveReaction(
       context: pageContext,
       doRemoveReaction: false,
       messageId: message.id,

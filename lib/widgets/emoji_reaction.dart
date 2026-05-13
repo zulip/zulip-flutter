@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -12,7 +11,6 @@ import '../model/emoji.dart';
 import '../model/store.dart';
 import 'action_sheet.dart';
 import 'color.dart';
-import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
 import 'input.dart';
@@ -357,45 +355,6 @@ class _TextEmoji extends StatelessWidget {
       ).merge(weightVariableTextStyle(context,
           wght: selected ? 600 : null)),
       textEmojiForEmojiName(emojiName));
-  }
-}
-
-/// Adds or removes a reaction on the message corresponding to
-/// the [messageId], showing an error dialog on failure.
-/// Returns a Future resolving to true if operation succeeds.
-Future<void> doAddOrRemoveReaction({
-  required BuildContext context,
-  required bool doRemoveReaction,
-  required int messageId,
-  required EmojiCandidate emoji,
-  required String errorDialogTitle,
-}) async {
-  final store = PerAccountStoreWidget.of(context);
-  String? errorMessage;
-  try {
-    await (doRemoveReaction ? removeReaction : addReaction).call(
-      store.connection,
-      messageId: messageId,
-      reactionType: emoji.emojiType,
-      emojiCode: emoji.emojiCode,
-      emojiName: emoji.emojiName,
-    );
-  } catch (e) {
-    if (!context.mounted) return;
-
-    switch (e) {
-      case ZulipApiException():
-        errorMessage = e.message;
-        // TODO(#741) specific messages for common errors, like network errors
-        //   (support with reusable code)
-      default:
-        // TODO(log)
-    }
-
-    showErrorDialog(context: context,
-      title: errorDialogTitle,
-      message: errorMessage);
-    return;
   }
 }
 
