@@ -175,19 +175,37 @@ void main() {
   });
 
   group('ZulipIconButton', () {
-    testWidgets('occupies a 40px square', (tester) async {
+    testWidgets('default (medium): occupies a 40px square', (tester) async {
       addTearDown(testBinding.reset);
 
       await tester.pumpWidget(TestZulipApp(
         child: UnconstrainedBox(
           child: ZulipIconButton(
             icon: ZulipIcons.follow,
+            tooltip: 'Follow',
             onPressed: () {}))));
       await tester.pump();
 
       final element = tester.element(find.byType(ZulipIconButton));
       final renderObject = element.renderObject as RenderBox;
       check(renderObject).size.equals(Size.square(40));
+    });
+
+    testWidgets('large: occupies a 48px square', (tester) async {
+      addTearDown(testBinding.reset);
+
+      await tester.pumpWidget(TestZulipApp(
+        child: UnconstrainedBox(
+          child: ZulipIconButton(
+            icon: ZulipIcons.follow,
+            tooltip: 'Follow',
+            onPressed: () {},
+            size: ZulipIconButtonSize.large))));
+      await tester.pump();
+
+      final element = tester.element(find.byType(ZulipIconButton));
+      final renderObject = element.renderObject as RenderBox;
+      check(renderObject).size.equals(Size.square(48));
     });
 
     // TODO test that the touch feedback fills the whole square
@@ -203,6 +221,7 @@ void main() {
           duration: Duration(milliseconds: 100),
           child: ZulipIconButton(
             icon: ZulipIcons.follow,
+            tooltip: 'Follow',
             onPressed: () {}))));
       await tester.pump();
     }
