@@ -51,6 +51,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
       case (.minimal, .neutral):
         return Colors.transparent;
       case (.low,     .neutral):
+        return Colors.transparent;
       case (.medium,  .neutral):
       case (.high,    .neutral):
       case (.minimal, .warning):
@@ -90,6 +91,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
       case (.minimal, .neutral):
         return designVariables.neutralButtonBg.withFadedAlpha(0.3);
       case (.low,     .neutral):
+        return designVariables.btnBgAttLowIntNeutralActive;
       case (.medium,  .neutral):
       case (.high,    .neutral):
       case (.minimal, .warning):
@@ -154,6 +156,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
         // TODO nit: don't fade in pressed state
         result = designVariables.neutralButtonLabel.withFadedAlpha(0.85);
       case (.low,     .neutral):
+        result = designVariables.btnLabelAttLowIntNeutral;
       case (.medium,  .neutral):
       case (.high,    .neutral):
       case (.minimal, .warning):
