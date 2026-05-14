@@ -568,7 +568,9 @@ print_header() {
 
     # We avoid `flutter --version` because, weirdly, when run in a
     # GitHub Actions step it takes about 30 seconds.  (The first time;
-    # it's fast subsequent times.)  That's even after `flutter precache`.
+    # it's fast subsequent times.)  That's even when the Flutter tool's
+    # binary artifacts have already been downloaded (which, in CI,
+    # happens during the `flutter pub get` step).
     describe_git_head "flutter/flutter" "$(flutter_tree)"
 
     dart --version
