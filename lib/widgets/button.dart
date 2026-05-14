@@ -111,16 +111,26 @@ class ZulipWebUiKitButton extends StatelessWidget {
     }
   }
 
-  WidgetStateColor _backgroundColor(DesignVariables designVariables) {
-    final result = WidgetStateColor.fromMap({
-      WidgetState.pressed: _backgroundColorActive(designVariables),
-      ~WidgetState.pressed: _backgroundColorNormal(designVariables),
-    });
-    return WidgetStateColor.resolveWith((states) {
-      return states.contains(WidgetState.disabled)
-        ? result.resolve(states).withFadedAlpha(0.5)
-        : result.resolve(states);
-    });
+  /// The overlay color that, painted over [base], yields [target].
+  ///
+  /// When [target] is fully opaque
+  /// (e.g., for the press feedback in our high-attention rows,
+  /// where both [_backgroundColorNormal] and [_backgroundColorActive] are opaque),
+  /// returns [target] to fully replace [base] via a fully-opaque overlay.
+  ///
+  /// Otherwise, for same-hue semi-transparent [base]/[target] pairs,
+  /// computes the alpha the overlay needs to lift the composite
+  /// from [base]'s alpha to [target]'s.
+  ///
+  /// Assumes [target]'s alpha is at least [base]'s,
+  /// and, for the semi-transparent path,
+  /// that [base] and [target] share the same RGB.
+  static Color _overlayFor(Color base, Color target) {
+    assert(target.a >= base.a);
+    if (target.a >= 1.0) return target;
+    assert(base.a < 1.0);
+    final alpha = (target.a - base.a) / (1.0 - base.a);
+    return target.withValues(alpha: alpha);
   }
 
   /// The label color.
@@ -234,18 +244,24 @@ class ZulipWebUiKitButton extends StatelessWidget {
     final buttonHeight = _forSize(24, 28);
 
     final labelColor = _labelColor(designVariables);
+    final backgroundColorNormal = _backgroundColorNormal(designVariables);
+    final backgroundColor = onPressed == null
+      ? backgroundColorNormal.withFadedAlpha(0.5) // disabled state
+      : backgroundColorNormal;
 
     Widget result = TextButton.icon(
       // TODO the gap between the icon and label should be 6px, not 8px
       icon: icon != null ? Icon(icon) : null,
       style: TextButton.styleFrom(
+        foregroundColor: labelColor,
+        backgroundColor: backgroundColor,
+
         iconSize: 16,
         iconColor: labelColor,
         padding: EdgeInsets.symmetric(
           horizontal: _forSize(6, 10),
           vertical: 4 - densityVerticalAdjustment,
         ),
-        foregroundColor: labelColor,
         shape: RoundedRectangleBorder(
           side: _borderSide(designVariables),
           borderRadius: BorderRadius.circular(_forSize(6, 4))),
@@ -260,7 +276,15 @@ class ZulipWebUiKitButton extends StatelessWidget {
           kMinInteractiveDimension,
           buttonHeight - densityVerticalAdjustment,
         ),
-      ).copyWith(backgroundColor: _backgroundColor(designVariables)),
+      ).copyWith(
+        // [TextButton.styleFrom]'s overlayColor takes a single [Color] (and
+        // wraps it with M3-default state-layer alphas). To use our own
+        // state-mapped overlay, pass it here on the underlying [ButtonStyle].
+        overlayColor: WidgetStateProperty.fromMap({
+          WidgetState.pressed: _overlayFor(backgroundColorNormal,
+            _backgroundColorActive(designVariables)),
+          WidgetState.any: Colors.transparent,
+        })),
       onPressed: onPressed,
       label: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 240),
