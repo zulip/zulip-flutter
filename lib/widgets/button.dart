@@ -46,7 +46,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
   Color _backgroundColorNormal(DesignVariables designVariables) {
     switch ((attention, intent)) {
       case (.minimal, .neutral):
-        return designVariables.neutralButtonBg.withAlpha(0);
+        return Colors.transparent;
       case (.low,     .neutral):
       case (.medium,  .neutral):
       case (.high,    .neutral):
@@ -60,14 +60,14 @@ class ZulipWebUiKitButton extends StatelessWidget {
       case (.minimal, .danger):
         throw UnimplementedError();
       case (.low,     .danger):
-        return designVariables.btnBgAttLowIntDangerActive.withAlpha(0);
+        return Colors.transparent;
       case (.medium,  .danger):
         return designVariables.btnBgAttMediumIntDangerNormal;
       case (.high,    .danger):
       case (.minimal, .info):
         throw UnimplementedError();
       case (.low,     .info):
-        return designVariables.btnBgAttLowIntInfoActive.withAlpha(0);
+        return Colors.transparent;
       case (.medium,  .info):
         return designVariables.btnBgAttMediumIntInfoNormal;
       case (.high,    .info):
