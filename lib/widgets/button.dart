@@ -39,14 +39,14 @@ class ZulipWebUiKitButton extends StatelessWidget {
   final IconData? icon;
   final VoidCallback? onPressed;
 
-  WidgetStateColor _backgroundColor(DesignVariables designVariables) {
-    WidgetStateColor result;
+  /// The background color when the button is at rest (not pressed).
+  ///
+  /// When adding a case here,
+  /// update [_backgroundColorActive] and [_labelColor] too.
+  Color _backgroundColorNormal(DesignVariables designVariables) {
     switch ((attention, intent)) {
       case (.minimal, .neutral):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(0.3),
-          ~WidgetState.pressed: designVariables.neutralButtonBg.withAlpha(0),
-        });
+        return designVariables.neutralButtonBg.withAlpha(0);
       case (.low,     .neutral):
       case (.medium,  .neutral):
       case (.high,    .neutral):
@@ -54,47 +54,68 @@ class ZulipWebUiKitButton extends StatelessWidget {
       case (.low,     .warning):
         throw UnimplementedError();
       case (.medium,  .warning):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttMediumIntWarningActive,
-          ~WidgetState.pressed: designVariables.btnBgAttMediumIntWarningNormal,
-        });
+        return designVariables.btnBgAttMediumIntWarningNormal;
       case (.high,    .warning):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttHighIntWarningActive,
-          ~WidgetState.pressed: designVariables.btnBgAttHighIntWarningNormal,
-        });
+        return designVariables.btnBgAttHighIntWarningNormal;
       case (.minimal, .danger):
         throw UnimplementedError();
       case (.low,     .danger):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive,
-          ~WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive.withAlpha(0),
-        });
+        return designVariables.btnBgAttLowIntDangerActive.withAlpha(0);
       case (.medium,  .danger):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttMediumIntDangerActive,
-          ~WidgetState.pressed: designVariables.btnBgAttMediumIntDangerNormal,
-        });
+        return designVariables.btnBgAttMediumIntDangerNormal;
       case (.high,    .danger):
       case (.minimal, .info):
         throw UnimplementedError();
       case (.low,     .info):
-        return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttLowIntInfoActive,
-          ~WidgetState.pressed: designVariables.btnBgAttLowIntInfoActive.withAlpha(0),
-        });
+        return designVariables.btnBgAttLowIntInfoActive.withAlpha(0);
       case (.medium,  .info):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttMediumIntInfoActive,
-          ~WidgetState.pressed: designVariables.btnBgAttMediumIntInfoNormal,
-        });
+        return designVariables.btnBgAttMediumIntInfoNormal;
       case (.high,    .info):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttHighIntInfoActive,
-          ~WidgetState.pressed: designVariables.btnBgAttHighIntInfoNormal,
-        });
+        return designVariables.btnBgAttHighIntInfoNormal;
     }
+  }
 
+  /// The background color when the button is pressed.
+  ///
+  /// When adding a case here,
+  /// update [_backgroundColorNormal] and [_labelColor] too.
+  Color _backgroundColorActive(DesignVariables designVariables) {
+    switch ((attention, intent)) {
+      case (.minimal, .neutral):
+        return designVariables.neutralButtonBg.withFadedAlpha(0.3);
+      case (.low,     .neutral):
+      case (.medium,  .neutral):
+      case (.high,    .neutral):
+      case (.minimal, .warning):
+      case (.low,     .warning):
+        throw UnimplementedError();
+      case (.medium,  .warning):
+        return designVariables.btnBgAttMediumIntWarningActive;
+      case (.high,    .warning):
+        return designVariables.btnBgAttHighIntWarningActive;
+      case (.minimal, .danger):
+        throw UnimplementedError();
+      case (.low,     .danger):
+        return designVariables.btnBgAttLowIntDangerActive;
+      case (.medium,  .danger):
+        return designVariables.btnBgAttMediumIntDangerActive;
+      case (.high,    .danger):
+      case (.minimal, .info):
+        throw UnimplementedError();
+      case (.low,     .info):
+        return designVariables.btnBgAttLowIntInfoActive;
+      case (.medium,  .info):
+        return designVariables.btnBgAttMediumIntInfoActive;
+      case (.high,    .info):
+        return designVariables.btnBgAttHighIntInfoActive;
+    }
+  }
+
+  WidgetStateColor _backgroundColor(DesignVariables designVariables) {
+    final result = WidgetStateColor.fromMap({
+      WidgetState.pressed: _backgroundColorActive(designVariables),
+      ~WidgetState.pressed: _backgroundColorNormal(designVariables),
+    });
     return WidgetStateColor.resolveWith((states) {
       return states.contains(WidgetState.disabled)
         ? result.resolve(states).withFadedAlpha(0.5)
@@ -102,6 +123,10 @@ class ZulipWebUiKitButton extends StatelessWidget {
     });
   }
 
+  /// The label color.
+  ///
+  /// When adding a case here,
+  /// update [_backgroundColorNormal] and [_backgroundColorActive] too.
   Color _labelColor(DesignVariables designVariables) {
     Color result;
     switch ((attention, intent)) {
