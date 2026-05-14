@@ -362,46 +362,131 @@ enum ZulipWebUiKitButtonSize {
   normal,
 }
 
-/// The "icon button" component in the Figma.
+/// An icon button.
 ///
-/// See Figma:
+/// Pass [intent] to choose a color scheme from the Zulip Web UI Kit,
+/// which this widget is mostly based on:
+///   https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=8-1681&m=dev
+/// If [intent] is not passed, uses the single color scheme from mobile Figma:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=7728-10468&m=dev
+///
+/// Sizing is adapted from the Web UI Kit to mobile; see [ZulipIconButtonSize].
+///
+/// For how to use this as the "suffix icon" in a text field,
+/// see [baseFilledInputDecoration] in lib/widgets/input.dart.
 class ZulipIconButton extends StatelessWidget {
   const ZulipIconButton({
     super.key,
     required this.icon,
+    required this.tooltip,
     required this.onPressed,
-    this.tooltip,
+    this.size = .medium,
+    this.intent,
+    this.backgroundWhenPressed = true,
   });
 
   final IconData icon;
+  final String tooltip;
   final VoidCallback onPressed;
-  final String? tooltip;
+  final ZulipIconButtonSize size;
+  final ZulipWebUiKitButtonIntent? intent;
+
+  /// Whether to paint a background when pressed, for touch feedback.
+  ///
+  /// Corresponds to the "bg" param for the Zulip Web UI Kit component:
+  ///   https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=8-1680&m=dev
+  final bool backgroundWhenPressed;
+
+  Color _iconColor(DesignVariables designVariables) {
+    if (intent == null) return designVariables.icon;
+    return ZulipWebUiKitButton._labelColor(designVariables,
+      attention: .low,
+      intent: intent!,
+      isDisabled: false).withFadedAlpha(0.7);
+  }
+
+  /// The static background color.
+  ///
+  /// The Web UI Kit always uses "low" attention for icon buttons,
+  /// which means transparent in the resting state.
+  /// The mobile-specific scheme used when [intent] is null
+  /// is also transparent at rest.
+  static const _backgroundColorNormal = Colors.transparent;
+
+  WidgetStateProperty<Color> _overlayColor(DesignVariables designVariables) {
+    if (!backgroundWhenPressed) return WidgetStatePropertyAll(Colors.transparent);
+    final Color pressed;
+    if (intent != null) {
+      pressed = ZulipWebUiKitButton._overlayFor(_backgroundColorNormal,
+        ZulipWebUiKitButton._backgroundColorActive(designVariables,
+          attention: .low, intent: intent!));
+    } else {
+      // Really `fg-05` from the Zulip Web UI Kit palette,
+      // but this seems at least as good as that.
+      pressed = designVariables.foreground.withFadedAlpha(0.05);
+    }
+    return WidgetStateProperty.fromMap({
+      WidgetState.pressed: pressed,
+      WidgetState.any: Colors.transparent,
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    // Really `fg-05` from the Zulip Web UI Kit palette,
-    // but this seems at least as good as that.
-    final touchFeedbackColor = designVariables.foreground.withFadedAlpha(0.05);
-
     return IconButton(
-      color: designVariables.icon,
-      iconSize: 24,
+      iconSize: size.icon,
       icon: Icon(icon),
       onPressed: onPressed,
       tooltip: tooltip,
       style: IconButton.styleFrom(
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        fixedSize: Size.square(40),
+        foregroundColor: _iconColor(designVariables),
+        backgroundColor: _backgroundColorNormal,
+        tapTargetSize: .shrinkWrap,
+        fixedSize: size.surface,
 
         // TODO(#417): Disable splash effects for all buttons globally.
         splashFactory: NoSplash.splashFactory,
-        highlightColor: touchFeedbackColor,
+
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)))));
+          borderRadius: BorderRadius.all(Radius.circular(4)))
+      ).copyWith(
+        // [IconButton.styleFrom]'s overlayColor takes a single [Color] (and
+        // wraps it with M3-default state-layer alphas). To use our own
+        // state-mapped overlay, pass it here on the underlying [ButtonStyle].
+        overlayColor: _overlayColor(designVariables)));
   }
+}
+
+/// Sizing parameters for [ZulipIconButton]; a value for [ZulipIconButton.size].
+enum ZulipIconButtonSize {
+  /// The size to use in most places.
+  ///
+  /// This follows the mobile-specific "icon button" component:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=7728-10468&m=dev
+  /// which the Figma uses for a button in the "All channels" page
+  /// that we dropped in commit 4b42f7a00.
+  medium,
+
+  /// Like [medium], but with a larger [surface].
+  large,
+  ;
+
+  /// The dimension of the square icon.
+  double get icon => switch (this) {
+    medium || large => 24,
+  };
+
+  /// The size of the surface that the touch-response background is painted on.
+  ///
+  /// Currently this equals the size of the touch target,
+  /// but we could support outer "touch slop" padding in future,
+  /// as [ZulipWebUiKitButton] does.
+  Size get surface => switch (this) {
+    medium => const Size.square(40),
+    large => const Size.square(48),
+  };
 }
 
 /// Apply [Transform.scale] to the child widget on primary pointer-down,
