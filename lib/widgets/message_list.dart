@@ -790,20 +790,14 @@ class _SearchBarState extends State<_SearchBar> {
             child: Icon(size: 24, ZulipIcons.search)),
           prefixIconColor: designVariables.labelSearchPrompt,
           prefixIconConstraints: BoxConstraints(),
-          suffixIcon: IconButton(
+          suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.medium.surface),
+          suffixIcon: ZulipIconButton(
+            icon: ZulipIcons.remove,
             tooltip: zulipLocalizations.searchMessagesClearButtonTooltip,
             onPressed: _clearInput,
-            // This and `suffixIconConstraints` allow 42px square touch target.
-            visualDensity: VisualDensity.compact,
-            highlightColor: Colors.transparent,
-            style: ButtonStyle(
-              padding: WidgetStatePropertyAll(EdgeInsets.zero),
-              splashFactory: NoSplash.splashFactory,
-            ),
-            iconSize: 24,
-            icon: Icon(ZulipIcons.remove)),
-          suffixIconColor: designVariables.textMessageMuted,
-          suffixIconConstraints: BoxConstraints(minWidth: 42, minHeight: 42)));
+            size: .medium,
+            backgroundWhenPressed: false,
+            intent: .neutral)));
   }
 }
 
