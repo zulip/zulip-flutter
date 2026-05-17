@@ -6,7 +6,6 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/code_block.dart';
 import 'package:zulip/model/content.dart';
-import 'package:zulip/model/katex.dart';
 
 import 'binding.dart';
 import 'content_checks.dart';
@@ -605,16 +604,7 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
-    MathInlineNode(texSource: r'\lambda', nodes: [
-      KatexSpanNode(nodes: [
-        KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
-        KatexSpanNode(
-          styles: KatexSpanStyles(
-            fontFamily: 'KaTeX_Math',
-            fontStyle: KatexSpanFontStyle.italic),
-          text: 'λ'),
-      ]),
-    ]));
+    MathInlineNode(texSource: r'\lambda'));
 
   // A test message to test the fallback behaviour of KaTeX implementation.
   static final mathInlineUnknown = ContentExample.inline(
@@ -628,7 +618,7 @@ class ContentExample {
         '<span class="base unknown">' // Server doesn't generate this 'unknown' class.
         '<span class="strut" style="height:0.6944em;"></span>'
         '<span class="mord mathnormal">λ</span></span></span></span></p>',
-    MathInlineNode(texSource: r'\lambda', nodes: null));
+    MathInlineNode(texSource: r'\lambda'));
 
   static const mathBlock = ContentExample(
     'math block',
@@ -638,16 +628,7 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
-    [MathBlockNode(texSource: r'\lambda', nodes: [
-      KatexSpanNode(nodes: [
-        KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
-        KatexSpanNode(
-          styles: KatexSpanStyles(
-            fontFamily: 'KaTeX_Math',
-            fontStyle: KatexSpanFontStyle.italic),
-          text: 'λ'),
-      ]),
-    ])]);
+    [MathBlockNode(texSource: r'\lambda')]);
 
   // A test message to test the fallback behaviour of KaTeX implementation.
   static const mathBlockUnknown = ContentExample(
@@ -661,7 +642,7 @@ class ContentExample {
         '<span class="base unknown">' // Server doesn't generate this 'unknown' class.
           '<span class="strut" style="height:0.6944em;"></span>'
           '<span class="mord mathnormal">λ</span></span></span></span></span></p>',
-    [MathBlockNode(texSource: r'\lambda', nodes: null)]);
+    [MathBlockNode(texSource: r'\lambda')]);
 
   static const mathBlocksMultipleInParagraph = ContentExample(
     'math blocks, multiple in paragraph',
@@ -676,26 +657,8 @@ class ContentExample {
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>b</mi></mrow>'
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
-      MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(nodes: [
-          KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
-          KatexSpanNode(
-            styles: KatexSpanStyles(
-              fontFamily: 'KaTeX_Math',
-              fontStyle: KatexSpanFontStyle.italic),
-            text: 'a'),
-        ]),
-      ]),
-      MathBlockNode(texSource: 'b', nodes: [
-        KatexSpanNode(nodes: [
-          KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
-          KatexSpanNode(
-            styles: KatexSpanStyles(
-              fontFamily: 'KaTeX_Math',
-              fontStyle: KatexSpanFontStyle.italic),
-            text: 'b'),
-        ]),
-      ]),
+      MathBlockNode(texSource: 'a'),
+      MathBlockNode(texSource: 'b'),
     ]);
 
   static const mathBlockInQuote = ContentExample(
@@ -713,16 +676,7 @@ class ContentExample {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
-      MathBlockNode(texSource: r'\lambda', nodes: [
-        KatexSpanNode(nodes: [
-          KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
-          KatexSpanNode(
-            styles: KatexSpanStyles(
-              fontFamily: 'KaTeX_Math',
-              fontStyle: KatexSpanFontStyle.italic),
-            text: 'λ'),
-        ]),
-      ]),
+      MathBlockNode(texSource: r'\lambda'),
     ])]);
 
   static const mathBlocksMultipleInQuote = ContentExample(
@@ -741,26 +695,8 @@ class ContentExample {
         '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
-      MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(nodes: [
-          KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
-          KatexSpanNode(
-            styles: KatexSpanStyles(
-              fontFamily: 'KaTeX_Math',
-              fontStyle: KatexSpanFontStyle.italic),
-            text: 'a'),
-        ]),
-      ]),
-      MathBlockNode(texSource: 'b', nodes: [
-        KatexSpanNode(nodes: [
-          KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
-          KatexSpanNode(
-            styles: KatexSpanStyles(
-              fontFamily: 'KaTeX_Math',
-              fontStyle: KatexSpanFontStyle.italic),
-            text: 'b'),
-        ]),
-      ]),
+      MathBlockNode(texSource: 'a'),
+      MathBlockNode(texSource: 'b'),
     ])]);
 
   static const mathBlockBetweenImagePreviews = ContentExample(
@@ -788,16 +724,7 @@ class ContentExample {
           originalWidth: null,
           originalHeight: null),
       ]),
-      MathBlockNode(texSource: 'a', nodes: [
-        KatexSpanNode(nodes: [
-          KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
-          KatexSpanNode(
-            styles: KatexSpanStyles(
-              fontFamily: 'KaTeX_Math',
-              fontStyle: KatexSpanFontStyle.italic),
-            text: 'a'),
-        ]),
-      ]),
+      MathBlockNode(texSource: 'a'),
       ImagePreviewNodeList([
         ImagePreviewNode(
           originalSrc: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg/1280px-Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg',
