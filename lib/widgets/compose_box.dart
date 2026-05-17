@@ -1172,7 +1172,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
   @override
   Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     // TODO(#114): This doesn't give quite the right UI on Android.
-    return _getFilePickerFiles(context, FileType.media);
+    return _getFilePickerFiles(context, FileType.image);
   }
 }
 
