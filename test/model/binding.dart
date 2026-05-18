@@ -83,6 +83,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetNotifications();
     _resetPickFiles();
     _resetPickImage();
+    _resetPickMultipleMedia();
     _resetWakelock();
   }
 
@@ -424,6 +425,42 @@ class TestZulipBinding extends ZulipBinding {
   }) async {
     (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
     return pickImageResult;
+  }
+
+  /// The value that `ZulipBinding.instance.pickMultipleMedia()` should return.
+  ///
+  /// See also [takePickMultipleMediaCalls].
+  List<XFile> pickMultipleMediaResult = const [];
+
+  void _resetPickMultipleMedia() {
+    pickMultipleMediaResult = const [];
+    _pickMultipleMediaCalls = null;
+  }
+
+  /// Consume the log of calls made to `ZulipBinding.instance.pickMultipleMedia()`.
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to `ZulipBinding.instance.pickMultipleMedia()` since the last call to
+  /// either this method or [reset].
+  ///
+  /// See also [pickMultipleMediaResult].
+  List<({
+    bool requestFullMetadata,
+  })> takePickMultipleMediaCalls() {
+    final result = _pickMultipleMediaCalls;
+    _pickMultipleMediaCalls = null;
+    return result ?? [];
+  }
+  List<({
+    bool requestFullMetadata,
+  })>? _pickMultipleMediaCalls;
+
+  @override
+  Future<List<XFile>> pickMultipleMedia({
+    bool requestFullMetadata = true,
+  }) async {
+    (_pickMultipleMediaCalls ??= []).add((requestFullMetadata: requestFullMetadata));
+    return pickMultipleMediaResult;
   }
 
   /// Returns the current status of wakelock, which can be
