@@ -217,6 +217,14 @@ abstract class ZulipBinding {
     bool requestFullMetadata,
   });
 
+  /// Pick multiple images and/or videos from the media library,
+  /// via package:image_picker.
+  ///
+  /// This wraps [image_picker.ImagePicker.pickMultipleMedia].
+  Future<List<image_picker.XFile>> pickMultipleMedia({
+    bool requestFullMetadata,
+  });
+
   /// Enables or disables keeping the screen on, via package:wakelock_plus.
   ///
   /// This wraps [wakelock_plus.WakelockPlus.toggle].
@@ -555,6 +563,14 @@ class LiveZulipBinding extends ZulipBinding {
   }) async {
     return image_picker.ImagePicker()
       .pickImage(source: source, requestFullMetadata: requestFullMetadata);
+  }
+
+  @override
+  Future<List<image_picker.XFile>> pickMultipleMedia({
+    bool requestFullMetadata = true,
+  }) async {
+    return image_picker.ImagePicker()
+      .pickMultipleMedia(requestFullMetadata: requestFullMetadata);
   }
 
   @override
