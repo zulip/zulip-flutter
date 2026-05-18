@@ -1203,7 +1203,18 @@ class _AttachMediaButton extends _AttachUploadsButton {
   @override
   Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
     // TODO(#114): This doesn't give quite the right UI on Android.
-    return _getFilePickerFiles(context, FileType.media);
+    final List<XFile> results;
+    try {
+      results = await ZulipBinding.instance.pickMultipleMedia(
+        requestFullMetadata: false);
+    } catch (e) {
+      if (!context.mounted) return [];
+      showErrorDialog(context: context,
+        title: ZulipLocalizations.of(context).errorDialogTitle,
+        message: e.toString());
+      return [];
+    }
+    return Future.wait(results.map(_fileFromXFile));
   }
 }
 
