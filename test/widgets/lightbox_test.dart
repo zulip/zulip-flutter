@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -256,7 +257,10 @@ void main() {
 
       final initialImagePosition = tester.getRect(imageFinder);
       await tester.tap(imageFinder);
-      await tester.pump();
+      // Wait for `kDoubleTapTimeout` duration because of the delayed
+      // triggering of the `onTap` handler caused by the `onDoubleTap`
+      // handler in MessageWithPossibleSender widget.
+      await tester.pump(kDoubleTapTimeout);
       // pump to start hero animation
       await tester.pump();
 

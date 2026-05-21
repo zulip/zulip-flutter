@@ -6,6 +6,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -2113,7 +2114,10 @@ void main() {
       await tester.pump(Duration.zero);
       await takeErrorDialogAndPump(tester);
       await tester.tap(find.text('EDIT NOT SAVED'));
-      await tester.pump();
+      // Wait for `kDoubleTapTimeout` duration because of the delayed
+      // triggering of the `onTap` handler caused by the `onDoubleTap`
+      // handler in MessageWithPossibleSender widget.
+      await tester.pump(kDoubleTapTimeout);
       connection.takeRequests();
     }
 
@@ -2317,7 +2321,10 @@ void main() {
 
         // Expect confirmation dialog; tap Cancel
         await tester.tap(find.text('EDIT NOT SAVED'));
-        await tester.pump();
+        // Wait for `kDoubleTapTimeout` duration because of the delayed
+        // triggering of the `onTap` handler caused by the `onDoubleTap`
+        // handler in MessageWithPossibleSender widget.
+        await tester.pump(kDoubleTapTimeout);
         await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: false);
         checkNotInEditingMode(tester,
           narrow: narrow, expectedContentText: 'composing new message');
@@ -2327,7 +2334,10 @@ void main() {
 
         // Try again, but this time tap Discard and expect to enter edit session
         await tester.tap(find.text('EDIT NOT SAVED'));
-        await tester.pump();
+        // Wait for `kDoubleTapTimeout` duration because of the delayed
+        // triggering of the `onTap` handler caused by the `onDoubleTap`
+        // handler in MessageWithPossibleSender widget.
+        await tester.pump(kDoubleTapTimeout);
         await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: true);
         await tester.pump();
         checkContentInputValue(tester, 'bar');

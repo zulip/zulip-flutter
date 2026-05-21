@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
@@ -19,6 +20,7 @@ import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
@@ -2429,7 +2431,10 @@ void main() {
           users: [user], mutedUserIds: [user.userId], messages: [message]);
         checkMessage(message, expectIsMuted: true);
         await tester.tap(find.text('Reveal message'));
-        await tester.pump();
+        // Wait for `kDoubleTapTimeout` duration because of the delayed
+        // triggering of the `onTap` handler caused by the `onDoubleTap`
+        // handler in MessageWithPossibleSender widget.
+        await tester.pump(kDoubleTapTimeout);
         checkMessage(message, expectIsMuted: false);
 
         debugNetworkImageHttpClientProvider = null;
@@ -2443,6 +2448,10 @@ void main() {
         final target = tester.getTopLeft(textFinder)
           .translate(height/4, height/2); // aim for middle of first letter
         await tester.tapAt(target);
+        // Wait for `kDoubleTapTimeout` duration because of the delayed
+        // triggering of the `onTap` handler caused by the `onDoubleTap`
+        // handler in MessageWithPossibleSender widget.
+        await tester.pump(kDoubleTapTimeout);
       }
 
       final subscription = eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId));
@@ -2478,7 +2487,6 @@ void main() {
             renderedContent: '<p><a href="https://example/">link</a></p>'));
           await tester.pump();
           await tapText(tester, find.text('link'));
-          await tester.pump(Duration.zero);
           check(lastPushedRoute).isNull();
           final launchUrlCalls = testBinding.takeLaunchUrlCalls();
           check(launchUrlCalls.single.url).equals(Uri.parse('https://example/'));
@@ -2487,7 +2495,12 @@ void main() {
           await store.handleEvent(eg.updateMessageEditEvent(message,
             renderedContent: '<p>plain content</p>'));
           await tester.pump();
+
+          connection.prepare(json: eg.newestGetMessagesResult(
+            foundOldest: true, messages: messages).toJson());
           await tapText(tester, find.text('plain content'));
+          await tester.pump(Duration.zero);
+
           if (expected) {
             final expectedNarrow = SendableNarrow.ofMessage(message, selfUserId: store.selfUserId);
 
@@ -2515,6 +2528,105 @@ void main() {
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.starred]));
       doTest(expected: true, MentionsNarrow(),
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.mentioned]));
+    });
+
+    group('Double tap', () {
+      Future<void> doubleTap(WidgetTester tester, Finder finder) async {
+        await tester.tap(finder);
+        await tester.pump(kDoubleTapTimeout - Duration(milliseconds: 1));
+        await tester.tap(finder);
+        await tester.pump(kDoubleTapMinTime);
+      }
+
+      // (adapted from test/widgets/content_test.dart)
+      Future<void> doubleTapText(WidgetTester tester, Finder textFinder) async {
+        final height = tester.getSize(textFinder).height;
+        final target = tester.getTopLeft(textFinder)
+          .translate(height/4, height/2); // aim for middle of first letter
+        await tester.tapAt(target);
+        await tester.pump(kDoubleTapTimeout - Duration(milliseconds: 1));
+        await tester.tapAt(target);
+        await tester.pump(kDoubleTapMinTime);
+      }
+
+      Condition<Object?> isReactionAdd(EmojiCandidate reactionEmoji, {required int messageId}) {
+        return (it) => it.isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/$messageId/reactions')
+          ..bodyFields.deepEquals({
+              'reaction_type': reactionEmoji.emojiType.toJson(),
+              'emoji_code': reactionEmoji.emojiCode,
+              'emoji_name': reactionEmoji.emojiName,
+            });
+      }
+
+      Condition<Object?> isReactionRemove(EmojiCandidate reactionEmoji, {required int messageId}) {
+        return (it) => it.isA<http.Request>()
+          ..method.equals('DELETE')
+          ..url.path.equals('/api/v1/messages/$messageId/reactions')
+          ..bodyFields.deepEquals({
+              'reaction_type': reactionEmoji.emojiType.toJson(),
+              'emoji_code': reactionEmoji.emojiCode,
+              'emoji_name': reactionEmoji.emojiName,
+            });
+      }
+
+      testWidgets('adds/removes +1 reaction', (tester) async {
+        final message = eg.streamMessage(id: 10);
+        await setupMessageListPage(tester, messages: [message]);
+
+        store.setServerEmojiData(eg.serverEmojiDataPopular);
+        final reactionEmoji = store.popularEmojiCandidates().first;
+
+        final messageFinder = find.byType(MessageWithPossibleSender);
+        check(messageFinder).findsOne();
+
+        connection.prepare(json: {});
+        await doubleTap(tester, messageFinder);
+        check(connection.lastRequest).which(isReactionAdd(messageId: 10, reactionEmoji));
+
+        await store.handleEvent(
+          ReactionEvent(
+            id: 10,
+            op: .add,
+            emojiName: reactionEmoji.emojiName,
+            emojiCode: reactionEmoji.emojiCode,
+            reactionType: reactionEmoji.emojiType,
+            userId: store.selfUserId,
+            messageId: 10));
+
+        connection.prepare(json: {});
+        await doubleTap(tester, messageFinder);
+        check(connection.lastRequest).which(isReactionRemove(messageId: 10, reactionEmoji));
+      });
+
+      testWidgets('on interactive element adds/removes +1 reaction', (tester) async {
+        final message = eg.streamMessage(id: 10, content: '<p><a href="https://example/">link</a></p>');
+        await setupMessageListPage(tester, messages: [message]);
+
+        store.setServerEmojiData(eg.serverEmojiDataPopular);
+        final reactionEmoji = store.popularEmojiCandidates().first;
+
+        check(find.byType(MessageWithPossibleSender)).findsOne();
+
+        connection.prepare(json: {});
+        await doubleTapText(tester, find.text('link'));
+        check(connection.lastRequest).which(isReactionAdd(messageId: 10, reactionEmoji));
+
+        await store.handleEvent(
+          ReactionEvent(
+            id: 10,
+            op: .add,
+            emojiName: reactionEmoji.emojiName,
+            emojiCode: reactionEmoji.emojiCode,
+            reactionType: reactionEmoji.emojiType,
+            userId: store.selfUserId,
+            messageId: 10));
+
+        connection.prepare(json: {});
+        await doubleTapText(tester, find.text('link'));
+        check(connection.lastRequest).which(isReactionRemove(messageId: 10, reactionEmoji));
+      });
     });
   });
 
