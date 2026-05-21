@@ -7,6 +7,7 @@ import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -19,6 +20,7 @@ import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
@@ -2551,6 +2553,110 @@ void main() {
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.starred]));
       doTest(expected: true, MentionsNarrow(),
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.mentioned]));
+    });
+  });
+
+  group('Double tapping', () {
+    Future<void> doubleTap(WidgetTester tester, Finder finder) async {
+      await tester.tap(finder);
+      await tester.pump(Duration(milliseconds: 100));
+      await tester.tap(finder);
+      await tester.pump(Duration.zero);
+    }
+
+    Condition<Object?> isReactionAdd(EmojiCandidate reactionEmoji, {required int messageId}) {
+      return (it) => it.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/$messageId/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': reactionEmoji.emojiType.toJson(),
+            'emoji_code': reactionEmoji.emojiCode,
+            'emoji_name': reactionEmoji.emojiName,
+          });
+    }
+
+    Condition<Object?> isReactionRemove(EmojiCandidate reactionEmoji, {required int messageId}) {
+      return (it) => it.isA<http.Request>()
+        ..method.equals('DELETE')
+        ..url.path.equals('/api/v1/messages/$messageId/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': reactionEmoji.emojiType.toJson(),
+            'emoji_code': reactionEmoji.emojiCode,
+            'emoji_name': reactionEmoji.emojiName,
+          });
+    }
+
+    testWidgets('adds/removes +1 reaction, with haptic feedback', (tester) async {
+      final log = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (methodCall) async {
+          log.add(methodCall);
+          return null;
+        },
+      );
+
+      final message = eg.streamMessage(id: 10);
+      await setupMessageListPage(tester, messages: [message]);
+      connection.takeRequests();
+
+      store.setServerEmojiData(eg.serverEmojiDataPopular);
+      final reactionEmoji = store.popularEmojiCandidates().first;
+
+      final contentFinder = find.byType(MessageContent);
+      check(contentFinder).findsOne();
+
+      connection.prepare(json: {});
+      log.clear();
+      await doubleTap(tester, contentFinder);
+      check(log).single.isMethodCall(
+        'HapticFeedback.vibrate', arguments: 'HapticFeedbackType.lightImpact');
+      check(connection.lastRequest).which(isReactionAdd(messageId: 10, reactionEmoji));
+
+      await store.handleEvent(
+        ReactionEvent(
+          id: 10,
+          op: .add,
+          emojiName: reactionEmoji.emojiName,
+          emojiCode: reactionEmoji.emojiCode,
+          reactionType: reactionEmoji.emojiType,
+          userId: store.selfUserId,
+          messageId: 10));
+
+      connection.prepare(json: {});
+      log.clear();
+      await doubleTap(tester, contentFinder);
+      check(log).single.isMethodCall(
+        'HapticFeedback.vibrate', arguments: 'HapticFeedbackType.lightImpact');
+      check(connection.lastRequest).which(isReactionRemove(messageId: 10, reactionEmoji));
+    });
+
+    testWidgets('unrevealed message from muted sender, does nothing', (tester) async {
+      final message = eg.streamMessage(id: 10, sender: eg.otherUser);
+      await setupMessageListPage(tester, messages: [message],
+        mutedUserIds: [eg.otherUser.userId]);
+      connection.takeRequests();
+
+      store.setServerEmojiData(eg.serverEmojiDataPopular);
+      final reactionEmoji = store.popularEmojiCandidates().first;
+
+      final messageFinder = find.byType(MessageWithPossibleSender);
+      final contentFinder = find.byType(MessageContent);
+      final revealButtonFinder = find.text('Reveal message');
+      check(revealButtonFinder).findsOne();
+
+      connection.prepare(json: {});
+      // Check that double-tapping unrevealed message doesn't add reaction.
+      await doubleTap(tester, messageFinder);
+      check(connection.lastRequest).isNull();
+
+      await tester.tap(revealButtonFinder);
+      await tester.pump();
+
+      check(revealButtonFinder).findsNothing();
+      // Check that double-tapping revealed message content does add reaction.
+      await doubleTap(tester, contentFinder);
+      check(connection.lastRequest).which(isReactionAdd(messageId: 10, reactionEmoji));
     });
   });
 
