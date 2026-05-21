@@ -18,7 +18,7 @@ import 'dialog.dart';
 import 'icons.dart';
 import 'image.dart';
 import 'inset_shadow.dart';
-import 'katex.dart';
+import 'katex_widget.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
@@ -789,25 +789,16 @@ class MathBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final contentTheme = ContentTheme.of(context);
-
-    final nodes = node.nodes;
-    if (nodes == null) {
-      return _CodeBlockContainer(
-        borderColor: contentTheme.colorMathBlockBorder,
-        child: Text.rich(TextSpan(
-          style: contentTheme.codeBlockTextStyles.plain,
-          children: [TextSpan(text: node.texSource)])));
-    }
-
     return Center(
       child: Directionality(
         textDirection: TextDirection.ltr,
         child: SingleChildScrollViewWithScrollbar(
           scrollDirection: Axis.horizontal,
-          child: KatexWidget(
+          child: MathWidget(
+            texSource: node.texSource,
+            displayMode: true,
             ambientTextStyle: ContentTheme.of(context).textStylePlainParagraph,
-            nodes: nodes))));
+          ))));
   }
 }
 
@@ -1157,16 +1148,14 @@ class _InlineContentBuilder {
           child: InlineImage(node: node, ambientTextStyle: widget.style));
 
       case MathInlineNode():
-        final nodes = node.nodes;
-        return nodes == null
-          ? TextSpan(
-              style: ContentTheme.of(_context!).textStyleInlineMath
-                .copyWith(fontSize: widget.style.fontSize! * kInlineCodeFontSizeFactor),
-              children: [TextSpan(text: node.texSource)])
-          : WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: KatexWidget(ambientTextStyle: _resolveStyleStack(), nodes: nodes));
+        return WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: MathWidget(
+              texSource: node.texSource,
+              displayMode: false,
+              ambientTextStyle: _resolveStyleStack(),
+            ));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,

@@ -17,7 +17,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
-import 'package:zulip/widgets/katex.dart';
+import 'package:zulip/widgets/katex_widget.dart';
 import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -798,16 +798,14 @@ void main() {
     // how we render the inside of a math block.
     // These tests check how it relates to the enclosing Zulip message.
 
-    testContentSmoke(ContentExample.mathBlock);
+    testWidgets('smoke: ${ContentExample.mathBlock.description}', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
+      tester.widget(find.byType(MathWidget));
+    });
 
     testWidgets('displays KaTeX content', (tester) async {
       await prepareContent(tester, plainContent(ContentExample.mathBlock.html));
-      tester.widget(find.text('λ', findRichText: true));
-    });
-
-    testWidgets('fallback to displaying KaTeX source if unsupported KaTeX HTML', (tester) async {
-      await prepareContent(tester, plainContent(ContentExample.mathBlockUnknown.html));
-      tester.widget(find.text(r'\lambda', findRichText: true));
+      tester.widget(find.byType(MathWidget));
     });
   });
 
@@ -1517,7 +1515,10 @@ void main() {
     // how we render the inside of a math span.
     // These tests check how it relates to the enclosing Zulip message.
 
-    testContentSmoke(ContentExample.mathInline);
+    testWidgets('smoke: ${ContentExample.mathInline.description}', (tester) async {
+      await prepareContent(tester, plainContent(ContentExample.mathInline.html));
+      tester.widget(find.byType(MathWidget));
+    });
 
     final mathInlineHtml = '<span class="katex">'
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
@@ -1528,8 +1529,8 @@ void main() {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/1823
       await prepareContent(tester,
         plainContent('<p><a href="https://example/">$mathInlineHtml</a></p>'));
-      final style = mergedStyleOf(tester, 'λ');
-      check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+      final mathWidget = tester.widget<MathWidget>(find.byType(MathWidget));
+      check(mathWidget.ambientTextStyle?.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
     });
 
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
@@ -1538,46 +1539,14 @@ void main() {
         targetFontSizeFinder: (rootSpan) {
           late final double result;
           rootSpan.visitChildren((span) {
-            if (span case WidgetSpan(child: KatexWidget() && var widget)) {
-              result = mergedStyleOf(tester,
-                findAncestor: find.byWidget(widget), r'λ')!.fontSize!;
+            if (span case WidgetSpan(child: MathWidget() && var widget)) {
+              result = widget.ambientTextStyle!.fontSize!;
               return false;
             }
             return true;
           });
           return result;
         });
-    });
-
-    group('fallback to displaying KaTeX source if unsupported KaTeX HTML', () {
-      testContentSmoke(ContentExample.mathInlineUnknown);
-
-      assert(ContentExample.mathInlineUnknown.html.startsWith('<p>'));
-      assert(ContentExample.mathInlineUnknown.html.endsWith('</p>'));
-      final unsupportedKatexHtml = ContentExample.mathInlineUnknown.html
-        .substring(3, ContentExample.mathInlineUnknown.html.length - 4);
-      final expectedText = ContentExample.mathInlineUnknown.expectedText!;
-
-      testWidgets('maintains font-size ratio with surrounding text, when falling back to TeX source', (tester) async {
-        await checkFontSizeRatio(tester,
-          targetHtml: unsupportedKatexHtml,
-          targetFontSizeFinder: mkTargetFontSizeFinderFromPattern(expectedText));
-      });
-
-      testFontWeight('is bold in bold span',
-        // Regression test for: https://github.com/zulip/zulip-flutter/issues/1812
-        expectedWght: 600,
-        content: plainContent('<p><strong>$unsupportedKatexHtml</strong></p>'),
-        styleFinder: (tester) => mergedStyleOf(tester, expectedText)!,
-      );
-
-      testWidgets('is link-colored in link span', (tester) async {
-        // Regression test for: https://github.com/zulip/zulip-flutter/issues/806
-        await prepareContent(tester,
-          plainContent('<p><a href="https://example/">$unsupportedKatexHtml</a></p>'));
-        final style = mergedStyleOf(tester, expectedText);
-        check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
-      });
     });
   });
 

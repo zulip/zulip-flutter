@@ -342,176 +342,28 @@ class CodeBlockSpanNode extends ContentNode {
   }
 }
 
-/// A complete KaTeX math expression within Zulip content,
+/// A complete math expression within Zulip content,
 /// whether block or inline.
-///
-/// The content nodes that are descendants of this node
-/// will all be of KaTeX-specific types, such as [KatexNode].
 sealed class MathNode extends ContentNode {
   const MathNode({
     super.debugHtmlNode,
     required this.texSource,
-    required this.nodes,
-    this.debugHardFailReason,
-    this.debugSoftFailReason,
   });
 
   final String texSource;
 
-  /// Parsed KaTeX node tree to be used for rendering the KaTeX content.
-  ///
-  /// It will be null if the parser encounters an unsupported HTML element or
-  /// CSS style, indicating that the widget should render the [texSource] as a
-  /// fallback instead.
-  final List<KatexNode>? nodes;
+  @override
+  bool operator ==(Object other) {
+    return other is MathNode && other.texSource == texSource;
+  }
 
-  final KatexParserHardFailReason? debugHardFailReason;
-  final KatexParserSoftFailReason? debugSoftFailReason;
+  @override
+  int get hashCode => Object.hash('MathNode', texSource);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('texSource', texSource));
-  }
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
-  }
-}
-
-/// A content node that expects a generic KaTeX context from its parent.
-///
-/// Each of these will have a [MathNode] as an ancestor.
-sealed class KatexNode extends ContentNode {
-  const KatexNode({super.debugHtmlNode});
-}
-
-/// A generic KaTeX content node, corresponding to any span in KaTeX HTML
-/// that we don't otherwise specially handle.
-class KatexSpanNode extends KatexNode {
-  const KatexSpanNode({
-    this.styles = const KatexSpanStyles(),
-    this.text,
-    this.nodes,
-    super.debugHtmlNode,
-  }) : assert((text != null) ^ (nodes != null));
-
-  final KatexSpanStyles styles;
-
-  /// The text this KaTeX node contains.
-  ///
-  /// It will be null if [nodes] is non-null.
-  final String? text;
-
-  /// The child nodes of this node in the KaTeX HTML tree.
-  ///
-  /// It will be null if [text] is non-null.
-  final List<KatexNode>? nodes;
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<KatexSpanStyles>('styles', styles));
-    properties.add(StringProperty('text', text));
-  }
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    return nodes?.map((node) => node.toDiagnosticsNode()).toList() ?? const [];
-  }
-}
-
-/// A KaTeX strut, corresponding to a `span.strut` node in KaTeX HTML.
-class KatexStrutNode extends KatexNode {
-  const KatexStrutNode({
-    required this.heightEm,
-    required this.verticalAlignEm,
-    super.debugHtmlNode,
-  });
-
-  final double heightEm;
-  final double? verticalAlignEm;
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DoubleProperty('heightEm', heightEm));
-    properties.add(DoubleProperty('verticalAlignEm', verticalAlignEm));
-  }
-}
-
-/// A KaTeX "vertical list", corresponding to a `span.vlist-t` in KaTeX HTML.
-///
-/// These nodes in KaTeX HTML have a very specific structure.
-/// The children of these nodes in our tree correspond in the HTML to
-/// certain great-grandchildren (certain `> .vlist-r > .vlist > span`)
-/// of the `.vlist-t` node.
-class KatexVlistNode extends KatexNode {
-  const KatexVlistNode({
-    required this.rows,
-    super.debugHtmlNode,
-  });
-
-  final List<KatexVlistRowNode> rows;
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    return rows.map((row) => row.toDiagnosticsNode()).toList();
-  }
-}
-
-/// An element of a KaTeX "vertical list"; a child of a [KatexVlistNode].
-///
-/// These correspond to certain `.vlist-t > .vlist-r > .vlist > span` nodes
-/// in KaTeX HTML.  The [KatexVlistNode] parent in our tree
-/// corresponds to the `.vlist-t` great-grandparent in the HTML.
-class KatexVlistRowNode extends ContentNode {
-  const KatexVlistRowNode({
-    required this.verticalOffsetEm,
-    required this.node,
-    super.debugHtmlNode,
-  });
-
-  final double verticalOffsetEm;
-  final KatexSpanNode node;
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DoubleProperty('verticalOffsetEm', verticalOffsetEm));
-  }
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    return [node.toDiagnosticsNode()];
-  }
-}
-
-/// A KaTeX node corresponding to negative values for `margin-left`
-/// or `margin-right` in the inline CSS style of a KaTeX HTML node.
-///
-/// The parser synthesizes these as additional nodes, not corresponding
-/// directly to any node in the HTML.
-class KatexNegativeMarginNode extends KatexNode {
-  const KatexNegativeMarginNode({
-    required this.leftOffsetEm,
-    required this.nodes,
-    super.debugHtmlNode,
-  }) : assert(leftOffsetEm < 0);
-
-  final double leftOffsetEm;
-  final List<KatexNode> nodes;
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DoubleProperty('leftOffsetEm', leftOffsetEm));
-  }
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    return nodes.map((node) => node.toDiagnosticsNode()).toList();
   }
 }
 
@@ -519,9 +371,6 @@ class MathBlockNode extends MathNode implements BlockContentNode {
   const MathBlockNode({
     super.debugHtmlNode,
     required super.texSource,
-    required super.nodes,
-    super.debugHardFailReason,
-    super.debugSoftFailReason,
   });
 }
 
@@ -1222,9 +1071,6 @@ class MathInlineNode extends MathNode implements InlineContentNode {
   const MathInlineNode({
     super.debugHtmlNode,
     required super.texSource,
-    required super.nodes,
-    super.debugHardFailReason,
-    super.debugSoftFailReason,
   });
 }
 
@@ -1316,14 +1162,11 @@ class _ZulipInlineContentParser {
 
   InlineContentNode? parseInlineMath(dom.Element element) {
     final debugHtmlNode = kDebugMode ? element : null;
-    final parsed = parseMath(element, block: false);
-    if (parsed == null) return null;
+    final texSource = parseMath(element, block: false);
+    if (texSource == null) return null;
     return MathInlineNode(
-      texSource: parsed.texSource,
-      nodes: parsed.nodes,
-      debugHtmlNode: debugHtmlNode,
-      debugHardFailReason: kDebugMode ? parsed.hardFailReason : null,
-      debugSoftFailReason: kDebugMode ? parsed.softFailReason : null);
+      texSource: texSource,
+      debugHtmlNode: debugHtmlNode);
   }
 
   MentionNode? parseMention(dom.Element element) {
@@ -1437,7 +1280,8 @@ class _ZulipInlineContentParser {
     InlineContentNode unimplemented() => UnimplementedInlineContentNode(htmlNode: node);
 
     if (node is dom.Text) {
-      return TextNode(node.text, debugHtmlNode: debugHtmlNode);
+      final text = node.text;
+      return TextNode(text, debugHtmlNode: debugHtmlNode);
     }
     if (node is! dom.Element) {
       return unimplemented();
@@ -2034,14 +1878,11 @@ class _ZulipContentParser {
     })());
 
     final firstChild = nodes.first as dom.Element;
-    final parsed = parseMath(firstChild, block: true);
-    if (parsed != null) {
+    final texSource = parseMath(firstChild, block: true);
+    if (texSource != null) {
       result.add(MathBlockNode(
-        texSource: parsed.texSource,
-        nodes: parsed.nodes,
-        debugHtmlNode: kDebugMode ? firstChild : null,
-        debugHardFailReason: kDebugMode ? parsed.hardFailReason : null,
-        debugSoftFailReason: kDebugMode ? parsed.softFailReason : null));
+        texSource: texSource,
+        debugHtmlNode: kDebugMode ? firstChild : null));
     } else {
       result.add(UnimplementedBlockContentNode(htmlNode: firstChild));
     }
@@ -2072,14 +1913,11 @@ class _ZulipContentParser {
       if (child case dom.Text(text: '\n\n')) continue;
 
       if (child case dom.Element(localName: 'span', className: 'katex-display')) {
-        final parsed = parseMath(child, block: true);
-        if (parsed != null) {
+        final texSource = parseMath(child, block: true);
+        if (texSource != null) {
           result.add(MathBlockNode(
-            texSource: parsed.texSource,
-            nodes: parsed.nodes,
-            debugHtmlNode: debugHtmlNode,
-            debugHardFailReason: kDebugMode ? parsed.hardFailReason : null,
-            debugSoftFailReason: kDebugMode ? parsed.softFailReason : null));
+            texSource: texSource,
+            debugHtmlNode: debugHtmlNode));
           continue;
         }
       }
