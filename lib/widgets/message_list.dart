@@ -2367,9 +2367,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         || KeywordSearchNarrow() => true,
     };
 
-    final showAsMuted = store.isUserMuted(message.senderId)
-      && !MessageListPage.maybeRevealedMutedMessagesOf(context)!
-                         .isMutedMessageRevealed(message.id);
+    final showAsMuted = _isMutedMessageHidden(context, message);
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -2433,6 +2431,15 @@ class MessageWithPossibleSender extends StatelessWidget {
             ]),
         ])));
   }
+}
+
+bool _isMutedMessageHidden(BuildContext context, Message message) {
+  final store = PerAccountStoreWidget.of(context);
+  final isRevealed = MessageListPage.maybeRevealedMutedMessagesOf(context)
+    // Fallback is in case message action sheet header calls this function.
+    // Action sheet can only be opened when muted message is revealed.
+    ?.isMutedMessageRevealed(message.id) ?? true;
+  return store.isUserMuted(message.senderId) && !isRevealed;
 }
 
 class _EditMessageStatusRow extends StatelessWidget {
