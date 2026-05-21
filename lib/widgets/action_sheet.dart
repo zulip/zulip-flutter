@@ -1446,14 +1446,6 @@ class ReactionButtons extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
-    bool hasSelfVote(EmojiCandidate emoji) {
-      return message.reactions?.aggregated.any((reactionWithVotes) {
-        return reactionWithVotes.reactionType == ReactionType.unicodeEmoji
-          && reactionWithVotes.emojiCode == emoji.emojiCode
-          && reactionWithVotes.userIds.contains(store.selfUserId);
-      }) ?? false;
-    }
-
     return Container(
       decoration: BoxDecoration(
         color: designVariables.contextMenuItemBg.withFadedAlpha(0.12)),
@@ -1463,7 +1455,7 @@ class ReactionButtons extends StatelessWidget {
             _buildButton(
               context: context,
               emoji: emoji,
-              isSelfVoted: hasSelfVote(emoji),
+              isSelfVoted: store.selfHasVoted(message.id, withEmoji: emoji),
               isFirst: index == 0))))),
         InkWell(
           onTap: _handleTapMore,
