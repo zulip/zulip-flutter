@@ -278,18 +278,21 @@ abstract final class ZulipAction {
 
   /// Adds or removes a reaction on the message corresponding to
   /// the [messageId], showing an error dialog on failure.
-  /// Returns a Future resolving to true if operation succeeds.
-  static Future<void> addOrRemoveReaction({
-    required BuildContext context,
-    required bool doRemoveReaction,
+  ///
+  /// The reaction is toggled depending on whether it is self-voted or not.
+  ///
+  /// Returns a Future that completes successfully whether the operation
+  /// succeeds or fails.
+  static Future<void> addOrRemoveReaction(BuildContext context, {
     required int messageId,
     required EmojiCandidate emoji,
-    required String errorDialogTitle,
   }) async {
     final store = PerAccountStoreWidget.of(context);
-    String? errorMessage;
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    final isSelfVoted = store.selfHasVoted(messageId, withEmoji: emoji);
     try {
-      await (doRemoveReaction ? removeReaction : addReaction).call(
+      await (isSelfVoted ? removeReaction : addReaction).call(
         store.connection,
         messageId: messageId,
         reactionType: emoji.emojiType,
@@ -299,6 +302,7 @@ abstract final class ZulipAction {
     } catch (e) {
       if (!context.mounted) return;
 
+      String? errorMessage;
       switch (e) {
         case ZulipApiException():
           errorMessage = e.message;
@@ -309,7 +313,9 @@ abstract final class ZulipAction {
       }
 
       showErrorDialog(context: context,
-        title: errorDialogTitle,
+        title: isSelfVoted
+          ? zulipLocalizations.errorReactionRemovingFailedTitle
+          : zulipLocalizations.errorReactionAddingFailedTitle,
         message: errorMessage);
       return;
     }
