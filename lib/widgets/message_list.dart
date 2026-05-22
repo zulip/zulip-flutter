@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/content.dart';
 import '../model/database.dart';
 import '../model/message.dart';
 import '../model/message_list.dart';
@@ -1772,8 +1773,13 @@ class MessageItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final item = this.item;
+    final backgroundColor = switch (item) {
+      MessageListMessageItem(:final message, :final content) =>
+        messageBackgroundColor(context, message, content),
+      MessageListOutboxMessageItem() => designVariables.bgMessageRegular,
+    };
     Widget child = ColoredBox(
-      color: designVariables.bgMessageRegular,
+      color: backgroundColor,
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(
@@ -1796,6 +1802,39 @@ class MessageItem extends StatelessWidget {
       allowOverflow: !item.isLastInBlock,
       header: header,
       child: child);
+  }
+}
+
+Color messageBackgroundColor(
+  BuildContext context,
+  Message message,
+  ZulipMessageContent content,
+) {
+  final designVariables = DesignVariables.of(context);
+  final hasMention = message.flags.any((flag) => flag.isMentionFlag);
+  if (_isMutedMessageHidden(context, message) || !hasMention) {
+    return designVariables.bgMessageRegular;
+  }
+
+  switch (content) {
+    case PollContent(): return designVariables.bgMessageRegular;
+    case ZulipContent(:final mentionedUserIds):
+      // If a message includes a user mention, then we don't care if there is a
+      // group/wildcard mention, we color the message as a user mention.
+      if (message.flags.contains(MessageFlag.mentioned)) {
+        final store = PerAccountStoreWidget.of(context);
+        if (mentionedUserIds.contains(store.selfUserId)) {
+          // Following web, highlight the background only in DMs and subscribed channels.
+          //   See `direct_mention` gate in zulip:web/src/message_list_view.ts.
+          return switch (message) {
+            DmMessage() => designVariables.bgMessageDirectMention,
+            StreamMessage(:final streamId) => store.subscriptions.containsKey(streamId)
+              ? designVariables.bgMessageDirectMention
+              : designVariables.bgMessageRegular,
+          };
+        }
+      }
+      return designVariables.bgMessageGroupOrWildcardMention;
   }
 }
 
