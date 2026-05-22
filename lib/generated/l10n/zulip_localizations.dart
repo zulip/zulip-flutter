@@ -2070,6 +2070,18 @@ abstract class ZulipLocalizations {
   /// **'Topics'**
   String get topicsButtonTooltip;
 
+  /// Hint text for the filter topics text field in topic-list page.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter topics'**
+  String get filterTopicsHintText;
+
+  /// Placeholder for the topic list when there are no topics matching the filters.
+  ///
+  /// In en, this message translates to:
+  /// **'No topics match your filters.'**
+  String get emptyFilteredTopics;
+
   /// Tooltip for button to navigate to a given channel's feed
   ///
   /// In en, this message translates to:
