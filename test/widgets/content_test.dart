@@ -17,12 +17,14 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
+import 'package:zulip/widgets/inset_shadow.dart';
 import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/text.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -1944,7 +1946,7 @@ void main() {
 
   group('WebsitePreview', () {
     Future<void> prepare(WidgetTester tester, String html) async {
-      await prepareContent(tester, plainContent(html),
+      await prepareContent(tester, messageContent(html),
         wrapWithPerAccountStoreWidget: true);
     }
 
@@ -2002,6 +2004,26 @@ void main() {
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: url, mode: LaunchMode.inAppBrowserView));
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('background color for self user mention', (tester) async {
+      final html =
+        '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></p>'
+        '${ContentExample.websitePreviewSmoke.html}';
+      final stream = eg.stream();
+
+      await prepareContent(tester,
+        wrapWithPerAccountStoreWidget: true,
+        initialSnapshot: eg.initialSnapshot(
+          subscriptions: [eg.subscription(stream)]),
+        MessageContent(
+          message: eg.streamMessage(
+            stream: stream,
+            content: html,
+            flags: [MessageFlag.mentioned]),
+          content: parseContent(html)));
+      check(tester.widget<InsetShadowBox>(find.byType(InsetShadowBox)).color)
+        .equals(DesignVariables.light.bgMessageDirectMention);
     });
   });
 

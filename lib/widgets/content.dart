@@ -26,7 +26,6 @@ import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
-import 'theme.dart';
 
 /// A central place for styles for Zulip content (rendered Zulip Markdown).
 ///
@@ -851,6 +850,7 @@ class WebsitePreview extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final resolvedImageSrcUrl = store.tryResolveUrl(node.imageSrcUrl);
     final isSmallWidth = MediaQuery.sizeOf(context).width <= 576;
+    final inheritedMessage = InheritedMessageWidget.of(context);
 
     // On Web on larger width viewports, the title and description container's
     // width is constrained using `max-width: calc(100% - 115px)`, we do not
@@ -883,9 +883,9 @@ class WebsitePreview extends StatelessWidget {
       child: InsetShadowBox(
         bottom: 8,
         // TODO(#488) use different color for non-message contexts
-        // TODO(#647) use different color for highlighted messages
         // TODO(#681) use different color for DM messages
-        color: DesignVariables.of(context).bgMessageRegular,
+        color: messageBackgroundColor(
+          context, inheritedMessage.message, inheritedMessage.content),
         child: ClipRect(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: 80),
