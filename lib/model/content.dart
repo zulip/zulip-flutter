@@ -1086,7 +1086,7 @@ sealed class MentionNode extends InlineContainerNode {
     required this.isSilent,
   });
 
-  final bool isSilent; // TODO(#647)
+  final bool isSilent;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
