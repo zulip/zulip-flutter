@@ -822,6 +822,24 @@ void main() {
     });
   });
 
+  testWidgets('date separator background color for self user mention', (tester) async {
+    final dayOne = DateTime.utc(2026, 1, 1, 12).millisecondsSinceEpoch ~/ 1000;
+    final dayTwo = DateTime.utc(2026, 1, 2, 12).millisecondsSinceEpoch ~/ 1000;
+
+    await setupMessageListPage(tester, messages: [
+      eg.streamMessage(timestamp: dayOne),
+      eg.streamMessage(timestamp: dayTwo,
+        content: '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></p>',
+        flags: [MessageFlag.mentioned]),
+    ]);
+    final coloredBox = tester.widget<ColoredBox>(find.descendant(
+      of: find.byType(DateSeparator),
+      matching: find.byType(ColoredBox),
+    ));
+    check(coloredBox.color)
+      .isSameColorAs(DesignVariables.light.bgMessageDirectMention);
+  });
+
   group('fetch initial batch of messages', () {
     // TODO(#1571): test effect of visitFirstUnread setting
     // TODO(#1569): test effect of initAnchorMessageId
