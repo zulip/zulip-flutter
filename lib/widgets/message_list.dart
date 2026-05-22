@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/content.dart';
 import '../model/database.dart';
 import '../model/message.dart';
 import '../model/message_list.dart';
@@ -1772,8 +1773,13 @@ class MessageItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final item = this.item;
+    final backgroundColor = switch (item) {
+      MessageListMessageItem(:final message, :final content) =>
+        messageBackgroundColor(context, message, content),
+      MessageListOutboxMessageItem() => designVariables.bgMessageRegular,
+    };
     Widget child = ColoredBox(
-      color: designVariables.bgMessageRegular,
+      color: backgroundColor,
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(
@@ -1797,6 +1803,43 @@ class MessageItem extends StatelessWidget {
       header: header,
       child: child);
   }
+}
+
+/// The background color for a message according to the mentions present.
+///
+/// A non-silent direct self-user mention, in a DM or subscribed channel, returns
+/// [DesignVariables.bgMessageDirectMention]; a group or wildcard mention returns
+/// [DesignVariables.bgMessageGroupOrWildcardMention]. Otherwise,
+/// [DesignVariables.bgMessageRegular] is returned.
+Color messageBackgroundColor(
+  BuildContext context,
+  Message message,
+  ZulipMessageContent content,
+) {
+  final designVariables = DesignVariables.of(context);
+  final hasMention = message.flags.any((flag) => flag.isMentionFlag);
+  if (!hasMention || content is! ZulipContent
+      || _isMutedMessageHidden(context, message)) {
+    return designVariables.bgMessageRegular;
+  }
+
+  final store = PerAccountStoreWidget.of(context);
+
+  // User mentions take precedence; we only color the message as a group/wildcard
+  // mention if there is no self-user mention present.
+  if (!message.flags.contains(MessageFlag.mentioned)
+      || !content.mentionedUserIds.contains(store.selfUserId)) {
+    return designVariables.bgMessageGroupOrWildcardMention;
+  }
+
+  // Following web, highlight the background only in DMs and subscribed channels.
+  //   See `direct_mention` gate in zulip:web/src/message_list_view.ts.
+  return switch (message) {
+    DmMessage() => designVariables.bgMessageDirectMention,
+    StreamMessage(:final streamId) => store.subscriptions.containsKey(streamId)
+      ? designVariables.bgMessageDirectMention
+      : designVariables.bgMessageRegular,
+  };
 }
 
 /// Widget responsible for showing the read status of a message.

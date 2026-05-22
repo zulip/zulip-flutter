@@ -151,6 +151,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.15),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.05),
     bgMenuButtonSelected: Colors.white,
+    bgMessageDirectMention: const HSLColor.fromAHSL(1, 240, 0.52, 0.95).toColor(),
+    bgMessageGroupOrWildcardMention: const HSLColor.fromAHSL(1, 180, 0.4, 0.94).toColor(),
     bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
     bgSearchInput: const Color(0xffe3e3e3),
     bgTopBar: const Color(0xfff5f5f5),
@@ -261,6 +263,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgCounterUnread: const Color(0xff666699).withValues(alpha: 0.37),
     bgMenuButtonActive: Colors.black.withValues(alpha: 0.2),
     bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
+    bgMessageDirectMention: const HSLColor.fromAHSL(1, 240, 0.13, 0.16).toColor(),
+    bgMessageGroupOrWildcardMention: const HSLColor.fromAHSL(1, 180, 0.13, 0.14).toColor(),
     bgMessageRegular: const Color(0xff1d1d1d),
     bgSearchInput: const Color(0xff313131),
     bgTopBar: const Color(0xff242424),
@@ -380,6 +384,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgCounterUnread,
     required this.bgMenuButtonActive,
     required this.bgMenuButtonSelected,
+    required this.bgMessageDirectMention,
+    required this.bgMessageGroupOrWildcardMention,
     required this.bgMessageRegular,
     required this.bgSearchInput,
     required this.bgTopBar,
@@ -491,6 +497,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color bgCounterUnread;
   final Color bgMenuButtonActive;
   final Color bgMenuButtonSelected;
+  final Color bgMessageDirectMention;
+  final Color bgMessageGroupOrWildcardMention;
   final Color bgMessageRegular;
   final Color bgSearchInput;
   final Color bgTopBar;
@@ -596,6 +604,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgCounterUnread,
     Color? bgMenuButtonActive,
     Color? bgMenuButtonSelected,
+    Color? bgMessageDirectMention,
+    Color? bgMessageGroupOrWildcardMention,
     Color? bgMessageRegular,
     Color? bgSearchInput,
     Color? bgTopBar,
@@ -696,6 +706,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: bgCounterUnread ?? this.bgCounterUnread,
       bgMenuButtonActive: bgMenuButtonActive ?? this.bgMenuButtonActive,
       bgMenuButtonSelected: bgMenuButtonSelected ?? this.bgMenuButtonSelected,
+      bgMessageDirectMention: bgMessageDirectMention ?? this.bgMessageDirectMention,
+      bgMessageGroupOrWildcardMention: bgMessageGroupOrWildcardMention ?? this.bgMessageGroupOrWildcardMention,
       bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
       bgTopBar: bgTopBar ?? this.bgTopBar,
@@ -803,6 +815,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgCounterUnread: Color.lerp(bgCounterUnread, other.bgCounterUnread, t)!,
       bgMenuButtonActive: Color.lerp(bgMenuButtonActive, other.bgMenuButtonActive, t)!,
       bgMenuButtonSelected: Color.lerp(bgMenuButtonSelected, other.bgMenuButtonSelected, t)!,
+      bgMessageDirectMention: Color.lerp(bgMessageDirectMention, other.bgMessageDirectMention, t)!,
+      bgMessageGroupOrWildcardMention: Color.lerp(bgMessageGroupOrWildcardMention, other.bgMessageGroupOrWildcardMention, t)!,
       bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
