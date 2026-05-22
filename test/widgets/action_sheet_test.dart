@@ -35,6 +35,7 @@ import 'package:share_plus_platform_interface/method_channel/method_channel_shar
 import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/read_receipts.dart';
 import 'package:zulip/widgets/subscription_list.dart';
+import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/topic_list.dart';
 import 'package:zulip/widgets/user.dart';
 import '../api/fake_api.dart';
@@ -1729,6 +1730,23 @@ void main() {
           of: find.byType(BottomSheet),
           matching: find.byType(Mention))
         ).findsOne();
+      });
+
+      testWidgets('color for self user mention', (tester) async {
+        final message = eg.streamMessage(
+          timestamp: 1671409088,
+          content: '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></p>',
+          flags: [MessageFlag.mentioned]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message));
+
+        final container = tester.widget<Container>(find.ancestor(
+          of: find.byType(SenderRow),
+          matching: find.byType(Container),
+        ).first);
+        check(container.color).isNotNull()
+          .isSameColorAs(DesignVariables.light.bgMessageDirectMention);
       });
 
       testWidgets('muted sender also shown', (tester) async {
