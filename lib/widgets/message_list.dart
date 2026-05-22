@@ -1331,7 +1331,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return StickyHeaderItem(allowOverflow: true,
           header: header,
-          child: DateSeparator(message: data.message));
+          child: DateSeparator(message: data.message, content: data.content));
       case MessageListMessageItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(
@@ -1735,9 +1735,11 @@ class RecipientHeader extends StatelessWidget {
 }
 
 class DateSeparator extends StatelessWidget {
-  const DateSeparator({super.key, required this.message});
+  const DateSeparator({super.key, required this.message, this.content});
 
   final MessageBase message;
+
+  final ZulipMessageContent? content;
 
   @override
   Widget build(BuildContext context) {
@@ -1749,8 +1751,14 @@ class DateSeparator extends StatelessWidget {
 
     final line = BorderSide(width: 0, color: designVariables.foreground);
 
+    final color = switch ((message, content)) {
+      (Message message, ZulipMessageContent content) =>
+        messageBackgroundColor(context, message, content),
+      _ => designVariables.bgMessageRegular,
+    };
+
     // TODO(#681) use different color for DM messages
-    return ColoredBox(color: designVariables.bgMessageRegular,
+    return ColoredBox(color: color,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
