@@ -1048,40 +1048,156 @@ void main() {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/1813
       await prepareContent(tester,
         wrapWithPerAccountStoreWidget: true,
-        plainContent('<p><em><span class="user-mention" data-user-id="13313">@Chris Bobbe</span></em></p>'));
+        messageContent('<p><em><span class="user-mention" data-user-id="13313">@Chris Bobbe</span></em></p>'));
       final style = mergedStyleOf(tester, '@Chris Bobbe');
       check(style!.fontStyle).equals(FontStyle.italic);
     });
 
-    testFontWeight('silent or non-self mention in plain paragraph',
+    testFontWeight('non-self mention in plain paragraph',
       expectedWght: 400,
-      // @_**Greg Price**
-      content: plainContent(
-        '<p><span class="user-mention silent" data-user-id="2187">Greg Price</span></p>'),
+      // @**Greg Price**
+      content: messageContent(
+        '<p><span class="user-mention" data-user-id="2187">@Greg Price</span></p>'),
       wrapWithPerAccountStoreWidget: true,
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(Mention)), 'Greg Price');
+          tester.widget(find.byType(Mention)), '@Greg Price');
       });
 
-    // TODO(#647):
-    //  testFontWeight('non-silent self-user mention in plain paragraph',
-    //    expectedWght: 600, // [etc.]
-
-    testFontWeight('silent or non-self mention in bold context',
+    testFontWeight('self-user mention in plain paragraph',
       expectedWght: 600,
-      // # @_**Chris Bobbe**
-      content: plainContent(
-        '<h1><span class="user-mention silent" data-user-id="13313">Chris Bobbe</span></h1>'),
+      // @**Self User**
+      content: messageContent(
+        '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></p>'),
       wrapWithPerAccountStoreWidget: true,
       styleFinder: (tester) {
         return textStyleFromWidget(tester,
-          tester.widget(find.byType(Mention)), 'Chris Bobbe');
+          tester.widget(find.byType(Mention)), '@${eg.selfUser.fullName}');
       });
 
-    // TODO(#647):
-    //  testFontWeight('non-silent self-user mention in bold context',
-    //    expectedWght: 800, // [etc.]
+    testFontWeight('non-self mention in bold context',
+      expectedWght: 600,
+      // # @**Chris Bobbe**
+      content: messageContent(
+        '<h1><span class="user-mention" data-user-id="13313">@Chris Bobbe</span></h1>'),
+      wrapWithPerAccountStoreWidget: true,
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(Mention)), '@Chris Bobbe');
+      });
+
+    testFontWeight('self-user mention in bold context',
+      expectedWght: 600,
+      // # @**Self User**
+      content: messageContent(
+        '<h1><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></h1>'),
+      wrapWithPerAccountStoreWidget: true,
+      styleFinder: (tester) {
+        return textStyleFromWidget(tester,
+          tester.widget(find.byType(Mention)), '@${eg.selfUser.fullName}');
+      });
+
+    group('font color', () {
+      Future<void> checkFontColor(
+        WidgetTester tester, {
+        required String html,
+        required String mentionText,
+        required Color Function(ContentTheme) expectColor,
+        List<MessageFlag>? flags,
+        List<UserGroup>? userGroups,
+      }) async {
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          initialSnapshot: eg.initialSnapshot(realmUserGroups: userGroups),
+          MessageContent(
+            message: eg.streamMessage(content: html, flags: flags ?? []),
+            content: parseContent(html)));
+        final contentTheme = ContentTheme.of(tester.element(find.byType(Mention)));
+        final style = textStyleFromWidget(tester,
+          tester.widget(find.byType(Mention)), mentionText);
+        check(style).color.equals(expectColor(contentTheme));
+      }
+
+      group('non-self', () {
+        testWidgets('user mention', (tester) async {
+          await checkFontColor(tester,
+            html: ContentExample.userMentionPlain.html,
+            mentionText: ContentExample.userMentionPlain.expectedText!,
+            expectColor: (theme) => theme.textStylePlainParagraph.color!);
+        });
+
+        testWidgets('user group mention', (tester) async {
+          await checkFontColor(tester,
+            html: '<p><span class="user-group-mention" data-user-group-id="186">@test-empty</span></p>',
+            mentionText: '@test-empty',
+            expectColor: (theme) => theme.textStylePlainParagraph.color!,
+            userGroups: [eg.userGroup(id: 186, name: 'test-empty')]);
+        });
+
+        testWidgets('topic wildcard mention', (tester) async {
+          await checkFontColor(tester,
+            html: ContentExample.topicMentionPlain.html,
+            mentionText: ContentExample.topicMentionPlain.expectedText!,
+            expectColor: (theme) => theme.textStylePlainParagraph.color!);
+        });
+
+        testWidgets('channel wildcard mention', (tester) async {
+          await checkFontColor(tester,
+            html: ContentExample.channelWildcardMentionSilent.html,
+            mentionText: ContentExample.channelWildcardMentionSilent.expectedText!,
+            expectColor: (theme) => theme.textStylePlainParagraph.color!);
+        });
+      });
+
+      group('self', () {
+        testWidgets('user mention', (tester) async {
+          await checkFontColor(tester,
+            html: '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></p>',
+            mentionText: '@${eg.selfUser.fullName}',
+            expectColor: (theme) => theme.colorTextDirectMention);
+        });
+
+        testWidgets('user group mention', (tester) async {
+          await checkFontColor(tester,
+            html: '<p><span class="user-group-mention" data-user-group-id="186">@old-name</span></p>',
+            mentionText: '@new-name',
+            expectColor: (theme) => theme.colorTextGroupOrWildcardMention,
+            userGroups: [
+              eg.userGroup(id: 186, name: 'new-name', members: [eg.selfUser.userId]),
+            ]);
+        });
+
+        testWidgets('plain topic wildcard mention', (tester) async {
+          await checkFontColor(tester,
+            html: ContentExample.topicMentionPlain.html,
+            mentionText: ContentExample.topicMentionPlain.expectedText!,
+            expectColor: (theme) => theme.colorTextGroupOrWildcardMention,
+            flags: [MessageFlag.topicWildcardMentioned]);
+        });
+
+        testWidgets('silent topic wildcard mention', (tester) async {
+          await checkFontColor(tester,
+            html: ContentExample.topicMentionSilent.html,
+            mentionText: ContentExample.topicMentionSilent.expectedText!,
+            expectColor: (theme) => theme.textStylePlainParagraph.color!);
+        });
+
+        testWidgets('plain channel wildcard mention', (tester) async {
+          await checkFontColor(tester,
+            html: ContentExample.channelWildcardMentionPlain.html,
+            mentionText: ContentExample.channelWildcardMentionPlain.expectedText!,
+            expectColor: (theme) => theme.colorTextGroupOrWildcardMention,
+            flags: [MessageFlag.streamWildcardMentioned]);
+        });
+
+        testWidgets('silent channel wildcard mention', (tester) async {
+          await checkFontColor(tester,
+            html: ContentExample.channelWildcardMentionSilent.html,
+            mentionText: ContentExample.channelWildcardMentionSilent.expectedText!,
+            expectColor: (theme) => theme.textStylePlainParagraph.color!);
+        });
+      });
+    });
 
     group('pill color', () {
       Future<void> checkPillColor(WidgetTester tester, {
@@ -1090,7 +1206,7 @@ void main() {
       }) async {
         await prepareContent(tester,
           wrapWithPerAccountStoreWidget: true,
-          plainContent(html));
+          messageContent(html));
 
         final renderObject = tester.renderObject<RenderBox>(find.byType(Mention));
         final paintBounds = renderObject.paintBounds;
@@ -1131,7 +1247,7 @@ void main() {
         await prepareContent(tester,
           wrapWithPerAccountStoreWidget: true,
           initialSnapshot: initialSnapshot,
-          plainContent(html));
+          messageContent(html));
       }
 
       testWidgets('resolves current user name from store', (tester) async {
@@ -1177,7 +1293,7 @@ void main() {
         await prepareContent(tester,
           wrapWithPerAccountStoreWidget: true,
           initialSnapshot: initialSnapshot,
-          plainContent(html));
+          messageContent(html));
       }
 
       testWidgets('resolves current user group name from store', (tester) async {
@@ -1250,7 +1366,7 @@ void main() {
             ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
 
           await prepareContent(tester,
-            plainContent(html), navObservers: [testNavObserver],
+            messageContent(html), navObservers: [testNavObserver],
             wrapWithPerAccountStoreWidget: true,
             initialSnapshot: eg.initialSnapshot(realmUsers: [
               eg.selfUser,
