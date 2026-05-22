@@ -318,7 +318,7 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = this.content;
-    return InheritedMessage(message: message,
+    return InheritedMessage(message: message, content: content,
       child: DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: switch (content) {
@@ -329,18 +329,30 @@ class MessageContent extends StatelessWidget {
 }
 
 class InheritedMessage extends InheritedWidget {
-  const InheritedMessage({super.key, required this.message, required super.child});
+  const InheritedMessage({
+    super.key,
+    required this.message,
+    required this.content,
+    required super.child,
+  });
 
   final Message message;
+  final ZulipMessageContent content;
 
   @override
   bool updateShouldNotify(covariant InheritedMessage oldWidget) =>
-    !identical(oldWidget.message, message);
+    !identical(oldWidget.message, message) || !identical(oldWidget.content, content);
 
   static Message of(BuildContext context) {
     final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessage>();
     assert(widget != null, 'No InheritedMessage ancestor');
     return widget!.message;
+  }
+
+  static ZulipMessageContent contentOf(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessage>();
+    assert(widget != null, 'No InheritedMessage ancestor');
+    return widget!.content;
   }
 }
 
