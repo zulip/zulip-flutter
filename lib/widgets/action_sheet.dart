@@ -1279,17 +1279,14 @@ class _MessageActionSheetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
     // TODO this seems to lose the hero animation when opening an image;
     //   investigate.
     // TODO should we close the sheet before opening a narrow link?
     //   On popping the pushed narrow route, the sheet is still open.
 
     return Container(
-      // TODO(#647) use different color for highlighted messages
       // TODO(#681) use different color for DM messages
-      color: designVariables.bgMessageRegular,
+      color: messageBackgroundColor(context, message, content),
       padding: EdgeInsets.symmetric(vertical: 4),
       child: Column(
         spacing: 4,
