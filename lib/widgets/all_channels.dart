@@ -52,7 +52,7 @@ class AllChannelsPageBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final channels = PerAccountStoreWidget.of(context).streams;
+    final channels = PerAccountStoreWidget.of(context).channels;
 
     if (channels.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
