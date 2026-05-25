@@ -257,6 +257,27 @@ String inlineLink(String visibleText, String destination) {
   return '[$visibleText]($destination)';
 }
 
+/// The image MIME types the server renders inline from Markdown image syntax.
+///
+/// Should be kept identical to the web app's `SUPPORTED_IMAGE_TYPES` list.  See:
+///   https://github.com/zulip/zulip/blob/afb960c04/web/src/upload.ts#L36-L44
+const supportedInlineImageTypes = <String>{
+  'image/avif',
+  'image/gif',
+  'image/heic',
+  'image/jpeg',
+  'image/png',
+  'image/tiff',
+  'image/webp',
+};
+
+/// Whether the server renders a file of this [mimeType] inline from Markdown
+/// image syntax (`![]()`).
+///
+/// See [supportedInlineImageTypes].
+bool isSupportedInlineImage(String? mimeType) =>
+  supportedInlineImageTypes.contains(mimeType);
+
 /// What we show while fetching the target message's raw Markdown.
 ///
 /// Like [quoteAndReply], but the message content is replaced with a placeholder.
