@@ -257,6 +257,26 @@ String inlineLink(String visibleText, String destination) {
   return '[$visibleText]($destination)';
 }
 
+/// https://spec.commonmark.org/0.30/#image-description
+///
+/// Emits Markdown image syntax, suitable for an uploaded image whose MIME type is in
+/// [supportedInlineImageTypes].
+///
+/// For servers that don't support that syntax (FL < 467),
+/// falls back to [inlineLink].
+// TODO(server-12): Always return '![$visibleText]($destination)'.
+String inlineImageLink(String visibleText, String destination, {
+  required int zulipFeatureLevel,
+}) {
+  // Zulip's Markdown image syntax was introduced at FL 437 and changed
+  // through FL 467 (server 12.0).
+  // Only generate it for servers that have its final form.  See:
+  //   https://zulip.com/api/message-formatting#changes-to-image-formatting
+  return zulipFeatureLevel >= 467
+    ? '![$visibleText]($destination)'
+    : inlineLink(visibleText, destination);
+}
+
 /// The image MIME types the server renders inline from Markdown image syntax.
 ///
 /// Should be kept identical to the web app's `SUPPORTED_IMAGE_TYPES` list.  See:

@@ -386,6 +386,21 @@ hello
       .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
   });
 
+  test('inlineImageLink', () {
+    check(inlineImageLink('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png',
+        zulipFeatureLevel: 467))
+      .equals('![IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+    check(inlineImageLink('Uploading IMG_2488.png…', '', zulipFeatureLevel: 467))
+      .equals('![Uploading IMG_2488.png…]()');
+  });
+
+  test('inlineImageLink, FL<467 falls back to plain link', () {
+    // TODO(server-12): remove this test
+    check(inlineImageLink('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png',
+        zulipFeatureLevel: 466))
+      .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+  });
+
   test('isSupportedInlineImage', () {
     check(isSupportedInlineImage('image/png')).isTrue();
     check(isSupportedInlineImage('image/jpeg')).isTrue();
