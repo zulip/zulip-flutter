@@ -259,7 +259,7 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   int _nextUploadTag = 0;
 
   final Map<int, ({int messageId, String placeholder})> _quoteAndReplies = {};
-  final Map<int, ({String filename, String placeholder})> _uploads = {};
+  final Map<int, ({String filename, String placeholder, bool isInlineImage})> _uploads = {};
 
   /// A probably-reasonable place to insert Markdown, such as for a file upload.
   ///
@@ -359,12 +359,15 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   ///
   /// Returns an int "tag" that should be passed to registerUploadEnd on the
   /// upload's success or failure.
-  int registerUploadStart(String filename, ZulipLocalizations zulipLocalizations) {
+  int registerUploadStart(String filename, ZulipLocalizations zulipLocalizations, {
+    required bool isInlineImage,
+  }) {
     final tag = _nextUploadTag;
     _nextUploadTag += 1;
     final linkText = zulipLocalizations.composeBoxUploadingFilename(filename);
     final placeholder = inlineLink(linkText, '');
-    _uploads[tag] = (filename: filename, placeholder: placeholder);
+    _uploads[tag] = (filename: filename, placeholder: placeholder,
+      isInlineImage: isInlineImage);
     notifyListeners(); // _uploads change could affect validationErrors
     value = value.replaced(insertionIndex(), '$placeholder\n\n');
     return tag;
@@ -377,15 +380,21 @@ class ComposeContentController extends ComposeController<ContentValidationError>
   void registerUploadEnd(int tag, String? url) {
     final val = _uploads[tag];
     assert(val != null, 'registerUploadEnd called twice for same tag');
-    final (:filename, :placeholder) = val!;
+    final (:filename, :placeholder, :isInlineImage) = val!;
     final int startIndex = text.indexOf(placeholder);
     final replacementRange = startIndex >= 0
       ? TextRange(start: startIndex, end: startIndex + placeholder.length)
       : insertionIndex();
+    final String replacement;
+    if (url == null) {
+      replacement = '';
+    } else if (isInlineImage) {
+      replacement = imageCompat(filename, url, zulipFeatureLevel: store.zulipFeatureLevel);
+    } else {
+      replacement = inlineLink(filename, url);
+    }
 
-    value = value.replaced(
-      replacementRange,
-      url == null ? '' : inlineLink(filename, url));
+    value = value.replaced(replacementRange, replacement);
     _uploads.remove(tag);
     notifyListeners(); // _uploads change could affect validationErrors
   }
@@ -1015,7 +1024,8 @@ Future<void> _uploadFiles({
   final List<(int, FileToUpload)> uploadsInProgress = [];
   for (final file in rightSizeFiles) {
     final tag = contentController.registerUploadStart(file.filename,
-      zulipLocalizations);
+      zulipLocalizations,
+      isInlineImage: isSupportedInlineImage(file.mimeType));
     uploadsInProgress.add((tag, file));
   }
   if (shouldRequestFocus && !contentFocusNode.hasFocus) {

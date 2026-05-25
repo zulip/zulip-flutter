@@ -1259,7 +1259,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1307,7 +1307,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1408,7 +1408,7 @@ void main() {
 
         await tester.pump(Duration.zero);
         check(controller!.content.text)
-          .equals('see image: [test.gif]($uploadUrl)\n\n');
+          .equals('see image: ![test.gif]($uploadUrl)\n\n');
         checkAppearsLoading(tester, false);
       });
 
