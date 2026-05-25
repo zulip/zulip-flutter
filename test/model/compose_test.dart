@@ -386,6 +386,14 @@ hello
       .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
   });
 
+  test('isSupportedInlineImage', () {
+    check(isSupportedInlineImage('image/png')).isTrue();
+    check(isSupportedInlineImage('image/jpeg')).isTrue();
+    check(isSupportedInlineImage('image/svg+xml')).isFalse();
+    check(isSupportedInlineImage('audio/mpeg')).isFalse();
+    check(isSupportedInlineImage(null)).isFalse();
+  });
+
   test('quoteAndReply / quoteAndReplyPlaceholder', () async {
     final sender = eg.user(userId: 123, fullName: 'Full Name');
     final stream = eg.stream(streamId: 1, name: 'test here');
