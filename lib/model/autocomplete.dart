@@ -7,6 +7,7 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../widgets/compose_box.dart';
 import 'algorithms.dart';
@@ -1250,7 +1251,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// The channel/stream the eventual message will be sent to.
   final int channelId;
 
-  Iterable<TopicName> _topics = [];
+  Iterable<GetChannelTopicsEntry> _topics = [];
 
   /// Fetches topics of the current stream narrow, if needed.
   ///
@@ -1261,7 +1262,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     // TODO: handle fetch failure
     final result = await store.topics.getChannelTopics(channelId);
     if (_disposed) return;
-    _topics = result.map((e) => e.name);
+    _topics = result;
     return _startSearch();
   }
 
@@ -1275,8 +1276,8 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     return results;
   }
 
-  TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, TopicName topic) {
-    if (query.testTopic(topic, store)) {
+  TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, GetChannelTopicsEntry topic) {
+    if (query.testTopic(topic.name, store)) {
       return TopicAutocompleteResult(topic: topic);
     }
     return null;
@@ -1311,7 +1312,7 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 
 /// A topic chosen in an autocomplete interaction, via a [TopicAutocompleteView].
 class TopicAutocompleteResult extends AutocompleteResult {
-  final TopicName topic;
+  final GetChannelTopicsEntry topic;
 
   TopicAutocompleteResult({required this.topic});
 }
