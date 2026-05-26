@@ -110,7 +110,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
 
   void _viewModelChanged() {
     setState(() {
-      _resultsToDisplay = _viewModel!.results.toList();
+      _resultsToDisplay = _viewModel!.results?.toList() ?? [];
     });
   }
 

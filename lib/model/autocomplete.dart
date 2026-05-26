@@ -404,14 +404,17 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   ///
   /// These results might not correspond to the current value of [query],
   /// if a search is still in progress.
-  /// Before any search completes, [results] will be empty.
-  Iterable<ResultT> get results => _results;
-  List<ResultT> _results = [];
+  /// Before any search completes, [results] will be `null`.
+  Iterable<ResultT>? get results => _results;
+  List<ResultT>? _results;
 
   Future<void> _startSearch() async {
     final newResults = await computeResults();
     if (newResults == null) {
-      // Query was old; new search is in progress. Or, no listeners to notify.
+      // Either:
+      //   - No candidates yet to search through.
+      //   - Query was old; new search is in progress.
+      //   - No listeners to notify.
       return;
     }
 
@@ -1247,7 +1250,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// The channel/stream the eventual message will be sent to.
   final int channelId;
 
-  Iterable<GetChannelTopicsEntry> _topics = [];
+  Iterable<GetChannelTopicsEntry>? _topics;
 
   /// Fetches topics of the current stream narrow, if needed.
   ///
@@ -1262,9 +1265,11 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
 
   @override
   Future<List<TopicAutocompleteResult>?> computeResults() async {
+    if (_topics == null) return null;
+
     final results = <TopicAutocompleteResult>[];
     if (await filterCandidates(filter: _testTopic,
-          candidates: _topics, results: results)) {
+          candidates: _topics!, results: results)) {
       return null;
     }
     return results;
