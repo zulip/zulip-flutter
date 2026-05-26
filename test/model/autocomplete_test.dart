@@ -1460,6 +1460,35 @@ void main() {
       ]);
       view.dispose();
     });
+
+    test('updates results when topics change', () async {
+      final store = eg.store();
+      final connection = store.connection as FakeApiConnection;
+      final channel = eg.stream();
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 10, name: 'server releases');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1]).toJson());
+      final view = TopicAutocompleteView.init(store: store, channelId: channel.streamId,
+        query: TopicAutocompleteQuery('release'));
+      bool done = false;
+      view.addListener(() { done = true; });
+
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).single.which(isTopic(topic1.name));
+
+      done = false;
+      await store.addMessage(eg.streamMessage(stream: channel, topic: 'mobile releases'));
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).deepEquals([
+        isTopic(eg.t('mobile releases')),
+        isTopic(topic1.name),
+      ]);
+      view.dispose();
+    });
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
