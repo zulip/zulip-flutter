@@ -431,7 +431,7 @@ void main() {
       view.addListener(() { done = true; });
       await Future(() {});
       check(done).isTrue();
-      check(view.results).deepEquals([
+      check(view.results!).deepEquals([
         ...arePopularResults,
         isRealmResult(emojiName: 'happy'),
         isZulipResult(),
@@ -449,14 +449,14 @@ void main() {
       view.addListener(() { done = true; });
       await Future(() {});
       check(done).isTrue();
-      check(view.results).single.which(
+      check(view.results!).single.which(
         isRealmResult(emojiName: 'happy'));
 
       done = false;
       view.query = EmojiAutocompleteQuery('bo');
       await Future(() {});
       check(done).isTrue();
-      check(view.results).single.which(
+      check(view.results!).single.which(
         isUnicodeResult(names: ['bookmark']));
     });
 
@@ -472,7 +472,7 @@ void main() {
       view.addListener(() { done = true; });
       await Future(() {});
       check(done).isTrue();
-      return view.results;
+      return view.results!;
     }
 
     test('results preserve order of popular emoji within each rank', () async {

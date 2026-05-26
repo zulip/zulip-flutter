@@ -370,7 +370,7 @@ void main() {
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
-    check(view.results).single
+    check(view.results!).single
       .isA<UserMentionAutocompleteResult>()
       .userId.equals(eg.thirdUser.userId);
   });
@@ -403,7 +403,7 @@ void main() {
 
       check(timerDone).isTrue();
       check(searchDone).isTrue();
-      check(view.results).single
+      check(view.results!).single
         .isA<UserMentionAutocompleteResult>()
         .userId.equals(eg.thirdUser.userId);
     });
@@ -440,7 +440,7 @@ void main() {
     await Future(() {});
     check(done).isTrue();
 
-    check(view.results).deepEquals(<Condition<Object?>>[
+    check(view.results!).deepEquals(<Condition<Object?>>[
       (it) => it
         .isA<UserMentionAutocompleteResult>()
         .userId.equals(2222),
@@ -481,7 +481,7 @@ void main() {
     check(done).isTrue(); // new result is set
 
     void checkResult() {
-      check(view.results).deepEquals(<Condition<Object?>>[
+      check(view.results!).deepEquals(<Condition<Object?>>[
         (it) => it
           .isA<UserMentionAutocompleteResult>()
           .userId.equals(234),
@@ -522,7 +522,7 @@ void main() {
       if (done) break;
     }
     check(done).isTrue();
-    final results = view.results
+    final results = view.results!
       .map((e) => (e as UserMentionAutocompleteResult).userId);
     check(results)
       ..contains(110)
@@ -893,7 +893,7 @@ void main() {
         check(done).isTrue();
         final results = view.results;
         view.dispose();
-        return results;
+        return results!;
       }
 
       Condition<Object?> isUser(int userId) {
@@ -1364,7 +1364,7 @@ void main() {
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
-    check(view.results).single.which(isTopic(third.name));
+    check(view.results!).single.which(isTopic(third.name));
   });
 
   test('TopicAutocompleteView updates results when topics are loaded', () async {
@@ -1383,7 +1383,34 @@ void main() {
 
     check(done).isFalse();
     await Future(() {});
+    await Future(() {});
     check(done).isTrue();
+  });
+
+  test('TopicAutocompleteView results is null if not loaded yet', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+
+    final topic = eg.getChannelTopicsEntry(maxId: 1, name: 'topic');
+    connection.prepare(json: GetChannelTopicsResult(topics: [topic]).toJson());
+    final view = TopicAutocompleteView.init(store: store, channelId: 10,
+      query: TopicAutocompleteQuery(''));
+    bool done = false;
+    view.addListener(() { done = true; });
+
+    check(done).isFalse();
+    check(view.results).isNull();
+
+    check(connection.takeRequests()).last.isA<http.Request>()
+      ..method.equals('GET')
+      ..url.path.equals('/api/v1/users/me/10/topics')
+      ..url.queryParameters['allow_empty_topic_name'].equals('true');
+
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view.results!).single.which(isTopic(topic.name));
+    view.dispose();
   });
 
   test('TopicAutocompleteView fetches topics once for a channel', () async {
@@ -1407,12 +1434,12 @@ void main() {
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
-    check(view1.results).deepEquals([isTopic(topic1.name), isTopic(topic2.name)]);
+    check(view1.results!).deepEquals([isTopic(topic1.name), isTopic(topic2.name)]);
 
     view1.query = TopicAutocompleteQuery('server');
     check(connection.takeRequests()).isEmpty();
     await Future(() {});
-    check(view1.results).single.which(isTopic(topic1.name));
+    check(view1.results!).single.which(isTopic(topic1.name));
     view1.dispose();
 
     // No need to prepare a response as there will be no request made.
@@ -1426,7 +1453,7 @@ void main() {
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
-    check(view2.results).single.which(isTopic(topic2.name));
+    check(view2.results!).single.which(isTopic(topic2.name));
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
@@ -1466,7 +1493,7 @@ void main() {
       check(done).isTrue();
       // Based on alphabetical order. For how the ordering works, see the
       // dedicated test group "sorting results" below.
-      check(view.results).deepEquals([1, 2].map(isChannel));
+      check(view.results!).deepEquals([1, 2].map(isChannel));
     });
 
     test('results update after query change', () async {
@@ -1482,13 +1509,13 @@ void main() {
       view.addListener(() { done = true; });
       await Future(() {});
       check(done).isTrue();
-      check(view.results).single.which(isChannel(1));
+      check(view.results!).single.which(isChannel(1));
 
       done = false;
       view.query = ChannelLinkAutocompleteQuery('sec');
       await Future(() {});
       check(done).isTrue();
-      check(view.results).single.which(isChannel(2));
+      check(view.results!).single.which(isChannel(2));
     });
 
     group('sorting results', () {
@@ -1829,7 +1856,7 @@ void main() {
           check(done).isTrue();
           final results = view.results;
           view.dispose();
-          return results;
+          return results!;
         }
 
         final channels = [
