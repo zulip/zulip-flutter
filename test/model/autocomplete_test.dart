@@ -18,6 +18,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
 import '../api/fake_api.dart';
+import '../api/route/route_checks.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
@@ -1340,7 +1341,7 @@ void main() {
   });
 
   Condition<Object?> isTopic(TopicName topic) {
-    return (it) => it.isA<TopicAutocompleteResult>().topic.equals(topic);
+    return (it) => it.isA<TopicAutocompleteResult>().topic.name.equals(topic);
   }
 
   test('TopicAutocompleteView misc', () async {
@@ -1431,7 +1432,7 @@ void main() {
   group('TopicAutocompleteQuery.testTopic', () {
     final store = eg.store();
     void doCheck(String rawQuery, String topic, bool expected) {
-      final result = TopicAutocompleteQuery(rawQuery).testTopic(eg.t(topic), store);
+      final result = TopicAutocompleteQuery(rawQuery).testTopic(eg.getChannelTopicsEntry(name: topic), store);
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 
