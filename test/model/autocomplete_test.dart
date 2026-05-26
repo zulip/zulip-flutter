@@ -1503,7 +1503,7 @@ void main() {
 
     test('topic is included if it matches the query', () {
       doCheck('', 'Top Name', true);
-      doCheck('Name', 'Name', false);
+      doCheck('Name', 'Name', true);
       doCheck('name', 'Name', true);
       doCheck('name', 'Nam', false);
       doCheck('nam', 'Name', true);
