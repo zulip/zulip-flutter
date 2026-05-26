@@ -123,6 +123,10 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   there may be a stray file named `HEAD`,
   which causes `fatal: ambiguous argument 'HEAD'` errors.
 
+- **Don't use `git -C <path>` to operate on this repo** —
+  it triggers a permission prompt.
+  Run plain `git <subcommand>` from the repository root instead.
+
 - **Always `git add` specific new files** —
   never use `git add -A` or `git add .`.
   The worktree can pick up stray files.
