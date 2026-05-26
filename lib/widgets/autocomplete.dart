@@ -490,7 +490,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
     final intent = autocompleteIntent();
     if (intent == null) return;
     assert(intent.syntaxStart == 0);
-    controller.setTopic(option.topic);
+    controller.setTopic(option.topic.name);
     contentFocusNode.requestFocus();
   }
 
@@ -507,12 +507,12 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
     ).merge(weightVariableTextStyle(context, wght: 500));
 
     final String text;
-    if (option.topic.displayName == null) {
+    if (option.topic.name.displayName == null) {
       final store = PerAccountStoreWidget.of(context);
       text = store.realmEmptyTopicDisplayName;
       style = style.copyWith(fontStyle: FontStyle.italic);
     } else {
-      text = option.topic.displayName!;
+      text = option.topic.name.displayName!;
     }
 
     return InkWell(
