@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-this_dir=${BASH_SOURCE[0]%/*}
-
-# shellcheck source=tools/lib/deps.sh
-. "${this_dir}"/../lib/deps.sh
-
-
 flutter_tree=~/flutter
 
 # Upstream's version calculation fails with a shallow clone,
