@@ -87,6 +87,19 @@ void main() {
         deliveryEmail: const JsonNullable('c@mail.example')));
       check(getUser()).deliveryEmail.equals('c@mail.example');
     });
+
+    test('isDeleted', () async {
+      final user = eg.user();
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        realmUsers: [eg.selfUser, user]));
+
+      User getUser() => store.getUser(user.userId)!;
+      check(getUser()).isDeleted.isFalse();
+
+      await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+        isDeleted: true));
+      check(getUser()).isDeleted.isTrue();
+    });
   });
 
   testWidgets('UserStatusEvent', (tester) async {

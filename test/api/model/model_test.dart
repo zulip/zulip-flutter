@@ -129,6 +129,12 @@ void main() {
       check(mkUser({}).isSystemBot).isFalse();
       check(mkUser({'is_system_bot': true}).isSystemBot).isTrue();
     });
+
+    test('is_deleted', () {
+      // The server only sends is_deleted when true, so absence -> false.
+      check(mkUser({}).isDeleted).isFalse();
+      check(mkUser({'is_deleted': true}).isDeleted).isTrue();
+    });
   });
 
   group('Subscription', () {

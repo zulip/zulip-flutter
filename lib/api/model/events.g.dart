@@ -401,6 +401,7 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
         ),
   newEmail: RealmUserUpdateEvent._readFromPerson(json, 'new_email') as String?,
   isActive: RealmUserUpdateEvent._readFromPerson(json, 'is_active') as bool?,
+  isDeleted: RealmUserUpdateEvent._readFromPerson(json, 'is_deleted') as bool?,
 );
 
 Map<String, dynamic> _$RealmUserUpdateEventToJson(
@@ -424,6 +425,7 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
   'custom_profile_field': instance.customProfileField,
   'new_email': instance.newEmail,
   'is_active': instance.isActive,
+  'is_deleted': instance.isDeleted,
 };
 
 const _$UserRoleEnumMap = {

@@ -501,6 +501,13 @@ class User {
   String? avatarUrl; // TODO(#255) distinguish null from missing, as a `JsonNullable<String>?`
   int avatarVersion;
 
+  // The server sends this field only when true, so we default to false.
+  // Deleted users are a subset of deactivated users whose account data
+  // (name, avatar, etc.) has been scrubbed.  See:
+  //   https://zulip.com/api/get-user
+  @JsonKey(defaultValue: false)
+  bool isDeleted;
+
   // null for bots, which don't have custom profile fields.
   // If null for a non-bot, equivalent to `{}` (null just written for efficiency.)
   // TODO(json_serializable): keys use plain `int.parse`, permitting hexadecimal
@@ -535,6 +542,7 @@ class User {
     required this.timezone,
     required this.avatarUrl,
     required this.avatarVersion,
+    required this.isDeleted,
     required this.profileData,
     required this.isSystemBot,
   });
