@@ -1237,7 +1237,9 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     required super.store,
     required super.query,
     required this.channelId,
-  });
+  }) {
+    store.topics.addListener(_startSearch);
+  }
 
   factory TopicAutocompleteView.init({
     required PerAccountStore store,
@@ -1275,6 +1277,12 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
       return TopicAutocompleteResult(topic: topic);
     }
     return null;
+  }
+
+  @override
+  void dispose() {
+    store.topics.removeListener(_startSearch);
+    super.dispose();
   }
 }
 
