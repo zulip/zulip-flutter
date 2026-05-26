@@ -1284,13 +1284,9 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 
   bool testTopic(TopicName topic, PerAccountStore store) {
     // TODO(#881): Sort by match relevance, like web does.
-
-    if (topic.displayName == null) {
-      return AutocompleteQuery.lowercaseAndStripDiacritics(store.realmEmptyTopicDisplayName)
-        .contains(_normalized);
-    }
-    return topic.displayName != raw
-      && AutocompleteQuery.lowercaseAndStripDiacritics(topic.displayName!).contains(_normalized);
+    return AutocompleteQuery.lowercaseAndStripDiacritics(
+      topic.displayName ?? store.realmEmptyTopicDisplayName
+    ).contains(_normalized);
   }
 
   @override
