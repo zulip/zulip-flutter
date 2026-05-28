@@ -1394,13 +1394,19 @@ class ReactionButtons extends StatelessWidget {
 
     final emoji = await showEmojiPickerSheet(pageContext: pageContext);
     if (emoji == null || !pageContext.mounted) return;
+
+    final store = PerAccountStoreWidget.of(pageContext);
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+
+    final isSelfVoted = store.selfHasVoted(message.id, withEmoji: emoji);
     unawaited(ZulipAction.addOrRemoveReaction(
       context: pageContext,
-      doRemoveReaction: false,
+      doRemoveReaction: isSelfVoted,
       messageId: message.id,
       emoji: emoji,
-      errorDialogTitle:
-        ZulipLocalizations.of(pageContext).errorReactionAddingFailedTitle));
+      errorDialogTitle: isSelfVoted
+        ? zulipLocalizations.errorReactionRemovingFailedTitle
+        : zulipLocalizations.errorReactionAddingFailedTitle));
   }
 
   Widget _buildButton({
