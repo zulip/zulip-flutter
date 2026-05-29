@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
@@ -140,6 +141,183 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('deactivated user with placeholder: wrapped in Opacity 0.5', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final user = eg.user(avatarUrl: null, isActive: false);
+      await store.addUser(user);
+
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: AvatarImage(userId: user.userId, size: 30)));
+      await tester.pump();
+      final opacity = tester.widget<Opacity>(find.descendant(
+        of: find.byType(AvatarImage),
+        matching: find.byType(Opacity)));
+      check(opacity.opacity).equals(AvatarImage.deactivatedOpacity);
+    });
+
+    testWidgets('deactivated user with network image: wrapped in Opacity 0.5', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final user = eg.user(
+        avatarUrl: 'https://example/avatar.png', isActive: false);
+      await store.addUser(user);
+
+      prepareBoringImageHttpClient();
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: AvatarImage(userId: user.userId, size: 30)));
+      await tester.pump();
+      // The network image branch is also wrapped in Opacity.
+      check(find.descendant(
+        of: find.byType(AvatarImage),
+        matching: find.byType(RealmContentNetworkImage))).findsOne();
+      final opacity = tester.widget<Opacity>(find.descendant(
+        of: find.byType(AvatarImage),
+        matching: find.byType(Opacity)));
+      check(opacity.opacity).equals(AvatarImage.deactivatedOpacity);
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('active user: no Opacity wrapper', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final user = eg.user(avatarUrl: null, isActive: true);
+      await store.addUser(user);
+
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: AvatarImage(userId: user.userId, size: 30)));
+      await tester.pump();
+      check(find.descendant(
+        of: find.byType(AvatarImage),
+        matching: find.byType(Opacity),
+      )).findsNothing();
+    });
+
+    testWidgets('muted + deactivated user: deactivated takes priority over muted', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final user = eg.user(
+        avatarUrl: 'https://example/avatar.png', isActive: false);
+      await store.addUser(user);
+      await store.setMutedUsers([user.userId]);
+
+      prepareBoringImageHttpClient();
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: AvatarImage(userId: user.userId, size: 30)));
+      await tester.pump();
+      // Deactivated wins: the real avatar is shown faded, rather than being
+      // replaced with the muted placeholder.
+      check(findPlaceholder).findsNothing();
+      check(find.descendant(
+        of: find.byType(AvatarImage),
+        matching: find.byType(RealmContentNetworkImage))).findsOne();
+      final opacity = tester.widget<Opacity>(find.descendant(
+        of: find.byType(AvatarImage),
+        matching: find.byType(Opacity)));
+      check(opacity.opacity).equals(AvatarImage.deactivatedOpacity);
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('markIfDeactivated: false suppresses Opacity on deactivated user', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final user = eg.user(avatarUrl: null, isActive: false);
+      await store.addUser(user);
+
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: AvatarImage(userId: user.userId, size: 30,
+            markIfDeactivated: false)));
+      await tester.pump();
+      check(find.descendant(
+        of: find.byType(AvatarImage),
+        matching: find.byType(Opacity),
+      )).findsNothing();
+    });
+  });
+
+  group('Avatar deactivated handling', () {
+    final findBlockIcon = find.descendant(
+      of: find.byType(Avatar),
+      matching: find.byIcon(Icons.block));
+    final findOpacity = find.descendant(
+      of: find.byType(Avatar),
+      matching: find.byType(Opacity));
+    final findPresenceCircle = find.descendant(
+      of: find.byType(Avatar),
+      matching: find.byType(PresenceCircle));
+
+    void checkDeactivatedOpacity(WidgetTester tester) {
+      final opacity = tester.widget<Opacity>(findOpacity);
+      check(opacity.opacity).equals(AvatarImage.deactivatedOpacity);
+    }
+
+    Future<void> pumpAvatar(WidgetTester tester, User user, {
+      bool showPresence = true,
+      bool markIfDeactivated = true,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await store.addUser(user);
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: Avatar(userId: user.userId, size: 30, borderRadius: 4,
+            showPresence: showPresence,
+            markIfDeactivated: markIfDeactivated)));
+      await tester.pump();
+    }
+
+    testWidgets('active user: no block icon, no Opacity, presence shown', (tester) async {
+      await pumpAvatar(tester, eg.user(isActive: true));
+      check(findBlockIcon).findsNothing();
+      check(findOpacity).findsNothing();
+      check(findPresenceCircle).findsOne();
+    });
+
+    testWidgets('deactivated user: block icon, opacity 0.5, no presence', (tester) async {
+      await pumpAvatar(tester, eg.user(isActive: false));
+      check(findBlockIcon).findsOne();
+      check(findOpacity).findsOne();
+      checkDeactivatedOpacity(tester);
+      check(findPresenceCircle).findsNothing();
+    });
+
+    testWidgets('deleted user: same treatment as deactivated', (tester) async {
+      await pumpAvatar(tester, eg.user(isActive: false, isDeleted: true));
+      check(findBlockIcon).findsOne();
+      check(findOpacity).findsOne();
+      checkDeactivatedOpacity(tester);
+      check(findPresenceCircle).findsNothing();
+    });
+
+    testWidgets('badge still appears when showPresence: false', (tester) async {
+      // The message list passes showPresence: false; the deactivated badge
+      // and opacity should still appear there.
+      await pumpAvatar(tester, eg.user(isActive: false), showPresence: false);
+      check(findBlockIcon).findsOne();
+      check(findOpacity).findsOne();
+      checkDeactivatedOpacity(tester);
+      check(findPresenceCircle).findsNothing();
+    });
+
+    testWidgets('markIfDeactivated: false suppresses badge and Opacity', (tester) async {
+      // The profile page header passes markIfDeactivated: false because it
+      // shows the indicator next to the user's name instead.
+      await pumpAvatar(tester, eg.user(isActive: false),
+        markIfDeactivated: false);
+      check(findBlockIcon).findsNothing();
+      check(findOpacity).findsNothing();
+    });
   });
 
   group('AvatarShape', () {

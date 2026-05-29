@@ -20,6 +20,7 @@ class Avatar extends StatelessWidget {
     this.backgroundColor,
     this.showPresence = true,
     this.replaceIfMuted = true,
+    this.markIfDeactivated = true,
   });
 
   final int userId;
@@ -29,17 +30,29 @@ class Avatar extends StatelessWidget {
   final bool showPresence;
   final bool replaceIfMuted;
 
+  /// If true (the default), a deactivated (or deleted) user's avatar is
+  /// dimmed and overlaid with a small badge in the bottom-right corner.
+  /// Callers that show the deactivated indicator separately -- e.g. the
+  /// profile page header, which puts the badge next to the user's name --
+  /// should pass false.
+  final bool markIfDeactivated;
+
   @override
   Widget build(BuildContext context) {
     // (The backgroundColor is only meaningful if presence will be shown;
     // see [PresenceCircle.backgroundColor].)
     assert(backgroundColor == null || showPresence);
+    final isDeactivated = markIfDeactivated
+      && PerAccountStoreWidget.of(context).isUserDeactivated(userId);
     return AvatarShape(
       size: size,
       borderRadius: borderRadius,
       backgroundColor: backgroundColor,
       userIdForPresence: showPresence ? userId : null,
-      child: AvatarImage(userId: userId, size: size, replaceIfMuted: replaceIfMuted));
+      showDeactivatedBadge: isDeactivated,
+      child: AvatarImage(userId: userId, size: size,
+        replaceIfMuted: replaceIfMuted,
+        markIfDeactivated: markIfDeactivated));
   }
 }
 
@@ -54,11 +67,20 @@ class AvatarImage extends StatelessWidget {
     required this.userId,
     required this.size,
     this.replaceIfMuted = true,
+    this.markIfDeactivated = true,
   });
 
   final int userId;
   final double size;
   final bool replaceIfMuted;
+
+  /// If true (the default), a deactivated (or deleted) user's avatar is faded
+  /// to [deactivatedOpacity].  This takes priority over muting, so the
+  /// deactivated state stays visible.
+  final bool markIfDeactivated;
+
+  /// Matches the web client's deactivated-avatar opacity.
+  static const double deactivatedOpacity = 0.5;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +91,10 @@ class AvatarImage extends StatelessWidget {
       return _AvatarPlaceholder(size: size);
     }
 
-    if (replaceIfMuted && store.isUserMuted(userId)) {
+    final isDeactivated = markIfDeactivated && store.isUserDeactivated(userId);
+
+    // Deactivation takes priority over muting.
+    if (!isDeactivated && replaceIfMuted && store.isUserMuted(userId)) {
       return _AvatarPlaceholder(size: size);
     }
 
@@ -78,19 +103,24 @@ class AvatarImage extends StatelessWidget {
       var avatarUrl => store.tryResolveUrl(avatarUrl),
     };
 
+    Widget child;
     if (resolvedUrl == null) {
-      return _AvatarPlaceholder(size: size);
+      child = _AvatarPlaceholder(size: size);
+    } else {
+      final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl);
+      final physicalSize = (MediaQuery.devicePixelRatioOf(context) * size).ceil();
+      child = RealmContentNetworkImage(
+        avatarUrl.get(physicalSize),
+        filterQuality: FilterQuality.medium,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _AvatarPlaceholder(size: size),
+      );
     }
 
-    final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl);
-    final physicalSize = (MediaQuery.devicePixelRatioOf(context) * size).ceil();
-
-    return RealmContentNetworkImage(
-      avatarUrl.get(physicalSize),
-      filterQuality: FilterQuality.medium,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => _AvatarPlaceholder(size: size),
-    );
+    if (isDeactivated) {
+      child = Opacity(opacity: deactivatedOpacity, child: child);
+    }
+    return child;
   }
 }
 
