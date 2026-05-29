@@ -53,6 +53,20 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
   /// When only the user ID is needed, see [selfUserId].
   User get selfUser => getUser(selfUserId)!;
 
+  /// Whether the user with [userId] is known and deactivated.
+  ///
+  /// A deleted user (see [User.isDeleted]) counts as deactivated.  On the
+  /// server [User.isDeleted] implies [User.isActive] is false, but we check
+  /// [User.isDeleted] directly rather than relying on that, since an
+  /// incremental [RealmUserUpdateEvent] could update one field without the
+  /// other.
+  ///
+  /// Returns false for an unknown user, since their status isn't known.
+  bool isUserDeactivated(int userId) {
+    final user = getUser(userId);
+    return user != null && (!user.isActive || user.isDeleted);
+  }
+
   /// The name to show the given user as in the UI, even for unknown users.
   ///
   /// If the user is muted and [replaceIfMuted] is true (the default),
