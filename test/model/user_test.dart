@@ -61,6 +61,44 @@ void main() {
     });
   });
 
+  group('isUserDeactivated', () {
+    test('active user', () async {
+      final user = eg.user(isActive: true);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.isUserDeactivated(user.userId)).isFalse();
+    });
+
+    test('deactivated user', () async {
+      final user = eg.user(isActive: false);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.isUserDeactivated(user.userId)).isTrue();
+    });
+
+    test('deleted user, which implies deactivated', () async {
+      final user = eg.user(isActive: false, isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.isUserDeactivated(user.userId)).isTrue();
+    });
+
+    test('deleted but still active: deactivated, checked via isDeleted', () async {
+      // The server sends is_deleted only on already-deactivated users, but an
+      // incremental event could carry is_deleted without is_active, so we
+      // check is_deleted directly rather than relying on is_active.
+      final user = eg.user(isActive: true, isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.isUserDeactivated(user.userId)).isTrue();
+    });
+
+    test('unknown user', () {
+      final store = eg.store();
+      check(store.isUserDeactivated(eg.user().userId)).isFalse();
+    });
+  });
+
   group('RealmUserUpdateEvent', () {
     // TODO write more tests for handling RealmUserUpdateEvent
 
