@@ -1211,7 +1211,6 @@ class _AttachMediaButton extends _AttachUploadsButton {
       return _getFilePickerFiles(context, FileType.media);
     }
 
-    // TODO(#114): This doesn't give quite the right UI on Android.
     final List<XFile> results;
     try {
       results = await ZulipBinding.instance.pickMultipleMedia(
