@@ -6,6 +6,8 @@ import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
+import 'package:image_picker_android/image_picker_android.dart' as image_picker_android;
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart' as image_picker_platform;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:sodium_libs/sodium_libs.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -392,6 +394,15 @@ class LiveZulipBinding extends ZulipBinding {
   LiveZulipBinding() {
     _deviceInfo = _prefetchDeviceInfo();
     _packageInfo = _prefetchPackageInfo();
+
+    // Use Android Photo Picker, so that 'pickMultipleMedia' gives a photo and
+    // video-only gallery instead of a general file browser. The package leaves this
+    // off by default. See:
+    //   https://pub.dev/packages/image_picker_android
+    final implementation = image_picker_platform.ImagePickerPlatform.instance;
+    if (implementation is image_picker_android.ImagePickerAndroid) {
+      implementation.useAndroidPhotoPicker = true;
+    }
   }
 
   /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
