@@ -81,6 +81,7 @@ void main() {
       ..title.equals(expectedTitle)
       ..subtitle.equals(expectedSubtitle)
       ..body.equals(data.content)
+      ..sound.equals(IosNotificationSound.defaultSound)
       ..userInfo.deepEquals({
         NotificationOpenPayload.kIosNotificationUrlKey: expectedNotificationUrl.toString(),
       });
@@ -126,5 +127,6 @@ extension on Subject<ImprovedNotificationContent> {
   Subject<String> get title => has((x) => x.title, 'title');
   Subject<String> get subtitle => has((x) => x.subtitle, 'subtitle');
   Subject<String> get body => has((x) => x.body, 'body');
+  Subject<IosNotificationSound> get sound => has((x) => x.sound, 'sound');
   Subject<Map<Object?, Object?>> get userInfo => has((x) => x.userInfo, 'userInfo');
 }
