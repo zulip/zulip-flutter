@@ -17,6 +17,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
@@ -98,6 +99,9 @@ void main() {
     ));
 
     store = await testBinding.globalStore.perAccount(selfAccount.id);
+    store.setServerEmojiData(ServerEmojiData(codeToNames: {
+      '1f44d': ['thumbs_up'],
+    }));
 
     connection = store.connection as FakeApiConnection;
 
