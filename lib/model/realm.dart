@@ -58,6 +58,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   GroupSettingValue? get realmCanDeleteAnyMessageGroup; // TODO(server-10)
   GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
   bool get realmEnableReadReceipts;
+  RealmMediaPreviewSize? get realmMediaPreviewSize; // TODO(server-12)
   bool get realmMandatoryTopics;
   int get maxFileUploadSizeMib;
   int? get realmMessageContentDeleteLimitSeconds;
@@ -211,6 +212,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
   @override
+  RealmMediaPreviewSize? get realmMediaPreviewSize => realmStore.realmMediaPreviewSize;
+  @override
   RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy => realmStore.realmDeleteOwnMessagePolicy;
   @override
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
@@ -274,6 +277,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmPresenceDisabled = initialSnapshot.realmPresenceDisabled,
     realmWaitingPeriodThreshold = initialSnapshot.realmWaitingPeriodThreshold,
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
+    realmMediaPreviewSize = initialSnapshot.realmMediaPreviewSize,
     realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
     realmModerationRequestChannelId = initialSnapshot.realmModerationRequestChannelId,
@@ -444,6 +448,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   @override
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
+  @override
+  RealmMediaPreviewSize? realmMediaPreviewSize;
   @override
   final RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy;
 

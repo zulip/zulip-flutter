@@ -2318,3 +2318,13 @@ ZulipMessageContent parseMessageContent(Message message) {
   if (poll != null) return PollContent(poll);
   return parseContent(message.content);
 }
+
+extension RealmMediaPreviewSizeMultiplier on RealmMediaPreviewSize? {
+  double get multiplier => switch (this) {
+    RealmMediaPreviewSize.small => 1.0,
+    RealmMediaPreviewSize.medium => 1.5,
+    RealmMediaPreviewSize.large => 2.0,
+    RealmMediaPreviewSize.unknown => 1.0,
+    null => 1.0, // TODO(server-12): remove
+  };
+}
