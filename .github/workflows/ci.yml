@@ -22,7 +22,7 @@ jobs:
       run: flutter pub get
 
     - name: Run tools/check
-      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android --exclude ios
+      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android --exclude ios --exclude swift_format
 
   android:
     name: "Android build and lint"
@@ -61,6 +61,10 @@ jobs:
 
     - name: Download our dependencies (flutter pub get)
       run: flutter pub get
+
+    - name: Check Swift formatting
+      # Run before the (multi-minute) iOS build, so CI fails fast on nits.
+      run: TERM=dumb tools/check --no-pub --all --output ci swift_format
 
     - name: Run tools/check
       run: TERM=dumb tools/check --no-pub --all --output ci ios
