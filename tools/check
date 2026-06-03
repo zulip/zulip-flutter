@@ -33,7 +33,7 @@ this_dir=${BASH_SOURCE[0]%/*}
 default_suites=(
     analyze test
     flutter_version
-    build_runner l10n drift pigeon icons
+    build_runner l10n drift pigeon icons swift_format
     android ios  # These take multiple minutes in CI, so do them last.
 )
 
@@ -533,28 +533,6 @@ run_ios() {
         ${opt_no_pub:+--no-pub}
     )
 
-    check_no_uncommitted_or_untracked ios/'*'.swift \
-    || return
-
-    if_verbose echo "Checking for style issues in Swift code..."
-
-    # Generated code (*.g.swift) is omitted from this check.
-    # shellcheck disable=SC2207  # filenames in our own tree, assume well-behaved
-    local swift_targets=(
-        $(git ls-files -- ios/'*'.swift :!:ios/'*'.g.swift)
-    )
-
-    # --in-place enables `tools/check --fix ios`; see `check_no_changes`.
-    # TODO: Once we have a dedicated code formatting check,
-    #       move this swift-format check there.
-    xcrun swift-format format --in-place \
-        --configuration ios/.swift-format \
-        "${swift_targets[@]}" \
-    || return
-
-    check_no_changes "changes to Swift files (swift-format)" ios/'*'.swift \
-    || return
-
     check_no_uncommitted_or_untracked ios/ macos/ \
     || return
 
@@ -587,6 +565,38 @@ run_ios() {
     fi
 
     flutter build ipa "${build_opts[@]}"
+}
+
+run_swift_format() {
+    # Omitted from this check:
+    #   pubspec.{yaml,lock} tools/check
+    files_check ios/'*'.swift ios/.swift-format \
+    || return 0
+
+    # swift-format comes from the Swift toolchain via `xcrun`, so needs macOS.
+    if [ "$(uname -s)" != "Darwin" ]; then
+        echo "Skipping swift_format suite (not on macOS)."
+        return 0
+    fi
+
+    check_no_uncommitted_or_untracked ios/'*'.swift \
+    || return
+
+    if_verbose echo "Checking for style issues in Swift code..."
+
+    # Generated code (*.g.swift) is omitted from this check.
+    # shellcheck disable=SC2207  # filenames in our own tree, assume well-behaved
+    local swift_targets=(
+        $(git ls-files -- ios/'*'.swift :!:ios/'*'.g.swift)
+    )
+
+    # --in-place enables `tools/check --fix swift_format`; see `check_no_changes`.
+    xcrun swift-format format --in-place \
+        --configuration ios/.swift-format \
+        "${swift_targets[@]}" \
+    || return
+
+    check_no_changes "changes to Swift files (swift-format)" ios/'*'.swift
 }
 
 run_shellcheck() {
@@ -663,6 +673,7 @@ for suite in "${opt_suites[@]}"; do
         drift)        maybe_time "$suite" run_drift ;;
         pigeon)       maybe_time "$suite" run_pigeon ;;
         icons)        maybe_time "$suite" run_icons ;;
+        swift_format) maybe_time "$suite" run_swift_format ;;
         android)      maybe_time "$suite" run_android ;;
         ios)          maybe_time "$suite" run_ios ;;
         shellcheck)   maybe_time "$suite" run_shellcheck ;;
