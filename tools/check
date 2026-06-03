@@ -570,7 +570,9 @@ run_ios() {
 run_swift_format() {
     # Omitted from this check:
     #   pubspec.{yaml,lock} tools/check
-    files_check ios/'*'.swift ios/.swift-format \
+    local swift_pathspecs=( ios/'*'.swift macos/'*'.swift )
+
+    files_check "${swift_pathspecs[@]}" ios/.swift-format \
     || return 0
 
     # swift-format comes from the Swift toolchain via `xcrun`, so needs macOS.
@@ -579,15 +581,16 @@ run_swift_format() {
         return 0
     fi
 
-    check_no_uncommitted_or_untracked ios/'*'.swift \
+    check_no_uncommitted_or_untracked "${swift_pathspecs[@]}" \
     || return
 
     if_verbose echo "Checking for style issues in Swift code..."
 
-    # Generated code (*.g.swift) is omitted from this check.
+    # Omit generated code: Pigeon output (*.g.swift) and the plugin registrant.
     # shellcheck disable=SC2207  # filenames in our own tree, assume well-behaved
     local swift_targets=(
-        $(git ls-files -- ios/'*'.swift :!:ios/'*'.g.swift)
+        $(git ls-files -- "${swift_pathspecs[@]}" \
+            ':!:*.g.swift' ':!:*/GeneratedPluginRegistrant.swift')
     )
 
     # --in-place enables `tools/check --fix swift_format`; see `check_no_changes`.
@@ -596,7 +599,8 @@ run_swift_format() {
         "${swift_targets[@]}" \
     || return
 
-    check_no_changes "changes to Swift files (swift-format)" ios/'*'.swift
+    check_no_changes "changes to Swift files (swift-format)" \
+        "${swift_pathspecs[@]}"
 }
 
 run_shellcheck() {
