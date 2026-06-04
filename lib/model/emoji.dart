@@ -434,6 +434,14 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
 
   void handleRealmEmojiEvent(RealmEmojiEvent event) {
     switch (event) {
+      case RealmEmojiAddEvent():
+        // TODO(#2278): handle
+        break;
+
+      case RealmEmojiUpdateOneEvent():
+        // TODO(#2278): handle
+        break;
+
       case RealmEmojiUpdateEvent(:final realmEmoji):
         allRealmEmoji = realmEmoji;
         _allEmojiCandidates = null;

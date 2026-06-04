@@ -8,6 +8,46 @@ part of 'events.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+RealmEmojiAddEvent _$RealmEmojiAddEventFromJson(Map<String, dynamic> json) =>
+    RealmEmojiAddEvent(
+      id: (json['id'] as num).toInt(),
+      emoji: RealmEmojiItem.fromJson(json['emoji'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$RealmEmojiAddEventToJson(RealmEmojiAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'emoji': instance.emoji,
+    };
+
+RealmEmojiUpdateOneEvent _$RealmEmojiUpdateOneEventFromJson(
+  Map<String, dynamic> json,
+) => RealmEmojiUpdateOneEvent(
+  id: (json['id'] as num).toInt(),
+  emojiCode: json['emoji_id'] as String,
+  data: RealmEmojiUpdateData.fromJson(json['data'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$RealmEmojiUpdateOneEventToJson(
+  RealmEmojiUpdateOneEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'emoji_id': instance.emojiCode,
+  'data': instance.data,
+};
+
+RealmEmojiUpdateData _$RealmEmojiUpdateDataFromJson(
+  Map<String, dynamic> json,
+) => RealmEmojiUpdateData(deactivated: json['deactivated'] as bool?);
+
+Map<String, dynamic> _$RealmEmojiUpdateDataToJson(
+  RealmEmojiUpdateData instance,
+) => <String, dynamic>{'deactivated': instance.deactivated};
+
 RealmEmojiUpdateEvent _$RealmEmojiUpdateEventFromJson(
   Map<String, dynamic> json,
 ) => RealmEmojiUpdateEvent(
