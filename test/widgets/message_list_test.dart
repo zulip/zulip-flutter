@@ -859,13 +859,10 @@ void main() {
         // Find the point in the fling where the fetch starts.
         await tester.pump(const Duration(milliseconds: 100));
         final requests = connection.takeRequests();
-        if (requests.length == 1) {
-          check(requests.first).isA<http.Request>()
+        if (requests.isNotEmpty) {
+          check(requests).single.isA<http.Request>()
             ..method.equals('GET')
             ..url.path.equals('/api/v1/messages');
-          break;
-        } else if (requests.length > 1) {
-          assert(false, 'At most, one request is expected.');
           break;
         }
       }
