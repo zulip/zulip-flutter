@@ -195,7 +195,7 @@ class RealmEmojiItem {
   //   i.e. that have run a migration to fill this in for animated emoji.
   final String? stillUrl;
 
-  final bool deactivated;
+  bool deactivated;
   final int? authorId;
 
   RealmEmojiItem({
