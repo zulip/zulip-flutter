@@ -36,6 +36,7 @@ void main() {
             'user_settings_object': true,
             'include_deactivated_groups': true,
             'empty_topic_name': true,
+            'individual_emoji_changes': true,
           }),
         });
       return result;
