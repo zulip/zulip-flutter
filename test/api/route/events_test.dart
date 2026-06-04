@@ -39,6 +39,7 @@ void main() {
               it['user_settings_object'].equals(true);
               it['include_deactivated_groups'].equals(true);
               it['empty_topic_name'].equals(true);
+              it['individual_emoji_changes'].equals(true);
             });
         });
       return result;
