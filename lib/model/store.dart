@@ -893,9 +893,9 @@ class PerAccountStore extends PerAccountStoreBase with
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
 
-      case RealmEmojiUpdateEvent():
-        assert(debugLog("server event: realm_emoji/update"));
-        _emoji.handleRealmEmojiUpdateEvent(event);
+      case RealmEmojiEvent():
+        assert(debugLog("server event: realm_emoji/${event.op}"));
+        _emoji.handleRealmEmojiEvent(event);
         notifyListeners();
 
       case AlertWordsEvent():
