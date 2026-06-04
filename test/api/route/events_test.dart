@@ -20,12 +20,31 @@ void main() {
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/register')
-        ..bodyFields.which((it) =>
-            idleQueueTimeout == null
-              ? it.not((it) => it.containsKey('idle_queue_timeout'))
-              : it['idle_queue_timeout'].equals(jsonEncode(idleQueueTimeout)));
+        ..bodyFields.deepEquals({
+          if (idleQueueTimeout != null)
+            'idle_queue_timeout': jsonEncode(idleQueueTimeout),
+
+          'apply_markdown': jsonEncode(true),
+          'client_gravatar': jsonEncode(false),
+          'slim_presence': jsonEncode(true),
+
+          'client_capabilities': jsonEncode({
+            'notification_settings_null': true,
+            'bulk_message_deletion': true,
+            'user_avatar_url_field_optional': false,
+            'stream_typing_notifications': true,
+            'user_settings_object': true,
+            'include_deactivated_groups': true,
+            'empty_topic_name': true,
+          }),
+        });
       return result;
     }
+
+    test('smoke', () => FakeApiConnection.with_((connection) async {
+      connection.prepare(json: eg.initialSnapshot().toJson());
+      await checkRegisterQueue(connection);
+    }));
 
     test('idleQueueTimeout absent', () => FakeApiConnection.with_((connection) async {
       connection.prepare(json: eg.initialSnapshot().toJson());
