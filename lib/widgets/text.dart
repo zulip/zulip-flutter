@@ -883,3 +883,20 @@ InlineSpan channelTopicLabelSpan({
     ],
   ]);
 }
+
+/// Wrap [text] in full-width parens for Chinese, Japanese, or Korean;
+/// otherwise use ASCII parens with optional spaces around them.
+String wrapInLocalizedParens(
+  BuildContext context,
+  String text, {
+  bool addSpaceBeforeIfNotCjk = false,
+  bool addSpaceAfterIfNotCjk = false,
+}) {
+  final languageCode = Localizations.localeOf(context).languageCode;
+  return switch (languageCode) {
+    'zh' || 'ja' || 'ko' =>
+      '（$text）',
+    _ =>
+      '${addSpaceBeforeIfNotCjk ? ' ' : ''}($text)${addSpaceAfterIfNotCjk ? ' ' : ''}',
+  };
+}
