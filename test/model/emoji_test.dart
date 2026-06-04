@@ -268,6 +268,49 @@ void main() {
       ]);
     });
 
+    test('updates on RealmEmojiAddEvent', () async {
+      final store = prepare(realmEmoji: {});
+      check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
+        isZulipCandidate(),
+      ]);
+
+      await store.handleEvent(RealmEmojiAddEvent(id: 1,
+        emoji: eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy')));
+      check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
+        isRealmCandidate(emojiCode: '1', emojiName: 'happy'),
+        isZulipCandidate(),
+      ]);
+    });
+
+    test('updates on RealmEmojiUpdateOneEvent', () async {
+      final store = prepare(realmEmoji: {
+        '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'happy', deactivated: false),
+        '2': eg.realmEmojiItem(emojiCode: '2', emojiName: 'sad', deactivated: true),
+      });
+      check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
+        isRealmCandidate(emojiCode: '1', emojiName: 'happy'),
+        isZulipCandidate(),
+      ]);
+
+      await store.handleEvent(RealmEmojiUpdateOneEvent(id: 1,
+        emojiCode: '1', data: RealmEmojiUpdateData(deactivated: true)));
+      check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
+        isZulipCandidate(),
+      ]);
+
+      await store.handleEvent(RealmEmojiUpdateOneEvent(id: 1,
+        emojiCode: '2', data: RealmEmojiUpdateData(deactivated: false)));
+      check(store.allEmojiCandidates()).deepEquals([
+        ...arePopularCandidates,
+        isRealmCandidate(emojiCode: '2', emojiName: 'sad'),
+        isZulipCandidate(),
+      ]);
+    });
+
     test('updates on RealmEmojiUpdateEvent', () async {
       final store = prepare();
       check(store.allEmojiCandidates()).deepEquals([
