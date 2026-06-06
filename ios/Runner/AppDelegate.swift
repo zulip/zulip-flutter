@@ -48,15 +48,23 @@ import UIKit
   }
 
   override func userNotificationCenter(
+    _ center: UNUserNotificationCenter, willPresent notification: UNNotification
+  ) async -> UNNotificationPresentationOptions {
+    // When the app is in the foreground, apply the notification's badge value
+    // to the app icon, display it as a banner over the app, and show it in
+    // the Notification Center list.
+    // See docs: https://developer.apple.com/documentation/usernotifications/unnotificationpresentationoptions
+    return [.badge, .banner, .list]
+  }
+
+  override func userNotificationCenter(
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
-    withCompletionHandler completionHandler: @escaping () -> Void
-  ) {
+  ) async {
     if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
       let userInfo = response.notification.request.content.userInfo
       notificationTapEventListener!.onNotificationTapEvent(payload: userInfo)
     }
-    completionHandler()
   }
 }
 
