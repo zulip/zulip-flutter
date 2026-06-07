@@ -95,6 +95,9 @@
   "@composeBoxGroupDmContentHint": {
     "description": "Hint text for content input when sending a message to a group."
   },
+  "@composeBoxSelfDmContentHint": {
+    "description": "Hint text for content input when sending a message to yourself."
+  },
   "@composeBoxSendTooltip": {
     "description": "Tooltip for send button in compose box."
   },
@@ -122,8 +125,27 @@
   "@emojiReactionsMore": {
     "description": "Label for a button opening the emoji picker."
   },
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "error": {
+        "example": "Invalid format",
+        "type": "String"
+      },
+      "serverUrl": {
+        "example": "http://example.com/",
+        "type": "String"
+      }
+    }
+  },
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
   },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
@@ -137,11 +159,26 @@
   "@errorLoginInvalidInputTitle": {
     "description": "Error title for login when input is invalid."
   },
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "example": "Invalid format",
+        "type": "String"
+      }
+    }
+  },
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
+  },
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
   },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
@@ -199,6 +236,12 @@
   },
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
+  },
+  "@permissionsDeniedCameraAccess": {
+    "description": "Message for dialog asking the user to grant permissions for camera access."
+  },
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
@@ -305,6 +348,9 @@
   "@upgradeWelcomeDialogDismiss": {
     "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
   },
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
+  },
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
@@ -386,6 +432,7 @@
   "composeBoxBannerLabelEditMessage": "Muuda sõnumit",
   "composeBoxDmContentHint": "Sõnum kasutajale @{user}",
   "composeBoxGroupDmContentHint": "Sõnum grupile",
+  "composeBoxSelfDmContentHint": "Koosta endale märge",
   "composeBoxSendTooltip": "Saada",
   "composeBoxTopicHintText": "Teema",
   "deleteMessageConfirmationDialogConfirmButton": "Kustuta",
@@ -395,13 +442,19 @@
   "dialogContinue": "Jätka",
   "discardDraftConfirmationDialogConfirmButton": "Loobu",
   "emojiReactionsMore": "näita veel",
+  "errorConnectingToServerDetails": "Viga Zulipiga ühendamisel aadressil {serverUrl}. Proovin uuesti:\n\n{error}",
+  "errorConnectingToServerShort": "Viga Zulipiga ühendamisel. Proovin uuesti…",
   "errorCopyingFailed": "Kopeerimine ei õnnestunud",
+  "errorCouldNotConnectTitle": "Ühendumine ei õnnestunud",
   "errorDialogContinue": "Sobib",
   "errorDialogTitle": "Viga",
   "errorLoginFailedTitle": "Sisselogimine ei õnnestunud",
   "errorLoginInvalidInputTitle": "Vigane sisend",
+  "errorMessageDoesNotSeemToExist": "Tundub, et seda sõnumit pole olemas.",
   "errorQuotationFailed": "Tsiteerimine ei õnnestunud",
+  "errorServerMessage": "Server ütles:\n\n{message}",
   "errorSharingFailed": "Jagamine ei õnnestunud",
+  "experimentalFeatureSettingsPageTitle": "Katselised seadistused",
   "inboxPageTitle": "Sisendkaust",
   "logOutConfirmationDialogConfirmButton": "Logi välja",
   "logOutConfirmationDialogTitle": "Kas logid välja?",
@@ -421,6 +474,8 @@
   "newDmSheetComposeButtonLabel": "Koosta sõnum",
   "newDmSheetScreenTitle": "Uus otsesõnum",
   "notifSelfUser": "Sina",
+  "permissionsDeniedCameraAccess": "Pildi üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.",
+  "permissionsDeniedReadExternalStorage": "Failide üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.",
   "permissionsNeededOpenSettings": "Ava seadistused",
   "permissionsNeededTitle": "Vajalikud on õigused",
   "pinnedSubscriptionsLabel": "Esiletõstetud",
@@ -454,6 +509,7 @@
   "unpinnedSubscriptionsLabel": "Pole esiletõstetud",
   "unsubscribeConfirmationDialogConfirmButton": "Loobu tellimusest",
   "upgradeWelcomeDialogDismiss": "Alustame",
+  "upgradeWelcomeDialogMessage": "Tuttava kogemuse leiad kiiremast ja elegantsemast rakendusest.",
   "upgradeWelcomeDialogTitle": "Tere tulemast kasutama uut Zulipi rakendust!",
   "userIdle": "Jõude",
   "userRoleAdministrator": "Peakasutaja",

@@ -113,6 +113,18 @@
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
   },
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
+  },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
   },
@@ -1287,6 +1299,8 @@
   "actionSheetReadReceiptsErrorReadCount": "加载已读回执失败。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{此消息已被<z-link>阅读</z-link>，共有 {count} 人：} other{此消息已被<z-link>阅读</z-link>，共有 {count} 人：}}",
   "actionSheetReadReceiptsZeroReadCount": "尚无人阅读此消息。",
+  "actionSheetTitleDm": "与{user}的私信",
+  "actionSheetTitleSelfDm": "与自己的私信",
   "allChannelsEmptyPlaceholderHeader": "目前组织中没有您可见的频道。",
   "allChannelsPageTitle": "所有频道",
   "appVersionUnknownPlaceholder": "(…)",
@@ -1446,7 +1460,7 @@
   "messageIsEditedLabel": "已编辑",
   "messageIsMovedLabel": "已移动",
   "messageListGroupYouAndOthers": "您和{others}",
-  "messageListGroupYouWithYourself": "与自己的私信",
+  "messageListGroupYouWithYourself": "与自己的消息",
   "messageNotSentLabel": "消息未发送",
   "mutedUser": "静音用户",
   "navButtonAllChannels": "所有频道",
@@ -1517,7 +1531,7 @@
   "themeSettingTitle": "主题",
   "today": "今天",
   "topicValidationErrorMandatoryButEmpty": "话题在该组织为必填项。",
-  "topicValidationErrorTooLong": "话题长度不应该超过 60 个字符。",
+  "topicValidationErrorTooLong": "话题长度不应该大于{maxLength, plural, =1{1 character} other{{maxLength} 字符}}。",
   "topicsButtonTooltip": "话题",
   "tryAnotherAccountButton": "尝试另一个账号",
   "tryAnotherAccountMessage": "您在 {url} 的账号加载时间过长。",

@@ -27,7 +27,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'Tuttava kogemuse leiad kiiremast ja elegantsemast rakendusest.';
 
   @override
   String get upgradeWelcomeDialogLinkText =>
@@ -93,11 +93,11 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
 
   @override
   String get permissionsDeniedCameraAccess =>
-      'To upload an image, please grant Zulip additional permissions in Settings.';
+      'Pildi üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.';
 
   @override
   String get permissionsDeniedReadExternalStorage =>
-      'To upload files, please grant Zulip additional permissions in Settings.';
+      'Failide üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.';
 
   @override
   String get actionSheetOptionSubscribe => 'Telli';
@@ -415,27 +415,27 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotConnectTitle => 'Could not connect';
+  String get errorCouldNotConnectTitle => 'Ühendumine ei õnnestunud';
 
   @override
   String get errorMessageDoesNotSeemToExist =>
-      'That message does not seem to exist.';
+      'Tundub, et seda sõnumit pole olemas.';
 
   @override
   String get errorQuotationFailed => 'Tsiteerimine ei õnnestunud';
 
   @override
   String errorServerMessage(String message) {
-    return 'The server said:\n\n$message';
+    return 'Server ütles:\n\n$message';
   }
 
   @override
   String get errorConnectingToServerShort =>
-      'Error connecting to Zulip. Retrying…';
+      'Viga Zulipiga ühendamisel. Proovin uuesti…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
-    return 'Error connecting to Zulip at $serverUrl. Will retry:\n\n$error';
+    return 'Viga Zulipiga ühendamisel aadressil $serverUrl. Proovin uuesti:\n\n$error';
   }
 
   @override
@@ -604,7 +604,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get composeBoxGroupDmContentHint => 'Sõnum grupile';
 
   @override
-  String get composeBoxSelfDmContentHint => 'Write yourself a note';
+  String get composeBoxSelfDmContentHint => 'Koosta endale märge';
 
   @override
   String composeBoxChannelContentHint(String destination) {
@@ -1366,7 +1366,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.';
 
   @override
-  String get experimentalFeatureSettingsPageTitle => 'Experimental features';
+  String get experimentalFeatureSettingsPageTitle => 'Katselised seadistused';
 
   @override
   String get experimentalFeatureSettingsWarning =>

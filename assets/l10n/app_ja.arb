@@ -47,6 +47,9 @@
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
   },
+  "@actionSheetOptionMarkDmConversationAsRead": {
+    "description": "Option to mark a DM conversation as read in the action sheet."
+  },
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
   },
@@ -58,6 +61,9 @@
   },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
   },
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
@@ -92,6 +98,9 @@
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
+  "@actionSheetOptionViewProfile": {
+    "description": "Option to view the user's profile in the action sheet for a 1:1 DM conversation."
+  },
   "@actionSheetOptionViewReadReceipts": {
     "description": "Label for the 'View read receipts' button in the message action sheet."
   },
@@ -112,6 +121,21 @@
   },
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@actionSheetTitleGroupDm": {
+    "description": "The title of an action sheet for a group DM conversation."
+  },
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
   },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
@@ -277,6 +301,9 @@
   },
   "@dialogContinue": {
     "description": "Button label in dialogs to proceed."
+  },
+  "@dialogOpenInBrowser": {
+    "description": "Button label to confirm opening a link in the browser."
   },
   "@discardDraftConfirmationDialogConfirmButton": {
     "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
@@ -609,6 +636,9 @@
   "@errorReactionRemovingFailedTitle": {
     "description": "Error title when removing a message reaction fails"
   },
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
+  },
   "@errorRequestFailed": {
     "description": "Error message when an API call fails.",
     "placeholders": {
@@ -676,6 +706,9 @@
   },
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
+  },
+  "@errorVideoPlayerFailedTryBrowser": {
+    "description": "Body of a dialog suggesting the user open a video in the browser, after the app's video player failed to play it."
   },
   "@errorWebAuthOperationalError": {
     "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
@@ -780,6 +813,9 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
+  "@loginRealmUrlLabel": {
+    "description": "Label in login page for Zulip realm/org URL entry."
+  },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
   },
@@ -876,6 +912,21 @@
   "@messageNotSentLabel": {
     "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "@messageReportTypeHarassment": {
+    "description": "Label for the 'Harassment' report type in the report message dialog."
+  },
+  "@messageReportTypeInappropriate": {
+    "description": "Label for the 'Inappropriate content' report type in the report message dialog."
+  },
+  "@messageReportTypeNorms": {
+    "description": "Label for the 'Violates community norms' report type in the report message dialog."
+  },
+  "@messageReportTypeOther": {
+    "description": "Label for the 'Other reason' report type in the report message dialog."
+  },
+  "@messageReportTypeSpam": {
+    "description": "Label for the 'Spam' report type in the report message dialog."
+  },
   "@mutedUser": {
     "description": "Text to display in place of a muted user's name."
   },
@@ -940,6 +991,9 @@
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
   },
+  "@otherChannelsFolderName": {
+    "description": "Label for the channel folder for other channels."
+  },
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
@@ -951,6 +1005,9 @@
   },
   "@permissionsNeededTitle": {
     "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "@pinnedChannelsFolderName": {
+    "description": "Label for the channel folder for pinned channels."
   },
   "@pinnedSubscriptionsLabel": {
     "description": "Label for the list of pinned subscribed channels."
@@ -1016,6 +1073,27 @@
   "@recentDmConversationsSectionHeader": {
     "description": "Heading for direct messages section on the 'Inbox' message view."
   },
+  "@reportMessageDescription": {
+    "description": "Explanatory text shown under the title in the report message dialog."
+  },
+  "@reportMessageDescriptionLabel": {
+    "description": "Label text for the description field in the report message dialog."
+  },
+  "@reportMessageDescriptionRequired": {
+    "description": "Validation error shown in the report message dialog when the report type is \"Other\" and no description is provided."
+  },
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "@reportMessageReasonLabel": {
+    "description": "Label text for the report reason dropdown in the report message dialog."
+  },
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
+  "@reportMessageSuccess": {
+    "description": "Snackbar message shown after successfully reporting a message."
+  },
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
   },
@@ -1072,6 +1150,38 @@
       "num": {
         "example": "2",
         "type": "int"
+      }
+    }
+  },
+  "@serverCompatBannerAdminMessage": {
+    "description": "Banner message shown to server admins when the server version is no longer supported.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "9.0",
+        "type": "String"
+      }
+    }
+  },
+  "@serverCompatBannerDismissLabel": {
+    "description": "Label for the button that dismisses the server compatibility warning banner."
+  },
+  "@serverCompatBannerLearnMoreLabel": {
+    "description": "Label for the button in the server compatibility warning banner that opens the support policy doc."
+  },
+  "@serverCompatBannerUserMessage": {
+    "description": "Banner message shown to non-admin users when the server version is no longer supported.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "9.0",
+        "type": "String"
       }
     }
   },
@@ -1390,10 +1500,12 @@
   "actionSheetOptionListOfTopics": "トピック一覧",
   "actionSheetOptionMarkAsUnread": "ここから未読にする",
   "actionSheetOptionMarkChannelAsRead": "チャンネルを既読にする",
+  "actionSheetOptionMarkDmConversationAsRead": "会話を既読にする",
   "actionSheetOptionMarkTopicAsRead": "トピックを既読にする",
   "actionSheetOptionMuteTopic": "トピックをミュート",
   "actionSheetOptionPinChannel": "上部に固定",
   "actionSheetOptionQuoteMessage": "メッセージを引用",
+  "actionSheetOptionReportMessage": "メッセージを報告",
   "actionSheetOptionResolveTopic": "解決済みにする",
   "actionSheetOptionSeeWhoReacted": "リアクションした人を見る",
   "actionSheetOptionShare": "共有",
@@ -1405,11 +1517,15 @@
   "actionSheetOptionUnresolveTopic": "未解決にする",
   "actionSheetOptionUnstarMessage": "メッセージのスターを外す",
   "actionSheetOptionUnsubscribe": "チャンネルから退出",
+  "actionSheetOptionViewProfile": "プロフィールを表示",
   "actionSheetOptionViewReadReceipts": "既読確認を表示",
   "actionSheetReadReceipts": "既読確認",
   "actionSheetReadReceiptsErrorReadCount": "既読情報の読み込みに失敗しました。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{ このメッセージは <z-link>{count} 人</z-link> に読まれています:} other{ このメッセージは <z-link>{count} 人</z-link> に読まれています:}}",
   "actionSheetReadReceiptsZeroReadCount": "このメッセージはまだ誰も読んでいません。",
+  "actionSheetTitleDm": "{user}とのDM",
+  "actionSheetTitleGroupDm": "グループDM",
+  "actionSheetTitleSelfDm": "自分とのDM",
   "allChannelsEmptyPlaceholderHeader": "この組織には、あなたが閲覧できるチャンネルはありません。",
   "allChannelsPageTitle": "全てのチャンネル",
   "appVersionUnknownPlaceholder": "（…）",
@@ -1455,6 +1571,7 @@
   "dialogCancel": "キャンセル",
   "dialogClose": "閉じる",
   "dialogContinue": "続行",
+  "dialogOpenInBrowser": "ブラウザで開く",
   "discardDraftConfirmationDialogConfirmButton": "破棄",
   "discardDraftConfirmationDialogTitle": "作成中のメッセージを破棄しますか？",
   "discardDraftForEditConfirmationDialogMessage": "メッセージを編集すると、作成中の内容は破棄されます。",
@@ -1526,6 +1643,7 @@
   "errorQuotationFailed": "引用できませんでした",
   "errorReactionAddingFailedTitle": "リアクションを追加できませんでした",
   "errorReactionRemovingFailedTitle": "リアクションを削除できませんでした",
+  "errorReportMessageFailedTitle": "メッセージの報告に失敗しました",
   "errorRequestFailed": "ネットワークリクエストに失敗しました：HTTP ステータス {httpStatus}",
   "errorResolveTopicFailedTitle": "トピックを解決済みにできませんでした",
   "errorServerMessage": "サーバーからの応答：\n\n{message}",
@@ -1540,6 +1658,7 @@
   "errorUnresolveTopicFailedTitle": "トピックを未解決にできませんでした",
   "errorUnstarMessageFailedTitle": "メッセージのスターを外せませんでした",
   "errorVideoPlayerFailed": "動画を再生できません。",
+  "errorVideoPlayerFailedTryBrowser": "代わりにブラウザで開いてみてください。",
   "errorWebAuthOperationalError": "予期しないエラーが発生しました。",
   "errorWebAuthOperationalErrorTitle": "問題が発生しました",
   "experimentalFeatureSettingsPageTitle": "実験的機能",
@@ -1571,6 +1690,7 @@
   "loginMethodDividerSemanticLabel": "他のログイン方法",
   "loginPageTitle": "ログイン",
   "loginPasswordLabel": "パスワード",
+  "loginRealmUrlLabel": "あなたのZulip組織のURL",
   "loginUsernameLabel": "ユーザー名",
   "mainMenuMyProfile": "自分のプロフィール",
   "manyPeopleTyping": "複数のユーザーが入力中…",
@@ -1595,6 +1715,11 @@
   "messageListGroupYouAndOthers": "自分と{others}",
   "messageListGroupYouWithYourself": "自分とのメッセージ",
   "messageNotSentLabel": "メッセージ未送信",
+  "messageReportTypeHarassment": "ハラスメント",
+  "messageReportTypeInappropriate": "不適切なコンテンツ",
+  "messageReportTypeNorms": "コミュニティ規範への違反",
+  "messageReportTypeOther": "その他の理由",
+  "messageReportTypeSpam": "スパム",
   "mutedUser": "ミュート中のユーザー",
   "navBarFeedLabel": "フィード",
   "navBarMenuLabel": "メニュー",
@@ -1611,10 +1736,12 @@
   "notifSelfUser": "自分",
   "onePersonTyping": "{typist} さんが入力中…",
   "openLinksWithInAppBrowser": "リンクをアプリ内ブラウザで開く",
+  "otherChannelsFolderName": "その他のチャンネル",
   "permissionsDeniedCameraAccess": "画像をアップロードするには、[設定] でZulipに追加の権限を付与してください。",
   "permissionsDeniedReadExternalStorage": "ファイルをアップロードするには、[設定] でZulipに追加の権限を付与してください。",
   "permissionsNeededOpenSettings": "設定を開く",
   "permissionsNeededTitle": "権限が必要です",
+  "pinnedChannelsFolderName": "ピン留めされたチャンネル",
   "pinnedSubscriptionsLabel": "ピン留め済み",
   "pollVoterNames": "({voterNames})",
   "pollWidgetOptionsMissing": "この投票にはまだ選択肢がありません。",
@@ -1630,6 +1757,13 @@
   "recentDmConversationsPageShortLabel": "DM",
   "recentDmConversationsPageTitle": "ダイレクトメッセージ",
   "recentDmConversationsSectionHeader": "ダイレクトメッセージ",
+  "reportMessageDescription": "報告内容は、この組織のプライベートなモデレーション申請チャンネルに送信されます。",
+  "reportMessageDescriptionLabel": "詳細を教えていただけますか？",
+  "reportMessageDescriptionRequired": "詳細を入力してください。",
+  "reportMessageDialogTitle": "メッセージを報告",
+  "reportMessageReasonLabel": "このメッセージにはどのような問題がありますか？",
+  "reportMessageSubmitButton": "送信",
+  "reportMessageSuccess": "メッセージを報告しました",
   "revealButtonLabel": "メッセージを表示",
   "savingMessageEditFailedLabel": "編集未保存",
   "savingMessageEditLabel": "保存中…",
@@ -1641,6 +1775,10 @@
   "seeWhoReactedSheetHeaderLabel": "絵文字リアクション（合計 {num} 件）",
   "seeWhoReactedSheetNoReactions": "このメッセージにはリアクションがありません。",
   "seeWhoReactedSheetUserListLabel": "{emojiName} のリアクション件数（{num}件）",
+  "serverCompatBannerAdminMessage": "{url} で稼働中の Zulip Server {zulipVersion} はサポート対象外です。速やかにサーバーをアップグレードしてください。",
+  "serverCompatBannerDismissLabel": "閉じる",
+  "serverCompatBannerLearnMoreLabel": "詳細を見る",
+  "serverCompatBannerUserMessage": "{url} で稼働中の Zulip Server {zulipVersion} はサポート対象外です。アップグレードについてサーバー管理者にお問い合わせください。",
   "serverUrlValidationErrorEmpty": "URLを入力してください。",
   "serverUrlValidationErrorInvalidUrl": "有効なURLを入力してください。",
   "serverUrlValidationErrorNoUseEmail": "メールアドレスではなく、サーバーURLを入力してください。",
