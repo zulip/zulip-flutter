@@ -966,6 +966,12 @@ abstract class ZulipLocalizations {
   /// **'Channel link copied'**
   String get successChannelLinkCopied;
 
+  /// Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'You cannot send messages to deleted users.'**
+  String get composeBoxBannerLabelDeletedDmRecipient;
+
   /// Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deactivated.
   ///
   /// In en, this message translates to:

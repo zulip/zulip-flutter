@@ -593,6 +593,10 @@
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
   },
+  "composeBoxBannerLabelDeletedDmRecipient": "You cannot send messages to deleted users.",
+  "@composeBoxBannerLabelDeletedDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deleted."
+  },
   "composeBoxBannerLabelDeactivatedDmRecipient": "You cannot send messages to deactivated users.",
   "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deactivated."
