@@ -29,6 +29,21 @@ void main() {
       final store = eg.store();
       check(store.userDisplayName(eg.user().userId)).equals('(unknown user)');
     });
+
+    test('on a deleted user', () async {
+      final user = eg.user(fullName: 'Deleted User 12', isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.userDisplayName(user.userId)).equals('Deleted user');
+    });
+
+    test('deleted takes priority over muted', () async {
+      final user = eg.user(fullName: 'Deleted User 12', isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      await store.setMutedUsers([user.userId]);
+      check(store.userDisplayName(user.userId)).equals('Deleted user');
+    });
   });
 
   group('senderDisplayName', () {
@@ -58,6 +73,15 @@ void main() {
       // ... even though `store.userDisplayName` (with no message available
       // for fallback) only has a generic fallback name.
       check(store.userDisplayName(message.senderId)).equals('(unknown user)');
+    });
+
+    test('on a deleted sender', () async {
+      final user = eg.user(fullName: 'Deleted User 12', isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      final message = eg.streamMessage(sender: user);
+      await store.addMessage(message);
+      check(store.senderDisplayName(message)).equals('Deleted user');
     });
   });
 

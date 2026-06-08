@@ -1378,6 +1378,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get mutedUser => 'ミュート中のユーザー';
 
   @override
+  String get deletedUser => 'Deleted user';
+
+  @override
   String get scrollToBottomTooltip => '最下部へ移動';
 
   @override
