@@ -519,6 +519,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get successChannelLinkCopied => 'Lien vers le canal copié';
 
   @override
+  String get composeBoxBannerLabelDeletedDmRecipient =>
+      'You cannot send messages to deleted users.';
+
+  @override
   String get composeBoxBannerLabelDeactivatedDmRecipient =>
       'Vous ne pouvez pas envoyer de messages aux utilisateurs désactivés.';
 

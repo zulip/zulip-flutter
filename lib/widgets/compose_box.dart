@@ -2281,8 +2281,15 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
         }
 
       case DmNarrow(:final otherRecipientIds):
+        final hasDeletedUser = otherRecipientIds.any((id) =>
+          store.getUser(id)?.isDeleted ?? false);
+        if (hasDeletedUser) {
+          return _Banner(
+            intent: _BannerIntent.info,
+            label: zulipLocalizations.composeBoxBannerLabelDeletedDmRecipient);
+        }
         final hasDeactivatedUser = otherRecipientIds.any((id) =>
-          !(store.getUser(id)?.isActive ?? true));
+          store.isUserDeactivated(id));
         if (hasDeactivatedUser) {
           return _Banner(
             intent: _BannerIntent.info,

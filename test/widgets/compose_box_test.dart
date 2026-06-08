@@ -1483,6 +1483,46 @@ void main() {
       });
     });
 
+    group('in DMs with deleted users', () {
+      DmNarrow dmNarrowWith(User otherUser) => DmNarrow.withUser(otherUser.userId,
+        selfUserId: eg.selfUser.userId);
+
+      DmNarrow groupDmNarrowWith(List<User> otherUsers) => DmNarrow.withOtherUsers(
+        otherUsers.map((u) => u.userId), selfUserId: eg.selfUser.userId);
+
+      void checkComposeBox({required bool isShown}) => checkComposeBoxIsShown(isShown,
+        bannerLabel: zulipLocalizations.composeBoxBannerLabelDeletedDmRecipient);
+
+      testWidgets('1:1 DM with a deleted user: compose box replaced with a banner', (tester) async {
+        final deletedUser = eg.user(isActive: false, isDeleted: true);
+        await prepareComposeBox(tester, narrow: dmNarrowWith(deletedUser),
+          otherUsers: [deletedUser]);
+        checkComposeBox(isShown: false);
+      });
+
+      testWidgets('deleted but still active user: still shows the deleted banner', (tester) async {
+        // The banner keys on isDeleted, not isActive.
+        final deletedUser = eg.user(isActive: true, isDeleted: true);
+        await prepareComposeBox(tester, narrow: dmNarrowWith(deletedUser),
+          otherUsers: [deletedUser]);
+        checkComposeBox(isShown: false);
+      });
+
+      testWidgets('deleted takes priority over deactivated', (tester) async {
+        // A group DM with one deleted and one merely deactivated recipient
+        // shows the deleted banner, not the deactivated one.
+        final deletedUser = eg.user(isActive: false, isDeleted: true);
+        final deactivatedUser = eg.user(isActive: false);
+        await prepareComposeBox(tester,
+          narrow: groupDmNarrowWith([deletedUser, deactivatedUser]),
+          otherUsers: [deletedUser, deactivatedUser]);
+        checkBannerWithLabel(
+          zulipLocalizations.composeBoxBannerLabelDeletedDmRecipient, isShown: true);
+        checkBannerWithLabel(
+          zulipLocalizations.composeBoxBannerLabelDeactivatedDmRecipient, isShown: false);
+      });
+    });
+
     testWidgets('channel without content access (channel narrow)', (tester) async {
       final channel = eg.stream(
         inviteOnly: true,
