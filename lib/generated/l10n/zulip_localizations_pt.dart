@@ -9,7 +9,7 @@ class ZulipLocalizationsPt extends ZulipLocalizations {
   ZulipLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'Sobre Zulip';
 
   @override
   String get aboutPageAppVersion => 'App version';

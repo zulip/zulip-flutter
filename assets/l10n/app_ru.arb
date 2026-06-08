@@ -62,6 +62,9 @@
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
+  },
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
   },
@@ -304,6 +307,9 @@
   },
   "@dialogContinue": {
     "description": "Button label in dialogs to proceed."
+  },
+  "@dialogOpenInBrowser": {
+    "description": "Button label to confirm opening a link in the browser."
   },
   "@discardDraftConfirmationDialogConfirmButton": {
     "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
@@ -636,6 +642,9 @@
   "@errorReactionRemovingFailedTitle": {
     "description": "Error title when removing a message reaction fails"
   },
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
+  },
   "@errorRequestFailed": {
     "description": "Error message when an API call fails.",
     "placeholders": {
@@ -703,6 +712,9 @@
   },
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
+  },
+  "@errorVideoPlayerFailedTryBrowser": {
+    "description": "Body of a dialog suggesting the user open a video in the browser, after the app's video player failed to play it."
   },
   "@errorWebAuthOperationalError": {
     "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
@@ -906,6 +918,21 @@
   "@messageNotSentLabel": {
     "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "@messageReportTypeHarassment": {
+    "description": "Label for the 'Harassment' report type in the report message dialog."
+  },
+  "@messageReportTypeInappropriate": {
+    "description": "Label for the 'Inappropriate content' report type in the report message dialog."
+  },
+  "@messageReportTypeNorms": {
+    "description": "Label for the 'Violates community norms' report type in the report message dialog."
+  },
+  "@messageReportTypeOther": {
+    "description": "Label for the 'Other reason' report type in the report message dialog."
+  },
+  "@messageReportTypeSpam": {
+    "description": "Label for the 'Spam' report type in the report message dialog."
+  },
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
@@ -1054,6 +1081,27 @@
   },
   "@recentDmConversationsSectionHeader": {
     "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "@reportMessageDescription": {
+    "description": "Explanatory text shown under the title in the report message dialog."
+  },
+  "@reportMessageDescriptionLabel": {
+    "description": "Label text for the description field in the report message dialog."
+  },
+  "@reportMessageDescriptionRequired": {
+    "description": "Validation error shown in the report message dialog when the report type is \"Other\" and no description is provided."
+  },
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "@reportMessageReasonLabel": {
+    "description": "Label text for the report reason dropdown in the report message dialog."
+  },
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
+  "@reportMessageSuccess": {
+    "description": "Snackbar message shown after successfully reporting a message."
   },
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
@@ -1484,6 +1532,7 @@
   "actionSheetOptionMuteTopic": "Заглушить тему",
   "actionSheetOptionPinChannel": "Закрепить",
   "actionSheetOptionQuoteMessage": "Цитировать сообщение",
+  "actionSheetOptionReportMessage": "Пожаловаться на сообщение",
   "actionSheetOptionResolveTopic": "Поставить отметку \"решено\"",
   "actionSheetOptionSeeWhoReacted": "Посмотреть отреагировавших",
   "actionSheetOptionShare": "Поделиться",
@@ -1549,6 +1598,7 @@
   "dialogCancel": "Отмена",
   "dialogClose": "Закрыть",
   "dialogContinue": "Продолжить",
+  "dialogOpenInBrowser": "Открыть в браузере",
   "discardDraftConfirmationDialogConfirmButton": "Сбросить",
   "discardDraftConfirmationDialogTitle": "Отказаться от написанного сообщения?",
   "discardDraftForEditConfirmationDialogMessage": "При изменении сообщения текст из поля для редактирования удаляется.",
@@ -1620,6 +1670,7 @@
   "errorQuotationFailed": "Цитирование не удалось",
   "errorReactionAddingFailedTitle": "Не удалось добавить реакцию",
   "errorReactionRemovingFailedTitle": "Не удалось удалить реакцию",
+  "errorReportMessageFailedTitle": "Не удалось отправить жалобу",
   "errorRequestFailed": "Сбой сетевого запроса: HTTP-статус {httpStatus}",
   "errorResolveTopicFailedTitle": "Не удалось отметить тему как решенную",
   "errorServerMessage": "Ответ сервера:\n\n{message}",
@@ -1634,6 +1685,7 @@
   "errorUnresolveTopicFailedTitle": "Не удалось отметить тему как нерешенную",
   "errorUnstarMessageFailedTitle": "Не удалось снять отметку с сообщения",
   "errorVideoPlayerFailed": "Не удается воспроизвести видео.",
+  "errorVideoPlayerFailedTryBrowser": "Попробуйте открыть видео в браузере.",
   "errorWebAuthOperationalError": "Произошла непредвиденная ошибка.",
   "errorWebAuthOperationalErrorTitle": "Что-то пошло не так",
   "experimentalFeatureSettingsPageTitle": "Экспериментальные функции",
@@ -1690,6 +1742,11 @@
   "messageListGroupYouAndOthers": "Вы и {others}",
   "messageListGroupYouWithYourself": "Сообщения с собой",
   "messageNotSentLabel": "СООБЩЕНИЕ НЕ ОТПРАВЛЕНО",
+  "messageReportTypeHarassment": "Оскорбления",
+  "messageReportTypeInappropriate": "Неприемлемое содержание",
+  "messageReportTypeNorms": "Нарушение норм сообщества",
+  "messageReportTypeOther": "Другая причина",
+  "messageReportTypeSpam": "Спам",
   "mutedUser": "Заглушенный пользователь",
   "navBarFeedLabel": "Лента",
   "navBarMenuLabel": "Меню",
@@ -1727,6 +1784,13 @@
   "recentDmConversationsPageShortLabel": "ЛС",
   "recentDmConversationsPageTitle": "Личные сообщения",
   "recentDmConversationsSectionHeader": "Личные сообщения",
+  "reportMessageDescription": "Ваша жалоба будет направлена в закрытый канал модерации сообщений этой организации.",
+  "reportMessageDescriptionLabel": "Можете добавить подробности?",
+  "reportMessageDescriptionRequired": "Предоставьте пояснения, пожалуйста.",
+  "reportMessageDialogTitle": "Пожаловаться на сообщение",
+  "reportMessageReasonLabel": "Что не так с этим сообщением?",
+  "reportMessageSubmitButton": "Отправить",
+  "reportMessageSuccess": "Жалоба отправлена",
   "revealButtonLabel": "Показать сообщение",
   "savingMessageEditFailedLabel": "ПРАВКИ НЕ СОХРАНЕНЫ",
   "savingMessageEditLabel": "ЗАПИСЬ ПРАВОК…",

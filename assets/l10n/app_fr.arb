@@ -62,6 +62,9 @@
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
+  },
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
   },
@@ -304,6 +307,9 @@
   },
   "@dialogContinue": {
     "description": "Button label in dialogs to proceed."
+  },
+  "@dialogOpenInBrowser": {
+    "description": "Button label to confirm opening a link in the browser."
   },
   "@discardDraftConfirmationDialogConfirmButton": {
     "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
@@ -636,6 +642,9 @@
   "@errorReactionRemovingFailedTitle": {
     "description": "Error title when removing a message reaction fails"
   },
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
+  },
   "@errorRequestFailed": {
     "description": "Error message when an API call fails.",
     "placeholders": {
@@ -703,6 +712,9 @@
   },
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
+  },
+  "@errorVideoPlayerFailedTryBrowser": {
+    "description": "Body of a dialog suggesting the user open a video in the browser, after the app's video player failed to play it."
   },
   "@errorWebAuthOperationalError": {
     "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
@@ -906,6 +918,21 @@
   "@messageNotSentLabel": {
     "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "@messageReportTypeHarassment": {
+    "description": "Label for the 'Harassment' report type in the report message dialog."
+  },
+  "@messageReportTypeInappropriate": {
+    "description": "Label for the 'Inappropriate content' report type in the report message dialog."
+  },
+  "@messageReportTypeNorms": {
+    "description": "Label for the 'Violates community norms' report type in the report message dialog."
+  },
+  "@messageReportTypeOther": {
+    "description": "Label for the 'Other reason' report type in the report message dialog."
+  },
+  "@messageReportTypeSpam": {
+    "description": "Label for the 'Spam' report type in the report message dialog."
+  },
   "@mutedUser": {
     "description": "Text to display in place of a muted user's name."
   },
@@ -1054,6 +1081,27 @@
   },
   "@recentDmConversationsSectionHeader": {
     "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "@reportMessageDescription": {
+    "description": "Explanatory text shown under the title in the report message dialog."
+  },
+  "@reportMessageDescriptionLabel": {
+    "description": "Label text for the description field in the report message dialog."
+  },
+  "@reportMessageDescriptionRequired": {
+    "description": "Validation error shown in the report message dialog when the report type is \"Other\" and no description is provided."
+  },
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "@reportMessageReasonLabel": {
+    "description": "Label text for the report reason dropdown in the report message dialog."
+  },
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
+  "@reportMessageSuccess": {
+    "description": "Snackbar message shown after successfully reporting a message."
   },
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
@@ -1490,6 +1538,7 @@
   "actionSheetOptionMuteTopic": "Mettre la conversation en sourdine",
   "actionSheetOptionPinChannel": "Épingler en haut",
   "actionSheetOptionQuoteMessage": "Citer le message",
+  "actionSheetOptionReportMessage": "Signaler le message",
   "actionSheetOptionResolveTopic": "Marquer comme résolue",
   "actionSheetOptionSeeWhoReacted": "Voir qui a réagi",
   "actionSheetOptionShare": "Partager",
@@ -1555,6 +1604,7 @@
   "dialogCancel": "Annuler",
   "dialogClose": "Fermer",
   "dialogContinue": "Continuer",
+  "dialogOpenInBrowser": "Ouvrir dans le navigateur",
   "discardDraftConfirmationDialogConfirmButton": "Abandonner",
   "discardDraftConfirmationDialogTitle": "Abandonner le message que vous êtes en train d'écrire ?",
   "discardDraftForEditConfirmationDialogMessage": "Lorsque vous modifiez un message, le contenu qui se trouvait précédemment dans la zone de rédaction est perdu (car remplacé par le message à modifier).",
@@ -1626,6 +1676,7 @@
   "errorQuotationFailed": "Échec de la citation",
   "errorReactionAddingFailedTitle": "Échec de l'ajout d'une réaction",
   "errorReactionRemovingFailedTitle": "Échec de la suppression d'une réaction",
+  "errorReportMessageFailedTitle": "Échec du signalement du message",
   "errorRequestFailed": "Échec de la requête réseau : statut HTTP {httpStatus}",
   "errorResolveTopicFailedTitle": "La conversation n'a pas pu être marquée comme résolue",
   "errorServerMessage": "Message d'erreur du serveur :\n\n{message}",
@@ -1640,6 +1691,7 @@
   "errorUnresolveTopicFailedTitle": "La conversation n'a pas être marquée comme non résolue",
   "errorUnstarMessageFailedTitle": "Échec de la suppression du message des favoris",
   "errorVideoPlayerFailed": "Échec de la lecture de la vidéo.",
+  "errorVideoPlayerFailedTryBrowser": "Essayez de l'ouvrir dans votre navigateur.",
   "errorWebAuthOperationalError": "Oups, une erreur s'est produite.",
   "errorWebAuthOperationalErrorTitle": "Une erreur s'est produite",
   "experimentalFeatureSettingsPageTitle": "Fonctionnalités expérimentales",
@@ -1696,6 +1748,11 @@
   "messageListGroupYouAndOthers": "Vous et {others}",
   "messageListGroupYouWithYourself": "Messages avec vous même",
   "messageNotSentLabel": "MESSAGE NON ENVOYÉ",
+  "messageReportTypeHarassment": "Harcèlement",
+  "messageReportTypeInappropriate": "Contenu inapproprié",
+  "messageReportTypeNorms": "Viole les normes de la communauté",
+  "messageReportTypeOther": "Autre raison",
+  "messageReportTypeSpam": "Spam",
   "mutedUser": "Utilisateur mis en sourdine",
   "navBarFeedLabel": "Fil",
   "navBarMenuLabel": "Menu",
@@ -1733,6 +1790,13 @@
   "recentDmConversationsPageShortLabel": "MDs",
   "recentDmConversationsPageTitle": "Messages directs",
   "recentDmConversationsSectionHeader": "Messages directs",
+  "reportMessageDescription": "Votre signalement va être envoyé dans le canal privé des demandes de modération de cette organisation.",
+  "reportMessageDescriptionLabel": "Pouvez-vous fournir plus de détails ?",
+  "reportMessageDescriptionRequired": "Merci de fournir des détails.",
+  "reportMessageDialogTitle": "Signaler le message",
+  "reportMessageReasonLabel": "Quel est le problème avec ce message ?",
+  "reportMessageSubmitButton": "Soumettre",
+  "reportMessageSuccess": "Message signalé",
   "revealButtonLabel": "Révéler le message",
   "savingMessageEditFailedLabel": "MODIFICATION NON ENREGISTRÉE",
   "savingMessageEditLabel": "ENREGISTREMENT DE LA MODIFICATION…",

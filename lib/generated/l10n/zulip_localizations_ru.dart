@@ -277,48 +277,48 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorDeleteMessageFailedTitle => 'Не удалось удалить сообщение';
 
   @override
-  String get actionSheetOptionReportMessage => 'Report message';
+  String get actionSheetOptionReportMessage => 'Пожаловаться на сообщение';
 
   @override
-  String get reportMessageDialogTitle => 'Report message';
+  String get reportMessageDialogTitle => 'Пожаловаться на сообщение';
 
   @override
   String get reportMessageDescription =>
-      'Your report will be sent to the private moderation requests channel for this organization.';
+      'Ваша жалоба будет направлена в закрытый канал модерации сообщений этой организации.';
 
   @override
-  String get messageReportTypeSpam => 'Spam';
+  String get messageReportTypeSpam => 'Спам';
 
   @override
-  String get messageReportTypeHarassment => 'Harassment';
+  String get messageReportTypeHarassment => 'Оскорбления';
 
   @override
-  String get messageReportTypeInappropriate => 'Inappropriate content';
+  String get messageReportTypeInappropriate => 'Неприемлемое содержание';
 
   @override
-  String get messageReportTypeNorms => 'Violates community norms';
+  String get messageReportTypeNorms => 'Нарушение норм сообщества';
 
   @override
-  String get messageReportTypeOther => 'Other reason';
+  String get messageReportTypeOther => 'Другая причина';
 
   @override
-  String get reportMessageReasonLabel =>
-      'What’s the problem with this message?';
+  String get reportMessageReasonLabel => 'Что не так с этим сообщением?';
 
   @override
-  String get reportMessageDescriptionLabel => 'Can you provide more details?';
+  String get reportMessageDescriptionLabel => 'Можете добавить подробности?';
 
   @override
-  String get reportMessageDescriptionRequired => 'Please provide details.';
+  String get reportMessageDescriptionRequired =>
+      'Предоставьте пояснения, пожалуйста.';
 
   @override
-  String get reportMessageSubmitButton => 'Submit';
+  String get reportMessageSubmitButton => 'Отправить';
 
   @override
-  String get reportMessageSuccess => 'Message reported';
+  String get reportMessageSuccess => 'Жалоба отправлена';
 
   @override
-  String get errorReportMessageFailedTitle => 'Failed to report message';
+  String get errorReportMessageFailedTitle => 'Не удалось отправить жалобу';
 
   @override
   String get actionSheetOptionMarkTopicAsRead =>
@@ -907,10 +907,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorVideoPlayerFailedTryBrowser =>
-      'Try opening it in your browser instead.';
+      'Попробуйте открыть видео в браузере.';
 
   @override
-  String get dialogOpenInBrowser => 'Open in browser';
+  String get dialogOpenInBrowser => 'Открыть в браузере';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Пожалуйста, введите URL-адрес.';

@@ -262,48 +262,47 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorDeleteMessageFailedTitle => 'メッセージの削除に失敗しました';
 
   @override
-  String get actionSheetOptionReportMessage => 'Report message';
+  String get actionSheetOptionReportMessage => 'メッセージを報告';
 
   @override
-  String get reportMessageDialogTitle => 'Report message';
+  String get reportMessageDialogTitle => 'メッセージを報告';
 
   @override
   String get reportMessageDescription =>
-      'Your report will be sent to the private moderation requests channel for this organization.';
+      '報告内容は、この組織のプライベートなモデレーション申請チャンネルに送信されます。';
 
   @override
-  String get messageReportTypeSpam => 'Spam';
+  String get messageReportTypeSpam => 'スパム';
 
   @override
-  String get messageReportTypeHarassment => 'Harassment';
+  String get messageReportTypeHarassment => 'ハラスメント';
 
   @override
-  String get messageReportTypeInappropriate => 'Inappropriate content';
+  String get messageReportTypeInappropriate => '不適切なコンテンツ';
 
   @override
-  String get messageReportTypeNorms => 'Violates community norms';
+  String get messageReportTypeNorms => 'コミュニティ規範への違反';
 
   @override
-  String get messageReportTypeOther => 'Other reason';
+  String get messageReportTypeOther => 'その他の理由';
 
   @override
-  String get reportMessageReasonLabel =>
-      'What’s the problem with this message?';
+  String get reportMessageReasonLabel => 'このメッセージにはどのような問題がありますか？';
 
   @override
-  String get reportMessageDescriptionLabel => 'Can you provide more details?';
+  String get reportMessageDescriptionLabel => '詳細を教えていただけますか？';
 
   @override
-  String get reportMessageDescriptionRequired => 'Please provide details.';
+  String get reportMessageDescriptionRequired => '詳細を入力してください。';
 
   @override
-  String get reportMessageSubmitButton => 'Submit';
+  String get reportMessageSubmitButton => '送信';
 
   @override
-  String get reportMessageSuccess => 'Message reported';
+  String get reportMessageSuccess => 'メッセージを報告しました';
 
   @override
-  String get errorReportMessageFailedTitle => 'Failed to report message';
+  String get errorReportMessageFailedTitle => 'メッセージの報告に失敗しました';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => 'トピックを既読にする';
@@ -313,21 +312,20 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String actionSheetTitleDm(String user) {
-    return 'DMs with $user';
+    return '$userとのDM';
   }
 
   @override
-  String get actionSheetTitleSelfDm => 'DMs with yourself';
+  String get actionSheetTitleSelfDm => '自分とのDM';
 
   @override
-  String get actionSheetTitleGroupDm => 'Group DM';
+  String get actionSheetTitleGroupDm => 'グループDM';
 
   @override
-  String get actionSheetOptionViewProfile => 'View profile';
+  String get actionSheetOptionViewProfile => 'プロフィールを表示';
 
   @override
-  String get actionSheetOptionMarkDmConversationAsRead =>
-      'Mark conversation as read';
+  String get actionSheetOptionMarkDmConversationAsRead => '会話を既読にする';
 
   @override
   String get errorWebAuthOperationalErrorTitle => '問題が発生しました';
@@ -771,7 +769,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'アカウントを追加';
 
   @override
-  String get loginRealmUrlLabel => 'Your Zulip organization URL';
+  String get loginRealmUrlLabel => 'あなたのZulip組織のURL';
 
   @override
   String get loginHidePassword => 'パスワードを非表示';
@@ -825,19 +823,19 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String serverCompatBannerAdminMessage(String url, String zulipVersion) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+    return '$url で稼働中の Zulip Server $zulipVersion はサポート対象外です。速やかにサーバーをアップグレードしてください。';
   }
 
   @override
   String serverCompatBannerUserMessage(String url, String zulipVersion) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+    return '$url で稼働中の Zulip Server $zulipVersion はサポート対象外です。アップグレードについてサーバー管理者にお問い合わせください。';
   }
 
   @override
-  String get serverCompatBannerDismissLabel => 'Dismiss';
+  String get serverCompatBannerDismissLabel => '閉じる';
 
   @override
-  String get serverCompatBannerLearnMoreLabel => 'Learn more';
+  String get serverCompatBannerLearnMoreLabel => '詳細を見る';
 
   @override
   String errorInvalidApiKeyMessage(String url) {
@@ -869,11 +867,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get errorVideoPlayerFailed => '動画を再生できません。';
 
   @override
-  String get errorVideoPlayerFailedTryBrowser =>
-      'Try opening it in your browser instead.';
+  String get errorVideoPlayerFailedTryBrowser => '代わりにブラウザで開いてみてください。';
 
   @override
-  String get dialogOpenInBrowser => 'Open in browser';
+  String get dialogOpenInBrowser => 'ブラウザで開く';
 
   @override
   String get serverUrlValidationErrorEmpty => 'URLを入力してください。';
@@ -1098,10 +1095,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
       '下のボタンを使用して、統合フィードまたはチャンネル一覧を表示します。';
 
   @override
-  String get pinnedChannelsFolderName => 'Pinned channels';
+  String get pinnedChannelsFolderName => 'ピン留めされたチャンネル';
 
   @override
-  String get otherChannelsFolderName => 'Other channels';
+  String get otherChannelsFolderName => 'その他のチャンネル';
 
   @override
   String get recentDmConversationsPageTitle => 'ダイレクトメッセージ';
