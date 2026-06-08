@@ -39,104 +39,152 @@ class ZulipWebUiKitButton extends StatelessWidget {
   final IconData? icon;
   final VoidCallback? onPressed;
 
-  WidgetStateColor _backgroundColor(DesignVariables designVariables) {
-    WidgetStateColor result;
+  /// The background color when the button is at rest (not pressed).
+  ///
+  /// When adding a case here,
+  /// update [_backgroundColorActive] and [_labelColor] too.
+  static Color _backgroundColorNormal(DesignVariables designVariables, {
+    required ZulipWebUiKitButtonAttention attention,
+    required ZulipWebUiKitButtonIntent intent,
+  }) {
     switch ((attention, intent)) {
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(0.3),
-          ~WidgetState.pressed: designVariables.neutralButtonBg.withAlpha(0),
-        });
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
+      case (.minimal, .neutral):
+        return Colors.transparent;
+      case (.low,     .neutral):
+        return Colors.transparent;
+      case (.medium,  .neutral):
+      case (.high,    .neutral):
+      case (.minimal, .warning):
+      case (.low,     .warning):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttMediumIntWarningActive,
-          ~WidgetState.pressed: designVariables.btnBgAttMediumIntWarningNormal,
-        });
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttHighIntWarningActive,
-          ~WidgetState.pressed: designVariables.btnBgAttHighIntWarningNormal,
-        });
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+      case (.medium,  .warning):
+        return designVariables.btnBgAttMediumIntWarningNormal;
+      case (.high,    .warning):
+        return designVariables.btnBgAttHighIntWarningNormal;
+      case (.minimal, .danger):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive,
-          ~WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive.withAlpha(0),
-        });
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttMediumIntDangerActive,
-          ~WidgetState.pressed: designVariables.btnBgAttMediumIntDangerNormal,
-        });
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+      case (.low,     .danger):
+        return Colors.transparent;
+      case (.medium,  .danger):
+        return designVariables.btnBgAttMediumIntDangerNormal;
+      case (.high,    .danger):
+      case (.minimal, .info):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
-        return WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttLowIntInfoActive,
-          ~WidgetState.pressed: designVariables.btnBgAttLowIntInfoActive.withAlpha(0),
-        });
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttMediumIntInfoActive,
-          ~WidgetState.pressed: designVariables.btnBgAttMediumIntInfoNormal,
-        });
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
-        result = WidgetStateColor.fromMap({
-          WidgetState.pressed: designVariables.btnBgAttHighIntInfoActive,
-          ~WidgetState.pressed: designVariables.btnBgAttHighIntInfoNormal,
-        });
+      case (.low,     .info):
+        return Colors.transparent;
+      case (.medium,  .info):
+        return designVariables.btnBgAttMediumIntInfoNormal;
+      case (.high,    .info):
+        return designVariables.btnBgAttHighIntInfoNormal;
     }
-
-    return WidgetStateColor.resolveWith((states) {
-      return states.contains(WidgetState.disabled)
-        ? result.resolve(states).withFadedAlpha(0.5)
-        : result.resolve(states);
-    });
   }
 
-  Color _labelColor(DesignVariables designVariables) {
+  /// The background color when the button is pressed.
+  ///
+  /// When adding a case here,
+  /// update [_backgroundColorNormal] and [_labelColor] too.
+  static Color _backgroundColorActive(DesignVariables designVariables, {
+    required ZulipWebUiKitButtonAttention attention,
+    required ZulipWebUiKitButtonIntent intent,
+  }) {
+    switch ((attention, intent)) {
+      case (.minimal, .neutral):
+        return designVariables.neutralButtonBg.withFadedAlpha(0.3);
+      case (.low,     .neutral):
+        return designVariables.btnBgAttLowIntNeutralActive;
+      case (.medium,  .neutral):
+      case (.high,    .neutral):
+      case (.minimal, .warning):
+      case (.low,     .warning):
+        throw UnimplementedError();
+      case (.medium,  .warning):
+        return designVariables.btnBgAttMediumIntWarningActive;
+      case (.high,    .warning):
+        return designVariables.btnBgAttHighIntWarningActive;
+      case (.minimal, .danger):
+        throw UnimplementedError();
+      case (.low,     .danger):
+        return designVariables.btnBgAttLowIntDangerActive;
+      case (.medium,  .danger):
+        return designVariables.btnBgAttMediumIntDangerActive;
+      case (.high,    .danger):
+      case (.minimal, .info):
+        throw UnimplementedError();
+      case (.low,     .info):
+        return designVariables.btnBgAttLowIntInfoActive;
+      case (.medium,  .info):
+        return designVariables.btnBgAttMediumIntInfoActive;
+      case (.high,    .info):
+        return designVariables.btnBgAttHighIntInfoActive;
+    }
+  }
+
+  /// The overlay color that, painted over [base], yields [target].
+  ///
+  /// When [target] is fully opaque
+  /// (e.g., for the press feedback in our high-attention rows,
+  /// where both [_backgroundColorNormal] and [_backgroundColorActive] are opaque),
+  /// returns [target] to fully replace [base] via a fully-opaque overlay.
+  ///
+  /// Otherwise, for same-hue semi-transparent [base]/[target] pairs,
+  /// computes the alpha the overlay needs to lift the composite
+  /// from [base]'s alpha to [target]'s.
+  ///
+  /// Assumes [target]'s alpha is at least [base]'s,
+  /// and, for the semi-transparent path,
+  /// that [base] and [target] share the same RGB.
+  static Color _overlayFor(Color base, Color target) {
+    assert(target.a >= base.a);
+    if (target.a >= 1.0) return target;
+    assert(base.a < 1.0);
+    final alpha = (target.a - base.a) / (1.0 - base.a);
+    return target.withValues(alpha: alpha);
+  }
+
+  /// The label color.
+  ///
+  /// When adding a case here,
+  /// update [_backgroundColorNormal] and [_backgroundColorActive] too.
+  static Color _labelColor(DesignVariables designVariables, {
+    required ZulipWebUiKitButtonAttention attention,
+    required ZulipWebUiKitButtonIntent intent,
+    required bool isDisabled,
+  }) {
     Color result;
     switch ((attention, intent)) {
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
+      case (.minimal, .neutral):
         // TODO nit: don't fade in pressed state
         result = designVariables.neutralButtonLabel.withFadedAlpha(0.85);
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
+      case (.low,     .neutral):
+        result = designVariables.btnLabelAttLowIntNeutral;
+      case (.medium,  .neutral):
+      case (.high,    .neutral):
+      case (.minimal, .warning):
+      case (.low,     .warning):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
+      case (.medium,  .warning):
         result = designVariables.btnLabelAttMediumIntWarning;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
+      case (.high,    .warning):
         result = designVariables.btnLabelAttHighIntWarning;
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+      case (.minimal, .danger):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
+      case (.low,     .danger):
         result = designVariables.btnLabelAttLowIntDanger;
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+      case (.medium,  .danger):
         result = designVariables.btnLabelAttMediumIntDanger;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
-      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
+      case (.high,    .danger):
+      case (.minimal, .info):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
+      case (.low,     .info):
         result = designVariables.btnLabelAttLowIntInfo;
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
+      case (.medium,  .info):
         result = designVariables.btnLabelAttMediumIntInfo;
-      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
+      case (.high,    .info):
         result = designVariables.btnLabelAttHigh;
     }
 
-    return onPressed == null
-      ? result.withFadedAlpha(0.5) // disabled state
+    return isDisabled
+      ? result.withFadedAlpha(0.5)
       : result;
   }
 
@@ -150,7 +198,10 @@ class ZulipWebUiKitButton extends StatelessWidget {
     // Discussion:
     //   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023880851
     return TextStyle(
-      color: _labelColor(designVariables),
+      color: _labelColor(designVariables,
+        attention: attention,
+        intent: intent,
+        isDisabled: onPressed == null),
       fontSize: _forSize(16, 17 /* 16 */),
       height: _forSize(1, 1.20 /* 1.25 */),
       letterSpacing: _forSize(
@@ -208,19 +259,30 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
     final buttonHeight = _forSize(24, 28);
 
-    final labelColor = _labelColor(designVariables);
+    final labelColor = _labelColor(designVariables,
+      attention: attention,
+      intent: intent,
+      isDisabled: onPressed == null);
+    final backgroundColorNormal = _backgroundColorNormal(designVariables,
+      attention: attention,
+      intent: intent);
+    final backgroundColor = onPressed == null
+      ? backgroundColorNormal.withFadedAlpha(0.5) // disabled state
+      : backgroundColorNormal;
 
     Widget result = TextButton.icon(
       // TODO the gap between the icon and label should be 6px, not 8px
       icon: icon != null ? Icon(icon) : null,
       style: TextButton.styleFrom(
+        foregroundColor: labelColor,
+        backgroundColor: backgroundColor,
+
         iconSize: 16,
         iconColor: labelColor,
         padding: EdgeInsets.symmetric(
           horizontal: _forSize(6, 10),
           vertical: 4 - densityVerticalAdjustment,
         ),
-        foregroundColor: labelColor,
         shape: RoundedRectangleBorder(
           side: _borderSide(designVariables),
           borderRadius: BorderRadius.circular(_forSize(6, 4))),
@@ -235,7 +297,16 @@ class ZulipWebUiKitButton extends StatelessWidget {
           kMinInteractiveDimension,
           buttonHeight - densityVerticalAdjustment,
         ),
-      ).copyWith(backgroundColor: _backgroundColor(designVariables)),
+      ).copyWith(
+        // [TextButton.styleFrom]'s overlayColor takes a single [Color] (and
+        // wraps it with M3-default state-layer alphas). To use our own
+        // state-mapped overlay, pass it here on the underlying [ButtonStyle].
+        overlayColor: WidgetStateProperty.fromMap({
+          WidgetState.pressed: _overlayFor(backgroundColorNormal,
+            _backgroundColorActive(designVariables,
+              attention: attention, intent: intent)),
+          WidgetState.any: Colors.transparent,
+        })),
       onPressed: onPressed,
       label: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 240),
@@ -294,46 +365,146 @@ enum ZulipWebUiKitButtonSize {
   normal,
 }
 
-/// The "icon button" component in the Figma.
+/// An icon button.
 ///
-/// See Figma:
+/// Pass [intent] to choose a color scheme from the Zulip Web UI Kit,
+/// which this widget is mostly based on:
+///   https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=8-1681&m=dev
+/// If [intent] is not passed, uses the single color scheme from mobile Figma:
 ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=7728-10468&m=dev
+///
+/// Sizing is adapted from the Web UI Kit to mobile; see [ZulipIconButtonSize].
+///
+/// For how to use this as the "suffix icon" in a text field,
+/// see [baseFilledInputDecoration] in lib/widgets/input.dart.
 class ZulipIconButton extends StatelessWidget {
   const ZulipIconButton({
     super.key,
     required this.icon,
+    required this.tooltip,
     required this.onPressed,
-    this.tooltip,
+    this.size = .medium,
+    this.intent,
+    this.backgroundWhenPressed = true,
+    this.isSelected,
+    this.selectedIcon,
   });
 
   final IconData icon;
+  final String tooltip;
   final VoidCallback onPressed;
-  final String? tooltip;
+  final ZulipIconButtonSize size;
+  final ZulipWebUiKitButtonIntent? intent;
+
+  /// Whether to paint a background when pressed, for touch feedback.
+  ///
+  /// Corresponds to the "bg" param for the Zulip Web UI Kit component:
+  ///   https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=8-1680&m=dev
+  final bool backgroundWhenPressed;
+
+  /// A value for the underlying [IconButton.isSelected].
+  final bool? isSelected;
+
+  /// A value for the underlying [IconButton.selectedIcon].
+  final IconData? selectedIcon;
+
+  Color _iconColor(DesignVariables designVariables) {
+    if (intent == null) return designVariables.icon;
+    return ZulipWebUiKitButton._labelColor(designVariables,
+      attention: .low,
+      intent: intent!,
+      isDisabled: false).withFadedAlpha(0.7);
+  }
+
+  /// The static background color.
+  ///
+  /// The Web UI Kit always uses "low" attention for icon buttons,
+  /// which means transparent in the resting state.
+  /// The mobile-specific scheme used when [intent] is null
+  /// is also transparent at rest.
+  static const _backgroundColorNormal = Colors.transparent;
+
+  WidgetStateProperty<Color> _overlayColor(DesignVariables designVariables) {
+    if (!backgroundWhenPressed) return WidgetStatePropertyAll(Colors.transparent);
+    final Color pressed;
+    if (intent != null) {
+      pressed = ZulipWebUiKitButton._overlayFor(_backgroundColorNormal,
+        ZulipWebUiKitButton._backgroundColorActive(designVariables,
+          attention: .low, intent: intent!));
+    } else {
+      // Really `fg-05` from the Zulip Web UI Kit palette,
+      // but this seems at least as good as that.
+      pressed = designVariables.foreground.withFadedAlpha(0.05);
+    }
+    return WidgetStateProperty.fromMap({
+      WidgetState.pressed: pressed,
+      WidgetState.any: Colors.transparent,
+    });
+  }
+
+  /// Make an [Icon] for an [IconData],
+  /// uniformly for [icon] and (when specified) [selectedIcon].
+  Icon _buildIcon(IconData data) => Icon(data);
 
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    // Really `fg-05` from the Zulip Web UI Kit palette,
-    // but this seems at least as good as that.
-    final touchFeedbackColor = designVariables.foreground.withFadedAlpha(0.05);
-
     return IconButton(
-      color: designVariables.icon,
-      iconSize: 24,
-      icon: Icon(icon),
+      iconSize: size.icon,
+      icon: _buildIcon(icon),
       onPressed: onPressed,
       tooltip: tooltip,
       style: IconButton.styleFrom(
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        fixedSize: Size.square(40),
+        foregroundColor: _iconColor(designVariables),
+        backgroundColor: _backgroundColorNormal,
+        tapTargetSize: .shrinkWrap,
+        fixedSize: size.surface,
 
         // TODO(#417): Disable splash effects for all buttons globally.
         splashFactory: NoSplash.splashFactory,
-        highlightColor: touchFeedbackColor,
+
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(4)))));
+          borderRadius: BorderRadius.all(Radius.circular(4)))
+      ).copyWith(
+        // [IconButton.styleFrom]'s overlayColor takes a single [Color] (and
+        // wraps it with M3-default state-layer alphas). To use our own
+        // state-mapped overlay, pass it here on the underlying [ButtonStyle].
+        overlayColor: _overlayColor(designVariables)),
+      isSelected: isSelected,
+      selectedIcon: selectedIcon != null ? _buildIcon(selectedIcon!) : null,
+    );
   }
+}
+
+/// Sizing parameters for [ZulipIconButton]; a value for [ZulipIconButton.size].
+enum ZulipIconButtonSize {
+  /// The size to use in most places.
+  ///
+  /// This follows the mobile-specific "icon button" component:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=7728-10468&m=dev
+  /// which the Figma uses for a button in the "All channels" page
+  /// that we dropped in commit 4b42f7a00.
+  medium,
+
+  /// Like [medium], but with a larger [surface].
+  large,
+  ;
+
+  /// The dimension of the square icon.
+  double get icon => switch (this) {
+    medium || large => 24,
+  };
+
+  /// The size of the surface that the touch-response background is painted on.
+  ///
+  /// Currently this equals the size of the touch target,
+  /// but we could support outer "touch slop" padding in future,
+  /// as [ZulipWebUiKitButton] does.
+  Size get surface => switch (this) {
+    medium => const Size.square(40),
+    large => const Size.square(48),
+  };
 }
 
 /// Apply [Transform.scale] to the child widget on primary pointer-down,

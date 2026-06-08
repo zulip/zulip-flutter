@@ -803,6 +803,13 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get loginRealmUrlLabel => 'URL de tu organización de Zulip';
 
   @override
+  String get loginRealmUrlHelperText =>
+      'This is the address you would use to open Zulip in a browser.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Help';
+
+  @override
   String get loginHidePassword => 'Ocultar contraseña';
 
   @override
