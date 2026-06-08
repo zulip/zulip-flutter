@@ -2448,6 +2448,12 @@ abstract class ZulipLocalizations {
   /// **'Muted user'**
   String get mutedUser;
 
+  /// Text to display in place of a deleted user's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted user'**
+  String get deletedUser;
+
   /// Tooltip for button to scroll to bottom.
   ///
   /// In en, this message translates to:
