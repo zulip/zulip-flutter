@@ -286,7 +286,7 @@ void main() {
           localId: '456',
           readBySender: true,
           expectedBodyFields: {
-            'type': 'stream',
+            'type': 'channel',
             'to': streamId.toString(),
             'topic': topic,
             'content': content,
@@ -299,6 +299,21 @@ void main() {
 
     test('to stream', () {
       return FakeApiConnection.with_((connection) async {
+        await checkSendMessage(connection,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
+          readBySender: true,
+          expectedBodyFields: {
+            'type': 'channel',
+            'to': streamId.toString(),
+            'topic': topic,
+            'content': content,
+            'read_by_sender': 'true',
+          });
+      });
+    });
+
+    test('to stream, with legacy type "stream"', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 247, (connection) async {
         await checkSendMessage(connection,
           destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: true,
@@ -347,7 +362,7 @@ void main() {
           destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: null,
           expectedBodyFields: {
-            'type': 'stream',
+            'type': 'channel',
             'to': streamId.toString(),
             'topic': topic,
             'content': content,
