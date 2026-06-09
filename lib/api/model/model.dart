@@ -1295,6 +1295,11 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
 enum MessageType {
   stream,
   direct;
+
+  factory MessageType.fromJson(String json) {
+    if (json == 'private') json = 'direct'; // TODO(server-future)
+    return $enumDecode(_$MessageTypeEnumMap, json);
+  }
 }
 
 class MessageTypeConverter extends JsonConverter<MessageType, String> {
@@ -1302,8 +1307,7 @@ class MessageTypeConverter extends JsonConverter<MessageType, String> {
 
   @override
   MessageType fromJson(String json) {
-    if (json == 'private') json = 'direct'; // TODO(server-future)
-    return $enumDecode(_$MessageTypeEnumMap, json);
+    return MessageType.fromJson(json);
   }
 
   @override
