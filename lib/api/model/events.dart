@@ -1360,30 +1360,6 @@ class DeleteMessageEvent extends Event {
   Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);
 }
 
-/// As in [DeleteMessageEvent.messageType],
-/// [UpdateMessageFlagsMessageDetail.type],
-/// or [TypingEvent.messageType].
-@JsonEnum(alwaysCreate: true)
-enum MessageType {
-  stream,
-  direct;
-}
-
-class MessageTypeConverter extends JsonConverter<MessageType, String> {
-  const MessageTypeConverter();
-
-  @override
-  MessageType fromJson(String json) {
-    if (json == 'private') json = 'direct'; // TODO(server-future)
-    return $enumDecode(_$MessageTypeEnumMap, json);
-  }
-
-  @override
-  String toJson(MessageType object) {
-    return _$MessageTypeEnumMap[object]!;
-  }
-}
-
 /// A Zulip event of type `update_message_flags`.
 ///
 /// For the corresponding API docs, see subclasses.

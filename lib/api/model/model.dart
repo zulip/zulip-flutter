@@ -1255,6 +1255,30 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   Map<String, dynamic> toJson();
 }
 
+/// As in [DeleteMessageEvent.messageType],
+/// [UpdateMessageFlagsMessageDetail.type],
+/// or [TypingEvent.messageType].
+@JsonEnum(alwaysCreate: true)
+enum MessageType {
+  stream,
+  direct;
+}
+
+class MessageTypeConverter extends JsonConverter<MessageType, String> {
+  const MessageTypeConverter();
+
+  @override
+  MessageType fromJson(String json) {
+    if (json == 'private') json = 'direct'; // TODO(server-future)
+    return $enumDecode(_$MessageTypeEnumMap, json);
+  }
+
+  @override
+  String toJson(MessageType object) {
+    return _$MessageTypeEnumMap[object]!;
+  }
+}
+
 /// https://zulip.com/api/update-message-flags#available-flags
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum MessageFlag {
