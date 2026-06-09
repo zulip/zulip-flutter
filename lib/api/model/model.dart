@@ -1294,11 +1294,14 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
 /// or [TypingEvent.messageType].
 @JsonEnum(alwaysCreate: true)
 enum MessageType {
-  stream,
+  channel,
   direct;
 
   factory MessageType.fromJson(String json) {
-    if (json == 'private') json = 'direct'; // TODO(server-future)
+    switch (json) {
+      case 'stream': json = 'channel'; // TODO(server-future)
+      case 'private': json = 'direct'; // TODO(server-future)
+    }
     return $enumDecode(_$MessageTypeEnumMap, json);
   }
 }
