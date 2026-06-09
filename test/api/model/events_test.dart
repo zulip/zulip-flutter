@@ -245,6 +245,7 @@ void main() {
       'message_type': 'private',
     })).returnsNormally();
 
+    // TODO(server-future): remove
     final baseJsonStream = {
       'id': 1,
       'type': 'delete_message',
@@ -252,21 +253,31 @@ void main() {
       'message_type': 'stream',
     };
 
-    check(() => DeleteMessageEvent.fromJson({
-      ...baseJsonStream
-    })).throws<void>();
+    // Future server.
+    final baseJsonChannel = {
+      'id': 1,
+      'type': 'delete_message',
+      'message_ids': [1, 2, 3],
+      'message_type': 'channel',
+    };
 
-    check(() => DeleteMessageEvent.fromJson({
-      ...baseJsonStream, 'stream_id': 1, 'topic': 'some topic',
-    })).returnsNormally();
+    for (final baseJson in [baseJsonStream, baseJsonChannel]) {
+      check(() => DeleteMessageEvent.fromJson({
+        ...baseJson
+      })).throws<void>();
 
-    check(() => DeleteMessageEvent.fromJson({
-      ...baseJsonStream, 'stream_id': 1,
-    })).throws<void>();
+      check(() => DeleteMessageEvent.fromJson({
+        ...baseJson, 'stream_id': 1, 'topic': 'some topic',
+      })).returnsNormally();
 
-    check(() => DeleteMessageEvent.fromJson({
-      ...baseJsonStream, 'topic': 'some topic',
-    })).throws<void>();
+      check(() => DeleteMessageEvent.fromJson({
+        ...baseJson, 'stream_id': 1,
+      })).throws<void>();
+
+      check(() => DeleteMessageEvent.fromJson({
+        ...baseJson, 'topic': 'some topic',
+      })).throws<void>();
+    }
   });
 
   test('delete_message: private -> direct', () {
@@ -276,6 +287,17 @@ void main() {
       'message_ids': [1, 2, 3],
       'message_type': 'private',
     })).messageType.equals(.direct);
+  });
+
+  test('delete_message: stream -> channel', () {
+    check(DeleteMessageEvent.fromJson({
+      'id': 1,
+      'type': 'delete_message',
+      'message_ids': [1, 2, 3],
+      'message_type': 'stream',
+      'stream_id': 1,
+      'topic': 'some topic',
+    })).messageType.equals(.channel);
   });
 
   group('update_message_flags/remove', () {
@@ -312,6 +334,17 @@ void main() {
           }}})).messageDetails.isNotNull()
                .values.single.type.equals(.direct);
     });
+
+    test('stream -> channel', () {
+      final messageDetail = {'type': 'stream', 'mentioned': false, 'stream_id': 1, 'topic': 'some topic'};
+      check(UpdateMessageFlagsRemoveEvent.fromJson({
+        ...baseJson,
+        'flag': 'read',
+        'message_details': {
+          '123': messageDetail
+        }})).messageDetails.isNotNull()
+            .values.single.type.equals(.channel);
+    });
   });
 
   group('typing status event', () {
@@ -346,16 +379,23 @@ void main() {
       })).messageType.equals(.direct);
     });
 
-    test('stream type missing streamId/topic', () {
-      check(() => TypingEvent.fromJson({
-        ...baseJson, 'message_type': 'stream', 'stream_id': 123, 'topic': 'foo'}))
-        .returnsNormally();
-      check(() => TypingEvent.fromJson({
-        ...baseJson, 'message_type': 'stream'})).throws<void>();
-      check(() => TypingEvent.fromJson({
-        ...baseJson, 'message_type': 'stream', 'topic': 'foo'})).throws<void>();
-      check(() => TypingEvent.fromJson({
-        ...baseJson, 'message_type': 'stream', 'stream_id': 123})).throws<void>();
+    test('stream/channel type missing streamId/topic', () {
+      // TODO(server-future): remove
+      final baseJsonStream = {...baseJson, 'message_type': 'stream'};
+      // Future server.
+      final baseJsonChannel = {...baseJson, 'message_type': 'channel'};
+
+      for (final baseJson in [baseJsonStream, baseJsonChannel]) {
+        check(() => TypingEvent.fromJson({
+          ...baseJson, 'stream_id': 123, 'topic': 'foo'}))
+          .returnsNormally();
+        check(() => TypingEvent.fromJson({
+          ...baseJson})).throws<void>();
+        check(() => TypingEvent.fromJson({
+          ...baseJson, 'topic': 'foo'})).throws<void>();
+        check(() => TypingEvent.fromJson({
+          ...baseJson, 'stream_id': 123})).throws<void>();
+      }
     });
 
     test('direct type sort recipient ids', () {

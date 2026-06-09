@@ -1104,7 +1104,7 @@ DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   return DeleteMessageEvent(
     id: 0,
     messageIds: messages.map((message) => message.id).toList(),
-    messageType: .stream,
+    messageType: .channel,
     streamId: messages[0].streamId,
     topic: messages[0].topic,
   );
@@ -1252,7 +1252,7 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
         message.id,
         switch (message) {
           StreamMessage() => UpdateMessageFlagsMessageDetail(
-            type: .stream,
+            type: .channel,
             mentioned: mentioned,
             streamId: message.streamId,
             topic: message.topic,
@@ -1290,11 +1290,11 @@ TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
   switch (narrow) {
     case TopicNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
-        messageType: .stream,
+        messageType: .channel,
         streamId: narrow.channelId,
         topic: narrow.topic,
         recipientIds: null);
-    case DmNarrow():
+  case DmNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
         messageType: .direct,
         recipientIds: narrow.allRecipientIds,
