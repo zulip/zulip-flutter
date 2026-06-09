@@ -855,7 +855,7 @@ void main() {
         final event = switch (message) {
           StreamMessage() => DeleteMessageEvent(
             id: 0,
-            messageType: .stream,
+            messageType: .channel,
             messageIds: [message.id],
             streamId: message.streamId,
             topic: () {
@@ -888,7 +888,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [11, 12],
-        messageType: .stream,
+        messageType: .channel,
         streamId: stream1.streamId,
         topic: eg.t('a'),
       ));
@@ -897,7 +897,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [13, 14],
-        messageType: .stream,
+        messageType: .channel,
         streamId: stream2.streamId,
         topic: eg.t('b'),
       ));
@@ -922,7 +922,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [message.id],
-        messageType: .stream,
+        messageType: .channel,
         streamId: message.streamId,
         topic: message.topic,
       ));
@@ -1373,7 +1373,7 @@ void main() {
             messages: [message1.id, message2.id, message3.id, message4.id],
             messageDetails: {
               message1.id: UpdateMessageFlagsMessageDetail(
-                type: .stream,
+                type: .channel,
                 mentioned: false,
                 streamId: stream.streamId,
                 topic: eg.t(topic),
