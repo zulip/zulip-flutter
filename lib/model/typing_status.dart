@@ -63,9 +63,9 @@ class TypingStatus extends HasRealmStore with ChangeNotifier {
 
   void handleTypingEvent(TypingEvent event) {
     SendableNarrow narrow = switch (event.messageType) {
-      MessageType.direct => DmNarrow(
+      .direct => DmNarrow(
         allRecipientIds: event.recipientIds!, selfUserId: selfUserId),
-      MessageType.stream => TopicNarrow(event.streamId!, event.topic!),
+      .stream => TopicNarrow(event.streamId!, event.topic!),
     };
 
     bool hasUpdate = false;
