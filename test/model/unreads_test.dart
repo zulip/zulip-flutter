@@ -844,7 +844,7 @@ void main() {
         final event = switch (message) {
           StreamMessage() => DeleteMessageEvent(
             id: 0,
-            messageType: MessageType.stream,
+            messageType: .stream,
             messageIds: [message.id],
             streamId: message.streamId,
             topic: () {
@@ -856,7 +856,7 @@ void main() {
           ),
           DmMessage() => DeleteMessageEvent(
             id: 0,
-            messageType: MessageType.direct,
+            messageType: .direct,
             messageIds: [message.id],
             streamId: null,
             topic: null,
@@ -877,7 +877,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [11, 12],
-        messageType: MessageType.stream,
+        messageType: .stream,
         streamId: stream1.streamId,
         topic: eg.t('a'),
       ));
@@ -886,7 +886,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [13, 14],
-        messageType: MessageType.stream,
+        messageType: .stream,
         streamId: stream2.streamId,
         topic: eg.t('b'),
       ));
@@ -895,7 +895,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        messageType: MessageType.direct,
+        messageType: .direct,
         streamId: null,
         topic: null,
       ));
@@ -911,7 +911,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [message.id],
-        messageType: MessageType.stream,
+        messageType: .stream,
         streamId: message.streamId,
         topic: message.topic,
       ));
@@ -930,7 +930,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [message.id],
-        messageType: MessageType.direct,
+        messageType: .direct,
         streamId: null,
         topic: null,
       ));
@@ -1360,7 +1360,7 @@ void main() {
             messages: [message1.id, message2.id, message3.id, message4.id],
             messageDetails: {
               message1.id: UpdateMessageFlagsMessageDetail(
-                type: MessageType.stream,
+                type: .stream,
                 mentioned: false,
                 streamId: stream.streamId,
                 topic: eg.t(topic),
@@ -1368,7 +1368,7 @@ void main() {
               ),
               // message 2 and 3 have their details missing
               message4.id: UpdateMessageFlagsMessageDetail(
-                type: MessageType.direct,
+                type: .direct,
                 mentioned: false,
                 streamId: null,
                 topic: null,

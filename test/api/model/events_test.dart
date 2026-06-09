@@ -275,7 +275,7 @@ void main() {
       'type': 'delete_message',
       'message_ids': [1, 2, 3],
       'message_type': 'private',
-    })).messageType.equals(MessageType.direct);
+    })).messageType.equals(.direct);
   });
 
   group('update_message_flags/remove', () {
@@ -310,7 +310,7 @@ void main() {
             ...messageDetail,
             'type': 'private',
           }}})).messageDetails.isNotNull()
-               .values.single.type.equals(MessageType.direct);
+               .values.single.type.equals(.direct);
     });
   });
 
@@ -343,7 +343,7 @@ void main() {
       check(TypingEvent.fromJson({
         ...directMessageJson,
         'message_type': 'private',
-      })).messageType.equals(MessageType.direct);
+      })).messageType.equals(.direct);
     });
 
     test('stream type missing streamId/topic', () {
