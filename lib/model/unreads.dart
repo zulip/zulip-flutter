@@ -412,13 +412,13 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
     mentions.removeAll(event.messageIds);
     switch (event.messageType) {
-      case MessageType.stream:
+      case .stream:
         // All the messages are in [event.streamId] and [event.topic],
         // so we can be more efficient than _removeAllInStreamsAndDms.
         final streamId = event.streamId!;
         final topic = event.topic!;
         _removeAllInStreamTopic(Set.of(event.messageIds), streamId, topic);
-      case MessageType.direct:
+      case .direct:
         _removeAllInStreamsAndDms(event.messageIds, expectOnlyDms: true);
     }
     for (final messageId in event.messageIds) {
@@ -490,13 +490,13 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
                 mentions.add(messageId);
               }
               switch (detail.type) {
-                case MessageType.stream:
+                case .stream:
                   final UpdateMessageFlagsMessageDetail(:streamId, :topic) = detail;
                   locatorMap[messageId] = TopicNarrow(streamId!, topic!);
                   final topics = (newlyUnreadInStreams[streamId] ??= makeTopicKeyedMap());
                   final messageIds = (topics[topic] ??= QueueList());
                   messageIds.add(messageId);
-                case MessageType.direct:
+                case .direct:
                   final narrow = DmNarrow.ofUpdateMessageFlagsMessageDetail(selfUserId: selfUserId,
                     detail);
                   locatorMap[messageId] = narrow;

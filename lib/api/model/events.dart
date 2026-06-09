@@ -1351,7 +1351,7 @@ class DeleteMessageEvent extends Event {
   factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) {
     final result = _$DeleteMessageEventFromJson(json);
     // Crunchy-shell validation
-    if (result.messageType == MessageType.stream) {
+    if (result.messageType == .stream) {
       result.streamId as int;
       result.topic as String;
     }
@@ -1485,10 +1485,10 @@ class UpdateMessageFlagsMessageDetail {
     final result = _$UpdateMessageFlagsMessageDetailFromJson(json);
     // Crunchy-shell validation
     switch (result.type) {
-      case MessageType.stream:
+      case .stream:
         result.streamId as int;
         result.topic as String;
-      case MessageType.direct:
+      case .direct:
         result.userIds as List<int>;
     }
     return result;
@@ -1575,10 +1575,10 @@ class TypingEvent extends Event {
     final result = _$TypingEventFromJson(json);
     // Crunchy-shell validation
     switch (result.messageType) {
-      case MessageType.stream:
+      case .stream:
         result.streamId as int;
         result.topic as String;
-      case MessageType.direct:
+      case .direct:
         result.recipientIds as List<int>;
     }
     return result;
