@@ -504,7 +504,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'flags': instance.flags,
       'match_content': instance.matchContent,
       'match_subject': instance.matchTopic,
-      'type': instance.type,
+      'type': _$MessageTypeEnumMap[instance.type]!,
       'stream_id': instance.streamId,
       'subject': instance.topic,
       'display_recipient': instance.displayRecipient,
@@ -514,6 +514,11 @@ const _$MessageEditStateEnumMap = {
   MessageEditState.none: 'none',
   MessageEditState.edited: 'edited',
   MessageEditState.moved: 'moved',
+};
+
+const _$MessageTypeEnumMap = {
+  MessageType.channel: 'channel',
+  MessageType.direct: 'direct',
 };
 
 DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
@@ -558,7 +563,7 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
   'flags': instance.flags,
   'match_content': instance.matchContent,
   'match_subject': instance.matchTopic,
-  'type': instance.type,
+  'type': _$MessageTypeEnumMap[instance.type]!,
   'display_recipient': DmMessage._allRecipientIdsToJson(
     instance.allRecipientIds,
   ),
@@ -615,11 +620,6 @@ const _$SubscriptionPropertyEnumMap = {
   SubscriptionProperty.emailNotifications: 'email_notifications',
   SubscriptionProperty.wildcardMentionsNotify: 'wildcard_mentions_notify',
   SubscriptionProperty.unknown: 'unknown',
-};
-
-const _$MessageTypeEnumMap = {
-  MessageType.channel: 'channel',
-  MessageType.direct: 'direct',
 };
 
 const _$MessageFlagEnumMap = {
