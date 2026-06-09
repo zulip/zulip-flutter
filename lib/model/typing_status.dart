@@ -70,9 +70,9 @@ class TypingStatus extends HasRealmStore with ChangeNotifier {
 
     bool hasUpdate = false;
     switch (event.op) {
-      case TypingOp.start:
+      case .start:
         hasUpdate = _addTypist(narrow, event.senderId);
-      case TypingOp.stop:
+      case .stop:
         hasUpdate = _removeTypist(narrow, event.senderId);
     }
 
@@ -176,7 +176,7 @@ class TypingNotifier extends HasRealmStore {
 
     unawaited(setTypingStatus(
       connection,
-      op: TypingOp.start,
+      op: .start,
       destination: _currentDestination!.destination));
   }
 
@@ -190,7 +190,7 @@ class TypingNotifier extends HasRealmStore {
 
     unawaited(setTypingStatus(
       connection,
-      op: TypingOp.stop,
+      op: .stop,
       destination: destination.destination));
   }
 
