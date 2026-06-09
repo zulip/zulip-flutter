@@ -801,7 +801,7 @@ StreamMessage streamMessage({
     'subject': topic ?? _defaultTopic,
     'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
-    'type': 'stream',
+    'type': 'channel',
     'match_content': matchContent,
     'match_subject': matchTopic,
   }) as Map<String, dynamic>);
@@ -844,7 +844,7 @@ DmMessage dmMessage({
     'subject': '',
     'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
-    'type': 'private',
+    'type': 'direct',
   }) as Map<String, dynamic>);
 }
 

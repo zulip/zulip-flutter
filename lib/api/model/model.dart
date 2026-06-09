@@ -1221,7 +1221,10 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
 
-  String get type;
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
+  MessageType get type;
 
   // final List<TopicLink> topicLinks; // TODO handle
   // final string type; // handled by runtime type of object
@@ -1280,18 +1283,17 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   // TODO(dart): This has to be a static method, because factories/constructors
   //   do not support type parameters: https://github.com/dart-lang/language/issues/647
   static Message fromJson(Map<String, dynamic> json) {
-    final type = json['type'] as String;
-    if (type == 'stream') return StreamMessage.fromJson(json);
-    if (type == 'private') return DmMessage.fromJson(json);
-    throw Exception("Message.fromJson: unexpected message type $type");
+    return switch (MessageType.fromJson(json['type'] as String)) {
+      .channel => StreamMessage.fromJson(json),
+      .direct => DmMessage.fromJson(json),
+    };
   }
 
   Map<String, dynamic> toJson();
 }
 
-/// As in [DeleteMessageEvent.messageType],
-/// [UpdateMessageFlagsMessageDetail.type],
-/// or [TypingEvent.messageType].
+/// As in [Message.type], [DeleteMessageEvent.messageType],
+/// [UpdateMessageFlagsMessageDetail.type], or [TypingEvent.messageType].
 @JsonEnum(alwaysCreate: true)
 enum MessageType {
   channel,
@@ -1368,7 +1370,7 @@ enum MessageFlag {
 class StreamMessage extends Message<StreamConversation> {
   @override
   @JsonKey(includeToJson: true)
-  String get type => 'stream';
+  MessageType get type => .channel;
 
   @JsonKey(includeToJson: true)
   int get streamId => conversation.streamId;
@@ -1422,7 +1424,7 @@ class StreamMessage extends Message<StreamConversation> {
 class DmMessage extends Message<DmConversation> {
   @override
   @JsonKey(includeToJson: true)
-  String get type => 'private';
+  MessageType get type => .direct;
 
   /// The user IDs of all users in the thread, sorted numerically, as in
   /// `display_recipient` from the server.
