@@ -1126,8 +1126,3 @@ HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$HeartbeatEventToJson(HeartbeatEvent instance) =>
     <String, dynamic>{'id': instance.id, 'type': instance.type};
-
-const _$MessageTypeEnumMap = {
-  MessageType.stream: 'stream',
-  MessageType.direct: 'direct',
-};

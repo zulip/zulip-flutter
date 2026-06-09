@@ -616,6 +616,11 @@ const _$SubscriptionPropertyEnumMap = {
   SubscriptionProperty.unknown: 'unknown',
 };
 
+const _$MessageTypeEnumMap = {
+  MessageType.stream: 'stream',
+  MessageType.direct: 'direct',
+};
+
 const _$MessageFlagEnumMap = {
   MessageFlag.read: 'read',
   MessageFlag.starred: 'starred',
