@@ -1298,7 +1298,18 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
 @JsonEnum(alwaysCreate: true)
 enum MessageType {
   channel,
-  direct;
+  direct,
+
+  // No `unknown` value: the message type is so fundamental to
+  // interpreting the rest of the data that there's no reasonable
+  // fallback behavior for an unknown value. In particular
+  // [Message.fromJson] would have no way to choose which subclass
+  // to instantiate, [StreamMessage] or [DmMessage]. So instead we
+  // treat a message with an unknown type as malformed.
+  // See discussion:
+  //   https://github.com/zulip/zulip-flutter/issues/1982
+  // unknown,
+  ;
 
   factory MessageType.fromJson(String json) {
     switch (json) {
