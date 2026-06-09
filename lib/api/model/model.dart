@@ -1263,7 +1263,14 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
 @JsonEnum(alwaysCreate: true)
 enum MessageType {
   channel,
-  direct;
+  direct,
+
+  // We don't accept an unknown message type because we generally cannot decide
+  // how to interpret such data. In particular, when a message with an unknown
+  // type is received from the server, we cannot determine which message model
+  // to instantiate: either [StreamMessage] or [DmMessage]. See [Message.fromJson].
+  // unknown,
+  ;
 
   factory fromJson(String json) {
     if (json == 'stream') json = 'channel'; // TODO(server-future)
