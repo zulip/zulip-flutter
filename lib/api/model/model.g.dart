@@ -617,7 +617,7 @@ const _$SubscriptionPropertyEnumMap = {
 };
 
 const _$MessageTypeEnumMap = {
-  MessageType.stream: 'stream',
+  MessageType.channel: 'channel',
   MessageType.direct: 'direct',
 };
 

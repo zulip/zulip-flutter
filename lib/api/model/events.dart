@@ -1333,8 +1333,9 @@ class DeleteMessageEvent extends Event {
 
   final List<int> messageIds;
   // final int messageId; // Not present; we support the bulk_message_deletion capability
-  // The server never actually sends "direct" here yet (it's "private" instead),
-  // but we accept both forms for forward-compatibility.
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType messageType;
   final int? streamId;
@@ -1351,7 +1352,7 @@ class DeleteMessageEvent extends Event {
   factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) {
     final result = _$DeleteMessageEventFromJson(json);
     // Crunchy-shell validation
-    if (result.messageType == .stream) {
+    if (result.messageType == .channel) {
       result.streamId as int;
       result.topic as String;
     }
@@ -1440,8 +1441,9 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
 /// As in [UpdateMessageFlagsRemoveEvent.messageDetails].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageFlagsMessageDetail {
-  // The server never actually sends "direct" here yet (it's "private" instead),
-  // but we accept both forms for forward-compatibility.
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType type;
   final bool? mentioned;
@@ -1461,7 +1463,7 @@ class UpdateMessageFlagsMessageDetail {
     final result = _$UpdateMessageFlagsMessageDetailFromJson(json);
     // Crunchy-shell validation
     switch (result.type) {
-      case .stream:
+      case .channel:
         result.streamId as int;
         result.topic as String;
       case .direct:
@@ -1518,6 +1520,8 @@ class TypingEvent extends Event {
   String get type => 'typing';
 
   final TypingOp op;
+  // The server never actually sends "channel" here yet (it's "stream" instead),
+  // but we accept both forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType messageType;
   @JsonKey(readValue: _readSenderId)
@@ -1551,7 +1555,7 @@ class TypingEvent extends Event {
     final result = _$TypingEventFromJson(json);
     // Crunchy-shell validation
     switch (result.messageType) {
-      case .stream:
+      case .channel:
         result.streamId as int;
         result.topic as String;
       case .direct:
