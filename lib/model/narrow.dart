@@ -241,7 +241,7 @@ class DmNarrow extends Narrow implements SendableNarrow {
     UpdateMessageFlagsMessageDetail detail, {
     required int selfUserId,
   }) {
-    assert(detail.type == MessageType.direct);
+    assert(detail.type == .direct);
     return DmNarrow.withOtherUsers(detail.userIds!, selfUserId: selfUserId);
   }
 
