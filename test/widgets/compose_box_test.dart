@@ -770,7 +770,7 @@ void main() {
     Future<void> checkStartTyping(WidgetTester tester, SendableNarrow narrow) async {
       connection.prepare(json: {});
       await enterContent(tester, 'hello world');
-      checkTypingRequest(TypingOp.start, narrow);
+      checkTypingRequest(.start, narrow);
     }
 
     testWidgets('smoke TopicNarrow', (tester) async {
@@ -781,7 +781,7 @@ void main() {
 
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('smoke DmNarrow', (tester) async {
@@ -793,7 +793,7 @@ void main() {
 
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('smoke ChannelNarrow', (tester) async {
@@ -807,7 +807,7 @@ void main() {
 
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, destinationNarrow);
+      checkTypingRequest(.stop, destinationNarrow);
     });
 
     testWidgets('clearing text sends a "typing stopped" notice', (tester) async {
@@ -818,7 +818,7 @@ void main() {
 
       connection.prepare(json: {});
       await enterContent(tester, '');
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('hitting send button sends a "typing stopped" notice', (tester) async {
@@ -834,7 +834,7 @@ void main() {
       await tester.tap(sendButtonFinder);
       await tester.pump(Duration.zero);
       final requests = connection.takeRequests();
-      checkSetTypingStatusRequests([requests.first], [(TypingOp.stop, narrow)]);
+      checkSetTypingStatusRequests([requests.first], [(.stop, narrow)]);
       check(requests).length.equals(2);
     });
 
@@ -865,7 +865,7 @@ void main() {
       connection.prepare(json: {});
       (await ZulipApp.navigator).pop();
       await tester.pump(Duration.zero);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
@@ -880,7 +880,7 @@ void main() {
       connection.prepare(json: {});
       FocusManager.instance.primaryFocus!.unfocus();
       await tester.pump(Duration.zero);
-      checkTypingRequest(TypingOp.stop, destinationNarrow);
+      checkTypingRequest(.stop, destinationNarrow);
     });
 
     testWidgets('selection change sends a "typing started" notice', (tester) async {
@@ -891,17 +891,17 @@ void main() {
 
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
 
       connection.prepare(json: {});
       controller!.content.selection =
         const TextSelection(baseOffset: 0, extentOffset: 2);
-      checkTypingRequest(TypingOp.start, narrow);
+      checkTypingRequest(.start, narrow);
 
       // Ensures that a "typing stopped" notice is sent when the test ends.
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('unfocusing app sends a "typing stopped" notice', (tester) async {
@@ -919,7 +919,7 @@ void main() {
       WidgetsBinding.instance.handleAppLifecycleStateChanged(
         AppLifecycleState.hidden);
       await tester.pump(Duration.zero);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
 
       WidgetsBinding.instance.handleAppLifecycleStateChanged(
         AppLifecycleState.paused);
