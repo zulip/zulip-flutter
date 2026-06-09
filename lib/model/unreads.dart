@@ -412,7 +412,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   void handleDeleteMessageEvent(DeleteMessageEvent event) {
     mentions.removeAll(event.messageIds);
     switch (event.messageType) {
-      case .stream:
+      case .channel:
         // All the messages are in [event.streamId] and [event.topic],
         // so we can be more efficient than _removeAllInStreamsAndDms.
         final streamId = event.streamId!;
@@ -490,7 +490,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
                 mentions.add(messageId);
               }
               switch (detail.type) {
-                case .stream:
+                case .channel:
                   final UpdateMessageFlagsMessageDetail(:streamId, :topic) = detail;
                   locatorMap[messageId] = TopicNarrow(streamId!, topic!);
                   final topics = (newlyUnreadInStreams[streamId] ??= makeTopicKeyedMap());
