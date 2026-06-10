@@ -1,0 +1,37 @@
+# Lima VM config for Zulip Flutter development.
+# Run on the macOS host (NOT inside a VM/container).
+#
+# This file holds the committed base config. See docs/howto/lima.md
+# for usage: you create a .lima/local.yaml that references this file
+# via `base:` and adds your workspace mount.
+
+
+# Ubuntu 24.04 cloud image; Lima auto-selects the arch matching your host.
+# Tested on aarch64 (Apple Silicon) as of 2026-06; x86_64 untested.
+images:
+- location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img"
+  arch: "x86_64"
+- location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img"
+  arch: "aarch64"
+
+# Apple's Virtualization.framework (macOS 13+). Set explicitly, so
+# there is no QEMU fallback; if your host lacks vz support, override
+# vmType in your .lima/local.yaml.
+vmType: "vz"
+
+# Modest defaults; bump if needed.
+cpus: 4
+memory: "8GiB"
+disk: "50GiB"
+
+# Empty mounts list: Lima's default would mount `~` (read-only),
+# exposing secrets in ~/.ssh etc. to a reader in the VM. The
+# workspace mount goes in your .lima/local.yaml (see docs/howto/lima.md).
+mounts: []
+
+# SSH agent forwarding is off (Lima's default, pinned here to make the
+# intent explicit). The VM's trust scope is separate from your host
+# identity: the VM gets its own narrowly-scoped `gh` PAT via
+# `gh auth login` (see docs/howto/lima.md), not your host's keys.
+ssh:
+  forwardAgent: false
