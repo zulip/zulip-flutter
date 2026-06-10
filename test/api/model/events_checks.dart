@@ -15,6 +15,11 @@ extension AlertWordsEventChecks on Subject<AlertWordsEvent> {
   Subject<List<String>> get alertWords => has((e) => e.alertWords, 'alertWords');
 }
 
+extension UserSettingsUpdateEventChecks on Subject<UserSettingsUpdateEvent> {
+  Subject<UserSettingName?> get property => has((e) => e.property, 'property');
+  Subject<Object?> get value => has((e) => e.value, 'value');
+}
+
 extension DeviceUpdateEventChecks on Subject<DeviceUpdateEvent> {
   Subject<JsonNullable<int>?> get pushKeyId => has((e) => e.pushKeyId, 'pushKeyId');
   Subject<JsonNullable<String>?> get pushTokenId => has((e) => e.pushTokenId, 'pushTokenId');
