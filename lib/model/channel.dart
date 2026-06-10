@@ -218,7 +218,7 @@ mixin ChannelStore on UserStore {
     if (channel is Subscription) return true;
     // Here web calls has_metadata_access... but that always returns true,
     // as its comment says.
-    if (selfUser.role == UserRole.guest) return false;
+    if (selfUser.role == .guest) return false;
     if (!channel.inviteOnly) return true;
     return _selfHasContentAccessViaGroupPermissions(channel);
   }
@@ -270,14 +270,14 @@ mixin ChannelStore on UserStore {
     switch (inChannel.channelPostPolicy!) {
       case ChannelPostPolicy.any:             return true;
       case ChannelPostPolicy.fullMembers:     {
-        if (!role.isAtLeast(UserRole.member)) return false;
-        if (role == UserRole.member) {
+        if (!role.isAtLeast(.member)) return false;
+        if (role == .member) {
           return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }
-      case ChannelPostPolicy.moderators:      return role.isAtLeast(UserRole.moderator);
-      case ChannelPostPolicy.administrators:  return role.isAtLeast(UserRole.administrator);
+      case ChannelPostPolicy.moderators:      return role.isAtLeast(.moderator);
+      case ChannelPostPolicy.administrators:  return role.isAtLeast(.administrator);
       case ChannelPostPolicy.unknown:         return true;
     }
   }

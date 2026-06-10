@@ -81,7 +81,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   assert(narrow.containsMessage(message)!);
 
   selfUser ??= eg.selfUser;
-  assert(!(hasDeletePermission && selfUser.role == UserRole.guest));
+  assert(!(hasDeletePermission && selfUser.role == .guest));
   final selfAccount = eg.account(user: selfUser,
     zulipFeatureLevel: zulipFeatureLevel);
   await testBinding.globalStore.add(
@@ -2153,14 +2153,14 @@ void main() {
         });
 
         testWidgets('no error if user lost posting permission after action sheet opened', (tester) async {
-          final selfUser = eg.user(role: UserRole.member);
+          final selfUser = eg.user(role: .member);
           final stream = eg.stream();
           final message = eg.streamMessage(stream: stream);
           await setupToMessageActionSheet(tester, selfUser: selfUser,
             message: message, narrow: TopicNarrow.ofMessage(message));
 
           await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: selfUser.userId,
-            role: UserRole.guest));
+            role: .guest));
           await store.handleEvent(eg.channelUpdateEvent(stream,
             property: ChannelPropertyName.channelPostPolicy,
             value: ChannelPostPolicy.administrators));
