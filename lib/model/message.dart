@@ -187,18 +187,18 @@ mixin MessageStore on ChannelStore {
       case .everyone:
         return true;
       case .members:
-        return role.isAtLeast(UserRole.member);
+        return role.isAtLeast(.member);
       case .fullMembers: {
-        if (!role.isAtLeast(UserRole.member)) return false;
-        if (role == UserRole.member) {
+        if (!role.isAtLeast(.member)) return false;
+        if (role == .member) {
           return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }
       case .moderators:
-        return role.isAtLeast(UserRole.moderator);
+        return role.isAtLeast(.moderator);
       case .admins:
-        return role.isAtLeast(UserRole.administrator);
+        return role.isAtLeast(.administrator);
     }
   }
 }

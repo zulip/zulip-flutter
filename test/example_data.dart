@@ -309,7 +309,7 @@ User user({
     isBot: isBot ?? false,
     botType: null,
     botOwnerId: botOwnerId,
-    role: role ?? UserRole.member,
+    role: role ?? .member,
     timezone: 'UTC',
     avatarUrl: avatarUrl,
     avatarVersion: 0,
