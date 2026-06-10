@@ -9,7 +9,8 @@ and credentials you put there explicitly (e.g. a GitHub access token with
 read-only scope). The VM is accessed with its own SSH keypair managed by Lima.
 
 Anthropic documents several sandboxing approaches for Claude Code,
-of varying weight; this setup uses a local VM.
+of varying weight. This setup uses a local VM; see
+[howto/claude.md](claude.md#sandboxing) for the comparison.
 
 [lima]: https://lima-vm.io/
 
@@ -22,7 +23,8 @@ Once set up, work splits across the host and the VM:
   `flutter build`, Android Studio, etc. work as on a normal host
   Flutter install. The VM isn't involved.
 - **Run Claude Code from the VM.** Claude will invoke `flutter analyze`,
-  `flutter test`, `tools/check`, etc. inside the VM as it works.
+  `flutter test`, `tools/check`, etc. inside the VM as it works. See
+  [claude.md](claude.md) for Claude-specific tips.
 - **Push from the host.** The VM's GitHub credential is read-only
   (see the [trust model](#trust-model) below), so `git push`
   happens on the host. Commits made in the VM are immediately
@@ -117,6 +119,7 @@ IDE and device runs.)
 
 Inside the VM, install and authenticate Claude Code following Anthropic's
 [install instructions](https://code.claude.com/docs/) for Linux.
+See [claude.md](claude.md) for tips on using Claude in this repo.
 
 The installer puts `claude` in `~/.local/bin` and may warn that
 that's not in your PATH. There's no need for its suggested
@@ -148,7 +151,8 @@ limactl cp ~/some-file zulip-flutter:/tmp/
 ### 7. Authenticate `gh` and `git fetch`
 
 The `gh` CLI (installed by `tools/provision-vm` in step 4) lets
-Claude search and read public issues and PRs in the Zulip repos.
+Claude search and read public issues and PRs in the Zulip repos;
+see [claude.md](claude.md#authenticating-gh) on why it's useful.
 Authenticate it with a read-only personal access token:
 
 1. Create a fine-grained PAT at
