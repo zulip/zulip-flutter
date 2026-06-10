@@ -375,6 +375,12 @@ enum TwentyFourHourTimeMode {
   // TODO(server-future) Write down what server N starts sending null;
   //   adjust the comment; leave a TODO(server-N) to delete the comment
   localeDefault(apiValue: null),
+
+  // We can't have an unknown value because all values permitted by the
+  // server API (true, false, and null) are represented above.
+  // If the server ever sends a different kind of value, that would indicate
+  // a change to the API and we should update this model accordingly.
+  // unknown(apiValue: null),
   ;
 
   const TwentyFourHourTimeMode({required this.apiValue});
