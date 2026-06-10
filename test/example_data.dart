@@ -1494,7 +1494,7 @@ InitialSnapshot initialSnapshot({
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
-    realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? .everyone,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmName: realmName ?? 'Example Zulip organization',
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
