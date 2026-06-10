@@ -334,12 +334,12 @@ class _ProfileErrorPage extends StatelessWidget {
 
 String roleToLabel(UserRole role, ZulipLocalizations zulipLocalizations) {
   return switch (role) {
-    UserRole.owner => zulipLocalizations.userRoleOwner,
-    UserRole.administrator => zulipLocalizations.userRoleAdministrator,
-    UserRole.moderator => zulipLocalizations.userRoleModerator,
-    UserRole.member => zulipLocalizations.userRoleMember,
-    UserRole.guest => zulipLocalizations.userRoleGuest,
-    UserRole.unknown => zulipLocalizations.userRoleUnknown,
+    .owner => zulipLocalizations.userRoleOwner,
+    .administrator => zulipLocalizations.userRoleAdministrator,
+    .moderator => zulipLocalizations.userRoleModerator,
+    .member => zulipLocalizations.userRoleMember,
+    .guest => zulipLocalizations.userRoleGuest,
+    .unknown => zulipLocalizations.userRoleUnknown,
   };
 }
 

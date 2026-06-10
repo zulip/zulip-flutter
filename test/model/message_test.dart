@@ -1366,7 +1366,7 @@ void main() {
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
               realmDeleteOwnMessagePolicy: .everyone,
-              selfUserRole: UserRole.member,
+              selfUserRole: .member,
           )))
             ..equals(await evaluate(
              CanDeleteMessageParams.pre407(
@@ -1386,7 +1386,7 @@ void main() {
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
               realmDeleteOwnMessagePolicy: .admins,
-              selfUserRole: UserRole.administrator,
+              selfUserRole: .administrator,
           )))
             ..equals(await evaluate(
              CanDeleteMessageParams.pre407(
@@ -1406,7 +1406,7 @@ void main() {
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
               realmDeleteOwnMessagePolicy: .admins,
-              selfUserRole: UserRole.moderator,
+              selfUserRole: .moderator,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre407(
                 senderConfig: CanDeleteMessageSenderConfig.self,
@@ -1430,7 +1430,7 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               isChannelArchived: false,
               realmDeleteOwnMessagePolicy: .everyone,
-              selfUserRole: UserRole.member,
+              selfUserRole: .member,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre291(
                 senderConfig: CanDeleteMessageSenderConfig.otherHuman,
@@ -1438,7 +1438,7 @@ void main() {
                 inRealmCanDeleteAnyMessageGroup: false,
                 isChannelArchived: false,
                 realmDeleteOwnMessagePolicy: .everyone,
-                selfUserRole: UserRole.member)))
+                selfUserRole: .member)))
             ..isFalse();
         });
 
@@ -1449,7 +1449,7 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               isChannelArchived: false,
               realmDeleteOwnMessagePolicy: .everyone,
-              selfUserRole: UserRole.administrator,
+              selfUserRole: .administrator,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre291(
                 senderConfig: CanDeleteMessageSenderConfig.otherHuman,
@@ -1457,7 +1457,7 @@ void main() {
                 inRealmCanDeleteAnyMessageGroup: true,
                 isChannelArchived: false,
                 realmDeleteOwnMessagePolicy: .everyone,
-                selfUserRole: UserRole.administrator)))
+                selfUserRole: .administrator)))
             ..isTrue();
         });
       });

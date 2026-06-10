@@ -94,21 +94,21 @@ void main() {
     });
 
     test('guest -> no permission, despite group', () {
-      final selfUser = eg.user(role: UserRole.guest);
+      final selfUser = eg.user(role: .guest);
       final group = eg.userGroup(members: [selfUser.userId]);
       check(hasPermission(selfUser, group, 'can_subscribe_group'))
         .isFalse();
     });
 
     test('guest -> still has permission, if allowEveryoneGroup', () {
-      final selfUser = eg.user(role: UserRole.guest);
+      final selfUser = eg.user(role: .guest);
       final group = eg.userGroup(members: [selfUser.userId]);
       check(hasPermission(selfUser, group, 'can_send_message_group'))
         .isTrue();
     });
 
     test('guest not in group -> no permission, even if allowEveryoneGroup', () {
-      final selfUser = eg.user(role: UserRole.guest);
+      final selfUser = eg.user(role: .guest);
       final group = eg.userGroup(members: []);
       check(hasPermission(selfUser, group, 'can_send_message_group'))
         .isFalse();
@@ -141,16 +141,16 @@ void main() {
             break;
           case SystemGroupName.everyone:
             test('everyone', () {
-              prepare(selfUserRole: UserRole.guest);
+              prepare(selfUserRole: .guest);
               doCheck(GroupSettingType.realm, 'can_access_all_users_group', true);
             });
           case SystemGroupName.members:
             test('members, is guest', () {
-              prepare(selfUserRole: UserRole.guest);
+              prepare(selfUserRole: .guest);
               doCheck(GroupSettingType.realm, 'can_add_custom_emoji_group', false);
             });
             test('members, is member', () {
-              prepare(selfUserRole: UserRole.member);
+              prepare(selfUserRole: .member);
               doCheck(GroupSettingType.realm, 'can_add_custom_emoji_group', true);
             });
           case SystemGroupName.fullMembers:
@@ -158,34 +158,34 @@ void main() {
             break;
           case SystemGroupName.moderators:
             test('moderators, is member', () {
-              prepare(selfUserRole: UserRole.member);
+              prepare(selfUserRole: .member);
               doCheck(GroupSettingType.realm, 'can_set_delete_message_policy_group', false);
             });
             test('moderators, is moderator', () {
-              prepare(selfUserRole: UserRole.moderator);
+              prepare(selfUserRole: .moderator);
               doCheck(GroupSettingType.realm, 'can_set_delete_message_policy_group', true);
             });
           case SystemGroupName.administrators:
             test('administrators, is moderator', () {
-              prepare(selfUserRole: UserRole.moderator);
+              prepare(selfUserRole: .moderator);
               doCheck(GroupSettingType.stream, 'can_remove_subscribers_group', false);
             });
             test('administrators, is administrator', () {
-              prepare(selfUserRole: UserRole.administrator);
+              prepare(selfUserRole: .administrator);
               doCheck(GroupSettingType.stream, 'can_remove_subscribers_group', true);
             });
           case SystemGroupName.owners:
             test('owners, is administrator', () {
-              prepare(selfUserRole: UserRole.administrator);
+              prepare(selfUserRole: .administrator);
               doCheck(GroupSettingType.realm, 'can_create_web_public_channel_group', false);
             });
             test('owners, is owner', () {
-              prepare(selfUserRole: UserRole.owner);
+              prepare(selfUserRole: .owner);
               doCheck(GroupSettingType.realm, 'can_create_web_public_channel_group', true);
             });
           case SystemGroupName.nobody:
             test('nobody', () {
-              prepare(selfUserRole: UserRole.owner);
+              prepare(selfUserRole: .owner);
               doCheck(GroupSettingType.stream, 'can_delete_own_message_group', false);
             });
         }
@@ -194,7 +194,7 @@ void main() {
       test('throw on unknown name', () {
         // We should know about all the permissions we're trying to implement,
         // even the ones old servers don't know about.
-        prepare(selfUserRole: UserRole.member);
+        prepare(selfUserRole: .member);
         check(() => store.selfHasPermissionForGroupSetting(null,
           GroupSettingType.realm, 'example_future_permission_name'),
         ).throws<Error>();

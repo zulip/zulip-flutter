@@ -587,33 +587,33 @@ void main() {
   });
 
   group('selfCanSendMessage, legacy', () {
-    final testCases = [
-      (ChannelPostPolicy.unknown,        UserRole.guest,         true),
-      (ChannelPostPolicy.unknown,        UserRole.member,        true),
-      (ChannelPostPolicy.unknown,        UserRole.moderator,     true),
-      (ChannelPostPolicy.unknown,        UserRole.administrator, true),
-      (ChannelPostPolicy.unknown,        UserRole.owner,         true),
-      (ChannelPostPolicy.any,            UserRole.guest,         true),
-      (ChannelPostPolicy.any,            UserRole.member,        true),
-      (ChannelPostPolicy.any,            UserRole.moderator,     true),
-      (ChannelPostPolicy.any,            UserRole.administrator, true),
-      (ChannelPostPolicy.any,            UserRole.owner,         true),
-      (ChannelPostPolicy.fullMembers,    UserRole.guest,         false),
+    final testCases = <(ChannelPostPolicy, UserRole, bool)>[
+      (ChannelPostPolicy.unknown,        .guest,         true),
+      (ChannelPostPolicy.unknown,        .member,        true),
+      (ChannelPostPolicy.unknown,        .moderator,     true),
+      (ChannelPostPolicy.unknown,        .administrator, true),
+      (ChannelPostPolicy.unknown,        .owner,         true),
+      (ChannelPostPolicy.any,            .guest,         true),
+      (ChannelPostPolicy.any,            .member,        true),
+      (ChannelPostPolicy.any,            .moderator,     true),
+      (ChannelPostPolicy.any,            .administrator, true),
+      (ChannelPostPolicy.any,            .owner,         true),
+      (ChannelPostPolicy.fullMembers,    .guest,         false),
       // The fullMembers/member case gets its own tests further below.
-      // (ChannelPostPolicy.fullMembers,    UserRole.member,        /* complicated */),
-      (ChannelPostPolicy.fullMembers,    UserRole.moderator,     true),
-      (ChannelPostPolicy.fullMembers,    UserRole.administrator, true),
-      (ChannelPostPolicy.fullMembers,    UserRole.owner,         true),
-      (ChannelPostPolicy.moderators,     UserRole.guest,         false),
-      (ChannelPostPolicy.moderators,     UserRole.member,        false),
-      (ChannelPostPolicy.moderators,     UserRole.moderator,     true),
-      (ChannelPostPolicy.moderators,     UserRole.administrator, true),
-      (ChannelPostPolicy.moderators,     UserRole.owner,         true),
-      (ChannelPostPolicy.administrators, UserRole.guest,         false),
-      (ChannelPostPolicy.administrators, UserRole.member,        false),
-      (ChannelPostPolicy.administrators, UserRole.moderator,     false),
-      (ChannelPostPolicy.administrators, UserRole.administrator, true),
-      (ChannelPostPolicy.administrators, UserRole.owner,         true),
+      // (ChannelPostPolicy.fullMembers,    .member,        /* complicated */),
+      (ChannelPostPolicy.fullMembers,    .moderator,     true),
+      (ChannelPostPolicy.fullMembers,    .administrator, true),
+      (ChannelPostPolicy.fullMembers,    .owner,         true),
+      (ChannelPostPolicy.moderators,     .guest,         false),
+      (ChannelPostPolicy.moderators,     .member,        false),
+      (ChannelPostPolicy.moderators,     .moderator,     true),
+      (ChannelPostPolicy.moderators,     .administrator, true),
+      (ChannelPostPolicy.moderators,     .owner,         true),
+      (ChannelPostPolicy.administrators, .guest,         false),
+      (ChannelPostPolicy.administrators, .member,        false),
+      (ChannelPostPolicy.administrators, .moderator,     false),
+      (ChannelPostPolicy.administrators, .administrator, true),
+      (ChannelPostPolicy.administrators, .owner,         true),
     ];
 
     for (final (ChannelPostPolicy policy, UserRole role, bool canPost) in testCases) {
@@ -643,7 +643,7 @@ void main() {
           realmUsers: [selfUser]));
 
       User memberUser({required String dateJoined}) => eg.user(
-        role: UserRole.member, dateJoined: dateJoined);
+        role: .member, dateJoined: dateJoined);
 
       test('a "full" member -> can post in the channel', () {
         final store = localStore(

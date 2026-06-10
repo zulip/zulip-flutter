@@ -1611,7 +1611,7 @@ void main() {
           await prepareComposeBox(tester,
             narrow: narrow,
             selfUser: eg.user(
-              role: canSend ? UserRole.administrator : UserRole.member),
+              role: canSend ? .administrator : .member),
             streams: [channel],
             subscriptions: isChannelSubscribed ? [eg.subscription(channel)] : []);
           checkComposeBoxIsShown(expected,
@@ -1717,7 +1717,7 @@ void main() {
       testRefreshSubscribeButtons(narrow: topicNarrow, canSendMessages: true);
 
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
-        final selfUser = eg.user(role: UserRole.administrator);
+        final selfUser = eg.user(role: .administrator);
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
@@ -1726,13 +1726,13 @@ void main() {
         checkComposeBox(isShown: true);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
-          userId: selfUser.userId, role: UserRole.moderator));
+          userId: selfUser.userId, role: .moderator));
         await tester.pump();
         checkComposeBox(isShown: false);
       });
 
       testWidgets('user gains privilege -> banner is replaced with the compose box', (tester) async {
-        final selfUser = eg.user(role: UserRole.guest);
+        final selfUser = eg.user(role: .guest);
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
@@ -1741,13 +1741,13 @@ void main() {
         checkComposeBox(isShown: false);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
-          userId: selfUser.userId, role: UserRole.administrator));
+          userId: selfUser.userId, role: .administrator));
         await tester.pump();
         checkComposeBox(isShown: true);
       });
 
       testWidgets('channel policy becomes stricter -> compose box is replaced with the banner', (tester) async {
-        final selfUser = eg.user(role: UserRole.guest);
+        final selfUser = eg.user(role: .guest);
         final channel = eg.stream(streamId: 1,
           channelPostPolicy: ChannelPostPolicy.any);
 
@@ -1765,7 +1765,7 @@ void main() {
       });
 
       testWidgets('channel policy becomes less strict -> banner is replaced with the compose box', (tester) async {
-        final selfUser = eg.user(role: UserRole.moderator);
+        final selfUser = eg.user(role: .moderator);
         final channel = eg.stream(streamId: 1,
           channelPostPolicy: ChannelPostPolicy.administrators);
 
