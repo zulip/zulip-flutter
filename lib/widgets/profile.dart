@@ -297,7 +297,7 @@ class _InvisibleModeToggle extends StatelessWidget {
     return RemoteSettingBuilder<bool>(
       findValueInStore: (store) => !store.userSettings.presenceEnabled,
       sendValueToServer: (value) => updateSettings(store.connection,
-        newSettings: {UserSettingName.presenceEnabled: !value}),
+        newSettings: {.presenceEnabled: !value}),
       // TODO(#741) interpret API errors for user
       onError: (e, requestedValue) => reportErrorToUserBriefly(
         requestedValue

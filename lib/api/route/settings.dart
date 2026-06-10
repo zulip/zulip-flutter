@@ -11,17 +11,17 @@ Future<void> updateSettings(ApiConnection connection, {
     final valueRaw = entry.value;
     final Object? value;
     switch (name) {
-      case UserSettingName.twentyFourHourTime:
+      case .twentyFourHourTime:
         final mode = (valueRaw as TwentyFourHourTimeMode);
         // TODO(server-future) allow localeDefault for servers that support it
         assert(mode != TwentyFourHourTimeMode.localeDefault);
         value = mode.toJson();
-      case UserSettingName.starredMessageCounts:
-      case UserSettingName.displayEmojiReactionUsers:
+      case .starredMessageCounts:
+      case .displayEmojiReactionUsers:
         value = valueRaw as bool;
-      case UserSettingName.emojiset:
+      case .emojiset:
         value = RawParameter((valueRaw as Emojiset).toJson());
-      case UserSettingName.presenceEnabled:
+      case .presenceEnabled:
         value = valueRaw as bool;
     }
     params[name.toJson()] = value;
