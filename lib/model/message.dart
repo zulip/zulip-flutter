@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 
 import '../api/exception.dart';
 import '../api/model/events.dart';
-import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../log.dart';
@@ -185,20 +184,20 @@ mixin MessageStore on ChannelStore {
     // but pre-291 servers shouldn't be giving us an unknown role.)
 
     switch (realmDeleteOwnMessagePolicy!) {
-      case RealmDeleteOwnMessagePolicy.everyone:
+      case .everyone:
         return true;
-      case RealmDeleteOwnMessagePolicy.members:
+      case .members:
         return role.isAtLeast(UserRole.member);
-      case RealmDeleteOwnMessagePolicy.fullMembers: {
+      case .fullMembers: {
         if (!role.isAtLeast(UserRole.member)) return false;
         if (role == UserRole.member) {
           return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }
-      case RealmDeleteOwnMessagePolicy.moderators:
+      case .moderators:
         return role.isAtLeast(UserRole.moderator);
-      case RealmDeleteOwnMessagePolicy.admins:
+      case .admins:
         return role.isAtLeast(UserRole.administrator);
     }
   }
