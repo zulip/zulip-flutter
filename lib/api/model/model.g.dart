@@ -551,6 +551,7 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
   UserSettingName.emojiset: 'emojiset',
   UserSettingName.presenceEnabled: 'presence_enabled',
+  UserSettingName.unknown: 'unknown',
 };
 
 const _$EmojisetEnumMap = {

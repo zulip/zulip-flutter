@@ -903,12 +903,12 @@ class PerAccountStore extends PerAccountStoreBase with
         // We don't yet store this data, so there's nothing to update.
 
       case UserSettingsUpdateEvent():
-        assert(debugLog("server event: user_settings/update ${event.property?.name ?? '[unrecognized]'}"));
-        if (event.property == null) {
+        assert(debugLog("server event: user_settings/update ${event.property.name}"));
+        if (event.property == .unknown) {
           // unrecognized setting; do nothing
           return;
         }
-        switch (event.property!) {
+        switch (event.property) {
           case .twentyFourHourTime:
             userSettings.twentyFourHourTime        = event.value as TwentyFourHourTimeMode;
           case .starredMessageCounts:
@@ -919,6 +919,9 @@ class PerAccountStore extends PerAccountStoreBase with
             userSettings.emojiset                  = event.value as Emojiset;
           case .presenceEnabled:
             userSettings.presenceEnabled           = event.value as bool;
+          case .unknown:
+            // Shouldn't reach here because of the early return.
+            assert(false);
         }
         notifyListeners();
 

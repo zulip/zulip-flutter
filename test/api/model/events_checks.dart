@@ -16,7 +16,7 @@ extension AlertWordsEventChecks on Subject<AlertWordsEvent> {
 }
 
 extension UserSettingsUpdateEventChecks on Subject<UserSettingsUpdateEvent> {
-  Subject<UserSettingName?> get property => has((e) => e.property, 'property');
+  Subject<UserSettingName> get property => has((e) => e.property, 'property');
   Subject<Object?> get value => has((e) => e.value, 'value');
 }
 
