@@ -24,6 +24,8 @@ Future<void> updateSettings(ApiConnection connection, {
       case .webInboxShowChannelFolders:
       case .presenceEnabled:
         value = valueRaw as bool;
+      case .unknown:
+        continue;
     }
     params[name.toJson()] = value;
   }

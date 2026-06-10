@@ -341,13 +341,20 @@ enum UserSettingName {
   emojiset,
   webInboxShowChannelFolders,
   presenceEnabled,
+  // TODO: add more as needed
+
+  /// A user setting (name) that:
+  ///   - The server sends, but we currently don't support.
+  ///   - The server may start sending in the future.
+  unknown,
   ;
 
-  /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.
+  /// Get a [UserSettingName] from a raw, snake-case string we recognize,
+  /// else [UserSettingName.unknown].
   ///
   /// Example:
   ///   'display_emoji_reaction_users' -> UserSettingName.displayEmojiReactionUsers
-  static UserSettingName? fromRawString(String raw) => _byRawString[raw];
+  static UserSettingName fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$UserSettingNameEnumMap

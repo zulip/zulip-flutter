@@ -244,11 +244,11 @@ class UserSettingsUpdateEvent extends Event {
   @JsonKey(includeToJson: true)
   String get op => 'update';
 
-  /// The name of the setting, or null if we don't recognize it.
-  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
-  final UserSettingName? property;
+  /// The name of the setting, or [UserSettingName.unknown] if we don't recognize it.
+  @JsonKey(unknownEnumValue: UserSettingName.unknown)
+  final UserSettingName property;
 
-  /// The new value, or null if we don't recognize the setting.
+  /// The new value, or null if we don't recognize the setting ([UserSettingName.unknown]).
   ///
   /// This will have the type appropriate for [property]; for example,
   /// if the setting is boolean, then `value is bool` will always be true.
@@ -271,7 +271,7 @@ class UserSettingsUpdateEvent extends Event {
       case .webInboxShowChannelFolders:
       case .presenceEnabled:
         return value as bool;
-      case null:
+      case .unknown:
         return null;
     }
   }

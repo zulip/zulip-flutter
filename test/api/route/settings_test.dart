@@ -34,6 +34,8 @@ void main() {
           case .presenceEnabled:
             newSettings[name] = true;
             expectedBodyFields['presence_enabled'] = 'true';
+          case .unknown:
+            continue;
         }
       }
 
