@@ -859,8 +859,7 @@ void main() {
       check(store.userSettings.twentyFourHourTime)
         .equals(TwentyFourHourTimeMode.twelveHour);
       connection.prepare(json: GetEventsResult(events: [
-        UserSettingsUpdateEvent(id: 2,
-          property: UserSettingName.twentyFourHourTime, value: true),
+        UserSettingsUpdateEvent(id: 2, property: .twentyFourHourTime, value: true),
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
       async.elapse(Duration.zero);
@@ -898,8 +897,7 @@ void main() {
         check(store.userSettings.twentyFourHourTime)
           .equals(TwentyFourHourTimeMode.twelveHour);
         connection.prepare(json: GetEventsResult(events: [
-          UserSettingsUpdateEvent(id: 2,
-            property: UserSettingName.twentyFourHourTime, value: true),
+          UserSettingsUpdateEvent(id: 2, property: .twentyFourHourTime, value: true),
         ], queueId: null).toJson());
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);

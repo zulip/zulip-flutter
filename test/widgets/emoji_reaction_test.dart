@@ -190,10 +190,10 @@ void main() {
                 await store.handleEvent(RealmEmojiUpdateEvent(id: 1,
                   realmEmoji: realmEmoji));
                 await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-                  property: UserSettingName.displayEmojiReactionUsers,
+                  property: .displayEmojiReactionUsers,
                   value: displayEmojiReactionUsers));
                 await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-                  property: UserSettingName.emojiset,
+                  property: .emojiset,
                   value: emojiset));
 
                 // This does mean that all image emoji will look the same…
