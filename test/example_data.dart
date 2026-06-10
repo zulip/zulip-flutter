@@ -1390,7 +1390,7 @@ UserSettings userSettings({
     twentyFourHourTime: twentyFourHourTime ?? .twelveHour,
     starredMessageCounts: true,
     displayEmojiReactionUsers: displayEmojiReactionUsers ?? true,
-    emojiset: emojiset ?? Emojiset.google,
+    emojiset: emojiset ?? .google,
     presenceEnabled: presenceEnabled ?? true,
   );
 }
