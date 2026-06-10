@@ -233,7 +233,12 @@ enum RealmWildcardMentionPolicy {
   fullMembers(apiValue: 3),
   admins(apiValue: 5),
   nobody(apiValue: 6),
-  moderators(apiValue: 7);
+  moderators(apiValue: 7),
+
+  // We don't accept an unknown value. `realm_wildcard_mention_policy` is
+  // deprecated in server-10, making future additions to this enum unlikely.
+  // unknown(apiValue: null),
+  ;
 
   const RealmWildcardMentionPolicy({required this.apiValue});
 
