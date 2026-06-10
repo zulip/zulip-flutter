@@ -190,14 +190,14 @@ class UserSettingsUpdateEvent extends Event {
   static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
     switch (UserSettingName.fromRawString(json['property'] as String)) {
-      case UserSettingName.twentyFourHourTime:
+      case .twentyFourHourTime:
         return TwentyFourHourTimeMode.fromApiValue(value as bool?);
-      case UserSettingName.starredMessageCounts:
-      case UserSettingName.displayEmojiReactionUsers:
+      case .starredMessageCounts:
+      case .displayEmojiReactionUsers:
         return value as bool;
-      case UserSettingName.emojiset:
+      case .emojiset:
         return Emojiset.fromRawString(value as String);
-      case UserSettingName.presenceEnabled:
+      case .presenceEnabled:
         return value as bool;
       case null:
         return null;

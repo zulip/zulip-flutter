@@ -565,7 +565,7 @@ void main() {
     void scheduleEventAfter(Duration duration, bool newInvisibleModeValue) async {
       await Future<void>.delayed(duration);
       await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-        property: UserSettingName.presenceEnabled, value: !newInvisibleModeValue));
+        property: .presenceEnabled, value: !newInvisibleModeValue));
     }
 
     void checkRequest(bool requestedInvisibleModeValue) {
@@ -619,7 +619,7 @@ void main() {
       checkAppearsActive(tester, false);
 
       await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-        property: UserSettingName.presenceEnabled, value: false));
+        property: .presenceEnabled, value: false));
       await tester.pump();
       checkAppearsActive(tester, true);
 
@@ -654,7 +654,7 @@ void main() {
 
       await setupPage(tester, pageUserId: eg.selfUser.userId);
       await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-        property: UserSettingName.presenceEnabled, value: false));
+        property: .presenceEnabled, value: false));
       await tester.pump();
       checkAppearsActive(tester, true);
 
