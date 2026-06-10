@@ -576,6 +576,7 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.emojiset: 'emojiset',
   UserSettingName.webInboxShowChannelFolders: 'web_inbox_show_channel_folders',
   UserSettingName.presenceEnabled: 'presence_enabled',
+  UserSettingName.unknown: 'unknown',
 };
 
 const _$EmojisetEnumMap = {

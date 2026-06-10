@@ -85,10 +85,10 @@ UserSettingsUpdateEvent _$UserSettingsUpdateEventFromJson(
   Map<String, dynamic> json,
 ) => UserSettingsUpdateEvent(
   id: (json['id'] as num).toInt(),
-  property: $enumDecodeNullable(
+  property: $enumDecode(
     _$UserSettingNameEnumMap,
     json['property'],
-    unknownValue: JsonKey.nullForUndefinedEnumValue,
+    unknownValue: UserSettingName.unknown,
   ),
   value: UserSettingsUpdateEvent._readValue(json, 'value'),
 );
@@ -110,6 +110,7 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.emojiset: 'emojiset',
   UserSettingName.webInboxShowChannelFolders: 'web_inbox_show_channel_folders',
   UserSettingName.presenceEnabled: 'presence_enabled',
+  UserSettingName.unknown: 'unknown',
 };
 
 DeviceAddEvent _$DeviceAddEventFromJson(Map<String, dynamic> json) =>

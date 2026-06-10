@@ -30,6 +30,26 @@ void main() {
     ).isEmpty();
   });
 
+  test('user_settings/update: unknown property', () {
+    final json = Map<String, dynamic>.unmodifiable({
+      'id': 1,
+      'type': 'user_settings',
+      'op': 'update',
+      'property': 'twenty_four_hour_time',
+      'value': true,
+    });
+
+    check(UserSettingsUpdateEvent.fromJson(json))
+      ..property.equals(.twentyFourHourTime)
+      ..value.equals(TwentyFourHourTimeMode.twentyFourHour);
+
+    for (final unknown in ['unknown_user_setting_name', '']) {
+      check(UserSettingsUpdateEvent.fromJson({...json, 'property': unknown}))
+        ..property.equals(.unknown)
+        ..value.equals(null);
+    }
+  });
+
   group('device/update', () {
     final baseJson = {'id': 1, 'type': 'device', 'op': 'update', 'device_id': 3 };
 

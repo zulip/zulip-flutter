@@ -91,6 +91,16 @@ void main() {
       expected: (OptionNone(), OptionNone()));
   });
 
+  test('UserSettingName.fromRawString handles unknown values', () {
+    check(UserSettingName.fromRawString('twenty_four_hour_time'))
+      .equals(.twentyFourHourTime);
+
+    for (final unknown in ['unknown_user_setting_name', '']) {
+      check(UserSettingName.fromRawString(unknown))
+        .equals(.unknown);
+    }
+  });
+
   group('User', () {
     final Map<String, dynamic> baseJson = Map.unmodifiable({
       'user_id': 123,
