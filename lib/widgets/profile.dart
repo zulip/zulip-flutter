@@ -191,8 +191,8 @@ class _LastActiveTimeState extends State<_LastActiveTime> with PerAccountStoreAw
     final status = model!.presenceStatusForUser(widget.userId,
       utcNow: nowDate);
     switch (status) {
-      case PresenceStatus.active: return zulipLocalizations.userActiveNow;
-      case PresenceStatus.idle:   return zulipLocalizations.userIdle;
+      case .active: return zulipLocalizations.userActiveNow;
+      case .idle:   return zulipLocalizations.userIdle;
       case null:                  break; // handle below
     }
 

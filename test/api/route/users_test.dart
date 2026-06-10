@@ -41,7 +41,7 @@ void main() {
         historyLimitDays: 21,
         newUserInput: false,
         pingOnly: false,
-        status: PresenceStatus.active,
+        status: .active,
       );
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')

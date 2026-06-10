@@ -76,14 +76,14 @@ class Presence extends HasRealmStore with ChangeNotifier {
         //   when the user closes the app completely.
         result = await updatePresence(connection,
           pingOnly: pingOnly,
-          status: PresenceStatus.idle,
+          status: .idle,
           newUserInput: false);
       case AppLifecycleState.resumed:
         // > […] the default running mode for a running application that has
         // > input focus and is visible.
         result = await updatePresence(connection,
           pingOnly: pingOnly,
-          status: PresenceStatus.active,
+          status: .active,
           newUserInput: true);
       case AppLifecycleState.inactive:
         // > At least one view of the application is visible, but none have
@@ -92,7 +92,7 @@ class Presence extends HasRealmStore with ChangeNotifier {
         // to upload.
         result = await updatePresence(connection,
           pingOnly: pingOnly,
-          status: PresenceStatus.active,
+          status: .active,
           newUserInput: false);
     }
     if (!pingOnly) {
@@ -141,12 +141,12 @@ class Presence extends HasRealmStore with ChangeNotifier {
     final PerUserPresence(:activeTimestamp, :idleTimestamp) = perUserPresence;
 
     if (now - activeTimestamp <= serverPresenceOfflineThresholdSeconds) {
-      return PresenceStatus.active;
+      return .active;
     } else if (now - idleTimestamp <= serverPresenceOfflineThresholdSeconds) {
       // The API doc is kind of confusing, but this seems correct:
       //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/presence.3A.20.22potentially.20present.22.3F/near/2202431
       // TODO clarify that API doc
-      return PresenceStatus.idle;
+      return .idle;
     } else {
       return null;
     }
