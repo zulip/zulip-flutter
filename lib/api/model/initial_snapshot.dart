@@ -253,7 +253,12 @@ enum RealmDeleteOwnMessagePolicy {
   admins(apiValue: 2),
   fullMembers(apiValue: 3),
   moderators(apiValue: 4),
-  everyone(apiValue: 5);
+  everyone(apiValue: 5),
+
+  // We don't accept an unknown value. `realm_delete_own_message_policy` is
+  // removed in server-10, making future additions to this enum impossible.
+  // unknown(apiValue: -1),
+  ;
 
   const RealmDeleteOwnMessagePolicy({required this.apiValue});
 
