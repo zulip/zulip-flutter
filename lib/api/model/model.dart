@@ -626,7 +626,13 @@ class PerUserPresence {
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum PresenceStatus {
   active,
-  idle;
+  idle,
+
+  // We don't accept an unknown value. The [PerClientPresence] format is
+  // considered legacy and is expected to be removed in a future server release,
+  // making additions to this enum unlikely.
+  // unknown,
+  ;
 
   String toJson() => _$PresenceStatusEnumMap[this]!;
 }
