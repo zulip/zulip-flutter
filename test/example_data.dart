@@ -1392,7 +1392,7 @@ UserSettings userSettings({
   bool? presenceEnabled,
 }) {
   return UserSettings(
-    twentyFourHourTime: twentyFourHourTime ?? TwentyFourHourTimeMode.twelveHour,
+    twentyFourHourTime: twentyFourHourTime ?? .twelveHour,
     starredMessageCounts: true,
     displayEmojiReactionUsers: displayEmojiReactionUsers ?? true,
     emojiset: emojiset ?? Emojiset.google,
