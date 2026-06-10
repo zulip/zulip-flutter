@@ -2167,12 +2167,12 @@ void main() {
       for (final (timestampStr, expectedTwelveHour, expectedTwentyFourHour) in cases) {
         for (final mode in TwentyFourHourTimeMode.values) {
           final expected = switch (mode) {
-            TwentyFourHourTimeMode.twelveHour => expectedTwelveHour,
-            TwentyFourHourTimeMode.twentyFourHour => expectedTwentyFourHour,
+            .twelveHour => expectedTwelveHour,
+            .twentyFourHour => expectedTwentyFourHour,
             // This expectation will hold as long as we're always using the
             // default locale, en_US, which uses the twelve-hour format.
             // TODO(#1727) test with other locales
-            TwentyFourHourTimeMode.localeDefault => expectedTwelveHour,
+            .localeDefault => expectedTwelveHour,
           };
 
           test('${style.name} in ${mode.name}: $timestampStr returns $expected', () {

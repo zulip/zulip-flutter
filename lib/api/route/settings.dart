@@ -14,7 +14,7 @@ Future<void> updateSettings(ApiConnection connection, {
       case .twentyFourHourTime:
         final mode = (valueRaw as TwentyFourHourTimeMode);
         // TODO(server-future) allow localeDefault for servers that support it
-        assert(mode != TwentyFourHourTimeMode.localeDefault);
+        assert(mode != .localeDefault);
         value = mode.toJson();
       case .starredMessageCounts:
       case .displayEmojiReactionUsers:
