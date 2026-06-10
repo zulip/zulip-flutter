@@ -836,14 +836,14 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     if (message == null) return;
 
     switch (event.op) {
-      case ReactionOp.add:
+      case .add:
         (message.reactions ??= Reactions([])).add(Reaction(
           emojiName: event.emojiName,
           emojiCode: event.emojiCode,
           reactionType: event.reactionType,
           userId: event.userId,
         ));
-      case ReactionOp.remove:
+      case .remove:
         if (message.reactions == null) { // TODO(log)
           return;
         }
