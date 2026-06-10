@@ -143,7 +143,7 @@ void main() {
   group('ReactionChipsList', () {
     // Smoke tests under various conditions.
     for (final displayEmojiReactionUsers in [true, false]) {
-      for (final emojiset in [Emojiset.text, Emojiset.google]) {
+      for (final emojiset in <Emojiset>[.text, .google]) {
         for (final textDirection in TextDirection.values) {
           for (final textScaleFactor in kTextScaleFactors) {
             void runSmokeTest(
