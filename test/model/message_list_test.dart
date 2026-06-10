@@ -2193,7 +2193,7 @@ void main() {
       await store.addMessage(message);
 
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, message.id));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .add, message.id));
 
       check(notifiedCount1).equals(3); // fetch, new-message event, reaction event
       check(notifiedCount2).equals(3); // fetch, new-message event, reaction event
@@ -2236,7 +2236,7 @@ void main() {
     test('ReactionEvent is applied even when message not in any msglists', () async {
       await checkApplied(
         mkEvent: (message) =>
-          eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, message.id),
+          eg.reactionEvent(eg.unicodeEmojiReaction, .add, message.id),
         doCheckMessageAfterFetch:
           (messageSubject) => messageSubject.reactions.isNotNull().total.equals(1),
       );
