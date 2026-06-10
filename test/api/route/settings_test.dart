@@ -16,22 +16,22 @@ void main() {
       final expectedBodyFields = <String, String>{};
       for (final name in UserSettingName.values) {
         switch (name) {
-          case UserSettingName.twentyFourHourTime:
+          case .twentyFourHourTime:
             newSettings[name] = TwentyFourHourTimeMode.twelveHour;
             expectedBodyFields['twenty_four_hour_time'] = 'false';
-          case UserSettingName.starredMessageCounts:
+          case .starredMessageCounts:
             newSettings[name] = false;
             expectedBodyFields['starred_message_counts'] = 'false';
-          case UserSettingName.displayEmojiReactionUsers:
+          case .displayEmojiReactionUsers:
             newSettings[name] = false;
             expectedBodyFields['display_emoji_reaction_users'] = 'false';
-          case UserSettingName.emojiset:
+          case .emojiset:
             newSettings[name] = Emojiset.googleBlob;
             expectedBodyFields['emojiset'] = 'google-blob';
-          case UserSettingName.webInboxShowChannelFolders:
+          case .webInboxShowChannelFolders:
             newSettings[name] = false;
             expectedBodyFields['web_inbox_show_channel_folders'] = 'false';
-          case UserSettingName.presenceEnabled:
+          case .presenceEnabled:
             newSettings[name] = true;
             expectedBodyFields['presence_enabled'] = 'true';
         }
@@ -52,7 +52,7 @@ void main() {
       // TODO(server-future) instead, check for twenty_four_hour_time: null
       //   (could be an error-prone part of the JSONification)
       check(() => updateSettings(connection,
-        newSettings: {UserSettingName.twentyFourHourTime: TwentyFourHourTimeMode.localeDefault})
+        newSettings: {.twentyFourHourTime: TwentyFourHourTimeMode.localeDefault})
       ).throws<AssertionError>();
     });
   });

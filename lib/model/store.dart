@@ -909,17 +909,17 @@ class PerAccountStore extends PerAccountStoreBase with
           return;
         }
         switch (event.property!) {
-          case UserSettingName.twentyFourHourTime:
+          case .twentyFourHourTime:
             userSettings.twentyFourHourTime         = event.value as TwentyFourHourTimeMode;
-          case UserSettingName.starredMessageCounts:
+          case .starredMessageCounts:
             userSettings.starredMessageCounts       = event.value as bool;
-          case UserSettingName.displayEmojiReactionUsers:
+          case .displayEmojiReactionUsers:
             userSettings.displayEmojiReactionUsers  = event.value as bool;
-          case UserSettingName.emojiset:
+          case .emojiset:
             userSettings.emojiset                   = event.value as Emojiset;
-          case UserSettingName.webInboxShowChannelFolders:
+          case .webInboxShowChannelFolders:
             userSettings.webInboxShowChannelFolders = event.value as bool;
-          case UserSettingName.presenceEnabled:
+          case .presenceEnabled:
             userSettings.presenceEnabled            = event.value as bool;
         }
         notifyListeners();
