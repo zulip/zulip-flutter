@@ -30,9 +30,12 @@ There are a few different types of Patrol tests we can write, based on
 the implementation of `ZulipBinding` they use:
 
  * *Live* Patrol tests use `LiveZulipBinding`, the same implementation
-   as the actual app.  This means they talk to a real Zulip server and
-   store their data in a real local database file, as well as using
-   the real device platform.
+   as the actual app.
+   (Specifically they use `PatrolLiveZulipBinding`, a subclass which
+   adds some convenience features.)
+   This means they talk to a real Zulip server
+   and store their data in a real local database file,
+   as well as using the real device platform.
 
    This is useful where the Zulip server, too, has complexity we're
    not entirely confident of modeling in our tests.  Zulip's main
@@ -65,12 +68,12 @@ the implementation of `ZulipBinding` they use:
    [#1753](https://github.com/zulip/zulip-flutter/issues/1753),
    or [#1974](https://github.com/zulip/zulip-flutter/issues/1974).
 
- * We could also write Patrol tests that are a hybrid: we could make a
-   `ZulipBinding` implementation that takes its interactions with the
-   server and perhaps the database from `TestZulipBinding`, but its
-   interactions with the device platform from `LiveZulipBinding`.
+ * Some Patrol tests are a hybrid: they use `SemiLiveZulipBinding`.
+   This binding takes its interactions with the server and database
+   from `TestZulipBinding`, but
+   its interactions with the device platform from `LiveZulipBinding`.
 
-   This would be useful when the Zulip server interactions are all
+   This is useful when the Zulip server interactions are all
    through the main Zulip API as usual, but there are other relevant
    interactions that go through `ZulipBinding`.
    Example: share-to-Zulip.
@@ -170,25 +173,6 @@ TODO: use a different app ID for Patrol vs. the app.
 
 
 ## Troubleshooting
-
-### When app was already installed
-
-There seems to be a bug in the `patrol` tool with the following
-symptom: you try running `patrol develop`; it spends some time
-building; and then before actually running any tests, it aborts
-with the message `App shut down on request`.
-
-One cause of this symptom occurs when an old copy of the app had been
-installed (e.g. by a previous Patrol run), and Patrol uninstalled it.
-There seems to be a race where the uninstall happens out of order
-relative to Patrol starting the app for testing.
-
-To work around the issue, uninstall the app explicitly before starting
-Patrol.  For example:
-```
-$ adb uninstall com.zulipmobile; patrol develop -t patrol_test/example_test.dart
-```
-
 
 ### Later tests may or may not share state from previous
 
@@ -291,19 +275,23 @@ Upstream docs: https://patrol.leancode.co/documentation
 
 ### Live login credentials
 
-In order to run the tests in `patrol_test/live_test.dart`, create a
+In order to run the tests in `patrol_test/live/`, create a
 file `.patrol.env` at the root of the project tree, like so:
 ```
 REALM_URL=https://chat.example.com
 EMAIL=user@example.com
+USER_ID=123
+API_KEY=asdf1234
 PASSWORD=hunter2
 OTHER_EMAIL=other.user@example.com
-OTHER_API_KEY=asdf1234
+OTHER_API_KEY=qwer5678
 ```
 
 with the realm URL of some real Zulip server, and credentials for
 two different test accounts there.  (The second account is used for
-sending messages to the first account, to cause notifications.)
+sending messages to the first account, to cause notifications.
+The password is used in testing the login flow itself,
+and the API key otherwise.)
 
 The tests will log into those real accounts and interact there.
 Avoid using chat.zulip.org or any other realm that people use
