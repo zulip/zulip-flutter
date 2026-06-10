@@ -120,6 +120,14 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   (e.g., "// A device-update event acks the new key." before a `handleEvent` call).
 
 
+## Zulip chat links
+
+- When you encounter a chat.zulip.org narrow URL (in an issue, PR, or
+  user message), use the fetch-zulip-messages skill to read the
+  conversation. Don't use WebFetch; it can't access Zulip message
+  content.
+
+
 ## Using Git
 
 - **Use `@` instead of `HEAD`** —

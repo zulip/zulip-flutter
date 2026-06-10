@@ -67,6 +67,9 @@ in this project:
   API start doing Y?": Claude can cross-reference this codebase,
   the server's (see [lima.md](lima.md#8-optional-clone-the-zulip-server-repo)
   on cloning it), and issues and PRs via `gh`.
+- Paste a chat.zulip.org link: a small skill in this repo lets
+  Claude fetch and read web-public conversations, like design
+  discussions linked from issues.
 - To discover more, run `/help` in a session, and see the
   [Claude Code docs][claude-docs].
 
