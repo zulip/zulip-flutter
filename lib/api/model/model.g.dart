@@ -269,6 +269,7 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
   channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
+    unknownValue: ChannelPostPolicy.unknown,
   ),
   folderId: (json['folder_id'] as num?)?.toInt(),
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
@@ -337,6 +338,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
+    unknownValue: ChannelPostPolicy.unknown,
   ),
   folderId: (json['folder_id'] as num?)?.toInt(),
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
