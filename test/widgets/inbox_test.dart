@@ -478,7 +478,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
-        await store.setUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream, 'lunch', .muted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(0);
       });
@@ -500,7 +500,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
-        await store.setUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream, 'lunch', .unmuted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(1);
       });
@@ -573,7 +573,7 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel)],
           unreadMessages: [message]);
-        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await store.setUserTopic(channel, topic, .followed);
         await tester.pump();
         checkTopic(topic, expectFollowIcon: true);
       });
@@ -584,7 +584,7 @@ void main() {
           subscriptions: [eg.subscription(channel)],
           unreadMessages: [eg.streamMessage(stream: channel, topic: topic,
             flags: [MessageFlag.mentioned])]);
-        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await store.setUserTopic(channel, topic, .followed);
         await tester.pump();
         checkTopic(topic, expectAtSignIcon: true, expectFollowIcon: true);
       });
@@ -595,7 +595,7 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel, isMuted: true)],
           unreadMessages: [message]);
-        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(channel, topic, .unmuted);
         await tester.pump();
         checkTopic(topic, expectUnmuteIcon: true);
       });
@@ -613,7 +613,7 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel, isMuted: true)],
           unreadMessages: [message1]);
-        await store.setUserTopic(channel, 'aaa', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(channel, 'aaa', .unmuted);
         await tester.pump();
 
         checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '1');
