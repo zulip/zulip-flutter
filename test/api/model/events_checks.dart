@@ -54,6 +54,10 @@ extension SubscriptionUpdateEventChecks on Subject<SubscriptionUpdateEvent> {
   Subject<Object?> get value => has((e) => e.value, 'value');
 }
 
+extension UserTopicEventChecks on Subject<UserTopicEvent> {
+  Subject<UserTopicVisibilityPolicy> get visibilityPolicy => has((e) => e.visibilityPolicy, 'visibilityPolicy');
+}
+
 extension MessageEventChecks on Subject<MessageEvent> {
   Subject<Message> get message => has((e) => e.message, 'message');
   Subject<String?> get localMessageId => has((e) => e.localMessageId, 'localMessageId');

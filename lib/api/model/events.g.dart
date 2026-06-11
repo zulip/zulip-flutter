@@ -818,6 +818,7 @@ UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
       visibilityPolicy: $enumDecode(
         _$UserTopicVisibilityPolicyEnumMap,
         json['visibility_policy'],
+        unknownValue: UserTopicVisibilityPolicy.unknown,
       ),
     );
 
