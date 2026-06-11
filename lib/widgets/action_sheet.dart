@@ -1550,7 +1550,7 @@ class StarButton extends MessageActionSheetMenuItemButton {
     try {
       final connection = PerAccountStoreWidget.of(pageContext).connection;
       await updateMessageFlags(connection, messages: [message.id],
-        op: op, flag: MessageFlag.starred);
+        op: op, flag: .starred);
     } catch (e) {
       if (!pageContext.mounted) return;
 

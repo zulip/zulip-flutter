@@ -540,7 +540,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
-            flags: [MessageFlag.mentioned])]);
+            flags: [.mentioned])]);
 
         checkChannelHeader(tester, subscription, expectAtSignIcon: true);
         checkTopic(topic, expectAtSignIcon: true);
@@ -561,7 +561,7 @@ void main() {
         await setupPage(tester,
           users: [eg.selfUser, eg.otherUser],
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
-            flags: [MessageFlag.mentioned])]);
+            flags: [.mentioned])]);
 
         checkFolderHeader('Direct messages');
         checkDm(eg.otherUser.fullName, expectAtSignIcon: true);
@@ -607,7 +607,7 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel)],
           unreadMessages: [eg.streamMessage(stream: channel, topic: topic,
-            flags: [MessageFlag.mentioned])]);
+            flags: [.mentioned])]);
         await store.setUserTopic(channel, topic, .followed);
         await tester.pump();
         checkTopic(topic, expectAtSignIcon: true, expectFollowIcon: true);
@@ -630,8 +630,8 @@ void main() {
         //   its own view-model
 
         final message1 = eg.streamMessage(stream: channel, topic: 'aaa');
-        final message2 = eg.streamMessage(stream: channel, topic: 'AaA', flags: [MessageFlag.read]);
-        final message3 = eg.streamMessage(stream: channel, topic: 'aAa', flags: [MessageFlag.read]);
+        final message2 = eg.streamMessage(stream: channel, topic: 'AaA', flags: [.read]);
+        final message3 = eg.streamMessage(stream: channel, topic: 'aAa', flags: [.read]);
         await setupPage(tester,
           users: [eg.selfUser, eg.otherUser],
           streams: [channel],
@@ -642,11 +642,11 @@ void main() {
 
         checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '1');
 
-        await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message2]));
+        await store.handleEvent(eg.updateMessageFlagsRemoveEvent(.read, [message2]));
         await tester.pump();
         checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '2');
 
-        await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message3]));
+        await store.handleEvent(eg.updateMessageFlagsRemoveEvent(.read, [message3]));
         await tester.pump();
         checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '3');
       });

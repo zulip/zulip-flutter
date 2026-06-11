@@ -82,7 +82,7 @@ abstract final class ZulipAction {
       // message ID.
       includeAnchor: false,
       op: UpdateMessageFlagsOp.add,
-      flag: MessageFlag.read,
+      flag: .read,
       onCompletedMessage: zulipLocalizations.markAsReadComplete,
       progressMessage: zulipLocalizations.markAsReadInProgress,
       onFailedTitle: zulipLocalizations.errorMarkAsReadFailedTitle);
@@ -110,7 +110,7 @@ abstract final class ZulipAction {
       anchor: NumericAnchor(message.id),
       includeAnchor: true,
       op: UpdateMessageFlagsOp.remove,
-      flag: MessageFlag.read,
+      flag: .read,
       onCompletedMessage: zulipLocalizations.markAsUnreadComplete,
       progressMessage: zulipLocalizations.markAsUnreadInProgress,
       onFailedTitle: zulipLocalizations.errorMarkAsUnreadFailedTitle);

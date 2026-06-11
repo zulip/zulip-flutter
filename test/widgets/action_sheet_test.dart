@@ -188,7 +188,7 @@ void main() {
       someChannel = eg.stream();
       someMessage = eg.streamMessage(
         stream: someChannel, topic: someTopic, sender: eg.otherUser,
-        flags: hasUnreadMessages ? [] : [MessageFlag.read]);
+        flags: hasUnreadMessages ? [] : [.read]);
       addTearDown(testBinding.reset);
 
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -1326,7 +1326,7 @@ void main() {
       testWidgets('not visible if topic has no unread messages', (tester) async {
         await prepare();
         final message = eg.streamMessage(stream: someChannel, topic: someTopic,
-          flags: [MessageFlag.read]);
+          flags: [.read]);
         await store.addMessage(message);
         await showFromAppBar(tester, messages: [message]);
         check(find.text('Mark topic as read')).findsNothing();
@@ -1991,7 +1991,7 @@ void main() {
       });
 
       testWidgets('unstar success', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.streamMessage(flags: [.starred]);
         await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
         connection.prepare(json: {});
@@ -2024,7 +2024,7 @@ void main() {
       });
 
       testWidgets('unstar request has an error', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.streamMessage(flags: [.starred]);
         await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
@@ -2254,13 +2254,13 @@ void main() {
       });
 
       testWidgets('not offered in MentionsNarrow (composing to reply is not yet supported)', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
+        final message = eg.streamMessage(flags: [.mentioned]);
         await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
         check(findQuoteAndReplyButton(tester)).isNull();
       });
 
       testWidgets('not offered in StarredMessagesNarrow (composing to reply is not yet supported)', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.streamMessage(flags: [.starred]);
         await setupToMessageActionSheet(tester,
           message: message,
           narrow: const StarredMessagesNarrow());
@@ -2289,7 +2289,7 @@ void main() {
       });
 
       testWidgets('visible if message is read', (tester) async {
-        final readMessage = eg.streamMessage(flags: [MessageFlag.read]);
+        final readMessage = eg.streamMessage(flags: [.read]);
         await setupToMessageActionSheet(tester, message: readMessage, narrow: TopicNarrow.ofMessage(readMessage));
 
         check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).single;
@@ -2297,7 +2297,7 @@ void main() {
 
       group('onPressed', () {
         testWidgets('smoke test', (tester) async {
-          final message = eg.streamMessage(flags: [MessageFlag.read]);
+          final message = eg.streamMessage(flags: [.read]);
           await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
           connection.prepare(json: UpdateMessageFlagsForNarrowResult(
@@ -2327,7 +2327,7 @@ void main() {
         testWidgets('on topic move, acts on new topic', (tester) async {
           final stream = eg.stream();
           const topic = 'old topic';
-          final message = eg.streamMessage(flags: [MessageFlag.read],
+          final message = eg.streamMessage(flags: [.read],
             stream: stream, topic: topic);
           await setupToMessageActionSheet(tester, message: message,
             narrow: TopicNarrow.ofMessage(message));
@@ -2367,7 +2367,7 @@ void main() {
         });
 
         testWidgets('shows error when fails', (tester) async {
-          final message = eg.streamMessage(flags: [MessageFlag.read]);
+          final message = eg.streamMessage(flags: [.read]);
           await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
           connection.prepare(httpException: http.ClientException('Oops'));

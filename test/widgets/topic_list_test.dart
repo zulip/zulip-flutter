@@ -345,9 +345,9 @@ void main() {
           eg.streamMessage(stream: channel, topic: 'not mentioned'),
           eg.streamMessage(stream: channel, topic: 'not mentioned'),
           eg.streamMessage(stream: channel, topic: 'not mentioned',
-            flags: [MessageFlag.mentioned, MessageFlag.read]),
+            flags: [.mentioned, .read]),
           eg.streamMessage(stream: channel, topic: 'mentioned',
-            flags: [MessageFlag.mentioned]),
+            flags: [.mentioned]),
         ]);
 
       check(findInTopicItemAt(0, find.text('2'))).findsOne();

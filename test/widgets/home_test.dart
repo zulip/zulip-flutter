@@ -403,7 +403,7 @@ void main () {
       final message = eg.streamMessage();
       await store.addMessage(message);
       await store.handleEvent(UpdateMessageFlagsAddEvent(
-        id: 1, flag: MessageFlag.starred, messages: [message.id], all: false));
+        id: 1, flag: .starred, messages: [message.id], all: false));
 
       await tapOpenMenuAndAwait(tester);
       check(find.descendant(of: findButton, matching: find.text('1'))).findsOne();

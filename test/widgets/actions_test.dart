@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/initial_snapshot.dart';
-import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/binding.dart';
@@ -149,7 +148,7 @@ void main() {
           context: context,
           apiNarrow: apiNarrow,
           op: UpdateMessageFlagsOp.add,
-          flag: MessageFlag.read,
+          flag: .read,
           includeAnchor: false,
           anchor: AnchorCode.oldest,
           onCompletedMessage: onCompletedMessage,

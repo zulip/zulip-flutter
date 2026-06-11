@@ -431,18 +431,18 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
 
   void handleUpdateMessageFlagsEvent(UpdateMessageFlagsEvent event) {
     switch (event.flag) {
-      case MessageFlag.starred:
-      case MessageFlag.collapsed:
-      case MessageFlag.hasAlertWord:
-      case MessageFlag.historical:
-      case MessageFlag.unknown:
+      case .starred:
+      case .collapsed:
+      case .hasAlertWord:
+      case .historical:
+      case .unknown:
         // These are irrelevant.
         return;
 
-      case MessageFlag.mentioned:
-      case MessageFlag.topicWildcardMentioned:
-      case MessageFlag.streamWildcardMentioned:
-      case MessageFlag.wildcardMentioned:
+      case .mentioned:
+      case .topicWildcardMentioned:
+      case .streamWildcardMentioned:
+      case .wildcardMentioned:
         // Empirically, we don't seem to get these events when a message is edited
         // to add/remove an @-mention, even though @-mention state is represented
         // as flags. Instead, we just get the [UpdateMessageEvent], and that
@@ -462,7 +462,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
             mentions.removeAll(event.messages);
         }
 
-      case MessageFlag.read:
+      case .read:
         switch (event) {
           case UpdateMessageFlagsAddEvent():
             if (event.all) {

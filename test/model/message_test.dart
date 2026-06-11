@@ -1541,7 +1541,7 @@ void main() {
       final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
       final updateEvent = eg.updateMessageEditEvent(originalMessage,
-        flags: [MessageFlag.hasAlertWord],
+        flags: [.hasAlertWord],
         renderedContent: "<p>Hello, edited</p>",
         editTimestamp: 99999,
         isMeMessage: true,
@@ -1740,7 +1740,7 @@ void main() {
     });
 
     test('delete a starred message', () async {
-      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      final message = eg.streamMessage(flags: [.starred]);
       await prepare(starredMessages: [message.id]);
 
       // The actual message hasn't been fetched by a message list;
@@ -1775,7 +1775,7 @@ void main() {
         await prepare();
         final message = eg.streamMessage(flags: []);
         await prepareMessages([message]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [2]));
+        await store.handleEvent(mkAddEvent(.read, [2]));
         checkNotNotified();
         check(store).messages.values.single.flags.deepEquals([]);
       });
@@ -1785,11 +1785,11 @@ void main() {
         final message1 = eg.streamMessage(flags: []);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages([message1, message2]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [message2.id, 3]));
+        await store.handleEvent(mkAddEvent(.read, [message2.id, 3]));
         checkNotifiedOnce();
         check(store).messages
           ..[message1.id].flags.deepEquals([])
-          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+          ..[message2.id].flags.deepEquals(<MessageFlag>[.read]);
       });
 
       test('all: true; we have some known messages', () async {
@@ -1797,28 +1797,28 @@ void main() {
         final message1 = eg.streamMessage(flags: []);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages([message1, message2]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        await store.handleEvent(mkAddEvent(.read, [], all: true));
         checkNotifiedOnce();
         check(store).messages
-          ..[message1.id].flags.deepEquals([MessageFlag.read])
-          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+          ..[message1.id].flags.deepEquals(<MessageFlag>[.read])
+          ..[message2.id].flags.deepEquals(<MessageFlag>[.read]);
       });
 
       test('all: true; we don\'t know about any messages', () async {
         await prepare();
         await prepareMessages([]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        await store.handleEvent(mkAddEvent(.read, [], all: true));
         checkNotNotified();
       });
 
       test('other flags not clobbered', () async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.streamMessage(flags: [.starred]);
         await prepare(starredMessages: [message.id]);
         await prepareMessages([message]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
+        await store.handleEvent(mkAddEvent(.read, [message.id]));
         checkNotifiedOnce();
         check(store).messages.values
-          .single.flags.deepEquals([MessageFlag.starred, MessageFlag.read]);
+          .single.flags.deepEquals(<MessageFlag>[.starred, .read]);
       });
 
       test('add to starredMessages', () async {
@@ -1828,7 +1828,7 @@ void main() {
         await prepareMessages([message2]);
         check(store).starredMessages.isEmpty();
         await store.handleEvent(
-          mkAddEvent(MessageFlag.starred, [message1.id, message2.id]));
+          mkAddEvent(.starred, [message1.id, message2.id]));
         checkNotified(count: 1, storeCount: 1);
         check(store).starredMessages.deepEquals([message1.id, message2.id]);
       });
@@ -1836,71 +1836,71 @@ void main() {
       test('prevent duplicate flags, when all: false', () async {
         // Regression test for https://github.com/zulip/zulip-flutter/issues/1986
         await prepare();
-        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        final message = eg.streamMessage(flags: [.read]);
         await prepareMessages([message]);
 
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
+        await store.handleEvent(mkAddEvent(.read, [message.id]));
         checkNotifiedOnce();
-        check(store).messages[message.id].flags.deepEquals([MessageFlag.read]);
+        check(store).messages[message.id].flags.deepEquals(<MessageFlag>[.read]);
       });
 
       test('prevent duplicate flags, when all: true', () async {
         // Regression test for https://github.com/zulip/zulip-flutter/issues/1986
         await prepare();
-        final message1 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message1 = eg.streamMessage(flags: [.read]);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages([message1, message2]);
 
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        await store.handleEvent(mkAddEvent(.read, [], all: true));
         checkNotifiedOnce();
         check(store).messages
-          ..[message1.id].flags.deepEquals([MessageFlag.read])
-          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+          ..[message1.id].flags.deepEquals(<MessageFlag>[.read])
+          ..[message2.id].flags.deepEquals(<MessageFlag>[.read]);
       });
     });
 
     group('remove flag', () {
       test('message is unknown', () async {
         await prepare();
-        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        final message = eg.streamMessage(flags: [.read]);
         await prepareMessages([message]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [2]));
+        await store.handleEvent(mkAddEvent(.read, [2]));
         checkNotNotified();
         check(store).messages.values
-          .single.flags.deepEquals([MessageFlag.read]);
+          .single.flags.deepEquals(<MessageFlag>[.read]);
       });
 
       test('affected message, unaffected message, absent message', () async {
         await prepare();
-        final message1 = eg.streamMessage(flags: [MessageFlag.read]);
-        final message2 = eg.streamMessage(flags: [MessageFlag.read]);
-        final message3 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message1 = eg.streamMessage(flags: [.read]);
+        final message2 = eg.streamMessage(flags: [.read]);
+        final message3 = eg.streamMessage(flags: [.read]);
         await prepareMessages([message1, message2]);
-        await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message2, message3]));
+        await store.handleEvent(mkRemoveEvent(.read, [message2, message3]));
         checkNotifiedOnce();
         check(store).messages
-          ..[message1.id].flags.deepEquals([MessageFlag.read])
+          ..[message1.id].flags.deepEquals(<MessageFlag>[.read])
           ..[message2.id].flags.deepEquals([]);
       });
 
       test('other flags not affected', () async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred, MessageFlag.read]);
+        final message = eg.streamMessage(flags: [.starred, .read]);
         await prepare(starredMessages: [message.id]);
         await prepareMessages([message]);
-        await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message]));
+        await store.handleEvent(mkRemoveEvent(.read, [message]));
         checkNotifiedOnce();
         check(store).messages.values
-          .single.flags.deepEquals([MessageFlag.starred]);
+          .single.flags.deepEquals(<MessageFlag>[.starred]);
       });
 
       test('remove from starredMessages', () async {
-        final message1 = eg.streamMessage(flags: [MessageFlag.starred]);
-        final message2 = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message1 = eg.streamMessage(flags: [.starred]);
+        final message2 = eg.streamMessage(flags: [.starred]);
         await prepare(starredMessages: [message1.id, message2.id]);
         await prepareMessages([message2]);
         check(store).starredMessages.deepEquals([message1.id, message2.id]);
         await store.handleEvent(
-          mkRemoveEvent(MessageFlag.starred, [message1, message2]));
+          mkRemoveEvent(.starred, [message1, message2]));
         checkNotified(count: 1, storeCount: 1);
         check(store).starredMessages.isEmpty();
       });

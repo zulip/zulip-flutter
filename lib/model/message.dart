@@ -357,7 +357,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
       await updateMessageFlags(connection,
         messages: toSend,
         op: UpdateMessageFlagsOp.add,
-        flag: MessageFlag.read);
+        flag: .read);
     } on ApiRequestException {
       // TODO(#1581) un-mark as read locally?
       return false;
@@ -820,7 +820,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
       }
     }
 
-    if (event.flag == MessageFlag.starred) {
+    if (event.flag == .starred) {
       isAdd
         ? starredMessages.addAll(event.messages)
         : starredMessages.removeAll(event.messages);
