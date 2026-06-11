@@ -1352,6 +1352,8 @@ ChannelUpdateEvent channelUpdateEvent(
       assert(value is bool);
     case .streamWeeklyTraffic:
       assert(value is int?);
+    case .unknown:
+      assert(value == null);
   }
   return ChannelUpdateEvent(
     id: 1,

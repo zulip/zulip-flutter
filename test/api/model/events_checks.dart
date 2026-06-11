@@ -41,6 +41,11 @@ extension RealmUserUpdateEventChecks on Subject<RealmUserUpdateEvent> {
   Subject<JsonNullable<String>?> get deliveryEmail => has((e) => e.deliveryEmail, 'deliveryEmail');
 }
 
+extension ChannelUpdateEventChecks on Subject<ChannelUpdateEvent> {
+  Subject<ChannelProperty> get property => has((e) => e.property, 'property');
+  Subject<Object?> get value => has((e) => e.value, 'value');
+}
+
 extension SubscriptionRemoveEventChecks on Subject<SubscriptionRemoveEvent> {
   Subject<List<int>> get channelIds => has((e) => e.channelIds, 'channelIds');
 }

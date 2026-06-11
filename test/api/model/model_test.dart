@@ -141,6 +141,14 @@ void main() {
     });
   });
 
+  test('ChannelProperty.fromRawString handles unknown values', () {
+    check(ChannelProperty.fromRawString('is_recently_active')).equals(.isRecentlyActive);
+
+    for (final unknown in ['unknown_channel_property', '']) {
+      check(ChannelProperty.fromRawString(unknown)).equals(.unknown);
+    }
+  });
+
   group('Subscription', () {
     test('converts color to int', () {
       Subscription subWithColor(String color) {

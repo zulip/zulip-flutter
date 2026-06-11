@@ -334,7 +334,7 @@ void main() {
           await store.handleEvent(ChannelUpdateEvent(id: 1,
             streamId: someChannel.streamId,
             name: someChannel.name,
-            property: null, value: null,
+            property: .unknown, value: null,
             // (Ideally we'd use `property` and `value` but I'm not sure if
             // modern servers actually do that or if they still use this
             // separate field.)
