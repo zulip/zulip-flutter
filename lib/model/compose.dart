@@ -257,6 +257,58 @@ String inlineLink(String visibleText, String destination) {
   return '[$visibleText]($destination)';
 }
 
+/// https://spec.commonmark.org/0.30/#image-description
+///
+/// Zulip uses the Markdown image syntax (`![](...)`) for server supported
+/// inline images and inline media such as audio. This emits that syntax for
+/// [visibleText] and [destination].
+///
+/// For supported audio and image types, see [supportedInlineAudioTypes] and
+/// [supportedInlineImageTypes] respectively.
+String imageAudioLink(String visibleText, String destination, {
+  required int zulipFeatureLevel,
+}) {
+  // While the Audio Inline syntax was introduced in server-11(FL-405),
+  // it is not recommended for widespread use until 12(FL-467). Discussion:
+  // https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/which.20FL.20for.20inline.20audio.20syntax/with/2429954
+  // TODO(server-12): simplify and remove comment
+  return zulipFeatureLevel >= 467
+    ? '![$visibleText]($destination)'
+    : '[$visibleText]($destination)';
+}
+
+const supportedInlineAudioTypes = [
+  'audio/aac',
+  'audio/flac',
+  'audio/mp4',
+  'audio/mpeg',
+  'audio/vnd.wave',
+  'audio/wav',
+  'audio/webm',
+  'audio/x-wav',
+  // mime package always assign files with `.flac` extension with depreciated
+  // flac MIME type, i.e 'audio/x-flac'. But, server only supports 'audio/flac'.
+  // We should 'audio/x-flac' into 'audio/flac' MIME type before sending the
+  // `contentType` of file to be uploaded. Discussion:
+  // https://chat.zulip.org/#narrow/channel/9-issues/topic/flutter.20client.20maps.20.2Eflac.20to.20.60audio.2Fx-flac.60.20MIME.20type/near/2436142
+  'audio/x-flac'];
+
+const supportedInlineImageTypes = [
+  'image/avif',
+  'image/gif',
+  'image/heic',
+  'image/jpeg',
+  'image/png',
+  'image/tiff',
+  'image/webp'];
+
+/// Whether a file with this mimeType has server support for inline formatting.
+///
+/// For supported audio and image types, see [supportedInlineAudioTypes] and
+/// [supportedInlineImageTypes] respectively.
+bool isSupportedInlineMedia({required String? mimeType}) =>
+    supportedInlineAudioTypes.contains(mimeType) || supportedInlineImageTypes.contains(mimeType);
+
 /// What we show while fetching the target message's raw Markdown.
 ///
 /// Like [quoteAndReply], but the message content is replaced with a placeholder.
