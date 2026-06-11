@@ -809,7 +809,7 @@ enum ChannelTopicsPolicy {
   inherit,
   allowEmptyTopic,
   disableEmptyTopic,
-  emptyTopicOnly, // TODO(server-11); added in a later FL than the rest
+  emptyTopicOnly,
   unknown;
 
   /// The [ChannelTopicsPolicy] corresponding to the given [RealmTopicsPolicy].
