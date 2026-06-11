@@ -2383,6 +2383,20 @@ class MessageWithPossibleSender extends StatelessWidget {
       onLongPress: showAsMuted
         ? null // TODO write a test for this
         : () => showMessageActionSheet(context: context, message: message),
+      // This `onDoubleTap` handler delays firing the `onTap` handler of this
+      // GestureDetector and of the child gesture recognizers by the amount of
+      // `kDoubleTapTimeout` duration. Keep an eye on that, especially in tests.
+      // Related upstream issues:
+      //   - https://github.com/flutter/flutter/issues/106170
+      //   - https://github.com/flutter/flutter/issues/110300
+      onDoubleTap: () {
+        final firstPopularEmoji = store.popularEmojiCandidates().firstOrNull;
+        // Popular emojis are not loaded yet; do nothing.
+        if (firstPopularEmoji == null) return; // TODO(log)
+
+        ZulipAction.addOrRemoveReaction(context,
+          messageId: message.id, emoji: firstPopularEmoji);
+      },
       child: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Column(children: [

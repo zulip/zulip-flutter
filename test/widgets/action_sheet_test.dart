@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
@@ -1743,7 +1744,10 @@ void main() {
             check(find.byType(MessageContent)).findsNothing();
             await tester.tap(
               find.widgetWithText(ZulipWebUiKitButton, 'Reveal message'));
-            await tester.pump();
+            // Wait for `kDoubleTapTimeout` duration because of the delayed
+            // triggering of the `onTap` handler caused by the `onDoubleTap`
+            // handler in MessageWithPossibleSender widget.
+            await tester.pump(kDoubleTapTimeout);
             check(find.byType(MessageContent)).findsOne();
           },
         );
@@ -2414,7 +2418,10 @@ void main() {
           beforeLongPress: () async {
             check(contentFinder).findsNothing();
             await tester.tap(revealButtonFinder);
-            await tester.pump();
+            // Wait for `kDoubleTapTimeout` duration because of the delayed
+            // triggering of the `onTap` handler caused by the `onDoubleTap`
+            // handler in MessageWithPossibleSender widget.
+            await tester.pump(kDoubleTapTimeout);
             check(contentFinder).findsOne();
           },
         );
@@ -2435,7 +2442,10 @@ void main() {
           beforeLongPress: () async {
             check(contentFinder).findsNothing();
             await tester.tap(revealButtonFinder);
-            await tester.pump();
+            // Wait for `kDoubleTapTimeout` duration because of the delayed
+            // triggering of the `onTap` handler caused by the `onDoubleTap`
+            // handler in MessageWithPossibleSender widget.
+            await tester.pump(kDoubleTapTimeout);
             check(contentFinder).findsOne();
           });
 

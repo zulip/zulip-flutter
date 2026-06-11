@@ -544,6 +544,32 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('removing success', (tester) async {
+      final message = eg.streamMessage(reactions: [
+        Reaction(
+          emojiName: 'zzz',
+          emojiCode: '1f4a4',
+          reactionType: .unicodeEmoji,
+          userId: eg.selfUser.userId),
+        ]);
+      await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+      connection.prepare(json: {});
+      await tester.tap(findInPicker(find.text('\u{1f4a4}')));
+      await tester.pump(Duration.zero);
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('DELETE')
+        ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': 'unicode_emoji',
+            'emoji_code': '1f4a4',
+            'emoji_name': 'zzz',
+          });
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     testWidgets('request has an error', (tester) async {
       final message = eg.streamMessage();
       await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
