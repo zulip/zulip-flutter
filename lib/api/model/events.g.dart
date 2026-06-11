@@ -837,9 +837,7 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
       messageIds: (json['message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
-      flags: (json['flags'] as List<dynamic>)
-          .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
-          .toList(),
+      flags: flagsFromJson(json['flags']),
       editTimestamp: (json['edit_timestamp'] as num).toInt(),
       moveData: UpdateMessageMoveData.tryParseFromJson(
         UpdateMessageEvent._readMoveData(json, 'move_data')
@@ -868,19 +866,6 @@ Map<String, dynamic> _$UpdateMessageEventToJson(UpdateMessageEvent instance) =>
       'rendered_content': instance.renderedContent,
       'is_me_message': instance.isMeMessage,
     };
-
-const _$MessageFlagEnumMap = {
-  MessageFlag.read: 'read',
-  MessageFlag.starred: 'starred',
-  MessageFlag.collapsed: 'collapsed',
-  MessageFlag.mentioned: 'mentioned',
-  MessageFlag.topicWildcardMentioned: 'topic_wildcard_mentioned',
-  MessageFlag.streamWildcardMentioned: 'stream_wildcard_mentioned',
-  MessageFlag.wildcardMentioned: 'wildcard_mentioned',
-  MessageFlag.hasAlertWord: 'has_alert_word',
-  MessageFlag.historical: 'historical',
-  MessageFlag.unknown: 'unknown',
-};
 
 DeleteMessageEvent _$DeleteMessageEventFromJson(Map<String, dynamic> json) =>
     DeleteMessageEvent(
@@ -931,6 +916,19 @@ Map<String, dynamic> _$UpdateMessageFlagsAddEventToJson(
   'messages': instance.messages,
   'op': instance.op,
   'all': instance.all,
+};
+
+const _$MessageFlagEnumMap = {
+  MessageFlag.read: 'read',
+  MessageFlag.starred: 'starred',
+  MessageFlag.collapsed: 'collapsed',
+  MessageFlag.mentioned: 'mentioned',
+  MessageFlag.topicWildcardMentioned: 'topic_wildcard_mentioned',
+  MessageFlag.streamWildcardMentioned: 'stream_wildcard_mentioned',
+  MessageFlag.wildcardMentioned: 'wildcard_mentioned',
+  MessageFlag.hasAlertWord: 'has_alert_word',
+  MessageFlag.historical: 'historical',
+  MessageFlag.unknown: 'unknown',
 };
 
 UpdateMessageFlagsRemoveEvent _$UpdateMessageFlagsRemoveEventFromJson(

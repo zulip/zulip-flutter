@@ -195,6 +195,14 @@ void main() {
       'edit_timestamp': 1718741351,
       'stream_id': eg.stream().streamId,
     };
+
+    test('handle unknown message flags', () {
+      check(UpdateMessageEvent.fromJson({
+        ...baseJson,
+        'flags': ['has_alert_word', 'unknown_message_flag', ''],
+      })).flags.deepEquals(<MessageFlag>[.hasAlertWord, .unknown, .unknown]);
+    });
+
     final baseMoveJson = { ...baseJson,
       'orig_subject': 'foo',
       'propagate_mode': 'change_all',
