@@ -1285,6 +1285,7 @@ class UpdateMessageEvent extends Event {
   final int messageId;
   final List<int> messageIds;
 
+  @JsonKey(fromJson: flagsFromJson)
   final List<MessageFlag> flags;
   final int editTimestamp;
 
