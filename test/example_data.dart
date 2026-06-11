@@ -1317,35 +1317,35 @@ ReactionEvent reactionEvent(Reaction reaction, ReactionOp op, int messageId) {
 
 ChannelUpdateEvent channelUpdateEvent(
   ZulipStream stream, {
-  required ChannelPropertyName property,
+  required ChannelProperty property,
   required Object? value,
 }) {
   switch (property) {
-    case ChannelPropertyName.name:
+    case ChannelProperty.name:
       assert(value is String);
-    case ChannelPropertyName.isArchived:
+    case ChannelProperty.isArchived:
       assert(value is bool);
-    case ChannelPropertyName.description:
+    case ChannelProperty.description:
       assert(value is String);
-    case ChannelPropertyName.firstMessageId:
+    case ChannelProperty.firstMessageId:
       assert(value is int?);
-    case ChannelPropertyName.inviteOnly:
+    case ChannelProperty.inviteOnly:
       assert(value is bool);
-    case ChannelPropertyName.messageRetentionDays:
+    case ChannelProperty.messageRetentionDays:
       assert(value is int?);
-    case ChannelPropertyName.channelPostPolicy:
+    case ChannelProperty.channelPostPolicy:
       assert(value is ChannelPostPolicy);
-    case ChannelPropertyName.folderId:
+    case ChannelProperty.folderId:
       assert(value is int?);
-    case ChannelPropertyName.canAddSubscribersGroup:
-    case ChannelPropertyName.canDeleteAnyMessageGroup:
-    case ChannelPropertyName.canDeleteOwnMessageGroup:
-    case ChannelPropertyName.canSendMessageGroup:
-    case ChannelPropertyName.canSubscribeGroup:
+    case ChannelProperty.canAddSubscribersGroup:
+    case ChannelProperty.canDeleteAnyMessageGroup:
+    case ChannelProperty.canDeleteOwnMessageGroup:
+    case ChannelProperty.canSendMessageGroup:
+    case ChannelProperty.canSubscribeGroup:
       assert(value is GroupSettingValue);
-    case ChannelPropertyName.isRecentlyActive:
+    case ChannelProperty.isRecentlyActive:
       assert(value is bool);
-    case ChannelPropertyName.streamWeeklyTraffic:
+    case ChannelProperty.streamWeeklyTraffic:
       assert(value is int?);
   }
   return ChannelUpdateEvent(

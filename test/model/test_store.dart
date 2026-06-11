@@ -366,7 +366,7 @@ extension PerAccountStoreTestExtension on PerAccountStore {
 
   Future<void> updateChannel(
     int channelId,
-    ChannelPropertyName property,
+    ChannelProperty property,
     Object? value,
   ) async {
     await handleEvent(ChannelUpdateEvent(
