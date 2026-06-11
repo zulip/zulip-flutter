@@ -478,7 +478,7 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       senderId: (json['sender_id'] as num).toInt(),
       senderRealmStr: json['sender_realm_str'] as String,
       timestamp: (json['timestamp'] as num).toInt(),
-      flags: Message._flagsFromJson(json['flags']),
+      flags: flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
       matchTopic: json['match_subject'] as String?,
       conversation: StreamConversation.fromJson(
@@ -539,7 +539,7 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
   senderId: (json['sender_id'] as num).toInt(),
   senderRealmStr: json['sender_realm_str'] as String,
   timestamp: (json['timestamp'] as num).toInt(),
-  flags: Message._flagsFromJson(json['flags']),
+  flags: flagsFromJson(json['flags']),
   matchContent: json['match_content'] as String?,
   matchTopic: json['match_subject'] as String?,
   conversation: DmMessage._conversationFromJson(
