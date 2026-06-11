@@ -44,7 +44,7 @@ extension RealmUserUpdateEventChecks on Subject<RealmUserUpdateEvent> {
 extension ChannelUpdateEventChecks on Subject<ChannelUpdateEvent> {
   Subject<int> get streamId => has((e) => e.streamId, 'streamId');
   Subject<String> get name => has((e) => e.name, 'name');
-  Subject<ChannelProperty?> get property => has((e) => e.property, 'property');
+  Subject<ChannelProperty> get property => has((e) => e.property, 'property');
   Subject<Object?> get value => has((e) => e.value, 'value');
   Subject<String?> get renderedDescription => has((e) => e.renderedDescription, 'renderedDescription');
   Subject<bool?> get historyPublicToSubscribers => has((e) => e.historyPublicToSubscribers, 'historyPublicToSubscribers');

@@ -799,13 +799,21 @@ enum ChannelProperty {
   canSendMessageGroup,
   canSubscribeGroup,
   isRecentlyActive,
-  streamWeeklyTraffic;
+  streamWeeklyTraffic,
+  // TODO: add more as needed
 
-  /// Get a [ChannelProperty] from a raw, snake-case string we recognize, else null.
+  /// A channel property name that:
+  ///   - The server sends, but we currently don't support.
+  ///   - The server may start sending in the future.
+  unknown,
+  ;
+
+  /// Get a [ChannelProperty] from a raw, snake-case string we recognize,
+  /// else [ChannelProperty.unknown].
   ///
   /// Example:
   ///   'invite_only' -> ChannelProperty.inviteOnly
-  static ChannelProperty? fromRawString(String raw) => _byRawString[raw];
+  static ChannelProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$ChannelPropertyEnumMap

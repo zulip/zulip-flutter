@@ -746,11 +746,12 @@ class ChannelUpdateEvent extends ChannelEvent {
   final int streamId;
   final String name;
 
-  /// The name of the channel property, or null if we don't recognize it.
-  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
-  final ChannelProperty? property;
+  /// The name of the channel property,
+  /// or [ChannelProperty.unknown] if we don't recognize it.
+  @JsonKey(unknownEnumValue: ChannelProperty.unknown)
+  final ChannelProperty property;
 
-  /// The new value, or null if we don't recognize the property.
+  /// The new value, or null if we don't recognize the property ([ChannelProperty.unknown]).
   ///
   /// This will have the type appropriate for [property]; for example,
   /// if the property is boolean, then `value is bool` will always be true.
@@ -804,7 +805,7 @@ class ChannelUpdateEvent extends ChannelEvent {
         return value as bool;
       case .streamWeeklyTraffic:
         return value as int?;
-      case null:
+      case .unknown:
         return null;
     }
   }

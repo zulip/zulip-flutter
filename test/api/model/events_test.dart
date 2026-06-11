@@ -107,6 +107,29 @@ void main() {
     });
   });
 
+  test('stream/update: unknown property', () {
+    final json = {
+      'id': 1,
+      'type': 'stream',
+      'op': 'update',
+      'stream_id': 1,
+      'name': 'channel name',
+      'property': 'is_recently_active',
+      'value': true,
+    };
+
+    check(ChannelUpdateEvent.fromJson(json))
+      ..property.equals(.isRecentlyActive)
+      ..value.equals(true);
+
+    for (final unknown in ['unknown_channel_property', '']) {
+      json['property'] = unknown;
+      check(ChannelUpdateEvent.fromJson(json))
+        ..property.equals(.unknown)
+        ..value.equals(null);
+    }
+  });
+
   test('subscription/remove: deserialize stream_ids correctly', () {
     check(Event.fromJson({
       'id': 1,
