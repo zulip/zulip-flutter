@@ -605,24 +605,24 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
         assert(identical(streams[event.channelId], subscription));
         assert(identical(streamsByName[subscription.name], subscription));
         switch (event.property) {
-          case SubscriptionProperty.color:
+          case .color:
             subscription.color                  = event.value as int;
-          case SubscriptionProperty.isMuted:
+          case .isMuted:
             // TODO(#1255) update [MessageListView] if affected
             subscription.isMuted                = event.value as bool;
-          case SubscriptionProperty.pinToTop:
+          case .pinToTop:
             subscription.pinToTop               = event.value as bool;
-          case SubscriptionProperty.desktopNotifications:
+          case .desktopNotifications:
             subscription.desktopNotifications   = event.value as bool;
-          case SubscriptionProperty.audibleNotifications:
+          case .audibleNotifications:
             subscription.audibleNotifications   = event.value as bool;
-          case SubscriptionProperty.pushNotifications:
+          case .pushNotifications:
             subscription.pushNotifications      = event.value as bool;
-          case SubscriptionProperty.emailNotifications:
+          case .emailNotifications:
             subscription.emailNotifications     = event.value as bool;
-          case SubscriptionProperty.wildcardMentionsNotify:
+          case .wildcardMentionsNotify:
             subscription.wildcardMentionsNotify = event.value as bool;
-          case SubscriptionProperty.unknown:
+          case .unknown:
             // unrecognized property; do nothing
             return;
         }
