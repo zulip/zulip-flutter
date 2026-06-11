@@ -543,42 +543,42 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
           return;
         }
         switch (event.property!) {
-          case ChannelProperty.name:
+          case .name:
             final streamName = stream.name;
             assert(streamName == event.name);
             assert(identical(streams[stream.streamId], streamsByName[streamName]));
             stream.name = event.value as String;
             streamsByName.remove(streamName);
             streamsByName[stream.name] = stream;
-          case ChannelProperty.isArchived:
+          case .isArchived:
             stream.isArchived = event.value as bool;
-          case ChannelProperty.description:
+          case .description:
             stream.description = event.value as String;
-          case ChannelProperty.firstMessageId:
+          case .firstMessageId:
             stream.firstMessageId = event.value as int?;
-          case ChannelProperty.inviteOnly:
+          case .inviteOnly:
             stream.inviteOnly = event.value as bool;
-          case ChannelProperty.messageRetentionDays:
+          case .messageRetentionDays:
             stream.messageRetentionDays = event.value as int?;
-          case ChannelProperty.topicsPolicy:
+          case .topicsPolicy:
             stream.topicsPolicy = event.value as ChannelTopicsPolicy;
-          case ChannelProperty.channelPostPolicy:
+          case .channelPostPolicy:
             stream.channelPostPolicy = event.value as ChannelPostPolicy;
-          case ChannelProperty.folderId:
+          case .folderId:
             stream.folderId = event.value as int?;
-          case ChannelProperty.canAddSubscribersGroup:
+          case .canAddSubscribersGroup:
             stream.canAddSubscribersGroup = event.value as GroupSettingValue;
-          case ChannelProperty.canDeleteAnyMessageGroup:
+          case .canDeleteAnyMessageGroup:
             stream.canDeleteAnyMessageGroup = event.value as GroupSettingValue;
-          case ChannelProperty.canDeleteOwnMessageGroup:
+          case .canDeleteOwnMessageGroup:
             stream.canDeleteOwnMessageGroup = event.value as GroupSettingValue;
-          case ChannelProperty.canSendMessageGroup:
+          case .canSendMessageGroup:
             stream.canSendMessageGroup = event.value as GroupSettingValue;
-          case ChannelProperty.canSubscribeGroup:
+          case .canSubscribeGroup:
             stream.canSubscribeGroup = event.value as GroupSettingValue;
-          case ChannelProperty.isRecentlyActive:
+          case .isRecentlyActive:
             stream.isRecentlyActive = event.value as bool;
-          case ChannelProperty.streamWeeklyTraffic:
+          case .streamWeeklyTraffic:
             stream.streamWeeklyTraffic = event.value as int?;
         }
     }

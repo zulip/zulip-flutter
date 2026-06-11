@@ -1758,7 +1758,7 @@ void main() {
         checkComposeBox(isShown: true);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
-          property: ChannelProperty.channelPostPolicy,
+          property: .channelPostPolicy,
           value: ChannelPostPolicy.fullMembers));
         await tester.pump();
         checkComposeBox(isShown: false);
@@ -1776,7 +1776,7 @@ void main() {
         checkComposeBox(isShown: false);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
-          property: ChannelProperty.channelPostPolicy,
+          property: .channelPostPolicy,
           value: ChannelPostPolicy.moderators));
         await tester.pump();
         checkComposeBox(isShown: true);
