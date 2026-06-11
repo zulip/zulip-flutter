@@ -1124,14 +1124,16 @@ void main() {
         .isA<Icon>().color.isNotNull().isSameColorAs(expectedIconColor);
     }
 
-    Future<void> prepare(WidgetTester tester) async {
+    Future<void> prepare(WidgetTester tester, {int? zulipFeatureLevel}) async {
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
 
       final channel = eg.stream();
       final narrow = ChannelNarrow(channel.streamId);
       await prepareComposeBox(tester,
-        narrow: narrow, subscriptions: [eg.subscription(channel)]);
+        narrow: narrow,
+        subscriptions: [eg.subscription(channel)],
+        zulipFeatureLevel: zulipFeatureLevel);
 
       // (When we check that the send button looks disabled, it should be because
       // the file is uploading, not a pre-existing reason.)
@@ -1177,6 +1179,33 @@ void main() {
             ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
               .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
           );
+        checkAppearsLoading(tester, true);
+
+        await tester.pump(const Duration(seconds: 1));
+        check(controller!.content.text)
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+        checkAppearsLoading(tester, false);
+      });
+
+      testWidgets('FL<467, uses plain link syntax', (tester) async {
+        // TODO(server-12): remove this test
+        await prepare(tester, zulipFeatureLevel: 466);
+        checkAppearsLoading(tester, false);
+
+        testBinding.pickFilesResult = FilePickerResult([PlatformFile(
+          readStream: Stream.fromIterable(['asdf'.codeUnits]),
+          path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
+          name: 'image.jpg',
+          size: 12345,
+        )]);
+        connection.prepare(delay: const Duration(seconds: 1), json:
+          UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+
+        check(controller!.content.text)
+          .equals('see image: [Uploading image.jpg…]()\n\n');
         checkAppearsLoading(tester, true);
 
         await tester.pump(const Duration(seconds: 1));
@@ -1229,7 +1258,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1330,7 +1359,7 @@ void main() {
 
         await tester.pump(Duration.zero);
         check(controller!.content.text)
-          .equals('see image: [test.gif]($uploadUrl)\n\n');
+          .equals('see image: ![test.gif]($uploadUrl)\n\n');
         checkAppearsLoading(tester, false);
       });
 
