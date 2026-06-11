@@ -9,6 +9,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/content.dart';
 import '../model/database.dart';
 import '../model/message.dart';
 import '../model/message_list.dart';
@@ -1306,7 +1307,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return StickyHeaderItem(allowOverflow: true,
           header: header,
-          child: DateSeparator(message: data.message));
+          child: DateSeparator(message: data.message, content: data.content));
       case MessageListMessageItem():
         final header = RecipientHeader(message: data.message, narrow: widget.narrow);
         return MessageItem(
@@ -1713,9 +1714,11 @@ class RecipientHeader extends StatelessWidget {
 }
 
 class DateSeparator extends StatelessWidget {
-  const DateSeparator({super.key, required this.message});
+  const DateSeparator({super.key, required this.message, this.content});
 
   final MessageBase message;
+
+  final ZulipMessageContent? content;
 
   @override
   Widget build(BuildContext context) {
@@ -1727,8 +1730,12 @@ class DateSeparator extends StatelessWidget {
 
     final line = BorderSide(width: 0, color: designVariables.foreground);
 
+    final color = (message is Message && content != null)
+      ? messageBackgroundColor(context, message as Message, content!)
+      : designVariables.bgMessageRegular;
+
     // TODO(#681) use different color for DM messages
-    return ColoredBox(color: designVariables.bgMessageRegular,
+    return ColoredBox(color: color,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         child: Row(children: [
@@ -1772,8 +1779,13 @@ class MessageItem extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final item = this.item;
+    final backgroundColor = switch (item) {
+      MessageListMessageItem(:final message, :final content) =>
+        messageBackgroundColor(context, message, content),
+      MessageListOutboxMessageItem() => designVariables.bgMessageRegular,
+    };
     Widget child = ColoredBox(
-      color: designVariables.bgMessageRegular,
+      color: backgroundColor,
       child: Column(children: [
         switch (item) {
           MessageListMessageItem() => MessageWithPossibleSender(
@@ -1796,6 +1808,39 @@ class MessageItem extends StatelessWidget {
       allowOverflow: !item.isLastInBlock,
       header: header,
       child: child);
+  }
+}
+
+Color messageBackgroundColor(
+  BuildContext context,
+  Message message,
+  ZulipMessageContent content,
+) {
+  final designVariables = DesignVariables.of(context);
+  final hasMention = message.flags.any((flag) => flag.isMentionFlag);
+  if (_isMutedMessageHidden(context, message) || !hasMention) {
+    return designVariables.bgMessageRegular;
+  }
+
+  switch (content) {
+    case PollContent(): return designVariables.bgMessageRegular;
+    case ZulipContent(:final mentionedUserIds):
+      // If a message includes a user mention, then we don't care if there is a
+      // group/wildcard mention, we color the message as a user mention.
+      if (message.flags.contains(MessageFlag.mentioned)) {
+        final store = PerAccountStoreWidget.of(context);
+        if (mentionedUserIds.contains(store.selfUserId)) {
+          // Following web, highlight the background only in DMs and subscribed channels.
+          //   See `direct_mention` gate in zulip:web/src/message_list_view.ts.
+          return switch (message) {
+            DmMessage() => designVariables.bgMessageDirectMention,
+            StreamMessage(:final streamId) => store.subscriptions.containsKey(streamId)
+              ? designVariables.bgMessageDirectMention
+              : designVariables.bgMessageRegular,
+          };
+        }
+      }
+      return designVariables.bgMessageGroupOrWildcardMention;
   }
 }
 
@@ -2367,9 +2412,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         || KeywordSearchNarrow() => true,
     };
 
-    final showAsMuted = store.isUserMuted(message.senderId)
-      && !MessageListPage.maybeRevealedMutedMessagesOf(context)!
-                         .isMutedMessageRevealed(message.id);
+    final showAsMuted = _isMutedMessageHidden(context, message);
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -2433,6 +2476,15 @@ class MessageWithPossibleSender extends StatelessWidget {
             ]),
         ])));
   }
+}
+
+bool _isMutedMessageHidden(BuildContext context, Message message) {
+  final store = PerAccountStoreWidget.of(context);
+  final isRevealed = MessageListPage.maybeRevealedMutedMessagesOf(context)
+    // Fallback is in case message action sheet header calls this function.
+    // Action sheet can only be opened when muted message is revealed.
+    ?.isMutedMessageRevealed(message.id) ?? true;
+  return store.isUserMuted(message.senderId) && !isRevealed;
 }
 
 class _EditMessageStatusRow extends StatelessWidget {

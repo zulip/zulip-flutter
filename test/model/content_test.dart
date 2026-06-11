@@ -1896,6 +1896,44 @@ void main() async {
     testParseExample(ContentExample.topicMentionSilentClassOrderReversed);
   });
 
+  group('ZulipContent.mentionedUserIds', () {
+    test('non-silent user mention', () {
+      check(parseContent(ContentExample.userMentionPlain.html))
+        .mentionedUserIds.unorderedEquals({2187});
+    });
+
+    test('multiple non-silent user mentions', () {
+      check(parseContent(
+          '<p><span class="user-mention" data-user-id="11">@Eleven</span> '
+          '<span class="user-mention" data-user-id="12">@Twelve</span></p>'))
+        .mentionedUserIds.unorderedEquals({11, 12});
+    });
+
+    test('silent user mention', () {
+      check(parseContent(ContentExample.userMentionSilent.html))
+        .mentionedUserIds.isEmpty();
+    });
+
+    test('legacy user mention (without user ID)', () {
+      check(parseContent(ContentExample.legacyUserMention.html))
+        .mentionedUserIds.isEmpty();
+    });
+
+    test('group, channel-wildcard, and topic mentions', () {
+      check(parseContent(ContentExample.groupMentionPlain.html))
+        .mentionedUserIds.isEmpty();
+      check(parseContent(ContentExample.channelWildcardMentionPlain.html))
+        .mentionedUserIds.isEmpty();
+      check(parseContent(ContentExample.topicMentionPlain.html))
+        .mentionedUserIds.isEmpty();
+    });
+
+    test('no mentions', () {
+      check(parseContent(ContentExample.strong.html))
+        .mentionedUserIds.isEmpty();
+    });
+  });
+
   testParseExample(ContentExample.emojiUnicode);
   testParseExample(ContentExample.emojiUnicodeClassesFlipped);
   testParseExample(ContentExample.emojiUnicodeMultiCodepoint);
