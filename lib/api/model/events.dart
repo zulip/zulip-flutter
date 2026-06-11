@@ -748,7 +748,7 @@ class ChannelUpdateEvent extends ChannelEvent {
 
   /// The name of the channel property, or null if we don't recognize it.
   @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
-  final ChannelPropertyName? property;
+  final ChannelProperty? property;
 
   /// The new value, or null if we don't recognize the property.
   ///
@@ -777,34 +777,34 @@ class ChannelUpdateEvent extends ChannelEvent {
   /// (e.g., `value as bool`).
   static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
-    switch (ChannelPropertyName.fromRawString(json['property'] as String)) {
-      case ChannelPropertyName.name:
+    switch (ChannelProperty.fromRawString(json['property'] as String)) {
+      case ChannelProperty.name:
         return value as String;
-      case ChannelPropertyName.isArchived:
+      case ChannelProperty.isArchived:
         return value as bool;
-      case ChannelPropertyName.description:
+      case ChannelProperty.description:
         return value as String;
-      case ChannelPropertyName.firstMessageId:
+      case ChannelProperty.firstMessageId:
         return value as int?;
-      case ChannelPropertyName.inviteOnly:
+      case ChannelProperty.inviteOnly:
         return value as bool;
-      case ChannelPropertyName.messageRetentionDays:
+      case ChannelProperty.messageRetentionDays:
         return value as int?;
-      case ChannelPropertyName.topicsPolicy:
+      case ChannelProperty.topicsPolicy:
         return ChannelTopicsPolicy.fromApiValue(value as String);
-      case ChannelPropertyName.channelPostPolicy:
+      case ChannelProperty.channelPostPolicy:
         return ChannelPostPolicy.fromApiValue(value as int);
-      case ChannelPropertyName.folderId:
+      case ChannelProperty.folderId:
         return value as int?;
-      case ChannelPropertyName.canAddSubscribersGroup:
-      case ChannelPropertyName.canDeleteAnyMessageGroup:
-      case ChannelPropertyName.canDeleteOwnMessageGroup:
-      case ChannelPropertyName.canSendMessageGroup:
-      case ChannelPropertyName.canSubscribeGroup:
+      case ChannelProperty.canAddSubscribersGroup:
+      case ChannelProperty.canDeleteAnyMessageGroup:
+      case ChannelProperty.canDeleteOwnMessageGroup:
+      case ChannelProperty.canSendMessageGroup:
+      case ChannelProperty.canSubscribeGroup:
         return GroupSettingValue.fromJson(value);
-      case ChannelPropertyName.isRecentlyActive:
+      case ChannelProperty.isRecentlyActive:
         return value as bool;
-      case ChannelPropertyName.streamWeeklyTraffic:
+      case ChannelProperty.streamWeeklyTraffic:
         return value as int?;
       case null:
         return null;

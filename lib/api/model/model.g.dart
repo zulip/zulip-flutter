@@ -591,23 +591,23 @@ const _$PresenceStatusEnumMap = {
   PresenceStatus.idle: 'idle',
 };
 
-const _$ChannelPropertyNameEnumMap = {
-  ChannelPropertyName.name: 'name',
-  ChannelPropertyName.isArchived: 'is_archived',
-  ChannelPropertyName.description: 'description',
-  ChannelPropertyName.firstMessageId: 'first_message_id',
-  ChannelPropertyName.inviteOnly: 'invite_only',
-  ChannelPropertyName.messageRetentionDays: 'message_retention_days',
-  ChannelPropertyName.topicsPolicy: 'topics_policy',
-  ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
-  ChannelPropertyName.folderId: 'folder_id',
-  ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
-  ChannelPropertyName.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
-  ChannelPropertyName.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
-  ChannelPropertyName.canSendMessageGroup: 'can_send_message_group',
-  ChannelPropertyName.canSubscribeGroup: 'can_subscribe_group',
-  ChannelPropertyName.isRecentlyActive: 'is_recently_active',
-  ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
+const _$ChannelPropertyEnumMap = {
+  ChannelProperty.name: 'name',
+  ChannelProperty.isArchived: 'is_archived',
+  ChannelProperty.description: 'description',
+  ChannelProperty.firstMessageId: 'first_message_id',
+  ChannelProperty.inviteOnly: 'invite_only',
+  ChannelProperty.messageRetentionDays: 'message_retention_days',
+  ChannelProperty.topicsPolicy: 'topics_policy',
+  ChannelProperty.channelPostPolicy: 'stream_post_policy',
+  ChannelProperty.folderId: 'folder_id',
+  ChannelProperty.canAddSubscribersGroup: 'can_add_subscribers_group',
+  ChannelProperty.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
+  ChannelProperty.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
+  ChannelProperty.canSendMessageGroup: 'can_send_message_group',
+  ChannelProperty.canSubscribeGroup: 'can_subscribe_group',
+  ChannelProperty.isRecentlyActive: 'is_recently_active',
+  ChannelProperty.streamWeeklyTraffic: 'stream_weekly_traffic',
 };
 
 const _$SubscriptionPropertyEnumMap = {

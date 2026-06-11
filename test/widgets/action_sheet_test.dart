@@ -349,7 +349,7 @@ void main() {
         testWidgets('private channel', (tester) async {
           await prepare();
           await store.handleEvent(eg.channelUpdateEvent(someChannel,
-            property: ChannelPropertyName.inviteOnly, value: true));
+            property: ChannelProperty.inviteOnly, value: true));
           check(store.streams[someChannel.streamId]).isNotNull()
             ..inviteOnly.isTrue()..isWebPublic.isFalse();
           await showFromInbox(tester);
@@ -433,9 +433,9 @@ void main() {
         await prepare();
         await store.addStream(privateChannel);
         await store.updateChannel(privateChannel.streamId,
-          ChannelPropertyName.canSubscribeGroup, eg.groupSetting(members: []));
+          ChannelProperty.canSubscribeGroup, eg.groupSetting(members: []));
         await store.updateChannel(privateChannel.streamId,
-          ChannelPropertyName.canAddSubscribersGroup, eg.groupSetting(members: []));
+          ChannelProperty.canAddSubscribersGroup, eg.groupSetting(members: []));
         final narrow = ChannelNarrow(privateChannel.streamId);
         check(store.selfHasContentAccess(privateChannel)).isFalse();
         await showFromMsglistAppBar(tester,
@@ -2162,7 +2162,7 @@ void main() {
           await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: selfUser.userId,
             role: .guest));
           await store.handleEvent(eg.channelUpdateEvent(stream,
-            property: ChannelPropertyName.channelPostPolicy,
+            property: ChannelProperty.channelPostPolicy,
             value: ChannelPostPolicy.administrators));
           await tester.pump();
 

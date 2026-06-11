@@ -670,7 +670,7 @@ class SavedSnippet {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ZulipStream {
   // When adding a field to this class:
-  //  * Add it to [ChannelPropertyName] too, or add a comment there explaining
+  //  * Add it to [ChannelProperty] too, or add a comment there explaining
   //    why there isn't a corresponding value in that enum.
   //  * If the field can never change for a given Zulip stream, mark it final.
   //    Otherwise, make sure it gets updated on [ChannelUpdateEvent].
@@ -784,7 +784,7 @@ class ZulipStream {
 /// we switch exhaustively on a value of this type
 /// to ensure that every property in [ZulipStream] responds to the event.
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
-enum ChannelPropertyName {
+enum ChannelProperty {
   // streamId is immutable
   name,
   isArchived,
@@ -808,14 +808,14 @@ enum ChannelPropertyName {
   isRecentlyActive,
   streamWeeklyTraffic;
 
-  /// Get a [ChannelPropertyName] from a raw, snake-case string we recognize, else null.
+  /// Get a [ChannelProperty] from a raw, snake-case string we recognize, else null.
   ///
   /// Example:
-  ///   'invite_only' -> ChannelPropertyName.inviteOnly
-  static ChannelPropertyName? fromRawString(String raw) => _byRawString[raw];
+  ///   'invite_only' -> ChannelProperty.inviteOnly
+  static ChannelProperty? fromRawString(String raw) => _byRawString[raw];
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
-  static final _byRawString = _$ChannelPropertyNameEnumMap
+  static final _byRawString = _$ChannelPropertyEnumMap
     .map((key, value) => MapEntry(value, key));
 }
 
