@@ -692,7 +692,7 @@ void main() {
 
           final newColor = Colors.orange.argbInt;
           await store.handleEvent(SubscriptionUpdateEvent(id: 1, channelId: 1,
-            property: SubscriptionProperty.color, value: newColor));
+            property: .color, value: newColor));
           check(subscription.color).equals(Colors.orange.argbInt);
           await tester.pump();
 
