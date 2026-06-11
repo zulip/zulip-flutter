@@ -520,6 +520,10 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get successChannelLinkCopied => 'Povezava do kanala kopirana';
 
   @override
+  String get composeBoxBannerLabelDeletedDmRecipient =>
+      'You cannot send messages to deleted users.';
+
+  @override
   String get composeBoxBannerLabelDeactivatedDmRecipient =>
       'Deaktiviranim uporabnikom ne morete pošiljati sporočil.';
 
@@ -1444,6 +1448,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get mutedUser => 'Uporabnik je utišan';
+
+  @override
+  String get deletedUser => 'Deleted user';
 
   @override
   String get scrollToBottomTooltip => 'Premakni se na konec';
