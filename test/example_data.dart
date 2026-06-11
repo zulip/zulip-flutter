@@ -548,7 +548,7 @@ ZulipStream stream({
     isWebPublic: isWebPublic ?? false,
     historyPublicToSubscribers: historyPublicToSubscribers ?? true,
     messageRetentionDays: messageRetentionDays,
-    channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
+    channelPostPolicy: channelPostPolicy ?? .any,
     folderId: folderId,
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canDeleteAnyMessageGroup: canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
