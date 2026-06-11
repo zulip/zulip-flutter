@@ -41,6 +41,16 @@ extension RealmUserUpdateEventChecks on Subject<RealmUserUpdateEvent> {
   Subject<JsonNullable<String>?> get deliveryEmail => has((e) => e.deliveryEmail, 'deliveryEmail');
 }
 
+extension ChannelUpdateEventChecks on Subject<ChannelUpdateEvent> {
+  Subject<int> get streamId => has((e) => e.streamId, 'streamId');
+  Subject<String> get name => has((e) => e.name, 'name');
+  Subject<ChannelProperty?> get property => has((e) => e.property, 'property');
+  Subject<Object?> get value => has((e) => e.value, 'value');
+  Subject<String?> get renderedDescription => has((e) => e.renderedDescription, 'renderedDescription');
+  Subject<bool?> get historyPublicToSubscribers => has((e) => e.historyPublicToSubscribers, 'historyPublicToSubscribers');
+  Subject<bool?> get isWebPublic => has((e) => e.isWebPublic, 'isWebPublic');
+}
+
 extension SubscriptionRemoveEventChecks on Subject<SubscriptionRemoveEvent> {
   Subject<List<int>> get channelIds => has((e) => e.channelIds, 'channelIds');
 }
