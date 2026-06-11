@@ -407,7 +407,7 @@ enum Emojiset {
   text,
   unknown;
 
-  /// Get an [Emojiset] from a raw string. Throws if the string is unrecognized.
+  /// Get an [Emojiset] from a raw string we recognize, else [Emojiset.unknown].
   ///
   /// Example:
   ///   'google-blob' -> Emojiset.googleBlob
