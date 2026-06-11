@@ -221,13 +221,13 @@ void main() {
       check(narrow.containsMessage(
         eg.streamMessage(flags: []))).isFalse();
       check(narrow.containsMessage(
-        eg.streamMessage(flags:[MessageFlag.mentioned]))).isTrue();
+        eg.streamMessage(flags:[.mentioned]))).isTrue();
       check(narrow.containsMessage(
-        eg.streamMessage(flags: [MessageFlag.topicWildcardMentioned]))).isTrue();
+        eg.streamMessage(flags: [.topicWildcardMentioned]))).isTrue();
       check(narrow.containsMessage(
-        eg.streamMessage(flags: [MessageFlag.streamWildcardMentioned]))).isTrue();
+        eg.streamMessage(flags: [.streamWildcardMentioned]))).isTrue();
       check(narrow.containsMessage(
-        eg.streamMessage(flags: [MessageFlag.wildcardMentioned]))).isTrue();
+        eg.streamMessage(flags: [.wildcardMentioned]))).isTrue();
 
       check(narrow.containsMessage(
         eg.streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
@@ -243,7 +243,7 @@ void main() {
       check(narrow.containsMessage(
         eg.streamMessage(flags: []))).isFalse();
       check(narrow.containsMessage(
-        eg.streamMessage(flags:[MessageFlag.starred]))).isTrue();
+        eg.streamMessage(flags:[.starred]))).isTrue();
 
       check(narrow.containsMessage(
         eg.streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
