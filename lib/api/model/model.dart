@@ -1265,7 +1265,7 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
 
   // final List<TopicLink> topicLinks; // TODO handle
   // final string type; // handled by runtime type of object
-  @JsonKey(fromJson: _flagsFromJson)
+  @JsonKey(fromJson: flagsFromJson)
   List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
   String? matchContent;
   @JsonKey(name: 'match_subject')
@@ -1284,11 +1284,6 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
 
   static Object _reactionsToJson(Reactions? value) {
     return value ?? [];
-  }
-
-  static List<MessageFlag> _flagsFromJson(Object? json) {
-    final list = json as List<Object?>;
-    return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
   }
 
   static Poll? _readPoll(Map<Object?, Object?> json, String key) {
@@ -1327,6 +1322,11 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   }
 
   Map<String, dynamic> toJson();
+}
+
+List<MessageFlag> flagsFromJson(Object? json) {
+  final list = json as List<Object?>;
+  return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
 }
 
 /// As in [Message.type], [DeleteMessageEvent.messageType],
