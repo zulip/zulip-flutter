@@ -20,12 +20,35 @@ void main() {
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/register')
-        ..bodyFields.which((it) =>
-            idleQueueTimeout == null
-              ? it.not((it) => it.containsKey('idle_queue_timeout'))
-              : it['idle_queue_timeout'].equals(jsonEncode(idleQueueTimeout)));
+        ..bodyFields.which((it) {
+          idleQueueTimeout == null
+            ? it.not((it) => it.containsKey('idle_queue_timeout'))
+            : it['idle_queue_timeout'].equals(jsonEncode(idleQueueTimeout));
+
+          it['apply_markdown'].equals(jsonEncode(true));
+          it['client_gravatar'].equals(jsonEncode(false));
+          it['slim_presence'].equals(jsonEncode(true));
+
+          it['client_capabilities']
+            .has((v) => jsonDecode(v) as Map<String, dynamic>, 'client_capabilities')
+            .which((it) {
+              it['notification_settings_null'].equals(true);
+              it['bulk_message_deletion'].equals(true);
+              it['user_avatar_url_field_optional'].equals(false);
+              it['stream_typing_notifications'].equals(true);
+              it['user_settings_object'].equals(true);
+              it['include_deactivated_groups'].equals(true);
+              it['empty_topic_name'].equals(true);
+              it['individual_emoji_changes'].equals(true);
+            });
+        });
       return result;
     }
+
+    test('smoke', () => FakeApiConnection.with_((connection) async {
+      connection.prepare(json: eg.initialSnapshot().toJson());
+      await checkRegisterQueue(connection);
+    }));
 
     test('idleQueueTimeout absent', () => FakeApiConnection.with_((connection) async {
       connection.prepare(json: eg.initialSnapshot().toJson());

@@ -432,8 +432,19 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
     _allEmojiCandidates = null;
   }
 
-  void handleRealmEmojiUpdateEvent(RealmEmojiUpdateEvent event) {
-    allRealmEmoji = event.realmEmoji;
+  void handleRealmEmojiEvent(RealmEmojiEvent event) {
+    switch (event) {
+      case RealmEmojiAddEvent(:final emoji):
+        assert(!allRealmEmoji.containsKey(emoji.emojiCode));
+        allRealmEmoji[emoji.emojiCode] = emoji;
+
+      case RealmEmojiUpdateOneEvent(:final emojiCode, :final data):
+        assert(allRealmEmoji.containsKey(emojiCode));
+        allRealmEmoji[emojiCode]!.deactivated = data.deactivated;
+
+      case RealmEmojiUpdateEvent(:final realmEmoji):
+        allRealmEmoji = realmEmoji;
+    }
     _allEmojiCandidates = null;
   }
 }
