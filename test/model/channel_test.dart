@@ -355,49 +355,58 @@ void main() {
           && event1.topicName.apiName != event2.topicName.apiName;
       }());
 
-      void checkChanges(PerAccountStore store,
-          UserTopicVisibilityPolicy newPolicy,
-          UserTopicVisibilityEffect expectedInStream,
-          UserTopicVisibilityEffect expectedOverall) {
+      void checkChanges(PerAccountStore store, {
+        required UserTopicVisibilityPolicy newPolicy,
+        required UserTopicVisibilityEffect effectInStream,
+        required UserTopicVisibilityEffect effectOverall,
+      }) {
         final event = mkEvent(newPolicy);
-        check(store.willChangeIfTopicVisibleInStream(event)).equals(expectedInStream);
-        check(store.willChangeIfTopicVisible        (event)).equals(expectedOverall);
+        check(store.willChangeIfTopicVisibleInStream(event)).equals(effectInStream);
+        check(store.willChangeIfTopicVisible        (event)).equals(effectOverall);
 
         final event2 = mkEventDifferentlyCased(newPolicy);
-        check(store.willChangeIfTopicVisibleInStream(event2)).equals(expectedInStream);
-        check(store.willChangeIfTopicVisible        (event2)).equals(expectedOverall);
+        check(store.willChangeIfTopicVisibleInStream(event2)).equals(effectInStream);
+        check(store.willChangeIfTopicVisible        (event2)).equals(effectOverall);
       }
 
       test('stream not muted, policy none -> followed, no change', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
-        checkChanges(store, UserTopicVisibilityPolicy.followed,
-          UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.none);
+        checkChanges(store,
+          newPolicy: UserTopicVisibilityPolicy.followed,
+          effectInStream: UserTopicVisibilityEffect.none,
+          effectOverall: UserTopicVisibilityEffect.none);
       });
 
       test('stream not muted, policy none -> muted, means muted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
-        checkChanges(store, UserTopicVisibilityPolicy.muted,
-          UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.muted);
+        checkChanges(store,
+          newPolicy: UserTopicVisibilityPolicy.muted,
+          effectInStream: UserTopicVisibilityEffect.muted,
+          effectOverall: UserTopicVisibilityEffect.muted);
       });
 
       test('stream muted, policy none -> followed, means none/unmuted', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        checkChanges(store, UserTopicVisibilityPolicy.followed,
-          UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.unmuted);
+        checkChanges(store,
+          newPolicy: UserTopicVisibilityPolicy.followed,
+          effectInStream: UserTopicVisibilityEffect.none,
+          effectOverall: UserTopicVisibilityEffect.unmuted);
       });
 
       test('stream muted, policy none -> muted, means muted/none', () async {
         final store = eg.store();
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
-        checkChanges(store, UserTopicVisibilityPolicy.muted,
-          UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.none);
+        checkChanges(store,
+          newPolicy: UserTopicVisibilityPolicy.muted,
+          effectInStream: UserTopicVisibilityEffect.muted,
+          effectOverall: UserTopicVisibilityEffect.none);
       });
 
       final policies = [
