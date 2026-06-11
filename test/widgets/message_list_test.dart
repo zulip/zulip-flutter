@@ -329,7 +329,7 @@ void main() {
         streams: [channel], subscriptions: [eg.subscription(channel)],
         messages: [eg.streamMessage(stream: channel, topic: topic)]);
       await store.handleEvent(eg.userTopicEvent(
-        channel.streamId, topic, UserTopicVisibilityPolicy.muted));
+        channel.streamId, topic, .muted));
       await tester.pump();
 
       check(find.descendant(
@@ -1808,7 +1808,7 @@ void main() {
           narrow: const CombinedFeedNarrow(),
           messages: [message], subscriptions: [eg.subscription(stream)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, topic, UserTopicVisibilityPolicy.followed));
+          stream.streamId, topic, .followed));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
@@ -1820,7 +1820,7 @@ void main() {
           narrow: TopicNarrow.ofMessage(message),
           messages: [message], subscriptions: [eg.subscription(stream, isMuted: true)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, topic, UserTopicVisibilityPolicy.unmuted));
+          stream.streamId, topic, .unmuted));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
