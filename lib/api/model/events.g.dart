@@ -524,10 +524,10 @@ ChannelUpdateEvent _$ChannelUpdateEventFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       streamId: (json['stream_id'] as num).toInt(),
       name: json['name'] as String,
-      property: $enumDecodeNullable(
+      property: $enumDecode(
         _$ChannelPropertyEnumMap,
         json['property'],
-        unknownValue: JsonKey.nullForUndefinedEnumValue,
+        unknownValue: ChannelProperty.unknown,
       ),
       value: ChannelUpdateEvent._readValue(json, 'value'),
       renderedDescription: json['rendered_description'] as String?,
@@ -543,7 +543,7 @@ Map<String, dynamic> _$ChannelUpdateEventToJson(ChannelUpdateEvent instance) =>
       'op': instance.op,
       'stream_id': instance.streamId,
       'name': instance.name,
-      'property': _$ChannelPropertyEnumMap[instance.property],
+      'property': _$ChannelPropertyEnumMap[instance.property]!,
       'value': instance.value,
       'rendered_description': instance.renderedDescription,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
@@ -567,6 +567,7 @@ const _$ChannelPropertyEnumMap = {
   ChannelProperty.canSubscribeGroup: 'can_subscribe_group',
   ChannelProperty.isRecentlyActive: 'is_recently_active',
   ChannelProperty.streamWeeklyTraffic: 'stream_weekly_traffic',
+  ChannelProperty.unknown: 'unknown',
 };
 
 SubscriptionAddEvent _$SubscriptionAddEventFromJson(

@@ -608,6 +608,7 @@ const _$ChannelPropertyEnumMap = {
   ChannelProperty.canSubscribeGroup: 'can_subscribe_group',
   ChannelProperty.isRecentlyActive: 'is_recently_active',
   ChannelProperty.streamWeeklyTraffic: 'stream_weekly_traffic',
+  ChannelProperty.unknown: 'unknown',
 };
 
 const _$SubscriptionPropertyEnumMap = {
