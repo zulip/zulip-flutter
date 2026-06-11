@@ -1123,6 +1123,7 @@ class UserTopicEvent extends Event {
   final int streamId;
   final TopicName topicName;
   final int lastUpdated;
+  @JsonKey(unknownEnumValue: UserTopicVisibilityPolicy.unknown)
   final UserTopicVisibilityPolicy visibilityPolicy;
 
   UserTopicEvent({
