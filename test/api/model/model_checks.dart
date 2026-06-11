@@ -57,6 +57,7 @@ extension ZulipStreamChecks on Subject<ZulipStream> {
 
   Subject<bool> get inviteOnly => has((x) => x.inviteOnly, 'inviteOnly');
   Subject<bool> get isWebPublic => has((x) => x.isWebPublic, 'isWebPublic');
+  Subject<ChannelPostPolicy?> get channelPostPolicy => has((x) => x.channelPostPolicy, 'channelPostPolicy');
 }
 
 extension SubscriptionChecks on Subject<Subscription> {

@@ -706,7 +706,7 @@ class ZulipStream {
   @JsonKey(defaultValue: ChannelTopicsPolicy.inherit,
     unknownEnumValue: ChannelTopicsPolicy.unknown)
   ChannelTopicsPolicy topicsPolicy;
-  @JsonKey(name: 'stream_post_policy')
+  @JsonKey(name: 'stream_post_policy', unknownEnumValue: ChannelPostPolicy.unknown)
   ChannelPostPolicy? channelPostPolicy; // TODO(server-10) remove
   // final bool isAnnouncementOnly; // deprecated for `channelPostPolicy`; ignore
 
@@ -878,7 +878,12 @@ enum ChannelPostPolicy {
 
   int? toJson() => apiValue;
 
-  static ChannelPostPolicy fromApiValue(int value) => _byApiValue[value]!;
+  /// Get a [ChannelPostPolicy] from an int value we recognize,
+  /// else [ChannelPostPolicy.unknown].
+  ///
+  /// Example:
+  ///   1 -> ChannelPostPolicy.any
+  static ChannelPostPolicy fromApiValue(int value) => _byApiValue[value] ?? unknown;
 
   static final _byApiValue = _$ChannelPostPolicyEnumMap
     .map((key, value) => MapEntry(value, key));

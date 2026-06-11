@@ -141,12 +141,51 @@ void main() {
     });
   });
 
+  group('ZulipStream', () {
+    final baseJson = Map<String, dynamic>.unmodifiable({
+      'stream_id': 123,
+      'name': 'A Channel',
+      'is_archived': false,
+      'description': 'Description of A Channel',
+      'rendered_description': '<p>Description of A Channel</p>',
+      'date_created': 1781164720,
+      'first_message_id': null,
+      'folder_id': null,
+      'invite_only': false,
+      'is_web_public': false,
+      'history_public_to_subscribers': true,
+      'message_retention_days': -1,
+      'stream_post_policy': 1,
+      'can_add_subscribers_group': 100,
+      'can_delete_any_message_group': 100,
+      'can_delete_own_message_group': 100,
+      'can_send_message_group': 100,
+      'can_subscribe_group': 100,
+      'is_recently_active': false,
+      'stream_weekly_traffic': null,
+    });
+
+    ZulipStream mkChannel([Map<String, dynamic>? specialJson]) {
+      return ZulipStream.fromJson({...baseJson, ...?specialJson});
+    }
+
+    test('stream_post_policy: unknown', () {
+      check(mkChannel()).channelPostPolicy.equals(.any);
+      check(mkChannel({'stream_post_policy': -100})).channelPostPolicy.equals(.unknown);
+    });
+  });
+
   test('ChannelProperty.fromRawString handles unknown values', () {
     check(ChannelProperty.fromRawString('is_recently_active')).equals(.isRecentlyActive);
 
     for (final unknown in ['unknown_channel_property', '']) {
       check(ChannelProperty.fromRawString(unknown)).equals(.unknown);
     }
+  });
+
+  test('ChannelPostPolicy.fromApiValue handles unknown values', () {
+    check(ChannelPostPolicy.fromApiValue(1)).equals(.any);
+    check(ChannelPostPolicy.fromApiValue(-100)).equals(.unknown);
   });
 
   group('Subscription', () {
