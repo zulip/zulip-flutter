@@ -974,19 +974,19 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
   static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
     switch (SubscriptionProperty.fromRawString(json['property'] as String)) {
-      case SubscriptionProperty.color:
+      case .color:
         final str = value as String;
         assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
         return 0xff000000 | int.parse(str.substring(1), radix: 16);
-      case SubscriptionProperty.isMuted:
-      case SubscriptionProperty.pinToTop:
-      case SubscriptionProperty.desktopNotifications:
-      case SubscriptionProperty.audibleNotifications:
-      case SubscriptionProperty.pushNotifications:
-      case SubscriptionProperty.emailNotifications:
-      case SubscriptionProperty.wildcardMentionsNotify:
+      case .isMuted:
+      case .pinToTop:
+      case .desktopNotifications:
+      case .audibleNotifications:
+      case .pushNotifications:
+      case .emailNotifications:
+      case .wildcardMentionsNotify:
         return value as bool;
-      case SubscriptionProperty.unknown:
+      case .unknown:
         return null;
     }
   }

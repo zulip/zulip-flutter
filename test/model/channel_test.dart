@@ -137,7 +137,7 @@ void main() {
 
       await store.handleEvent(SubscriptionUpdateEvent(id: 1,
         channelId: stream.streamId,
-        property: SubscriptionProperty.color,
+        property: .color,
         value: 0xFFFF00FF));
       check(store.subscriptions[stream.streamId]!.color).equals(0xFFFF00FF);
     });
@@ -151,7 +151,7 @@ void main() {
 
       await store.handleEvent(SubscriptionUpdateEvent(id: 1,
         channelId: stream.streamId,
-        property: SubscriptionProperty.isMuted,
+        property: .isMuted,
         value: true));
       check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
     });
