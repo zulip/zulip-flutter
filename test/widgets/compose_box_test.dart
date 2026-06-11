@@ -1607,7 +1607,7 @@ void main() {
         ].join(', ');
         testWidgets(description, (tester) async {
           final channel = eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.moderators);
+            channelPostPolicy: .moderators);
           await prepareComposeBox(tester,
             narrow: narrow,
             selfUser: eg.user(
@@ -1722,7 +1722,7 @@ void main() {
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
           subscriptions: [eg.subscription(eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.administrators))]);
+            channelPostPolicy: .administrators))]);
         checkComposeBox(isShown: true);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
@@ -1737,7 +1737,7 @@ void main() {
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
           subscriptions: [eg.subscription(eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.moderators))]);
+            channelPostPolicy: .moderators))]);
         checkComposeBox(isShown: false);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
@@ -1749,7 +1749,7 @@ void main() {
       testWidgets('channel policy becomes stricter -> compose box is replaced with the banner', (tester) async {
         final selfUser = eg.user(role: .guest);
         final channel = eg.stream(streamId: 1,
-          channelPostPolicy: ChannelPostPolicy.any);
+          channelPostPolicy: .any);
 
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
@@ -1767,7 +1767,7 @@ void main() {
       testWidgets('channel policy becomes less strict -> banner is replaced with the compose box', (tester) async {
         final selfUser = eg.user(role: .moderator);
         final channel = eg.stream(streamId: 1,
-          channelPostPolicy: ChannelPostPolicy.administrators);
+          channelPostPolicy: .administrators);
 
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),

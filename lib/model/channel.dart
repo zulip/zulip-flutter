@@ -282,17 +282,17 @@ mixin ChannelStore on UserStore {
     // but pre-333 servers shouldn't be giving us an unknown role.)
 
     switch (inChannel.channelPostPolicy!) {
-      case ChannelPostPolicy.any:             return true;
-      case ChannelPostPolicy.fullMembers:     {
+      case .any:            return true;
+      case .fullMembers:    {
         if (!role.isAtLeast(.member)) return false;
         if (role == .member) {
           return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }
-      case ChannelPostPolicy.moderators:      return role.isAtLeast(.moderator);
-      case ChannelPostPolicy.administrators:  return role.isAtLeast(.administrator);
-      case ChannelPostPolicy.unknown:         return true;
+      case .moderators:     return role.isAtLeast(.moderator);
+      case .administrators: return role.isAtLeast(.administrator);
+      case .unknown:        return true;
     }
   }
 }

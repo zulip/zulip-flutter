@@ -588,32 +588,32 @@ void main() {
 
   group('selfCanSendMessage, legacy', () {
     final testCases = <(ChannelPostPolicy, UserRole, bool)>[
-      (ChannelPostPolicy.unknown,        .guest,         true),
-      (ChannelPostPolicy.unknown,        .member,        true),
-      (ChannelPostPolicy.unknown,        .moderator,     true),
-      (ChannelPostPolicy.unknown,        .administrator, true),
-      (ChannelPostPolicy.unknown,        .owner,         true),
-      (ChannelPostPolicy.any,            .guest,         true),
-      (ChannelPostPolicy.any,            .member,        true),
-      (ChannelPostPolicy.any,            .moderator,     true),
-      (ChannelPostPolicy.any,            .administrator, true),
-      (ChannelPostPolicy.any,            .owner,         true),
-      (ChannelPostPolicy.fullMembers,    .guest,         false),
+      (.unknown,        .guest,         true),
+      (.unknown,        .member,        true),
+      (.unknown,        .moderator,     true),
+      (.unknown,        .administrator, true),
+      (.unknown,        .owner,         true),
+      (.any,            .guest,         true),
+      (.any,            .member,        true),
+      (.any,            .moderator,     true),
+      (.any,            .administrator, true),
+      (.any,            .owner,         true),
+      (.fullMembers,    .guest,         false),
       // The fullMembers/member case gets its own tests further below.
-      // (ChannelPostPolicy.fullMembers,    .member,        /* complicated */),
-      (ChannelPostPolicy.fullMembers,    .moderator,     true),
-      (ChannelPostPolicy.fullMembers,    .administrator, true),
-      (ChannelPostPolicy.fullMembers,    .owner,         true),
-      (ChannelPostPolicy.moderators,     .guest,         false),
-      (ChannelPostPolicy.moderators,     .member,        false),
-      (ChannelPostPolicy.moderators,     .moderator,     true),
-      (ChannelPostPolicy.moderators,     .administrator, true),
-      (ChannelPostPolicy.moderators,     .owner,         true),
-      (ChannelPostPolicy.administrators, .guest,         false),
-      (ChannelPostPolicy.administrators, .member,        false),
-      (ChannelPostPolicy.administrators, .moderator,     false),
-      (ChannelPostPolicy.administrators, .administrator, true),
-      (ChannelPostPolicy.administrators, .owner,         true),
+      // (.fullMembers,    .member,        /* complicated */),
+      (.fullMembers,    .moderator,     true),
+      (.fullMembers,    .administrator, true),
+      (.fullMembers,    .owner,         true),
+      (.moderators,     .guest,         false),
+      (.moderators,     .member,        false),
+      (.moderators,     .moderator,     true),
+      (.moderators,     .administrator, true),
+      (.moderators,     .owner,         true),
+      (.administrators, .guest,         false),
+      (.administrators, .member,        false),
+      (.administrators, .moderator,     false),
+      (.administrators, .administrator, true),
+      (.administrators, .owner,         true),
     ];
 
     for (final (ChannelPostPolicy policy, UserRole role, bool canPost) in testCases) {
@@ -650,7 +650,7 @@ void main() {
           selfUser: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
           realmWaitingPeriodThreshold: 3);
         final hasPermission = store.selfCanSendMessage(
-          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+          inChannel: eg.stream(channelPostPolicy: .fullMembers),
           byDate: DateTime.utc(2024, 11, 28, 10, 00));
         check(hasPermission).isTrue();
       });
@@ -660,7 +660,7 @@ void main() {
           selfUser: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
           realmWaitingPeriodThreshold: 3);
         final actual = store.selfCanSendMessage(
-          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+          inChannel: eg.stream(channelPostPolicy: .fullMembers),
           byDate: DateTime.utc(2024, 11, 28, 09, 59));
         check(actual).isFalse();
       });
