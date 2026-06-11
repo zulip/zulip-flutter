@@ -63,12 +63,12 @@ void main() {
       checkUnified(store);
 
       await store.handleEvent(eg.channelUpdateEvent(store.streams[stream1.streamId]!,
-        property: ChannelProperty.name, value: 'new stream',
+        property: .name, value: 'new stream',
       ));
       checkUnified(store);
 
       await store.handleEvent(eg.channelUpdateEvent(store.streams[stream1.streamId]!,
-        property: ChannelProperty.channelPostPolicy,
+        property: .channelPostPolicy,
         value: ChannelPostPolicy.administrators,
       ));
       checkUnified(store);

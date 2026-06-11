@@ -1321,31 +1321,31 @@ ChannelUpdateEvent channelUpdateEvent(
   required Object? value,
 }) {
   switch (property) {
-    case ChannelProperty.name:
+    case .name:
       assert(value is String);
-    case ChannelProperty.isArchived:
+    case .isArchived:
       assert(value is bool);
-    case ChannelProperty.description:
+    case .description:
       assert(value is String);
-    case ChannelProperty.firstMessageId:
+    case .firstMessageId:
       assert(value is int?);
-    case ChannelProperty.inviteOnly:
+    case .inviteOnly:
       assert(value is bool);
-    case ChannelProperty.messageRetentionDays:
+    case .messageRetentionDays:
       assert(value is int?);
-    case ChannelProperty.channelPostPolicy:
+    case .channelPostPolicy:
       assert(value is ChannelPostPolicy);
-    case ChannelProperty.folderId:
+    case .folderId:
       assert(value is int?);
-    case ChannelProperty.canAddSubscribersGroup:
-    case ChannelProperty.canDeleteAnyMessageGroup:
-    case ChannelProperty.canDeleteOwnMessageGroup:
-    case ChannelProperty.canSendMessageGroup:
-    case ChannelProperty.canSubscribeGroup:
+    case .canAddSubscribersGroup:
+    case .canDeleteAnyMessageGroup:
+    case .canDeleteOwnMessageGroup:
+    case .canSendMessageGroup:
+    case .canSubscribeGroup:
       assert(value is GroupSettingValue);
-    case ChannelProperty.isRecentlyActive:
+    case .isRecentlyActive:
       assert(value is bool);
-    case ChannelProperty.streamWeeklyTraffic:
+    case .streamWeeklyTraffic:
       assert(value is int?);
   }
   return ChannelUpdateEvent(

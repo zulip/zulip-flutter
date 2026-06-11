@@ -778,31 +778,31 @@ class ChannelUpdateEvent extends ChannelEvent {
   static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
     switch (ChannelProperty.fromRawString(json['property'] as String)) {
-      case ChannelProperty.name:
+      case .name:
         return value as String;
-      case ChannelProperty.isArchived:
+      case .isArchived:
         return value as bool;
-      case ChannelProperty.description:
+      case .description:
         return value as String;
-      case ChannelProperty.firstMessageId:
+      case .firstMessageId:
         return value as int?;
-      case ChannelProperty.inviteOnly:
+      case .inviteOnly:
         return value as bool;
-      case ChannelProperty.messageRetentionDays:
+      case .messageRetentionDays:
         return value as int?;
-      case ChannelProperty.channelPostPolicy:
+      case .channelPostPolicy:
         return ChannelPostPolicy.fromApiValue(value as int);
-      case ChannelProperty.folderId:
+      case .folderId:
         return value as int?;
-      case ChannelProperty.canAddSubscribersGroup:
-      case ChannelProperty.canDeleteAnyMessageGroup:
-      case ChannelProperty.canDeleteOwnMessageGroup:
-      case ChannelProperty.canSendMessageGroup:
-      case ChannelProperty.canSubscribeGroup:
+      case .canAddSubscribersGroup:
+      case .canDeleteAnyMessageGroup:
+      case .canDeleteOwnMessageGroup:
+      case .canSendMessageGroup:
+      case .canSubscribeGroup:
         return GroupSettingValue.fromJson(value);
-      case ChannelProperty.isRecentlyActive:
+      case .isRecentlyActive:
         return value as bool;
-      case ChannelProperty.streamWeeklyTraffic:
+      case .streamWeeklyTraffic:
         return value as int?;
       case null:
         return null;
