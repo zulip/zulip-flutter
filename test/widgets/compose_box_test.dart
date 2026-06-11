@@ -1145,22 +1145,21 @@ void main() {
         await prepare(tester);
         checkAppearsLoading(tester, false);
 
-        testBinding.pickFilesResult = FilePickerResult([PlatformFile(
-          readStream: Stream.fromIterable(['asdf'.codeUnits]),
-          // TODO test inference of MIME type from initial bytes, when
-          //   it can't be inferred from path
-          path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
+        testBinding.pickMultipleMediaResult = [XFile.fromData(
+          // TODO test inference of MIME type when it's missing here
+          mimeType: 'image/jpeg',
+          utf8.encode('asdf'),
           name: 'image.jpg',
-          size: 12345,
-        )]);
+          length: 12345,
+          path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
+        )];
         connection.prepare(delay: const Duration(seconds: 1), json:
           UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
         await tester.tap(find.byIcon(ZulipIcons.image));
         await tester.pump();
-        final call = testBinding.takePickFilesCalls().single;
-        check(call.allowMultiple).equals(true);
-        check(call.type).equals(FileType.media);
+        final call = testBinding.takePickMultipleMediaCalls().single;
+        check(call.requestFullMetadata).equals(false);
 
         checkNoDialog(tester);
 
@@ -1185,8 +1184,59 @@ void main() {
         checkAppearsLoading(tester, false);
       });
 
+      testWidgets('multiple files', (tester) async {
+        await prepare(tester);
+        checkAppearsLoading(tester, false);
+
+        testBinding.pickMultipleMediaResult = [
+          XFile.fromData(
+            mimeType: 'image/jpeg',
+            utf8.encode('asdf'),
+            name: 'image.jpg',
+            length: 12345,
+            path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg'),
+          XFile.fromData(
+            mimeType: 'image/gif',
+            utf8.encode('asdf'),
+            name: 'test.gif',
+            length: 12345,
+            path: '/private/var/mobile/Containers/Data/Application/foo/tmp/test.gif'),
+        ];
+        connection.prepare(delay: const Duration(seconds: 1), json:
+          UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+        connection.prepare(delay: const Duration(seconds: 1), json:
+          UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif').toJson());
+
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        final call = testBinding.takePickMultipleMediaCalls().single;
+        check(call.requestFullMetadata).equals(false);
+
+        checkNoDialog(tester);
+
+        check(controller!.content.text).equals(
+          'see image: [Uploading image.jpg…]()\n\n[Uploading test.gif…]()\n\n');
+        checkAppearsLoading(tester, true);
+
+        await tester.pump(const Duration(seconds: 1));
+        check(controller!.content.text).equals(
+          'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[Uploading test.gif…]()\n\n');
+        checkAppearsLoading(tester, true);
+
+        await tester.pump(const Duration(seconds: 1));
+        check(controller!.content.text).equals(
+          'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[test.gif](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif)\n\n');
+        checkAppearsLoading(tester, false);
+      });
+
       // TODO test what happens when selecting/uploading fails
-    });
+    },
+    // This test fails on Windows because [XFile.name] splits on
+    // [Platform.pathSeparator], corresponding to the actual host platform
+    // the test is running on, instead of the path separator for the
+    // target platform the test is simulating.
+    // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+    skip: Platform.isWindows);
 
     group('attach from camera', () {
       testWidgets('success', (tester) async {
@@ -1235,10 +1285,6 @@ void main() {
 
       // TODO test what happens when capturing/uploading fails
     },
-    // This test fails on Windows because [XFile.name] splits on
-    // [Platform.pathSeparator], corresponding to the actual host platform
-    // the test is running on, instead of the path separator for the
-    // target platform the test is simulating.
     // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
     skip: Platform.isWindows);
 
@@ -1252,12 +1298,12 @@ void main() {
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)]);
 
-      testBinding.pickFilesResult = FilePickerResult([PlatformFile(
-        readStream: Stream.fromIterable(['asdf'.codeUnits]),
+      testBinding.pickMultipleMediaResult = [XFile.fromData(
+        utf8.encode('asdf'),
         path: '/some/path/한국어 파일.txt',
         name: '한국어 파일.txt',
-        size: 4,
-      )]);
+        length: 4,
+      )];
       connection.prepare(json: UploadFileResult(url:
         '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt').toJson());
       await tester.tap(find.byIcon(ZulipIcons.image));
@@ -1269,7 +1315,9 @@ void main() {
       check(controller!.content.text)
         .equals('[한국어 파일.txt]('
           '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt)\n\n');
-    });
+    },
+    // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+    skip: Platform.isWindows);
 
     group('attach from keyboard', () {
       // This is adapted from:
