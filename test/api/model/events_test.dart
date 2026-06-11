@@ -153,6 +153,22 @@ void main() {
     }) as SubscriptionUpdateEvent).value.equals(0xff123456);
   });
 
+  test('user_topic: handle unknown value', () {
+    final json = {
+      'id': 1,
+      'type': 'user_topic',
+      'stream_id': 1,
+      'topic_name': 'topic',
+      'last_updated': 1781195876,
+      'visibility_policy': 1,
+    };
+
+    check(UserTopicEvent.fromJson(json).visibilityPolicy).equals(.muted);
+
+    json['visibility_policy'] = -100;
+    check(UserTopicEvent.fromJson(json).visibilityPolicy).equals(.unknown);
+  });
+
   test('message: move flags into message object', () {
     final message = eg.streamMessage();
     MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({
