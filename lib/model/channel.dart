@@ -111,14 +111,14 @@ mixin ChannelStore on UserStore {
 
   static bool _isTopicVisibleInStream(UserTopicVisibilityPolicy policy) {
     switch (policy) {
-      case UserTopicVisibilityPolicy.none:
+      case .none:
         return true;
-      case UserTopicVisibilityPolicy.muted:
+      case .muted:
         return false;
-      case UserTopicVisibilityPolicy.unmuted:
-      case UserTopicVisibilityPolicy.followed:
+      case .unmuted:
+      case .followed:
         return true;
-      case UserTopicVisibilityPolicy.unknown:
+      case .unknown:
         assert(false);
         return true;
     }
@@ -148,18 +148,18 @@ mixin ChannelStore on UserStore {
 
   bool _isTopicVisible(int streamId, UserTopicVisibilityPolicy policy) {
     switch (policy) {
-      case UserTopicVisibilityPolicy.none:
+      case .none:
         switch (subscriptions[streamId]?.isMuted) {
           case false: return true;
           case true:  return false;
           case null:  return false; // not subscribed; treat like muted
         }
-      case UserTopicVisibilityPolicy.muted:
+      case .muted:
         return false;
-      case UserTopicVisibilityPolicy.unmuted:
-      case UserTopicVisibilityPolicy.followed:
+      case .unmuted:
+      case .followed:
         return true;
-      case UserTopicVisibilityPolicy.unknown:
+      case .unknown:
         assert(false);
         return true;
     }
@@ -493,11 +493,11 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
 
   @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) {
-    return topicVisibility[streamId]?[topic] ?? UserTopicVisibilityPolicy.none;
+    return topicVisibility[streamId]?[topic] ?? .none;
   }
 
   static bool _warnInvalidVisibilityPolicy(UserTopicVisibilityPolicy visibilityPolicy) {
-    if (visibilityPolicy == UserTopicVisibilityPolicy.unknown) {
+    if (visibilityPolicy == .unknown) {
       // Not a value we expect. Keep it out of our data structures. // TODO(log)
       return true;
     }
@@ -683,9 +683,9 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
   void handleUserTopicEvent(UserTopicEvent event) {
     UserTopicVisibilityPolicy visibilityPolicy = event.visibilityPolicy;
     if (_warnInvalidVisibilityPolicy(visibilityPolicy)) {
-      visibilityPolicy = UserTopicVisibilityPolicy.none;
+      visibilityPolicy = .none;
     }
-    if (visibilityPolicy == UserTopicVisibilityPolicy.none) {
+    if (visibilityPolicy == .none) {
       // This is the "zero value" for this type, which our data structure
       // represents by leaving the topic out entirely.
       final forStream = topicVisibility[event.streamId];

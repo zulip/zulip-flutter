@@ -195,7 +195,7 @@ void main() {
       await store.addSubscription(eg.subscription(stream1));
       await store.addSubscription(eg.subscription(stream2));
       await store.addSubscription(eg.subscription(stream3, isMuted: true));
-      await store.setUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream1, 'a', .muted);
       await store.setMutedUsers([eg.thirdUser.userId]);
       fillWithMessages([
         eg.streamMessage(stream: stream1, topic: 'a', flags: []),
@@ -214,8 +214,8 @@ void main() {
       prepare();
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream));
-      await store.setUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
-      await store.setUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'a', .unmuted);
+      await store.setUserTopic(stream, 'c', .muted);
       fillWithMessages([
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
         eg.streamMessage(stream: stream, topic: 'A', flags: []),
@@ -313,7 +313,7 @@ void main() {
         final channel4 = eg.stream(); // unmuted, containing muted topic
         await store.addStream(channel4);
         await store.addSubscription(eg.subscription(channel4, isMuted: false));
-        await store.setUserTopic(channel4, 'a', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(channel4, 'a', .muted);
 
         fillWithMessages([
           eg.streamMessage(stream: channel1,             flags: [MessageFlag.mentioned]),

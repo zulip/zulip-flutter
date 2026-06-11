@@ -251,15 +251,15 @@ IconData iconDataForStream(ZulipStream stream) {
 
 IconData? iconDataForTopicVisibilityPolicy(UserTopicVisibilityPolicy policy) {
   switch (policy) {
-    case UserTopicVisibilityPolicy.muted:
+    case .muted:
       return ZulipIcons.mute;
-    case UserTopicVisibilityPolicy.unmuted:
+    case .unmuted:
       return ZulipIcons.unmute;
-    case UserTopicVisibilityPolicy.followed:
+    case .followed:
       return ZulipIcons.follow;
-    case UserTopicVisibilityPolicy.none:
+    case .none:
       return null;
-    case UserTopicVisibilityPolicy.unknown:
+    case .unknown:
       // This case is unreachable (or should be) because we keep `unknown` out
       // of our data structures. We plan to remove the `unknown` case in #1074.
       assert(false);

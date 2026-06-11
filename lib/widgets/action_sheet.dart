@@ -785,23 +785,23 @@ void showTopicActionSheet(BuildContext context, {
   } else if (!subscription.isMuted) {
     // Channel is subscribed and not muted.
     switch (visibilityPolicy) {
-      case UserTopicVisibilityPolicy.muted:
-        visibilityOptions.add(UserTopicVisibilityPolicy.none);
+      case .muted:
+        visibilityOptions.add(.none);
         if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
+          visibilityOptions.add(.followed);
         }
-      case UserTopicVisibilityPolicy.none:
-      case UserTopicVisibilityPolicy.unmuted:
-        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
+      case .none:
+      case .unmuted:
+        visibilityOptions.add(.muted);
         if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
+          visibilityOptions.add(.followed);
         }
-      case UserTopicVisibilityPolicy.followed:
-        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
+      case .followed:
+        visibilityOptions.add(.muted);
         if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.none);
+          visibilityOptions.add(.none);
         }
-      case UserTopicVisibilityPolicy.unknown:
+      case .unknown:
         // TODO(#1074): This should be unreachable as we keep `unknown` out of
         //   our data structures.
         assert(false);
@@ -810,23 +810,23 @@ void showTopicActionSheet(BuildContext context, {
     // Channel is muted.
     if (supportsUnmutingTopics) {
       switch (visibilityPolicy) {
-        case UserTopicVisibilityPolicy.none:
-        case UserTopicVisibilityPolicy.muted:
-          visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
+        case .none:
+        case .muted:
+          visibilityOptions.add(.unmuted);
           if (supportsFollowingTopics) {
-            visibilityOptions.add(UserTopicVisibilityPolicy.followed);
+            visibilityOptions.add(.followed);
           }
-        case UserTopicVisibilityPolicy.unmuted:
-          visibilityOptions.add(UserTopicVisibilityPolicy.muted);
+        case .unmuted:
+          visibilityOptions.add(.muted);
           if (supportsFollowingTopics) {
-            visibilityOptions.add(UserTopicVisibilityPolicy.followed);
+            visibilityOptions.add(.followed);
           }
-        case UserTopicVisibilityPolicy.followed:
-          visibilityOptions.add(UserTopicVisibilityPolicy.muted);
+        case .followed:
+          visibilityOptions.add(.muted);
           if (supportsFollowingTopics) {
-            visibilityOptions.add(UserTopicVisibilityPolicy.none);
+            visibilityOptions.add(.none);
           }
-        case UserTopicVisibilityPolicy.unknown:
+        case .unknown:
           // TODO(#1074): This should be unreachable as we keep `unknown` out of
           //   our data structures.
           assert(false);
@@ -892,15 +892,15 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
 
   @override IconData get icon {
     switch (newVisibilityPolicy) {
-      case UserTopicVisibilityPolicy.none:
+      case .none:
         return ZulipIcons.inherit;
-      case UserTopicVisibilityPolicy.muted:
+      case .muted:
         return ZulipIcons.mute;
-      case UserTopicVisibilityPolicy.unmuted:
+      case .unmuted:
         return ZulipIcons.unmute;
-      case UserTopicVisibilityPolicy.followed:
+      case .followed:
         return ZulipIcons.follow;
-      case UserTopicVisibilityPolicy.unknown:
+      case .unknown:
         // TODO(#1074): This should be unreachable as we keep `unknown` out of
         //   our data structures.
         assert(false);
@@ -911,19 +911,19 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
   @override
   String label(ZulipLocalizations zulipLocalizations) {
     switch ((currentVisibilityPolicy, newVisibilityPolicy)) {
-      case (UserTopicVisibilityPolicy.muted, UserTopicVisibilityPolicy.none):
+      case (.muted, .none):
         return zulipLocalizations.actionSheetOptionUnmuteTopic;
-      case (UserTopicVisibilityPolicy.followed, UserTopicVisibilityPolicy.none):
+      case (.followed, .none):
         return zulipLocalizations.actionSheetOptionUnfollowTopic;
 
-      case (_, UserTopicVisibilityPolicy.muted):
+      case (_, .muted):
         return zulipLocalizations.actionSheetOptionMuteTopic;
-      case (_, UserTopicVisibilityPolicy.unmuted):
+      case (_, .unmuted):
         return zulipLocalizations.actionSheetOptionUnmuteTopic;
-      case (_, UserTopicVisibilityPolicy.followed):
+      case (_, .followed):
         return zulipLocalizations.actionSheetOptionFollowTopic;
 
-      case (_, UserTopicVisibilityPolicy.none):
+      case (_, .none):
         // This is unexpected because `UserTopicVisibilityPolicy.muted` and
         // `UserTopicVisibilityPolicy.followed` (handled in separate `case`'s)
         // are the only expected `currentVisibilityPolicy`
@@ -931,7 +931,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
         assert(false);
         return '';
 
-      case (_, UserTopicVisibilityPolicy.unknown):
+      case (_, .unknown):
         // This case is unreachable (or should be) because we keep `unknown` out
         // of our data structures. We plan to remove the `unknown` case in #1074.
         assert(false);
@@ -941,19 +941,19 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
 
   String _errorTitle(ZulipLocalizations zulipLocalizations) {
     switch ((currentVisibilityPolicy, newVisibilityPolicy)) {
-      case (UserTopicVisibilityPolicy.muted, UserTopicVisibilityPolicy.none):
+      case (.muted, .none):
         return zulipLocalizations.errorUnmuteTopicFailed;
-      case (UserTopicVisibilityPolicy.followed, UserTopicVisibilityPolicy.none):
+      case (.followed, .none):
         return zulipLocalizations.errorUnfollowTopicFailed;
 
-      case (_, UserTopicVisibilityPolicy.muted):
+      case (_, .muted):
         return zulipLocalizations.errorMuteTopicFailed;
-      case (_, UserTopicVisibilityPolicy.unmuted):
+      case (_, .unmuted):
         return zulipLocalizations.errorUnmuteTopicFailed;
-      case (_, UserTopicVisibilityPolicy.followed):
+      case (_, .followed):
         return zulipLocalizations.errorFollowTopicFailed;
 
-      case (_, UserTopicVisibilityPolicy.none):
+      case (_, .none):
         // This is unexpected because `UserTopicVisibilityPolicy.muted` and
         // `UserTopicVisibilityPolicy.followed` (handled in separate `case`'s)
         // are the only expected `currentVisibilityPolicy`
@@ -961,7 +961,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
         assert(false);
         return '';
 
-      case (_, UserTopicVisibilityPolicy.unknown):
+      case (_, .unknown):
         // This case is unreachable (or should be) because we keep `unknown` out
         // of our data structures. We plan to remove the `unknown` case in #1074.
         assert(false);
