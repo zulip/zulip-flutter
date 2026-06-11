@@ -542,11 +542,11 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
           stream.isWebPublic = event.isWebPublic!;
         }
 
-        if (event.property == null) {
+        if (event.property == .unknown) {
           // unrecognized property; do nothing
           return;
         }
-        switch (event.property!) {
+        switch (event.property) {
           case .name:
             final streamName = stream.name;
             assert(streamName == event.name);
@@ -584,6 +584,9 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
             stream.isRecentlyActive = event.value as bool;
           case .streamWeeklyTraffic:
             stream.streamWeeklyTraffic = event.value as int?;
+          case .unknown:
+            // Shouldn't reach here because of the early return.
+            assert(false);
         }
     }
   }
