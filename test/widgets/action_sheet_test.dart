@@ -1070,52 +1070,52 @@ void main() {
       testWidgets('unmuteInMutedChannel', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: true,
-          visibilityPolicy: UserTopicVisibilityPolicy.none);
+          visibilityPolicy: .none);
         await tester.tap(unmute);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.unmuted);
+        checkUpdateUserTopicRequest(.unmuted);
       });
 
       testWidgets('unmute', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.muted);
+          visibilityPolicy: .muted);
         await tester.tap(unmute);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.none);
+        checkUpdateUserTopicRequest(.none);
       });
 
       testWidgets('mute', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.none);
+          visibilityPolicy: .none);
         await tester.tap(mute);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.muted);
+        checkUpdateUserTopicRequest(.muted);
       });
 
       testWidgets('follow', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.none);
+          visibilityPolicy: .none);
         await tester.tap(follow);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.followed);
+        checkUpdateUserTopicRequest(.followed);
       });
 
       testWidgets('unfollow', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.followed);
+          visibilityPolicy: .followed);
         await tester.tap(unfollow);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.none);
+        checkUpdateUserTopicRequest(.none);
       });
 
       testWidgets('request fails with an error dialog', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.followed);
+          visibilityPolicy: .followed);
 
         connection.prepare(apiException: eg.apiBadRequest());
         await tester.tap(unfollow);
@@ -1125,18 +1125,18 @@ void main() {
       });
 
       group('check expected buttons', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute, follow]),
-          (false, UserTopicVisibilityPolicy.none,     [mute, follow]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute, follow]),
-          (false, UserTopicVisibilityPolicy.followed, [mute, unfollow]),
+        final testCases = <(bool?, UserTopicVisibilityPolicy, List<Finder>)>[
+          (false, .muted,    [unmute, follow]),
+          (false, .none,     [mute, follow]),
+          (false, .unmuted,  [mute, follow]),
+          (false, .followed, [mute, unfollow]),
 
-          (true,  UserTopicVisibilityPolicy.muted,    [unmute, follow]),
-          (true,  UserTopicVisibilityPolicy.none,     [unmute, follow]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  [mute, follow]),
-          (true,  UserTopicVisibilityPolicy.followed, [mute, unfollow]),
+          (true,  .muted,    [unmute, follow]),
+          (true,  .none,     [unmute, follow]),
+          (true,  .unmuted,  [mute, follow]),
+          (true,  .followed, [mute, unfollow]),
 
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+          (null,  .none,     []),
         ];
 
         for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
@@ -1151,18 +1151,18 @@ void main() {
       });
 
       group('legacy: follow is unsupported when FL < 219', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
+        final testCases = <(bool?, UserTopicVisibilityPolicy, List<Finder>)>[
+          (false, .muted,    [unmute]),
+          (false, .none,     [mute]),
+          (false, .unmuted,  [mute]),
+          (false, .followed, [mute]),
 
-          (true,  UserTopicVisibilityPolicy.muted,    [unmute]),
-          (true,  UserTopicVisibilityPolicy.none,     [unmute]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (true,  UserTopicVisibilityPolicy.followed, [mute]),
+          (true,  .muted,    [unmute]),
+          (true,  .none,     [unmute]),
+          (true,  .unmuted,  [mute]),
+          (true,  .followed, [mute]),
 
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+          (null,  .none,     []),
         ];
 
         for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
@@ -1178,18 +1178,18 @@ void main() {
       });
 
       group('legacy: unmute is unsupported when FL < 170', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
+        final testCases = <(bool?, UserTopicVisibilityPolicy, List<Finder>)>[
+          (false, .muted,    [unmute]),
+          (false, .none,     [mute]),
+          (false, .unmuted,  [mute]),
+          (false, .followed, [mute]),
 
-          (true,  UserTopicVisibilityPolicy.muted,    <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.followed, <Finder>[]),
+          (true,  .muted,    []),
+          (true,  .none,     []),
+          (true,  .unmuted,  []),
+          (true,  .followed, []),
 
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+          (null,  .none,     []),
         ];
 
         for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
