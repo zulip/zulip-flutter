@@ -1296,7 +1296,7 @@ void main() {
       });
 
       testWidgets('MentionsNarrow: show dialog', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
+        final message = eg.streamMessage(flags: [.mentioned]);
         await showsConfirmDialog(tester,
           narrow: MentionsNarrow(),
           messages: [message],
@@ -1353,12 +1353,12 @@ void main() {
     });
 
     testWidgets('from read to unread', (tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      final message = eg.streamMessage(flags: [.read]);
       await setupMessageListPage(tester, messages: [message]);
       check(isMarkAsReadButtonVisible(tester)).isFalse();
 
       await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
-        MessageFlag.read, [message]));
+        .read, [message]));
       await tester.pumpAndSettle();
       check(isMarkAsReadButtonVisible(tester)).isTrue();
     });
@@ -1373,7 +1373,7 @@ void main() {
 
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [message.id],
         all: false,
       ));
@@ -1394,7 +1394,7 @@ void main() {
       // to notify listeners.
       // And we check that the button responds by disappearing.
 
-      final message = eg.streamMessage(id: 100, flags: [MessageFlag.mentioned]);
+      final message = eg.streamMessage(id: 100, flags: [.mentioned]);
       final unreadMsgs = eg.unreadMsgs(
         channels: [
           UnreadChannelSnapshot(
@@ -1411,7 +1411,7 @@ void main() {
         // omit `message`; if present, MessageListView would notify listeners
         messages: List.generate(300, (i) =>
           eg.streamMessage(id: 950 + i, sender: eg.selfUser,
-            flags: [MessageFlag.read, MessageFlag.mentioned])),
+            flags: [.read, .mentioned])),
         foundOldest: false);
       check(isMarkAsReadButtonVisible(tester)).isTrue();
 
@@ -1437,7 +1437,7 @@ void main() {
 
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [message.id],
         all: false,
       ));
@@ -2516,9 +2516,9 @@ void main() {
       doTest(expected: false, DmNarrow.withUsers([], selfUserId: eg.selfUser.userId),
         mkMessage: () => eg.dmMessage(from: eg.selfUser, to: []));
       doTest(expected: true, StarredMessagesNarrow(),
-        mkMessage: () => eg.streamMessage(flags: [MessageFlag.starred]));
+        mkMessage: () => eg.streamMessage(flags: [.starred]));
       doTest(expected: true, MentionsNarrow(),
-        mkMessage: () => eg.streamMessage(flags: [MessageFlag.mentioned]));
+        mkMessage: () => eg.streamMessage(flags: [.mentioned]));
     });
   });
 
@@ -2689,7 +2689,7 @@ void main() {
     });
 
     testWidgets('starred message', (tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      final message = eg.streamMessage(flags: [.starred]);
       await setupMessageListPage(tester,
         messages: [message], starredMessages: [message.id]);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).length.equals(1);
@@ -2818,14 +2818,14 @@ void main() {
     }
 
     testWidgets('from read to unread', (tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      final message = eg.streamMessage(flags: [.read]);
       await setupMessageListPage(tester, messages: [message]);
       check(getAnimation(tester, message.id))
         ..value.equals(0.0)
         ..status.equals(AnimationStatus.dismissed);
 
       await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
-        MessageFlag.read, [message]));
+        .read, [message]));
       await tester.pump(); // process handleEvent
       check(getAnimation(tester, message.id))
         ..value.equals(0.0)
@@ -2846,7 +2846,7 @@ void main() {
 
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [message.id],
         all: false,
       ));
@@ -2874,7 +2874,7 @@ void main() {
 
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 0,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [message.id],
         all: false,
       ));
@@ -2891,7 +2891,7 @@ void main() {
         ..status.equals(AnimationStatus.forward);
 
       // introduce new message
-      final newMessage = eg.streamMessage(flags:[MessageFlag.read]);
+      final newMessage = eg.streamMessage(flags:[.read]);
       await store.addMessage(newMessage);
       await tester.pump(); // process handleEvent
       check(find.byType(MessageItem)).findsExactly(2);

@@ -179,7 +179,7 @@ void main() {
     }) as MessageEvent;
     check(mkEvent(message.flags)).message.jsonEquals(message);
     check(mkEvent([])).message.flags.deepEquals([]);
-    check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
+    check(mkEvent([.read])).message.flags.deepEquals(<MessageFlag>[.read]);
   });
 
   group('update_message', () {

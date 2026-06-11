@@ -1354,18 +1354,18 @@ enum MessageFlag {
 
   bool get isMentionFlag {
     switch (this) {
-      case MessageFlag.mentioned:
-      case MessageFlag.topicWildcardMentioned:
-      case MessageFlag.streamWildcardMentioned:
-      case MessageFlag.wildcardMentioned:
+      case .mentioned:
+      case .topicWildcardMentioned:
+      case .streamWildcardMentioned:
+      case .wildcardMentioned:
         return true;
 
-      case MessageFlag.read:
-      case MessageFlag.starred:
-      case MessageFlag.collapsed:
-      case MessageFlag.hasAlertWord:
-      case MessageFlag.historical:
-      case MessageFlag.unknown:
+      case .read:
+      case .starred:
+      case .collapsed:
+      case .hasAlertWord:
+      case .historical:
+      case .unknown:
         return false;
     }
   }

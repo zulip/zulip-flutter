@@ -1243,10 +1243,10 @@ void main() {
       await prepare(narrow: MentionsNarrow(), users: users);
       await prepareMessages(foundOldest: true, messages: [
         eg.dmMessage(id: 1, from: eg.selfUser, to: [user1],
-          flags: [MessageFlag.mentioned]),
+          flags: [.mentioned]),
         eg.dmMessage(id: 2, from: eg.selfUser, to: [user2],
-          flags: [MessageFlag.mentioned]),
-        eg.streamMessage(id: 3, flags: [MessageFlag.mentioned]),
+          flags: [.mentioned]),
+        eg.streamMessage(id: 3, flags: [.mentioned]),
       ]);
       checkHasMessageIds([1, 2, 3]);
 
@@ -1262,10 +1262,10 @@ void main() {
         users: users);
       await prepareMessages(foundOldest: true, messages: [
         eg.dmMessage(id: 1, from: eg.selfUser, to: [user1],
-          flags: [MessageFlag.starred]),
+          flags: [.starred]),
         eg.dmMessage(id: 2, from: eg.selfUser, to: [user2],
-          flags: [MessageFlag.starred]),
-        eg.streamMessage(id: 3, flags: [MessageFlag.starred]),
+          flags: [.starred]),
+        eg.streamMessage(id: 3, flags: [.starred]),
       ]);
       checkHasMessageIds([1, 2, 3]);
 
@@ -2258,12 +2258,12 @@ void main() {
       await checkApplied(
         mkEvent: (message) => UpdateMessageFlagsAddEvent(
           id: 1,
-          flag: MessageFlag.hasAlertWord,
+          flag: .hasAlertWord,
           messages: [message.id],
           all: false,
         ),
         doCheckMessageAfterFetch:
-          (messageSubject) => messageSubject.flags.contains(MessageFlag.hasAlertWord),
+          (messageSubject) => messageSubject.flags.contains(.hasAlertWord),
       );
     });
   });
@@ -2472,15 +2472,15 @@ void main() {
 
       List<Message> getMessages(int startingId) => [
         eg.streamMessage(id: startingId,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.topicWildcardMentioned]),
+          stream: stream, topic: mutedTopic, flags: [.topicWildcardMentioned]),
         eg.streamMessage(id: startingId + 1,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.streamWildcardMentioned]),
+          stream: stream, topic: mutedTopic, flags: [.streamWildcardMentioned]),
         eg.streamMessage(id: startingId + 2,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.wildcardMentioned]),
+          stream: stream, topic: mutedTopic, flags: [.wildcardMentioned]),
         eg.streamMessage(id: startingId + 3,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.mentioned]),
+          stream: stream, topic: mutedTopic, flags: [.mentioned]),
         eg.dmMessage(id: startingId + 4,
-          from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+          from: eg.otherUser, to: [eg.selfUser], flags: [.mentioned]),
       ];
 
       // Check filtering on fetchInitial…
@@ -2517,9 +2517,9 @@ void main() {
 
       List<Message> getMessages(int startingId) => [
         eg.streamMessage(id: startingId,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.starred]),
+          stream: stream, topic: mutedTopic, flags: [.starred]),
         eg.dmMessage(id: startingId + 1,
-          from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.starred]),
+          from: eg.otherUser, to: [eg.selfUser], flags: [.starred]),
       ];
 
       // Check filtering on fetchInitial…
@@ -2991,13 +2991,13 @@ void main() {
           sender: sender,
           stream: channel,
           topic: topic,
-          flags: [MessageFlag.starred, MessageFlag.mentioned],
+          flags: [.starred, .mentioned],
         );
         final message2 = eg.streamMessage(
           sender: sender,
           stream: channel,
           topic: topic,
-          flags: [MessageFlag.starred, MessageFlag.mentioned],
+          flags: [.starred, .mentioned],
         );
 
         await prepare(

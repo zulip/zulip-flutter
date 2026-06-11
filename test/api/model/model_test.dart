@@ -251,13 +251,13 @@ void main() {
         (deepToJson(eg.streamMessage()) as Map<String, dynamic>)
           ..['flags'] = ['read', 'something_unknown'],
       );
-      check(m1).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
+      check(m1).flags.deepEquals(<MessageFlag>[.read, .unknown]);
 
       final m2 = Message.fromJson(
         (deepToJson(eg.dmMessage(from: eg.selfUser, to: [eg.otherUser])) as Map<String, dynamic>)
           ..['flags'] = ['read', 'something_unknown'],
       );
-      check(m2).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
+      check(m2).flags.deepEquals(<MessageFlag>[.read, .unknown]);
     });
 
     test('require displayRecipient on parse', () {
