@@ -1489,7 +1489,14 @@ class DmMessage extends Message<DmConversation> {
 enum MessageEditState {
   none,
   edited,
-  moved;
+  moved,
+
+  // We don't have an unknown value. This enum is computed locally from
+  // message edit_history rather than parsed from a server-provided enum value,
+  // so there is no possibility of receiving an unrecognized value.
+  // TODO: Reconsider this if the server ever starts sending the values.
+  // unknown,
+  ;
 
   /// Whether the given topic move reflected either a "resolve topic"
   /// or "unresolve topic" operation.
