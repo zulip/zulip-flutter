@@ -363,14 +363,14 @@ void main() {
     group('Edit history is absent', () {
       test('Message with no evidence of an edit history -> none', () {
         check(Message.fromJson(baseJson()..['edit_history'] = null))
-          .editState.equals(MessageEditState.none);
+          .editState.equals(.none);
       });
 
       test('Message without edit history has last edit timestamp -> edited', () {
         check(Message.fromJson(baseJson()
             ..['edit_history'] = null
             ..['last_edit_timestamp'] = 1678139636))
-          .editState.equals(MessageEditState.edited);
+          .editState.equals(.edited);
       });
     });
 
@@ -384,63 +384,63 @@ void main() {
         check(Message.fromJson(baseJson()
             ..['edit_history'] = [{'prev_stream': 5, 'stream': 7}]
             ..['last_edit_timestamp'] = 1678139636))
-          .editState.equals(MessageEditState.moved);
+          .editState.equals(.moved);
       });
 
       test('Channel change only -> moved', () {
-        checkEditState(MessageEditState.moved,
+        checkEditState(.moved,
           [{'prev_stream': 5, 'stream': 7}]);
       });
 
       test('Topic name change only -> moved', () {
-        checkEditState(MessageEditState.moved,
+        checkEditState(.moved,
           [{'prev_topic': 'old_topic', 'topic': 'new_topic'}]);
       });
 
       test('Both topic and content changed -> edited', () {
-        checkEditState(MessageEditState.edited, [
+        checkEditState(.edited, [
           {'prev_topic': 'old_topic', 'topic': 'new_topic'},
           {'prev_content': 'old_content'},
         ]);
-        checkEditState(MessageEditState.edited, [
+        checkEditState(.edited, [
           {'prev_content': 'old_content'},
           {'prev_topic': 'old_topic', 'topic': 'new_topic'},
         ]);
       });
 
       test('Both topic and content changed in a single edit -> edited', () {
-        checkEditState(MessageEditState.edited,
+        checkEditState(.edited,
           [{'prev_topic': 'old_topic', 'topic': 'new_topic', 'prev_content': 'old_content'}]);
       });
 
       test('Content change only -> edited', () {
-        checkEditState(MessageEditState.edited,
+        checkEditState(.edited,
           [{'prev_content': 'old_content'}]);
       });
     });
 
     group('topic resolved in edit history', () {
       test('Topic was only resolved -> none', () {
-        checkEditState(MessageEditState.none,
+        checkEditState(.none,
           [{'prev_topic': 'old_topic', 'topic': '✔ old_topic'}]);
       });
 
       test('Topic was resolved but the content changed in the history -> edited', () {
-        checkEditState(MessageEditState.edited, [
+        checkEditState(.edited, [
           {'prev_topic': 'old_topic', 'topic': '✔ old_topic'},
           {'prev_content': 'old_content'},
         ]);
       });
 
       test('Topic was resolved but it also moved in the history -> moved', () {
-        checkEditState(MessageEditState.moved, [
+        checkEditState(.moved, [
           {'prev_topic': 'old_topic', 'topic': 'new_topic'},
           {'prev_topic': '✔ old_topic', 'topic': 'old_topic'},
         ]);
       });
 
       test('Topic was moved but it also was resolved in the history -> moved', () {
-        checkEditState(MessageEditState.moved, [
+        checkEditState(.moved, [
           {'prev_topic': '✔ old_topic', 'topic': 'old_topic'},
           {'prev_topic': 'old_topic', 'topic': 'new_topic'},
         ]);
@@ -453,7 +453,7 @@ void main() {
       // See comment on the implementation, and discussion:
       //   https://github.com/zulip/zulip-flutter/pull/1242#discussion_r1917592157
       test('Unresolving topic with a weird prefix -> moved', () {
-          checkEditState(MessageEditState.moved,
+          checkEditState(.moved,
             [{'prev_topic': '✔ ✔old_topic', 'topic': 'old_topic'}]);
       });
 
@@ -463,7 +463,7 @@ void main() {
       // edit/move-topic UI. A "moved" marker seems like a fine response
       // in that circumstance.
       test('Resolving topic with a weird prefix -> moved', () {
-          checkEditState(MessageEditState.moved,
+          checkEditState(.moved,
             [{'prev_topic': 'old_topic', 'topic': '✔ ✔old_topic'}]);
       });
 
@@ -472,7 +472,7 @@ void main() {
       // Here the computation burden would have come from calling
       // [TopicName.canonicalize].
       test('Topic was resolved but with changed case -> moved', () {
-        checkEditState(MessageEditState.moved,
+        checkEditState(.moved,
           [{'prev_topic': 'old ToPiC', 'topic': '✔ OLD tOpIc'}]);
       });
     });
