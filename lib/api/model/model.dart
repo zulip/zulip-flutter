@@ -1564,9 +1564,7 @@ enum MessageEditState {
     final editHistory = json['edit_history'] as List<dynamic>?;
     final lastEditTimestamp = json['last_edit_timestamp'] as int?;
     if (editHistory == null) {
-      return (lastEditTimestamp != null)
-        ? MessageEditState.edited
-        : MessageEditState.none;
+      return lastEditTimestamp != null ? .edited : .none;
     }
 
     // Edit history should never be empty whenever it is present
@@ -1575,7 +1573,7 @@ enum MessageEditState {
     bool hasMoved = false;
     for (final entry in editHistory) {
       if (entry['prev_content'] != null) {
-        return MessageEditState.edited;
+        return .edited;
       }
 
       if (entry['prev_stream'] != null) {
@@ -1591,10 +1589,10 @@ enum MessageEditState {
       }
     }
 
-    if (hasMoved) return MessageEditState.moved;
+    if (hasMoved) return .moved;
 
     // This can happen when a topic is resolved but nothing else has been edited
-    return MessageEditState.none;
+    return .none;
   }
 }
 

@@ -683,7 +683,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     if (event.origContent != null) {
       // The message is guaranteed to be edited.
       // See also: https://zulip.com/api/get-events#update_message
-      message.editState = MessageEditState.edited;
+      message.editState = .edited;
 
       // Clear the edit-message progress feedback.
       // This makes a rare bug where we might clear the feedback too early,
@@ -744,9 +744,8 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         message.conversation.topic = newTopic;
       }
 
-      if (!wasResolveOrUnresolve
-          && message.editState == MessageEditState.none) {
-        message.editState = MessageEditState.moved;
+      if (!wasResolveOrUnresolve && message.editState == .none) {
+        message.editState = .moved;
       }
     }
 

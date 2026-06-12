@@ -1555,7 +1555,7 @@ void main() {
         ..lastEditTimestamp.isNull()
         ..flags.not((it) => it.deepEquals(updateEvent.flags))
         ..isMeMessage.not((it) => it.equals(updateEvent.isMeMessage!))
-        ..editState.equals(MessageEditState.none);
+        ..editState.equals(.none);
 
       await store.handleEvent(updateEvent);
       checkNotifiedOnce();
@@ -1565,7 +1565,7 @@ void main() {
         ..lastEditTimestamp.equals(updateEvent.editTimestamp)
         ..flags.equals(updateEvent.flags)
         ..isMeMessage.equals(updateEvent.isMeMessage!)
-        ..editState.equals(MessageEditState.edited);
+        ..editState.equals(.edited);
     });
 
     test('ignore when message unknown', () async {
@@ -1629,8 +1629,8 @@ void main() {
         await prepareOrigMessages(origTopic: 'origTopic');
         await store.handleEvent(eg.updateMessageEditEvent(origMessages[0]));
         checkNotifiedOnce();
-        check(store).messages[origMessages[0].id].editState.equals(MessageEditState.edited);
-        check(store).messages[origMessages[1].id].editState.equals(MessageEditState.none);
+        check(store).messages[origMessages[0].id].editState.equals(.edited);
+        check(store).messages[origMessages[1].id].editState.equals(.none);
       });
 
       test('message topic moved update', () async {
@@ -1642,7 +1642,7 @@ void main() {
         checkNotified(count: 2);
         check(store).messages.values.every(((message) =>
           message.isA<StreamMessage>()
-            ..editState.equals(MessageEditState.moved)
+            ..editState.equals(.moved)
             ..displayRecipient.equals(originalDisplayRecipient)));
       });
 
@@ -1652,7 +1652,7 @@ void main() {
           origMessages: origMessages,
           newTopicStr: '✔ new topic'));
         checkNotified(count: 2);
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
+        check(store).messages.values.every(((message) => message.editState.equals(.none)));
       });
 
       test('message topic unresolved update', () async {
@@ -1661,7 +1661,7 @@ void main() {
           origMessages: origMessages,
           newTopicStr: 'new topic'));
         checkNotified(count: 2);
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
+        check(store).messages.values.every(((message) => message.editState.equals(.none)));
       });
 
       test('message topic both resolved and edited update', () async {
@@ -1670,7 +1670,7 @@ void main() {
           origMessages: origMessages,
           newTopicStr: '✔ new topic 2'));
         checkNotified(count: 2);
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
+        check(store).messages.values.every(((message) => message.editState.equals(.moved)));
       });
 
       test('message topic both unresolved and edited update', () async {
@@ -1679,7 +1679,7 @@ void main() {
           origMessages: origMessages,
           newTopicStr: 'new topic 2'));
         checkNotified(count: 2);
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
+        check(store).messages.values.every(((message) => message.editState.equals(.moved)));
       });
 
       test('message stream moved without topic change', () async {
@@ -1690,7 +1690,7 @@ void main() {
         checkNotified(count: 2);
         check(store).messages.values.every(((message) =>
           message.isA<StreamMessage>()
-            ..editState.equals(MessageEditState.moved)
+            ..editState.equals(.moved)
             ..displayRecipient.equals(null)));
       });
 
@@ -1701,8 +1701,8 @@ void main() {
           newStreamId: 20,
           newContent: 'new content'));
         checkNotified(count: 2);
-        check(store).messages[origMessages[0].id].editState.equals(MessageEditState.edited);
-        check(store).messages[origMessages[1].id].editState.equals(MessageEditState.moved);
+        check(store).messages[origMessages[0].id].editState.equals(.edited);
+        check(store).messages[origMessages[1].id].editState.equals(.moved);
       });
     });
   });
