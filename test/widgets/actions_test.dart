@@ -73,7 +73,7 @@ void main() {
         final future = ZulipAction.markNarrowAsRead(context, narrow);
         await tester.pump(Duration.zero);
         await future;
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(.unread));
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -141,7 +141,7 @@ void main() {
       const progressMessage = 'progressMessage';
       const onFailedTitle = 'onFailedTitle';
       final narrow = TopicNarrow.ofMessage(eg.streamMessage());
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(.unread));
 
       Future<bool> invokeUpdateMessageFlagsStartingFromAnchor() =>
         ZulipAction.updateMessageFlagsStartingFromAnchor(
