@@ -376,17 +376,17 @@ void main() {
           ];
         final List<(String, Narrow?)> testCases;
         switch (operand) {
-          case IsOperand.mentioned:
+          case .mentioned:
             testCases = sharedCases(const MentionsNarrow());
-          case IsOperand.starred:
+          case .starred:
             testCases = sharedCases(const StarredMessagesNarrow());
-          case IsOperand.dm:
-          case IsOperand.private:
-          case IsOperand.alerted:
-          case IsOperand.followed:
-          case IsOperand.resolved:
-          case IsOperand.unread:
-          case IsOperand.unknown:
+          case .dm:
+          case .private:
+          case .alerted:
+          case .followed:
+          case .resolved:
+          case .unread:
+          case .unknown:
             // Unsupported operands should not return any narrow.
             testCases = sharedCases(null);
         }

@@ -1346,7 +1346,7 @@ void main() {
               ...resolveApiNarrowForServer(
                 eg.topicNarrow(someChannel.streamId, someTopic).apiEncode(),
                 connection.zulipFeatureLevel!),
-              ApiNarrowIs(IsOperand.unread),
+              ApiNarrowIs(.unread),
             ]))
           ..bodyFields['op'].equals('add')
           ..bodyFields['flag'].equals('read');
@@ -1670,7 +1670,7 @@ void main() {
               ...resolveApiNarrowForServer(
                 narrow.apiEncode(),
                 connection.zulipFeatureLevel!),
-              ApiNarrowIs(IsOperand.unread),
+              ApiNarrowIs(.unread),
             ]))
           ..bodyFields['op'].equals('add')
           ..bodyFields['flag'].equals('read');

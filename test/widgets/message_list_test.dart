@@ -1267,7 +1267,7 @@ void main() {
 
         checkNoDialog(tester);
         await tester.pump(Duration.zero);
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(.unread));
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -1524,7 +1524,7 @@ void main() {
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
         await tester.tap(find.byType(MarkAsReadWidget));
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(.unread));
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
