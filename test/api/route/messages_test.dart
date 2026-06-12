@@ -440,7 +440,7 @@ void main() {
         await checkUpdateMessage(connection,
           messageId: eg.streamMessage().id,
           topic: eg.t('new topic'),
-          propagateMode: PropagateMode.changeAll,
+          propagateMode: .changeAll,
           sendNotificationToOldThread: true,
           sendNotificationToNewThread: true,
           content: 'asdf',
