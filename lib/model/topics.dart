@@ -139,6 +139,7 @@ class Topics extends PerAccountStoreBase with ChangeNotifier {
       switch (propagateMode) {
         case .changeOne:
         case .changeLater:
+        case .unknown:
           // We can't know the new `maxId` for the original topic.
           // Shrug; leave it unchanged. (See dartdoc of [channelTopics],
           // where we call out this possibility that `maxId` is incorrect.)

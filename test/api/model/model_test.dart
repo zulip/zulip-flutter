@@ -475,4 +475,9 @@ void main() {
       });
     });
   });
+
+  test('PropagateMode.fromRawString handles unknown values', () {
+    check(PropagateMode.fromRawString('change_one')).equals(.changeOne);
+    check(PropagateMode.fromRawString('unknown_propagate_mode')).equals(.unknown);
+  });
 }
