@@ -220,7 +220,7 @@ void main() {
         ..newStreamId.equals(2)
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'))
-        ..propagateMode.equals(PropagateMode.changeAll);
+        ..propagateMode.equals(.changeAll);
     });
 
     test('stream_id -> origStreamId', () {
