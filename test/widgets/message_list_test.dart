@@ -1647,7 +1647,7 @@ void main() {
         origMessages: messages,
         newTopicStr: newTopic,
         newStreamId: newChannelId,
-        propagateMode: PropagateMode.changeAll));
+        propagateMode: .changeAll));
     }
 
     testWidgets('compose box send message after move', (tester) async {

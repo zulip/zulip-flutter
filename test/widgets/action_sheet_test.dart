@@ -2345,7 +2345,7 @@ void main() {
             ]).toJson());
           await store.handleEvent(eg.updateMessageEventMoveFrom(
             newStreamId: newStream.streamId, newTopicStr: newTopic,
-            propagateMode: PropagateMode.changeAll,
+            propagateMode: .changeAll,
             origMessages: [message]));
 
           connection.prepare(json: UpdateMessageFlagsForNarrowResult(
