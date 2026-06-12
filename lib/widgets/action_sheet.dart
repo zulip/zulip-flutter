@@ -1046,7 +1046,7 @@ class ResolveUnresolveButton extends ActionSheetMenuItemButton {
       await updateMessage(store.connection,
         messageId: someMessageIdInTopic,
         topic: _actionIsResolve ? topic.resolve() : topic.unresolve(),
-        propagateMode: PropagateMode.changeAll,
+        propagateMode: .changeAll,
         sendNotificationToOldThread: false,
         sendNotificationToNewThread: true,
       );

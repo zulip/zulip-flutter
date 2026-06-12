@@ -1702,15 +1702,15 @@ void main() {
       });
 
       test('do not follow when propagateMode = changeOne', () {
-        testMessageMove(PropagateMode.changeOne);
+        testMessageMove(.changeOne);
       });
 
       test('do not follow when propagateMode = changeLater', () {
-        testMessageMove(PropagateMode.changeLater);
+        testMessageMove(.changeLater);
       });
 
       test('do not follow when propagateMode = changeAll', () {
-        testMessageMove(PropagateMode.changeAll);
+        testMessageMove(.changeAll);
       });
     });
 
@@ -1848,31 +1848,31 @@ void main() {
           propagateMode: propagateMode,
         ));
         switch (propagateMode) {
-          case PropagateMode.changeOne:
+          case .changeOne:
             checkNotifiedOnce();
-          case PropagateMode.changeLater:
-          case PropagateMode.changeAll:
+          case .changeLater:
+          case .changeAll:
             checkNotified(count: 2);
         }
         async.elapse(const Duration(seconds: 1));
       });
 
       test('do not follow to the new narrow when propagateMode = changeOne', () {
-        handleMoveEvent(PropagateMode.changeOne);
+        handleMoveEvent(.changeOne);
         checkNotNotified();
         checkHasMessages(initialMessages);
         check(model).narrow.equals(eg.topicNarrow(stream.streamId, 'topic'));
       });
 
       test('follow to the new narrow when propagateMode = changeLater', () {
-        handleMoveEvent(PropagateMode.changeLater);
+        handleMoveEvent(.changeLater);
         checkNotifiedOnce();
         checkHasMessages(movedMessages);
         check(model).narrow.equals(eg.topicNarrow(otherStream.streamId, 'new'));
       });
 
       test('follow to the new narrow when propagateMode = changeAll', () {
-        handleMoveEvent(PropagateMode.changeAll);
+        handleMoveEvent(.changeAll);
         checkNotifiedOnce();
         checkHasMessages(movedMessages);
         check(model).narrow.equals(eg.topicNarrow(otherStream.streamId, 'new'));
@@ -1895,7 +1895,7 @@ void main() {
         await store.handleEvent(eg.updateMessageEventMoveTo(
           origTopicStr: 'topic',
           newMessages: [followedMessage],
-          propagateMode: PropagateMode.changeAll,
+          propagateMode: .changeAll,
         ));
         check(model).narrow.equals(eg.topicNarrow(stream.streamId, 'new'));
 

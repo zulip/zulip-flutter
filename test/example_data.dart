@@ -1151,7 +1151,7 @@ UpdateMessageEvent _updateMessageMoveEvent(
   String? origContent,
   String? newContent,
   required List<MessageFlag> flags,
-  PropagateMode propagateMode = PropagateMode.changeOne,
+  PropagateMode propagateMode = .changeOne,
 }) {
   _checkPositive(origStreamId, 'stream ID');
   _checkPositive(newStreamId, 'stream ID');
@@ -1186,7 +1186,7 @@ UpdateMessageEvent updateMessageEventMoveFrom({
   TopicName? newTopic,
   String? newTopicStr,
   String? newContent,
-  PropagateMode propagateMode = PropagateMode.changeOne,
+  PropagateMode propagateMode = .changeOne,
 }) {
   _checkPositive(newStreamId, 'stream ID');
   assert(origMessages.isNotEmpty);
@@ -1214,7 +1214,7 @@ UpdateMessageEvent updateMessageEventMoveTo({
   TopicName? origTopic,
   String? origTopicStr,
   String? origContent,
-  PropagateMode propagateMode = PropagateMode.changeOne,
+  PropagateMode propagateMode = .changeOne,
 }) {
   _checkPositive(origStreamId, 'stream ID');
   assert(newMessages.isNotEmpty);
