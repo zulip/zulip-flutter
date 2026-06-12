@@ -1836,6 +1836,7 @@ void main() {
       });
 
       void handleMoveEvent(PropagateMode propagateMode) => awaitFakeAsync((async) async {
+        assert(propagateMode != .unknown, 'Propagate mode should not be unkown.');
         await prepareNarrow(narrow, initialMessages + movedMessages);
         connection.prepare(delay: const Duration(seconds: 1), json: newestResult(
           foundOldest: false,
@@ -1853,6 +1854,7 @@ void main() {
           case .changeLater:
           case .changeAll:
             checkNotified(count: 2);
+          case .unknown:
         }
         async.elapse(const Duration(seconds: 1));
       });
