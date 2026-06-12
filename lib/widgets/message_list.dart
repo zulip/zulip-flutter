@@ -2320,11 +2320,11 @@ class MessageWithPossibleSender extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     String? editStateText;
     switch (message.editState) {
-      case MessageEditState.edited:
+      case .edited:
         editStateText = zulipLocalizations.messageIsEditedLabel;
-      case MessageEditState.moved:
+      case .moved:
         editStateText = zulipLocalizations.messageIsMovedLabel;
-      case MessageEditState.none:
+      case .none:
     }
 
     Widget? star;
