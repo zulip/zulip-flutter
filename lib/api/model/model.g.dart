@@ -642,4 +642,5 @@ const _$PropagateModeEnumMap = {
   PropagateMode.changeOne: 'change_one',
   PropagateMode.changeLater: 'change_later',
   PropagateMode.changeAll: 'change_all',
+  PropagateMode.unknown: 'unknown',
 };

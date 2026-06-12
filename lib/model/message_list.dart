@@ -1220,6 +1220,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // TODO(#1009) anchor to some visible message, if any
         renarrowAndFetch(newNarrow, anchor);
       case .changeOne:
+      case .unknown:
     }
   }
 
