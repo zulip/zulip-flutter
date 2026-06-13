@@ -363,21 +363,13 @@ enum SystemGroupName implements DefaultGroupName {
   /// Display names mirror the web app's display name strings.
   /// See `system_user_groups_list` in web/src/settings_config.ts.
   String displayName(ZulipLocalizations zulipLocalizations) => switch (this) {
-    SystemGroupName.everyoneOnInternet =>
-      zulipLocalizations.systemGroupNameEveryoneOnInternet,
-    SystemGroupName.everyone =>
-      zulipLocalizations.systemGroupNameEveryone,
-    SystemGroupName.members =>
-      zulipLocalizations.systemGroupNameMembers,
-    SystemGroupName.fullMembers =>
-      zulipLocalizations.systemGroupNameFullMembers,
-    SystemGroupName.moderators =>
-      zulipLocalizations.systemGroupNameModerators,
-    SystemGroupName.administrators =>
-      zulipLocalizations.systemGroupNameAdministrators,
-    SystemGroupName.owners =>
-      zulipLocalizations.systemGroupNameOwners,
-    SystemGroupName.nobody =>
-      zulipLocalizations.systemGroupNameNobody,
+    .everyoneOnInternet => zulipLocalizations.systemGroupNameEveryoneOnInternet,
+    .everyone => zulipLocalizations.systemGroupNameEveryone,
+    .members => zulipLocalizations.systemGroupNameMembers,
+    .fullMembers => zulipLocalizations.systemGroupNameFullMembers,
+    .moderators => zulipLocalizations.systemGroupNameModerators,
+    .administrators => zulipLocalizations.systemGroupNameAdministrators,
+    .owners => zulipLocalizations.systemGroupNameOwners,
+    .nobody => zulipLocalizations.systemGroupNameNobody,
   };
 }
