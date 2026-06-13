@@ -47,21 +47,21 @@ void main() {
       expected: (OptionSome('Busy'), OptionSome(StatusEmoji(
                                        emojiName: 'working_on_it',
                                        emojiCode: '1f6e0',
-                                       reactionType: ReactionType.unicodeEmoji))));
+                                       reactionType: .unicodeEmoji))));
 
     doCheck(
       incoming: ('', 'working_on_it', '1f6e0', 'unicode_emoji'),
       expected: (OptionSome(null), OptionSome(StatusEmoji(
                                      emojiName: 'working_on_it',
                                      emojiCode: '1f6e0',
-                                     reactionType: ReactionType.unicodeEmoji))));
+                                     reactionType: .unicodeEmoji))));
 
     doCheck(
       incoming: (null, 'working_on_it', '1f6e0', 'unicode_emoji'),
       expected: (OptionNone(), OptionSome(StatusEmoji(
                                  emojiName: 'working_on_it',
                                  emojiCode: '1f6e0',
-                                 reactionType: ReactionType.unicodeEmoji))));
+                                 reactionType: .unicodeEmoji))));
 
     doCheck(
       incoming: ('Busy', '', '', ''),

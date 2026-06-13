@@ -460,7 +460,7 @@ void main() {
       await store.changeUserStatus(eg.otherUser.userId, UserStatusChange(
         text: OptionSome('Busy'),
         emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-          emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+          emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
       await tester.pump();
 
       check(findStatusButton(statusSet: true)).findsNothing();
@@ -484,7 +484,7 @@ void main() {
         await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
           text: OptionSome('Busy'),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         final statusButtonFinder = findStatusButton(statusSet: true);
@@ -509,7 +509,7 @@ void main() {
         await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
           text: OptionNone(),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         final statusButtonFinder = findStatusButton(statusSet: true);

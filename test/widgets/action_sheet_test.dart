@@ -1824,7 +1824,7 @@ void main() {
               reactions: [Reaction(
                 emojiName: emoji.emojiName,
                 emojiCode: emoji.emojiCode,
-                reactionType: ReactionType.unicodeEmoji,
+                reactionType: .unicodeEmoji,
                 userId: eg.selfAccount.userId)]
             );
             await setupToMessageActionSheet(tester,

@@ -209,12 +209,12 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
     required String emojiName,
   }) {
     switch (emojiType) {
-      case ReactionType.unicodeEmoji:
+      case .unicodeEmoji:
         final parsed = tryParseEmojiCodeToUnicode(emojiCode);
         if (parsed == null) break;
         return UnicodeEmojiDisplay(emojiName: emojiName, emojiUnicode: parsed);
 
-      case ReactionType.realmEmoji:
+      case .realmEmoji:
         final item = allRealmEmoji[emojiCode];
         if (item == null) break;
         // TODO we don't check emojiName matches the known realm emoji; is that right?
@@ -222,7 +222,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
           sourceUrl: item.sourceUrl, stillUrl: item.stillUrl,
           emojiName: emojiName);
 
-      case ReactionType.zulipExtraEmoji:
+      case .zulipExtraEmoji:
         return _tryImageEmojiDisplay(
           sourceUrl: kZulipEmojiUrl, stillUrl: null, emojiName: emojiName);
     }
@@ -271,7 +271,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
     EmojiCandidate candidate(String emojiCode, List<String> names) {
       final [emojiName, ...aliases] = names;
       final emojiUnicode = tryParseEmojiCodeToUnicode(emojiCode)!;
-      return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
+      return EmojiCandidate(emojiType: .unicodeEmoji,
         emojiCode: emojiCode, emojiName: emojiName, aliases: aliases,
         emojiDisplay: UnicodeEmojiDisplay(
           emojiName: emojiName, emojiUnicode: emojiUnicode));
@@ -308,7 +308,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   static final Set<String> _popularEmojiCodes = Set.of(_popularEmojiCodesList);
 
   static bool _isPopularEmoji(EmojiCandidate candidate) {
-    return candidate.emojiType == ReactionType.unicodeEmoji
+    return candidate.emojiType == .unicodeEmoji
       && _popularEmojiCodes.contains(candidate.emojiCode);
   }
 
@@ -390,7 +390,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
         aliases = allNames.length > 1 ? allNames.sublist(1) : null;
       }
       results.add(_emojiCandidateFor(
-        emojiType: ReactionType.unicodeEmoji,
+        emojiType: .unicodeEmoji,
         emojiCode: entry.key, emojiName: emojiName,
         aliases: aliases));
     }
@@ -402,13 +402,13 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
         continue;
       }
       results.add(_emojiCandidateFor(
-        emojiType: ReactionType.realmEmoji,
+        emojiType: .realmEmoji,
         emojiCode: emoji.emojiCode, emojiName: emojiName,
         aliases: null));
     }
 
     results.add(_emojiCandidateFor(
-      emojiType: ReactionType.zulipExtraEmoji,
+      emojiType: .zulipExtraEmoji,
       emojiCode: 'zulip', emojiName: 'zulip',
       aliases: null));
 
@@ -615,8 +615,8 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
       // The web implementation calls this condition `is_realm_emoji`,
       // but its actual semantics is it's true for the Zulip extra emoji too.
       // See `zulip_emoji` in web:src/emoji.ts .
-      ReactionType.realmEmoji || ReactionType.zulipExtraEmoji => true,
-      ReactionType.unicodeEmoji => false,
+      .realmEmoji || .zulipExtraEmoji => true,
+      .unicodeEmoji => false,
     };
     return switch (matchQuality) {
       EmojiMatchQuality.exact       => 0,
