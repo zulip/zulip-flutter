@@ -2357,7 +2357,7 @@ void main() {
         await store.changeUserStatus(user.userId, UserStatusChange(
           text: OptionSome('Busy'),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
@@ -2373,7 +2373,7 @@ void main() {
         await store.changeUserStatus(user.userId, UserStatusChange(
           text: OptionSome('Coding'),
           emoji: OptionSome(StatusEmoji(emojiName: 'zulip',
-            emojiCode: 'zulip', reactionType: ReactionType.zulipExtraEmoji))));
+            emojiCode: 'zulip', reactionType: .zulipExtraEmoji))));
         await tester.pump();
 
         checkFindsStatusEmoji(tester, find.byType(Image));
@@ -2389,7 +2389,7 @@ void main() {
         await store.changeUserStatus(user.userId, UserStatusChange(
           text: OptionNone(),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));

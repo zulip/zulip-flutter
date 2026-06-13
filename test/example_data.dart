@@ -686,21 +686,21 @@ UserTopicItem userTopicItem(
 final Reaction unicodeEmojiReaction = Reaction(
   emojiName: 'thumbs_up',
   emojiCode: '1f44d',
-  reactionType: ReactionType.unicodeEmoji,
+  reactionType: .unicodeEmoji,
   userId: selfUser.userId,
 );
 
 final Reaction realmEmojiReaction = Reaction(
   emojiName: 'twocents',
   emojiCode: '181',
-  reactionType: ReactionType.realmEmoji,
+  reactionType: .realmEmoji,
   userId: selfUser.userId,
 );
 
 final Reaction zulipExtraEmojiReaction = Reaction(
   emojiName: 'zulip',
   emojiCode: 'zulip',
-  reactionType: ReactionType.zulipExtraEmoji,
+  reactionType: .zulipExtraEmoji,
   userId: selfUser.userId,
 );
 
