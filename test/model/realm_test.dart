@@ -136,15 +136,15 @@ void main() {
 
       for (final systemGroupName in SystemGroupName.values) {
         switch (systemGroupName) {
-          case SystemGroupName.everyoneOnInternet:
+          case .everyoneOnInternet:
             // (No permissions where we use this default value; continue.)
             break;
-          case SystemGroupName.everyone:
+          case .everyone:
             test('everyone', () {
               prepare(selfUserRole: .guest);
               doCheck(GroupSettingType.realm, 'can_access_all_users_group', true);
             });
-          case SystemGroupName.members:
+          case .members:
             test('members, is guest', () {
               prepare(selfUserRole: .guest);
               doCheck(GroupSettingType.realm, 'can_add_custom_emoji_group', false);
@@ -153,10 +153,10 @@ void main() {
               prepare(selfUserRole: .member);
               doCheck(GroupSettingType.realm, 'can_add_custom_emoji_group', true);
             });
-          case SystemGroupName.fullMembers:
+          case .fullMembers:
             // (No permissions where we use this default value; continue.)
             break;
-          case SystemGroupName.moderators:
+          case .moderators:
             test('moderators, is member', () {
               prepare(selfUserRole: .member);
               doCheck(GroupSettingType.realm, 'can_set_delete_message_policy_group', false);
@@ -165,7 +165,7 @@ void main() {
               prepare(selfUserRole: .moderator);
               doCheck(GroupSettingType.realm, 'can_set_delete_message_policy_group', true);
             });
-          case SystemGroupName.administrators:
+          case .administrators:
             test('administrators, is moderator', () {
               prepare(selfUserRole: .moderator);
               doCheck(GroupSettingType.stream, 'can_remove_subscribers_group', false);
@@ -174,7 +174,7 @@ void main() {
               prepare(selfUserRole: .administrator);
               doCheck(GroupSettingType.stream, 'can_remove_subscribers_group', true);
             });
-          case SystemGroupName.owners:
+          case .owners:
             test('owners, is administrator', () {
               prepare(selfUserRole: .administrator);
               doCheck(GroupSettingType.realm, 'can_create_web_public_channel_group', false);
@@ -183,7 +183,7 @@ void main() {
               prepare(selfUserRole: .owner);
               doCheck(GroupSettingType.realm, 'can_create_web_public_channel_group', true);
             });
-          case SystemGroupName.nobody:
+          case .nobody:
             test('nobody', () {
               prepare(selfUserRole: .owner);
               doCheck(GroupSettingType.stream, 'can_delete_own_message_group', false);
