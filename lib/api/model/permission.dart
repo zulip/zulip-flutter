@@ -298,6 +298,10 @@ enum PseudoSystemGroupName implements DefaultGroupName {
   // Discussion on this; it looks like it might get renamed:
   //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/stream_creator_or_nobody/near/2258637
   streamCreatorOrNobody(apiValue: 'stream_creator_or_nobody'),
+
+  // We don't have an unknown value here. Unknown values are already represented
+  // by [DefaultGroupNameUnknown]. See [DefaultGroupName.fromJson].
+  // unknown(apiValue: 'unknown_pseudo_system_group_name'),
   ;
 
   const PseudoSystemGroupName({required this.apiValue});
