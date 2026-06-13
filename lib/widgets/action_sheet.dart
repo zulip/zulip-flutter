@@ -1439,7 +1439,7 @@ class ReactionButtons extends StatelessWidget {
     final store = PerAccountStoreWidget.of(pageContext);
     final popularEmojiCandidates = store.popularEmojiCandidates();
     assert(popularEmojiCandidates.every(
-      (emoji) => emoji.emojiType == ReactionType.unicodeEmoji));
+      (emoji) => emoji.emojiType == .unicodeEmoji));
     // (if this is empty, the widget isn't built in the first place)
     assert(popularEmojiCandidates.isNotEmpty);
     // UI not designed to handle more than 6 popular emoji.
@@ -1452,7 +1452,7 @@ class ReactionButtons extends StatelessWidget {
 
     bool hasSelfVote(EmojiCandidate emoji) {
       return message.reactions?.aggregated.any((reactionWithVotes) {
-        return reactionWithVotes.reactionType == ReactionType.unicodeEmoji
+        return reactionWithVotes.reactionType == .unicodeEmoji
           && reactionWithVotes.emojiCode == emoji.emojiCode
           && reactionWithVotes.userIds.contains(store.selfUserId);
       }) ?? false;

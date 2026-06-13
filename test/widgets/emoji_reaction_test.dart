@@ -476,15 +476,15 @@ void main() {
       check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
         ...arePopularEntries,
         conditionEmojiListEntry(
-          emojiType: ReactionType.realmEmoji,
+          emojiType: .realmEmoji,
           emojiCode: '1',
           emojiName: 'buzzing'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.zulipExtraEmoji,
+          emojiType: .zulipExtraEmoji,
           emojiCode: 'zulip',
           emojiName: 'zulip'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.unicodeEmoji,
+          emojiType: .unicodeEmoji,
           emojiCode: '1f4a4',
           emojiName: 'zzz'),
       ]);
@@ -494,15 +494,15 @@ void main() {
 
       check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
         conditionEmojiListEntry(
-          emojiType: ReactionType.zulipExtraEmoji,
+          emojiType: .zulipExtraEmoji,
           emojiCode: 'zulip',
           emojiName: 'zulip'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.unicodeEmoji,
+          emojiType: .unicodeEmoji,
           emojiCode: '1f4a4',
           emojiName: 'zzz'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.realmEmoji,
+          emojiType: .realmEmoji,
           emojiCode: '1',
           emojiName: 'buzzing'),
       ]);
@@ -512,11 +512,11 @@ void main() {
 
       check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
         conditionEmojiListEntry(
-          emojiType: ReactionType.unicodeEmoji,
+          emojiType: .unicodeEmoji,
           emojiCode: '1f4a4',
           emojiName: 'zzz'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.realmEmoji,
+          emojiType: .realmEmoji,
           emojiCode: '1',
           emojiName: 'buzzing'),
       ]);

@@ -15,7 +15,7 @@ void main() {
       await updateStatus(connection, change: UserStatusChange(
         text: OptionSome('Busy'),
         emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-          emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+          emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/users/me/status')
