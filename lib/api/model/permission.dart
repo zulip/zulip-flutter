@@ -338,6 +338,10 @@ enum SystemGroupName implements DefaultGroupName {
   administrators(apiValue: 'role:administrators'),
   owners(apiValue: 'role:owners'),
   nobody(apiValue: 'role:nobody'),
+
+  // We don't have an unknown value here. Unknown values are already represented
+  // by [DefaultGroupNameUnknown]. See [DefaultGroupName.fromJson].
+  // unknown(apiValue: 'role:unknown'),
   ;
 
   const SystemGroupName({required this.apiValue});
