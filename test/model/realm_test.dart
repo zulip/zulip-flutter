@@ -129,7 +129,7 @@ void main() {
 
       for (final pseudoSystemGroupName in PseudoSystemGroupName.values) {
         switch (pseudoSystemGroupName) {
-          case PseudoSystemGroupName.streamCreatorOrNobody:
+          case .streamCreatorOrNobody:
             // TODO implement and test
         }
       }
