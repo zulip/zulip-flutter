@@ -688,6 +688,40 @@ void main() {
       });
     });
 
+    group('to ChannelNarrow, empty topic only', () {
+      testWidgets('topic input is disabled', (tester) async {
+        final channel = eg.stream(topicsPolicy: .emptyTopicOnly);
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId),
+          subscriptions: [eg.subscription(channel)]);
+        checkComposeBoxHintTexts(tester,
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
+          contentHintText: 'Message #${channel.name} > '
+                           '${eg.defaultRealmEmptyTopicDisplayName}');
+        check(tester.widget<TextField>(topicInputFinder))
+          ..enabled.equals(false)
+          ..decoration.isNotNull().hintStyle.isNotNull()
+            .fontStyle.equals(FontStyle.italic);
+      });
+
+      testWidgets('focuses content, not topic input', (tester) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/pull/1984#discussion_r2614979580
+        final channel = eg.stream(topicsPolicy: .emptyTopicOnly);
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId),
+          subscriptions: [eg.subscription(channel)]);
+        check(controller).isA<StreamComposeBoxController>()
+          ..topicFocusNode.hasFocus.isFalse()
+          ..contentFocusNode.hasFocus.isFalse();
+
+        controller!.requestFocusIfUnfocused();
+        await tester.pump();
+        check(controller).isA<StreamComposeBoxController>()
+          ..topicFocusNode.hasFocus.isFalse()
+          ..contentFocusNode.hasFocus.isTrue();
+      });
+    });
+
     group('to TopicNarrow', () {
       testWidgets('with non-empty topic', (tester) async {
         await prepare(tester,
