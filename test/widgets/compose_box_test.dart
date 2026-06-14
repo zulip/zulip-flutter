@@ -185,6 +185,18 @@ void main() {
         .topicFocusNode.hasFocus.isTrue();
     });
 
+    testWidgets('ChannelNarrow with emptyTopicOnly, empty fetch', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/pull/1984#discussion_r2614979580
+      final channel = eg.stream(topicsPolicy: .emptyTopicOnly);
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)],
+        messages: []);
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isTrue();
+    });
+
     testWidgets('TopicNarrow, non-empty fetch', (tester) async {
       final channel = eg.stream();
       await prepareComposeBox(tester,
@@ -689,6 +701,19 @@ void main() {
       });
     });
 
+    testWidgets('to ChannelNarrow, empty topic only', (tester) async {
+      final channel = eg.stream(topicsPolicy: .emptyTopicOnly);
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)]);
+      checkComposeBoxHintTexts(tester,
+        topicHintText: eg.defaultRealmEmptyTopicDisplayName,
+        contentHintText: 'Message #${channel.name} > '
+                         '${eg.defaultRealmEmptyTopicDisplayName}');
+      check(tester.widget<TextField>(topicInputFinder)).decoration.isNotNull()
+        .hintStyle.isNotNull().fontStyle.equals(FontStyle.italic);
+    });
+
     group('to TopicNarrow', () {
       testWidgets('with non-empty topic', (tester) async {
         await prepare(tester,
@@ -729,6 +754,30 @@ void main() {
   });
 
   group('topic input', () {
+    testWidgets('disable/enable on emptyTopicOnly policy changes', (tester) async {
+      final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
+
+      Future<void> changePolicy(ChannelTopicsPolicy value) async {
+        await store.handleEvent(eg.channelUpdateEvent(store.streams[channel.streamId]!,
+          property: ChannelPropertyName.topicsPolicy, value: value));
+        await tester.pump();
+      }
+
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)]);
+      check(tester.widget<TextField>(topicInputFinder)).enabled.equals(true);
+
+      // Toggling [TextField.enabled] changes [FocusNode.canRequestFocus],
+      // which notifies focus listeners without an actual focus change;
+      // the policy changes below cover handling that.
+      await changePolicy(ChannelTopicsPolicy.emptyTopicOnly);
+      check(tester.widget<TextField>(topicInputFinder)).enabled.equals(false);
+
+      await changePolicy(ChannelTopicsPolicy.allowEmptyTopic);
+      check(tester.widget<TextField>(topicInputFinder)).enabled.equals(true);
+    });
+
     testWidgets('clear topic input on policy change to emptyTopicOnly', (tester) async {
       final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
       final narrow = ChannelNarrow(channel.streamId);
@@ -2174,6 +2223,29 @@ void main() {
       await tester.pump();
       check(state).controller.isA<StreamComposeBoxController>()
         ..topic.text.equals(topic)
+        ..content.text.equals(failedMessageContent)
+        ..contentFocusNode.hasFocus.isTrue();
+    });
+
+    testWidgets('restore content but not topic in channel narrow with emptyTopicOnly policy', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/pull/2340#pullrequestreview-4666573105
+      final channelNarrow = ChannelNarrow(channel.streamId);
+      await prepareMessageNotSent(tester, narrow: channelNarrow);
+
+      await tester.enterText(topicInputFinder, 'topic before restoring');
+      check(state).controller.isA<StreamComposeBoxController>()
+        ..topic.text.equals('topic before restoring')
+        ..content.text.isNotNull().isEmpty();
+
+      await store.handleEvent(eg.channelUpdateEvent(store.streams[channel.streamId]!,
+        property: ChannelPropertyName.topicsPolicy,
+        value: ChannelTopicsPolicy.emptyTopicOnly));
+      await tester.pump(Duration.zero);
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.isA<StreamComposeBoxController>()
+        ..topic.text.equals('')
         ..content.text.equals(failedMessageContent)
         ..contentFocusNode.hasFocus.isTrue();
     });
