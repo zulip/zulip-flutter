@@ -688,74 +688,38 @@ void main() {
       });
     });
 
-    group('to ChannelNarrow, topic policy resolution', () {
-      void doTest(String description, {
-        ChannelTopicsPolicy? channelTopicsPolicy,
-        RealmTopicsPolicy? realmTopicsPolicy,
-        bool? mandatoryTopics,
-        required bool expectAllowsEmpty,
-      }) {
-        assert(
-          (mandatoryTopics == null && channelTopicsPolicy != null && realmTopicsPolicy != null)
-          || (mandatoryTopics != null && channelTopicsPolicy == null && realmTopicsPolicy == null),
-          'Pass either channel and realm policies or mandatoryTopics.');
+    group('to ChannelNarrow, empty topic only', () {
+      testWidgets('topic input is disabled', (tester) async {
+        final channel = eg.stream(topicsPolicy: .emptyTopicOnly);
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId),
+          subscriptions: [eg.subscription(channel)]);
+        checkComposeBoxHintTexts(tester,
+          topicHintText: eg.defaultRealmEmptyTopicDisplayName,
+          contentHintText: 'Message #${channel.name} > '
+                           '${eg.defaultRealmEmptyTopicDisplayName}');
+        check(tester.widget<TextField>(topicInputFinder))
+          ..enabled.equals(false)
+          ..decoration.isNotNull().hintStyle.isNotNull()
+            .fontStyle.equals(FontStyle.italic);
+      });
 
-        testWidgets(description, (tester) async {
-          final channel = eg.stream(topicsPolicy: channelTopicsPolicy);
-          final narrow = ChannelNarrow(channel.streamId);
-          await prepareComposeBox(tester,
-            narrow: narrow,
-            subscriptions: [eg.subscription(channel)],
-            realmTopicsPolicy: realmTopicsPolicy,
-            mandatoryTopics: mandatoryTopics);
+      testWidgets('focuses content, not topic input', (tester) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/pull/1984#discussion_r2614979580
+        final channel = eg.stream(topicsPolicy: .emptyTopicOnly);
+        await prepareComposeBox(tester,
+          narrow: ChannelNarrow(channel.streamId),
+          subscriptions: [eg.subscription(channel)]);
+        check(controller).isA<StreamComposeBoxController>()
+          ..topicFocusNode.hasFocus.isFalse()
+          ..contentFocusNode.hasFocus.isFalse();
 
-          await enterTopic(tester, narrow: narrow, topic: '');
-          await tester.pump();
-          checkComposeBoxHintTexts(tester,
-            topicHintText: expectAllowsEmpty
-              ? 'Enter a topic (skip for “${eg.defaultRealmEmptyTopicDisplayName}”)'
-              : 'Topic',
-            contentHintText: 'Message #${channel.name}');
-        });
-      }
-
-      doTest('channel setting allows empty, realm setting allows empty',
-        channelTopicsPolicy: .allowEmptyTopic,
-        realmTopicsPolicy: .allowEmptyTopic,
-        expectAllowsEmpty: true);
-
-      doTest('channel setting allows empty, realm setting disables empty',
-        channelTopicsPolicy: .allowEmptyTopic,
-        realmTopicsPolicy: .disableEmptyTopic,
-        expectAllowsEmpty: true);
-
-      doTest('channel setting disables empty, realm setting allows empty',
-        channelTopicsPolicy: .disableEmptyTopic,
-        realmTopicsPolicy: .allowEmptyTopic,
-        expectAllowsEmpty: false);
-
-      doTest('channel setting disables empty, realm setting disables empty',
-        channelTopicsPolicy: .disableEmptyTopic,
-        realmTopicsPolicy: .disableEmptyTopic,
-        expectAllowsEmpty: false);
-
-      doTest('channel setting inherits, realm setting allows empty',
-        channelTopicsPolicy: .inherit,
-        realmTopicsPolicy: .allowEmptyTopic,
-        expectAllowsEmpty: true);
-
-      doTest('channel setting inherits, realm setting disables empty',
-        channelTopicsPolicy: .inherit,
-        realmTopicsPolicy: .disableEmptyTopic,
-        expectAllowsEmpty: false);
-
-      doTest('legacy: mandatoryTopics disables empty',
-        mandatoryTopics: true,
-        expectAllowsEmpty: false);
-
-      doTest('legacy: mandatoryTopics allows empty',
-        mandatoryTopics: false,
-        expectAllowsEmpty: true);
+        controller!.requestFocusIfUnfocused();
+        await tester.pump();
+        check(controller).isA<StreamComposeBoxController>()
+          ..topicFocusNode.hasFocus.isFalse()
+          ..contentFocusNode.hasFocus.isTrue();
+      });
     });
 
     group('to TopicNarrow', () {

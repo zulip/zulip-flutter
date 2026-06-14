@@ -240,6 +240,7 @@ extension TextFieldChecks on Subject<TextField> {
   Subject<TextCapitalization?> get textCapitalization => has((t) => t.textCapitalization, 'textCapitalization');
   Subject<InputDecoration?> get decoration => has((t) => t.decoration, 'decoration');
   Subject<TextEditingController?> get controller => has((t) => t.controller, 'controller');
+  Subject<bool?> get enabled => has((t) => t.enabled, 'enabled');
 }
 
 extension IconButtonChecks on Subject<IconButton> {

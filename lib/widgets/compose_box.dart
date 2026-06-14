@@ -168,6 +168,8 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   // TODO(#668): listen to [PerAccountStore] once we subscribe to topic policies.
   bool get mandatory => store.effectiveTopicsPolicy(channelId) == .disableEmptyTopic;
 
+  bool get emptyTopicOnly => store.effectiveTopicsPolicy(channelId) == .emptyTopicOnly;
+
   @override int get maxLengthUnicodeCodePoints => store.maxTopicLength;
 
   @override
@@ -700,6 +702,10 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
   /// The topic name to show in the hint text, or null to show no topic.
   TopicName? _hintTopic() {
+    if (widget.controller.topic.emptyTopicOnly) {
+      // The topic input is disabled; messages go to the empty topic.
+      return TopicName('');
+    }
     if (widget.controller.topic.isTopicVacuous) {
       if (widget.controller.topic.mandatory) {
         // The chosen topic can't be sent to, so don't show it.
@@ -832,7 +838,10 @@ class _TopicInputState extends State<_TopicInput> {
     TextStyle hintStyle = topicTextStyle.copyWith(
       color: designVariables.textInput.withFadedAlpha(0.5));
 
-    if (widget.controller.topic.mandatory) {
+    if (widget.controller.topic.emptyTopicOnly) {
+      hintText = store.realmEmptyTopicDisplayName;
+      hintStyle = topicTextStyle.copyWith(fontStyle: FontStyle.italic);
+    } else if (widget.controller.topic.mandatory) {
       // Something short and not distracting.
       hintText = zulipLocalizations.composeBoxTopicHintText;
     } else {
@@ -875,6 +884,7 @@ class _TopicInputState extends State<_TopicInput> {
         focusNode: widget.controller.topicFocusNode,
         contentFocusNode: widget.controller.contentFocusNode,
         fieldViewBuilder: (context) => TextField(
+          enabled: !widget.controller.topic.emptyTopicOnly,
           controller: widget.controller.topic,
           focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
@@ -1713,6 +1723,10 @@ class StreamComposeBoxController extends ComposeBoxController {
 
   @override void requestFocusIfUnfocused() {
     if (topicFocusNode.hasFocus || contentFocusNode.hasFocus) return;
+    if (topic.emptyTopicOnly) {
+      contentFocusNode.requestFocus();
+      return;
+    }
     switch (topicInteractionStatus.value) {
       case ComposeTopicInteractionStatus.notEditingNotChosen:
         topicFocusNode.requestFocus();

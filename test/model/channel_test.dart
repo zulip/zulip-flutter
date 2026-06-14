@@ -667,6 +667,69 @@ void main() {
     });
   });
 
+  group('effectiveTopicsPolicy', () {
+    void doTest(String description, {
+      required ChannelTopicsPolicy channelTopicsPolicy,
+      RealmTopicsPolicy? realmTopicsPolicy,
+      bool? mandatoryTopics,
+      required ChannelTopicsPolicy expected,
+    }) {
+      assert(
+        (mandatoryTopics == null && realmTopicsPolicy != null)
+        || (mandatoryTopics != null && realmTopicsPolicy == null),
+        'Pass either realmTopicsPolicy or mandatoryTopics.');
+
+      test(description, () {
+        final channel = eg.stream(topicsPolicy: channelTopicsPolicy);
+        final store = eg.store(initialSnapshot: eg.initialSnapshot(
+          streams: [channel],
+          realmTopicsPolicy: realmTopicsPolicy,
+          realmMandatoryTopics: mandatoryTopics));
+        check(store.effectiveTopicsPolicy(channel.streamId)).equals(expected);
+      });
+    }
+
+    doTest('channel allows empty, realm allows empty',
+      channelTopicsPolicy: .allowEmptyTopic, realmTopicsPolicy: .allowEmptyTopic,
+      expected: .allowEmptyTopic);
+
+    doTest('channel allows empty, realm disables empty',
+      channelTopicsPolicy: .allowEmptyTopic, realmTopicsPolicy: .disableEmptyTopic,
+      expected: .allowEmptyTopic);
+
+    doTest('channel disables empty, realm allows empty',
+      channelTopicsPolicy: .disableEmptyTopic, realmTopicsPolicy: .allowEmptyTopic,
+      expected: .disableEmptyTopic);
+
+    doTest('channel disables empty, realm disables empty',
+      channelTopicsPolicy: .disableEmptyTopic, realmTopicsPolicy: .disableEmptyTopic,
+      expected: .disableEmptyTopic);
+
+    doTest('channel allows empty topic only, realm allows empty',
+      channelTopicsPolicy: .emptyTopicOnly, realmTopicsPolicy: .allowEmptyTopic,
+      expected: .emptyTopicOnly);
+
+    doTest('channel allows empty topic only, realm disables empty',
+      channelTopicsPolicy: .emptyTopicOnly, realmTopicsPolicy: .disableEmptyTopic,
+      expected: .emptyTopicOnly);
+
+    doTest('channel inherits, realm allows empty',
+      channelTopicsPolicy: .inherit, realmTopicsPolicy: .allowEmptyTopic,
+      expected: .allowEmptyTopic);
+
+    doTest('channel inherits, realm disables empty',
+      channelTopicsPolicy: .inherit, realmTopicsPolicy: .disableEmptyTopic,
+      expected: .disableEmptyTopic);
+
+    doTest('legacy: channel inherits, mandatoryTopics true',
+      channelTopicsPolicy: .inherit, mandatoryTopics: true,
+      expected: .disableEmptyTopic);
+
+    doTest('legacy: channel inherits, mandatoryTopics false',
+      channelTopicsPolicy: .inherit, mandatoryTopics: false,
+      expected: .allowEmptyTopic);
+  });
+
   group('makeTopicKeyedMap', () {
     test('"a" equals "A"', () {
       final map = makeTopicKeyedMap<int>()
