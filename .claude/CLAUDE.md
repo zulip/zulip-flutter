@@ -157,3 +157,7 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Instead, use `git cherry-pick`
   (with `--no-commit` when modifications are needed)
   to replay commits.
+
+- **Use the `commit-message` skill when writing a commit message** —
+  invoke it before composing or editing any commit message
+  (writing a new commit, amending, or rewording).
