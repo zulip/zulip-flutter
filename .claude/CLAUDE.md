@@ -45,7 +45,7 @@ flutter gen-l10n
 - **`GlobalStore`** (`lib/model/store.dart`) — app-wide state (accounts, global settings). Access via `GlobalStoreWidget.of(context)`.
 - **`PerAccountStore`** (`lib/model/store.dart`) — per-account data (messages, users, channels, unreads, etc.). Uses `ChangeNotifier` for reactivity.
 
-See @./rules/data-store.md for detailed conventions and architecture for writing state logic.
+See ./rules/data-store.md for detailed conventions and architecture for writing state logic.
 
 ### API layer (`lib/api/`)
 
@@ -53,7 +53,7 @@ See @./rules/data-store.md for detailed conventions and architecture for writing
 - **`route/`** — one file per API endpoint group; top-level async functions taking `ApiConnection` as first param
 - **`model/`** — data types with JSON serialization via `json_serializable`; generated `.g.dart` files must be kept up to date
 
-See @./rules/api.md for detailed conventions on writing API bindings.
+See ./rules/api.md for detailed conventions on writing API bindings.
 
 ### Platform layer (`lib/host/`)
 
@@ -76,7 +76,7 @@ Uses Pigeon for type-safe platform channels (Android intents, notifications).
 - External APIs: wrap in `ZulipBinding`, fake in tests
 - Test fixtures: `test/example_data.dart` has builders for all common data types
 
-See @./rules/testing.md for detailed conventions on writing tests.
+See ./rules/testing.md for detailed conventions on writing tests.
 
 ### i18n
 
