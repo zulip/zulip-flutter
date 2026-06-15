@@ -54,7 +54,7 @@ class _PollWidgetState extends State<PollWidget> {
       ? PollVoteOp.remove
       : PollVoteOp.add;
     unawaited(sendSubmessage(store.connection, messageId: widget.messageId,
-      submessageType: SubmessageType.widget,
+      submessageType: .widget,
       content: PollVoteEventSubmessage(key: option.key, op: op)));
   }
 
