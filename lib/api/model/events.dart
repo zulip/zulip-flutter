@@ -1519,6 +1519,7 @@ class TypingEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'typing';
 
+  @JsonKey(unknownEnumValue: TypingOp.unknown)
   final TypingOp op;
   // The server never actually sends "channel" here yet (it's "stream" instead),
   // but we accept both forms for forward-compatibility.
@@ -1572,7 +1573,10 @@ class TypingEvent extends Event {
 @JsonEnum(fieldRename: FieldRename.snake)
 enum TypingOp {
   start,
-  stop;
+  stop,
+
+  /// A new, unrecognized operation.
+  unknown;
 
   String toJson() => _$TypingOpEnumMap[this]!;
 }

@@ -1020,7 +1020,11 @@ const _$SubmessageTypeEnumMap = {
 
 TypingEvent _$TypingEventFromJson(Map<String, dynamic> json) => TypingEvent(
   id: (json['id'] as num).toInt(),
-  op: $enumDecode(_$TypingOpEnumMap, json['op']),
+  op: $enumDecode(
+    _$TypingOpEnumMap,
+    json['op'],
+    unknownValue: TypingOp.unknown,
+  ),
   messageType: const MessageTypeConverter().fromJson(
     json['message_type'] as String,
   ),
@@ -1044,7 +1048,11 @@ Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
       'topic': instance.topic,
     };
 
-const _$TypingOpEnumMap = {TypingOp.start: 'start', TypingOp.stop: 'stop'};
+const _$TypingOpEnumMap = {
+  TypingOp.start: 'start',
+  TypingOp.stop: 'stop',
+  TypingOp.unknown: 'unknown',
+};
 
 PresenceEvent _$PresenceEventFromJson(Map<String, dynamic> json) =>
     PresenceEvent(
