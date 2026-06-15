@@ -73,7 +73,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   // Realm settings previously found in realm/update_dict events,
   // but now deprecated.
 
-  RealmWildcardMentionPolicy get realmWildcardMentionPolicy; // TODO(server-10) remove
+  RealmWildcardMentionPolicy? get realmWildcardMentionPolicy; // TODO(server-10) remove
   RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy; // TODO(server-10) remove
 
   //|//////////////////////////////
@@ -212,7 +212,7 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get realmWaitingPeriodThreshold => realmStore.realmWaitingPeriodThreshold;
   @override
-  RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
+  RealmWildcardMentionPolicy? get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
   @override
   RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy => realmStore.realmDeleteOwnMessagePolicy;
   @override
@@ -449,7 +449,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int realmWaitingPeriodThreshold;
 
   @override
-  final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
+  final RealmWildcardMentionPolicy? realmWildcardMentionPolicy;
   @override
   final RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy;
 
