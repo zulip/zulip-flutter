@@ -1735,6 +1735,7 @@ class ReactionEvent extends Event {
 
   final String emojiName;
   final String emojiCode;
+  @JsonKey(unknownEnumValue: ReactionType.unknown)
   final ReactionType reactionType;
   final int userId;
   // final Map<String, dynamic> user; // deprecated; ignore
