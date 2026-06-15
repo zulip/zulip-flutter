@@ -57,14 +57,14 @@ void main() {
       'option': 'new option',
       'idx': 0,
     })).isA<PollNewOptionEventSubmessage>()
-      ..type.equals(PollEventSubmessageType.newOption)
+      ..type.equals(.newOption)
       ..option.equals('new option');
 
     check(PollEventSubmessage.fromJson({
       'type': 'question',
       'question': 'new question',
     })).isA<PollQuestionEventSubmessage>()
-      ..type.equals(PollEventSubmessageType.question)
+      ..type.equals(.question)
       ..question.equals('new question');
 
     check(PollEventSubmessage.fromJson({
@@ -72,7 +72,7 @@ void main() {
       'vote': 1,
       'key': PollEventSubmessage.optionKey(senderId: null, idx: 0),
     })).isA<PollVoteEventSubmessage>()
-      ..type.equals(PollEventSubmessageType.vote)
+      ..type.equals(.vote)
       ..op.equals(PollVoteOp.add)
       ..key.equals('canned,0');
   });
