@@ -94,7 +94,7 @@ class InitialSnapshot {
   /// The policy for who can use wildcard mentions in large channels.
   ///
   /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
-  final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
+  final RealmWildcardMentionPolicy? realmWildcardMentionPolicy; // TODO(server-10) remove
 
   @JsonKey(unknownEnumValue: RealmTopicsPolicy.unknown)
   final RealmTopicsPolicy? realmTopicsPolicy; // TODO(server-11)
