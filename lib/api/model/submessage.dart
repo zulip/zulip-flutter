@@ -218,10 +218,10 @@ sealed class PollEventSubmessage extends SubmessageData {
   factory PollEventSubmessage.fromJson(Map<String, Object?> json) {
     final rawPollEventType = json['type'] as String;
     switch (PollEventSubmessageType.fromRawString(rawPollEventType)) {
-      case PollEventSubmessageType.newOption: return PollNewOptionEventSubmessage.fromJson(json);
-      case PollEventSubmessageType.question: return PollQuestionEventSubmessage.fromJson(json);
-      case PollEventSubmessageType.vote: return PollVoteEventSubmessage.fromJson(json);
-      case PollEventSubmessageType.unknown: return UnknownPollEventSubmessage.fromJson(json);
+      case .newOption: return PollNewOptionEventSubmessage.fromJson(json);
+      case .question: return PollQuestionEventSubmessage.fromJson(json);
+      case .vote: return PollVoteEventSubmessage.fromJson(json);
+      case .unknown: return UnknownPollEventSubmessage.fromJson(json);
     }
   }
 
@@ -252,7 +252,7 @@ typedef PollOptionKey = String;
 class PollNewOptionEventSubmessage extends PollEventSubmessage {
   @override
   @JsonKey(includeToJson: true)
-  PollEventSubmessageType get type => PollEventSubmessageType.newOption;
+  PollEventSubmessageType get type => .newOption;
 
   final String option;
   /// A sequence number for this option, among options added to this poll
@@ -277,7 +277,7 @@ class PollNewOptionEventSubmessage extends PollEventSubmessage {
 class PollQuestionEventSubmessage extends PollEventSubmessage {
   @override
   @JsonKey(includeToJson: true)
-  PollEventSubmessageType get type => PollEventSubmessageType.question;
+  PollEventSubmessageType get type => .question;
 
   final String question;
 
@@ -297,7 +297,7 @@ class PollQuestionEventSubmessage extends PollEventSubmessage {
 class PollVoteEventSubmessage extends PollEventSubmessage {
   @override
   @JsonKey(includeToJson: true)
-  PollEventSubmessageType get type => PollEventSubmessageType.vote;
+  PollEventSubmessageType get type => .vote;
 
   /// The key of the affected option.
   ///
@@ -341,7 +341,7 @@ enum PollVoteOp {
 class UnknownPollEventSubmessage extends PollEventSubmessage {
   @override
   @JsonKey(includeToJson: true)
-  PollEventSubmessageType get type => PollEventSubmessageType.unknown;
+  PollEventSubmessageType get type => .unknown;
 
   final Map<String, Object?> json;
 
