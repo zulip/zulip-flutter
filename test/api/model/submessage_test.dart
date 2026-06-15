@@ -19,12 +19,12 @@ void main() {
       check(Submessage.fromJson({
         ...baseJson,
         'msg_type': 'widget',
-      })).msgType.equals(SubmessageType.widget);
+      })).msgType.equals(.widget);
 
       check(Submessage.fromJson({
         ...baseJson,
         'msg_type': 'unknown_widget',
-      })).msgType.equals(SubmessageType.unknown);
+      })).msgType.equals(.unknown);
     });
   });
 

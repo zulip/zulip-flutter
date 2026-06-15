@@ -1015,7 +1015,7 @@ Submessage submessage({
   int? senderId,
 }) {
   return Submessage(
-    msgType: msgType ?? SubmessageType.widget,
+    msgType: msgType ?? .widget,
     content: jsonEncode(content),
     senderId: senderId ?? selfUser.userId,
   );
@@ -1281,7 +1281,7 @@ SubmessageEvent submessageEvent(
 }) {
   return SubmessageEvent(
     id: 0,
-    msgType: SubmessageType.widget,
+    msgType: .widget,
     content: jsonEncode(content),
     messageId: messageId,
     senderId: senderId,

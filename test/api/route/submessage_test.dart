@@ -12,7 +12,7 @@ void main() {
     return FakeApiConnection.with_<void>((connection) async {
       connection.prepare(json: {});
       await sendSubmessage(connection, messageId: 1,
-        submessageType: SubmessageType.widget,
+        submessageType: .widget,
         content: PollQuestionEventSubmessage(question: 'test question'));
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
