@@ -78,9 +78,9 @@ void main() {
   });
 
   test('handle unknown poll event', () {
-    check(() => PollEventSubmessage.fromJson({
+    check(PollEventSubmessage.fromJson({
       'type': 'foo',
-    })).throws<TypeError>();
+    })).isA<UnknownPollEventSubmessage>();
   });
 
   test('crash on poll vote key', () {
@@ -105,6 +105,14 @@ void main() {
     check(() => PollEventSubmessage.fromJson({ ...voteData,
       'key': '0xdeadbeef,0',
     })).throws<FormatException>();
+  });
+
+  test('PollEventSubmessageType.fromRawString handles unknown values', () {
+    check(PollEventSubmessageType.fromRawString('new_option')).equals(.newOption);
+
+    for (final unknown in ['unknown_poll_option', '']) {
+      check(PollEventSubmessageType.fromRawString(unknown)).equals(.unknown);
+    }
   });
 
   test('handle unknown poll vote op', () {
