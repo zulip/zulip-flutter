@@ -230,9 +230,9 @@ class PushDeviceManager extends PerAccountStoreBase {
         || now.difference(dateTimeFromTimestamp(
              fromServer.pushTokenLastUpdatedTimestamp!))
            >= _tokenRepeatInterval) {
-      final tokenKind = switch (defaultTargetPlatform) {
-        TargetPlatform.android => PushTokenKind.fcm,
-        TargetPlatform.iOS => PushTokenKind.apns,
+      final PushTokenKind tokenKind = switch (defaultTargetPlatform) {
+        TargetPlatform.android => .fcm,
+        TargetPlatform.iOS => .apns,
         _ => throw StateError('unexpected platform: $defaultTargetPlatform'),
       };
 
