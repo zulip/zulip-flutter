@@ -237,7 +237,7 @@ enum PollEventSubmessageType {
   vote,
   unknown;
 
-  static PollEventSubmessageType fromRawString(String raw) => _byRawString[raw]!;
+  static PollEventSubmessageType fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   static final _byRawString = _$PollEventSubmessageTypeEnumMap
     .map((key, value) => MapEntry(value, key));
