@@ -309,7 +309,7 @@ class UserStatusChange {
       return OptionSome(StatusEmoji(
         emojiName: emojiName,
         emojiCode: emojiCode,
-        reactionType: ReactionType.fromApiValue(reactionType)));
+        reactionType: ReactionType.fromRawString(reactionType)));
     }
   }
 
