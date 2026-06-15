@@ -105,7 +105,7 @@ void main() {
           check(userStatus.emoji!)
             ..emojiName.equals(emojiName)
             ..emojiCode.equals(emojiCode)
-            ..reactionType.equals(ReactionType.fromApiValue(reactionType));
+            ..reactionType.equals(ReactionType.fromRawString(reactionType));
         default:
           check(userStatus.emoji).isNull();
       }

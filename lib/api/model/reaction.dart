@@ -181,8 +181,14 @@ enum ReactionType {
 
   String toJson() => _$ReactionTypeEnumMap[this]!;
 
-  static ReactionType fromApiValue(String value) => _byApiValue[value]!;
+  /// Get a [ReactionType] from a raw, snake-case string we recognize.
+  ///
+  /// Throws if the string is unrecognized.
+  ///
+  /// Example:
+  ///   'unicode_emoji' -> ReactionType.unicodeEmoji
+  static ReactionType fromRawString(String raw) => _byRawString[raw]!;
 
-  static final _byApiValue = _$ReactionTypeEnumMap
+  static final _byRawString = _$ReactionTypeEnumMap
     .map((key, value) => MapEntry(value, key));
 }
