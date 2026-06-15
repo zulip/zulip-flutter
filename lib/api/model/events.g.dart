@@ -1139,7 +1139,11 @@ const _$PresenceStatusEnumMap = {
 ReactionEvent _$ReactionEventFromJson(Map<String, dynamic> json) =>
     ReactionEvent(
       id: (json['id'] as num).toInt(),
-      op: $enumDecode(_$ReactionOpEnumMap, json['op']),
+      op: $enumDecode(
+        _$ReactionOpEnumMap,
+        json['op'],
+        unknownValue: ReactionOp.unknown,
+      ),
       emojiName: json['emoji_name'] as String,
       emojiCode: json['emoji_code'] as String,
       reactionType: $enumDecode(_$ReactionTypeEnumMap, json['reaction_type']),
@@ -1162,6 +1166,7 @@ Map<String, dynamic> _$ReactionEventToJson(ReactionEvent instance) =>
 const _$ReactionOpEnumMap = {
   ReactionOp.add: 'add',
   ReactionOp.remove: 'remove',
+  ReactionOp.unknown: 'unknown',
 };
 
 const _$ReactionTypeEnumMap = {

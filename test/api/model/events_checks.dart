@@ -93,6 +93,10 @@ extension TypingEventChecks on Subject<TypingEvent> {
   Subject<TopicName?> get topic => has((e) => e.topic, 'topic');
 }
 
+extension ReactionEventChecks on Subject<ReactionEvent> {
+  Subject<ReactionOp> get op => has((e) => e.op, 'op');
+}
+
 extension HeartbeatEventChecks on Subject<HeartbeatEvent> {
   // No properties not covered by Event.
 }
