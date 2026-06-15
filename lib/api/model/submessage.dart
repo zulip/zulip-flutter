@@ -118,8 +118,8 @@ sealed class WidgetData extends SubmessageData {
     final map = json as Map<String, Object?>;
     final rawWidgetType = map['widget_type'] as String;
     return switch (WidgetType.fromRawString(rawWidgetType)) {
-      WidgetType.poll => PollWidgetData.fromJson(map),
-      WidgetType.unknown => UnsupportedWidgetData.fromJson(map),
+      .poll => PollWidgetData.fromJson(map),
+      .unknown => UnsupportedWidgetData.fromJson(map),
     };
   }
 
@@ -148,7 +148,7 @@ enum WidgetType {
 class PollWidgetData extends WidgetData {
   @override
   @JsonKey(includeToJson: true)
-  WidgetType get widgetType => WidgetType.poll;
+  WidgetType get widgetType => .poll;
 
   /// The initial question and options on the poll.
   final PollWidgetExtraData extraData;
@@ -187,7 +187,7 @@ class PollWidgetExtraData {
 class UnsupportedWidgetData extends WidgetData {
   @override
   @JsonKey(includeToJson: true)
-  WidgetType get widgetType => WidgetType.unknown;
+  WidgetType get widgetType => .unknown;
 
   final Object? json;
 
