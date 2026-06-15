@@ -356,7 +356,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     try {
       await updateMessageFlags(connection,
         messages: toSend,
-        op: UpdateMessageFlagsOp.add,
+        op: .add,
         flag: .read);
     } on ApiRequestException {
       // TODO(#1581) un-mark as read locally?

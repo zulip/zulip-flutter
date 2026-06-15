@@ -1543,9 +1543,9 @@ class StarButton extends MessageActionSheetMenuItemButton {
 
   @override void onPressed() async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
-    final op = message.flags.contains(MessageFlag.starred)
-      ? UpdateMessageFlagsOp.remove
-      : UpdateMessageFlagsOp.add;
+    final UpdateMessageFlagsOp op = message.flags.contains(MessageFlag.starred)
+      ? .remove
+      : .add;
 
     try {
       final connection = PerAccountStoreWidget.of(pageContext).connection;
@@ -1565,8 +1565,8 @@ class StarButton extends MessageActionSheetMenuItemButton {
 
       showErrorDialog(context: pageContext,
         title: switch(op) {
-          UpdateMessageFlagsOp.remove => zulipLocalizations.errorUnstarMessageFailedTitle,
-          UpdateMessageFlagsOp.add    => zulipLocalizations.errorStarMessageFailedTitle,
+          .remove => zulipLocalizations.errorUnstarMessageFailedTitle,
+          .add    => zulipLocalizations.errorStarMessageFailedTitle,
         }, message: errorMessage);
     }
   }

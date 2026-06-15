@@ -672,7 +672,7 @@ void main() {
           UpdateMessageFlagsResult(messages: [1, 2]).toJson());
         await checkUpdateMessageFlags(connection,
           messages: [1, 2, 3],
-          op: UpdateMessageFlagsOp.add, flag: .read,
+          op: .add, flag: .read,
           expected: {
             'messages': jsonEncode([1, 2, 3]),
             'op': 'add',
@@ -716,7 +716,7 @@ void main() {
           anchor: AnchorCode.oldest,
           numBefore: 0, numAfter: 20,
           narrow: const CombinedFeedNarrow().apiEncode(),
-          op: UpdateMessageFlagsOp.add, flag: .read,
+          op: .add, flag: .read,
           expected: {
             'anchor': 'oldest',
             'num_before': '0',
@@ -735,7 +735,7 @@ void main() {
           anchor: AnchorCode.oldest,
           numBefore: 0, numAfter: 20,
           narrow: [ApiNarrowDm([123, 234])],
-          op: UpdateMessageFlagsOp.add, flag: .read,
+          op: .add, flag: .read,
           expected: {
             'anchor': 'oldest',
             'num_before': '0',
@@ -756,7 +756,7 @@ void main() {
           anchor: const NumericAnchor(42),
           numBefore: 0, numAfter: 20,
           narrow: const CombinedFeedNarrow().apiEncode(),
-          op: UpdateMessageFlagsOp.add, flag: .read,
+          op: .add, flag: .read,
           expected: {
             'anchor': '42',
             'num_before': '0',
