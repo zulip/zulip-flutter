@@ -7,7 +7,11 @@ import 'messages.dart';
 Future<void> setTypingStatus(ApiConnection connection, {
   required TypingOp op,
   required MessageDestination destination,
-}) {
+}) async {
+  if (op == .unknown) {
+    assert(false, 'TypingOp.unknown is not supported when setting typing status.');
+    return;
+  }
   switch (destination) {
     case StreamDestination():
       final supportsTypeChannel = connection.zulipFeatureLevel! >= 248; // TODO(server-9)
