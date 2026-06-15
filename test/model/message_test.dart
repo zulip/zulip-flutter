@@ -2019,7 +2019,7 @@ void main() {
                   eg.submessage(senderId: voter,
                     content: PollVoteEventSubmessage(
                       key: PollEventSubmessage.optionKey(senderId: null, idx: i),
-                      op: PollVoteOp.add)),
+                      op: .add)),
               ],
         ];
         await prepare();
@@ -2149,19 +2149,19 @@ void main() {
           String optionKey(int index) =>
             PollEventSubmessage.optionKey(senderId: null, idx: index);
 
-          await handleVoteEvent(optionKey(0), PollVoteOp.add, eg.otherUser);
+          await handleVoteEvent(optionKey(0), .add, eg.otherUser);
           checkPoll(message).options.deepEquals([
             conditionPollOption('foo', voters: [eg.otherUser.userId]),
             conditionPollOption('bar', voters: []),
           ]);
 
-          await handleVoteEvent(optionKey(1), PollVoteOp.add, eg.otherUser);
+          await handleVoteEvent(optionKey(1), .add, eg.otherUser);
           checkPoll(message).options.deepEquals([
             conditionPollOption('foo', voters: [eg.otherUser.userId]),
             conditionPollOption('bar', voters: [eg.otherUser.userId]),
           ]);
 
-          await handleVoteEvent(optionKey(0), PollVoteOp.add, eg.selfUser);
+          await handleVoteEvent(optionKey(0), .add, eg.selfUser);
           checkPoll(message).options.deepEquals([
             conditionPollOption('foo', voters: [eg.otherUser.userId, eg.selfUser.userId]),
             conditionPollOption('bar', voters: [eg.otherUser.userId]),
@@ -2177,13 +2177,13 @@ void main() {
           String optionKey(int index) =>
             PollEventSubmessage.optionKey(senderId: null, idx: index);
 
-          await handleVoteEvent(optionKey(0), PollVoteOp.remove, eg.otherUser);
+          await handleVoteEvent(optionKey(0), .remove, eg.otherUser);
           checkPoll(message).options.deepEquals([
             conditionPollOption('foo', voters: [eg.selfUser.userId]),
             conditionPollOption('bar', voters: [eg.selfUser.userId]),
           ]);
 
-          await handleVoteEvent(optionKey(1), PollVoteOp.remove, eg.selfUser);
+          await handleVoteEvent(optionKey(1), .remove, eg.selfUser);
           checkPoll(message).options.deepEquals([
             conditionPollOption('foo', voters: [eg.selfUser.userId]),
             conditionPollOption('bar', voters: []),
@@ -2201,13 +2201,13 @@ void main() {
             idx: 10,
           );
 
-          await handleVoteEvent(unknownOptionKey, PollVoteOp.remove, eg.selfUser);
+          await handleVoteEvent(unknownOptionKey, .remove, eg.selfUser);
           checkPoll(message).options.deepEquals([
             conditionPollOption('foo', voters: [eg.selfUser.userId]),
             conditionPollOption('bar', voters: []),
           ]);
 
-          await handleVoteEvent(unknownOptionKey, PollVoteOp.add, eg.selfUser);
+          await handleVoteEvent(unknownOptionKey, .add, eg.selfUser);
           checkPoll(message).options.deepEquals([
             conditionPollOption('foo', voters: [eg.selfUser.userId]),
             conditionPollOption('bar', voters: []),
@@ -2221,7 +2221,7 @@ void main() {
           await store.handleEvent(eg.submessageEvent(message.id, eg.otherUser.userId,
             content: PollVoteEventSubmessage(
               key: PollEventSubmessage.optionKey(senderId: null, idx: 0),
-              op: PollVoteOp.unknown)));
+              op: .unknown)));
           checkPollNotNotified();
           checkPoll(message).options.deepEquals([conditionPollOption('foo')]);
         });
@@ -2289,10 +2289,10 @@ void main() {
 
       test('contains vote events on initial canned options', () async {
         await handlePollMessageEvent(events: [
-          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,1', op: PollVoteOp.add)),
-          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,2', op: PollVoteOp.add)),
-          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,2', op: PollVoteOp.remove)),
-          (eg.selfUser,  PollVoteEventSubmessage(key: 'canned,1', op: PollVoteOp.add)),
+          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,1', op: .add)),
+          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,2', op: .add)),
+          (eg.otherUser, PollVoteEventSubmessage(key: 'canned,2', op: .remove)),
+          (eg.selfUser,  PollVoteEventSubmessage(key: 'canned,1', op: .add)),
         ]);
         checkPoll(message)
           ..question.equals(defaultPollWidgetData.extraData.question)
@@ -2305,8 +2305,8 @@ void main() {
       test('contains vote events on post-creation options', () async {
         await handlePollMessageEvent(events: [
           (eg.otherUser, PollNewOptionEventSubmessage(idx: 0, option: 'baz')),
-          (eg.otherUser, PollVoteEventSubmessage(key: '${eg.otherUser.userId},0', op: PollVoteOp.add)),
-          (eg.selfUser,  PollVoteEventSubmessage(key: '${eg.otherUser.userId},0', op: PollVoteOp.add)),
+          (eg.otherUser, PollVoteEventSubmessage(key: '${eg.otherUser.userId},0', op: .add)),
+          (eg.selfUser,  PollVoteEventSubmessage(key: '${eg.otherUser.userId},0', op: .add)),
         ]);
         checkPoll(message)
           ..question.equals(defaultPollWidgetData.extraData.question)
