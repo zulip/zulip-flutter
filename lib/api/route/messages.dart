@@ -352,7 +352,11 @@ Future<void> addReaction(ApiConnection connection, {
   required ReactionType reactionType,
   required String emojiCode,
   required String emojiName,
-}) {
+}) async {
+  if (reactionType == .unknown) {
+    assert(false, 'ReactionType.unknown is not supported when adding a reaction.');
+    return;
+  }
   return connection.post('addReaction', (_) {}, 'messages/$messageId/reactions', {
     'emoji_name': RawParameter(emojiName),
     'emoji_code': RawParameter(emojiCode),
@@ -366,7 +370,11 @@ Future<void> removeReaction(ApiConnection connection, {
   required ReactionType reactionType,
   required String emojiCode,
   required String emojiName,
-}) {
+}) async {
+  if (reactionType == .unknown) {
+    assert(false, 'ReactionType.unknown is not supported when removing a reaction.');
+    return;
+  }
   return connection.delete('removeReaction', (_) {}, 'messages/$messageId/reactions', {
     'emoji_name': RawParameter(emojiName),
     'emoji_code': RawParameter(emojiCode),

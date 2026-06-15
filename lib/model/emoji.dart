@@ -225,6 +225,10 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
       case .zulipExtraEmoji:
         return _tryImageEmojiDisplay(
           sourceUrl: kZulipEmojiUrl, stillUrl: null, emojiName: emojiName);
+
+      case .unknown:
+        // Fall back to text emoji display below.
+        break;
     }
     return TextEmojiDisplay(emojiName: emojiName);
   }
@@ -617,6 +621,12 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
       // See `zulip_emoji` in web:src/emoji.ts .
       .realmEmoji || .zulipExtraEmoji => true,
       .unicodeEmoji => false,
+      // Given the code path here as of 2026-06, we don't expect an emoji
+      // candidate to have an unknown emojiType.
+      .unknown => () {
+                    assert(false, 'ReactionType.unknown is not expected for EmojiCandidate.emojiType.');
+                    return false;
+                  }(),
     };
     return switch (matchQuality) {
       EmojiMatchQuality.exact       => 0,

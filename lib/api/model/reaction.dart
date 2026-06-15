@@ -151,6 +151,7 @@ class ReactionWithVotes {
 class Reaction {
   final String emojiName;
   final String emojiCode;
+  @JsonKey(unknownEnumValue: ReactionType.unknown)
   final ReactionType reactionType;
   final int userId;
   // final Map<String, dynamic> user; // deprecated; ignore
@@ -177,17 +178,19 @@ class Reaction {
 enum ReactionType {
   unicodeEmoji,
   realmEmoji,
-  zulipExtraEmoji;
+  zulipExtraEmoji,
+
+  /// A new, unrecognized type.
+  unknown;
 
   String toJson() => _$ReactionTypeEnumMap[this]!;
 
-  /// Get a [ReactionType] from a raw, snake-case string we recognize.
-  ///
-  /// Throws if the string is unrecognized.
+  /// Get a [ReactionType] from a raw, snake-case string we recognize,
+  /// else [ReactionType.unknown]
   ///
   /// Example:
   ///   'unicode_emoji' -> ReactionType.unicodeEmoji
-  static ReactionType fromRawString(String raw) => _byRawString[raw]!;
+  static ReactionType fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   static final _byRawString = _$ReactionTypeEnumMap
     .map((key, value) => MapEntry(value, key));
