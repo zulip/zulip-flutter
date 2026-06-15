@@ -2060,7 +2060,7 @@ void main() {
       test('ignore submessage event with malformed content', () async {
         final message = await preparePollMessage(question: 'Old question');
         await store.handleEvent(SubmessageEvent(
-          id: 0, msgType: SubmessageType.widget, submessageId: 123,
+          id: 0, msgType: .widget, submessageId: 123,
           messageId: message.id,
           senderId: eg.selfUser.userId,
           content: jsonEncode({
@@ -2319,7 +2319,7 @@ void main() {
       test('content with invalid widget_type', () async {
         message = eg.streamMessage(sender: eg.otherUser, submessages: [
           Submessage(
-            msgType: SubmessageType.widget,
+            msgType: .widget,
             content: jsonEncode({'widget_type': 'other'}),
             senderId: eg.otherUser.userId,
           ),
