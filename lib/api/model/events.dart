@@ -1727,6 +1727,7 @@ class ReactionEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'reaction';
 
+  @JsonKey(unknownEnumValue: ReactionOp.unknown)
   final ReactionOp op;
 
   final String emojiName;
@@ -1758,6 +1759,9 @@ class ReactionEvent extends Event {
 enum ReactionOp {
   add,
   remove,
+
+  /// A new, unrecognized operation.
+  unknown;
 }
 
 /// A Zulip event of type `heartbeat`: https://zulip.com/api/get-events#heartbeat

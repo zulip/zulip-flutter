@@ -423,4 +423,25 @@ void main() {
       })).recipientIds.isNotNull().deepEquals([1, 2, 4, 8, 10]);
     });
   });
+
+  group('reaction event', () {
+    final json = Map<String, dynamic>.unmodifiable({
+      'id': 1,
+      'type': 'reaction',
+      'op': 'add',
+      'emoji_name': '+1',
+      'emoji_code': '1f44d',
+      'reaction_type': 'unicode_emoji',
+      'user_id': 100,
+      'message_id': 1000,
+    });
+
+    test('handle unknown op', () {
+      check(ReactionEvent.fromJson(json)).op.equals(.add);
+
+      for (final unknown in ['unknown_op', '']) {
+        check(ReactionEvent.fromJson({...json, 'op': unknown})).op.equals(.unknown);
+      }
+    });
+  });
 }
