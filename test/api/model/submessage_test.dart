@@ -35,7 +35,7 @@ void main() {
     )) as Map<String, Object?>;
 
     check(WidgetData.fromJson(pollWidgetData)).isA<PollWidgetData>()
-      ..widgetType.equals(WidgetType.poll)
+      ..widgetType.equals(.poll)
       ..extraData.which((x) => x
           ..question.equals('example question')
           ..options.deepEquals(['A', 'B', 'C'])
