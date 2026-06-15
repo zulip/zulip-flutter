@@ -455,11 +455,11 @@ class Poll extends ChangeNotifier {
         }
 
         switch (event.op) {
-          case PollVoteOp.add:
+          case .add:
             option.voters.add(senderId);
-          case PollVoteOp.remove:
+          case .remove:
             option.voters.remove(senderId);
-          case PollVoteOp.unknown:
+          case .unknown:
             assert(debugLog('unknown vote op ${event.op}')); // TODO(log)
         }
 

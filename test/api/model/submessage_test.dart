@@ -73,7 +73,7 @@ void main() {
       'key': PollEventSubmessage.optionKey(senderId: null, idx: 0),
     })).isA<PollVoteEventSubmessage>()
       ..type.equals(.vote)
-      ..op.equals(PollVoteOp.add)
+      ..op.equals(.add)
       ..key.equals('canned,0');
   });
 
@@ -120,7 +120,7 @@ void main() {
       'type': 'vote',
       'vote': 'invalid',
       'key': PollEventSubmessage.optionKey(senderId: null, idx: 0)
-    })).isA<PollVoteEventSubmessage>().op.equals(PollVoteOp.unknown);
+    })).isA<PollVoteEventSubmessage>().op.equals(.unknown);
   });
 
   // Parsing polls with PollEventSubmessages are tested in
