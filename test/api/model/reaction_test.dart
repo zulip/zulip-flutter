@@ -203,4 +203,29 @@ void main() {
         ..total.equals(0);
     });
   });
+
+  test('Reaction.reactionType handles unknown values', () {
+    final json = Map<String, dynamic>.unmodifiable({
+      'emoji_name': '+1',
+      'emoji_code': '1f44d',
+      'reaction_type': 'unicode_emoji',
+      'user_id': 100,
+    });
+
+    check(Reaction.fromJson(json))
+      .reactionType.equals(.unicodeEmoji);
+
+    for (final unknown in ['unknown_emoji', '']) {
+      check(Reaction.fromJson({...json, 'reaction_type': unknown}))
+        .reactionType.equals(.unknown);
+    }
+  });
+
+  test('ReactionType.fromRawString handles unknown values', () {
+    check(ReactionType.fromRawString('unicode_emoji')).equals(.unicodeEmoji);
+
+    for (final unknown in ['unknown_emoji', '']) {
+      check(ReactionType.fromRawString(unknown)).equals(.unknown);
+    }
+  });
 }

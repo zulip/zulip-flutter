@@ -509,5 +509,15 @@ void main() {
         check(ReactionEvent.fromJson({...json, 'op': unknown})).op.equals(.unknown);
       }
     });
+
+    test('handle unknown reactionType', () {
+      check(ReactionEvent.fromJson(json))
+        .reactionType.equals(.unicodeEmoji);
+
+      for (final unknown in ['unknown_emoji', '']) {
+        check(ReactionEvent.fromJson({...json, 'reaction_type': unknown}))
+          .reactionType.equals(.unknown);
+      }
+    });
   });
 }

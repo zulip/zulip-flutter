@@ -97,6 +97,12 @@ void main() {
         ..resolvedUrl.equals(eg.realmUrl.resolve(EmojiStoreImpl.kZulipEmojiUrl))
         ..resolvedStillUrl.isNull();
     });
+
+    test('unknown emoji', () {
+      check(eg.store().emojiDisplayFor(emojiType: .unknown,
+        emojiCode: 'asdf', emojiName: 'unknown')
+      ).isA<TextEmojiDisplay>().emojiName.equals('unknown');
+    });
   });
 
   final popularCandidates = (

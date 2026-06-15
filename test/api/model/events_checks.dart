@@ -109,6 +109,7 @@ extension TypingEventChecks on Subject<TypingEvent> {
 
 extension ReactionEventChecks on Subject<ReactionEvent> {
   Subject<ReactionOp> get op => has((e) => e.op, 'op');
+  Subject<ReactionType> get reactionType => has((e) => e.reactionType, 'reactionType');
 }
 
 extension HeartbeatEventChecks on Subject<HeartbeatEvent> {
