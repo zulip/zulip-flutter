@@ -1136,6 +1136,12 @@ abstract class ZulipLocalizations {
   /// **'No users found'**
   String get newDmSheetNoUsersFound;
 
+  /// Label identifying the self-user, shown in places like user lists as '(you)'.
+  ///
+  /// In en, this message translates to:
+  /// **'you'**
+  String get you;
+
   /// Hint text for content input when sending a message to one other person.
   ///
   /// In en, this message translates to:
