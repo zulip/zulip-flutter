@@ -85,6 +85,7 @@ extension UpdateMessageFlagsMessageDetailCheck on Subject<UpdateMessageFlagsMess
 }
 
 extension TypingEventChecks on Subject<TypingEvent> {
+  Subject<TypingOp> get op => has((e) => e.op, 'op');
   Subject<MessageType> get messageType => has((e) => e.messageType, 'messageType');
   Subject<int> get senderId => has((e) => e.senderId, 'senderId');
   Subject<List<int>?> get recipientIds => has((e) => e.recipientIds, 'recipientIds');

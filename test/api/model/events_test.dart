@@ -360,6 +360,16 @@ void main() {
       'recipients': [1, 2, 3].map((e) => {'user_id': e, 'email': '$e@example.com'}).toList(),
     };
 
+    test('handle unknown op', () {
+      check(TypingEvent.fromJson(directMessageJson))
+        .op.equals(.start);
+
+      for (final unknown in ['unknown_op', '']) {
+        check(TypingEvent.fromJson({...directMessageJson, 'op': unknown}))
+          .op.equals(.unknown);
+      }
+    });
+
     test('direct message typing events', () {
       check(TypingEvent.fromJson(directMessageJson))
         ..recipientIds.isNotNull().deepEquals([1, 2, 3])
