@@ -147,7 +147,7 @@ void main() {
         ZulipAction.updateMessageFlagsStartingFromAnchor(
           context: context,
           apiNarrow: apiNarrow,
-          op: UpdateMessageFlagsOp.add,
+          op: .add,
           flag: .read,
           includeAnchor: false,
           anchor: AnchorCode.oldest,

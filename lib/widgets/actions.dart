@@ -81,7 +81,7 @@ abstract final class ZulipAction {
       // [AnchorCode.oldest] is an anchor ID lower than any valid
       // message ID.
       includeAnchor: false,
-      op: UpdateMessageFlagsOp.add,
+      op: .add,
       flag: .read,
       onCompletedMessage: zulipLocalizations.markAsReadComplete,
       progressMessage: zulipLocalizations.markAsReadInProgress,
@@ -109,7 +109,7 @@ abstract final class ZulipAction {
       apiNarrow: narrow.apiEncode(),
       anchor: NumericAnchor(message.id),
       includeAnchor: true,
-      op: UpdateMessageFlagsOp.remove,
+      op: .remove,
       flag: .read,
       onCompletedMessage: zulipLocalizations.markAsUnreadComplete,
       progressMessage: zulipLocalizations.markAsUnreadInProgress,
