@@ -327,6 +327,8 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
     json['emojiset'],
     unknownValue: Emojiset.unknown,
   ),
+  webInboxShowChannelFolders:
+      json['web_inbox_show_channel_folders'] as bool? ?? true,
   presenceEnabled: json['presence_enabled'] as bool,
 );
 
@@ -335,6 +337,7 @@ const _$UserSettingsFieldMap = <String, String>{
   'starredMessageCounts': 'starred_message_counts',
   'displayEmojiReactionUsers': 'display_emoji_reaction_users',
   'emojiset': 'emojiset',
+  'webInboxShowChannelFolders': 'web_inbox_show_channel_folders',
   'presenceEnabled': 'presence_enabled',
 };
 
@@ -346,6 +349,7 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
       'starred_message_counts': instance.starredMessageCounts,
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
       'emojiset': instance.emojiset,
+      'web_inbox_show_channel_folders': instance.webInboxShowChannelFolders,
       'presence_enabled': instance.presenceEnabled,
     };
 

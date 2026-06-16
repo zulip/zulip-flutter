@@ -340,6 +340,7 @@ enum UserSettingName {
   starredMessageCounts,
   displayEmojiReactionUsers,
   emojiset,
+  webInboxShowChannelFolders,
   presenceEnabled,
   ;
 
