@@ -864,7 +864,7 @@ class ChannelUpdateEvent extends ChannelEvent {
       case .messageRetentionDays:
         return value as int?;
       case .topicsPolicy:
-        return ChannelTopicsPolicy.fromApiValue(value as String);
+        return ChannelTopicsPolicy.fromRawString(value as String);
       case .channelPostPolicy:
         return ChannelPostPolicy.fromApiValue(value as int);
       case .folderId:
