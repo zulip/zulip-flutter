@@ -313,6 +313,27 @@ If passing explicit values in tests is cumbersome, a factory function
 in `test/example_data.dart` is an appropriate way to share defaults.
 
 
+#### Handle unknown enum values gracefully
+
+When adding a new enum that appears in data received from the server
+(under `lib/api`), consider how the client should behave if the server
+sends an unknown value, generally representing a value that the server
+may start sending in a future version.
+
+In most cases, the client should handle unknown values gracefully rather
+than rejecting the server response as malformed. A common pattern is to
+include an `unknown` enum value and parse unrecognized values into it.
+
+Cases where we reject unknown values should be rare, and we should have
+a clear story for why that's appropriate. For example, the `type` field
+on a message (https://zulip.com/api/get-messages#response) is so
+fundamental to interpreting the rest of the data that the client cannot
+reasonably decide what to do with an unknown value. Another case is when
+the field represented by the enum is deprecated; in that case, future
+additions are unlikely, and so supporting an `unknown` value may not be
+worthwhile.
+
+
 #### Generated files
 
 When editing any of the type definitions in our API, you'll need to
