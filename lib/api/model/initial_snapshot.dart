@@ -378,6 +378,7 @@ class UserSettings {
   bool displayEmojiReactionUsers;
   @JsonKey(unknownEnumValue: Emojiset.unknown)
   Emojiset emojiset;
+  bool? webInboxShowChannelFolders; // TODO(server-12)
   bool presenceEnabled;
 
   // TODO more, as needed. When adding a setting here, please also:
@@ -391,6 +392,7 @@ class UserSettings {
     required this.starredMessageCounts,
     required this.displayEmojiReactionUsers,
     required this.emojiset,
+    required this.webInboxShowChannelFolders,
     required this.presenceEnabled,
   });
 
