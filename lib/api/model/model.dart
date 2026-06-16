@@ -847,9 +847,14 @@ enum ChannelTopicsPolicy {
       .unknown           => .unknown,
     };
 
-  static ChannelTopicsPolicy fromApiValue(String value) => _byApiValue[value] ?? unknown;
+  /// Get a [ChannelTopicsPolicy] from a raw, snake-case string we recognize,
+  /// else [ChannelTopicsPolicy.unknown].
+  ///
+  /// Example:
+  ///   'allow_empty_topic' -> ChannelTopicsPolicy.allowEmptyTopic
+  static ChannelTopicsPolicy fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
-  static final _byApiValue = _$ChannelTopicsPolicyEnumMap
+  static final _byRawString = _$ChannelTopicsPolicyEnumMap
     .map((key, value) => MapEntry(value, key));
 }
 
