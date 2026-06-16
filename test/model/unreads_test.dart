@@ -794,7 +794,7 @@ void main() {
         fillWithMessages(unreadMessages);
 
         final unknownChannel = eg.stream();
-        assert(!store.streams.containsKey(unknownChannel.streamId));
+        assert(!store.channels.containsKey(unknownChannel.streamId));
         final unknownUnreadMessage = eg.streamMessage(
           stream: unknownChannel, topic: origTopic);
 

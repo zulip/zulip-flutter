@@ -159,7 +159,7 @@ void main() {
       channels: [channel1, channel2, channel3, channel4, channel5, channel6]);
 
     final channel7 = await addPrivateChannelWithContentAccess('d');
-    check(store.streams.length).equals(7);
+    check(store.channels.length).equals(7);
     await tester.pump();
 
     final channelsInUiOrder =

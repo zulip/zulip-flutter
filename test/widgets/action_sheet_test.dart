@@ -286,7 +286,7 @@ void main() {
         child: TopicListPage(channelId: channelId)));
       await tester.pump();
 
-      final titleText = store.streams[channelId]?.name ?? '(unknown channel)';
+      final titleText = store.channels[channelId]?.name ?? '(unknown channel)';
       await tester.longPress(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text(titleText)));
@@ -322,7 +322,7 @@ void main() {
 
         testWidgets('public channel', (tester) async {
           await prepare();
-          check(store.streams[someChannel.streamId]).isNotNull()
+          check(store.channels[someChannel.streamId]).isNotNull()
             ..inviteOnly.isFalse()..isWebPublic.isFalse();
           await showFromInbox(tester);
           check(findInHeader(find.byIcon(ZulipIcons.hash_sign))).findsOne();
@@ -339,7 +339,7 @@ void main() {
             // modern servers actually do that or if they still use this
             // separate field.)
             isWebPublic: true));
-          check(store.streams[someChannel.streamId]).isNotNull()
+          check(store.channels[someChannel.streamId]).isNotNull()
             ..inviteOnly.isFalse()..isWebPublic.isTrue();
           await showFromInbox(tester);
           check(findInHeader(find.byIcon(ZulipIcons.globe))).findsOne();
@@ -350,7 +350,7 @@ void main() {
           await prepare();
           await store.handleEvent(eg.channelUpdateEvent(someChannel,
             property: ChannelPropertyName.inviteOnly, value: true));
-          check(store.streams[someChannel.streamId]).isNotNull()
+          check(store.channels[someChannel.streamId]).isNotNull()
             ..inviteOnly.isTrue()..isWebPublic.isFalse();
           await showFromInbox(tester);
           check(findInHeader(find.byIcon(ZulipIcons.lock))).findsOne();
@@ -361,7 +361,7 @@ void main() {
           await prepare();
           await store.handleEvent(ChannelDeleteEvent(id: 1,
             channelIds: [someChannel.streamId]));
-          check(store.streams[someChannel.streamId]).isNull();
+          check(store.channels[someChannel.streamId]).isNull();
           await showFromTopicListAppBar(tester);
           check(findInHeader(find.byType(Icon))).findsNothing();
           check(findInHeader(find.textContaining('(unknown channel)'))).findsOne();
@@ -935,7 +935,7 @@ void main() {
 
         testWidgets('with topic', (tester) async {
           await prepare();
-          check(store.streams[someChannel.streamId]).isNotNull()
+          check(store.channels[someChannel.streamId]).isNotNull()
             ..inviteOnly.isFalse()..isWebPublic.isFalse();
           await showFromAppBar(tester);
           check(findInHeader(find.byIcon(ZulipIcons.hash_sign))).findsOne();
@@ -945,7 +945,7 @@ void main() {
 
         testWidgets('without topic (general chat)', (tester) async {
           await prepare(topic: '');
-          check(store.streams[someChannel.streamId]).isNotNull()
+          check(store.channels[someChannel.streamId]).isNotNull()
             ..inviteOnly.isFalse()..isWebPublic.isFalse();
           final message = eg.streamMessage(
             stream: someChannel, topic: '', sender: eg.otherUser);

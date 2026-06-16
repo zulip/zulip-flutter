@@ -230,7 +230,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         //   (maybe handle centrally in `controller`)
         replacementString = '${userGroupMention(userGroup.name, silent: query.silent)} ';
       case ChannelLinkAutocompleteResult(:final channelId):
-        final channel = store.streams[channelId];
+        final channel = store.channels[channelId];
         if (channel == null) {
           // Don't crash on theoretical race between async results-filtering
           // and losing data for the channel.
@@ -382,7 +382,7 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final channel = store.streams[option.channelId];
+    final channel = store.channels[option.channelId];
 
     if (channel == null) return SizedBox.shrink();
 
