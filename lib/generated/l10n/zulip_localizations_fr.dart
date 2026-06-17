@@ -274,48 +274,50 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Échec de la suppression du message';
 
   @override
-  String get actionSheetOptionReportMessage => 'Report message';
+  String get actionSheetOptionReportMessage => 'Signaler le message';
 
   @override
-  String get reportMessageDialogTitle => 'Report message';
+  String get reportMessageDialogTitle => 'Signaler le message';
 
   @override
   String get reportMessageDescription =>
-      'Your report will be sent to the private moderation requests channel for this organization.';
+      'Votre signalement va être envoyé dans le canal privé des demandes de modération de cette organisation.';
 
   @override
   String get messageReportTypeSpam => 'Spam';
 
   @override
-  String get messageReportTypeHarassment => 'Harassment';
+  String get messageReportTypeHarassment => 'Harcèlement';
 
   @override
-  String get messageReportTypeInappropriate => 'Inappropriate content';
+  String get messageReportTypeInappropriate => 'Contenu inapproprié';
 
   @override
-  String get messageReportTypeNorms => 'Violates community norms';
+  String get messageReportTypeNorms => 'Viole les normes de la communauté';
 
   @override
-  String get messageReportTypeOther => 'Other reason';
+  String get messageReportTypeOther => 'Autre raison';
 
   @override
   String get reportMessageReasonLabel =>
-      'What’s the problem with this message?';
+      'Quel est le problème avec ce message ?';
 
   @override
-  String get reportMessageDescriptionLabel => 'Can you provide more details?';
+  String get reportMessageDescriptionLabel =>
+      'Pouvez-vous fournir plus de détails ?';
 
   @override
-  String get reportMessageDescriptionRequired => 'Please provide details.';
+  String get reportMessageDescriptionRequired =>
+      'Merci de fournir des détails.';
 
   @override
-  String get reportMessageSubmitButton => 'Submit';
+  String get reportMessageSubmitButton => 'Soumettre';
 
   @override
-  String get reportMessageSuccess => 'Message reported';
+  String get reportMessageSuccess => 'Message signalé';
 
   @override
-  String get errorReportMessageFailedTitle => 'Failed to report message';
+  String get errorReportMessageFailedTitle => 'Échec du signalement du message';
 
   @override
   String get actionSheetOptionMarkTopicAsRead =>
@@ -854,7 +856,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Les conversations doivent avoir un titre dans cette organisation.';
+      'Les conversations doivent avoir un titre dans ce canal.';
 
   @override
   String get errorContentNotInsertedTitle => 'Contenu non inséré';
@@ -920,10 +922,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get errorVideoPlayerFailedTryBrowser =>
-      'Try opening it in your browser instead.';
+      'Essayez de l\'ouvrir dans votre navigateur.';
 
   @override
-  String get dialogOpenInBrowser => 'Open in browser';
+  String get dialogOpenInBrowser => 'Ouvrir dans le navigateur';
 
   @override
   String get serverUrlValidationErrorEmpty =>

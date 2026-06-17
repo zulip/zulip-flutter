@@ -62,6 +62,9 @@
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
+  },
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
   },
@@ -298,6 +301,9 @@
   },
   "@dialogContinue": {
     "description": "Button label in dialogs to proceed."
+  },
+  "@dialogOpenInBrowser": {
+    "description": "Button label to confirm opening a link in the browser."
   },
   "@discardDraftConfirmationDialogConfirmButton": {
     "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
@@ -630,6 +636,9 @@
   "@errorReactionRemovingFailedTitle": {
     "description": "Error title when removing a message reaction fails"
   },
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
+  },
   "@errorRequestFailed": {
     "description": "Error message when an API call fails.",
     "placeholders": {
@@ -900,6 +909,18 @@
   "@messageNotSentLabel": {
     "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "@messageReportTypeInappropriate": {
+    "description": "Label for the 'Inappropriate content' report type in the report message dialog."
+  },
+  "@messageReportTypeNorms": {
+    "description": "Label for the 'Violates community norms' report type in the report message dialog."
+  },
+  "@messageReportTypeOther": {
+    "description": "Label for the 'Other reason' report type in the report message dialog."
+  },
+  "@messageReportTypeSpam": {
+    "description": "Label for the 'Spam' report type in the report message dialog."
+  },
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
   },
@@ -1046,6 +1067,24 @@
   "@recentDmConversationsSectionHeader": {
     "description": "Heading for direct messages section on the 'Inbox' message view."
   },
+  "@reportMessageDescription": {
+    "description": "Explanatory text shown under the title in the report message dialog."
+  },
+  "@reportMessageDescriptionLabel": {
+    "description": "Label text for the description field in the report message dialog."
+  },
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "@reportMessageReasonLabel": {
+    "description": "Label text for the report reason dropdown in the report message dialog."
+  },
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
+  "@reportMessageSuccess": {
+    "description": "Snackbar message shown after successfully reporting a message."
+  },
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
   },
@@ -1105,8 +1144,37 @@
       }
     }
   },
+  "@serverCompatBannerAdminMessage": {
+    "description": "Banner message shown to server admins when the server version is no longer supported.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "9.0",
+        "type": "String"
+      }
+    }
+  },
+  "@serverCompatBannerDismissLabel": {
+    "description": "Label for the button that dismisses the server compatibility warning banner."
+  },
   "@serverCompatBannerLearnMoreLabel": {
     "description": "Label for the button in the server compatibility warning banner that opens the support policy doc."
+  },
+  "@serverCompatBannerUserMessage": {
+    "description": "Banner message shown to non-admin users when the server version is no longer supported.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "9.0",
+        "type": "String"
+      }
+    }
   },
   "@serverUrlValidationErrorEmpty": {
     "description": "Error message when URL is empty"
@@ -1446,6 +1514,7 @@
   "actionSheetOptionMuteTopic": "Silenzia argomento",
   "actionSheetOptionPinChannel": "Fissa in alto",
   "actionSheetOptionQuoteMessage": "Cita messaggio",
+  "actionSheetOptionReportMessage": "Segnala il messaggio",
   "actionSheetOptionResolveTopic": "Segna come risolto",
   "actionSheetOptionSeeWhoReacted": "Guarda chi ha reagito",
   "actionSheetOptionShare": "Condividi",
@@ -1509,6 +1578,7 @@
   "dialogCancel": "Annulla",
   "dialogClose": "Chiudi",
   "dialogContinue": "Continua",
+  "dialogOpenInBrowser": "Apri nel browser",
   "discardDraftConfirmationDialogConfirmButton": "Abbandona",
   "discardDraftConfirmationDialogTitle": "Scartare il messaggio che si sta scrivendo?",
   "discardDraftForEditConfirmationDialogMessage": "Quando si modifica un messaggio, il contenuto precedentemente presente nella casella di composizione viene ignorato.",
@@ -1580,6 +1650,7 @@
   "errorQuotationFailed": "Citazione non riuscita",
   "errorReactionAddingFailedTitle": "Aggiunta della reazione non riuscita",
   "errorReactionRemovingFailedTitle": "Rimozione della reazione non riuscita",
+  "errorReportMessageFailedTitle": "Non è stato possibile segnalare il messaggio",
   "errorRequestFailed": "Richiesta di rete non riuscita: stato HTTP {httpStatus}",
   "errorResolveTopicFailedTitle": "Impossibile contrassegnare l'argomento come risolto",
   "errorServerMessage": "Il server ha detto:\n\n{message}",
@@ -1650,6 +1721,10 @@
   "messageListGroupYouAndOthers": "Tu e {others}",
   "messageListGroupYouWithYourself": "Messaggi con te stesso",
   "messageNotSentLabel": "MESSAGGIO NON INVIATO",
+  "messageReportTypeInappropriate": "Contenuto inappropriato",
+  "messageReportTypeNorms": "Viola le norme della comunità",
+  "messageReportTypeOther": "Altro motivo",
+  "messageReportTypeSpam": "Spam",
   "mutedUser": "Utente silenziato",
   "navBarFeedLabel": "Feed",
   "navBarMenuLabel": "Menu",
@@ -1686,6 +1761,12 @@
   "recentDmConversationsPageShortLabel": "DM",
   "recentDmConversationsPageTitle": "Messaggi diretti",
   "recentDmConversationsSectionHeader": "Messaggi diretti",
+  "reportMessageDescription": "La tua segnalazione sarà inviata al canale privato delle richieste di moderazione di questa organizzazione.",
+  "reportMessageDescriptionLabel": "Puoi fornire maggiori dettagli?",
+  "reportMessageDialogTitle": "Segnala il messaggio",
+  "reportMessageReasonLabel": "Qual è il problema con questo messaggio?",
+  "reportMessageSubmitButton": "Invia",
+  "reportMessageSuccess": "Messaggio segnalato",
   "revealButtonLabel": "Rivela messaggio",
   "savingMessageEditFailedLabel": "MODIFICA NON SALVATA",
   "savingMessageEditLabel": "SALVATAGGIO MODIFICA…",
@@ -1697,7 +1778,10 @@
   "seeWhoReactedSheetHeaderLabel": "Reazioni emoji ({num} totale)",
   "seeWhoReactedSheetNoReactions": "Questo messaggio non ha ricevuto reazioni.",
   "seeWhoReactedSheetUserListLabel": "Voti per {emojiName} ({num})",
+  "serverCompatBannerAdminMessage": "{url} sta usando la versione {zulipVersion} di Zulip Server, che non è più supportata. Si prega di aggiornare il server al più presto.",
+  "serverCompatBannerDismissLabel": "Ignora",
   "serverCompatBannerLearnMoreLabel": "Per saperne di più",
+  "serverCompatBannerUserMessage": "{url} sta usando la versione {zulipVersion} di Zulip Server, che non è più supportata. Contatta l'amministratore del server per provvedere all'aggiornamento.",
   "serverUrlValidationErrorEmpty": "Inserire un URL.",
   "serverUrlValidationErrorInvalidUrl": "Inserire un URL valido.",
   "serverUrlValidationErrorNoUseEmail": "Inserire l'URL del server, non il proprio indirizzo email.",

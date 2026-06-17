@@ -1,1 +1,6 @@
-{}
+{
+  "@aboutPageTitle": {
+    "description": "Title for About Zulip page."
+  },
+  "aboutPageTitle": "Sobre Zulip"
+}
