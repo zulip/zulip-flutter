@@ -277,14 +277,14 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Non è stato possibile eliminare il messaggio';
 
   @override
-  String get actionSheetOptionReportMessage => 'Report message';
+  String get actionSheetOptionReportMessage => 'Segnala il messaggio';
 
   @override
-  String get reportMessageDialogTitle => 'Report message';
+  String get reportMessageDialogTitle => 'Segnala il messaggio';
 
   @override
   String get reportMessageDescription =>
-      'Your report will be sent to the private moderation requests channel for this organization.';
+      'La tua segnalazione sarà inviata al canale privato delle richieste di moderazione di questa organizzazione.';
 
   @override
   String get messageReportTypeSpam => 'Spam';
@@ -293,32 +293,33 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get messageReportTypeHarassment => 'Harassment';
 
   @override
-  String get messageReportTypeInappropriate => 'Inappropriate content';
+  String get messageReportTypeInappropriate => 'Contenuto inappropriato';
 
   @override
-  String get messageReportTypeNorms => 'Violates community norms';
+  String get messageReportTypeNorms => 'Viola le norme della comunità';
 
   @override
-  String get messageReportTypeOther => 'Other reason';
+  String get messageReportTypeOther => 'Altro motivo';
 
   @override
   String get reportMessageReasonLabel =>
-      'What’s the problem with this message?';
+      'Qual è il problema con questo messaggio?';
 
   @override
-  String get reportMessageDescriptionLabel => 'Can you provide more details?';
+  String get reportMessageDescriptionLabel => 'Puoi fornire maggiori dettagli?';
 
   @override
   String get reportMessageDescriptionRequired => 'Please provide details.';
 
   @override
-  String get reportMessageSubmitButton => 'Submit';
+  String get reportMessageSubmitButton => 'Invia';
 
   @override
-  String get reportMessageSuccess => 'Message reported';
+  String get reportMessageSuccess => 'Messaggio segnalato';
 
   @override
-  String get errorReportMessageFailedTitle => 'Failed to report message';
+  String get errorReportMessageFailedTitle =>
+      'Non è stato possibile segnalare il messaggio';
 
   @override
   String get actionSheetOptionMarkTopicAsRead =>
@@ -863,16 +864,16 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String serverCompatBannerAdminMessage(String url, String zulipVersion) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+    return '$url sta usando la versione $zulipVersion di Zulip Server, che non è più supportata. Si prega di aggiornare il server al più presto.';
   }
 
   @override
   String serverCompatBannerUserMessage(String url, String zulipVersion) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+    return '$url sta usando la versione $zulipVersion di Zulip Server, che non è più supportata. Contatta l\'amministratore del server per provvedere all\'aggiornamento.';
   }
 
   @override
-  String get serverCompatBannerDismissLabel => 'Dismiss';
+  String get serverCompatBannerDismissLabel => 'Ignora';
 
   @override
   String get serverCompatBannerLearnMoreLabel => 'Per saperne di più';
@@ -912,7 +913,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Try opening it in your browser instead.';
 
   @override
-  String get dialogOpenInBrowser => 'Open in browser';
+  String get dialogOpenInBrowser => 'Apri nel browser';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Inserire un URL.';

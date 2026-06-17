@@ -11,6 +11,12 @@
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@actionSheetOptionChannelFeed": {
+    "description": "Label for navigating to a channel's channel-feed page."
+  },
+  "@actionSheetOptionCopyChannelLink": {
+    "description": "Label for copy channel link button on action sheet."
+  },
   "@actionSheetOptionDeleteMessage": {
     "description": "Label for the 'Delete message' button in the message action sheet."
   },
@@ -20,11 +26,26 @@
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
   },
+  "@actionSheetOptionListOfTopics": {
+    "description": "Label for navigating to a channel's topic-list page."
+  },
+  "@actionSheetOptionMarkChannelAsRead": {
+    "description": "Label for marking a channel as read."
+  },
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "@actionSheetOptionResolveTopic": {
+    "description": "Label for the 'Mark as resolved' button on the topic action sheet."
+  },
+  "@actionSheetOptionSeeWhoReacted": {
+    "description": "Label for the 'See who reacted' button in the message action sheet."
   },
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
@@ -41,6 +62,12 @@
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
   },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
+  },
+  "@actionSheetOptionUnresolveTopic": {
+    "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
+  },
   "@actionSheetOptionUnstarMessage": {
     "description": "Label for unstar button on action sheet."
   },
@@ -50,6 +77,9 @@
   "@actionSheetReadReceipts": {
     "description": "Title for the \"Read receipts\" bottom sheet."
   },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
   },
@@ -58,6 +88,9 @@
   },
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."
+  },
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
   },
   "@chooseAccountPageLogOutButton": {
     "description": "Label for the 'Log out' button for an account on the choose-account page"
@@ -95,6 +128,9 @@
   "@composeBoxGroupDmContentHint": {
     "description": "Hint text for content input when sending a message to a group."
   },
+  "@composeBoxSelfDmContentHint": {
+    "description": "Hint text for content input when sending a message to yourself."
+  },
   "@composeBoxSendTooltip": {
     "description": "Tooltip for send button in compose box."
   },
@@ -122,8 +158,30 @@
   "@emojiReactionsMore": {
     "description": "Label for a button opening the emoji picker."
   },
+  "@errorConnectingToServerDetails": {
+    "description": "Dialog error message for a generic unknown error connecting to the server with details.",
+    "placeholders": {
+      "error": {
+        "example": "Invalid format",
+        "type": "String"
+      },
+      "serverUrl": {
+        "example": "http://example.com/",
+        "type": "String"
+      }
+    }
+  },
+  "@errorConnectingToServerShort": {
+    "description": "Short error message for a generic unknown error connecting to the server."
+  },
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
+  },
+  "@errorCouldNotConnectTitle": {
+    "description": "Error title when the app could not connect to the server."
+  },
+  "@errorCouldNotShowUserProfile": {
+    "description": "Message that appears on the user profile page when the profile cannot be shown."
   },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
@@ -137,17 +195,47 @@
   "@errorLoginInvalidInputTitle": {
     "description": "Error title for login when input is invalid."
   },
+  "@errorMessageDoesNotSeemToExist": {
+    "description": "Error message when loading a message that does not exist."
+  },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
+  "@errorResolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as resolved failed."
+  },
+  "@errorServerMessage": {
+    "description": "Error message that quotes an error from the server.",
+    "placeholders": {
+      "message": {
+        "example": "Invalid format",
+        "type": "String"
+      }
+    }
+  },
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
+  },
+  "@errorUnresolveTopicFailedTitle": {
+    "description": "Error title when marking a topic as unresolved failed."
+  },
+  "@experimentalFeatureSettingsPageTitle": {
+    "description": "Title of settings page for experimental, in-development features"
   },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
   },
   "@logOutConfirmationDialogConfirmButton": {
     "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "@logOutConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for logging out."
   },
   "@logOutConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for logging out."
@@ -200,6 +288,12 @@
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
   },
+  "@permissionsDeniedCameraAccess": {
+    "description": "Message for dialog asking the user to grant permissions for camera access."
+  },
+  "@permissionsDeniedReadExternalStorage": {
+    "description": "Message for dialog asking the user to grant permissions for external storage read access."
+  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -220,6 +314,9 @@
   },
   "@preparingEditMessageContentInput": {
     "description": "Hint text for content input when the compose box is preparing to edit a message."
+  },
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
   "@reactedEmojiSelfUser": {
     "description": "Display name for the user themself, to show on an emoji reaction added by the user."
@@ -242,6 +339,18 @@
   "@searchMessagesPageTitle": {
     "description": "Page title for the 'Search' message view."
   },
+  "@seeWhoReactedSheetHeaderLabel": {
+    "description": "In the 'See who reacted' sheet, a label for the list of emoji reactions at the top, with the total number of reactions. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
+  "@seeWhoReactedSheetNoReactions": {
+    "description": "Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened)."
+  },
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
@@ -259,6 +368,9 @@
   },
   "@statusSaveButtonLabel": {
     "description": "Label for the button that saves the user status, in 'Set status' page."
+  },
+  "@subscribeFailedTitle": {
+    "description": "Error title when subscribing to a channel failed."
   },
   "@successLinkCopied": {
     "description": "Success message after copy link action completed."
@@ -296,14 +408,45 @@
   "@topicsButtonTooltip": {
     "description": "Tooltip for button to navigate to topic-list page."
   },
+  "@tryAnotherAccountButton": {
+    "description": "Label for loading screen button prompting user to try another account."
+  },
+  "@tryAnotherAccountMessage": {
+    "description": "Message that appears on the loading screen after waiting for some time.",
+    "url": {
+      "example": "http://chat.example.com/",
+      "type": "String"
+    }
+  },
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
   },
   "@unsubscribeConfirmationDialogConfirmButton": {
     "description": "Label for the 'Unsubscribe' button on a confirmation dialog for unsubscribing from a channel."
   },
+  "@unsubscribeConfirmationDialogMessageCannotResubscribe": {
+    "description": "Message for a confirmation dialog for unsubscribing from a channel when you will not have permission to resubscribe."
+  },
+  "@unsubscribeConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for unsubscribing from a channel.",
+    "placeholders": {
+      "channelName": {
+        "example": "#mobile",
+        "type": "String"
+      }
+    }
+  },
+  "@unsubscribeFailedTitle": {
+    "description": "Error title when unsubscribing from a channel failed."
+  },
   "@upgradeWelcomeDialogDismiss": {
     "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogLinkText": {
+    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogMessage": {
+    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
   },
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
@@ -360,22 +503,33 @@
   "aboutPageOpenSourceLicenses": "Avatud lähtekoodiga tarkvara litsentsid",
   "aboutPageTapToView": "Vaatamiseks klõpsa",
   "aboutPageTitle": "Zulipi teave",
+  "actionSheetOptionChannelFeed": "Kanali sisuvoog",
+  "actionSheetOptionCopyChannelLink": "Kopeeri kanali link",
   "actionSheetOptionDeleteMessage": "Kustuta sõnum",
   "actionSheetOptionEditMessage": "Muuda sõnumit",
   "actionSheetOptionFollowTopic": "Jälgi teemat",
+  "actionSheetOptionListOfTopics": "Teemade loend",
+  "actionSheetOptionMarkChannelAsRead": "Märgi kanal loetuks",
   "actionSheetOptionMuteTopic": "Summuta teema",
+  "actionSheetOptionPinChannel": "Tõsta ülal ääres esile",
   "actionSheetOptionQuoteMessage": "Tsiteeri sõnumit",
+  "actionSheetOptionResolveTopic": "Märgi lahendatuks",
+  "actionSheetOptionSeeWhoReacted": "Vaata, kes reageeris",
   "actionSheetOptionShare": "Jaga",
   "actionSheetOptionStarMessage": "Märgi sõnum tärniga",
   "actionSheetOptionSubscribe": "Telli",
   "actionSheetOptionUnfollowTopic": "Lõpeta teema jälgimine",
   "actionSheetOptionUnmuteTopic": "Lõpeta teema summutamine",
+  "actionSheetOptionUnpinChannel": "Eemalda ülalt äärest esiletõstmine",
+  "actionSheetOptionUnresolveTopic": "Märgi mittelahendatuks",
   "actionSheetOptionUnstarMessage": "Eemalda sõnumilt tärniga märkimine",
   "actionSheetOptionUnsubscribe": "Loobu tellimusest",
   "actionSheetReadReceipts": "Lugemisteatised",
+  "allChannelsEmptyPlaceholderHeader": "Selles organisatsioonis pole ühtegi kanalit, mida saaksid vaadata.",
   "allChannelsPageTitle": "Kõik kanalid",
   "appVersionUnknownPlaceholder": "(…)",
   "channelsPageTitle": "Kanalid",
+  "chooseAccountButtonAddAnAccount": "Lisa kasutajakonto",
   "chooseAccountPageLogOutButton": "Logi välja",
   "chooseAccountPageTitle": "Vali kasutajakonto",
   "composeBoxAttachFilesTooltip": "Lisa faile manuseks",
@@ -386,6 +540,7 @@
   "composeBoxBannerLabelEditMessage": "Muuda sõnumit",
   "composeBoxDmContentHint": "Sõnum kasutajale @{user}",
   "composeBoxGroupDmContentHint": "Sõnum grupile",
+  "composeBoxSelfDmContentHint": "Koosta endale märge",
   "composeBoxSendTooltip": "Saada",
   "composeBoxTopicHintText": "Teema",
   "deleteMessageConfirmationDialogConfirmButton": "Kustuta",
@@ -395,15 +550,27 @@
   "dialogContinue": "Jätka",
   "discardDraftConfirmationDialogConfirmButton": "Loobu",
   "emojiReactionsMore": "näita veel",
+  "errorConnectingToServerDetails": "Viga Zulipiga ühendamisel aadressil {serverUrl}. Proovin uuesti:\n\n{error}",
+  "errorConnectingToServerShort": "Viga Zulipiga ühendamisel. Proovin uuesti…",
   "errorCopyingFailed": "Kopeerimine ei õnnestunud",
+  "errorCouldNotConnectTitle": "Ühendumine ei õnnestunud",
+  "errorCouldNotShowUserProfile": "Kasutajaprofiili kuvamine ei õnnestunud.",
   "errorDialogContinue": "Sobib",
   "errorDialogTitle": "Viga",
   "errorLoginFailedTitle": "Sisselogimine ei õnnestunud",
   "errorLoginInvalidInputTitle": "Vigane sisend",
+  "errorMessageDoesNotSeemToExist": "Tundub, et seda sõnumit pole olemas.",
+  "errorPinChannelFailedTitle": "Kanali esiletõstmine ei õnnestunud",
   "errorQuotationFailed": "Tsiteerimine ei õnnestunud",
+  "errorResolveTopicFailedTitle": "Teema lahendatuks märkimine ei õnnestunud",
+  "errorServerMessage": "Server ütles:\n\n{message}",
   "errorSharingFailed": "Jagamine ei õnnestunud",
+  "errorUnpinChannelFailedTitle": "Kanali esiletõstmise lõpetamine ei õnnestunud",
+  "errorUnresolveTopicFailedTitle": "Teema mittelahendatuks märkimine ei õnnestunud",
+  "experimentalFeatureSettingsPageTitle": "Katselised seadistused",
   "inboxPageTitle": "Sisendkaust",
   "logOutConfirmationDialogConfirmButton": "Logi välja",
+  "logOutConfirmationDialogMessage": "Kasutamaks seda kontot tulevikus pead oma organisatsiooni võrguaadressi ja konto teabe uuesti sisestama.",
   "logOutConfirmationDialogTitle": "Kas logid välja?",
   "loginErrorMissingPassword": "Palun sisesta oma salasõna.",
   "loginHidePassword": "Peida salasõna",
@@ -421,11 +588,14 @@
   "newDmSheetComposeButtonLabel": "Koosta sõnum",
   "newDmSheetScreenTitle": "Uus otsesõnum",
   "notifSelfUser": "Sina",
+  "permissionsDeniedCameraAccess": "Pildi üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.",
+  "permissionsDeniedReadExternalStorage": "Failide üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.",
   "permissionsNeededOpenSettings": "Ava seadistused",
   "permissionsNeededTitle": "Vajalikud on õigused",
   "pinnedSubscriptionsLabel": "Esiletõstetud",
   "pollVoterNames": "({voterNames})",
   "preparingEditMessageContentInput": "Valmistun…",
+  "profileButtonSendDirectMessage": "Saada otsesõnum",
   "reactedEmojiSelfUser": "Sina",
   "reactionChipsLabel": "Reageerimised",
   "recentDmConversationsPageShortLabel": "Otsesõnumid",
@@ -433,12 +603,15 @@
   "searchMessagesClearButtonTooltip": "Tühjenda",
   "searchMessagesHintText": "Otsi",
   "searchMessagesPageTitle": "Otsing",
+  "seeWhoReactedSheetHeaderLabel": "Reageerimisi emojiga (kokku {num})",
+  "seeWhoReactedSheetNoReactions": "Sellele sõnumile pole mitte keegi reageerinud.",
   "settingsPageTitle": "Seadistused",
   "snackBarDetails": "Üksikasjad",
   "spoilerDefaultHeaderText": "Spoiler",
   "statusButtonLabelStatusSet": "Olek",
   "statusClearButtonLabel": "Tühjenda",
   "statusSaveButtonLabel": "Salvesta",
+  "subscribeFailedTitle": "Tellimine ei õnnestunud",
   "successLinkCopied": "Link on kopeeritud",
   "switchAccountButtonTooltip": "Vaheta kasutajakontot",
   "systemGroupNameAdministrators": "Peakasutajad",
@@ -451,9 +624,16 @@
   "themeSettingTitle": "KUJUNDUS",
   "today": "Täna",
   "topicsButtonTooltip": "Teemad",
+  "tryAnotherAccountButton": "Proovi mõnda muud kasutajakontot",
+  "tryAnotherAccountMessage": "Sinu kasutajakonto laadimine asukohast „{url}“ võtab üsna kaua aega.",
   "unpinnedSubscriptionsLabel": "Pole esiletõstetud",
   "unsubscribeConfirmationDialogConfirmButton": "Loobu tellimusest",
+  "unsubscribeConfirmationDialogMessageCannotResubscribe": "Kui oled sellest kanalist lahkunud, ei saa sa uuesti liituda.",
+  "unsubscribeConfirmationDialogTitle": "Kas loobud „{channelName}“ kanali tellimusest?",
+  "unsubscribeFailedTitle": "Tellimusest loobumine ei õnnestunud",
   "upgradeWelcomeDialogDismiss": "Alustame",
+  "upgradeWelcomeDialogLinkText": "Vaata teemakohast teavitust meie ajaveebi postitusest!",
+  "upgradeWelcomeDialogMessage": "Tuttava kogemuse leiad kiiremast ja elegantsemast rakendusest.",
   "upgradeWelcomeDialogTitle": "Tere tulemast kasutama uut Zulipi rakendust!",
   "userIdle": "Jõude",
   "userRoleAdministrator": "Peakasutaja",

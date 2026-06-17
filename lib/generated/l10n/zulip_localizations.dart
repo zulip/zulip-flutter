@@ -19,11 +19,13 @@ import 'zulip_localizations_ja.dart';
 import 'zulip_localizations_kk.dart';
 import 'zulip_localizations_lv.dart';
 import 'zulip_localizations_nb.dart';
+import 'zulip_localizations_nn.dart';
 import 'zulip_localizations_pl.dart';
 import 'zulip_localizations_pt.dart';
 import 'zulip_localizations_ru.dart';
 import 'zulip_localizations_sk.dart';
 import 'zulip_localizations_sl.dart';
+import 'zulip_localizations_so.dart';
 import 'zulip_localizations_uk.dart';
 import 'zulip_localizations_vi.dart';
 import 'zulip_localizations_zh.dart';
@@ -129,12 +131,14 @@ abstract class ZulipLocalizations {
     Locale('kk'),
     Locale('lv'),
     Locale('nb'),
+    Locale('nn'),
     Locale('pl'),
     Locale('pt'),
     Locale('pt', 'PT'),
     Locale('ru'),
     Locale('sk'),
     Locale('sl'),
+    Locale('so'),
     Locale('uk'),
     Locale('vi'),
     Locale('zh'),
@@ -2496,11 +2500,13 @@ class _ZulipLocalizationsDelegate
     'kk',
     'lv',
     'nb',
+    'nn',
     'pl',
     'pt',
     'ru',
     'sk',
     'sl',
+    'so',
     'uk',
     'vi',
     'zh',
@@ -2569,6 +2575,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsLv();
     case 'nb':
       return ZulipLocalizationsNb();
+    case 'nn':
+      return ZulipLocalizationsNn();
     case 'pl':
       return ZulipLocalizationsPl();
     case 'pt':
@@ -2579,6 +2587,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsSk();
     case 'sl':
       return ZulipLocalizationsSl();
+    case 'so':
+      return ZulipLocalizationsSo();
     case 'uk':
       return ZulipLocalizationsUk();
     case 'vi':
