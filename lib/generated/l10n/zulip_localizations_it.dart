@@ -810,6 +810,13 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get loginRealmUrlLabel => 'URL della tua organizzazione Zulip';
 
   @override
+  String get loginRealmUrlHelperText =>
+      'This is the address you would use to open Zulip in a browser.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Help';
+
+  @override
   String get loginHidePassword => 'Nascondi password';
 
   @override

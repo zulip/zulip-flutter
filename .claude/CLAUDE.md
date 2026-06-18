@@ -119,6 +119,16 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Use comments only for context not obvious from the code itself
   (e.g., "// A device-update event acks the new key." before a `handleEvent` call).
 
+- **Use semantic line breaks in dartdocs.**
+  Break lines at natural prose boundaries
+  — commas, end of a clause, end of a sentence —
+  not at a fixed column width.
+  This keeps diffs minimal when dartdocs change:
+  edits to one sentence don't reflow neighboring lines.
+  See:
+    https://github.com/dart-lang/site-shared/blob/3408a7468/doc/writing-for-dart-and-flutter-websites.md#semantic-line-breaks
+    https://rhodesmill.org/brandon/2012/one-sentence-per-line/
+
 
 ## Zulip chat links
 

@@ -958,6 +958,14 @@
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
   },
+  "loginRealmUrlHelperText": "This is the address you would use to open Zulip in a browser.",
+  "@loginRealmUrlHelperText": {
+    "description": "Helper text below the Zulip organization URL entry field on the login page."
+  },
+  "loginRealmUrlHelpButton": "Help",
+  "@loginRealmUrlHelpButton": {
+    "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
+  },
   "loginHidePassword": "Hide password",
   "@loginHidePassword": {
     "description": "Icon label for button to hide password in input form."

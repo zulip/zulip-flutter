@@ -16,8 +16,11 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/server_support.dart';
 import '../model/store.dart';
+import 'actions.dart';
+import 'button.dart';
 import 'dialog.dart';
 import 'home.dart';
+import 'icons.dart';
 import 'input.dart';
 import 'page.dart';
 import 'store.dart';
@@ -241,7 +244,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              // TODO(#109) Link to doc about what a "server URL" is and how to find it
               // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
               TextField(
                 controller: _controller,
@@ -261,7 +263,18 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     //   (or don't use it here?)
                     label: Text(zulipLocalizations.loginRealmUrlLabel),
                     errorText: errorText,
-                    helperText: kLayoutPinningHelperText,
+                    helperText: zulipLocalizations.loginRealmUrlHelperText,
+                    helperMaxLines: 4,
+
+                    suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.large.surface),
+                    suffixIcon: ZulipIconButton(
+                      icon: ZulipIcons.help,
+                      tooltip: zulipLocalizations.loginRealmUrlHelpButton,
+                      onPressed: () => PlatformActions.launchUrl(context,
+                        Uri.parse('https://zulip.com/help/logging-in#find-the-zulip-log-in-url')),
+                      size: .large,
+                      backgroundWhenPressed: false,
+                    ),
                     hintText: AddAccountPage._serverUrlHint,
                   )),
               const SizedBox(height: 8),
@@ -645,13 +658,15 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       decoration: baseFilledInputDecoration(designVariables).copyWith(
         label: Text(zulipLocalizations.loginPasswordLabel),
         helperText: kLayoutPinningHelperText,
-        suffixIcon: IconButton(
+        suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.large.surface),
+        suffixIcon: ZulipIconButton(
+          icon: Icons.visibility,
+          isSelected: _obscurePassword,
+          selectedIcon: Icons.visibility_off,
           tooltip: zulipLocalizations.loginHidePassword,
           onPressed: _handlePasswordVisibilityPress,
-          icon: const Icon(Icons.visibility),
-          isSelected: _obscurePassword,
-          selectedIcon: const Icon(Icons.visibility_off),
-        )));
+          size: .large,
+          backgroundWhenPressed: false)));
 
     return Form(
       // TODO(#110) Try to highlight CZO / Zulip Cloud realms in autofill
