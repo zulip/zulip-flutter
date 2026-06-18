@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Some Patrol tests need QUERY_ALL_PACKAGES, in order to start other apps.
+       In particular the share-to-Zulip tests need this. -->
+  <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+</manifest>
