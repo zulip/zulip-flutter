@@ -318,7 +318,8 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = this.content;
-    return InheritedMessage(message: message,
+    return InheritedMessageWidget(
+      data: InheritedMessage(message: message, content: content),
       child: DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: switch (content) {
@@ -328,19 +329,34 @@ class MessageContent extends StatelessWidget {
   }
 }
 
-class InheritedMessage extends InheritedWidget {
-  const InheritedMessage({super.key, required this.message, required super.child});
+/// A [Message] together with its parsed [content], shared down the widget tree by
+/// [InheritedMessageWidget].
+class InheritedMessage {
+  const InheritedMessage({required this.message, required this.content});
 
   final Message message;
+  final ZulipMessageContent content;
+}
+
+/// Provides access to the ambient [InheritedMessage].
+class InheritedMessageWidget extends InheritedWidget {
+  const InheritedMessageWidget({
+    super.key,
+    required this.data,
+    required super.child,
+  });
+
+  final InheritedMessage data;
 
   @override
-  bool updateShouldNotify(covariant InheritedMessage oldWidget) =>
-    !identical(oldWidget.message, message);
+  bool updateShouldNotify(covariant InheritedMessageWidget oldWidget) =>
+    !identical(oldWidget.data.message, data.message)
+      || !identical(oldWidget.data.content, data.content);
 
-  static Message of(BuildContext context) {
-    final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessage>();
-    assert(widget != null, 'No InheritedMessage ancestor');
-    return widget!.message;
+  static InheritedMessage of(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessageWidget>();
+    assert(widget != null, 'No InheritedMessageWidget ancestor');
+    return widget!.data;
   }
 }
 
@@ -670,7 +686,7 @@ class MessageInlineVideo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = InheritedMessage.of(context);
+    final message = InheritedMessageWidget.of(context).message;
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.srcUrl);
 
@@ -1255,7 +1271,7 @@ class Mention extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final message = InheritedMessage.of(context);
+    final message = InheritedMessageWidget.of(context).message;
 
     var nodes = node.nodes;
     bool isSelfMention = false;
@@ -1589,7 +1605,7 @@ class _Image extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final message = InheritedMessage.of(context);
+    final message = InheritedMessageWidget.of(context).message;
 
     final resolvedSrc = switch (node.src) {
       ImageNodeSrcThumbnail(:final value) => value.resolve(context,
