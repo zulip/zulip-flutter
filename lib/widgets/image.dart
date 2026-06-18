@@ -5,6 +5,7 @@ import '../api/model/initial_snapshot.dart';
 import '../model/binding.dart';
 import '../model/content.dart';
 import 'store.dart';
+import 'theme.dart';
 
 /// Like [Image.network], but includes [authHeader] if [src] is on-realm.
 ///
@@ -224,5 +225,17 @@ extension ImageThumbnailLocatorExtension on ImageThumbnailLocator {
       if (candidate.maxWidth >= width && candidate.maxHeight >= height) break;
     }
     return result;
+  }
+}
+
+// ignore: unused_element
+class RealmIconPlaceholder extends StatelessWidget {
+  const RealmIconPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(color: designVariables.avatarPlaceholderBg));
   }
 }
