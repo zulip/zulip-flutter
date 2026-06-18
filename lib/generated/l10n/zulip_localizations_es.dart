@@ -361,6 +361,12 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'No se pudo obtener el origen del mensaje.';
 
   @override
+  String get errorCouldNotLoadMessages => 'Could not load messages.';
+
+  @override
+  String get tryAgainButton => 'Try again';
+
+  @override
   String get errorCouldNotAccessUploadedFileTitle =>
       'No se pudo acceder al archivo cargado';
 
