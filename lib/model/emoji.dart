@@ -114,6 +114,58 @@ final class EmojiCandidate {
   }
 }
 
+/// A general representation of an emoji.
+///
+/// This provides a common representation of emoji data used by various
+/// classes throughout the codebase, making it easy to compare emojis
+/// originating from different sources.
+///
+/// To construct an instance from existing emoji-related types, see:
+/// - [Emoji.fromEmojiCandidate]
+/// - [Emoji.fromReaction]
+/// - [Emoji.fromReactionWithVotes]
+/// - [Emoji.fromStatusEmoji]
+class Emoji {
+  const Emoji({
+    required this.name,
+    required this.code,
+    required this.type,
+  });
+
+  Emoji.fromEmojiCandidate(EmojiCandidate emojiCandidate)
+    : name = emojiCandidate.emojiName,
+      code = emojiCandidate.emojiCode,
+      type = emojiCandidate.emojiType;
+
+  Emoji.fromReaction(Reaction reaction)
+    : name = reaction.emojiName,
+      code = reaction.emojiCode,
+      type = reaction.reactionType;
+
+  Emoji.fromReactionWithVotes(ReactionWithVotes reactionWithVotes)
+    : name = reactionWithVotes.emojiName,
+      code = reactionWithVotes.emojiCode,
+      type = reactionWithVotes.reactionType;
+
+  Emoji.fromStatusEmoji(StatusEmoji statusEmoji)
+    : name = statusEmoji.emojiName,
+      code = statusEmoji.emojiCode,
+      type = statusEmoji.reactionType;
+
+  final String name;
+  final String code;
+  final ReactionType type;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! Emoji) return false;
+    return (name, code, type) == (other.name, other.code, other.type);
+  }
+
+  @override
+  int get hashCode => Object.hash(name, code, type);
+}
+
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {
   /// An [EmojiDisplay] for the specified emoji.
