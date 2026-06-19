@@ -107,17 +107,7 @@ mixin MessageStore on ChannelStore {
 
   /// Whether the self-user has voted the message with the given emoji.
   bool selfHasVoted(int messageId, {required EmojiCandidate withEmoji}) {
-    final message = messages[messageId];
-    if (message == null) {
-      assert(false); // TODO(log)
-      return false;
-    }
-
-    return message.reactions?.aggregated.any((reactionWithVotes) {
-      return reactionWithVotes.reactionType == withEmoji.emojiType
-        && reactionWithVotes.emojiCode == withEmoji.emojiCode
-        && reactionWithVotes.userIds.contains(selfUserId);
-    }) ?? false;
+    return selfReactionEmojis(messageId).contains(Emoji.fromEmojiCandidate(withEmoji));
   }
 
   /// Whether the user has permission to delete a message, as of [atDate].
