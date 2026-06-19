@@ -1392,7 +1392,9 @@ class ReactionButtons extends StatelessWidget {
     // Dismiss current action sheet before opening emoji picker sheet.
     Navigator.of(pageContext).pop();
 
-    final emoji = await showEmojiPickerSheet(pageContext: pageContext);
+    final emoji = await showEmojiPickerSheet(
+      pageContext: pageContext,
+      selectedEmojis: message.reactions?.selfVotes(PerAccountStoreWidget.of(pageContext).selfUserId) ?? {});
     if (emoji == null || !pageContext.mounted) return;
     unawaited(ZulipAction.addOrRemoveReaction(
       context: pageContext,
