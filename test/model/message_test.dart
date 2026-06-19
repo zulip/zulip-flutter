@@ -13,6 +13,7 @@ import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/submessage.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/model/emoji.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/message_list.dart';
 import 'package:zulip/model/narrow.dart';
@@ -1094,6 +1095,34 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotifiedOnce();
     }));
+  });
+
+  group('selfReactionEmojis', () {
+    test('message containing self reactions', () async {
+      final message = eg.streamMessage(reactions: [
+        // self-user reactions
+        eg.unicodeEmojiReaction, eg.realmEmojiReaction, eg.zulipExtraEmojiReaction,
+        // other user reactions
+        eg.otherUnicodeEmojiReaction, eg.otherRealmEmojiReaction, eg.otherZulipExtraEmojiReaction]);
+      await prepare();
+      await prepareMessages([message]);
+
+      check(store.selfReactionEmojis(message.id)).deepEquals([
+        Emoji.fromReaction(eg.unicodeEmojiReaction),
+        Emoji.fromReaction(eg.realmEmojiReaction),
+        Emoji.fromReaction(eg.zulipExtraEmojiReaction),
+      ]);
+    });
+
+    test('message containing no self reactions', () async {
+      final message = eg.streamMessage(reactions: [
+        // other user reactions
+        eg.otherUnicodeEmojiReaction, eg.otherRealmEmojiReaction, eg.otherZulipExtraEmojiReaction]);
+      await prepare();
+      await prepareMessages([message]);
+
+      check(store.selfReactionEmojis(message.id)).isEmpty();
+    });
   });
 
   group('selfCanDeleteMessage', () {
