@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/reaction.dart';
 
+import '../../example_data.dart' as eg;
 import 'model_checks.dart';
 
 void main() {
@@ -201,6 +202,32 @@ void main() {
       check(reactions)
         ..aggregated.deepEquals([])
         ..total.equals(0);
+    });
+
+    group('selfVotes', () {
+      test('containing self-voted reactions', () {
+        final reactions = Reactions([
+          // self-user reactions
+          eg.unicodeEmojiReaction, eg.realmEmojiReaction, eg.zulipExtraEmojiReaction,
+          // other user reactions
+          eg.otherUnicodeEmojiReaction, eg.otherRealmEmojiReaction, eg.otherZulipExtraEmojiReaction,
+        ]);
+
+        check(reactions.selfVotes(eg.selfUser.userId)).deepEquals([
+          (code: eg.unicodeEmojiReaction.emojiCode, type: eg.unicodeEmojiReaction.reactionType),
+          (code: eg.realmEmojiReaction.emojiCode, type: eg.realmEmojiReaction.reactionType),
+          (code: eg.zulipExtraEmojiReaction.emojiCode, type: eg.zulipExtraEmojiReaction.reactionType),
+        ]);
+      });
+
+      test('containing no self-voted reactions', () {
+        final reactions = Reactions([
+          // other user reactions
+          eg.otherUnicodeEmojiReaction, eg.otherRealmEmojiReaction, eg.otherZulipExtraEmojiReaction,
+        ]);
+
+        check(reactions.selfVotes(eg.selfUser.userId)).isEmpty();
+      });
     });
   });
 }
