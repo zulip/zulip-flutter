@@ -100,11 +100,8 @@ mixin MessageStore on ChannelStore {
       return false;
     }
 
-    return message.reactions?.aggregated.any((reactionWithVotes) {
-      return reactionWithVotes.reactionType == withEmoji.emojiType
-        && reactionWithVotes.emojiCode == withEmoji.emojiCode
-        && reactionWithVotes.userIds.contains(selfUserId);
-    }) ?? false;
+    return message.reactions?.selfVotes(selfUserId)
+      .contains((code: withEmoji.emojiCode, type: withEmoji.emojiType)) ?? false;
   }
 
   /// Whether the user has permission to delete a message, as of [atDate].
