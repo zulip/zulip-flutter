@@ -116,6 +116,19 @@ class Reactions {
     }
     _total--;
   }
+
+  /// The reactions the self-user has voted for, as (type, code) pairs.
+  ///
+  /// This walks [aggregated] on each call.
+  /// Callers checking many emojis against the result
+  /// (e.g. each entry in the emoji picker)
+  /// should call this once and reuse the returned set,
+  /// rather than calling it per emoji.
+  Set<({ReactionType type, String code})> selfVotes(int selfUserId) {
+    return Set.of(aggregated
+      .where((reactionWithVotes) => reactionWithVotes.userIds.contains(selfUserId))
+      .map((e) => (code: e.emojiCode, type: e.reactionType)));
+  }
 }
 
 /// A data structure identifying a reaction and who has voted for it.
