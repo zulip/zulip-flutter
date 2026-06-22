@@ -684,7 +684,7 @@ UserTopicItem userTopicItem(
 //
 
 final Reaction unicodeEmojiReaction = Reaction(
-  emojiName: 'thumbs_up',
+  emojiName: '+1',
   emojiCode: '1f44d',
   reactionType: ReactionType.unicodeEmoji,
   userId: selfUser.userId,
