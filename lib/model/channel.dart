@@ -167,11 +167,15 @@ mixin ChannelStore on UserStore {
 
   /// The channel folder of [channelId],
   /// including the "PINNED" or "OTHER" pseudo-channel-folders (e.g. for the inbox).
-  UiChannelFolder uiChannelFolder(int channelId) =>
+  ///
+  /// When [useRealmFolders] is false, realm channel folders are ignored, so a
+  /// channel falls into only the "PINNED" or "OTHER" pseudo-channel-folders.
+  /// This is to implement [UserSettings.webInboxShowChannelFolders].
+  UiChannelFolder uiChannelFolder(int channelId, {required bool useRealmFolders}) =>
     switch (streams[channelId]) {
       Subscription(:final pinToTop) when pinToTop =>
         UiChannelFolderPseudoPinned(),
-      ZulipStream(:final folderId) when folderId != null =>
+      ZulipStream(:final folderId) when useRealmFolders && folderId != null =>
         UiChannelFolderRealmFolder(id: folderId),
       _ => UiChannelFolderPseudoOther(),
     };
