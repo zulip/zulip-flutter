@@ -1218,6 +1218,55 @@ void main() {
       await tester.pump();
     }
 
+     group('attach file', () {
+      testWidgets('success', (tester) async {
+        await prepare(tester);
+        checkAppearsLoading(tester, false);
+
+        testBinding.pickFilesResult = FilePickerResult([PlatformFile(
+            readStream: Stream.fromIterable(['asdf'.codeUnits]),
+            path:'/private/var/mobile/Containers/Data/Application/foo/tmp/file.pdf',
+            name: 'file.pdf',
+            size: 12345,
+          ),]);
+        connection.prepare(delay: const Duration(seconds: 1),json:
+        UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/file.pdf',).toJson(),
+        );
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.allowMultiple).equals(true);
+        check(call.type).equals(FileType.any);
+        checkNoDialog(tester);
+        check(controller!.content.text,)
+         .equals('see image: [Uploading file.pdf…]()\n\n');
+        check(connection.lastRequest!).isA<http.MultipartRequest>()
+          ..method.equals('POST')
+          ..files.single.which(
+            (it) => it
+              ..field.equals('file')
+              ..length.equals(12345)
+              ..filename.equals('file.pdf')
+              ..contentType.asString.equals(
+                'application/pdf',
+              ) // ← different MIME type
+              ..has<Future<List<int>>>(
+                (f) => f.finalize().toBytes(),
+                'contents',
+              ).completes(
+                (it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)),
+              ),
+          );
+        checkAppearsLoading(tester, true);
+
+        await tester.pump(const Duration(seconds: 1));
+        check(controller!.content.text).equals(
+          'see image: [file.pdf](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/file.pdf)\n\n',
+        );
+        checkAppearsLoading(tester, false);
+      });
+    });
+
     group('attach from media library', () {
       testWidgets('success', (tester) async {
         await prepare(tester);
@@ -1238,7 +1287,7 @@ void main() {
         await tester.pump();
         final call = testBinding.takePickFilesCalls().single;
         check(call.allowMultiple).equals(true);
-        check(call.type).equals(FileType.media);
+        check(call.type).equals(FileType.image);
 
         checkNoDialog(tester);
 
