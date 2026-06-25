@@ -36,7 +36,9 @@ class MessageListRecipientHeaderItem extends MessageListItem {
 class MessageListDateSeparatorItem extends MessageListItem {
   final MessageBase message;
 
-  MessageListDateSeparatorItem(this.message);
+  final ZulipMessageContent? content;
+
+  MessageListDateSeparatorItem(this.message, {this.content});
 }
 
 /// A [MessageBase] to show in the message list.
@@ -439,6 +441,7 @@ mixin _MessageSequence {
   void _addItemsForMessage(MessageBase message, {
     required bool shouldSetMiddleItem,
     required MessageBase? prevMessage,
+    ZulipMessageContent? content,
     required MessageListMessageBaseItem Function(bool canShareSender) buildItem,
   }) {
     final bool canShareSender;
@@ -457,7 +460,7 @@ mixin _MessageSequence {
       prevMessageItem.isLastInBlock = false;
 
       if (!messagesSameDay(prevMessageItem.message, message)) {
-        items.add(MessageListDateSeparatorItem(message));
+        items.add(MessageListDateSeparatorItem(message, content: content));
         canShareSender = false;
       } else if (prevMessageItem.message.senderId == message.senderId) {
         canShareSender = messagesCloseInTime(prevMessage, message);
@@ -488,6 +491,7 @@ mixin _MessageSequence {
     _addItemsForMessage(message,
       shouldSetMiddleItem: index == middleMessage,
       prevMessage: prevMessage,
+      content: content,
       buildItem: (bool canShareSender) => MessageListMessageItem(
         message, content, showSender: !canShareSender, isLastInBlock: true));
   }

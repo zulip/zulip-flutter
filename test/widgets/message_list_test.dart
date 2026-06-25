@@ -730,6 +730,116 @@ void main() {
     check(backgroundColor()).isSameColorAs(DesignVariables.dark.bgMessageRegular);
   });
 
+  group('message background color for mentions', () {
+    Color backgroundColor(WidgetTester tester, Message message) {
+      final coloredBoxFinder = find.descendant(
+        of: find.byWidgetPredicate((w) => w is MessageItem && w.item.message.id == message.id),
+        matching: find.byType(ColoredBox),
+      );
+      final widget = tester.widget<ColoredBox>(coloredBoxFinder);
+      return widget.color;
+    }
+
+    testWidgets('non-self user mention', (tester) async {
+      final message = eg.streamMessage(
+        content: ContentExample.userMentionPlain.html,
+        flags: []);
+
+      await setupMessageListPage(tester, messages: [message]);
+      check(backgroundColor(tester, message))
+        .isSameColorAs(DesignVariables.light.bgMessageRegular);
+    });
+
+    testWidgets('self user mention', (tester) async {
+      final message = eg.streamMessage(
+        content: '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></p>',
+        flags: [MessageFlag.mentioned]);
+
+      await setupMessageListPage(tester, messages: [message]);
+      check(backgroundColor(tester, message))
+        .isSameColorAs(DesignVariables.light.bgMessageDirectMention);
+    });
+
+    testWidgets('silent self user mention', (tester) async {
+      final message = eg.streamMessage(
+        content: '<p><span class="user-mention silent" data-user-id="${eg.selfUser.userId}">Self User</span></p>',
+        flags: []);
+
+      await setupMessageListPage(tester, messages: [message]);
+      check(backgroundColor(tester, message))
+        .isSameColorAs(DesignVariables.light.bgMessageRegular);
+    });
+
+    testWidgets('self user mention in unsubscribed stream', (tester) async {
+      final stream = eg.stream();
+      final message = eg.streamMessage(stream: stream,
+        content: '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></p>',
+        flags: [MessageFlag.mentioned]);
+
+      await setupMessageListPage(tester,
+        narrow: ChannelNarrow(stream.streamId),
+        streams: [stream],
+        subscriptions: [],
+        messages: [message]);
+      check(backgroundColor(tester, message))
+        .isSameColorAs(DesignVariables.light.bgMessageRegular);
+    });
+
+    testWidgets('user group mention', (tester) async {
+      final message = eg.streamMessage(
+        content: '<p><span class="user-group-mention" data-user-group-id="186">@test-group</span></p>',
+        flags: [MessageFlag.mentioned]);
+
+      await setupMessageListPage(tester, messages: [message]);
+      check(backgroundColor(tester, message))
+        .isSameColorAs(DesignVariables.light.bgMessageGroupOrWildcardMention);
+    });
+
+    testWidgets('wildcard mention', (tester) async {
+      final message = eg.streamMessage(
+        content: ContentExample.channelWildcardMentionPlain.html,
+        flags: [MessageFlag.streamWildcardMentioned]);
+
+      await setupMessageListPage(tester, messages: [message]);
+      check(backgroundColor(tester, message))
+        .isSameColorAs(DesignVariables.light.bgMessageGroupOrWildcardMention);
+    });
+
+    testWidgets('all three mention types', (tester) async {
+      final message = eg.streamMessage(
+        content: '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span> '
+          '<span class="user-group-mention" data-user-group-id="186">@test-group</span> '
+          '<p><span class="user-mention channel-wildcard-mention" data-user-id="*">@all</span></p>',
+        flags: [
+          MessageFlag.mentioned,
+          MessageFlag.streamWildcardMentioned,
+          MessageFlag.wildcardMentioned,
+        ]);
+
+      await setupMessageListPage(tester, messages: [message]);
+      check(backgroundColor(tester, message))
+        .isSameColorAs(DesignVariables.light.bgMessageDirectMention);
+    });
+  });
+
+  testWidgets('date separator background color for self user mention', (tester) async {
+    final dayOne = DateTime.utc(2026, 1, 1, 12).millisecondsSinceEpoch ~/ 1000;
+    final dayTwo = DateTime.utc(2026, 1, 2, 12).millisecondsSinceEpoch ~/ 1000;
+
+    await setupMessageListPage(tester, messages: [
+      eg.streamMessage(timestamp: dayOne),
+      eg.streamMessage(timestamp: dayTwo,
+        content: '<p><span class="user-mention" data-user-id="${eg.selfUser.userId}">@Self User</span></p>',
+        flags: [MessageFlag.mentioned]),
+    ]);
+    final coloredBox = tester.widget<ColoredBox>(find.descendant(
+      of: find.byType(DateSeparator),
+      matching: find.byType(ColoredBox),
+    ));
+    check(coloredBox.color)
+      .isSameColorAs(DesignVariables.light.bgMessageDirectMention);
+  });
+
   group('fetch initial batch of messages', () {
     // TODO(#1571): test effect of visitFirstUnread setting
     // TODO(#1569): test effect of initAnchorMessageId
