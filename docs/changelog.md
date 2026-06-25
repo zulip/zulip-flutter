@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.273 (2026-06-24)
+
 ### Highlights for users
 
 * Report a message to your moderators. (#1972)
