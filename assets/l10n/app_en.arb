@@ -1405,6 +1405,14 @@
   "@topicsButtonTooltip": {
     "description": "Tooltip for button to navigate to topic-list page."
   },
+  "filterTopicsHintText": "Filter topics",
+  "@filterTopicsHintText": {
+    "description": "Hint text for the filter topics text field in topic-list page."
+  },
+  "emptyFilteredTopics": "No topics match your filters.",
+  "@emptyFilteredTopics": {
+    "description": "Placeholder for the topic list when there are no topics matching the filters."
+  },
   "channelFeedButtonTooltip": "Channel feed",
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"

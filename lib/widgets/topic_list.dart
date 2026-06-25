@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../api/model/model.dart';
 import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/autocomplete.dart';
 import '../model/narrow.dart';
-import '../model/topics.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'app_bar.dart';
@@ -125,56 +125,78 @@ class _TopicList extends StatefulWidget {
 }
 
 class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMixin {
-  Topics? topicsModel;
+  late final TextEditingController _controller;
+
+  TopicAutocompleteView? _topicAutocompleteModel;
+  List<TopicAutocompleteResult>? _resultsToDisplay;
+
+  Iterable<GetChannelTopicsEntry>? get topics => _resultsToDisplay?.map((e) => e.topic);
+
   Unreads? unreadsModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController()..addListener(_handleControllerUpdate);
+  }
 
   @override
   void onNewStore() {
     final newStore = PerAccountStoreWidget.of(context);
-    topicsModel?.removeListener(_modelChanged);
-    topicsModel = newStore.topics..addListener(_modelChanged);
-    unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = newStore.unreads..addListener(_modelChanged);
-    _fetchTopics();
+    final query = TopicAutocompleteQuery(_controller.text);
+    if (_topicAutocompleteModel != null) {
+      assert(_topicAutocompleteModel!.query == query);
+      _topicAutocompleteModel!.dispose();
+    }
+    _topicAutocompleteModel = TopicAutocompleteView.init(
+      store: newStore, channelId: widget.channelId, query: query,
+    )..addListener(_topicAutocompleteModelChanged);
+
+    unreadsModel?.removeListener(_unreadsModelChanged);
+    unreadsModel = newStore.unreads..addListener(_unreadsModelChanged);
   }
 
   @override
   void dispose() {
-    topicsModel?.removeListener(_modelChanged);
-    unreadsModel?.removeListener(_modelChanged);
+    unreadsModel?.removeListener(_unreadsModelChanged);
+    _topicAutocompleteModel?.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _modelChanged() {
+  void _handleControllerUpdate() {
+    _topicAutocompleteModel!.query = TopicAutocompleteQuery(_controller.text);
+  }
+
+  void _topicAutocompleteModelChanged() {
     setState(() {
-      // The actual state lives in `topicsModel` and `unreadsModel`.
+      _resultsToDisplay = _topicAutocompleteModel!.results?.toList() ?? [];
     });
   }
 
-  void _fetchTopics() async {
-    // If the fetch succeeds, `topicsModel` will notify listeners.
-    // Do nothing when the fetch fails; the topic-list will stay on
-    // the loading screen, until the user navigates away and back.
-    // TODO(design) show a nice error message on screen when this fails
-    await topicsModel!.getChannelTopics(widget.channelId);
+  void _unreadsModelChanged() {
+    setState(() {
+      // The actual state lives in `unreadsModel`.
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final channelTopics = topicsModel!.channelTopics(widget.channelId);
-    if (channelTopics == null) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    // TODO(design) show a nice error message on screen when topic fetching fails
+    if (topics == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (channelTopics.isEmpty) {
-      final zulipLocalizations = ZulipLocalizations.of(context);
+    if (_controller.text.isEmpty && topics!.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
         header: zulipLocalizations.topicListEmptyPlaceholderHeader);
     }
 
     // This is adapted from parts of the build method on [_InboxPageState].
     final topicItems = <_TopicItemData>[];
-    for (final GetChannelTopicsEntry(:maxId, name: topic) in channelTopics) {
+    for (final GetChannelTopicsEntry(:maxId, name: topic) in topics!) {
       final unreadMessageIds =
         unreadsModel!.streams[widget.channelId]?[topic] ?? <int>[];
       final countInTopic = unreadMessageIds.length;
@@ -191,10 +213,65 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
     return SafeArea(
       // Don't pad the bottom here; we want the list content to do that.
       bottom: false,
-      child: ListView.builder(
-        itemCount: topicItems.length,
-        itemBuilder: (context, index) =>
-          _TopicItem(channelId: widget.channelId, data: topicItems[index])),
+      child: Column(
+        children: [
+          _FilterTopicsField(controller: _controller),
+          topicItems.isEmpty
+            ? PageBodyEmptyContentPlaceholder(header: zulipLocalizations.emptyFilteredTopics)
+            : Expanded(child: ListView.builder(
+                itemCount: topicItems.length,
+                itemBuilder: (context, index) =>
+                  _TopicItem(channelId: widget.channelId, data: topicItems[index]))),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterTopicsField extends StatelessWidget {
+  const _FilterTopicsField({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    // Figma design:
+    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6821-37083&t=IUNKC8IkYmIvIb5d-0
+    return TextField(
+      controller: controller,
+      autocorrect: false,
+      style: TextStyle(
+        // Font size and height adapted from the decoration hintStyle.
+        fontSize: 17, height: 22 / 17,
+
+        // Color adapted from:
+        //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10867-99284&t=wmXFFjadRmnNTIIx-0
+        color: designVariables.textInput),
+      decoration: InputDecoration(
+        isDense: true,
+        contentPadding: .symmetric(vertical: 10, horizontal: 14),
+        border: .none,
+        filled: true,
+        fillColor: designVariables.bgSearchInputZone,
+        prefixIcon: Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: 14,
+            // In the Widget Inspector, with the overlay guidelines on,
+            // there seems to be 4px space added at the end of the
+            // prefixIcon, so subtract it.
+            end: 14 - 4,
+          ),
+          child: SizedBox.square(dimension: 24,
+            child: Icon(ZulipIcons.search, size: 20))),
+        prefixIconColor: designVariables.labelSearchPrompt,
+        prefixIconConstraints: BoxConstraints(),
+        hintText: zulipLocalizations.filterTopicsHintText,
+        hintStyle: TextStyle(fontSize: 17, height: 22 / 17,
+          color: designVariables.labelSearchPrompt),
+      ),
     );
   }
 }

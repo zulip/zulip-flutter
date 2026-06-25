@@ -428,7 +428,7 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
 
   void _handleViewModelUpdate() {
     setState(() {
-      _resultsToDisplay = List.unmodifiable(_viewModel!.results);
+      _resultsToDisplay = List.unmodifiable(_viewModel!.results ?? []);
     });
   }
 

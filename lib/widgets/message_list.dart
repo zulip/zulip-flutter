@@ -787,7 +787,8 @@ class _SearchBarState extends State<_SearchBar> {
           hintText: zulipLocalizations.searchMessagesHintText,
           prefixIcon: Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 0, 8),
-            child: Icon(size: 24, ZulipIcons.search)),
+            child: SizedBox.square(dimension: 24,
+              child: Icon(size: 20, ZulipIcons.search))),
           prefixIconColor: designVariables.labelSearchPrompt,
           prefixIconConstraints: BoxConstraints(),
           suffixIcon: IconButton(
