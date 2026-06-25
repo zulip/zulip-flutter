@@ -2,6 +2,48 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* Report a message to your moderators. (#1972)
+* (iOS) Show notifications even while the app is in the foreground,
+  and fix a bug where notifications were silent. (#408)
+* (iOS) Respect the system "Auto-Play Animated Images" setting on
+  iOS 18+. (#1924)
+* Offer to open the browser when the video player can't play a
+  video's format. (#1208)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* CI:
+  * Run an iOS build in CI. (#773, #329)
+  * Split out a new `swift_format` suite, run on macOS Swift too. (#2333)
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #2289: fix #1934.  Request a longer-lived event queue from the server.
+  * #2297
+  * #2298
+  * #2301
+  * #2288: fix #1924.  Respect iOS "Auto-Play Animated Images" on iOS 18+.
+  * #2294: fix #1208.  Offer to open browser for unsupported video formats.
+  * #2293.  Inbox: revert to solid colors for channel rows; replace
+    folder-section divider with an 8px gap.
+  * #2284: fix #1972.  Support reporting a message.
+  * #2313
+  * #2319
+  * #2305.  Require iOS 16.0+.
+  * #2303: fix #2295.  Flutter and package upgrades.
+  * #2307: fix #773, fix #329.  Run iOS build in CI.
+  * #2333
+  * #2162: fix #2104.  Fix the message-list double-fetch glitch.
+  * #2330
+  * #2231: fix #1604.  Use per-channel topics policy in the compose box.
+  * #2306: fix #408.  Show notifications on iOS while app is foregrounded.
+  * #2300.  Fix notifications being silent on iOS.
+  * #2304
+  * #2299.  Update translations.
+
 
 ## 30.0.272 (2026-04-21)
 
