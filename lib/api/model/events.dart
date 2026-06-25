@@ -173,11 +173,11 @@ class UserSettingsUpdateEvent extends Event {
   @JsonKey(includeToJson: true)
   String get op => 'update';
 
-  /// The name of the setting, or null if we don't recognize it.
-  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
-  final UserSettingName? property;
+  /// The name of the setting, or [UserSettingName.unknown] if we don't recognize it.
+  @JsonKey(unknownEnumValue: UserSettingName.unknown)
+  final UserSettingName property;
 
-  /// The new value, or null if we don't recognize the setting.
+  /// The new value, or null if we don't recognize the setting ([UserSettingName.unknown]).
   ///
   /// This will have the type appropriate for [property]; for example,
   /// if the setting is boolean, then `value is bool` will always be true.
@@ -190,16 +190,16 @@ class UserSettingsUpdateEvent extends Event {
   static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
     switch (UserSettingName.fromRawString(json['property'] as String)) {
-      case UserSettingName.twentyFourHourTime:
+      case .twentyFourHourTime:
         return TwentyFourHourTimeMode.fromApiValue(value as bool?);
-      case UserSettingName.starredMessageCounts:
-      case UserSettingName.displayEmojiReactionUsers:
+      case .starredMessageCounts:
+      case .displayEmojiReactionUsers:
         return value as bool;
-      case UserSettingName.emojiset:
+      case .emojiset:
         return Emojiset.fromRawString(value as String);
-      case UserSettingName.presenceEnabled:
+      case .presenceEnabled:
         return value as bool;
-      case null:
+      case .unknown:
         return null;
     }
   }
@@ -746,11 +746,12 @@ class ChannelUpdateEvent extends ChannelEvent {
   final int streamId;
   final String name;
 
-  /// The name of the channel property, or null if we don't recognize it.
-  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
-  final ChannelPropertyName? property;
+  /// The name of the channel property,
+  /// or [ChannelProperty.unknown] if we don't recognize it.
+  @JsonKey(unknownEnumValue: ChannelProperty.unknown)
+  final ChannelProperty property;
 
-  /// The new value, or null if we don't recognize the property.
+  /// The new value, or null if we don't recognize the property ([ChannelProperty.unknown]).
   ///
   /// This will have the type appropriate for [property]; for example,
   /// if the property is boolean, then `value is bool` will always be true.
@@ -777,36 +778,36 @@ class ChannelUpdateEvent extends ChannelEvent {
   /// (e.g., `value as bool`).
   static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
-    switch (ChannelPropertyName.fromRawString(json['property'] as String)) {
-      case ChannelPropertyName.name:
+    switch (ChannelProperty.fromRawString(json['property'] as String)) {
+      case .name:
         return value as String;
-      case ChannelPropertyName.isArchived:
+      case .isArchived:
         return value as bool;
-      case ChannelPropertyName.description:
+      case .description:
         return value as String;
-      case ChannelPropertyName.firstMessageId:
+      case .firstMessageId:
         return value as int?;
-      case ChannelPropertyName.inviteOnly:
+      case .inviteOnly:
         return value as bool;
-      case ChannelPropertyName.messageRetentionDays:
+      case .messageRetentionDays:
         return value as int?;
-      case ChannelPropertyName.topicsPolicy:
-        return ChannelTopicsPolicy.fromApiValue(value as String);
-      case ChannelPropertyName.channelPostPolicy:
+      case .topicsPolicy:
+        return ChannelTopicsPolicy.fromRawString(value as String);
+      case .channelPostPolicy:
         return ChannelPostPolicy.fromApiValue(value as int);
-      case ChannelPropertyName.folderId:
+      case .folderId:
         return value as int?;
-      case ChannelPropertyName.canAddSubscribersGroup:
-      case ChannelPropertyName.canDeleteAnyMessageGroup:
-      case ChannelPropertyName.canDeleteOwnMessageGroup:
-      case ChannelPropertyName.canSendMessageGroup:
-      case ChannelPropertyName.canSubscribeGroup:
+      case .canAddSubscribersGroup:
+      case .canDeleteAnyMessageGroup:
+      case .canDeleteOwnMessageGroup:
+      case .canSendMessageGroup:
+      case .canSubscribeGroup:
         return GroupSettingValue.fromJson(value);
-      case ChannelPropertyName.isRecentlyActive:
+      case .isRecentlyActive:
         return value as bool;
-      case ChannelPropertyName.streamWeeklyTraffic:
+      case .streamWeeklyTraffic:
         return value as int?;
-      case null:
+      case .unknown:
         return null;
     }
   }
@@ -901,19 +902,19 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
   static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
     switch (SubscriptionProperty.fromRawString(json['property'] as String)) {
-      case SubscriptionProperty.color:
+      case .color:
         final str = value as String;
         assert(RegExp(r'^#[0-9a-f]{6}$').hasMatch(str));
         return 0xff000000 | int.parse(str.substring(1), radix: 16);
-      case SubscriptionProperty.isMuted:
-      case SubscriptionProperty.pinToTop:
-      case SubscriptionProperty.desktopNotifications:
-      case SubscriptionProperty.audibleNotifications:
-      case SubscriptionProperty.pushNotifications:
-      case SubscriptionProperty.emailNotifications:
-      case SubscriptionProperty.wildcardMentionsNotify:
+      case .isMuted:
+      case .pinToTop:
+      case .desktopNotifications:
+      case .audibleNotifications:
+      case .pushNotifications:
+      case .emailNotifications:
+      case .wildcardMentionsNotify:
         return value as bool;
-      case SubscriptionProperty.unknown:
+      case .unknown:
         return null;
     }
   }
@@ -1122,6 +1123,7 @@ class UserTopicEvent extends Event {
   final int streamId;
   final TopicName topicName;
   final int lastUpdated;
+  @JsonKey(unknownEnumValue: UserTopicVisibilityPolicy.unknown)
   final UserTopicVisibilityPolicy visibilityPolicy;
 
   UserTopicEvent({
@@ -1211,6 +1213,7 @@ class UpdateMessageEvent extends Event {
   final int messageId;
   final List<int> messageIds;
 
+  @JsonKey(fromJson: flagsFromJson)
   final List<MessageFlag> flags;
   final int editTimestamp;
 
@@ -1333,8 +1336,9 @@ class DeleteMessageEvent extends Event {
 
   final List<int> messageIds;
   // final int messageId; // Not present; we support the bulk_message_deletion capability
-  // The server never actually sends "direct" here yet (it's "private" instead),
-  // but we accept both forms for forward-compatibility.
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType messageType;
   final int? streamId;
@@ -1351,7 +1355,7 @@ class DeleteMessageEvent extends Event {
   factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) {
     final result = _$DeleteMessageEventFromJson(json);
     // Crunchy-shell validation
-    if (result.messageType == MessageType.stream) {
+    if (result.messageType == .channel) {
       result.streamId as int;
       result.topic as String;
     }
@@ -1360,30 +1364,6 @@ class DeleteMessageEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);
-}
-
-/// As in [DeleteMessageEvent.messageType],
-/// [UpdateMessageFlagsMessageDetail.type],
-/// or [TypingEvent.messageType].
-@JsonEnum(alwaysCreate: true)
-enum MessageType {
-  stream,
-  direct;
-}
-
-class MessageTypeConverter extends JsonConverter<MessageType, String> {
-  const MessageTypeConverter();
-
-  @override
-  MessageType fromJson(String json) {
-    if (json == 'private') json = 'direct'; // TODO(server-future)
-    return $enumDecode(_$MessageTypeEnumMap, json);
-  }
-
-  @override
-  String toJson(MessageType object) {
-    return _$MessageTypeEnumMap[object]!;
-  }
 }
 
 /// A Zulip event of type `update_message_flags`.
@@ -1451,7 +1431,7 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
   factory UpdateMessageFlagsRemoveEvent.fromJson(Map<String, dynamic> json) {
     final result = _$UpdateMessageFlagsRemoveEventFromJson(json);
     // Crunchy-shell validation
-    if (result.flag == MessageFlag.read) {
+    if (result.flag == .read) {
       result.messageDetails as Map<int, UpdateMessageFlagsMessageDetail>;
     }
     return result;
@@ -1464,8 +1444,9 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
 /// As in [UpdateMessageFlagsRemoveEvent.messageDetails].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageFlagsMessageDetail {
-  // The server never actually sends "direct" here yet (it's "private" instead),
-  // but we accept both forms for forward-compatibility.
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType type;
   final bool? mentioned;
@@ -1485,10 +1466,10 @@ class UpdateMessageFlagsMessageDetail {
     final result = _$UpdateMessageFlagsMessageDetailFromJson(json);
     // Crunchy-shell validation
     switch (result.type) {
-      case MessageType.stream:
+      case .channel:
         result.streamId as int;
         result.topic as String;
-      case MessageType.direct:
+      case .direct:
         result.userIds as List<int>;
     }
     return result;
@@ -1541,7 +1522,10 @@ class TypingEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'typing';
 
+  @JsonKey(unknownEnumValue: TypingOp.unknown)
   final TypingOp op;
+  // The server never actually sends "channel" here yet (it's "stream" instead),
+  // but we accept both forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType messageType;
   @JsonKey(readValue: _readSenderId)
@@ -1575,10 +1559,10 @@ class TypingEvent extends Event {
     final result = _$TypingEventFromJson(json);
     // Crunchy-shell validation
     switch (result.messageType) {
-      case MessageType.stream:
+      case .channel:
         result.streamId as int;
         result.topic as String;
-      case MessageType.direct:
+      case .direct:
         result.recipientIds as List<int>;
     }
     return result;
@@ -1592,7 +1576,10 @@ class TypingEvent extends Event {
 @JsonEnum(fieldRename: FieldRename.snake)
 enum TypingOp {
   start,
-  stop;
+  stop,
+
+  /// A new, unrecognized operation.
+  unknown;
 
   String toJson() => _$TypingOpEnumMap[this]!;
 }
@@ -1671,10 +1658,12 @@ class ReactionEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'reaction';
 
+  @JsonKey(unknownEnumValue: ReactionOp.unknown)
   final ReactionOp op;
 
   final String emojiName;
   final String emojiCode;
+  @JsonKey(unknownEnumValue: ReactionType.unknown)
   final ReactionType reactionType;
   final int userId;
   // final Map<String, dynamic> user; // deprecated; ignore
@@ -1702,6 +1691,9 @@ class ReactionEvent extends Event {
 enum ReactionOp {
   add,
   remove,
+
+  /// A new, unrecognized operation.
+  unknown;
 }
 
 /// A Zulip event of type `heartbeat`: https://zulip.com/api/get-events#heartbeat

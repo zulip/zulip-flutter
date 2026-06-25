@@ -309,7 +309,7 @@ class UserStatusChange {
       return OptionSome(StatusEmoji(
         emojiName: emojiName,
         emojiCode: emojiCode,
-        reactionType: ReactionType.fromApiValue(reactionType)));
+        reactionType: ReactionType.fromRawString(reactionType)));
     }
   }
 
@@ -341,13 +341,20 @@ enum UserSettingName {
   displayEmojiReactionUsers,
   emojiset,
   presenceEnabled,
+  // TODO: add more as needed
+
+  /// A user setting (name) that:
+  ///   - The server sends, but we currently don't support.
+  ///   - The server may start sending in the future.
+  unknown,
   ;
 
-  /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.
+  /// Get a [UserSettingName] from a raw, snake-case string we recognize,
+  /// else [UserSettingName.unknown].
   ///
   /// Example:
   ///   'display_emoji_reaction_users' -> UserSettingName.displayEmojiReactionUsers
-  static UserSettingName? fromRawString(String raw) => _byRawString[raw];
+  static UserSettingName fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$UserSettingNameEnumMap
@@ -368,6 +375,12 @@ enum TwentyFourHourTimeMode {
   // TODO(server-future) Write down what server N starts sending null;
   //   adjust the comment; leave a TODO(server-N) to delete the comment
   localeDefault(apiValue: null),
+
+  // We can't have an unknown value because all values permitted by the
+  // server API (true, false, and null) are represented above.
+  // If the server ever sends a different kind of value, that would indicate
+  // a change to the API and we should update this model accordingly.
+  // unknown(apiValue: null),
   ;
 
   const TwentyFourHourTimeMode({required this.apiValue});
@@ -394,7 +407,7 @@ enum Emojiset {
   text,
   unknown;
 
-  /// Get an [Emojiset] from a raw string. Throws if the string is unrecognized.
+  /// Get an [Emojiset] from a raw string we recognize, else [Emojiset.unknown].
   ///
   /// Example:
   ///   'google-blob' -> Emojiset.googleBlob
@@ -613,7 +626,13 @@ class PerUserPresence {
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
 enum PresenceStatus {
   active,
-  idle;
+  idle,
+
+  // We don't accept an unknown value. The [PerClientPresence] format is
+  // considered legacy and is expected to be removed in a future server release,
+  // making additions to this enum unlikely.
+  // unknown,
+  ;
 
   String toJson() => _$PresenceStatusEnumMap[this]!;
 }
@@ -651,7 +670,7 @@ class SavedSnippet {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ZulipStream {
   // When adding a field to this class:
-  //  * Add it to [ChannelPropertyName] too, or add a comment there explaining
+  //  * Add it to [ChannelProperty] too, or add a comment there explaining
   //    why there isn't a corresponding value in that enum.
   //  * If the field can never change for a given Zulip stream, mark it final.
   //    Otherwise, make sure it gets updated on [ChannelUpdateEvent].
@@ -687,7 +706,7 @@ class ZulipStream {
   @JsonKey(defaultValue: ChannelTopicsPolicy.inherit,
     unknownEnumValue: ChannelTopicsPolicy.unknown)
   ChannelTopicsPolicy topicsPolicy;
-  @JsonKey(name: 'stream_post_policy')
+  @JsonKey(name: 'stream_post_policy', unknownEnumValue: ChannelPostPolicy.unknown)
   ChannelPostPolicy? channelPostPolicy; // TODO(server-10) remove
   // final bool isAnnouncementOnly; // deprecated for `channelPostPolicy`; ignore
 
@@ -765,7 +784,7 @@ class ZulipStream {
 /// we switch exhaustively on a value of this type
 /// to ensure that every property in [ZulipStream] responds to the event.
 @JsonEnum(fieldRename: FieldRename.snake, alwaysCreate: true)
-enum ChannelPropertyName {
+enum ChannelProperty {
   // streamId is immutable
   name,
   isArchived,
@@ -787,16 +806,24 @@ enum ChannelPropertyName {
   canSendMessageGroup,
   canSubscribeGroup,
   isRecentlyActive,
-  streamWeeklyTraffic;
+  streamWeeklyTraffic,
+  // TODO: add more as needed
 
-  /// Get a [ChannelPropertyName] from a raw, snake-case string we recognize, else null.
+  /// A channel property name that:
+  ///   - The server sends, but we currently don't support.
+  ///   - The server may start sending in the future.
+  unknown,
+  ;
+
+  /// Get a [ChannelProperty] from a raw, snake-case string we recognize,
+  /// else [ChannelProperty.unknown].
   ///
   /// Example:
-  ///   'invite_only' -> ChannelPropertyName.inviteOnly
-  static ChannelPropertyName? fromRawString(String raw) => _byRawString[raw];
+  ///   'invite_only' -> ChannelProperty.inviteOnly
+  static ChannelProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
-  static final _byRawString = _$ChannelPropertyNameEnumMap
+  static final _byRawString = _$ChannelPropertyEnumMap
     .map((key, value) => MapEntry(value, key));
 }
 
@@ -820,9 +847,14 @@ enum ChannelTopicsPolicy {
       .unknown           => .unknown,
     };
 
-  static ChannelTopicsPolicy fromApiValue(String value) => _byApiValue[value] ?? unknown;
+  /// Get a [ChannelTopicsPolicy] from a raw, snake-case string we recognize,
+  /// else [ChannelTopicsPolicy.unknown].
+  ///
+  /// Example:
+  ///   'allow_empty_topic' -> ChannelTopicsPolicy.allowEmptyTopic
+  static ChannelTopicsPolicy fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
-  static final _byApiValue = _$ChannelTopicsPolicyEnumMap
+  static final _byRawString = _$ChannelTopicsPolicyEnumMap
     .map((key, value) => MapEntry(value, key));
 }
 
@@ -846,7 +878,12 @@ enum ChannelPostPolicy {
 
   int? toJson() => apiValue;
 
-  static ChannelPostPolicy fromApiValue(int value) => _byApiValue[value]!;
+  /// Get a [ChannelPostPolicy] from an int value we recognize,
+  /// else [ChannelPostPolicy.unknown].
+  ///
+  /// Example:
+  ///   1 -> ChannelPostPolicy.any
+  static ChannelPostPolicy fromApiValue(int value) => _byApiValue[value] ?? unknown;
 
   static final _byApiValue = _$ChannelPostPolicyEnumMap
     .map((key, value) => MapEntry(value, key));
@@ -1221,11 +1258,14 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
 
-  String get type;
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
+  MessageType get type;
 
   // final List<TopicLink> topicLinks; // TODO handle
   // final string type; // handled by runtime type of object
-  @JsonKey(fromJson: _flagsFromJson)
+  @JsonKey(fromJson: flagsFromJson)
   List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
   String? matchContent;
   @JsonKey(name: 'match_subject')
@@ -1244,11 +1284,6 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
 
   static Object _reactionsToJson(Reactions? value) {
     return value ?? [];
-  }
-
-  static List<MessageFlag> _flagsFromJson(Object? json) {
-    final list = json as List<Object?>;
-    return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
   }
 
   static Poll? _readPoll(Map<Object?, Object?> json, String key) {
@@ -1280,13 +1315,53 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   // TODO(dart): This has to be a static method, because factories/constructors
   //   do not support type parameters: https://github.com/dart-lang/language/issues/647
   static Message fromJson(Map<String, dynamic> json) {
-    final type = json['type'] as String;
-    if (type == 'stream') return StreamMessage.fromJson(json);
-    if (type == 'private') return DmMessage.fromJson(json);
-    throw Exception("Message.fromJson: unexpected message type $type");
+    return switch (MessageType.fromJson(json['type'] as String)) {
+      .channel => StreamMessage.fromJson(json),
+      .direct => DmMessage.fromJson(json),
+    };
   }
 
   Map<String, dynamic> toJson();
+}
+
+List<MessageFlag> flagsFromJson(Object? json) {
+  final list = json as List<Object?>;
+  return list.map((raw) => MessageFlag.fromRawString(raw as String)).toList();
+}
+
+/// As in [Message.type], [DeleteMessageEvent.messageType],
+/// [UpdateMessageFlagsMessageDetail.type], or [TypingEvent.messageType].
+@JsonEnum(alwaysCreate: true)
+enum MessageType {
+  channel,
+  direct,
+
+  // We don't accept an unknown message type because we generally cannot decide
+  // how to interpret such data. In particular, when a message with an unknown
+  // type is received from the server, we cannot determine which message model
+  // to instantiate: either [StreamMessage] or [DmMessage]. See [Message.fromJson].
+  // unknown,
+  ;
+
+  factory fromJson(String json) {
+    if (json == 'stream') json = 'channel'; // TODO(server-future)
+    if (json == 'private') json = 'direct'; // TODO(server-future)
+    return $enumDecode(_$MessageTypeEnumMap, json);
+  }
+}
+
+class MessageTypeConverter extends JsonConverter<MessageType, String> {
+  const MessageTypeConverter();
+
+  @override
+  MessageType fromJson(String json) {
+    return MessageType.fromJson(json);
+  }
+
+  @override
+  String toJson(MessageType object) {
+    return _$MessageTypeEnumMap[object]!;
+  }
 }
 
 /// https://zulip.com/api/update-message-flags#available-flags
@@ -1318,18 +1393,18 @@ enum MessageFlag {
 
   bool get isMentionFlag {
     switch (this) {
-      case MessageFlag.mentioned:
-      case MessageFlag.topicWildcardMentioned:
-      case MessageFlag.streamWildcardMentioned:
-      case MessageFlag.wildcardMentioned:
+      case .mentioned:
+      case .topicWildcardMentioned:
+      case .streamWildcardMentioned:
+      case .wildcardMentioned:
         return true;
 
-      case MessageFlag.read:
-      case MessageFlag.starred:
-      case MessageFlag.collapsed:
-      case MessageFlag.hasAlertWord:
-      case MessageFlag.historical:
-      case MessageFlag.unknown:
+      case .read:
+      case .starred:
+      case .collapsed:
+      case .hasAlertWord:
+      case .historical:
+      case .unknown:
         return false;
     }
   }
@@ -1339,7 +1414,7 @@ enum MessageFlag {
 class StreamMessage extends Message<StreamConversation> {
   @override
   @JsonKey(includeToJson: true)
-  String get type => 'stream';
+  MessageType get type => .channel;
 
   @JsonKey(includeToJson: true)
   int get streamId => conversation.streamId;
@@ -1393,7 +1468,7 @@ class StreamMessage extends Message<StreamConversation> {
 class DmMessage extends Message<DmConversation> {
   @override
   @JsonKey(includeToJson: true)
-  String get type => 'private';
+  MessageType get type => .direct;
 
   /// The user IDs of all users in the thread, sorted numerically, as in
   /// `display_recipient` from the server.
@@ -1453,7 +1528,14 @@ class DmMessage extends Message<DmConversation> {
 enum MessageEditState {
   none,
   edited,
-  moved;
+  moved,
+
+  // We don't have an unknown value. This enum is computed locally from
+  // message edit_history rather than parsed from a server-provided enum value,
+  // so there is no possibility of receiving an unrecognized value.
+  // TODO: Reconsider this if the server ever starts sending the values.
+  // unknown,
+  ;
 
   /// Whether the given topic move reflected either a "resolve topic"
   /// or "unresolve topic" operation.
@@ -1489,9 +1571,7 @@ enum MessageEditState {
     final editHistory = json['edit_history'] as List<dynamic>?;
     final lastEditTimestamp = json['last_edit_timestamp'] as int?;
     if (editHistory == null) {
-      return (lastEditTimestamp != null)
-        ? MessageEditState.edited
-        : MessageEditState.none;
+      return lastEditTimestamp != null ? .edited : .none;
     }
 
     // Edit history should never be empty whenever it is present
@@ -1500,7 +1580,7 @@ enum MessageEditState {
     bool hasMoved = false;
     for (final entry in editHistory) {
       if (entry['prev_content'] != null) {
-        return MessageEditState.edited;
+        return .edited;
       }
 
       if (entry['prev_stream'] != null) {
@@ -1516,10 +1596,10 @@ enum MessageEditState {
       }
     }
 
-    if (hasMoved) return MessageEditState.moved;
+    if (hasMoved) return .moved;
 
     // This can happen when a topic is resolved but nothing else has been edited
-    return MessageEditState.none;
+    return .none;
   }
 }
 
@@ -1528,16 +1608,19 @@ enum MessageEditState {
 enum PropagateMode {
   changeOne,
   changeLater,
-  changeAll;
+  changeAll,
+
+  /// A new, unrecognized mode.
+  unknown;
 
   String toJson() => _$PropagateModeEnumMap[this]!;
 
-  /// Get a [PropagateMode] from a raw string. Throws if the string is
-  /// unrecognized.
+  /// Get a [PropagateMode] from a raw, snake-case string we recognize,
+  /// else [PropagateMode.unknown].
   ///
   /// Example:
   ///   'change_one' -> PropagateMode.changeOne
-  static PropagateMode fromRawString(String raw) => _byRawString[raw]!;
+  static PropagateMode fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$PropagateModeEnumMap

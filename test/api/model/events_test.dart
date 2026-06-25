@@ -30,6 +30,26 @@ void main() {
     ).isEmpty();
   });
 
+  test('user_settings/update: unknown property', () {
+    final json = Map<String, dynamic>.unmodifiable({
+      'id': 1,
+      'type': 'user_settings',
+      'op': 'update',
+      'property': 'twenty_four_hour_time',
+      'value': true,
+    });
+
+    check(UserSettingsUpdateEvent.fromJson(json))
+      ..property.equals(.twentyFourHourTime)
+      ..value.equals(TwentyFourHourTimeMode.twentyFourHour);
+
+    for (final unknown in ['unknown_user_setting_name', '']) {
+      check(UserSettingsUpdateEvent.fromJson({...json, 'property': unknown}))
+        ..property.equals(.unknown)
+        ..value.equals(null);
+    }
+  });
+
   group('device/update', () {
     final baseJson = {'id': 1, 'type': 'device', 'op': 'update', 'device_id': 3 };
 
@@ -86,6 +106,28 @@ void main() {
     });
   });
 
+  test('stream/update: unknown property', () {
+    final json = Map<String, dynamic>.unmodifiable({
+      'id': 1,
+      'type': 'stream',
+      'op': 'update',
+      'stream_id': 1,
+      'name': 'channel name',
+      'property': 'is_recently_active',
+      'value': true,
+    });
+
+    check(ChannelUpdateEvent.fromJson(json))
+      ..property.equals(.isRecentlyActive)
+      ..value.equals(true);
+
+    for (final unknown in ['unknown_channel_property', '']) {
+      check(ChannelUpdateEvent.fromJson({...json, 'property': unknown}))
+        ..property.equals(.unknown)
+        ..value.equals(null);
+    }
+  });
+
   test('subscription/remove: deserialize stream_ids correctly', () {
     check(Event.fromJson({
       'id': 1,
@@ -109,6 +151,22 @@ void main() {
     }) as SubscriptionUpdateEvent).value.equals(0xff123456);
   });
 
+  test('user_topic: handle unknown visibilityPolicy', () {
+    final json = Map<String, dynamic>.unmodifiable({
+      'id': 1,
+      'type': 'user_topic',
+      'stream_id': 1,
+      'topic_name': 'topic',
+      'last_updated': 1781195876,
+      'visibility_policy': 1,
+    });
+
+    check(UserTopicEvent.fromJson(json))
+      .visibilityPolicy.equals(.muted);
+    check(UserTopicEvent.fromJson({...json, 'visibility_policy': -100}))
+      .visibilityPolicy.equals(.unknown);
+  });
+
   test('message: move flags into message object', () {
     final message = eg.streamMessage();
     MessageEvent mkEvent(List<MessageFlag> flags) => Event.fromJson({
@@ -119,7 +177,7 @@ void main() {
     }) as MessageEvent;
     check(mkEvent(message.flags)).message.jsonEquals(message);
     check(mkEvent([])).message.flags.deepEquals([]);
-    check(mkEvent([MessageFlag.read])).message.flags.deepEquals([MessageFlag.read]);
+    check(mkEvent([.read])).message.flags.deepEquals(<MessageFlag>[.read]);
   });
 
   group('update_message', () {
@@ -135,6 +193,14 @@ void main() {
       'edit_timestamp': 1718741351,
       'stream_id': eg.stream().streamId,
     };
+
+    test('handle unknown message flags', () {
+      check(UpdateMessageEvent.fromJson({
+        ...baseJson,
+        'flags': ['has_alert_word', 'unknown_message_flag', ''],
+      })).flags.deepEquals(<MessageFlag>[.hasAlertWord, .unknown, .unknown]);
+    });
+
     final baseMoveJson = { ...baseJson,
       'orig_subject': 'foo',
       'propagate_mode': 'change_all',
@@ -152,7 +218,7 @@ void main() {
         ..newStreamId.equals(2)
         ..origTopic.equals(const TopicName('foo'))
         ..newTopic.equals(const TopicName('bar'))
-        ..propagateMode.equals(PropagateMode.changeAll);
+        ..propagateMode.equals(.changeAll);
     });
 
     test('stream_id -> origStreamId', () {
@@ -245,6 +311,7 @@ void main() {
       'message_type': 'private',
     })).returnsNormally();
 
+    // TODO(server-future): remove
     final baseJsonStream = {
       'id': 1,
       'type': 'delete_message',
@@ -252,21 +319,31 @@ void main() {
       'message_type': 'stream',
     };
 
-    check(() => DeleteMessageEvent.fromJson({
-      ...baseJsonStream
-    })).throws<void>();
+    // Future server.
+    final baseJsonChannel = {
+      'id': 1,
+      'type': 'delete_message',
+      'message_ids': [1, 2, 3],
+      'message_type': 'channel',
+    };
 
-    check(() => DeleteMessageEvent.fromJson({
-      ...baseJsonStream, 'stream_id': 1, 'topic': 'some topic',
-    })).returnsNormally();
+    for (final baseJson in [baseJsonStream, baseJsonChannel]) {
+      check(() => DeleteMessageEvent.fromJson({
+        ...baseJson
+      })).throws<void>();
 
-    check(() => DeleteMessageEvent.fromJson({
-      ...baseJsonStream, 'stream_id': 1,
-    })).throws<void>();
+      check(() => DeleteMessageEvent.fromJson({
+        ...baseJson, 'stream_id': 1, 'topic': 'some topic',
+      })).returnsNormally();
 
-    check(() => DeleteMessageEvent.fromJson({
-      ...baseJsonStream, 'topic': 'some topic',
-    })).throws<void>();
+      check(() => DeleteMessageEvent.fromJson({
+        ...baseJson, 'stream_id': 1,
+      })).throws<void>();
+
+      check(() => DeleteMessageEvent.fromJson({
+        ...baseJson, 'topic': 'some topic',
+      })).throws<void>();
+    }
   });
 
   test('delete_message: private -> direct', () {
@@ -275,7 +352,18 @@ void main() {
       'type': 'delete_message',
       'message_ids': [1, 2, 3],
       'message_type': 'private',
-    })).messageType.equals(MessageType.direct);
+    })).messageType.equals(.direct);
+  });
+
+  test('delete_message: stream -> channel', () {
+    check(DeleteMessageEvent.fromJson({
+      'id': 1,
+      'type': 'delete_message',
+      'message_ids': [1, 2, 3],
+      'message_type': 'stream',
+      'stream_id': 1,
+      'topic': 'some topic',
+    })).messageType.equals(.channel);
   });
 
   group('update_message_flags/remove', () {
@@ -310,7 +398,17 @@ void main() {
             ...messageDetail,
             'type': 'private',
           }}})).messageDetails.isNotNull()
-               .values.single.type.equals(MessageType.direct);
+               .values.single.type.equals(.direct);
+    });
+
+    test('stream -> channel', () {
+      check(UpdateMessageFlagsRemoveEvent.fromJson({
+        ...baseJson,
+        'flag': 'read',
+        'message_details': {
+          '123': {'type': 'stream', 'mentioned': false, 'stream_id': 1, 'topic': 'some topic'}
+        }})).messageDetails.isNotNull()
+            .values.single.type.equals(.channel);
     });
   });
 
@@ -328,6 +426,16 @@ void main() {
       'recipients': [1, 2, 3].map((e) => {'user_id': e, 'email': '$e@example.com'}).toList(),
     };
 
+    test('handle unknown op', () {
+      check(TypingEvent.fromJson(directMessageJson))
+        .op.equals(.start);
+
+      for (final unknown in ['unknown_op', '']) {
+        check(TypingEvent.fromJson({...directMessageJson, 'op': unknown}))
+          .op.equals(.unknown);
+      }
+    });
+
     test('direct message typing events', () {
       check(TypingEvent.fromJson(directMessageJson))
         ..recipientIds.isNotNull().deepEquals([1, 2, 3])
@@ -343,19 +451,35 @@ void main() {
       check(TypingEvent.fromJson({
         ...directMessageJson,
         'message_type': 'private',
-      })).messageType.equals(MessageType.direct);
+      })).messageType.equals(.direct);
     });
 
-    test('stream type missing streamId/topic', () {
-      check(() => TypingEvent.fromJson({
-        ...baseJson, 'message_type': 'stream', 'stream_id': 123, 'topic': 'foo'}))
-        .returnsNormally();
-      check(() => TypingEvent.fromJson({
-        ...baseJson, 'message_type': 'stream'})).throws<void>();
-      check(() => TypingEvent.fromJson({
-        ...baseJson, 'message_type': 'stream', 'topic': 'foo'})).throws<void>();
-      check(() => TypingEvent.fromJson({
-        ...baseJson, 'message_type': 'stream', 'stream_id': 123})).throws<void>();
+    test('stream/channel type missing streamId/topic', () {
+      // TODO(server-future): remove
+      final baseJsonStream = {...baseJson, 'message_type': 'stream'};
+      // Future server.
+      final baseJsonChannel = {...baseJson, 'message_type': 'channel'};
+
+      for (final baseJson in [baseJsonStream, baseJsonChannel]) {
+        check(() => TypingEvent.fromJson({
+          ...baseJson, 'stream_id': 123, 'topic': 'foo'}))
+          .returnsNormally();
+        check(() => TypingEvent.fromJson({
+          ...baseJson})).throws<void>();
+        check(() => TypingEvent.fromJson({
+          ...baseJson, 'topic': 'foo'})).throws<void>();
+        check(() => TypingEvent.fromJson({
+          ...baseJson, 'stream_id': 123})).throws<void>();
+      }
+    });
+
+    test('stream -> channel', () {
+      check(TypingEvent.fromJson({
+        ...baseJson,
+        'stream_id': 123,
+        'topic': 'foo',
+        'message_type': 'stream',
+      })).messageType.equals(.channel);
     });
 
     test('direct type sort recipient ids', () {
@@ -363,6 +487,37 @@ void main() {
         ...directMessageJson,
         'recipients': [4, 10, 8, 2, 1].map((e) => {'user_id': e, 'email': '$e@example.com'}).toList(),
       })).recipientIds.isNotNull().deepEquals([1, 2, 4, 8, 10]);
+    });
+  });
+
+  group('reaction event', () {
+    final json = Map<String, dynamic>.unmodifiable({
+      'id': 1,
+      'type': 'reaction',
+      'op': 'add',
+      'emoji_name': '+1',
+      'emoji_code': '1f44d',
+      'reaction_type': 'unicode_emoji',
+      'user_id': 100,
+      'message_id': 1000,
+    });
+
+    test('handle unknown op', () {
+      check(ReactionEvent.fromJson(json)).op.equals(.add);
+
+      for (final unknown in ['unknown_op', '']) {
+        check(ReactionEvent.fromJson({...json, 'op': unknown})).op.equals(.unknown);
+      }
+    });
+
+    test('handle unknown reactionType', () {
+      check(ReactionEvent.fromJson(json))
+        .reactionType.equals(.unicodeEmoji);
+
+      for (final unknown in ['unknown_emoji', '']) {
+        check(ReactionEvent.fromJson({...json, 'reaction_type': unknown}))
+          .reactionType.equals(.unknown);
+      }
     });
   });
 }

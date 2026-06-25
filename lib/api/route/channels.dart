@@ -107,8 +107,8 @@ Future<void> updateUserTopicCompat(ApiConnection connection, {
   final useLegacyApi = connection.zulipFeatureLevel! < 170;
   if (useLegacyApi) {
     final op = switch (visibilityPolicy) {
-      UserTopicVisibilityPolicy.none => 'remove',
-      UserTopicVisibilityPolicy.muted => 'add',
+      .none => 'remove',
+      .muted => 'add',
       _ => throw UnsupportedError('$visibilityPolicy on old server'),
     };
     // https://zulip.com/api/mute-topic
@@ -134,7 +134,7 @@ Future<void> updateUserTopic(ApiConnection connection, {
   required TopicName topic,
   required UserTopicVisibilityPolicy visibilityPolicy,
 }) {
-  assert(visibilityPolicy != UserTopicVisibilityPolicy.unknown);
+  assert(visibilityPolicy != .unknown);
   assert(connection.zulipFeatureLevel! >= 170);
   return connection.post('updateUserTopic', (_) {}, 'user_topics', {
     'stream_id': channelId,

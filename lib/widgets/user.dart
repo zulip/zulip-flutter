@@ -263,9 +263,9 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
         } else {
           return SizedBox.square(dimension: widget.size);
         }
-      case PresenceStatus.active:
+      case .active:
         color = designVariables.statusOnline;
-      case PresenceStatus.idle:
+      case .idle:
         gradient = LinearGradient(
           begin: AlignmentDirectional.centerStart,
           end: AlignmentDirectional.centerEnd,

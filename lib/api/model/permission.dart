@@ -298,6 +298,10 @@ enum PseudoSystemGroupName implements DefaultGroupName {
   // Discussion on this; it looks like it might get renamed:
   //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/stream_creator_or_nobody/near/2258637
   streamCreatorOrNobody(apiValue: 'stream_creator_or_nobody'),
+
+  // We don't have an unknown value here. Unknown values are already represented
+  // by [DefaultGroupNameUnknown]. See [DefaultGroupName.fromJson].
+  // unknown(apiValue: 'unknown_pseudo_system_group_name'),
   ;
 
   const PseudoSystemGroupName({required this.apiValue});
@@ -334,6 +338,10 @@ enum SystemGroupName implements DefaultGroupName {
   administrators(apiValue: 'role:administrators'),
   owners(apiValue: 'role:owners'),
   nobody(apiValue: 'role:nobody'),
+
+  // We don't have an unknown value here. Unknown values are already represented
+  // by [DefaultGroupNameUnknown]. See [DefaultGroupName.fromJson].
+  // unknown(apiValue: 'role:unknown'),
   ;
 
   const SystemGroupName({required this.apiValue});
@@ -359,21 +367,13 @@ enum SystemGroupName implements DefaultGroupName {
   /// Display names mirror the web app's display name strings.
   /// See `system_user_groups_list` in web/src/settings_config.ts.
   String displayName(ZulipLocalizations zulipLocalizations) => switch (this) {
-    SystemGroupName.everyoneOnInternet =>
-      zulipLocalizations.systemGroupNameEveryoneOnInternet,
-    SystemGroupName.everyone =>
-      zulipLocalizations.systemGroupNameEveryone,
-    SystemGroupName.members =>
-      zulipLocalizations.systemGroupNameMembers,
-    SystemGroupName.fullMembers =>
-      zulipLocalizations.systemGroupNameFullMembers,
-    SystemGroupName.moderators =>
-      zulipLocalizations.systemGroupNameModerators,
-    SystemGroupName.administrators =>
-      zulipLocalizations.systemGroupNameAdministrators,
-    SystemGroupName.owners =>
-      zulipLocalizations.systemGroupNameOwners,
-    SystemGroupName.nobody =>
-      zulipLocalizations.systemGroupNameNobody,
+    everyoneOnInternet => zulipLocalizations.systemGroupNameEveryoneOnInternet,
+    everyone => zulipLocalizations.systemGroupNameEveryone,
+    members => zulipLocalizations.systemGroupNameMembers,
+    fullMembers => zulipLocalizations.systemGroupNameFullMembers,
+    moderators => zulipLocalizations.systemGroupNameModerators,
+    administrators => zulipLocalizations.systemGroupNameAdministrators,
+    owners => zulipLocalizations.systemGroupNameOwners,
+    nobody => zulipLocalizations.systemGroupNameNobody,
   };
 }

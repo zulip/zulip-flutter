@@ -309,7 +309,7 @@ User user({
     isBot: isBot ?? false,
     botType: null,
     botOwnerId: botOwnerId,
-    role: role ?? UserRole.member,
+    role: role ?? .member,
     timezone: 'UTC',
     avatarUrl: avatarUrl,
     avatarVersion: 0,
@@ -550,7 +550,7 @@ ZulipStream stream({
     historyPublicToSubscribers: historyPublicToSubscribers ?? true,
     messageRetentionDays: messageRetentionDays,
     topicsPolicy: topicsPolicy ?? .inherit,
-    channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
+    channelPostPolicy: channelPostPolicy ?? .any,
     folderId: folderId,
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
     canDeleteAnyMessageGroup: canDeleteAnyMessageGroup ?? GroupSettingValueNamed(nobodyGroup.id),
@@ -686,21 +686,21 @@ UserTopicItem userTopicItem(
 final Reaction unicodeEmojiReaction = Reaction(
   emojiName: 'thumbs_up',
   emojiCode: '1f44d',
-  reactionType: ReactionType.unicodeEmoji,
+  reactionType: .unicodeEmoji,
   userId: selfUser.userId,
 );
 
 final Reaction realmEmojiReaction = Reaction(
   emojiName: 'twocents',
   emojiCode: '181',
-  reactionType: ReactionType.realmEmoji,
+  reactionType: .realmEmoji,
   userId: selfUser.userId,
 );
 
 final Reaction zulipExtraEmojiReaction = Reaction(
   emojiName: 'zulip',
   emojiCode: 'zulip',
-  reactionType: ReactionType.zulipExtraEmoji,
+  reactionType: .zulipExtraEmoji,
   userId: selfUser.userId,
 );
 
@@ -801,7 +801,7 @@ StreamMessage streamMessage({
     'subject': topic ?? _defaultTopic,
     'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
-    'type': 'stream',
+    'type': 'channel',
     'match_content': matchContent,
     'match_subject': matchTopic,
   }) as Map<String, dynamic>);
@@ -844,7 +844,7 @@ DmMessage dmMessage({
     'subject': '',
     'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
-    'type': 'private',
+    'type': 'direct',
   }) as Map<String, dynamic>);
 }
 
@@ -1015,7 +1015,7 @@ Submessage submessage({
   int? senderId,
 }) {
   return Submessage(
-    msgType: msgType ?? SubmessageType.widget,
+    msgType: msgType ?? .widget,
     content: jsonEncode(content),
     senderId: senderId ?? selfUser.userId,
   );
@@ -1107,7 +1107,7 @@ DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   return DeleteMessageEvent(
     id: 0,
     messageIds: messages.map((message) => message.id).toList(),
-    messageType: MessageType.stream,
+    messageType: .channel,
     streamId: messages[0].streamId,
     topic: messages[0].topic,
   );
@@ -1151,7 +1151,7 @@ UpdateMessageEvent _updateMessageMoveEvent(
   String? origContent,
   String? newContent,
   required List<MessageFlag> flags,
-  PropagateMode propagateMode = PropagateMode.changeOne,
+  PropagateMode propagateMode = .changeOne,
 }) {
   _checkPositive(origStreamId, 'stream ID');
   _checkPositive(newStreamId, 'stream ID');
@@ -1186,7 +1186,7 @@ UpdateMessageEvent updateMessageEventMoveFrom({
   TopicName? newTopic,
   String? newTopicStr,
   String? newContent,
-  PropagateMode propagateMode = PropagateMode.changeOne,
+  PropagateMode propagateMode = .changeOne,
 }) {
   _checkPositive(newStreamId, 'stream ID');
   assert(origMessages.isNotEmpty);
@@ -1214,7 +1214,7 @@ UpdateMessageEvent updateMessageEventMoveTo({
   TopicName? origTopic,
   String? origTopicStr,
   String? origContent,
-  PropagateMode propagateMode = PropagateMode.changeOne,
+  PropagateMode propagateMode = .changeOne,
 }) {
   _checkPositive(origStreamId, 'stream ID');
   assert(newMessages.isNotEmpty);
@@ -1255,14 +1255,14 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
         message.id,
         switch (message) {
           StreamMessage() => UpdateMessageFlagsMessageDetail(
-            type: MessageType.stream,
+            type: .channel,
             mentioned: mentioned,
             streamId: message.streamId,
             topic: message.topic,
             userIds: null,
           ),
           DmMessage() => UpdateMessageFlagsMessageDetail(
-            type: MessageType.direct,
+            type: .direct,
             mentioned: mentioned,
             streamId: null,
             topic: null,
@@ -1281,7 +1281,7 @@ SubmessageEvent submessageEvent(
 }) {
   return SubmessageEvent(
     id: 0,
-    msgType: SubmessageType.widget,
+    msgType: .widget,
     content: jsonEncode(content),
     messageId: messageId,
     senderId: senderId,
@@ -1293,13 +1293,13 @@ TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
   switch (narrow) {
     case TopicNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
-        messageType: MessageType.stream,
+        messageType: .channel,
         streamId: narrow.channelId,
         topic: narrow.topic,
         recipientIds: null);
     case DmNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
-        messageType: MessageType.direct,
+        messageType: .direct,
         recipientIds: narrow.allRecipientIds,
         streamId: null,
         topic: null);
@@ -1320,38 +1320,40 @@ ReactionEvent reactionEvent(Reaction reaction, ReactionOp op, int messageId) {
 
 ChannelUpdateEvent channelUpdateEvent(
   ZulipStream stream, {
-  required ChannelPropertyName property,
+  required ChannelProperty property,
   required Object? value,
 }) {
   switch (property) {
-    case ChannelPropertyName.name:
+    case .name:
       assert(value is String);
-    case ChannelPropertyName.isArchived:
+    case .isArchived:
       assert(value is bool);
-    case ChannelPropertyName.description:
+    case .description:
       assert(value is String);
-    case ChannelPropertyName.firstMessageId:
+    case .firstMessageId:
       assert(value is int?);
-    case ChannelPropertyName.inviteOnly:
+    case .inviteOnly:
       assert(value is bool);
-    case ChannelPropertyName.messageRetentionDays:
+    case .messageRetentionDays:
       assert(value is int?);
-    case ChannelPropertyName.topicsPolicy:
+    case .topicsPolicy:
       assert(value is ChannelTopicsPolicy);
-    case ChannelPropertyName.channelPostPolicy:
+    case .channelPostPolicy:
       assert(value is ChannelPostPolicy);
-    case ChannelPropertyName.folderId:
+    case .folderId:
       assert(value is int?);
-    case ChannelPropertyName.canAddSubscribersGroup:
-    case ChannelPropertyName.canDeleteAnyMessageGroup:
-    case ChannelPropertyName.canDeleteOwnMessageGroup:
-    case ChannelPropertyName.canSendMessageGroup:
-    case ChannelPropertyName.canSubscribeGroup:
+    case .canAddSubscribersGroup:
+    case .canDeleteAnyMessageGroup:
+    case .canDeleteOwnMessageGroup:
+    case .canSendMessageGroup:
+    case .canSubscribeGroup:
       assert(value is GroupSettingValue);
-    case ChannelPropertyName.isRecentlyActive:
+    case .isRecentlyActive:
       assert(value is bool);
-    case ChannelPropertyName.streamWeeklyTraffic:
+    case .streamWeeklyTraffic:
       assert(value is int?);
+    case .unknown:
+      assert(value == null);
   }
   return ChannelUpdateEvent(
     id: 1,
@@ -1392,10 +1394,10 @@ UserSettings userSettings({
   bool? presenceEnabled,
 }) {
   return UserSettings(
-    twentyFourHourTime: twentyFourHourTime ?? TwentyFourHourTimeMode.twelveHour,
+    twentyFourHourTime: twentyFourHourTime ?? .twelveHour,
     starredMessageCounts: true,
     displayEmojiReactionUsers: displayEmojiReactionUsers ?? true,
-    emojiset: emojiset ?? Emojiset.google,
+    emojiset: emojiset ?? .google,
     presenceEnabled: presenceEnabled ?? true,
   );
 }
@@ -1500,7 +1502,7 @@ InitialSnapshot initialSnapshot({
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
-    realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? .everyone,
     // no default; allow `null` to simulate servers without this
     realmTopicsPolicy: realmTopicsPolicy,
     realmMandatoryTopics: realmMandatoryTopics ?? true,

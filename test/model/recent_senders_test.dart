@@ -179,7 +179,7 @@ void main() {
     model.handleDeleteMessageEvent(DeleteMessageEvent(
       id: 0,
       messageIds: [messages[1].id],
-      messageType: MessageType.stream,
+      messageType: .channel,
       streamId: stream.streamId,
       topic: eg.t('oThEr'),
     ), {messages[1].id: messages[1]});
