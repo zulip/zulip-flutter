@@ -382,8 +382,30 @@ hello
   test('inlineLink', () {
     check(inlineLink('CZO', 'https://chat.zulip.org/')).equals('[CZO](https://chat.zulip.org/)');
     check(inlineLink('Uploading file.txt…', '')).equals('[Uploading file.txt…]()');
-    check(inlineLink('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png'))
+  });
+
+  test('inlineImage', () {
+    check(inlineImage('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png'))
+      .equals('![IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+    check(inlineImage('Uploading IMG_2488.png…', ''))
+      .equals('![Uploading IMG_2488.png…]()');
+  });
+
+  test('imageCompat', () {
+    check(imageCompat('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png',
+        zulipFeatureLevel: 467))
+      .equals('![IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+    check(imageCompat('IMG_2488.png', '/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png',
+        zulipFeatureLevel: 466))
       .equals('[IMG_2488.png](/user_uploads/2/a3/ucEMyjxk90mcNF0y9rmW5XKO/IMG_2488.png)');
+  });
+
+  test('isSupportedInlineImage', () {
+    check(isSupportedInlineImage('image/png')).isTrue();
+    check(isSupportedInlineImage('image/jpeg')).isTrue();
+    check(isSupportedInlineImage('image/svg+xml')).isFalse();
+    check(isSupportedInlineImage('audio/mpeg')).isFalse();
+    check(isSupportedInlineImage(null)).isFalse();
   });
 
   test('quoteAndReply / quoteAndReplyPlaceholder', () async {
