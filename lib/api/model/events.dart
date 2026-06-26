@@ -20,6 +20,8 @@ sealed class Event {
     switch (json['type'] as String) {
       case 'realm_emoji':
         switch (json['op'] as String) {
+          case 'add': return RealmEmojiAddEvent.fromJson(json);
+          case 'update_one': return RealmEmojiUpdateOneEvent.fromJson(json);
           case 'update': return RealmEmojiUpdateEvent.fromJson(json);
           default: return UnexpectedEvent.fromJson(json);
         }
@@ -123,14 +125,83 @@ class UnexpectedEvent extends Event {
   Map<String, dynamic> toJson() => json;
 }
 
-/// A Zulip event of type `realm_emoji` with op `update`:
-///   https://zulip.com/api/get-events#realm_emoji-update
-@JsonSerializable(fieldRename: FieldRename.snake)
-class RealmEmojiUpdateEvent extends Event {
+/// A Zulip event of type `realm_emoji`.
+///
+/// The corresponding API docs are in several places for
+/// different values of `op`; see subclasses.
+sealed class RealmEmojiEvent extends Event {
   @override
   @JsonKey(includeToJson: true)
   String get type => 'realm_emoji';
 
+  String get op;
+
+  RealmEmojiEvent({required super.id});
+}
+
+/// A [RealmEmojiEvent] with op `add`:
+///   https://zulip.com/api/get-events#realm_emoji-add
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmEmojiAddEvent extends RealmEmojiEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'add';
+
+  final RealmEmojiItem emoji;
+
+  RealmEmojiAddEvent({required super.id, required this.emoji});
+
+  factory RealmEmojiAddEvent.fromJson(Map<String, dynamic> json) =>
+    _$RealmEmojiAddEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmEmojiAddEventToJson(this);
+}
+
+/// A [RealmEmojiEvent] with op `update_one`:
+///   https://zulip.com/api/get-events#realm_emoji-update_one
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmEmojiUpdateOneEvent extends RealmEmojiEvent {
+  @override
+  @JsonKey(includeToJson: true)
+  String get op => 'update_one';
+
+  @JsonKey(name: 'emoji_id')
+  final String emojiCode;
+
+  final RealmEmojiUpdateData data;
+
+  RealmEmojiUpdateOneEvent({
+    required super.id,
+    required this.emojiCode,
+    required this.data,
+  });
+
+  factory RealmEmojiUpdateOneEvent.fromJson(Map<String, dynamic> json) =>
+    _$RealmEmojiUpdateOneEventFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$RealmEmojiUpdateOneEventToJson(this);
+}
+
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmEmojiUpdateData {
+  final bool? deactivated;
+
+  RealmEmojiUpdateData({required this.deactivated});
+
+  factory RealmEmojiUpdateData.fromJson(Map<String, dynamic> json) =>
+    _$RealmEmojiUpdateDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RealmEmojiUpdateDataToJson(this);
+}
+
+/// A [RealmEmojiEvent] with op `update`:
+///   https://zulip.com/api/get-events#realm_emoji-update
+// TODO(server-12): remove
+@JsonSerializable(fieldRename: FieldRename.snake)
+class RealmEmojiUpdateEvent extends RealmEmojiEvent {
+  @override
   @JsonKey(includeToJson: true)
   String get op => 'update';
 

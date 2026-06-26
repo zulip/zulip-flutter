@@ -174,7 +174,7 @@ class MutedUserItem {
   Map<String, dynamic> toJson() => _$MutedUserItemToJson(this);
 }
 
-/// An item in [InitialSnapshot.realmEmoji] or [RealmEmojiUpdateEvent].
+/// An item in [InitialSnapshot.realmEmoji], [RealmEmojiAddEvent], or [RealmEmojiUpdateEvent].
 ///
 /// For docs, search for "realm_emoji:"
 /// in <https://zulip.com/api/register-queue>.
@@ -195,7 +195,7 @@ class RealmEmojiItem {
   //   i.e. that have run a migration to fill this in for animated emoji.
   final String? stillUrl;
 
-  final bool deactivated;
+  bool deactivated;
   final int? authorId;
 
   RealmEmojiItem({
