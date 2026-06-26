@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/settings.dart';
@@ -146,7 +147,7 @@ class DialogStatus<T> {
 }
 
 /// Displays an [AlertDialog] with a dismiss button
-/// and optional "Learn more" button.
+/// and optional "Learn more" button, and gives haptic feedback.
 ///
 /// The [DialogStatus.result] field of the return value can be used
 /// for waiting for the dialog to be closed.
@@ -165,6 +166,7 @@ DialogStatus<void> showErrorDialog({
   String? message,
   Uri? learnMoreButtonUrl,
 }) {
+  HapticFeedback.errorNotification();
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<void>(
     context: context,
