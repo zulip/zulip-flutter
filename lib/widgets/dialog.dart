@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/settings.dart';
@@ -165,6 +166,7 @@ DialogStatus<void> showErrorDialog({
   String? message,
   Uri? learnMoreButtonUrl,
 }) {
+  HapticFeedback.errorNotification();
   final zulipLocalizations = ZulipLocalizations.of(context);
   final future = showDialog<void>(
     context: context,

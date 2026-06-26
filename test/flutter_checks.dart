@@ -62,6 +62,11 @@ extension TextEditingValueChecks on Subject<TextEditingValue> {
   Subject<TextRange> get composing => has((x) => x.composing, 'composing');
 }
 
+extension MethodCallChecks on Subject<MethodCall> {
+  Subject<String> get method => has((c) => c.method, 'method');
+  Subject<Object?> get arguments => has((c) => c.arguments as Object?, 'arguments');
+}
+
 //|//////////////////////////////////////////////////////////////
 // From 'package:flutter/animation.dart'.
 //
