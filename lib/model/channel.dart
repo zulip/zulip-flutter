@@ -166,7 +166,7 @@ mixin ChannelStore on UserStore {
   }
 
   /// The channel folder of [channelId],
-  /// including the "PINNED" or "OTHER" pseudo-channels (e.g. for the inbox).
+  /// including the "PINNED" or "OTHER" pseudo-channel-folders (e.g. for the inbox).
   UiChannelFolder uiChannelFolder(int channelId) =>
     switch (streams[channelId]) {
       Subscription(:final pinToTop) when pinToTop =>
