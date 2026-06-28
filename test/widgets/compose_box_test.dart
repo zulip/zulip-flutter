@@ -1219,7 +1219,7 @@ void main() {
     }
 
     group('attach from media library', () {
-      testWidgets('success', (tester) async {
+      testWidgets('image success', (tester) async {
         await prepare(tester);
         checkAppearsLoading(tester, false);
 
@@ -1243,7 +1243,7 @@ void main() {
         checkNoDialog(tester);
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+          .equals('see image: ![Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1259,7 +1259,50 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+        checkAppearsLoading(tester, false);
+      });
+
+      testWidgets('audio success', (tester) async {
+        await prepare(tester);
+        checkAppearsLoading(tester, false);
+
+        testBinding.pickFilesResult = FilePickerResult([PlatformFile(
+          readStream: Stream.fromIterable(['asdf'.codeUnits]),
+          // TODO test inference of MIME type from initial bytes, when
+          //   it can't be inferred from path
+          path: '/private/var/mobile/Containers/Data/Application/foo/tmp/audio.mp3',
+          name: 'audio.mp3',
+          size: 12345,
+        )]);
+        connection.prepare(delay: const Duration(seconds: 1), json:
+        UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/audio.mp3').toJson());
+
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.allowMultiple).equals(true);
+        check(call.type).equals(FileType.media);
+
+        checkNoDialog(tester);
+
+        check(controller!.content.text)
+            .equals('see image: ![Uploading audio.mp3…]()\n\n');
+        check(connection.lastRequest!).isA<http.MultipartRequest>()
+          ..method.equals('POST')
+          ..files.single.which((it) => it
+            ..field.equals('file')
+            ..length.equals(12345)
+            ..filename.equals('audio.mp3')
+            ..contentType.asString.equals('audio/mpeg')
+            ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+                .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
+          );
+        checkAppearsLoading(tester, true);
+
+        await tester.pump(const Duration(seconds: 1));
+        check(controller!.content.text)
+            .equals('see image: ![audio.mp3](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/audio.mp3)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1291,7 +1334,7 @@ void main() {
         checkNoDialog(tester);
 
         check(controller!.content.text)
-          .equals('see image: [Uploading image.jpg…]()\n\n');
+          .equals('see image: ![Uploading image.jpg…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1307,7 +1350,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1392,7 +1435,7 @@ void main() {
 
         await tester.pump();
         check(controller!.content.text)
-          .equals('see image: [Uploading test.gif…]()\n\n');
+          .equals('see image: ![Uploading test.gif…]()\n\n');
         // (the request is checked more thoroughly in API tests)
         check(connection.lastRequest!).isA<http.MultipartRequest>()
           ..method.equals('POST')
@@ -1408,7 +1451,7 @@ void main() {
 
         await tester.pump(Duration.zero);
         check(controller!.content.text)
-          .equals('see image: [test.gif]($uploadUrl)\n\n');
+          .equals('see image: ![test.gif]($uploadUrl)\n\n');
         checkAppearsLoading(tester, false);
       });
 
