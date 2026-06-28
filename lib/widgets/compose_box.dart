@@ -1165,6 +1165,31 @@ class _AttachFileButton extends _AttachUploadsButton {
   }
 }
 
+Future<FileToUpload> _fileFromXFile(XFile result) async {
+  final length = await result.length();
+
+  List<int>? headerBytes;
+  try {
+    headerBytes = await result.openRead(
+      0,
+      // Despite its dartdoc, [XFile.openRead] can throw if `end` is greater
+      // than the file's length. We can *probably* trust our `length` to be
+      // accurate, but it's nontrivial to verify. If it's inaccurate, we'd
+      // rather sacrifice this part of the MIME lookup than throw the whole
+      // upload. So, the try/catch.
+      min(defaultMagicNumbersMaxLength, length),
+    ).expand((l) => l).toList();
+  } catch (e) {
+    // TODO(log)
+  }
+  return FileToUpload(
+    content: result.openRead(),
+    length: length,
+    filename: result.name,
+    mimeType: result.mimeType
+      ?? lookupMimeType(result.path, headerBytes: headerBytes));
+}
+
 class _AttachMediaButton extends _AttachUploadsButton {
   const _AttachMediaButton({required super.controller, required super.enabled});
 
@@ -1177,8 +1202,18 @@ class _AttachMediaButton extends _AttachUploadsButton {
 
   @override
   Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
-    // TODO(#114): This doesn't give quite the right UI on Android.
-    return _getFilePickerFiles(context, FileType.media);
+    final List<XFile> results;
+    try {
+      results = await ZulipBinding.instance.pickMultipleMedia(
+        requestFullMetadata: false);
+    } catch (e) {
+      if (!context.mounted) return [];
+      showErrorDialog(context: context,
+        title: ZulipLocalizations.of(context).errorDialogTitle,
+        message: e.toString());
+      return [];
+    }
+    return Future.wait(results.map(_fileFromXFile));
   }
 }
 
@@ -1228,29 +1263,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
     if (result == null) {
       return []; // User cancelled; do nothing
     }
-    final length = await result.length();
-
-    List<int>? headerBytes;
-    try {
-      headerBytes = await result.openRead(
-        0,
-        // Despite its dartdoc, [XFile.openRead] can throw if `end` is greater
-        // than the file's length. We can *probably* trust our `length` to be
-        // accurate, but it's nontrivial to verify. If it's inaccurate, we'd
-        // rather sacrifice this part of the MIME lookup than throw the whole
-        // upload. So, the try/catch.
-        min(defaultMagicNumbersMaxLength, length)
-      ).expand((l) => l).toList();
-    } catch (e) {
-      // TODO(log)
-    }
-    return [FileToUpload(
-      content: result.openRead(),
-      length: length,
-      filename: result.name,
-      mimeType: result.mimeType
-        ?? lookupMimeType(result.path, headerBytes: headerBytes),
-    )];
+    return [await _fileFromXFile(result)];
   }
 }
 
