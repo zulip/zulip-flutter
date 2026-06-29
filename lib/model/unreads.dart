@@ -249,7 +249,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   int countInStarredMessagesNarrow() => 0;
 
   // TODO: Implement unreads handling?
-  int countInKeywordSearchNarrow() => 0;
+  int countInSearchNarrow() => 0;
 
   /// The aggregated unread count for DM conversations.
   ///
@@ -278,8 +278,8 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
         return countInMentionsNarrow();
       case StarredMessagesNarrow():
         return countInStarredMessagesNarrow();
-      case KeywordSearchNarrow():
-        return countInKeywordSearchNarrow();
+      case SearchNarrow():
+        return countInSearchNarrow();
     }
   }
 

@@ -2070,7 +2070,7 @@ class ComposeBox extends StatefulWidget {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return false;
     }
   }
@@ -2305,7 +2305,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         assert(false);
     }
   }
@@ -2372,7 +2372,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return null;
     }
     return null;
@@ -2413,7 +2413,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
     }
 
     final controller = this.controller;
