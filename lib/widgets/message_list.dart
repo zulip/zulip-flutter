@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
@@ -24,6 +25,7 @@ import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
 import 'emoji_reaction.dart';
+import 'double_tap_listener.dart';
 import 'icons.dart';
 import 'input.dart';
 import 'page.dart';
@@ -2371,67 +2373,80 @@ class MessageWithPossibleSender extends StatelessWidget {
       && !MessageListPage.maybeRevealedMutedMessagesOf(context)!
                          .isMutedMessageRevealed(message.id);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: tapOpensConversation
-        ? () => unawaited(Navigator.push(context,
-            MessageListPage.buildRoute(context: context,
-              narrow: SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
-              // TODO(#1655) "this view does not mark messages as read on scroll"
-              initAnchorMessageId: message.id)))
-        : null,
-      onLongPress: showAsMuted
-        ? null // TODO write a test for this
-        : () => showMessageActionSheet(context: context, message: message),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Column(children: [
-          if (item.showSender)
-            SenderRow(message: message,
-              timestampStyle: MessageTimestampStyle.timeOnly),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: localizedTextBaseline(context),
-            children: [
-              const SizedBox(width: 16),
-              Expanded(child: showAsMuted
-                ? Align(
-                    alignment: AlignmentDirectional.topStart,
-                    child: ZulipWebUiKitButton(
-                      label: zulipLocalizations.revealButtonLabel,
-                      icon: ZulipIcons.eye,
-                      size: ZulipWebUiKitButtonSize.small,
-                      intent: ZulipWebUiKitButtonIntent.neutral,
-                      attention: ZulipWebUiKitButtonAttention.minimal,
-                      onPressed: () {
-                        MessageListPage.ancestorOf(context).revealMutedMessage(message.id);
-                      }))
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      content,
-                      if ((message.reactions?.total ?? 0) > 0)
-                        ReactionChipsList(messageId: message.id, reactions: message.reactions!),
-                      if (editMessageErrorStatus != null)
-                        _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
-                      else if (editStateText != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(editStateText,
-                            textAlign: TextAlign.end,
-                            style: TextStyle(
-                              color: designVariables.labelEdited,
-                              fontSize: 12,
-                              height: (12 / 12),
-                              letterSpacing: proportionalLetterSpacing(context,
-                                0.05, baseFontSize: 12))))
-                      else
-                        Padding(padding: const EdgeInsets.only(bottom: 4))
-                    ])),
-              SizedBox(width: 16,
-                child: star),
-            ]),
-        ])));
+    return DoubleTapListener(
+      onDoubleTap: showAsMuted
+        ? null
+        : () {
+            final firstPopularEmoji = store.popularEmojiCandidates().firstOrNull;
+            // Popular emojis are not loaded yet; do nothing.
+            if (firstPopularEmoji == null) return; // TODO(log)
+
+            ZulipAction.addOrRemoveReaction(context,
+              messageId: message.id, emoji: firstPopularEmoji);
+
+            HapticFeedback.lightImpact();
+          },
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: tapOpensConversation
+          ? () => unawaited(Navigator.push(context,
+              MessageListPage.buildRoute(context: context,
+                narrow: SendableNarrow.ofMessage(message, selfUserId: store.selfUserId),
+                // TODO(#1655) "this view does not mark messages as read on scroll"
+                initAnchorMessageId: message.id)))
+          : null,
+        onLongPress: showAsMuted
+          ? null // TODO write a test for this
+          : () => showMessageActionSheet(context: context, message: message),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Column(children: [
+            if (item.showSender)
+              SenderRow(message: message,
+                timestampStyle: MessageTimestampStyle.timeOnly),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: localizedTextBaseline(context),
+              children: [
+                const SizedBox(width: 16),
+                Expanded(child: showAsMuted
+                  ? Align(
+                      alignment: AlignmentDirectional.topStart,
+                      child: ZulipWebUiKitButton(
+                        label: zulipLocalizations.revealButtonLabel,
+                        icon: ZulipIcons.eye,
+                        size: ZulipWebUiKitButtonSize.small,
+                        intent: ZulipWebUiKitButtonIntent.neutral,
+                        attention: ZulipWebUiKitButtonAttention.minimal,
+                        onPressed: () {
+                          MessageListPage.ancestorOf(context).revealMutedMessage(message.id);
+                        }))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        content,
+                        if ((message.reactions?.total ?? 0) > 0)
+                          ReactionChipsList(messageId: message.id, reactions: message.reactions!),
+                        if (editMessageErrorStatus != null)
+                          _EditMessageStatusRow(messageId: message.id, status: editMessageErrorStatus)
+                        else if (editStateText != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(editStateText,
+                              textAlign: TextAlign.end,
+                              style: TextStyle(
+                                color: designVariables.labelEdited,
+                                fontSize: 12,
+                                height: (12 / 12),
+                                letterSpacing: proportionalLetterSpacing(context,
+                                  0.05, baseFontSize: 12))))
+                        else
+                          Padding(padding: const EdgeInsets.only(bottom: 4))
+                      ])),
+                SizedBox(width: 16,
+                  child: star),
+              ]),
+          ]))));
   }
 }
 

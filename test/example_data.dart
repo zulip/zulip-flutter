@@ -684,7 +684,7 @@ UserTopicItem userTopicItem(
 //
 
 final Reaction unicodeEmojiReaction = Reaction(
-  emojiName: 'thumbs_up',
+  emojiName: '+1',
   emojiCode: '1f44d',
   reactionType: ReactionType.unicodeEmoji,
   userId: selfUser.userId,
@@ -702,6 +702,27 @@ final Reaction zulipExtraEmojiReaction = Reaction(
   emojiCode: 'zulip',
   reactionType: ReactionType.zulipExtraEmoji,
   userId: selfUser.userId,
+);
+
+final Reaction otherUnicodeEmojiReaction = Reaction(
+  emojiName: 'thumbs_up',
+  emojiCode: '1f44d',
+  reactionType: ReactionType.unicodeEmoji,
+  userId: otherUser.userId,
+);
+
+final Reaction otherRealmEmojiReaction = Reaction(
+  emojiName: 'twocents',
+  emojiCode: '181',
+  reactionType: ReactionType.realmEmoji,
+  userId: otherUser.userId,
+);
+
+final Reaction otherZulipExtraEmojiReaction = Reaction(
+  emojiName: 'zulip',
+  emojiCode: 'zulip',
+  reactionType: ReactionType.zulipExtraEmoji,
+  userId: otherUser.userId,
 );
 
 final _messagePropertiesBase = {

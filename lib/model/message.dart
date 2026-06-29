@@ -13,6 +13,7 @@ import '../api/route/messages.dart';
 import '../log.dart';
 import 'binding.dart';
 import 'channel.dart';
+import 'emoji.dart';
 import 'message_list.dart';
 import 'realm.dart';
 import 'store.dart';
@@ -90,6 +91,24 @@ mixin MessageStore on ChannelStore {
   /// Should only be called when there is a failed request,
   /// per [getEditMessageErrorStatus].
   ({String originalRawContent, String newContent}) takeFailedMessageEdit(int messageId);
+
+  /// The emojis that the self-user has voted on the given message.
+  Iterable<Emoji> selfReactionEmojis(int messageId) {
+    final message = messages[messageId];
+    if (message == null) {
+      assert(false); // TODO(log)
+      return [];
+    }
+
+    return message.reactions?.aggregated
+      .where((reactionWithVotes) => reactionWithVotes.userIds.contains(selfUserId))
+      .map(Emoji.fromReactionWithVotes) ?? [];
+  }
+
+  /// Whether the self-user has voted the message with the given emoji.
+  bool selfHasVoted(int messageId, {required EmojiCandidate withEmoji}) {
+    return selfReactionEmojis(messageId).contains(Emoji.fromEmojiCandidate(withEmoji));
+  }
 
   /// Whether the user has permission to delete a message, as of [atDate].
   ///

@@ -1366,23 +1366,12 @@ class ReactionButtons extends StatelessWidget {
   /// triggered from.
   final BuildContext pageContext;
 
-  void _handleTapReaction({
-    required EmojiCandidate emoji,
-    required bool isSelfVoted,
-  }) {
+  void _handleTapReaction(EmojiCandidate emoji) {
     // Dismiss the enclosing action sheet immediately,
     // for swift UI feedback that the user's selection was received.
     Navigator.pop(pageContext);
 
-    final zulipLocalizations = ZulipLocalizations.of(pageContext);
-    ZulipAction.addOrRemoveReaction(
-      context: pageContext,
-      doRemoveReaction: isSelfVoted,
-      messageId: message.id,
-      emoji: emoji,
-      errorDialogTitle: isSelfVoted
-        ? zulipLocalizations.errorReactionRemovingFailedTitle
-        : zulipLocalizations.errorReactionAddingFailedTitle);
+    ZulipAction.addOrRemoveReaction(pageContext, messageId: message.id, emoji: emoji);
   }
 
   void _handleTapMore() async {
@@ -1392,26 +1381,22 @@ class ReactionButtons extends StatelessWidget {
     // Dismiss current action sheet before opening emoji picker sheet.
     Navigator.of(pageContext).pop();
 
-    final emoji = await showEmojiPickerSheet(pageContext: pageContext);
+    final emoji = await showEmojiPickerSheet(
+      pageContext: pageContext,
+      selectedEmojis: PerAccountStoreWidget.of(pageContext).selfReactionEmojis(message.id));
     if (emoji == null || !pageContext.mounted) return;
-    unawaited(ZulipAction.addOrRemoveReaction(
-      context: pageContext,
-      doRemoveReaction: false,
-      messageId: message.id,
-      emoji: emoji,
-      errorDialogTitle:
-        ZulipLocalizations.of(pageContext).errorReactionAddingFailedTitle));
+    unawaited(ZulipAction.addOrRemoveReaction(pageContext,
+      messageId: message.id, emoji: emoji));
   }
 
-  Widget _buildButton({
-    required BuildContext context,
+  Widget _buildButton(BuildContext context, {
     required EmojiCandidate emoji,
-    required bool isSelfVoted,
     required bool isFirst,
   }) {
+    final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
     return Flexible(child: InkWell(
-      onTap: () => _handleTapReaction(emoji: emoji, isSelfVoted: isSelfVoted),
+      onTap: () => _handleTapReaction(emoji),
       splashFactory: NoSplash.splashFactory,
       borderRadius: isFirst
         ? const BorderRadiusDirectional.only(topStart: Radius.circular(7))
@@ -1425,7 +1410,7 @@ class ReactionButtons extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 5),
         alignment: Alignment.center,
-        color: isSelfVoted
+        color: store.selfHasVoted(message.id, withEmoji: emoji)
           ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
           : null,
         child: UnicodeEmojiWidget(
@@ -1450,25 +1435,13 @@ class ReactionButtons extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
-    bool hasSelfVote(EmojiCandidate emoji) {
-      return message.reactions?.aggregated.any((reactionWithVotes) {
-        return reactionWithVotes.reactionType == ReactionType.unicodeEmoji
-          && reactionWithVotes.emojiCode == emoji.emojiCode
-          && reactionWithVotes.userIds.contains(store.selfUserId);
-      }) ?? false;
-    }
-
     return Container(
       decoration: BoxDecoration(
         color: designVariables.contextMenuItemBg.withFadedAlpha(0.12)),
       child: Row(children: [
         Flexible(child: Row(spacing: 1, children: List.unmodifiable(
           popularEmojiCandidates.mapIndexed((index, emoji) =>
-            _buildButton(
-              context: context,
-              emoji: emoji,
-              isSelfVoted: hasSelfVote(emoji),
-              isFirst: index == 0))))),
+            _buildButton(context, emoji: emoji, isFirst: index == 0))))),
         InkWell(
           onTap: _handleTapMore,
           splashFactory: NoSplash.splashFactory,

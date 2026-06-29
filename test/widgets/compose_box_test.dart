@@ -6,6 +6,7 @@ import 'package:checks/checks.dart';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -2191,7 +2192,9 @@ void main() {
       await tester.pump(Duration.zero);
       await takeErrorDialogAndPump(tester);
       await tester.tap(find.text('EDIT NOT SAVED'));
-      await tester.pump();
+      // Pump long enough for the pending timer (created by DoubleTapListener
+      // widget in the tree) to expire.
+      await tester.pump(kDoubleTapMinTime);
       connection.takeRequests();
     }
 
@@ -2405,7 +2408,9 @@ void main() {
 
         // Try again, but this time tap Discard and expect to enter edit session
         await tester.tap(find.text('EDIT NOT SAVED'));
-        await tester.pump();
+        // Pump long enough for the pending timer (created by DoubleTapListener
+        // widget in the tree) to expire.
+        await tester.pump(kDoubleTapMinTime);
         await expectAndHandleDiscardForEditConfirmation(tester, shouldContinue: true);
         await tester.pump();
         checkContentInputValue(tester, 'bar');
