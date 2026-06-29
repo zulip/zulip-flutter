@@ -313,8 +313,8 @@ class IntroDialog extends StatelessWidget {
     final String message;
 
     switch (destination) {
-      case IntroDialogDestination.inbox:
-        setting = BoolGlobalSetting.inboxIntroModalShown;
+      case .inbox:
+        setting = .inboxIntroModalShown;
         title = zulipLocalizations.inboxIntroModalTitle;
         message = zulipLocalizations.inboxIntroModalMessage;
       case IntroDialogDestination.combinedFeed:
