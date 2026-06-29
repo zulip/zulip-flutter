@@ -910,15 +910,17 @@ class PerAccountStore extends PerAccountStoreBase with
         }
         switch (event.property!) {
           case UserSettingName.twentyFourHourTime:
-            userSettings.twentyFourHourTime        = event.value as TwentyFourHourTimeMode;
+            userSettings.twentyFourHourTime         = event.value as TwentyFourHourTimeMode;
           case UserSettingName.starredMessageCounts:
-            userSettings.starredMessageCounts      = event.value as bool;
+            userSettings.starredMessageCounts       = event.value as bool;
           case UserSettingName.displayEmojiReactionUsers:
-            userSettings.displayEmojiReactionUsers = event.value as bool;
+            userSettings.displayEmojiReactionUsers  = event.value as bool;
           case UserSettingName.emojiset:
-            userSettings.emojiset                  = event.value as Emojiset;
+            userSettings.emojiset                   = event.value as Emojiset;
+          case UserSettingName.webInboxShowChannelFolders:
+            userSettings.webInboxShowChannelFolders = event.value as bool;
           case UserSettingName.presenceEnabled:
-            userSettings.presenceEnabled           = event.value as bool;
+            userSettings.presenceEnabled            = event.value as bool;
         }
         notifyListeners();
 

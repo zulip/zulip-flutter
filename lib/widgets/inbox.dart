@@ -127,6 +127,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       items.addAll(dmItems);
     }
 
+    final useRealmFolders = store.userSettings.webInboxShowChannelFolders ?? true;
     final channelSectionsByFolder = <UiChannelFolder, List<_InboxListItemChannelSection>>{};
 
     for (final MapEntry(key: streamId, value: topics) in unreadsModel!.streams.entries) {
@@ -165,7 +166,9 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
 
-      final uiChannelFolder = store.uiChannelFolder(streamId);
+      final uiChannelFolder = store.uiChannelFolder(
+        streamId,
+        useRealmFolders: useRealmFolders);
       (channelSectionsByFolder[uiChannelFolder] ??= [])
         .add(_InboxListItemChannelSection(
           streamId: streamId,
