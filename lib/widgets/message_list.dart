@@ -381,7 +381,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   @override
   Widget build(BuildContext context) {
     final Anchor initAnchor;
-    if (narrow is KeywordSearchNarrow) {
+    if (narrow is SearchNarrow) {
       initAnchor = AnchorCode.newest;
     } else if (widget.initAnchorMessageId != null) {
       initAnchor = NumericAnchor(widget.initAnchorMessageId!);
@@ -463,7 +463,7 @@ abstract class _MessageListAppBar {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         appBarBackgroundColor = null; // i.e., inherit
 
       case ChannelNarrow(:final channelId):
@@ -490,10 +490,10 @@ abstract class _MessageListAppBar {
           tooltip: zulipLocalizations.searchMessagesPageTitle,
           onPressed: () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: KeywordSearchNarrow('')))));
+              narrow: SearchNarrow('')))));
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
       case DmNarrow():
         break;
       case ChannelNarrow(:final channelId):
@@ -514,7 +514,7 @@ abstract class _MessageListAppBar {
             || TopicNarrow() || DmNarrow()
             || MentionsNarrow() || StarredMessagesNarrow()
           => null,
-        KeywordSearchNarrow()
+        SearchNarrow()
           => false,
       },
       buildTitle: (willCenterTitle) =>
@@ -730,7 +730,7 @@ class MessageListAppBarTitle extends StatelessWidget {
             child: Align(alignment: alignment,
               child: child)));
 
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         assert(!willCenterTitle);
         return _SearchBar(onSubmitted: (narrow) {
           MessageListPage.ancestorOf(context).model!
@@ -743,7 +743,7 @@ class MessageListAppBarTitle extends StatelessWidget {
 class _SearchBar extends StatefulWidget {
   const _SearchBar({required this.onSubmitted});
 
-  final void Function(KeywordSearchNarrow) onSubmitted;
+  final void Function(SearchNarrow) onSubmitted;
 
   @override
   State<_SearchBar> createState() => _SearchBarState();
@@ -752,8 +752,8 @@ class _SearchBar extends StatefulWidget {
 class _SearchBarState extends State<_SearchBar> {
   late TextEditingController _controller;
 
-  static KeywordSearchNarrow _valueToNarrow(String value) =>
-    KeywordSearchNarrow(value.trim());
+  static SearchNarrow _valueToNarrow(String value) =>
+    SearchNarrow(value.trim());
 
   @override
   void initState() {
@@ -1410,7 +1410,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           onTapMessageLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/star-a-message')!));
 
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListSearch);
     }
@@ -1847,7 +1847,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return true;
 
       case ChannelNarrow():
@@ -2366,7 +2366,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         || DmNarrow() => false,
       MentionsNarrow()
         || StarredMessagesNarrow()
-        || KeywordSearchNarrow() => true,
+        || SearchNarrow() => true,
     };
 
     final showAsMuted = store.isUserMuted(message.senderId)

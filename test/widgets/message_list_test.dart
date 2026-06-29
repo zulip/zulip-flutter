@@ -98,10 +98,10 @@ void main() {
     if (mutedUserIds != null) {
       await store.setMutedUsers(mutedUserIds);
     }
-    if (narrow case KeywordSearchNarrow(keyword: '')) {
+    if (narrow case SearchNarrow(keyword: '')) {
       assert(messageCount == null && messages == null && fetchResult == null,
         'There is no need to prepare the initial message response when '
-        'the keyword search narrow has an empty keyword.');
+        'the search narrow has an empty keyword.');
     } else {
       if (fetchResult != null) {
         assert(foundOldest && messageCount == null && messages == null);
@@ -421,7 +421,7 @@ void main() {
 
       check(pushedRoutes).single.isA<WidgetRoute>().page
         .isA<MessageListPage>()
-        .initNarrow.equals(KeywordSearchNarrow(''));
+        .initNarrow.equals(SearchNarrow(''));
     });
 
     testWidgets('no search button in channel narrow', (tester) async {
@@ -441,7 +441,7 @@ void main() {
         (expected: false, narrow: DmNarrow.withUsers([1, 2], selfUserId: eg.selfUser.userId)),
         (expected: false, narrow: MentionsNarrow()),
         (expected: false, narrow: StarredMessagesNarrow()),
-        (expected: true,  narrow: KeywordSearchNarrow('keyword')),
+        (expected: true,  narrow: SearchNarrow('keyword')),
       ];
 
       for (final (:expected, :narrow) in testCases) {
@@ -678,12 +678,12 @@ void main() {
     });
 
     testWidgets('Search, empty keyword', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''));
+      await setupMessageListPage(tester, narrow: SearchNarrow(''));
       check(findTextInPlaceholder('No search results.')).findsOne();
     });
 
     testWidgets('Search, non-empty keyword', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow('hello'), messages: []);
+      await setupMessageListPage(tester, narrow: SearchNarrow('hello'), messages: []);
       check(findTextInPlaceholder('No search results.')).findsOne();
     });
 
@@ -1816,9 +1816,9 @@ void main() {
         check(findInMessageList('topic name')).length.equals(1);
       });
 
-      testWidgets('show channel name in KeywordSearchNarrow', (tester) async {
+      testWidgets('show channel name in SearchNarrow', (tester) async {
         await setupMessageListPage(tester,
-          narrow: KeywordSearchNarrow('keyword'),
+          narrow: SearchNarrow('keyword'),
           messages: [message], subscriptions: [eg.subscription(stream)]);
         await tester.pump();
         check(findInMessageList('stream name')).length.equals(1);
@@ -2594,7 +2594,7 @@ void main() {
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.starred]));
       doTest(expected: true, MentionsNarrow(),
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.mentioned]));
-      doTest(expected: true, KeywordSearchNarrow('keyword'),
+      doTest(expected: true, SearchNarrow('keyword'),
         mkMessage: () => eg.streamMessage());
     });
   });
@@ -3100,7 +3100,7 @@ void main() {
     Finder messageFinder(int id) => find.byWidgetPredicate(
       (widget) => widget is MessageItem && widget.item.message.id == id);
 
-    Condition<Object?> isSearchRequest(KeywordSearchNarrow narrow) {
+    Condition<Object?> isSearchRequest(SearchNarrow narrow) {
       return (it) => it.isA<http.Request>()
         ..method.equals('GET')
         ..url.path.equals('/api/v1/messages')
@@ -3114,17 +3114,17 @@ void main() {
     }
 
     testWidgets('when first opened, search field is auto focused', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''));
+      await setupMessageListPage(tester, narrow: SearchNarrow(''));
       check(findSearchField(tester)).autofocus.isTrue();
     });
 
     testWidgets('when first opened, no search request sent', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''));
+      await setupMessageListPage(tester, narrow: SearchNarrow(''));
       check(connection.takeRequests()).isEmpty();
     });
 
     testWidgets('write keyword, submit: search request sent', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''));
+      await setupMessageListPage(tester, narrow: SearchNarrow(''));
       connection.takeRequests();
 
       connection.prepare(json: eg.newestGetMessagesResult(
@@ -3133,7 +3133,7 @@ void main() {
       await tester.testTextInput.receiveAction(.search);
       await tester.pump(Duration.zero);
       check(connection.takeRequests())
-        .single.which(isSearchRequest(KeywordSearchNarrow('search')));
+        .single.which(isSearchRequest(SearchNarrow('search')));
 
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [eg.streamMessage()]).toJson());
@@ -3141,11 +3141,11 @@ void main() {
       await tester.testTextInput.receiveAction(.search);
       await tester.pump(Duration.zero);
       check(connection.takeRequests())
-        .single.which(isSearchRequest(KeywordSearchNarrow('search keyword')));
+        .single.which(isSearchRequest(SearchNarrow('search keyword')));
     });
 
     testWidgets('write keyword, no submitting: no search request sent', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''));
+      await setupMessageListPage(tester, narrow: SearchNarrow(''));
       connection.takeRequests();
 
       await tester.enterText(searchFieldFinder, 'search');
@@ -3156,7 +3156,7 @@ void main() {
     });
 
     testWidgets('write empty keyword, submit: no search request sent', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''));
+      await setupMessageListPage(tester, narrow: SearchNarrow(''));
       connection.takeRequests();
 
       await tester.testTextInput.receiveAction(.search);
@@ -3168,7 +3168,7 @@ void main() {
     });
 
     testWidgets('tap "x" icon: search field and message list are cleared', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''));
+      await setupMessageListPage(tester, narrow: SearchNarrow(''));
 
       final message = eg.streamMessage();
       connection.prepare(json: eg.newestGetMessagesResult(
