@@ -297,15 +297,12 @@ class IntroDialog extends StatelessWidget {
   final String title;
   final String message;
 
-  static void maybeShow(IntroDialogDestination destination) async {
+  static void maybeShowIn(IntroDialogDestination destination) async {
     final navigator = await ZulipApp.navigator;
     final context = navigator.context;
     assert(context.mounted);
-    if (!context.mounted) {
-      return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
-    }
+    if (!context.mounted) return; // TODO(linter): this is impossible as there's no actual async gap, but the use_build_context_synchronously lint doesn't see that
 
-    final globalSettings = GlobalStoreWidget.settingsOf(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final BoolGlobalSetting setting;
@@ -322,7 +319,8 @@ class IntroDialog extends StatelessWidget {
         title = zulipLocalizations.combinedFeedIntroModalTitle;
         message = zulipLocalizations.combinedFeedIntroModalMessage;
     }
-
+    
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
     if (globalSettings.getBool(setting)) return;
 
     final future = showDialog<void>(
