@@ -43,7 +43,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
   @override
   void initState() {
     super.initState();
-    IntroDialog.maybeShow(IntroDialogDestination.inbox);
+    IntroDialog.maybeShow(.inbox);
   }
 
   bool get allDmsCollapsed => _allDmsCollapsed;
