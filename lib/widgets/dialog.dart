@@ -330,7 +330,7 @@ class IntroDialog extends StatelessWidget {
       builder: (context) => IntroDialog._(title: title, message: message),
     );
 
-    await future;
+    await future; // Wait for the dialog to be dismissed.
 
     await globalSettings.setBool(setting, true);
   }
