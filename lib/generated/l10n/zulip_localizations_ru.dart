@@ -294,11 +294,73 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorDeleteMessageFailedTitle => 'Не удалось удалить сообщение';
 
   @override
+  String get actionSheetOptionReportMessage => 'Пожаловаться на сообщение';
+
+  @override
+  String get reportMessageDialogTitle => 'Пожаловаться на сообщение';
+
+  @override
+  String get reportMessageDescription =>
+      'Ваша жалоба будет направлена в закрытый канал модерации сообщений этой организации.';
+
+  @override
+  String get messageReportTypeSpam => 'Спам';
+
+  @override
+  String get messageReportTypeHarassment => 'Оскорбления';
+
+  @override
+  String get messageReportTypeInappropriate => 'Неприемлемое содержание';
+
+  @override
+  String get messageReportTypeNorms => 'Нарушение норм сообщества';
+
+  @override
+  String get messageReportTypeOther => 'Другая причина';
+
+  @override
+  String get reportMessageReasonLabel => 'Что не так с этим сообщением?';
+
+  @override
+  String get reportMessageDescriptionLabel => 'Можете добавить подробности?';
+
+  @override
+  String get reportMessageDescriptionRequired =>
+      'Предоставьте пояснения, пожалуйста.';
+
+  @override
+  String get reportMessageSubmitButton => 'Отправить';
+
+  @override
+  String get reportMessageSuccess => 'Жалоба отправлена';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Не удалось отправить жалобу';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead =>
       'Отметить тему как прочитанную';
 
   @override
   String get actionSheetOptionCopyTopicLink => 'Скопировать ссылку на тему';
+
+  @override
+  String actionSheetTitleDm(String user) {
+    return 'ЛС с $user';
+  }
+
+  @override
+  String get actionSheetTitleSelfDm => 'ЛС с собой';
+
+  @override
+  String get actionSheetTitleGroupDm => 'Групповые ЛС';
+
+  @override
+  String get actionSheetOptionViewProfile => 'Просмотр профиля';
+
+  @override
+  String get actionSheetOptionMarkDmConversationAsRead =>
+      'Отметить беседу как прочитанную';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Что-то пошло не так';
@@ -757,7 +819,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Добавление учетной записи';
 
   @override
-  String get loginServerUrlLabel => 'URL вашего сервера Zulip';
+  String get loginRealmUrlLabel => 'URL вашей организации Zulip';
 
   @override
   String get loginHidePassword => 'Скрыть пароль';
@@ -797,7 +859,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Темы обязательны в этой организации.';
+      'В этом канале темы обязательны.';
 
   @override
   String get errorContentNotInsertedTitle => 'Содержимое не вставлено';
@@ -807,13 +869,29 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Файл для вставки пустой, или к нему нет доступа.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url использует Zulip Server $zulipVersion, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server $minSupportedZulipVersion.';
+    return '$url использует Zulip Server $zulipVersion, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server $minAllowedZulipVersion.';
   }
+
+  @override
+  String serverCompatBannerAdminMessage(String url, String zulipVersion) {
+    return '$url использует версию сервера Zulip $zulipVersion, которая снята с поддержки. Обновите сервер Zulip как можно скорее.';
+  }
+
+  @override
+  String serverCompatBannerUserMessage(String url, String zulipVersion) {
+    return '$url использует версию сервера Zulip $zulipVersion, которая снята с поддержки. Свяжитесь с администратором сервера для обновления.';
+  }
+
+  @override
+  String get serverCompatBannerDismissLabel => 'Закрыть';
+
+  @override
+  String get serverCompatBannerLearnMoreLabel => 'Узнать больше';
 
   @override
   String errorInvalidApiKeyMessage(String url) {
@@ -843,6 +921,13 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorVideoPlayerFailed => 'Не удается воспроизвести видео.';
+
+  @override
+  String get errorVideoPlayerFailedTryBrowser =>
+      'Попробуйте открыть видео в браузере.';
+
+  @override
+  String get dialogOpenInBrowser => 'Открыть в браузере';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Пожалуйста, введите URL-адрес.';
@@ -1082,7 +1167,16 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Используйте кнопки внизу для просмотра объединенной ленты или списка каналов.';
 
   @override
+  String get pinnedChannelsFolderName => 'Закрепленные каналы';
+
+  @override
+  String get otherChannelsFolderName => 'Другие каналы';
+
+  @override
   String get recentDmConversationsPageTitle => 'Личные сообщения';
+
+  @override
+  String get recentDmConversationsPageShortLabel => 'ЛС';
 
   @override
   String get recentDmConversationsSectionHeader => 'Личные сообщения';
@@ -1213,6 +1307,33 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Оповестить тему';
 
   @override
+  String get systemGroupNameEveryoneOnInternet => 'Все пользователи интернета';
+
+  @override
+  String get systemGroupNameEveryone => 'Все, включая гостей';
+
+  @override
+  String get systemGroupNameMembers => 'Все, кроме гостей';
+
+  @override
+  String get systemGroupNameFullMembers => 'Полноправные участники';
+
+  @override
+  String get systemGroupNameModerators => 'Модераторы';
+
+  @override
+  String get systemGroupNameAdministrators => 'Администраторы';
+
+  @override
+  String get systemGroupNameOwners => 'Владельцы';
+
+  @override
+  String get systemGroupNameNobody => 'Никто';
+
+  @override
+  String get navBarFeedLabel => 'Лента';
+
+  @override
   String get navBarMenuLabel => 'Меню';
 
   @override
@@ -1334,7 +1455,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get mutedUser => 'Заглушенный пользователь';
 
   @override
-  String get scrollToBottomTooltip => 'Пролистать вниз';
+  String get scrollToBottomTooltip => 'Прокрутить вниз';
 
   @override
   String get appVersionUnknownPlaceholder => '(…)';

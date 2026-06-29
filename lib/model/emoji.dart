@@ -97,9 +97,9 @@ final class EmojiCandidate {
     required this.emojiType,
     required this.emojiCode,
     required this.emojiName,
-    required List<String>? aliases,
+    required this._aliases,
     required this.emojiDisplay,
-  }) : _aliases = aliases;
+  });
 
   /// Used for implementing [toString] and [EmojiAutocompleteResult.toString].
   String description() {

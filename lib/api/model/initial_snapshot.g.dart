@@ -89,6 +89,12 @@ InitialSnapshot _$InitialSnapshotFromJson(
   userTopics: (json['user_topics'] as List<dynamic>)
       .map((e) => UserTopicItem.fromJson(e as Map<String, dynamic>))
       .toList(),
+  devices: (json['devices'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(
+      int.parse(k),
+      ClientDevice.fromJson(e as Map<String, dynamic>),
+    ),
+  ),
   realmCanDeleteAnyMessageGroup:
       json['realm_can_delete_any_message_group'] == null
       ? null
@@ -105,7 +111,12 @@ InitialSnapshot _$InitialSnapshotFromJson(
     _$RealmWildcardMentionPolicyEnumMap,
     json['realm_wildcard_mention_policy'],
   ),
-  realmMandatoryTopics: json['realm_mandatory_topics'] as bool,
+  realmTopicsPolicy: $enumDecodeNullable(
+    _$RealmTopicsPolicyEnumMap,
+    json['realm_topics_policy'],
+    unknownValue: RealmTopicsPolicy.unknown,
+  ),
+  realmMandatoryTopics: json['realm_mandatory_topics'] as bool?,
   realmName: json['realm_name'] as String,
   realmWaitingPeriodThreshold: (json['realm_waiting_period_threshold'] as num)
       .toInt(),
@@ -131,6 +142,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
           .toList() ??
       [],
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
+  realmModerationRequestChannelId:
+      (json['realm_moderation_request_channel_id'] as num?)?.toInt(),
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
   realmUsers:
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'realm_users')
@@ -149,6 +162,10 @@ InitialSnapshot _$InitialSnapshotFromJson(
       (InitialSnapshot._readUsersIsActiveFallbackTrue(json, 'cross_realm_bots')
               as List<dynamic>)
           .map((e) => User.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  serverReportMessageTypes:
+      (json['server_report_message_types'] as List<dynamic>?)
+          ?.map((e) => ReportMessageType.fromJson(e as Map<String, dynamic>))
           .toList(),
 );
 
@@ -188,10 +205,12 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'user_status': instance.userStatuses.map((k, e) => MapEntry(k.toString(), e)),
   'user_settings': instance.userSettings,
   'user_topics': instance.userTopics,
+  'devices': instance.devices?.map((k, e) => MapEntry(k.toString(), e)),
   'realm_can_delete_any_message_group': instance.realmCanDeleteAnyMessageGroup,
   'realm_can_delete_own_message_group': instance.realmCanDeleteOwnMessageGroup,
   'realm_delete_own_message_policy': instance.realmDeleteOwnMessagePolicy,
   'realm_wildcard_mention_policy': instance.realmWildcardMentionPolicy,
+  'realm_topics_policy': _$RealmTopicsPolicyEnumMap[instance.realmTopicsPolicy],
   'realm_mandatory_topics': instance.realmMandatoryTopics,
   'realm_name': instance.realmName,
   'realm_waiting_period_threshold': instance.realmWaitingPeriodThreshold,
@@ -207,10 +226,13 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
   'server_thumbnail_formats': instance.serverThumbnailFormats,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
+  'realm_moderation_request_channel_id':
+      instance.realmModerationRequestChannelId,
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
   'realm_users': instance.realmUsers,
   'realm_non_active_users': instance.realmNonActiveUsers,
   'cross_realm_bots': instance.crossRealmBots,
+  'server_report_message_types': instance.serverReportMessageTypes,
 };
 
 const _$RealmDeleteOwnMessagePolicyEnumMap = {
@@ -228,6 +250,12 @@ const _$RealmWildcardMentionPolicyEnumMap = {
   RealmWildcardMentionPolicy.admins: 5,
   RealmWildcardMentionPolicy.nobody: 6,
   RealmWildcardMentionPolicy.moderators: 7,
+};
+
+const _$RealmTopicsPolicyEnumMap = {
+  RealmTopicsPolicy.allowEmptyTopic: 'allow_empty_topic',
+  RealmTopicsPolicy.disableEmptyTopic: 'disable_empty_topic',
+  RealmTopicsPolicy.unknown: 'unknown',
 };
 
 RealmDefaultExternalAccount _$RealmDefaultExternalAccountFromJson(
@@ -265,6 +293,12 @@ Map<String, dynamic> _$ThumbnailFormatToJson(ThumbnailFormat instance) =>
       'animated': instance.animated,
       'format': instance.format,
     };
+
+ReportMessageType _$ReportMessageTypeFromJson(Map<String, dynamic> json) =>
+    ReportMessageType(key: json['key'] as String, name: json['name'] as String);
+
+Map<String, dynamic> _$ReportMessageTypeToJson(ReportMessageType instance) =>
+    <String, dynamic>{'key': instance.key, 'name': instance.name};
 
 RecentDmConversation _$RecentDmConversationFromJson(
   Map<String, dynamic> json,

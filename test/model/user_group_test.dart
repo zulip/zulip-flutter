@@ -8,8 +8,11 @@ import 'package:zulip/model/user_group.dart';
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
 import '../stdlib_checks.dart';
+import 'binding.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   List<UserGroup> sorted(Iterable<UserGroup> groups) {
     return groups.toList()..sort((a, b) => a.id.compareTo(b.id));
   }

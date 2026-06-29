@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+this_dir=${BASH_SOURCE[0]%/*}
+
+# shellcheck source=tools/lib/ensure-shell-deps.sh
+. "${this_dir}"/lib/ensure-shell-deps.sh
+
+# shellcheck source=tools/lib/cli.sh
+. "${this_dir}"/lib/cli.sh
+
+# shellcheck source=tools/lib/clone-flutter-sdk.sh
+. "${this_dir}"/lib/clone-flutter-sdk.sh
+
+usage() {
+    cat <<EOF
+usage: tools/provision-vm
+
+Set up for Zulip Flutter development inside a Linux VM,
+as described in docs/howto/lima.md:
+
+  - install needed system packages, with apt;
+  - clone the Flutter SDK to ~/flutter, and put it on the
+    PATH via ~/.profile;
+  - bind-mount VM-local dirs and files over this clone's
+    build-state paths, keeping them separate from the host's;
+  - download Flutter's platform-independent artifacts;
+  - fetch this clone's pub dependencies.
+
+Idempotent: skips whatever is already set up, so it's fine
+to re-run after a partial failure.
+EOF
+}
+
+while (( $# )); do
+    case "$1" in
+        --help) usage; exit 0;;
+        *) usage >&2; exit 2;;
+    esac
+done
+
+if [ "$(uname)" != Linux ] || ! systemd-detect-virt -q; then
+    echo >&2 "error: This script is meant for a Linux VM, not the host"
+    echo >&2 "  or another non-VM machine (it edits /etc/fstab)."
+    echo >&2 "  See docs/howto/lima.md ."
+    exit 1
+fi
+
+## SYSTEM PACKAGES
+
+# curl, git, unzip, xz-utils, zip: needed by the Flutter tool:
+#   https://docs.flutter.dev/get-started/install/linux#development-tools
+# libsqlite3-dev: needed for running our tests; see README.md.
+# build-essential: for native-assets builds in `flutter test`;
+#   package:sodium's build hook compiles libsodium.
+# gh: GitHub CLI, for reading issues and PRs and for
+#   authenticating `git fetch`; see docs/howto/lima.md.
+run_visibly sudo apt-get update
+run_visibly sudo apt-get install -y \
+    curl git unzip xz-utils zip libsqlite3-dev build-essential gh
+
+rootdir=$(cd "$this_dir"/.. && pwd -P)
+cd "$rootdir"
+
+
+## FLUTTER SDK
+
+flutter_tree=~/flutter
+
+if type -p flutter >/dev/null; then
+    echo "Found Flutter already in PATH: $(type -p flutter)"
+else
+    if [ -e "$flutter_tree" ]; then
+        if [ ! -x "$flutter_tree"/bin/flutter ]; then
+            echo >&2 "error: $flutter_tree exists but has no bin/flutter."
+            echo >&2 "  Perhaps an interrupted clone?  Remove it and re-run."
+            exit 1
+        fi
+        echo "Found existing Flutter SDK at $flutter_tree"
+    else
+        clone_flutter_sdk "$flutter_tree"
+    fi
+
+    # shellcheck disable=SC2016 # unexpanded, for ~/.profile to expand
+    path_line='PATH="$HOME/flutter/bin:$PATH"'
+    if ! grep -qxF "$path_line" ~/.profile 2>/dev/null; then
+        printf '\n# Flutter SDK, cloned by tools/provision-vm\n%s\n' \
+            "$path_line" >>~/.profile
+        echo "Added $flutter_tree/bin to PATH in ~/.profile;"
+        echo "  run \`. ~/.profile\` to update this shell."
+    fi
+    PATH="$flutter_tree/bin:$PATH"
+fi
+
+
+## VM-LOCAL BUILD STATE
+
+# Build state shouldn't be shared with the host: generated files
+# like .dart_tool/package_config.json and .flutter-plugins-dependencies
+# embed absolute paths, which differ between host and VM, and
+# concurrent builds on the two sides would race.  So mask the
+# build-state paths with bind mounts of VM-local dirs and files,
+# persistent across reboots via /etc/fstab.
+# See docs/howto/lima.md.
+
+# The fstab lines below embed this path, and fstab splits fields on
+# whitespace (a literal space would need a \040 escape).
+case "$rootdir" in
+    *[[:space:]]*)
+        echo >&2 "error: workspace path contains whitespace: $rootdir"
+        echo >&2 "  Unsupported, because it gets written into /etc/fstab."
+        exit 1;;
+esac
+
+state_root="$HOME"/.local/state/zulip-flutter-vm
+state_dirs=( .dart_tool build android/.gradle )
+state_files=( .flutter-plugins-dependencies )
+
+fstab_changed=
+for path in "${state_dirs[@]}" "${state_files[@]}"; do
+    fstab_line="$state_root$rootdir/$path $rootdir/$path none bind,nofail 0 0"
+    if ! grep -qxF "$fstab_line" /etc/fstab; then
+        echo "Adding to /etc/fstab: $fstab_line"
+        echo "$fstab_line" | sudo tee -a /etc/fstab >/dev/null
+        fstab_changed=y
+    fi
+done
+if [ -n "$fstab_changed" ]; then
+    run_visibly sudo systemctl daemon-reload
+fi
+
+# usage: ensure_state_mount {dir|file} <path relative to repo root>
+ensure_state_mount() {
+    local kind="$1" path="$2"
+    if mountpoint -q "$rootdir/$path"; then
+        return
+    fi
+    case "$kind" in
+        dir)  mkdir -p "$state_root$rootdir/$path" "$rootdir/$path";;
+        file) mkdir -p "$(dirname "$state_root$rootdir/$path")"
+              touch "$state_root$rootdir/$path" "$rootdir/$path";;
+    esac
+    run_visibly sudo mount "$rootdir/$path"
+}
+
+for dir in "${state_dirs[@]}"; do
+    ensure_state_mount dir "$dir"
+done
+for file in "${state_files[@]}"; do
+    ensure_state_mount file "$file"
+done
+
+
+## FLUTTER ARTIFACTS AND PUB DEPS
+
+run_visibly flutter precache --universal
+
+run_visibly flutter pub get
+
+echo
+echo "All set!  Try \`flutter test\` or \`tools/check\`."

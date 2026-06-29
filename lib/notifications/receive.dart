@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
@@ -7,6 +11,8 @@ import '../api/route/notifications.dart';
 import '../firebase_options.dart';
 import '../log.dart';
 import '../model/binding.dart';
+import '../model/push_key.dart';
+import '../model/store.dart';
 import 'display.dart';
 import 'open.dart';
 
@@ -51,6 +57,11 @@ class NotificationService {
   ///  * Upstream docs on FCM registration tokens in general:
   ///    https://firebase.google.com/docs/cloud-messaging/manage-tokens
   ValueNotifier<String?> token = ValueNotifier(null);
+
+  static String computeTokenId(String token) {
+    final hash = sha256.convert(token.codeUnits).bytes;
+    return base64Encode(hash.slice(0, 8));
+  }
 
   Future<void> start() async {
     await NotificationOpenService.instance.start();
@@ -147,28 +158,6 @@ class NotificationService {
     token.value = value;
   }
 
-  Future<void> registerToken(ApiConnection connection) async {
-    final token = this.token.value;
-    if (token == null) return;
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        await addFcmToken(connection, token: token);
-
-      case TargetPlatform.iOS:
-        final packageInfo = await ZulipBinding.instance.packageInfo;
-        await addApnsToken(connection,
-          token: token,
-          appid: packageInfo!.packageName);
-
-      case TargetPlatform.linux:
-      case TargetPlatform.macOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.fuchsia:
-        assert(false);
-    }
-  }
-
   static Future<void> unregisterToken(ApiConnection connection, {required String token}) async {
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -225,8 +214,97 @@ class NotificationService {
     NotificationDisplayManager.init(); // TODO call this just once per isolate
   }
 
-  static void _onRemoteMessage(FirebaseRemoteMessage message) {
-    final data = FcmMessage.fromJson(message.data);
-    NotificationDisplayManager.onFcmMessage(data, message.data);
+  static void _onRemoteMessage(FirebaseRemoteMessage message) async {
+    assert(defaultTargetPlatform == TargetPlatform.android);
+    final origData = message.data;
+
+    EncryptedFcmMessage? parsed;
+    try {
+      parsed = EncryptedFcmMessage.fromJson(origData);
+    } catch (_) {
+      // Presumably a non-E2EE notification.  // TODO(server-12)
+      await _onPlaintextRemoteMessage(origData);
+      return;
+    }
+
+    final result = await decryptNotification(parsed.pushKeyId, parsed.encryptedData);
+    if (result == null) return;
+
+    final (data, account) = result;
+    NotificationDisplayManager.onNotifPayload(data, account);
+  }
+
+  static Future<void> _onPlaintextRemoteMessage(Map<String, dynamic> rawData) async {
+    final data = LegacyFcmMessage.fromJson(rawData);
+    switch (data) {
+      case NotifPayloadWithIdentity(): break;
+      case UnexpectedNotifPayload(): return; // TODO(log)
+    }
+
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull((account) =>
+      account.realmUrl.origin == data.realmUrl.origin && account.userId == data.userId);
+
+    // Skip showing notifications for a logged-out account. This can occur if
+    // the unregisterToken request failed previously. It would be annoying
+    // to the user if notifications keep showing up after they've logged out.
+    // (Also alarming: it suggests the logout didn't fully work.)
+    if (account == null) {
+      return;
+    }
+
+    assert(defaultTargetPlatform == TargetPlatform.android);
+    if (account.zulipFeatureLevel >= 468) {
+      // The server is new enough for E2EE notifications, but this is a legacy
+      // plaintext notification.  It's normal to potentially get these when
+      // either client or server is first upgraded to add E2EE support, because
+      // the two subsystems register for push notifications independently.
+      //
+      // (At FL 483+, registering for E2EE notifications will cause the server
+      // to usually stop sending legacy notifications; but even then, if the
+      // user has other devices that are still registered only for legacy
+      // notifications, this device will potentially continue to get them too.)
+      //
+      // Just ignore the legacy notification.  // TODO(log)
+      return;
+    }
+
+    NotificationDisplayManager.onNotifPayload(data, account);
+  }
+
+  /// Decrypt an E2EE notification content.
+  ///
+  /// Returns a future resolving to null if it encounters an error.
+  static Future<(NotifPayloadWithIdentity, Account)?> decryptNotification(
+    int pushKeyId,
+    Uint8List encryptedData,
+  ) async {
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final pushKey = globalStore.pushKeys.getPushKeyById(pushKeyId);
+    if (pushKey == null) {
+      // Not a key we have; nothing we can do with this notification-message.
+      // This can happen if it's addressed to an account that's been logged out.
+      // (On logout we try to unregister the device, but that can fail if the
+      // device isn't able to reach the server at that time.)
+      return null; // TODO(log)
+    }
+    final account = globalStore.getAccount(pushKey.accountId)!;
+
+    final plaintext = await PushKeyStore.decryptNotification(
+      pushKey.pushKey, encryptedData);
+    final rawData = jsonUtf8Decoder.convert(plaintext) as Map<String, dynamic>;
+    final data = NotifPayload.fromJson(rawData);
+    switch (data) {
+      case NotifPayloadWithIdentity(): break;
+      case UnexpectedNotifPayload(): return null; // TODO(log)
+    }
+
+    if (!(account.realmUrl.origin == data.realmUrl.origin
+          && account.userId == data.userId)) {
+      assert(debugLog("bad notif payload: realm/userId fails to match push key"));
+      return null; // TODO(log)
+    }
+
+    return (data, account);
   }
 }

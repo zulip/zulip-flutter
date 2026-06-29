@@ -254,17 +254,24 @@ void main() {
   });
 
   group('user selection', () {
-    void checkUserSelected(WidgetTester tester, User user, bool expected) {
-      final icon = tester.widget<Icon>(find.descendant(
-        of: findUserTile(user),
-        matching: find.byType(Icon)));
+    Finder findInUserTile(User user, Finder finder) => find.descendant(
+      of: findUserTile(user),
+      matching: finder,
+    );
 
+    void checkUserSelected(WidgetTester tester, User user, bool expected) {
       if (expected) {
         check(findUserChip(user)).findsOne();
-        check(icon).icon.equals(ZulipIcons.check_circle_checked);
+        check(findInUserTile(user, find.byIcon(ZulipIcons.check_circle_checked)))
+          .findsOne();
+        check(findInUserTile(user, find.byIcon(ZulipIcons.check_circle_unchecked)))
+          .findsNothing();
       } else {
         check(findUserChip(user)).findsNothing();
-        check(icon).icon.equals(ZulipIcons.check_circle_unchecked);
+        check(findInUserTile(user, find.byIcon(ZulipIcons.check_circle_unchecked)))
+          .findsOne();
+        check(findInUserTile(user, find.byIcon(ZulipIcons.check_circle_checked)))
+          .findsNothing();
       }
     }
 

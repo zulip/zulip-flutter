@@ -4,6 +4,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
+import 'action_sheet.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'new_dm_sheet.dart';
@@ -167,40 +168,29 @@ class RecentDmConversationsItem extends StatelessWidget {
   final int unreadCount;
   final OnDmSelectCallback onDmSelect;
 
-  static const double _avatarSize = 32;
-
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
 
     final InlineSpan title;
-    final Widget avatar;
-    int? userIdForPresence;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
         title = TextSpan(text: store.selfUser.fullName, children: [
           UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
             fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
         ]);
-        avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
         title = TextSpan(text: store.userDisplayName(otherUserId), children: [
           UserStatusEmoji.asWidgetSpan(userId: otherUserId,
             fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
         ]);
-        avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
-        userIdForPresence = otherUserId;
       default:
         title = TextSpan(
           // TODO(i18n): List formatting, like you can do in JavaScript:
           //   new Intl.ListFormat('ja').format(['Chris', 'Greg', 'Alya'])
           //   // 'Chris、Greg、Alya'
           text: narrow.otherRecipientIds.map(store.userDisplayName).join(', '));
-        avatar = ColoredBox(color: designVariables.avatarPlaceholderBg,
-          child: Center(
-            child: Icon(color: designVariables.avatarPlaceholderIcon,
-              ZulipIcons.group_dm)));
     }
 
     // TODO(design) check if this is the right variable
@@ -209,15 +199,13 @@ class RecentDmConversationsItem extends StatelessWidget {
       color: backgroundColor,
       child: InkWell(
         onTap: () => onDmSelect(narrow),
+        onLongPress: () => showDmActionSheet(context, narrow: narrow),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 48),
           child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             Padding(padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 8),
-              child: AvatarShape(
-                size: _avatarSize,
-                borderRadius: 3,
-                backgroundColor: userIdForPresence != null ? backgroundColor : null,
-                userIdForPresence: userIdForPresence,
-                child: avatar)),
+              child: DmConversationAvatar(
+                narrow: narrow,
+                backgroundColor: backgroundColor)),
             const SizedBox(width: 8),
             Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -301,5 +289,96 @@ class _NewDmButtonState extends State<_NewDmButton> {
                 color: fabLabelColor,
               ).merge(weightVariableTextStyle(context, wght: 500))),
           ])));
+  }
+}
+
+/// An avatar or icon representing a DM conversation.
+///
+/// See Figma where this appears in the recent DMs page:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=6556-31152&m=dev
+///
+/// And the Inbox page:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=16056-6330&m=dev
+class DmConversationAvatar extends StatelessWidget {
+  const DmConversationAvatar({
+    super.key,
+    required this.narrow,
+    required this.backgroundColor,
+  });
+
+  final DmNarrow narrow;
+
+  /// The color of the background this will be painted on.
+  ///
+  /// The presence circle uses this; see [PresenceCircle].
+  final Color backgroundColor;
+
+  static const double _avatarSize = 32;
+
+  static IconData? _iconForNumParticipants(int count) {
+    return switch (count) {
+      3 => ZulipIcons.group_dm_3,
+      4 => ZulipIcons.group_dm_4,
+      5 => ZulipIcons.group_dm_5,
+      6 => ZulipIcons.group_dm_6,
+      7 => ZulipIcons.group_dm_7,
+      8 => ZulipIcons.group_dm_8,
+      9 => ZulipIcons.group_dm_9,
+      _ => null,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    final Widget avatar;
+    int? userIdForPresence;
+    switch (narrow.otherRecipientIds) {
+      case []:
+        avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
+      case [var otherUserId]:
+        avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
+        userIdForPresence = otherUserId;
+      default:
+        final allRecipientsCount = narrow.allRecipientIds.length;
+        if (allRecipientsCount < 10) {
+          final icon = _iconForNumParticipants(allRecipientsCount);
+          assert(icon != null);
+          avatar = Padding(
+            padding: EdgeInsets.all(4),
+            child: Icon(
+              size: 24,
+              color: designVariables.groupIcon,
+              icon));
+        } else {
+          final isHundredPlus = allRecipientsCount > 99;
+          final double fontSize = isHundredPlus ? 14 : 17;
+          avatar = DecoratedBox(
+            decoration: BoxDecoration(
+              color: designVariables.groupIcon,
+              borderRadius: BorderRadius.circular(_avatarSize / 2),
+            ),
+            child: Center(
+              child: Text(
+                textScaler: TextScaler.noScaling,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: designVariables.bgMessageRegular,
+                  fontSize: fontSize,
+                  height: 19 / fontSize,
+                  letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: fontSize),
+                ).merge(weightVariableTextStyle(context, wght: 500)),
+                isHundredPlus ? '99+' : allRecipientsCount.toString())));
+        }
+    }
+
+    return AvatarShape(
+      size: _avatarSize,
+      borderRadius: 3,
+      backgroundColor: userIdForPresence != null ? backgroundColor : null,
+      userIdForPresence: userIdForPresence,
+      child: avatar);
   }
 }

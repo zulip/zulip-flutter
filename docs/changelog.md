@@ -3,6 +3,202 @@
 ## Unreleased
 
 
+## 30.0.273 (2026-06-24)
+
+### Highlights for users
+
+* Report a message to your moderators. (#1972)
+* (iOS) Show notifications even while the app is in the foreground,
+  and fix a bug where notifications were silent. (#408)
+* (iOS) Respect the system "Auto-Play Animated Images" setting on
+  iOS 18+. (#1924)
+* Offer to open the browser when the video player can't play a
+  video's format. (#1208)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* CI:
+  * Run an iOS build in CI. (#773, #329)
+  * Split out a new `swift_format` suite, run on macOS Swift too. (#2333)
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #2289: fix #1934.  Request a longer-lived event queue from the server.
+  * #2297
+  * #2298
+  * #2301
+  * #2288: fix #1924.  Respect iOS "Auto-Play Animated Images" on iOS 18+.
+  * #2294: fix #1208.  Offer to open browser for unsupported video formats.
+  * #2293.  Inbox: revert to solid colors for channel rows; replace
+    folder-section divider with an 8px gap.
+  * #2284: fix #1972.  Support reporting a message.
+  * #2313
+  * #2319
+  * #2305.  Require iOS 16.0+.
+  * #2303: fix #2295.  Flutter and package upgrades.
+  * #2307: fix #773, fix #329.  Run iOS build in CI.
+  * #2333
+  * #2162: fix #2104.  Fix the message-list double-fetch glitch.
+  * #2330
+  * #2231: fix #1604.  Use per-channel topics policy in the compose box.
+  * #2306: fix #408.  Show notifications on iOS while app is foregrounded.
+  * #2300.  Fix notifications being silent on iOS.
+  * #2304
+  * #2299.  Update translations.
+
+
+## 30.0.272 (2026-04-21)
+
+### Highlights for users
+
+* (iOS) Start getting end-to-end encrypted notifications from new
+  servers. (#1764)
+* (iOS) Fix keyboard glitch in switching between topic and content
+  input. (#1974)
+* Channel folders in the inbox.
+* Tap an @-mention to visit user profile.
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #2217
+  * #2168: fix #646.  Distinguish pill colors for types of mentions.
+  * #2219: fix #1974.  Flutter upgrade; fixes keyboard glitch on iOS
+    in channel compose box.
+  * #2167: fix #745.  Hide email/password login form when email auth
+    disabled.
+  * #2240: fix #2239.  Faster startup for @-mention autocomplete.
+  * #2261.  Flutter upgrade.
+  * #2265.
+  * #2225: fix #914.  Redesign autocomplete results list.
+  * #2186: fix #1765.  Channel folders in inbox.
+  * #2260.
+  * #2273.  Stop looking for `recipient_id` on messages.
+  * #2272.
+  * #2156: fix #1265.  Preparatory changes to iOS notifs.
+  * #1821: fix #1813, fix #1819, fix #1823.  Apply formatting more
+    to nested mentions, global times, and TeX math.
+  * #2203.
+  * #2275.
+  * #2184.  Harmonize text-input styles.
+  * #2075: fix #1867.  Tap an @-mention to go to user profile page.
+  * #2276.
+  * #2274.  Show username/password login form after all when LDAP auth
+    enabled (even when email auth disabled).
+  * #2114: fix #1272.  DM-conversation action sheet to view
+    user profile or mark as read.
+  * #2187: fix #1457.  Show warning banner on old servers.
+  * #2283.
+  * #2226.  Update translations.
+  * #2262: fix #350, fix part of #417, fix #2108, fix #1528.
+    Use distinct group-DM icons by group size; cut splash effect
+    in inbox; adjust text baselines more cleanly; harmonize
+    marker icons between inbox and topic list; baseline-align
+    content in inbox and topic-list items.
+  * #2279.
+  * #2230: fix #1764.  Use E2EE notifications on iOS too!
+
+
+## 30.0.271 (2026-03-11)
+
+### Highlights for users
+
+* (Android) Start getting end-to-end encrypted notifications from new
+  servers. (#1764)
+* You can now reach the search page directly from the inbox
+  or the combined feed. (#1854)
+* You can now pin and unpin channels. (#1942)
+* (Android) Fixed a bug where sometimes opening a notification
+  wouldn't navigate to the conversation. (#1567)
+* (Android) We now show your organization's name instead of its URL
+  in notifications. (#570)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* CI:
+  * Split Android build into a separate job to save time getting a result
+    from the rest of our suites. (#2145)
+  * In `test` suite output, show only failing tests, not passing. (#2141)
+  * (Pinned -- #2140 -- then unpinned -- #2191 -- Flutter to the version
+    we use in release).
+
+* Merge log: PRs, with fixed issues and user-visible changes.
+  * #2103: Flutter upgrade.
+  * #2102
+  * #2096: fix #1339. Fixed bug where event-queue retry loop would
+    break if app in background overnight.
+  * #2087: fix #1258. Handle user renames in rendering @-mentions.
+  * #2070: fix a latent RTL bug in autocomplete results.
+  * #2123: fix #1942. Add "Pin to top" / "Unpin from top" button to the
+    channel action sheet.
+  * #2124
+  * #1954: fix #1953. Removed 100ms delay before touch feedback
+    in some places.
+  * #2120: fix part of #537. Fixed glitches in the Inbox with VoiceOver.
+  * #2131
+  * #2133: Update translations from Weblate.
+  * #2138
+  * #2140: Pin Flutter to the version we use in release, temporarily.
+  * #2141
+  * #2043: fix #1567. Fixed a bug on Android where sometimes
+    opening a notification wouldn't navigate to the conversation.
+  * #2142
+  * #2143
+  * #2144
+  * #2135
+  * #2145
+  * #2134
+  * #2129: Flutter and package upgrades.
+  * #2119: fix #1259. Handle user-group renames in rendering @-mentions.
+  * #2136: fix #570. On Android, use org name instead of URL as
+    notification group summary.
+  * #2155
+  * #1882: fix #1558. When we can't load a user's avatar,
+    show a generic placeholder.
+  * #2125: fix #894. Handle flags for @-topic mentions.
+    (NFC with current servers; we expect these from future servers.)
+  * #2090: fix #2088. Fix some bugs where topics were treated
+    case-sensitively when they should not be.
+  * #2148: fix #2132. Make some tab labels shorter.
+  * #2160: fix the Android part of #2158. On Android, exclude all data
+    from backups.
+  * #2147
+  * #2180
+  * #2175: fix #1260. Show translated user-facing strings for @-mentions
+    of system groups.
+  * #2171: Set up Patrol for integration tests.
+  * #2176
+  * #2164: fix #1854. Add search button to inbox and combined feed.
+  * #2196
+  * #2157
+  * #2207
+  * #2195: fix #2158. Exclude the database file from iOS backup.
+  * #2198
+  * #2210
+  * #2181: Register device with server, toward E2EE notifications
+    (`registerClientDevice`).
+  * #2193
+  * #2194: Decrypt E2EE notifications!
+  * #2211: Unregister device (for E2EE notifications) on logout;
+    make unregister-legacy-token request just when we might have
+    registered it before.
+  * #2212
+  * #2191: Flutter and package upgrades, and revert pinning
+    Flutter version in CI to the version we use in release.
+  * #2213: fix most of #1764; fix #322. Register for E2EE notifications
+    on Android!
+  * #2190
+  * #1269: fix #1175. In autocomplete, we now reset the scroll position
+    as the query changes.
+  * #2215
+  * #2047: Update translations.
+
+
 ## 30.0.270 (2026-01-26)
 
 ### Highlights for users

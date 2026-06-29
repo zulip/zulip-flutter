@@ -6,35 +6,50 @@ import '../api/model/model.dart';
 import 'algorithms.dart';
 import 'channel.dart';
 
-/// Tracks the latest messages sent by each user, in each stream and topic.
+/// Tracks the latest messages sent by each user, in each channel and topic.
 ///
-/// Use [latestMessageIdOfSenderInStream] and [latestMessageIdOfSenderInTopic]
+/// Use [latestMessageIdOfSenderInChannel] and [latestMessageIdOfSenderInTopic]
 /// for queries.
 class RecentSenders {
-  // streamSenders[streamId][senderId] = MessageIdTracker
+  // channelSenders[channelId][senderId] = MessageIdTracker
   @visibleForTesting
-  final Map<int, Map<int, MessageIdTracker>> streamSenders = {};
+  final Map<int, Map<int, MessageIdTracker>> channelSenders = {};
 
-  // topicSenders[streamId][topic][senderId] = MessageIdTracker
+  // topicSenders[channelId][topic][senderId] = MessageIdTracker
   @visibleForTesting
   final Map<int, TopicKeyedMap<Map<int, MessageIdTracker>>> topicSenders = {};
 
-  /// The latest message the given user sent to the given stream,
+  /// The latest message the given user sent to the given channel,
   /// or null if no such message is known.
-  int? latestMessageIdOfSenderInStream({
-    required int streamId,
+  int? latestMessageIdOfSenderInChannel({
+    required int channelId,
     required int senderId,
-  }) => streamSenders[streamId]?[senderId]?.maxId;
+  }) => channelSenders[channelId]?[senderId]?.maxId;
 
   /// The latest message the given user sent to the given topic,
   /// or null if no such message is known.
   ///
   /// Topics are treated case-insensitively; see [TopicName.isSameAs].
+  ///
+  /// This makes a [TopicKeyedMap] lookup, which calls [TopicName.canonicalize].
+  /// Avoid calling this repeatedly many times (e.g. 1000s) for the same topic;
+  /// see [latestMessageIdBySenderInTopic].
   int? latestMessageIdOfSenderInTopic({
     required int streamId,
     required TopicName topic,
     required int senderId,
   }) => topicSenders[streamId]?[topic]?[senderId]?.maxId;
+
+  /// Like [latestMessageIdOfSenderInTopic], but returns a reusable function
+  /// for the given topic.
+  int? Function(int senderId)? latestMessageIdBySenderInTopic({
+    required int channelId,
+    required TopicName topic,
+  }) {
+    final senders = topicSenders[channelId]?[topic];
+    if (senders == null) return null;
+    return (senderId) => senders[senderId]?.maxId;
+  }
 
   /// Records the necessary data from a batch of just-fetched messages.
   ///
@@ -51,7 +66,7 @@ class RecentSenders {
 
     for (final entry in messagesByUserInStream.entries) {
       final (streamId, senderId) = entry.key;
-      ((streamSenders[streamId] ??= {})
+      ((channelSenders[streamId] ??= {})
         [senderId] ??= MessageIdTracker()).addAll(entry.value);
     }
     for (final entry in messagesByUserInTopic.entries) {
@@ -65,7 +80,7 @@ class RecentSenders {
   void handleMessage(Message message) {
     if (message is! StreamMessage) return;
     final StreamMessage(:streamId, :topic, :senderId, id: int messageId) = message;
-    ((streamSenders[streamId] ??= {})
+    ((channelSenders[streamId] ??= {})
       [senderId] ??= MessageIdTracker()).add(messageId);
     (((topicSenders[streamId] ??= makeTopicKeyedMap())[topic] ??= {})
       [senderId] ??= MessageIdTracker()).add(messageId);
@@ -82,7 +97,7 @@ class RecentSenders {
     }
 
     final DeleteMessageEvent(:streamId!, :topic!) = event;
-    final sendersInStream = streamSenders[streamId];
+    final sendersInStream = channelSenders[streamId];
     final topicsInStream = topicSenders[streamId];
     final sendersInTopic = topicsInStream?[topic];
     for (final entry in messagesByUser.entries) {
@@ -96,7 +111,7 @@ class RecentSenders {
       topicTracker?.removeAll(messages);
       if (topicTracker?.maxId == null) sendersInTopic?.remove(senderId);
     }
-    if (sendersInStream?.isEmpty ?? false) streamSenders.remove(streamId);
+    if (sendersInStream?.isEmpty ?? false) channelSenders.remove(streamId);
     if (sendersInTopic?.isEmpty ?? false) topicsInStream?.remove(topic);
     if (topicsInStream?.isEmpty ?? false) topicSenders.remove(streamId);
   }

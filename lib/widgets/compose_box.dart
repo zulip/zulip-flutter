@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
@@ -154,12 +155,18 @@ enum TopicValidationError {
 }
 
 class ComposeTopicController extends ComposeController<TopicValidationError> {
-  ComposeTopicController({super.text, required super.store}) {
+  ComposeTopicController({
+    super.text,
+    required super.store,
+    required this.channelId,
+  }) {
     _update();
   }
 
-  // TODO(#668): listen to [PerAccountStore] once we subscribe to this value
-  bool get mandatory => store.realmMandatoryTopics;
+  final int channelId;
+
+  // TODO(#668): listen to [PerAccountStore] once we subscribe to topic policies.
+  bool get mandatory => store.effectiveTopicsPolicy(channelId) == .disableEmptyTopic;
 
   @override int get maxLengthUnicodeCodePoints => store.maxTopicLength;
 
@@ -546,24 +553,28 @@ class _ContentInput extends StatelessWidget {
       shouldRequestFocus: true);
   }
 
+  /// Max height of the content input,
+  /// including the shadowed strips at top and bottom.
+  ///
+  /// Chosen to show as many lines as possible without exceeding 178px
+  /// (267px if text is scaled >=1.5x)
+  /// and to clip the last visible line about three-quarters of the way through
+  /// to make it clear the view is scrollable.
+  /// The exact clip point is the opaque far edge of the inset shadow,
+  /// and it's chosen such that the text field plus shadow insets is 178px tall
+  /// with 1x text scaling, to follow the Figma:
+  ///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
   static double maxHeight(BuildContext context) {
-    final clampingTextScaler = MediaQuery.textScalerOf(context)
-      .clamp(maxScaleFactor: 1.5);
-    final scaledLineHeight = clampingTextScaler.scale(_fontSize) * _lineHeightRatio;
+    final scaledFontSize = MediaQuery.textScalerOf(context).scale(_fontSize);
+    final effectiveScaleFactor = scaledFontSize / _fontSize;
 
-    // Reserve space to fully show the first 7th lines and just partially
-    // clip the 8th line, where the height matches the spec at
-    //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-    // > Maximum size of the compose box is suggested to be 178px. Which
-    // > has 7 fully visible lines of text
-    //
-    // The partial line hints that the content input is scrollable.
-    //
-    // Using the ambient TextScale means this works for different values of the
-    // system text-size setting. We clamp to a max scale factor to limit
-    // how tall the content input can get; that's to save room for the message
-    // list. The user can still scroll the input to see everything.
-    return _verticalPadding + 7.727 * scaledLineHeight;
+    final clampedMaxHeight = clampDouble(effectiveScaleFactor, 1, 1.5) * 178;
+
+    final scaledLineHeight = scaledFontSize * _lineHeightRatio;
+    final base = _verticalPadding + 0.727 * scaledLineHeight;
+    final numFullLines =
+      ((clampedMaxHeight - base) / scaledLineHeight).floor();
+    return base + numFullLines * scaledLineHeight;
   }
 
   static const _verticalPadding = 8.0;
@@ -575,51 +586,52 @@ class _ContentInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    return ComposeAutocomplete(
-      narrow: narrow,
-      controller: controller.content,
-      focusNode: controller.contentFocusNode,
-      fieldViewBuilder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight(context)),
-        // This [ClipRect] replaces the [TextField] clipping we disable below.
-        child: ClipRect(
-          child: InsetShadowBox(
-            top: _verticalPadding, bottom: _verticalPadding,
-            color: designVariables.composeBoxBg,
-            child: TextField(
-              enabled: enabled,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight(context)),
+      // This [ClipRect] replaces the [TextField] clipping we disable below.
+      child: ClipRect(
+        child: InsetShadowBox(
+          top: _verticalPadding, bottom: _verticalPadding,
+          color: designVariables.composeBoxBg,
+          child: Padding(
+            // This padding ensures that the user can always scroll long
+            // content entirely out of the top or bottom shadow if desired.
+            // With this and the field's `minLines: 2`, an empty content input
+            // gets 60px vertical distance (with no text-size scaling)
+            // between the top of the top shadow and the bottom of the
+            // bottom shadow. That's a bit more than the 54px given in the
+            // Figma, and we can revisit if needed, but it's tricky to get
+            // that 54px distance while also making the scrolling work like
+            // this and offering two lines of touchable area.
+            padding: const EdgeInsets.symmetric(vertical: _verticalPadding),
+            child: ComposeAutocomplete(
+              narrow: narrow,
               controller: controller.content,
               focusNode: controller.contentFocusNode,
-              contentInsertionConfiguration: ContentInsertionConfiguration(
-                onContentInserted: (content) => _handleContentInserted(context, content)),
-              // Let the content show through the `contentPadding` so that
-              // our [InsetShadowBox] can fade it smoothly there.
-              clipBehavior: Clip.none,
-              style: TextStyle(
-                fontSize: _fontSize,
-                height: _lineHeightRatio,
-                color: designVariables.textInput),
-              // From the spec at
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
-              // > Compose box has the height to fit 2 lines. This is [done] to
-              // > have a bigger hit area for the user to start the input. […]
-              minLines: 2,
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                // This padding ensures that the user can always scroll long
-                // content entirely out of the top or bottom shadow if desired.
-                // With this and the `minLines: 2` above, an empty content input
-                // gets 60px vertical distance (with no text-size scaling)
-                // between the top of the top shadow and the bottom of the
-                // bottom shadow. That's a bit more than the 54px given in the
-                // Figma, and we can revisit if needed, but it's tricky to get
-                // that 54px distance while also making the scrolling work like
-                // this and offering two lines of touchable area.
-                contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
-                hintText: hintText,
-                hintStyle: TextStyle(
-                  color: designVariables.textInput.withFadedAlpha(0.5))))))));
+              fieldViewBuilder: (context) => TextField(
+                enabled: enabled,
+                controller: controller.content,
+                focusNode: controller.contentFocusNode,
+                contentInsertionConfiguration: ContentInsertionConfiguration(
+                  onContentInserted: (content) => _handleContentInserted(context, content)),
+                // Let the content bleed through the vertical padding that wraps
+                // the field so the [InsetShadowBox] can fade it smoothly there.
+                clipBehavior: Clip.none,
+                style: TextStyle(
+                  fontSize: _fontSize,
+                  height: _lineHeightRatio,
+                  color: designVariables.textInput),
+                // From the spec at
+                //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3960-5147&node-type=text&m=dev
+                // > Compose box has the height to fit 2 lines. This is [done] to
+                // > have a bigger hit area for the user to start the input. […]
+                minLines: 2,
+                maxLines: null,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  hintStyle: TextStyle(
+                    color: designVariables.textInput.withFadedAlpha(0.5)))))))));
   }
 }
 
@@ -710,7 +722,7 @@ class _StreamContentInputState extends State<_StreamContentInput> {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final streamName = store.streams[widget.narrow.streamId]?.name
+    final channelName = store.streams[widget.narrow.channelId]?.name
       ?? zulipLocalizations.unknownChannelName;
     final hintTopic = _hintTopic();
     final hintDestination = hintTopic == null
@@ -718,11 +730,11 @@ class _StreamContentInputState extends State<_StreamContentInput> {
       // Zulip expresses channels and topics, not any normal English punctuation,
       // so don't make sense to translate. See:
       //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-      ? '#$streamName'
-      : '#$streamName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
+      ? '#$channelName'
+      : '#$channelName > ${hintTopic.displayName ?? store.realmEmptyTopicDisplayName}';
 
     return _TypingNotifier(
-      destination: TopicNarrow(widget.narrow.streamId,
+      destination: TopicNarrow(widget.narrow.channelId,
         TopicName(widget.controller.topic.textNormalized)),
       controller: widget.controller,
       child: _ContentInput(
@@ -733,9 +745,9 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 }
 
 class _TopicInput extends StatefulWidget {
-  const _TopicInput({required this.streamId, required this.controller});
+  const _TopicInput({required this.channelId, required this.controller});
 
-  final int streamId;
+  final int channelId;
   final StreamComposeBoxController controller;
 
   @override
@@ -820,7 +832,7 @@ class _TopicInputState extends State<_TopicInput> {
     TextStyle hintStyle = topicTextStyle.copyWith(
       color: designVariables.textInput.withFadedAlpha(0.5));
 
-    if (store.realmMandatoryTopics) {
+    if (widget.controller.topic.mandatory) {
       // Something short and not distracting.
       hintText = zulipLocalizations.composeBoxTopicHintText;
     } else {
@@ -852,17 +864,17 @@ class _TopicInputState extends State<_TopicInput> {
 
     final decoration = InputDecoration(hintText: hintText, hintStyle: hintStyle);
 
-    return TopicAutocomplete(
-      streamId: widget.streamId,
-      controller: widget.controller.topic,
-      focusNode: widget.controller.topicFocusNode,
-      contentFocusNode: widget.controller.contentFocusNode,
-      fieldViewBuilder: (context) => Container(
-        padding: const EdgeInsets.only(top: 10, bottom: 9),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(
-          width: 1,
-          color: designVariables.foreground.withFadedAlpha(0.2)))),
-        child: TextField(
+    return Container(
+      padding: const EdgeInsets.only(top: 10, bottom: 9),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(
+        width: 1,
+        color: designVariables.foreground.withFadedAlpha(0.2)))),
+      child: TopicAutocomplete(
+        channelId: widget.channelId,
+        controller: widget.controller.topic,
+        focusNode: widget.controller.topicFocusNode,
+        contentFocusNode: widget.controller.contentFocusNode,
+        fieldViewBuilder: (context) => TextField(
           controller: widget.controller.topic,
           focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
@@ -883,16 +895,16 @@ class _FixedDestinationContentInput extends StatelessWidget {
   String _hintText(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch (narrow) {
-      case TopicNarrow(:final streamId, :final topic):
+      case TopicNarrow(:final channelId, :final topic):
         final store = PerAccountStoreWidget.of(context);
-        final streamName = store.streams[streamId]?.name
+        final channelName = store.streams[channelId]?.name
           ?? zulipLocalizations.unknownChannelName;
         return zulipLocalizations.composeBoxChannelContentHint(
           // No i18n of this use of "#" and ">" string; those are part of how
           // Zulip expresses channels and topics, not any normal English punctuation,
           // so don't make sense to translate. See:
           //   https://github.com/zulip/zulip-flutter/pull/1148#discussion_r1941990585
-          '#$streamName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
+          '#$channelName > ${topic.displayName ?? store.realmEmptyTopicDisplayName}');
 
       case DmNarrow(otherRecipientIds: []): // The self-1:1 thread.
         return zulipLocalizations.composeBoxSelfDmContentHint;
@@ -1434,8 +1446,6 @@ class _ComposeBoxContainer extends StatelessWidget {
       (null,         null) => throw UnimplementedError(), // not allowed, see dartdoc
     };
 
-    // TODO(design): Maybe put a max width on the compose box, like we do on
-    //   the message list itself; if so, remember to update ComposeBox's dartdoc.
     return Container(width: double.infinity,
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: designVariables.borderBar)),
@@ -1493,26 +1503,28 @@ abstract class _ComposeBoxBody extends StatelessWidget {
 
     final topicInput = buildTopicInput();
     final sendButton = buildSendButton();
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Theme(
-          data: inputThemeData,
-          child: Column(children: [
-            ?topicInput,
-            buildContentInput(),
-          ]))),
-      SizedBox(
-        height: _composeButtonSize,
-        child: IconButtonTheme(
-          data: iconButtonThemeData,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(children: composeButtons),
-              ?sendButton,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Theme(
+            data: inputThemeData,
+            child: Column(children: [
+              ?topicInput,
+              buildContentInput(),
             ]))),
-    ]);
+        SizedBox(
+          height: _composeButtonSize,
+          child: IconButtonTheme(
+            data: iconButtonThemeData,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(children: composeButtons),
+                ?sendButton,
+              ]))),
+      ]));
   }
 }
 
@@ -1530,7 +1542,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   final StreamComposeBoxController controller;
 
   @override Widget buildTopicInput() => _TopicInput(
-    streamId: narrow.streamId,
+    channelId: narrow.channelId,
     controller: controller,
   );
 
@@ -1544,7 +1556,7 @@ class _StreamComposeBoxBody extends _ComposeBoxBody {
   @override Widget buildSendButton() => _SendButton(
     controller: controller,
     getDestination: () => StreamDestination(
-      narrow.streamId, TopicName(controller.topic.textNormalized)),
+      narrow.channelId, TopicName(controller.topic.textNormalized)),
   );
 }
 
@@ -1691,8 +1703,8 @@ enum ComposeTopicInteractionStatus {
 }
 
 class StreamComposeBoxController extends ComposeBoxController {
-  StreamComposeBoxController({required super.store})
-    : topic = ComposeTopicController(store: store);
+  StreamComposeBoxController({required super.store, required int channelId})
+    : topic = ComposeTopicController(store: store, channelId: channelId);
 
   final ComposeTopicController topic;
   final topicFocusNode = FocusNode();
@@ -1752,6 +1764,9 @@ class EditMessageComposeBoxController extends ComposeBoxController {
 /// A banner to display over or instead of interactive compose-box content.
 ///
 /// Must have a [PageRoot] ancestor.
+///
+/// The content is constrained horizontally by the "safe area"
+/// between the device insets and by [MessageListPage.maxContentWidth].
 class _Banner extends StatelessWidget {
   const _Banner({
     required this.intent,
@@ -1827,22 +1842,26 @@ class _Banner extends StatelessWidget {
         minimum: EdgeInsetsDirectional.only(start: 8, end: padEnd ? 8 : 0)
           // (SafeArea.minimum doesn't take an EdgeInsetsDirectional)
           .resolve(Directionality.of(context)),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.only(start: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  child: Text(
-                    style: labelTextStyle,
-                    textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
-                    label))),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                trailing!,
-              ],
-            ]))));
+        child: Align(
+          alignment: .topCenter, // Center the content when its max width is reached.
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: MessageListPage.maxContentWidth),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      child: Text(
+                        style: labelTextStyle,
+                        textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+                        label))),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 8),
+                    trailing!,
+                  ],
+                ]))))));
   }
 }
 
@@ -1978,8 +1997,11 @@ class _EditMessageBannerTrailing extends StatelessWidget {
 
 /// The compose box.
 ///
-/// Takes the full screen width, covering the horizontal insets with its surface.
+/// Takes the full screen width,
+/// covering the horizontal device insets with its surface.
 /// Also covers the bottom inset with its surface.
+/// The content is constrained horizontally by the "safe area"
+/// between the device insets and by [MessageListPage.maxContentWidth].
 class ComposeBox extends StatefulWidget {
   ComposeBox({super.key, required this.narrow})
     : assert(ComposeBox.hasComposeBox(narrow));
@@ -2209,8 +2231,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   void _setNewController(PerAccountStore store) {
     _controller?.dispose(); // `?.` because this might be the first call
     switch (widget.narrow) {
-      case ChannelNarrow():
-        _controller = StreamComposeBoxController(store: store);
+      case ChannelNarrow(:final channelId):
+        _controller = StreamComposeBoxController(store: store, channelId: channelId);
       case TopicNarrow():
       case DmNarrow():
         _controller = FixedDestinationComposeBoxController(store: store);
@@ -2233,9 +2255,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     switch (widget.narrow) {
-      case ChannelNarrow(:final streamId):
-      case TopicNarrow(:final streamId):
-        final channel = store.streams[streamId];
+      case ChannelNarrow(:final channelId):
+      case TopicNarrow(:final channelId):
+        final channel = store.streams[channelId];
         if (channel == null || !store.selfHasContentAccess(channel)) {
           return _Banner(
             intent: _BannerIntent.info,
@@ -2261,7 +2283,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
                 intent: _BannerIntent.warning,
                 label: zulipLocalizations.composeBoxBannerLabelUnsubscribedWhenCannotSend,
                 useSmallerText: true,
-                trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+                trailing: _UnsubscribedChannelBannerTrailing(channelId: channelId));
         }
 
       case DmNarrow(:final otherRecipientIds):
@@ -2305,19 +2327,19 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
     final narrow = widget.narrow;
     switch (narrow) {
-      case ChannelNarrow(:final streamId):
-      case TopicNarrow(:final streamId):
-        final channel = store.streams[streamId];
+      case ChannelNarrow(:final channelId):
+      case TopicNarrow(:final channelId):
+        final channel = store.streams[channelId];
         // (If the channel is unknown, we should have already decided
         // what to show.)
         assert(channel != null);
-        final subscription = store.subscriptions[streamId];
+        final subscription = store.subscriptions[channelId];
         if (channel != null && subscription == null) {
           banner = _Banner(
             intent: _BannerIntent.warning,
             label: zulipLocalizations.composeBoxBannerLabelUnsubscribed,
             useSmallerText: true,
-            trailing: _UnsubscribedChannelBannerTrailing(channelId: streamId));
+            trailing: _UnsubscribedChannelBannerTrailing(channelId: channelId));
         }
 
       case DmNarrow():

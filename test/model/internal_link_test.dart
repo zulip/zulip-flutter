@@ -8,6 +8,7 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
+import 'binding.dart';
 import 'test_store.dart';
 
 // Using Set instead of List in to avoid any duplicated test urls.
@@ -35,6 +36,8 @@ Future<PerAccountStore> setupStore({
 }
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   group('narrowLink', () {
     test('CombinedFeedNarrow', () {
       final store = eg.store();
@@ -62,7 +65,7 @@ void main() {
 
     group('ChannelNarrow / TopicNarrow', () {
       void checkNarrow(String expectedFragment, {
-        required int streamId,
+        required int channelId,
         required String name,
         String? topic,
         int? nearMessageId,
@@ -70,37 +73,37 @@ void main() {
       }) async {
         assert(expectedFragment.startsWith('#'), 'wrong-looking expectedFragment');
         final store = eg.store()..connection.zulipFeatureLevel = zulipFeatureLevel;
-        await store.addStream(eg.stream(streamId: streamId, name: name));
+        await store.addStream(eg.stream(streamId: channelId, name: name));
         final narrow = topic == null
-          ? ChannelNarrow(streamId)
-          : eg.topicNarrow(streamId, topic);
+          ? ChannelNarrow(channelId)
+          : eg.topicNarrow(channelId, topic);
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
           .equals(store.realmUrl.resolve(expectedFragment));
       }
 
       test('modern including "channel" operator', () {
-        checkNarrow(streamId: 1,   name: 'announce',       '#narrow/channel/1-announce');
-        checkNarrow(streamId: 378, name: 'api design',     '#narrow/channel/378-api-design');
-        checkNarrow(streamId: 391, name: 'Outreachy',      '#narrow/channel/391-Outreachy');
-        checkNarrow(streamId: 415, name: 'chat.zulip.org', '#narrow/channel/415-chat.2Ezulip.2Eorg');
-        checkNarrow(streamId: 419, name: 'français',       '#narrow/channel/419-fran.C3.A7ais');
-        checkNarrow(streamId: 403, name: 'Hshs[™~}(.',     '#narrow/channel/403-Hshs.5B.E2.84.A2~.7D.28.2E');
-        checkNarrow(streamId: 60,  name: 'twitter', nearMessageId: 1570686, '#narrow/channel/60-twitter/near/1570686');
+        checkNarrow(channelId: 1,   name: 'announce',       '#narrow/channel/1-announce');
+        checkNarrow(channelId: 378, name: 'api design',     '#narrow/channel/378-api-design');
+        checkNarrow(channelId: 391, name: 'Outreachy',      '#narrow/channel/391-Outreachy');
+        checkNarrow(channelId: 415, name: 'chat.zulip.org', '#narrow/channel/415-chat.2Ezulip.2Eorg');
+        checkNarrow(channelId: 419, name: 'français',       '#narrow/channel/419-fran.C3.A7ais');
+        checkNarrow(channelId: 403, name: 'Hshs[™~}(.',     '#narrow/channel/403-Hshs.5B.E2.84.A2~.7D.28.2E');
+        checkNarrow(channelId: 60,  name: 'twitter', nearMessageId: 1570686, '#narrow/channel/60-twitter/near/1570686');
 
-        checkNarrow(streamId: 48,  name: 'mobile', topic: 'Welcome screen UI',
+        checkNarrow(channelId: 48,  name: 'mobile', topic: 'Welcome screen UI',
                     '#narrow/channel/48-mobile/topic/Welcome.20screen.20UI');
-        checkNarrow(streamId: 243, name: 'mobile-team', topic: 'Podfile.lock clash #F92',
+        checkNarrow(channelId: 243, name: 'mobile-team', topic: 'Podfile.lock clash #F92',
                     '#narrow/channel/243-mobile-team/topic/Podfile.2Elock.20clash.20.23F92');
-        checkNarrow(streamId: 377, name: 'translation/zh_tw', topic: '翻譯 "stream"',
+        checkNarrow(channelId: 377, name: 'translation/zh_tw', topic: '翻譯 "stream"',
                     '#narrow/channel/377-translation.2Fzh_tw/topic/.E7.BF.BB.E8.AD.AF.20.22stream.22');
-        checkNarrow(streamId: 42,  name: 'Outreachy 2016-2017', topic: '2017-18 Stream?', nearMessageId: 302690,
+        checkNarrow(channelId: 42,  name: 'Outreachy 2016-2017', topic: '2017-18 Stream?', nearMessageId: 302690,
                     '#narrow/channel/42-Outreachy-2016-2017/topic/2017-18.20Stream.3F/near/302690');
       });
 
       test('legacy including "stream" operator', () {
-        checkNarrow(streamId: 1,   name: 'announce',       zulipFeatureLevel: 249,
+        checkNarrow(channelId: 1,   name: 'announce',       zulipFeatureLevel: 249,
                     '#narrow/stream/1-announce');
-        checkNarrow(streamId: 48,  name: 'mobile-team', topic: 'Welcome screen UI',
+        checkNarrow(channelId: 48,  name: 'mobile-team', topic: 'Welcome screen UI',
                     zulipFeatureLevel: 249,
                     '#narrow/stream/48-mobile-team/topic/Welcome.20screen.20UI');
       });

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Exclude all data from device backup.  For motivation, see:
+       https://github.com/zulip/zulip-flutter/issues/2158
+       https://github.com/zulip/zulip-flutter/issues/2159
+     The data that's essential to exclude is in our database,
+     at `domain="file" path="zulip.db"`.  But once that's excluded,
+     including any stray other data would at best cause a confusing
+     mixed state, if it has any effect at all.  So exclude it all.
+
+     Docs for this file:
+       https://developer.android.com/identity/data/autobackup#include-exclude-android-12
+  -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="root" />
+        <exclude domain="device_file" />
+        <exclude domain="device_database" />
+        <exclude domain="device_sharedpref" />
+        <exclude domain="device_root" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="root" />
+        <exclude domain="device_file" />
+        <exclude domain="device_database" />
+        <exclude domain="device_sharedpref" />
+        <exclude domain="device_root" />
+    </device-transfer>
+    <cross-platform-transfer platform="ios">
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+        <exclude domain="root" />
+        <exclude domain="device_file" />
+        <exclude domain="device_database" />
+        <exclude domain="device_sharedpref" />
+        <exclude domain="device_root" />
+    </cross-platform-transfer>
+</data-extraction-rules>

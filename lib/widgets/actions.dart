@@ -11,6 +11,7 @@ import '../api/route/messages.dart' as messages_api;
 import '../api/route/channels.dart' as channels_api;
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
 import '../model/realm.dart';
@@ -275,8 +276,51 @@ abstract final class ZulipAction {
     return fetchedMessage?.content;
   }
 
-  /// Fetch and parse a URL from [messages_api.getFileTemporaryUrl];
-  /// on failure, show an error dialog and return null.
+  /// Adds or removes a reaction on the message corresponding to
+  /// the [messageId], showing an error dialog on failure.
+  /// Returns a Future resolving to true if operation succeeds.
+  static Future<void> addOrRemoveReaction({
+    required BuildContext context,
+    required bool doRemoveReaction,
+    required int messageId,
+    required EmojiCandidate emoji,
+    required String errorDialogTitle,
+  }) async {
+    final store = PerAccountStoreWidget.of(context);
+    String? errorMessage;
+    try {
+      await (doRemoveReaction ? removeReaction : addReaction).call(
+        store.connection,
+        messageId: messageId,
+        reactionType: emoji.emojiType,
+        emojiCode: emoji.emojiCode,
+        emojiName: emoji.emojiName,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+          // TODO(log)
+      }
+
+      showErrorDialog(context: context,
+        title: errorDialogTitle,
+        message: errorMessage);
+      return;
+    }
+  }
+
+  /// Fetch and parse a URL from [messages_api.getFileTemporaryUrl].
+  ///
+  /// On failure, shows an error dialog; the returned future resolves when that
+  /// dialog has been dismissed, and the result is null.
+  /// This lets a caller pop a route that it's managing
+  /// without inadvertently popping the error-dialog route instead.
   static Future<Uri?> getFileTemporaryUrl(BuildContext context, UserUploadLink link) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -293,18 +337,20 @@ abstract final class ZulipAction {
         //   (support with reusable code)
         _ => null,
       };
-      showErrorDialog(context: context,
+      final dialogStatus = showErrorDialog(context: context,
         title: zulipLocalizations.errorCouldNotAccessUploadedFileTitle,
         message: errorMessage);
+      await dialogStatus.result;
       return null;
     }
     if (!context.mounted) return null;
 
     final tempUrl = PerAccountStoreWidget.of(context).tryResolveUrl(resultUrl);
     if (tempUrl == null) {
-      showErrorDialog(context: context,
+      final dialogStatus = showErrorDialog(context: context,
         title: zulipLocalizations.errorCouldNotAccessUploadedFileTitle,
         message: zulipLocalizations.errorInvalidResponse);
+      await dialogStatus.result;
       return null;
     }
 
@@ -394,6 +440,48 @@ abstract final class ZulipAction {
       showErrorDialog(context: context, title: title, message: errorMessage);
     }
   }
+
+  /// Report a message to the realm admins.
+  ///
+  /// On success, shows a success [SnackBar] and returns true.
+  /// On failure, shows an error dialog and returns false.
+  static Future<bool> reportMessage(BuildContext context, {
+    required int messageId,
+    required String reportType,
+    required String? description,
+  }) async {
+    try {
+      await messages_api.reportMessage(
+        PerAccountStoreWidget.of(context).connection,
+        messageId: messageId,
+        reportType: reportType,
+        description: description,
+      );
+      if (!context.mounted) return false;
+    } catch (e) {
+      if (!context.mounted) return false;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      showErrorDialog(context: context,
+        title: ZulipLocalizations.of(context).errorReportMessageFailedTitle,
+        message: errorMessage);
+      return false;
+    }
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(behavior: SnackBarBehavior.floating,
+        content: Text(zulipLocalizations.reportMessageSuccess)));
+    return true;
+  }
 }
 
 /// Methods that act through platform APIs and show feedback in the UI.
@@ -436,7 +524,12 @@ abstract final class PlatformActions {
     }
   }
 
-  /// Opens a URL with [ZulipBinding.launchUrl], with an error dialog on failure.
+  /// Opens a URL with [ZulipBinding.launchUrl].
+  ///
+  /// On failure, shows an error dialog; the returned future resolves when that
+  /// dialog has been dismissed.
+  /// This lets a caller pop a route that it's managing
+  /// without inadvertently popping the error-dialog route instead.
   static Future<void> launchUrl(BuildContext context, Uri url) async {
     final globalSettings = GlobalStoreWidget.settingsOf(context);
 
@@ -452,12 +545,13 @@ abstract final class PlatformActions {
       if (!context.mounted) return;
 
       final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(context: context,
+      final dialogStatus = showErrorDialog(context: context,
         title: zulipLocalizations.errorCouldNotOpenLinkTitle,
         message: [
           zulipLocalizations.errorCouldNotOpenLink(url.toString()),
           ?errorMessage,
         ].join("\n\n"));
+      await dialogStatus.result;
     }
   }
 }

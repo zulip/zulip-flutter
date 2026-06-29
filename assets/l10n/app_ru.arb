@@ -47,6 +47,9 @@
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
   },
+  "@actionSheetOptionMarkDmConversationAsRead": {
+    "description": "Option to mark a DM conversation as read in the action sheet."
+  },
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
   },
@@ -58,6 +61,9 @@
   },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
   },
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
@@ -92,6 +98,9 @@
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
+  "@actionSheetOptionViewProfile": {
+    "description": "Option to view the user's profile in the action sheet for a 1:1 DM conversation."
+  },
   "@actionSheetOptionViewReadReceipts": {
     "description": "Label for the 'View read receipts' button in the message action sheet."
   },
@@ -112,6 +121,21 @@
   },
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@actionSheetTitleGroupDm": {
+    "description": "The title of an action sheet for a group DM conversation."
+  },
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
   },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
@@ -283,6 +307,9 @@
   },
   "@dialogContinue": {
     "description": "Button label in dialogs to proceed."
+  },
+  "@dialogOpenInBrowser": {
+    "description": "Button label to confirm opening a link in the browser."
   },
   "@discardDraftConfirmationDialogConfirmButton": {
     "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
@@ -615,6 +642,9 @@
   "@errorReactionRemovingFailedTitle": {
     "description": "Error title when removing a message reaction fails"
   },
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
+  },
   "@errorRequestFailed": {
     "description": "Error message when an API call fails.",
     "placeholders": {
@@ -636,10 +666,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -682,6 +712,9 @@
   },
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
+  },
+  "@errorVideoPlayerFailedTryBrowser": {
+    "description": "Body of a dialog suggesting the user open a video in the browser, after the app's video player failed to play it."
   },
   "@errorWebAuthOperationalError": {
     "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
@@ -786,8 +819,8 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
+  "@loginRealmUrlLabel": {
+    "description": "Label in login page for Zulip realm/org URL entry."
   },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
@@ -885,8 +918,26 @@
   "@messageNotSentLabel": {
     "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "@messageReportTypeHarassment": {
+    "description": "Label for the 'Harassment' report type in the report message dialog."
+  },
+  "@messageReportTypeInappropriate": {
+    "description": "Label for the 'Inappropriate content' report type in the report message dialog."
+  },
+  "@messageReportTypeNorms": {
+    "description": "Label for the 'Violates community norms' report type in the report message dialog."
+  },
+  "@messageReportTypeOther": {
+    "description": "Label for the 'Other reason' report type in the report message dialog."
+  },
+  "@messageReportTypeSpam": {
+    "description": "Label for the 'Spam' report type in the report message dialog."
+  },
   "@mutedUser": {
     "description": "Name for a muted user to display all over the app."
+  },
+  "@navBarFeedLabel": {
+    "description": "Label for the Feed button on the bottom navigation bar."
   },
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
@@ -946,6 +997,9 @@
   "@openLinksWithInAppBrowser": {
     "description": "Label for toggling setting to open links with in-app browser"
   },
+  "@otherChannelsFolderName": {
+    "description": "Label for the channel folder for other channels."
+  },
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
@@ -957,6 +1011,9 @@
   },
   "@permissionsNeededTitle": {
     "description": "Title for dialog asking the user to grant additional permissions."
+  },
+  "@pinnedChannelsFolderName": {
+    "description": "Label for the channel folder for pinned channels."
   },
   "@pinnedSubscriptionsLabel": {
     "description": "Label for the list of pinned subscribed channels."
@@ -1016,11 +1073,35 @@
   "@recentDmConversationsEmptyPlaceholderMessage": {
     "description": "Additional centered text on the 'Direct messages' page saying that there is no content to show."
   },
+  "@recentDmConversationsPageShortLabel": {
+    "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
+  },
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
   },
   "@recentDmConversationsSectionHeader": {
     "description": "Heading for direct messages section on the 'Inbox' message view."
+  },
+  "@reportMessageDescription": {
+    "description": "Explanatory text shown under the title in the report message dialog."
+  },
+  "@reportMessageDescriptionLabel": {
+    "description": "Label text for the description field in the report message dialog."
+  },
+  "@reportMessageDescriptionRequired": {
+    "description": "Validation error shown in the report message dialog when the report type is \"Other\" and no description is provided."
+  },
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "@reportMessageReasonLabel": {
+    "description": "Label text for the report reason dropdown in the report message dialog."
+  },
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
+  "@reportMessageSuccess": {
+    "description": "Snackbar message shown after successfully reporting a message."
   },
   "@revealButtonLabel": {
     "description": "Label for the button revealing hidden message from a muted sender in message list."
@@ -1078,6 +1159,38 @@
       "num": {
         "example": "2",
         "type": "int"
+      }
+    }
+  },
+  "@serverCompatBannerAdminMessage": {
+    "description": "Banner message shown to server admins when the server version is no longer supported.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "9.0",
+        "type": "String"
+      }
+    }
+  },
+  "@serverCompatBannerDismissLabel": {
+    "description": "Label for the button that dismisses the server compatibility warning banner."
+  },
+  "@serverCompatBannerLearnMoreLabel": {
+    "description": "Label for the button in the server compatibility warning banner that opens the support policy doc."
+  },
+  "@serverCompatBannerUserMessage": {
+    "description": "Banner message shown to non-admin users when the server version is no longer supported.",
+    "placeholders": {
+      "url": {
+        "example": "http://chat.example.com/",
+        "type": "String"
+      },
+      "zulipVersion": {
+        "example": "9.0",
+        "type": "String"
       }
     }
   },
@@ -1155,6 +1268,30 @@
   },
   "@switchAccountButtonTooltip": {
     "description": "Tooltip message for main-menu button leading to the choose-account page."
+  },
+  "@systemGroupNameAdministrators": {
+    "description": "Display name for the system group that includes all users with at least the administrator role."
+  },
+  "@systemGroupNameEveryone": {
+    "description": "Display name for the system group that includes all users including guests."
+  },
+  "@systemGroupNameEveryoneOnInternet": {
+    "description": "Display name for the system group that includes everyone on the internet."
+  },
+  "@systemGroupNameFullMembers": {
+    "description": "Display name for the system group that includes all full members of the organization."
+  },
+  "@systemGroupNameMembers": {
+    "description": "Display name for the system group that includes all users excluding guests."
+  },
+  "@systemGroupNameModerators": {
+    "description": "Display name for the system group that includes all users with at least the moderator role."
+  },
+  "@systemGroupNameNobody": {
+    "description": "Display name for the system group that includes nobody."
+  },
+  "@systemGroupNameOwners": {
+    "description": "Display name for the system group that includes all users with the owner role."
   },
   "@themeSettingDark": {
     "description": "Label for dark theme setting."
@@ -1390,10 +1527,12 @@
   "actionSheetOptionListOfTopics": "Список тем",
   "actionSheetOptionMarkAsUnread": "Отметить как непрочитанные начиная отсюда",
   "actionSheetOptionMarkChannelAsRead": "Отметить канал как прочитанный",
+  "actionSheetOptionMarkDmConversationAsRead": "Отметить беседу как прочитанную",
   "actionSheetOptionMarkTopicAsRead": "Отметить тему как прочитанную",
   "actionSheetOptionMuteTopic": "Заглушить тему",
   "actionSheetOptionPinChannel": "Закрепить",
   "actionSheetOptionQuoteMessage": "Цитировать сообщение",
+  "actionSheetOptionReportMessage": "Пожаловаться на сообщение",
   "actionSheetOptionResolveTopic": "Поставить отметку \"решено\"",
   "actionSheetOptionSeeWhoReacted": "Посмотреть отреагировавших",
   "actionSheetOptionShare": "Поделиться",
@@ -1405,11 +1544,15 @@
   "actionSheetOptionUnresolveTopic": "Пометить как нерешённое",
   "actionSheetOptionUnstarMessage": "Снять отметку с сообщения",
   "actionSheetOptionUnsubscribe": "Отписаться",
+  "actionSheetOptionViewProfile": "Просмотр профиля",
   "actionSheetOptionViewReadReceipts": "Посмотреть подтверждения прочтения",
   "actionSheetReadReceipts": "Подтверждения прочтения",
   "actionSheetReadReceiptsErrorReadCount": "Не удалось загрузить подтверждения прочтения.",
   "actionSheetReadReceiptsReadCount": "{count, plural, one{Это сообщение было <z-link>прочитано</z-link> {count} пользователем:} other{Это сообщение было <z-link>прочитано</z-link> {count} пользователями:}}",
   "actionSheetReadReceiptsZeroReadCount": "Это сообщение еще никто не прочитал.",
+  "actionSheetTitleDm": "ЛС с {user}",
+  "actionSheetTitleGroupDm": "Групповые ЛС",
+  "actionSheetTitleSelfDm": "ЛС с собой",
   "allChannelsEmptyPlaceholderHeader": "В этой организации нет каналов, которые вы можете просматривать.",
   "allChannelsPageTitle": "Все каналы",
   "appVersionUnknownPlaceholder": "(…)",
@@ -1455,6 +1598,7 @@
   "dialogCancel": "Отмена",
   "dialogClose": "Закрыть",
   "dialogContinue": "Продолжить",
+  "dialogOpenInBrowser": "Открыть в браузере",
   "discardDraftConfirmationDialogConfirmButton": "Сбросить",
   "discardDraftConfirmationDialogTitle": "Отказаться от написанного сообщения?",
   "discardDraftForEditConfirmationDialogMessage": "При изменении сообщения текст из поля для редактирования удаляется.",
@@ -1526,10 +1670,11 @@
   "errorQuotationFailed": "Цитирование не удалось",
   "errorReactionAddingFailedTitle": "Не удалось добавить реакцию",
   "errorReactionRemovingFailedTitle": "Не удалось удалить реакцию",
+  "errorReportMessageFailedTitle": "Не удалось отправить жалобу",
   "errorRequestFailed": "Сбой сетевого запроса: HTTP-статус {httpStatus}",
   "errorResolveTopicFailedTitle": "Не удалось отметить тему как решенную",
   "errorServerMessage": "Ответ сервера:\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} использует Zulip Server {zulipVersion}, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server {minSupportedZulipVersion}.",
+  "errorServerVersionNotAllowedMessage": "{url} использует Zulip Server {zulipVersion}, который не поддерживается. Минимальная поддерживаемая версия — Zulip Server {minAllowedZulipVersion}.",
   "errorSharingAccountNotLoggedIn": "Не выполнен вход с учетной записью. Пожалуйста, войдите в систему и повторите попытку.",
   "errorSharingFailed": "Не удалось поделиться",
   "errorSharingTitle": "Не удалось поделиться содержанием",
@@ -1540,6 +1685,7 @@
   "errorUnresolveTopicFailedTitle": "Не удалось отметить тему как нерешенную",
   "errorUnstarMessageFailedTitle": "Не удалось снять отметку с сообщения",
   "errorVideoPlayerFailed": "Не удается воспроизвести видео.",
+  "errorVideoPlayerFailedTryBrowser": "Попробуйте открыть видео в браузере.",
   "errorWebAuthOperationalError": "Произошла непредвиденная ошибка.",
   "errorWebAuthOperationalErrorTitle": "Что-то пошло не так",
   "experimentalFeatureSettingsPageTitle": "Экспериментальные функции",
@@ -1571,7 +1717,7 @@
   "loginMethodDividerSemanticLabel": "Другие варианты входа",
   "loginPageTitle": "Вход в систему",
   "loginPasswordLabel": "Пароль",
-  "loginServerUrlLabel": "URL вашего сервера Zulip",
+  "loginRealmUrlLabel": "URL вашей организации Zulip",
   "loginUsernameLabel": "Имя пользователя",
   "mainMenuMyProfile": "Мой профиль",
   "manyPeopleTyping": "Несколько человек набирают сообщения…",
@@ -1596,7 +1742,13 @@
   "messageListGroupYouAndOthers": "Вы и {others}",
   "messageListGroupYouWithYourself": "Сообщения с собой",
   "messageNotSentLabel": "СООБЩЕНИЕ НЕ ОТПРАВЛЕНО",
+  "messageReportTypeHarassment": "Оскорбления",
+  "messageReportTypeInappropriate": "Неприемлемое содержание",
+  "messageReportTypeNorms": "Нарушение норм сообщества",
+  "messageReportTypeOther": "Другая причина",
+  "messageReportTypeSpam": "Спам",
   "mutedUser": "Заглушенный пользователь",
+  "navBarFeedLabel": "Лента",
   "navBarMenuLabel": "Меню",
   "navButtonAllChannels": "Все каналы",
   "newDmFabButtonLabel": "Новое ЛС",
@@ -1611,10 +1763,12 @@
   "notifSelfUser": "Вы",
   "onePersonTyping": "{typist} набирает сообщение…",
   "openLinksWithInAppBrowser": "Открывать ссылки внутри приложения",
+  "otherChannelsFolderName": "Другие каналы",
   "permissionsDeniedCameraAccess": "Для загрузки изображения, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.",
   "permissionsDeniedReadExternalStorage": "Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.",
   "permissionsNeededOpenSettings": "Открыть настройки",
   "permissionsNeededTitle": "Требуются разрешения",
+  "pinnedChannelsFolderName": "Закрепленные каналы",
   "pinnedSubscriptionsLabel": "Закреплены",
   "pollVoterNames": "({voterNames})",
   "pollWidgetOptionsMissing": "В опросе пока нет вариантов ответа.",
@@ -1627,12 +1781,20 @@
   "reactionChipsLabel": "Реакции",
   "recentDmConversationsEmptyPlaceholderHeader": "У вас пока нет личных сообщений!",
   "recentDmConversationsEmptyPlaceholderMessage": "Почему бы не начать общение?",
+  "recentDmConversationsPageShortLabel": "ЛС",
   "recentDmConversationsPageTitle": "Личные сообщения",
   "recentDmConversationsSectionHeader": "Личные сообщения",
+  "reportMessageDescription": "Ваша жалоба будет направлена в закрытый канал модерации сообщений этой организации.",
+  "reportMessageDescriptionLabel": "Можете добавить подробности?",
+  "reportMessageDescriptionRequired": "Предоставьте пояснения, пожалуйста.",
+  "reportMessageDialogTitle": "Пожаловаться на сообщение",
+  "reportMessageReasonLabel": "Что не так с этим сообщением?",
+  "reportMessageSubmitButton": "Отправить",
+  "reportMessageSuccess": "Жалоба отправлена",
   "revealButtonLabel": "Показать сообщение",
   "savingMessageEditFailedLabel": "ПРАВКИ НЕ СОХРАНЕНЫ",
   "savingMessageEditLabel": "ЗАПИСЬ ПРАВОК…",
-  "scrollToBottomTooltip": "Пролистать вниз",
+  "scrollToBottomTooltip": "Прокрутить вниз",
   "searchMessagesClearButtonTooltip": "Очистить",
   "searchMessagesHintText": "Поиск",
   "searchMessagesPageTitle": "Поиск",
@@ -1640,6 +1802,10 @@
   "seeWhoReactedSheetHeaderLabel": "Эмодзи-реакции (всего: {num})",
   "seeWhoReactedSheetNoReactions": "На это сообщение нет реакций.",
   "seeWhoReactedSheetUserListLabel": "Голоса за {emojiName} ({num})",
+  "serverCompatBannerAdminMessage": "{url} использует версию сервера Zulip {zulipVersion}, которая снята с поддержки. Обновите сервер Zulip как можно скорее.",
+  "serverCompatBannerDismissLabel": "Закрыть",
+  "serverCompatBannerLearnMoreLabel": "Узнать больше",
+  "serverCompatBannerUserMessage": "{url} использует версию сервера Zulip {zulipVersion}, которая снята с поддержки. Свяжитесь с администратором сервера для обновления.",
   "serverUrlValidationErrorEmpty": "Пожалуйста, введите URL-адрес.",
   "serverUrlValidationErrorInvalidUrl": "Пожалуйста, введите корректный URL-адрес.",
   "serverUrlValidationErrorNoUseEmail": "Пожалуйста, введите URL-адрес сервера, а не свой email.",
@@ -1663,13 +1829,21 @@
   "successMessageTextCopied": "Текст сообщения скопирован",
   "successTopicLinkCopied": "Ссылка на тему скопирована",
   "switchAccountButtonTooltip": "Сменить учетную запись",
+  "systemGroupNameAdministrators": "Администраторы",
+  "systemGroupNameEveryone": "Все, включая гостей",
+  "systemGroupNameEveryoneOnInternet": "Все пользователи интернета",
+  "systemGroupNameFullMembers": "Полноправные участники",
+  "systemGroupNameMembers": "Все, кроме гостей",
+  "systemGroupNameModerators": "Модераторы",
+  "systemGroupNameNobody": "Никто",
+  "systemGroupNameOwners": "Владельцы",
   "themeSettingDark": "Темный",
   "themeSettingLight": "Светлый",
   "themeSettingSystem": "Системный",
   "themeSettingTitle": "РЕЖИМ",
   "today": "Сегодня",
   "topicListEmptyPlaceholderHeader": "Здесь пока нет тем.",
-  "topicValidationErrorMandatoryButEmpty": "Темы обязательны в этой организации.",
+  "topicValidationErrorMandatoryButEmpty": "В этом канале темы обязательны.",
   "topicValidationErrorTooLong": "Длина темы не должна превышать {maxLength, plural, one{{maxLength} символ} few{{maxLength} символа} many{{maxLength} символов} other{{maxLength} символов}}.",
   "topicsButtonTooltip": "Темы",
   "tryAnotherAccountButton": "Попробовать другую учетную запись",

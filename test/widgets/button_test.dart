@@ -6,7 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/widgets/button.dart';
+import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../flutter_checks.dart';
 import '../model/binding.dart';
@@ -97,6 +99,79 @@ void main() {
     }
     testVerticalOuterPadding(sizeVariant: ZulipWebUiKitButtonSize.small);
     testVerticalOuterPadding(sizeVariant: ZulipWebUiKitButtonSize.normal);
+
+    testWidgets('disabled: background color is faded', (tester) async {
+      addTearDown(testBinding.reset);
+
+      await tester.pumpWidget(TestZulipApp(
+        child: UnconstrainedBox(
+          child: ZulipWebUiKitButton(
+            label: 'Submit',
+            onPressed: null))));
+      await tester.pump();
+
+      final element = tester.element(find.byType(ZulipWebUiKitButton));
+      final designVariables = DesignVariables.of(element);
+      final expectedColor =
+        designVariables.btnBgAttMediumIntInfoNormal.withFadedAlpha(0.5);
+
+      final renderObject = element.renderObject as RenderBox;
+      check(renderObject).legacyMatcher(
+        equals(paints..path(color: expectedColor)));
+    });
+
+    testWidgets('enabled: scale-on-press animation', (tester) async {
+      addTearDown(testBinding.reset);
+
+      await tester.pumpWidget(TestZulipApp(
+        child: UnconstrainedBox(
+          child: ZulipWebUiKitButton(
+            label: 'Submit',
+            onPressed: () {}))));
+      await tester.pump();
+
+      final labelFinder = find.text('Submit');
+      final rectBeforePress = tester.getRect(labelFinder);
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(ZulipWebUiKitButton)));
+      await tester.pump(); // rebuild
+      await tester.pump(Duration(milliseconds: 100)); // animate to completion
+
+      final rectWhilePressed = tester.getRect(labelFinder);
+      check(rectWhilePressed.width).isLessThan(rectBeforePress.width);
+
+      await gesture.up();
+      await tester.pump(); // rebuild
+      await tester.pump(Duration(milliseconds: 100)); // animate back
+
+      final rectAfterRelease = tester.getRect(labelFinder);
+      check(rectAfterRelease).equals(rectBeforePress);
+    });
+
+    testWidgets('disabled: no scale-on-press animation', (tester) async {
+      addTearDown(testBinding.reset);
+
+      await tester.pumpWidget(TestZulipApp(
+        child: UnconstrainedBox(
+          child: ZulipWebUiKitButton(
+            label: 'Submit',
+            onPressed: null))));
+      await tester.pump();
+
+      final labelFinder = find.text('Submit');
+      final rectBeforePress = tester.getRect(labelFinder);
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(ZulipWebUiKitButton)));
+      await tester.pump();
+      await tester.pump(Duration(milliseconds: 100));
+
+      final rectWhilePressed = tester.getRect(labelFinder);
+      check(rectWhilePressed).equals(rectBeforePress);
+
+      await gesture.up();
+    });
   });
 
   group('ZulipIconButton', () {

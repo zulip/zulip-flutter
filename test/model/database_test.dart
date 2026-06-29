@@ -6,15 +6,14 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
 
+import '../example_data.dart' as eg;
 import 'schemas/schema.dart';
 import 'schemas/schema_v1.dart' as v1;
-import 'schemas/schema_v2.dart' as v2;
 import 'schemas/schema_v3.dart' as v3;
 import 'schemas/schema_v4.dart' as v4;
 import 'schemas/schema_v5.dart' as v5;
 import 'schemas/schema_v10.dart' as v10;
 import 'schemas/schema_v11.dart' as v11;
-import 'schemas/schema_v12.dart' as v12;
 import 'store_checks.dart';
 
 void main() {
@@ -197,6 +196,7 @@ void main() {
         zulipVersion: '6.0',
         zulipMergeBase: const Value('6.0'),
         zulipFeatureLevel: 42,
+        possibleLegacyPushToken: Value(false),
       );
       final accountId = await db.createAccount(accountData);
       final account = await (db.select(db.accounts)
@@ -206,7 +206,8 @@ void main() {
       check(account.toCompanion(false).toJson()).deepEquals({
         ...accountData.toJson(),
         'id': (Subject<Object?> it) => it.isA<int>(),
-        'acked_push_token': null,
+        'device_id': null,
+        'possible_legacy_push_token': false,
       });
     });
 
@@ -256,6 +257,44 @@ void main() {
       await db.createAccount(accountData);
       await check(db.createAccount(accountDataWithSameEmail))
         .throws<AccountAlreadyExistsException>();
+    });
+
+    test('create push key', () async {
+      await db.createAccount(eg.selfAccount.toCompanion(false));
+      final pushKeyData = eg.pushKey(account: eg.selfAccount).toCompanion(false);
+      await db.createPushKey(pushKeyData);
+      final pushKey = await db.select(db.pushKeys).getSingle();
+      check(pushKey.toCompanion(false).toJson()).deepEquals(pushKeyData.toJson());
+    });
+
+    test('create push key with duplicate pushKeyId', () async {
+      await db.createAccount(eg.selfAccount.toCompanion(false));
+      final pushKey = eg.pushKey(account: eg.selfAccount);
+      await db.createPushKey(pushKey.toCompanion(false));
+
+      // Duplicates not allowed on the same account…
+      await check(db.createPushKey(eg.pushKey(account: eg.selfAccount,
+        pushKeyId: pushKey.pushKeyId,
+      ).toCompanion(false)))
+        .throws<PushKeyAlreadyExistsException>();
+
+      // … nor a different one.
+      await db.createAccount(eg.otherAccount.toCompanion(false));
+      await check(db.createPushKey(eg.pushKey(account: eg.otherAccount,
+        pushKeyId: pushKey.pushKeyId,
+      ).toCompanion(false)))
+        .throws<PushKeyAlreadyExistsException>();
+    });
+
+    test('delete account cascades to push key', () async {
+      await db.createAccount(eg.selfAccount.toCompanion(false));
+      final pushKey = eg.pushKey(account: eg.selfAccount);
+      await db.createPushKey(pushKey.toCompanion(false));
+      check(await db.select(db.pushKeys).get()).length.equals(1);
+
+      await (db.delete(db.accounts)..where((a) => a.id.equals(eg.selfAccount.id)))
+        .go();
+      check(await db.select(db.pushKeys).get()).isEmpty();
     });
   });
 
@@ -320,7 +359,33 @@ void main() {
       }
     });
 
-    test('upgrade to v2, with data', () async {
+    test('migrate existing GlobalSettings row', () async {
+      // This tests several migrations that apply to GlobalSettings and
+      // don't interact with each other.
+      final schema = await verifier.schemaAt(3);
+      final before = v3.DatabaseAtV3(schema.newConnection());
+      await before.into(before.globalSettings).insert(
+        v3.GlobalSettingsCompanion.insert(
+          themeSetting: Value(ThemeSetting.light.name)));
+      await before.close();
+
+      final after = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(after, AppDatabase.latestSchemaVersion);
+      final globalSettings = await after.select(after.globalSettings).getSingle();
+      check(globalSettings.toJson()).deepEquals({
+        'themeSetting': ThemeSetting.light.name,
+        'browserPreference': null, // v4
+        // (v5 has no effect when a GlobalSettings row already exists)
+        'visitFirstUnread': null, // v7
+        'markReadOnScroll': null, // v8
+        'legacyUpgradeState': 'noLegacy', // v9
+      });
+      await after.close();
+    });
+
+    test('migrate existing Account row', () async {
+      // This tests several migrations that apply to Accounts and
+      // don't interact with each other.
       final schema = await verifier.schemaAt(1);
       final before = v1.DatabaseAtV1(schema.newConnection());
       await before.into(before.accounts).insert(v1.AccountsCompanion.insert(
@@ -335,56 +400,28 @@ void main() {
       final accountV1 = await before.select(before.accounts).watchSingle().first;
       await before.close();
 
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 2);
-      await db.close();
-
-      final after = v2.DatabaseAtV2(schema.newConnection());
+      final after = AppDatabase(schema.newConnection());
+      await verifier.migrateAndValidate(after, AppDatabase.latestSchemaVersion);
       final account = await after.select(after.accounts).getSingle();
       check(account.toJson()).deepEquals({
         ...accountV1.toJson(),
-        'ackedPushToken': null,
+        'realmUrl': Uri.parse(accountV1.realmUrl), // TODO(drift): type mismatch between latest and test schemas
+
+        // 'ackedPushToken': null, // added in v2, removed in v15; was always null
+        'realmName': null, 'realmIcon': null, // v12
+        'deviceId': null, // v13
+        'possibleLegacyPushToken': true, // v16
       });
       await after.close();
     });
 
-    test('upgrade to v4, with data', () async {
-      final schema = await verifier.schemaAt(3);
-      final before = v3.DatabaseAtV3(schema.newConnection());
-      await before.into(before.globalSettings).insert(
-        v3.GlobalSettingsCompanion.insert(
-          themeSetting: Value(ThemeSetting.light.name)));
-      await before.close();
+    // v2 covered by "existing Account row" above
 
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 4);
-      await db.close();
+    // v3 only adds a new table; the "migrate without data" test covers it
 
-      final after = v4.DatabaseAtV4(schema.newConnection());
-      final globalSettings = await after.select(after.globalSettings).getSingle();
-      check(globalSettings.themeSetting).equals(ThemeSetting.light.name);
-      check(globalSettings.browserPreference).isNull();
-      await after.close();
-    });
+    // v4 covered by "existing GlobalSettings row" above
 
-    test('upgrade to v5: with existing GlobalSettings row, do nothing', () async {
-      final schema = await verifier.schemaAt(4);
-      final before = v4.DatabaseAtV4(schema.newConnection());
-      await before.into(before.globalSettings).insert(
-        v4.GlobalSettingsCompanion.insert(
-          themeSetting: Value(ThemeSetting.light.name)));
-      await before.close();
-
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 5);
-      await db.close();
-
-      final after = v5.DatabaseAtV5(schema.newConnection());
-      final globalSettings = await after.select(after.globalSettings).getSingle();
-      check(globalSettings.themeSetting).equals(ThemeSetting.light.name);
-      check(globalSettings.browserPreference).isNull();
-      await after.close();
-    });
+    // v5 partly covered by "existing GlobalSettings row" above
 
     test('upgrade to v5: with no existing GlobalSettings row, insert one', () async {
       final schema = await verifier.schemaAt(4);
@@ -403,7 +440,15 @@ void main() {
       await after.close();
     });
 
-    // TODO(#1593) test upgrade to v9: legacyUpgradeState set to noLegacy
+    // v6 only adds a new table; the "migrate without data" test covers it
+
+    // v7 covered by "existing GlobalSettings row" above
+
+    // v8 covered by "existing GlobalSettings row" above
+
+    // v9 covered by "existing GlobalSettings row" above
+
+    // v10 only adds a new table; the "migrate without data" test covers it
 
     test('upgrade to v11: with accounts available, '
         'insert first account ID as the last-visited account ID', () async {
@@ -457,34 +502,15 @@ void main() {
       await after.close();
     });
 
-    test('upgrade to v12, with data', () async {
-      final schema = await verifier.schemaAt(11);
-      final before = v11.DatabaseAtV11(schema.newConnection());
-      await before.into(before.accounts).insert(v11.AccountsCompanion.insert(
-          realmUrl: 'https://chat.example/',
-          userId: 1,
-          email: 'asdf@example.org',
-          apiKey: '1234',
-          zulipVersion: '11.2',
-          zulipMergeBase: const Value('11.2'),
-          zulipFeatureLevel: 420,
-      ));
-      final accountV11 = await before.select(before.accounts).watchSingle().first;
-      await before.close();
+    // v12 covered by "existing Account row" above
 
-      final db = AppDatabase(schema.newConnection());
-      await verifier.migrateAndValidate(db, 12);
-      await db.close();
+    // v13 covered by "existing Account row" above
 
-      final after = v12.DatabaseAtV12(schema.newConnection());
-      final account = await after.select(after.accounts).getSingle();
-      check(account.toJson()).deepEquals({
-        ...accountV11.toJson(),
-        'realmName': null,
-        'realmIcon': null,
-      });
-      await after.close();
-    });
+    // v14 only adds a new table; the "migrate without data" test covers it
+
+    // v15 covered by "existing Account row" above
+
+    // v16 covered by "existing Account row" above
   });
 }
 

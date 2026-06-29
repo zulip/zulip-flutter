@@ -14,11 +14,15 @@ import 'package:zulip/widgets/dialog.dart';
 /// On success, returns the widget's "OK" button.
 /// Dismiss the dialog by calling `tester.tap(find.byWidget(okButton))`.
 ///
+/// If the targeted error dialog is shown on top of another [AlertDialog],
+/// pass `true` for [allowOtherAlertDialogs].
+///
 /// See also:
 ///  - [checkNoDialog]
 Widget checkErrorDialog(WidgetTester tester, {
   required String expectedTitle,
   String? expectedMessage,
+  bool allowOtherAlertDialogs = false,
 }) {
   // TODO if a dialog was found but it doesn't match expectations,
   //   show its details; see checkNoDialog for how to do that
@@ -27,7 +31,11 @@ Widget checkErrorDialog(WidgetTester tester, {
     case TargetPlatform.fuchsia:
     case TargetPlatform.linux:
     case TargetPlatform.windows:
-      final dialog = tester.widget<AlertDialog>(find.bySubtype<AlertDialog>());
+      final finder = find.bySubtype<AlertDialog>();
+      // TODO can we target error dialogs more precisely?
+      final dialog = allowOtherAlertDialogs
+        ? tester.widgetList<AlertDialog>(finder).last
+        : tester.widget<AlertDialog>(finder);
       tester.widget(find.descendant(matchRoot: true,
         of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
       if (expectedMessage != null) {
@@ -39,7 +47,10 @@ Widget checkErrorDialog(WidgetTester tester, {
 
     case TargetPlatform.iOS:
     case TargetPlatform.macOS:
-      final dialog = tester.widget<CupertinoAlertDialog>(find.byType(CupertinoAlertDialog));
+      final finder = find.byType(CupertinoAlertDialog);
+      final dialog = allowOtherAlertDialogs
+        ? tester.widgetList<CupertinoAlertDialog>(finder).last
+        : tester.widget<CupertinoAlertDialog>(finder);
       tester.widget(find.descendant(matchRoot: true,
         of: find.byWidget(dialog.title!), matching: find.text(expectedTitle)));
       if (expectedMessage != null) {

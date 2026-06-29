@@ -153,7 +153,10 @@ class NotificationOpenService {
     if (currentPageRoute is MaterialAccountWidgetRoute
         && currentPageRoute.accountId == account.id
         && currentPageRoute.page is MessageListPage
-        && MessageListPage.currentNarrow(currentPageRoute) == data.narrow
+        && switch (MessageListPage.currentNarrow(currentPageRoute)) {
+             TopicNarrow narrow => narrow.isSameAs(data.narrow),
+             Narrow      narrow => narrow == data.narrow,
+           }
     ) {
       // The current page is already a MessageListPage at the desired narrow.
       // Instead of pushing another copy of it, stay there; see #1852.
@@ -226,6 +229,14 @@ class NotificationOpenService {
   ) {
     try {
       return NotificationOpenPayload.parseIosApnsPayload(payload);
+    } catch (e, st) {
+      assert(debugLog('$e\n$st'));
+      // Presumably a legacy, non-E2EE payload.
+    }
+
+    // TODO(server-12) simplify by removing legacy payload case.
+    try {
+      return NotificationOpenPayload.parseLegacyIosApnsPayload(payload);
     } on FormatException catch (e, st) {
       assert(debugLog('$e\n$st'));
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -240,7 +251,7 @@ class NotificationOpenService {
     required Uri url,
   }) {
     try {
-      return NotificationOpenPayload.parseAndroidNotificationUrl(url);
+      return NotificationOpenPayload.parseNotificationUrl(url);
     } on FormatException catch (e, st) {
       assert(debugLog('$e\n$st'));
       final zulipLocalizations = ZulipLocalizations.of(context);
@@ -264,9 +275,35 @@ class NotificationOpenPayload {
     required this.narrow,
   });
 
+  /// A key to set the notification URL (created via [buildNotificationUrl]) in
+  /// [ImprovedNotificationContent.userInfo] map, on iOS.
+  ///
+  /// We use this to determine which conversation to open by reading the
+  /// custom `userInfo` map of the tapped notification (in
+  /// [NotificationOpenService] above).
+  static const kIosNotificationUrlKey = 'notification_url';
+
   /// Parses the iOS APNs payload and retrieves the information
   /// required for navigation.
   factory NotificationOpenPayload.parseIosApnsPayload(Map<Object?, Object?> payload) {
+    if (payload case {
+      // This is an internal URL added by the IosNotificationService
+      // (see lib/notifications/ios_service.dart).
+      kIosNotificationUrlKey: final String notificationUrl,
+    }) {
+      final url = Uri.tryParse(notificationUrl);
+      if (url == null) throw const FormatException();
+
+      return NotificationOpenPayload.parseNotificationUrl(url);
+    } else {
+      // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
+      throw const FormatException();
+    }
+  }
+
+  /// Parses the legacy iOS APNs payload and retrieves the information
+  /// required for navigation.
+  factory NotificationOpenPayload.parseLegacyIosApnsPayload(Map<Object?, Object?> payload) {
     if (payload case {
       'zulip': {
         'user_id': final int userId,
@@ -327,10 +364,10 @@ class NotificationOpenPayload {
     }
   }
 
-  /// Parses the internal Android notification url, that was created using
-  /// [buildAndroidNotificationUrl], and retrieves the information required
+  /// Parses the internal notification URL that was created using
+  /// [buildNotificationUrl], and retrieves the information required
   /// for navigation.
-  factory NotificationOpenPayload.parseAndroidNotificationUrl(Uri url) {
+  factory NotificationOpenPayload.parseNotificationUrl(Uri url) {
     if (url case Uri(
       scheme: 'zulip',
       host: 'notification',
@@ -376,7 +413,7 @@ class NotificationOpenPayload {
     }
   }
 
-  Uri buildAndroidNotificationUrl() {
+  Uri buildNotificationUrl() {
     return Uri(
       scheme: 'zulip',
       host: 'notification',
@@ -384,7 +421,7 @@ class NotificationOpenPayload {
         'realm_url': realmUrl.toString(),
         'user_id': userId.toString(),
         ...(switch (narrow) {
-          TopicNarrow(streamId: var channelId, :var topic) => {
+          TopicNarrow(:var channelId, :var topic) => {
             'narrow_type': 'topic',
             'channel_id': channelId.toString(),
             'topic': topic.apiName,

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Exclude all data from device backup.
+     For background, see `data_extraction_rules.xml`.
+
+     It's not clear this file has any effect: for Android 12 and up,
+     the `data_extraction_rules.xml` file
+     (`android:dataExtractionRules` in the manifest)
+     is supposed to take precedence.
+     And for Android 11 and older, the `android:allowBackup="false"`
+     which we also set is supposed to prevent backups completely.
+
+     But including this extra file is cheap.  And from experience,
+     we don't trust Android's documentation to be 100% accurate;
+     maybe there's some situation where it helps after all.
+
+     Docs for this file:
+       https://developer.android.com/identity/data/autobackup#include-exclude-android-11
+  -->
+<full-backup-content>
+    <exclude domain="file" />
+    <exclude domain="database" />
+    <exclude domain="sharedpref" />
+    <exclude domain="external" />
+    <exclude domain="root" />
+    <exclude domain="device_file" />
+    <exclude domain="device_database" />
+    <exclude domain="device_sharedpref" />
+    <exclude domain="device_root" />
+</full-backup-content>

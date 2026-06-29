@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -20,6 +21,7 @@ import 'package:zulip/widgets/katex.dart';
 import 'package:zulip/widgets/lightbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/profile.dart';
 import 'package:zulip/widgets/text.dart';
 
 import '../api/fake_api.dart';
@@ -985,9 +987,15 @@ void main() {
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.userMentionSilent,
       wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.userMentionSilentClassOrderReversed,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.legacyUserMention,
+      wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionPlain,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.groupMentionSilent,
+      wrapWithPerAccountStoreWidget: true);
+    testContentSmoke(ContentExample.groupMentionSilentClassOrderReversed,
       wrapWithPerAccountStoreWidget: true);
     testContentSmoke(ContentExample.channelWildcardMentionPlain,
       wrapWithPerAccountStoreWidget: true);
@@ -1036,6 +1044,15 @@ void main() {
         });
     });
 
+    testWidgets('is italic in italic span', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1813
+      await prepareContent(tester,
+        wrapWithPerAccountStoreWidget: true,
+        plainContent('<p><em><span class="user-mention" data-user-id="13313">@Chris Bobbe</span></em></p>'));
+      final style = mergedStyleOf(tester, '@Chris Bobbe');
+      check(style!.fontStyle).equals(FontStyle.italic);
+    });
+
     testFontWeight('silent or non-self mention in plain paragraph',
       expectedWght: 400,
       // @_**Greg Price**
@@ -1065,6 +1082,44 @@ void main() {
     // TODO(#647):
     //  testFontWeight('non-silent self-user mention in bold context',
     //    expectedWght: 800, // [etc.]
+
+    group('pill color', () {
+      Future<void> checkPillColor(WidgetTester tester, {
+        required String html,
+        required Color Function(ContentTheme) expectColor,
+      }) async {
+        await prepareContent(tester,
+          wrapWithPerAccountStoreWidget: true,
+          plainContent(html));
+
+        final renderObject = tester.renderObject<RenderBox>(find.byType(Mention));
+        final paintBounds = renderObject.paintBounds;
+        final contentTheme = ContentTheme.of(tester.element(find.byType(Mention)));
+
+        check(renderObject).legacyMatcher(equals(paints..rrect(
+          rrect: RRect.fromRectAndRadius(paintBounds, const Radius.circular(3)),
+          style: .fill,
+          color: expectColor(contentTheme))));
+      }
+
+      testWidgets('user mention', (tester) async {
+        await checkPillColor(tester,
+          html: ContentExample.userMentionPlain.html,
+          expectColor: (theme) => theme.colorDirectMentionBackground);
+      });
+
+      testWidgets('user group mention', (tester) async {
+        await checkPillColor(tester,
+          html: ContentExample.groupMentionPlain.html,
+          expectColor: (theme) => theme.colorGroupMentionBackground);
+      });
+
+      testWidgets('wildcard mention', (tester) async {
+        await checkPillColor(tester,
+          html: ContentExample.channelWildcardMentionPlain.html,
+          expectColor: (theme) => theme.colorGroupMentionBackground);
+      });
+    });
 
     group('user mention dynamic name resolution', () {
       Future<void> prepare({
@@ -1098,8 +1153,8 @@ void main() {
       testWidgets('falls back to original text when userId is null', (tester) async {
         await prepare(
           tester: tester,
-          html: '<p><span class="user-mention channel-wildcard-mention" data-user-id="*">@all</span></p>');
-        check(find.text('@all')).findsOne();
+          html: '<p><span class="user-mention" data-user-email="email@example.com">@Greg Price</span></p>');
+        check(find.text('@Greg Price')).findsOne();
       });
 
       testWidgets('handles silent mentions correctly', (tester) async {
@@ -1149,6 +1204,93 @@ void main() {
         check(find.text('new-name')).findsOne();
         check(find.text('@new-name')).findsNothing();
       });
+
+      for (final (apiName, displayName) in const [
+        ('role:internet',       'Everyone on the internet'),
+        ('role:everyone',       'Everyone including guests'),
+        ('role:members',        'Everyone except guests'),
+        ('role:fullmembers',    'Full members'),
+        ('role:moderators',     'Moderators'),
+        ('role:administrators', 'Administrators'),
+        ('role:owners',         'Owners'),
+        ('role:nobody',         'Nobody'),
+      ]) {
+        testWidgets('shows localized display name for system group $apiName',
+            (tester) async {
+          await prepare(
+            tester: tester,
+            html: '<p><span class="user-group-mention"'
+              ' data-user-group-id="5">@$apiName</span></p>',
+            userGroups: [eg.userGroup(id: 5, name: apiName, isSystemGroup: true)]);
+          check(find.text('@$displayName')).findsOne();
+          check(find.text('@$apiName')).findsNothing();
+        });
+      }
+
+      testWidgets('shows localized display name for silent system group mention', (tester) async {
+        await prepare(
+          tester: tester,
+          html: '<p><span class="user-group-mention silent" data-user-group-id="5">role:administrators</span></p>',
+          userGroups: [eg.userGroup(id: 5, name: 'role:administrators', isSystemGroup: true)]);
+        check(find.text('Administrators')).findsOne();
+        check(find.text('@Administrators')).findsNothing();
+      });
+    });
+
+    group('@-mention tap tests', () {
+      void testMentionNavigation(
+        String description,
+        String html, {
+        User? user,
+        required int? expectedUserId,
+      }) {
+        testWidgets(description, (tester) async {
+          final pushedRoutes = <Route<dynamic>>[];
+          final testNavObserver = TestNavigatorObserver()
+            ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+          await prepareContent(tester,
+            plainContent(html), navObservers: [testNavObserver],
+            wrapWithPerAccountStoreWidget: true,
+            initialSnapshot: eg.initialSnapshot(realmUsers: [
+              eg.selfUser,
+              ?user,
+            ]));
+
+          assert(pushedRoutes.length == 1);
+          pushedRoutes.removeLast();
+          await tester.tap(find.byType(Mention));
+          if (expectedUserId != null) {
+            check(pushedRoutes).single.isA<WidgetRoute>()
+              .page.isA<ProfilePage>()
+              .userId.equals(expectedUserId);
+          } else {
+            check(pushedRoutes).isEmpty();
+          }
+        });
+      }
+
+      testMentionNavigation('tapping on user mention navigates to profile page',
+        ContentExample.userMentionPlain.html,
+        user: eg.user(userId: 2187),
+        expectedUserId: 2187);
+
+      testMentionNavigation('tapping on silent user mention navigates to profile page',
+        ContentExample.userMentionSilent.html,
+        user: eg.user(userId: 2187),
+        expectedUserId: 2187);
+
+      testMentionNavigation('tapping on an unknown user navigates to ProfilePage (which handles this case)',
+        '<p><span class="user-mention" data-user-id="999">@Unknown User</span></p>',
+        expectedUserId: 999);
+
+      testMentionNavigation('tapping plain group @-mention does nothing',
+        ContentExample.groupMentionPlain.html,
+        expectedUserId: null);
+
+      testMentionNavigation('tapping plain channel wildcard @-mention does nothing',
+        ContentExample.channelWildcardMentionPlain.html,
+        expectedUserId: null);
     });
   });
 
@@ -1377,13 +1519,22 @@ void main() {
 
     testContentSmoke(ContentExample.mathInline);
 
+    final mathInlineHtml = '<span class="katex">'
+      '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
+        '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
+      '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
+
+    testWidgets('is link-colored in link span', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1823
+      await prepareContent(tester,
+        plainContent('<p><a href="https://example/">$mathInlineHtml</a></p>'));
+      final style = mergedStyleOf(tester, 'λ');
+      check(style!.color).equals(const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
+    });
+
     testWidgets('maintains font-size ratio with surrounding text', (tester) async {
-      const html = '<span class="katex">'
-        '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
-          '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
       await checkFontSizeRatio(tester,
-        targetHtml: html,
+        targetHtml: mathInlineHtml,
         targetFontSizeFinder: (rootSpan) {
           late final double result;
           rootSpan.visitChildren((span) {
@@ -1437,8 +1588,8 @@ void main() {
     // the timezone of the environment running these tests. Accept here a wide
     // range of times. See comments in "show dates" test in
     // `test/widgets/message_list_test.dart`.
-    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d(?: [AP]M)?$');
-    final renderedTextRegexpTwelveHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d [AP]M$');
+    final renderedTextRegexp = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d(?:\u202F[AP]M)?$');
+    final renderedTextRegexpTwelveHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d\u202F[AP]M$');
     final renderedTextRegexpTwentyFourHour = RegExp(r'^(Tue, Jan 30|Wed, Jan 31), 2024, \d+:\d\d$');
 
     Future<void> prepare(
@@ -1477,7 +1628,19 @@ void main() {
       check(find.textContaining(renderedTextRegexpTwelveHour)).findsOne();
     });
 
-    void testIconAndTextSameColor(String description, String html) {
+    testWidgets('is italic in italic span', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1813
+      await prepareContent(tester,
+        // We use the self-account's time-format setting.
+        wrapWithPerAccountStoreWidget: true,
+        initialSnapshot: eg.initialSnapshot(),
+        plainContent('<p><em>$timeSpanHtml</em></p>'));
+      final style = mergedStyleOf(tester,
+        findAncestor: find.byType(GlobalTime), renderedTextRegexp);
+      check(style!.fontStyle).equals(FontStyle.italic);
+    });
+
+    void testIconAndTextSameColor(String description, String html, {Color? expectedColor}) {
       testWidgets('clock icon and text are the same color: $description', (tester) async {
         await prepareContent(tester,
           // We use the self-account's time-format setting.
@@ -1493,11 +1656,16 @@ void main() {
         check(textColor).isNotNull();
 
         check(icon).color.isNotNull().isSameColorAs(textColor!);
+        if (expectedColor != null) {
+          check(icon).color.equals(expectedColor);
+        }
       });
     }
 
     testIconAndTextSameColor('common case', '<p>$timeSpanHtml</p>');
-    testIconAndTextSameColor('inside link', '<p><a href="https://example/">$timeSpanHtml</a></p>');
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/1819
+    testIconAndTextSameColor('inside link', '<p><a href="https://example/">$timeSpanHtml</a></p>',
+      expectedColor: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor());
 
     group('maintains font-size ratio with surrounding text', () {
       Future<void> doCheck(WidgetTester tester, double Function(GlobalTime widget) sizeFromWidget) async {

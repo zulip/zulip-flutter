@@ -182,8 +182,8 @@ class _AddAccountPageState extends State<AddAccountPage> {
         serverSettings = await globalStore.fetchServerSettings(url!);
 
         final zulipVersionData = ZulipVersionData.fromServerSettings(serverSettings);
-        if (zulipVersionData.isUnsupported) {
-          throw ServerVersionUnsupportedException(zulipVersionData);
+        if (zulipVersionData.isNotAllowed) {
+          throw ServerVersionNotAllowedException(zulipVersionData);
         }
       } catch (e) {
         if (!context.mounted) return;
@@ -191,11 +191,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
         String? message;
         Uri? learnMoreButtonUrl;
         switch (e) {
-          case ServerVersionUnsupportedException(:final data):
-            message = zulipLocalizations.errorServerVersionUnsupportedMessage(
+          case ServerVersionNotAllowedException(:final data):
+            message = zulipLocalizations.errorServerVersionNotAllowedMessage(
               url.toString(),
               data.zulipVersion,
-              kMinSupportedZulipVersion);
+              kMinAllowedZulipVersion);
             learnMoreButtonUrl = kServerSupportDocUrl;
           default:
             // TODO(#105) give more helpful feedback; see `fetchServerSettings`
@@ -223,6 +223,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
     final error = _parseResult.error;
     final errorText = error == null || error.shouldDeferFeedback()
       ? null
@@ -253,11 +254,16 @@ class _AddAccountPageState extends State<AddAccountPage> {
                   _controller.clearComposing();
                   // …but leave out unfocusing the input in case more editing is needed.
                 },
-                decoration: InputDecoration(
-                  labelText: zulipLocalizations.loginServerUrlLabel,
-                  errorText: errorText,
-                  helperText: kLayoutPinningHelperText,
-                  hintText: AddAccountPage._serverUrlHint)),
+                style: filledInputTextStyle(designVariables),
+                decoration: baseFilledInputDecoration(designVariables)
+                  .copyWith(
+                    // TODO(#2183) follow design for label text
+                    //   (or don't use it here?)
+                    label: Text(zulipLocalizations.loginRealmUrlLabel),
+                    errorText: errorText,
+                    helperText: kLayoutPinningHelperText,
+                    hintText: AddAccountPage._serverUrlHint,
+                  )),
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: !_inProgress && errorText == null
@@ -404,6 +410,7 @@ class _LoginPageState extends State<LoginPage> {
         zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
         zulipVersion: widget.serverSettings.zulipVersion,
         zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
+        possibleLegacyPushToken: const Value(false),
       ));
       // TODO give feedback to user on other SQL exceptions
     } on AccountAlreadyExistsException {
@@ -446,11 +453,16 @@ class _LoginPageState extends State<LoginPage> {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
+    final emailAuthEnabled = widget.serverSettings.emailAuthEnabled;
+    final ldapEnabled = widget.serverSettings.authenticationMethods.ldap;
+    final showPasswordForm = emailAuthEnabled || ldapEnabled;
 
     final loginContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      _UsernamePasswordForm(loginPageState: this),
+      if (showPasswordForm)
+        _UsernamePasswordForm(loginPageState: this),
       if (externalAuthenticationMethods.isNotEmpty) ...[
-        _AlternativeAuthDivider(),
+        if (showPasswordForm)
+          _AlternativeAuthDivider(),
         ...externalAuthenticationMethods.map((method) {
           final icon = method.displayIcon;
           return OutlinedButton.icon(
@@ -580,6 +592,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final designVariables = DesignVariables.of(context);
     final serverSettings = widget.loginPageState.widget.serverSettings;
     final zulipLocalizations = ZulipLocalizations.of(context);
     final requireEmailFormatUsernames = serverSettings.requireEmailFormatUsernames;
@@ -606,10 +619,11 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         return null;
       },
       textInputAction: TextInputAction.next,
-      decoration: InputDecoration(
-        labelText: requireEmailFormatUsernames
+      style: filledInputTextStyle(designVariables),
+      decoration: baseFilledInputDecoration(designVariables).copyWith(
+        label: Text(requireEmailFormatUsernames
           ? zulipLocalizations.loginEmailLabel
-          : zulipLocalizations.loginUsernameLabel,
+          : zulipLocalizations.loginUsernameLabel),
         helperText: kLayoutPinningHelperText,
       ));
 
@@ -627,8 +641,9 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       },
       textInputAction: TextInputAction.go,
       onFieldSubmitted: (value) => _submit(),
-      decoration: InputDecoration(
-        labelText: zulipLocalizations.loginPasswordLabel,
+      style: filledInputTextStyle(designVariables),
+      decoration: baseFilledInputDecoration(designVariables).copyWith(
+        label: Text(zulipLocalizations.loginPasswordLabel),
         helperText: kLayoutPinningHelperText,
         suffixIcon: IconButton(
           tooltip: zulipLocalizations.loginHidePassword,

@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
-import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -12,9 +11,9 @@ import '../model/emoji.dart';
 import '../model/store.dart';
 import 'action_sheet.dart';
 import 'color.dart';
-import 'dialog.dart';
 import 'emoji.dart';
 import 'inset_shadow.dart';
+import 'input.dart';
 import 'page.dart';
 import 'profile.dart';
 import 'store.dart';
@@ -359,45 +358,6 @@ class _TextEmoji extends StatelessWidget {
   }
 }
 
-/// Adds or removes a reaction on the message corresponding to
-/// the [messageId], showing an error dialog on failure.
-/// Returns a Future resolving to true if operation succeeds.
-Future<void> doAddOrRemoveReaction({
-  required BuildContext context,
-  required bool doRemoveReaction,
-  required int messageId,
-  required EmojiCandidate emoji,
-  required String errorDialogTitle,
-}) async {
-  final store = PerAccountStoreWidget.of(context);
-  String? errorMessage;
-  try {
-    await (doRemoveReaction ? removeReaction : addReaction).call(
-      store.connection,
-      messageId: messageId,
-      reactionType: emoji.emojiType,
-      emojiCode: emoji.emojiCode,
-      emojiName: emoji.emojiName,
-    );
-  } catch (e) {
-    if (!context.mounted) return;
-
-    switch (e) {
-      case ZulipApiException():
-        errorMessage = e.message;
-        // TODO(#741) specific messages for common errors, like network errors
-        //   (support with reusable code)
-      default:
-        // TODO(log)
-    }
-
-    showErrorDialog(context: context,
-      title: errorDialogTitle,
-      message: errorMessage);
-    return;
-  }
-}
-
 /// Opens a browsable and searchable emoji picker bottom sheet.
 Future<EmojiCandidate?> showEmojiPickerSheet({
   required BuildContext pageContext,
@@ -493,16 +453,9 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
             child: TextField(
               controller: _controller,
               autofocus: true,
-              decoration: InputDecoration(
-                hintText: zulipLocalizations.emojiPickerSearchEmoji,
-                contentPadding: const EdgeInsetsDirectional.only(start: 10, top: 6),
-                filled: true,
-                fillColor: designVariables.bgSearchInput,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none),
-                hintStyle: TextStyle(color: designVariables.textMessage)),
-              style: const TextStyle(fontSize: 19, height: 26 / 19)))),
+              style: filledInputTextStyle(designVariables),
+              decoration: baseFilledInputDecoration(designVariables)
+                .copyWith(hintText: zulipLocalizations.emojiPickerSearchEmoji)))),
           TextButton(
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(

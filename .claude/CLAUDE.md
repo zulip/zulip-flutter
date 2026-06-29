@@ -10,13 +10,13 @@ Zulip Flutter — the official Zulip mobile app for Android and iOS, built with 
 
 ```bash
 # Run unit tests
-flutter test
+flutter test --no-pub
 
 # Run a specific test file
-flutter test test/foo/bar_test.dart
+flutter test --no-pub test/foo/bar_test.dart
 
 # Run a specific test by name
-flutter test test/foo/bar_test.dart --name 'some test name'
+flutter test --no-pub test/foo/bar_test.dart --name 'some test name'
 
 # Static analysis (type-checking + linting)
 flutter analyze --no-pub
@@ -91,7 +91,69 @@ Uses Drift ORM with SQLite. Schema changes require running `tools/check --fix dr
 UI designs come from Figma (linked in issues). Match colors, padding, and font sizes exactly. Use `DesignVariables` and `ContentTheme` for theme values.
 
 
+## Debugging test failures
+
+- Full `flutter test` takes ~60s. Capture output to a temp file on the first run;
+  don't re-run the full suite just to find the failure details.
+- Once the failing test file is identified, re-run just that file (~3-5s).
+- For localized failures (one test, one file), read the test and source directly
+  rather than spawning broad codebase searches.
+
+
 ## Developing changes
 
 - After every edit, run the Flutter analyzer to catch issues early.
   Use this command: `flutter analyze --no-pub 2>&1 | head -20`
+- When working on an issue, don't try to look at the server/web implementation.
+  Stick to the issue's spec and the API docs.
+  Exception: for questions about server behavior that the API docs
+  don't answer, and for work on API documentation or design itself,
+  do read the server code, in `../zulip` if present.
+
+
+## Writing clear code
+
+- **Keep comments minimal.**
+  Don't write comments that restate what the code does
+  ("// The old key is now superseded" on `.supersededTimestamp.equals(now)`).
+  Use comments only for context not obvious from the code itself
+  (e.g., "// A device-update event acks the new key." before a `handleEvent` call).
+
+
+## Zulip chat links
+
+- When you encounter a chat.zulip.org narrow URL (in an issue, PR, or
+  user message), use the fetch-zulip-messages skill to read the
+  conversation. Don't use WebFetch; it can't access Zulip message
+  content.
+
+
+## Using Git
+
+- **Use `@` instead of `HEAD`** —
+  there may be a stray file named `HEAD`,
+  which causes `fatal: ambiguous argument 'HEAD'` errors.
+
+- **Don't use `git -C <path>` to operate on this repo** —
+  it triggers a permission prompt.
+  Run plain `git <subcommand>` from the repository root instead.
+
+- **Always `git add` specific new files** —
+  never use `git add -A` or `git add .`.
+  The worktree can pick up stray files.
+  For adding changes to all existing files, use `git add -u`.
+
+- **Use plain single-quotes for commit messages** —
+  write `git commit -m 'message'`, not heredoc `$(cat <<'EOF'...)`.
+  Command substitution `$(...)` triggers a permission prompt.
+
+  If the message itself contains a single quote,
+  a single quote can be expressed inside a Bash single-quoted string
+  with the five characters `'"'"'`.
+
+- **Use `git cherry-pick` for rewriting history** —
+  never use `git rebase -i`, as it
+  requires an editor, which triggers permission prompts.
+  Instead, use `git cherry-pick`
+  (with `--no-commit` when modifications are needed)
+  to replay commits.

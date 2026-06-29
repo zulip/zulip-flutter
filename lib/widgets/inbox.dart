@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../model/channel.dart';
 import '../model/narrow.dart';
 import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'dialog.dart';
+import 'color.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
+import 'recent_dm_conversations.dart';
 import 'sticky_header.dart';
 import 'store.dart';
 import 'text.dart';
@@ -23,7 +26,17 @@ class InboxPageBody extends StatefulWidget {
   State<InboxPageBody> createState() => _InboxPageState();
 }
 
-class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> {
+
+/// The interface for the state of an [InboxPageBody].
+abstract class InboxPageState extends State<InboxPageBody> {
+  bool get allDmsCollapsed;
+  set allDmsCollapsed(bool value);
+
+  void collapseStream(int streamId);
+  void uncollapseStream(int streamId);
+}
+
+class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStateMixin<InboxPageBody> implements InboxPageState{
   Unreads? unreadsModel;
   RecentDmConversationsView? recentDmConversationsModel;
 
@@ -35,6 +48,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
   bool get allDmsCollapsed => _allDmsCollapsed;
   bool _allDmsCollapsed = false;
+  @override
   set allDmsCollapsed(bool value) {
     setState(() {
       _allDmsCollapsed = value;
@@ -43,11 +57,13 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
   Set<int> get collapsedStreamIds => _collapsedStreamIds;
   final Set<int> _collapsedStreamIds = {};
+  @override
   void collapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.add(streamId);
     });
   }
+  @override
   void uncollapseStream(int streamId) {
     setState(() {
       _collapsedStreamIds.remove(streamId);
@@ -95,14 +111,12 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     final subscriptions = store.subscriptions;
 
     // TODO(#1065) make an incrementally-updated view-model for InboxPage
-    final sections = <_InboxSectionData>[];
+    final items = <_InboxListItem>[];
 
     // TODO efficiently include DM conversations that aren't recent enough
     //   to appear in recentDmConversationsView, but still have unreads in
     //   unreadsModel.
-    final dmItems = <(DmNarrow, int, bool)>[];
-    int allDmsCount = 0;
-    bool allDmsHasMention = false;
+    final dmItems = <_InboxListItemDmConversation>[];
     for (final dmNarrow in recentDmConversationsModel!.sorted) {
       final countInNarrow = unreadsModel!.countInDmNarrow(dmNarrow);
       if (countInNarrow == 0) {
@@ -110,15 +124,19 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       }
       final hasMention = unreadsModel!.dms[dmNarrow]!.any(
         (messageId) => unreadsModel!.mentions.contains(messageId));
-      if (hasMention) allDmsHasMention = true;
-      dmItems.add((dmNarrow, countInNarrow, hasMention));
-      allDmsCount += countInNarrow;
+      dmItems.add(_InboxListItemDmConversation(
+        narrow: dmNarrow, count: countInNarrow, hasMention: hasMention));
     }
-    if (allDmsCount > 0) {
-      sections.add(_AllDmsSectionData(allDmsCount, allDmsHasMention, dmItems));
+    if (dmItems.isNotEmpty) {
+      items.add(_InboxListItemFolderHeader(
+        label: zulipLocalizations.recentDmConversationsSectionHeader));
+      items.addAll(dmItems);
     }
 
-    final sortedUnreadStreams = unreadsModel!.streams.entries
+    final channelSectionsByFolder = <UiChannelFolder, List<_InboxListItemChannelSection>>{};
+
+    for (final MapEntry(key: streamId, value: topics) in unreadsModel!.streams.entries) {
+      final sub = subscriptions[streamId];
       // Filter out any straggling unreads in unsubscribed streams.
       // There won't normally be any, but it happens with certain infrequent
       // state changes, typically for less than a few hundred milliseconds.
@@ -126,37 +144,23 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       //
       // Also, we want to depend on the subscription data for things like
       // choosing the stream icon.
-      .where((entry) => subscriptions.containsKey(entry.key))
-      .toList()
-      ..sort((a, b) {
-        final subA = subscriptions[a.key]!;
-        final subB = subscriptions[b.key]!;
+      if (sub == null) continue;
 
-        // TODO "pin" icon on the stream row? dividers in the list?
-        if (subA.pinToTop != subB.pinToTop) {
-          return subA.pinToTop ? -1 : 1;
-        }
-
-        // TODO(i18n) something like JS's String.prototype.localeCompare
-        return subA.name.toLowerCase().compareTo(subB.name.toLowerCase());
-      });
-
-    for (final MapEntry(key: streamId, value: topics) in sortedUnreadStreams) {
-      final topicItems = <_StreamSectionTopicData>[];
+      final topicItems = <InboxChannelSectionTopicData>[];
       int countInStream = 0;
       bool streamHasMention = false;
       for (final MapEntry(key: topic, value: messageIds) in topics.entries) {
         if (!store.isTopicVisible(streamId, topic)) continue;
         final countInTopic = messageIds.length;
         final hasMention = messageIds.any((messageId) => unreadsModel!.mentions.contains(messageId));
-        if (hasMention) streamHasMention = true;
-        topicItems.add(_StreamSectionTopicData(
+        topicItems.add(InboxChannelSectionTopicData(
           topic: topic,
           count: countInTopic,
           hasMention: hasMention,
           lastUnreadId: messageIds.last,
         ));
         countInStream += countInTopic;
+        streamHasMention |= hasMention;
       }
       if (countInStream == 0) {
         continue;
@@ -166,10 +170,33 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
         final bLastUnreadId = b.lastUnreadId;
         return bLastUnreadId.compareTo(aLastUnreadId);
       });
-      sections.add(_StreamSectionData(streamId, countInStream, streamHasMention, topicItems));
+
+      final uiChannelFolder = store.uiChannelFolder(streamId);
+      (channelSectionsByFolder[uiChannelFolder] ??= [])
+        .add(_InboxListItemChannelSection(
+          streamId: streamId,
+          count: countInStream,
+          hasMention: streamHasMention,
+          items: topicItems,
+        ));
     }
 
-    if (sections.isEmpty) {
+    final sortedFolders = channelSectionsByFolder.keys.toList()
+      ..sort(store.compareUiChannelFolders);
+
+    for (final folder in sortedFolders) {
+      items.add(_InboxListItemFolderHeader(
+        label: folder.name(store: store, zulipLocalizations: zulipLocalizations)));
+      final channelSections = channelSectionsByFolder[folder]!;
+      channelSections.sort((a, b) {
+        final subA = subscriptions[a.streamId]!;
+        final subB = subscriptions[b.streamId]!;
+        return ChannelStore.compareChannelsByName(subA, subB);
+      });
+      items.addAll(channelSections);
+    }
+
+    if (items.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
         // TODO(#315) add e.g. "You might be interested in recent conversations."
         header: zulipLocalizations.inboxEmptyPlaceholderHeader,
@@ -178,52 +205,69 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
     return SafeArea( // horizontal insets
       child: StickyHeaderListView.builder(
-        itemCount: sections.length,
+        itemCount: items.length,
         itemBuilder: (context, index) {
-          final section = sections[index];
-          switch (section) {
-            case _AllDmsSectionData():
-              return _AllDmsSection(
-                data: section,
-                collapsed: allDmsCollapsed,
-                pageState: this,
-              );
-            case _StreamSectionData(:var streamId):
+          final item = items[index];
+          switch (item) {
+            case _InboxListItemFolderHeader():
+              return InboxFolderHeaderItem(label: item.label, isFirst: index == 0);
+            case _InboxListItemDmConversation(:final narrow, :final count, :final hasMention):
+              return InboxDmItem(narrow: narrow, count: count, hasMention: hasMention);
+            case _InboxListItemChannelSection(:var streamId):
               final collapsed = collapsedStreamIds.contains(streamId);
-              return _StreamSection(data: section, collapsed: collapsed, pageState: this);
+              return _StreamSection(data: item, collapsed: collapsed, pageState: this);
           }
         }));
   }
 }
 
-sealed class _InboxSectionData {
-  const _InboxSectionData();
+sealed class _InboxListItem {
+  const _InboxListItem();
 }
 
-class _AllDmsSectionData extends _InboxSectionData {
+class _InboxListItemFolderHeader extends _InboxListItem {
+  const _InboxListItemFolderHeader({required this.label});
+
+  /// The label for this folder, not yet uppercased.
+  final String label;
+
+  // TODO count, hasMention
+}
+
+class _InboxListItemDmConversation extends _InboxListItem {
+  const _InboxListItemDmConversation({
+    required this.narrow,
+    required this.count,
+    required this.hasMention,
+  });
+
+  final DmNarrow narrow;
   final int count;
   final bool hasMention;
-  final List<(DmNarrow, int, bool)> items;
-
-  const _AllDmsSectionData(this.count, this.hasMention, this.items);
 }
 
-class _StreamSectionData extends _InboxSectionData {
+class _InboxListItemChannelSection extends _InboxListItem {
+  const _InboxListItemChannelSection({
+    required this.streamId,
+    required this.count,
+    required this.hasMention,
+    required this.items,
+  });
+
   final int streamId;
   final int count;
   final bool hasMention;
-  final List<_StreamSectionTopicData> items;
-
-  const _StreamSectionData(this.streamId, this.count, this.hasMention, this.items);
+  final List<InboxChannelSectionTopicData> items;
 }
 
-class _StreamSectionTopicData {
+@visibleForTesting
+class InboxChannelSectionTopicData {
   final TopicName topic;
   final int count;
   final bool hasMention;
   final int lastUnreadId;
 
-  const _StreamSectionTopicData({
+  const InboxChannelSectionTopicData({
     required this.topic,
     required this.count,
     required this.hasMention,
@@ -231,96 +275,49 @@ class _StreamSectionTopicData {
   });
 }
 
-abstract class _HeaderItem extends StatelessWidget {
-  final bool collapsed;
-  final _InboxPageState pageState;
-  final int count;
-  final bool hasMention;
-
-  /// A build context within the [_StreamSection] or [_AllDmsSection].
-  ///
-  /// Used to ensure the [_StreamSection] or [_AllDmsSection] that encloses the
-  /// current [_HeaderItem] is visible after being collapsed through this
-  /// [_HeaderItem].
-  final BuildContext sectionContext;
-
-  const _HeaderItem({
-    required this.collapsed,
-    required this.pageState,
-    required this.count,
-    required this.hasMention,
-    required this.sectionContext,
+@visibleForTesting
+class InboxFolderHeaderItem extends StatelessWidget {
+  const InboxFolderHeaderItem({
+    super.key,
+    required this.label,
+    this.isFirst = false,
   });
 
-  String title(ZulipLocalizations zulipLocalizations);
-  IconData get icon;
-  Color collapsedIconColor(BuildContext context);
-  Color uncollapsedIconColor(BuildContext context);
-  Color uncollapsedBackgroundColor(BuildContext context);
+  /// The label for this folder header, not yet uppercased.
+  ///
+  /// The implementation will call [String.toUpperCase] on this.
+  final String label;
 
-  /// A channel ID, if this represents a channel, else null.
-  int? get channelId;
-
-  Future<void> onCollapseButtonTap() async {
-    if (!collapsed) {
-      await Scrollable.ensureVisible(
-        sectionContext,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
-      );
-    }
-  }
-
-  Future<void> onRowTap();
+  /// Whether this is the first folder section.
+  final bool isFirst;
 
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
-    Widget result = Material(
-      color: collapsed
-        ? designVariables.background // TODO(design) check if this is the right variable
-        : uncollapsedBackgroundColor(context),
-      child: InkWell(
-        // TODO use onRowTap to handle taps that are not on the collapse button.
-        //   Probably we should give the collapse button a 44px or 48px square
-        //   touch target:
-        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
-        //   But that's in tension with the Figma, which gives these header rows
-        //   40px min height.
-        onTap: onCollapseButtonTap,
-        onLongPress: this is _LongPressable
-          ? (this as _LongPressable).onLongPress
-          : null,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Padding(padding: const EdgeInsets.all(10),
-            child: Icon(size: 20, color: designVariables.sectionCollapseIcon,
-              collapsed ? ZulipIcons.arrow_right : ZulipIcons.arrow_down)),
-          Icon(size: 18,
-            color: collapsed
-              ? collapsedIconColor(context)
-              : uncollapsedIconColor(context),
-            icon),
-          const SizedBox(width: 5),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+
+    // TODO(#2259) actually show the trailing markers;
+    //   we use this just to anticipate doing that.
+    const fontSize = InboxRowTrailingMarkers.fontSize;
+
+    final double topPadding = 10 + (isFirst ? 0 : 8);
+
+    Widget result = ColoredBox(
+      // TODO(design) check if this is the right variable
+      color: designVariables.background,
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(14, topPadding, 12, 10),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, spacing: 8, children: [
+          Expanded(
             child: Text(
-              style: TextStyle(
-                fontSize: 17,
-                height: (20 / 17),
-                // TODO(design) check if this is the right variable
-                color: designVariables.labelMenuButton,
-              ).merge(weightVariableTextStyle(context, wght: 600)),
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              title(zulipLocalizations)))),
-          const SizedBox(width: 12),
-          if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-          Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-            child: CounterBadge(
-              // TODO(design) use CounterKind.quantity, following Figma
-              kind: CounterBadgeKind.unread,
-              channelIdForBackground: channelId,
-              count: count)),
+              overflow: .ellipsis,
+              style: TextStyle(
+                color: designVariables.folderText,
+                fontSize: fontSize,
+                height: 20 / fontSize,
+                letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: fontSize),
+              ).merge(weightVariableTextStyle(context, wght: 700)),
+              label.toUpperCase())),
         ])));
 
     return Semantics(container: true,
@@ -328,71 +325,10 @@ abstract class _HeaderItem extends StatelessWidget {
   }
 }
 
-class _AllDmsHeaderItem extends _HeaderItem {
-  const _AllDmsHeaderItem({
-    required super.collapsed,
-    required super.pageState,
-    required super.count,
-    required super.hasMention,
-    required super.sectionContext,
-  });
-
-  @override String title(ZulipLocalizations zulipLocalizations) =>
-    zulipLocalizations.recentDmConversationsSectionHeader;
-  @override IconData get icon => ZulipIcons.two_person;
-
-  // TODO(design) check if this is the right variable for these
-  @override Color collapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
-  @override Color uncollapsedIconColor(context) => DesignVariables.of(context).labelMenuButton;
-
-  @override Color uncollapsedBackgroundColor(context) => DesignVariables.of(context).dmHeaderBg;
-  @override int? get channelId => null;
-
-  @override Future<void> onCollapseButtonTap() async {
-    await super.onCollapseButtonTap();
-    pageState.allDmsCollapsed = !collapsed;
-  }
-  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open all-DMs narrow?
-}
-
-class _AllDmsSection extends StatelessWidget {
-  const _AllDmsSection({
-    required this.data,
-    required this.collapsed,
-    required this.pageState,
-  });
-
-  final _AllDmsSectionData data;
-  final bool collapsed;
-  final _InboxPageState pageState;
-
-  @override
-  Widget build(BuildContext context) {
-    final header = _AllDmsHeaderItem(
-      count: data.count,
-      hasMention: data.hasMention,
-      collapsed: collapsed,
-      pageState: pageState,
-      sectionContext: context,
-    );
-    return StickyHeaderItem(
-      header: header,
-      child: Column(children: [
-        header,
-        if (!collapsed) ...data.items.map((item) {
-          final (narrow, count, hasMention) = item;
-          return _DmItem(
-            narrow: narrow,
-            count: count,
-            hasMention: hasMention,
-          );
-        }),
-      ]));
-  }
-}
-
-class _DmItem extends StatelessWidget {
-  const _DmItem({
+@visibleForTesting
+class InboxDmItem extends StatelessWidget {
+  const InboxDmItem({
+    super.key,
     required this.narrow,
     required this.count,
     required this.hasMention,
@@ -418,85 +354,156 @@ class _DmItem extends StatelessWidget {
       _ => narrow.otherRecipientIds.map(store.userDisplayName).join(', '),
     };
 
+    final backgroundColor = designVariables.background; // TODO(design) check if this is the right variable
     Widget result = Material(
-      color: designVariables.background, // TODO(design) check if this is the right variable
+      color: backgroundColor,
       child: InkWell(
+        splashFactory: NoSplash.splashFactory,
+        // TODO(design) this is ad hoc
+        highlightColor: designVariables.bgCounterUnread.withFadedAlpha(0.5),
         onTap: () {
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
         },
-        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                title))),
-            const SizedBox(width: 12),
-            if (hasMention) const  _IconMarker(icon: ZulipIcons.at_sign),
-            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: CounterBadge(
-                // TODO(design) use CounterKind.quantity, following Figma
-                kind: CounterBadgeKind.unread,
-                channelIdForBackground: null,
-                count: count)),
-          ]))));
+        onLongPress: () => showDmActionSheet(context, narrow: narrow),
+        child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 44),
+          child: Padding(padding: EdgeInsetsDirectional.fromSTEB(12, 0, 12, 0),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              DmConversationAvatar(narrow: narrow, backgroundColor: backgroundColor),
+              const SizedBox(width: 6),
+              Expanded(child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Text(
+                  style: TextStyle(
+                    fontSize: InboxRowTrailingMarkers.fontSize,
+                    height: (19 / InboxRowTrailingMarkers.fontSize),
+                    color: designVariables.textMessage,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  title))),
+              // 6 in Figma, but 8 is consistent with channel and topic rows
+              const SizedBox(width: 8),
+              InboxRowTrailingMarkers(
+                hasMention: hasMention,
+                unreadCountBadge: CounterBadge(
+                  // TODO(design) use CounterKind.quantity, following Figma
+                  kind: CounterBadgeKind.unread,
+                  channelIdForBackground: null,
+                  count: count)),
+            ])))));
 
     return Semantics(container: true,
       child: result);
   }
 }
 
-mixin _LongPressable on _HeaderItem {
-  // TODO(#1272) move to _HeaderItem base class
-  //   when DM headers become long-pressable; remove mixin
-  Future<void> onLongPress();
-}
-
-class _StreamHeaderItem extends _HeaderItem with _LongPressable {
-  final Subscription subscription;
-
-  const _StreamHeaderItem({
+@visibleForTesting
+class InboxChannelHeaderItem extends StatelessWidget {
+  const InboxChannelHeaderItem({
+    super.key,
+    this.isSticky = false,
     required this.subscription,
-    required super.collapsed,
-    required super.pageState,
-    required super.count,
-    required super.hasMention,
-    required super.sectionContext,
+    required this.collapsed,
+    required this.pageState,
+    required this.count,
+    required this.hasMention,
+    required this.sectionContext,
   });
 
-  @override String title(ZulipLocalizations zulipLocalizations) =>
-    subscription.name;
-  @override IconData get icon => iconDataForStream(subscription);
-  @override Color collapsedIconColor(context) =>
-    colorSwatchFor(context, subscription).iconOnPlainBackground;
-  @override Color uncollapsedIconColor(context) =>
-    colorSwatchFor(context, subscription).iconOnBarBackground;
-  @override Color uncollapsedBackgroundColor(context) =>
-    colorSwatchFor(context, subscription).barBackground;
-  @override int? get channelId => subscription.streamId;
+  /// Whether this is the widget that gets passed to [StickyHeaderItem.header].
+  final bool isSticky;
 
-  @override Future<void> onCollapseButtonTap() async {
-    await super.onCollapseButtonTap();
+  final Subscription subscription;
+  final bool collapsed;
+  final InboxPageState pageState;
+  final int count;
+  final bool hasMention;
+
+  /// A build context within the [_StreamSection] or [_AllDmsSection].
+  ///
+  /// Used to ensure the [_StreamSection] or [_AllDmsSection] that encloses the
+  /// current [InboxFolderHeaderItem] is visible after being collapsed through this
+  /// [InboxFolderHeaderItem].
+  final BuildContext sectionContext;
+
+  void _onCollapseButtonTap() async {
     if (collapsed) {
       pageState.uncollapseStream(subscription.streamId);
     } else {
+      await Scrollable.ensureVisible(
+        sectionContext,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
       pageState.collapseStream(subscription.streamId);
     }
   }
-  @override Future<void> onRowTap() => onCollapseButtonTap(); // TODO open channel narrow
+
+  void _onLongPress() async {
+    showChannelActionSheet(sectionContext, channelId: subscription.streamId);
+  }
 
   @override
-  Future<void> onLongPress() async {
-    showChannelActionSheet(sectionContext, channelId: subscription.streamId);
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final swatch = colorSwatchFor(context, subscription);
+
+    Widget result = Material(
+      // The Figma uses a gradient background, which we decided we didn't like:
+      //   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/channel.20folders.20in.20inbox.3A.20design/near/2443083
+      color: swatch.barBackground,
+      child: InkWell(
+        splashFactory: NoSplash.splashFactory,
+        // TODO(design) this is ad hoc
+        highlightColor: swatch.unreadCountBadgeBackground.withFadedAlpha(0.5),
+        // TODO use onRowTap to handle taps that are not on the collapse button.
+        //   Probably we should give the collapse button a 44px or 48px square
+        //   touch target:
+        //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20Mark-as-read/near/1680973>
+        //   But that's in tension with the Figma, which gives these header rows
+        //   40px min height.
+        onTap: _onCollapseButtonTap,
+        onLongPress: _onLongPress,
+        child: Padding(padding: EdgeInsetsDirectional.fromSTEB(24, 8, 12, 8),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Icon(size: 18,
+              color: swatch.iconOnBarBackground,
+              iconDataForStream(subscription)),
+            const SizedBox(width: 8),
+            // Pin the chevron to the end of the channel name.
+            // Let the name grow until the chevron has no room after it,
+            // truncating overflow with "...".
+            Expanded(child: Row(mainAxisSize: .min, children: [
+              Flexible(
+                child: Text(
+                  style: TextStyle(
+                    fontSize: InboxRowTrailingMarkers.fontSize,
+                    height: (20 / InboxRowTrailingMarkers.fontSize),
+                    color: designVariables.textMessage,
+                  ).merge(weightVariableTextStyle(context, wght: 600)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  subscription.name)),
+              if (collapsed) ...[
+                const SizedBox(width: 6),
+                Icon(size: 20,
+                  color: designVariables.textMessage.withFadedAlpha(0.5),
+                  ZulipIcons.chevron_down),
+              ],
+            ])),
+            const SizedBox(width: 8),
+            InboxRowTrailingMarkers(
+              hasMention: hasMention,
+              unreadCountBadge: CounterBadge(
+                // TODO(design) use CounterKind.quantity, following Figma
+                kind: CounterBadgeKind.unread,
+                channelIdForBackground: subscription.streamId,
+                count: count)),
+          ]))));
+
+    return Semantics(container: true,
+      child: result);
   }
 }
 
@@ -507,44 +514,58 @@ class _StreamSection extends StatelessWidget {
     required this.pageState,
   });
 
-  final _StreamSectionData data;
+  final _InboxListItemChannelSection data;
   final bool collapsed;
   final _InboxPageState pageState;
 
   @override
   Widget build(BuildContext context) {
     final subscription = PerAccountStoreWidget.of(context).subscriptions[data.streamId]!;
-    final header = _StreamHeaderItem(
-      subscription: subscription,
-      count: data.count,
-      hasMention: data.hasMention,
-      collapsed: collapsed,
-      pageState: pageState,
-      sectionContext: context,
-    );
     return StickyHeaderItem(
-      header: header,
+      header: InboxChannelHeaderItem(
+        isSticky: true,
+        subscription: subscription,
+        count: data.count,
+        hasMention: data.hasMention,
+        collapsed: collapsed,
+        pageState: pageState,
+        sectionContext: context,
+      ),
       child: Column(children: [
-        header,
+        InboxChannelHeaderItem(
+          subscription: subscription,
+          count: data.count,
+          hasMention: data.hasMention,
+          collapsed: collapsed,
+          pageState: pageState,
+          sectionContext: context,
+        ),
         if (!collapsed) ...data.items.map((item) {
-          return _TopicItem(streamId: data.streamId, data: item);
+          return InboxTopicItem(streamId: data.streamId, data: item);
         }),
       ]));
   }
 }
 
-class _TopicItem extends StatelessWidget {
-  const _TopicItem({required this.streamId, required this.data});
+@visibleForTesting
+class InboxTopicItem extends StatelessWidget {
+  const InboxTopicItem({
+    super.key,
+    required this.streamId,
+    required this.data,
+  });
 
   final int streamId;
-  final _StreamSectionTopicData data;
+  final InboxChannelSectionTopicData data;
 
   @override
   Widget build(BuildContext context) {
-    final _StreamSectionTopicData(
+    final InboxChannelSectionTopicData(
       :topic, :count, :hasMention, :lastUnreadId) = data;
 
     final store = PerAccountStoreWidget.of(context);
+    final subscription = store.subscriptions[streamId];
+    final swatch = colorSwatchFor(context, subscription);
 
     final designVariables = DesignVariables.of(context);
     final visibilityIcon = iconDataForTopicVisibilityPolicy(
@@ -553,6 +574,9 @@ class _TopicItem extends StatelessWidget {
     Widget result = Material(
       color: designVariables.background, // TODO(design) check if this is the right variable
       child: InkWell(
+        splashFactory: NoSplash.splashFactory,
+        // TODO(design) this is ad hoc
+        highlightColor: swatch.unreadCountBadgeBackground.withFadedAlpha(0.5),
         onTap: () {
           final narrow = TopicNarrow(streamId, topic);
           Navigator.push(context,
@@ -563,52 +587,125 @@ class _TopicItem extends StatelessWidget {
           topic: topic,
           someMessageIdInTopic: lastUnreadId),
         child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 34),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-            const SizedBox(width: 63),
-            Expanded(child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                style: TextStyle(
-                  fontSize: 17,
-                  height: (20 / 17),
-                  fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                  // TODO(design) check if this is the right variable
-                  color: designVariables.labelMenuButton,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                topic.displayName ?? store.realmEmptyTopicDisplayName))),
-            const SizedBox(width: 12),
-            if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-            // TODO(design) copies the "@" marker color; is there a better color?
-            if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-            Padding(padding: const EdgeInsetsDirectional.only(end: 16),
-              child: CounterBadge(
-                // TODO(design) use CounterKind.quantity, following Figma
-                kind: CounterBadgeKind.unread,
-                channelIdForBackground: streamId,
-                count: count)),
-          ]))));
+          child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 12, 0),
+            child: Center(
+              widthFactor: 1,
+              child: Row(
+                crossAxisAlignment: .baseline,
+                textBaseline: localizedTextBaseline(context),
+                children: [
+                  SizedBox(
+                    width: 42,
+                    child: Align(
+                      // When the system text-size setting rises,
+                      // let the checkmark icon grow startward into the margin
+                      // so the topic text stays aligned with channel-header text.
+                      // (Note: "center" in .centerEnd is inert:
+                      // this Align shrink-wraps to its child's height.)
+                      alignment: .centerEnd,
+                      child: topic.isResolved
+                        ? InboxRowMarkerIcon(icon: ZulipIcons.check)
+                        : null)),
+                  SizedBox(width: 8),
+                  Expanded(child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      style: TextStyle(
+                        fontSize: InboxRowTrailingMarkers.fontSize,
+                        height: (20 / InboxRowTrailingMarkers.fontSize),
+                        fontStyle: topic.displayName == null ? FontStyle.italic : null,
+                        color: designVariables.textMessage,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
+                  const SizedBox(width: 8),
+                  InboxRowTrailingMarkers(
+                    hasMention: hasMention,
+                    visibilityIcon: visibilityIcon,
+                    unreadCountBadge: CounterBadge(
+                      // TODO(design) use CounterKind.quantity, following Figma
+                      kind: CounterBadgeKind.unread,
+                      channelIdForBackground: streamId,
+                      count: count)),
+                ]))))));
 
     return Semantics(container: true,
       child: result);
   }
 }
 
-class _IconMarker extends StatelessWidget {
-  const _IconMarker({required this.icon});
+/// An [InlineIcon] styled for use as a marker in inbox rows.
+///
+/// This encapsulates style details that should stay in sync
+/// across the inbox and topic-list pages.
+class InboxRowMarkerIcon extends StatelessWidget {
+  const InboxRowMarkerIcon({
+    super.key,
+    required this.icon,
+    this.visible = true,
+    this.padBefore = false,
+    this.padAfter = false,
+  });
 
   final IconData icon;
+  final bool visible;
+  final bool padBefore;
+  final bool padAfter;
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    // Design for icon markers based on Figma screen:
-    //   https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?type=design&node-id=224-16386&mode=design&t=JsNndFQ8fKFH0SjS-0
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 4),
-      // This color comes from the Figma screen for the "@" marker, but not
-      // the topic visibility markers.
-      child: Icon(icon, size: 14, color: designVariables.inboxItemIconMarker));
+    return InlineIcon(
+      icon: icon,
+      fontSize: InboxRowTrailingMarkers.fontSize,
+      textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.5),
+      color: DesignVariables.of(context).textMessage.withFadedAlpha(0.4),
+      visible: visible,
+      padBefore: padBefore,
+      padAfter: padAfter,
+    );
+  }
+}
+
+/// A short, baseline-aligned row, optionally containing
+/// an unread badge, @ icon, and topic visibility icon.
+///
+/// This encapsulates the baseline alignment and a few style choices
+/// that should be consistent between the inbox and the topic-list page.
+class InboxRowTrailingMarkers extends StatelessWidget {
+  const InboxRowTrailingMarkers({
+    super.key,
+    this.hasMention = false,
+    this.visibilityIcon,
+    this.unreadCountBadge,
+  });
+
+  final bool hasMention;
+  final IconData? visibilityIcon;
+  final Widget? unreadCountBadge;
+
+  /// The font size used for the row's text, and therefore for the icons here.
+  static const fontSize = 17.0;
+
+  Widget _buildIcon(BuildContext context, IconData icon, {required bool padAfter}) {
+    return InboxRowMarkerIcon(icon: icon, padAfter: padAfter);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasBadge = unreadCountBadge != null;
+    final hasVisibility = visibilityIcon != null;
+    return Row(
+      mainAxisSize: .min,
+      crossAxisAlignment: .baseline,
+      textBaseline: localizedTextBaseline(context),
+      children: [
+        if (hasMention)
+          _buildIcon(context, ZulipIcons.at_sign,
+            padAfter: hasVisibility || hasBadge),
+        if (hasVisibility)
+          _buildIcon(context, visibilityIcon!, padAfter: hasBadge),
+        ?unreadCountBadge,
+      ]);
   }
 }

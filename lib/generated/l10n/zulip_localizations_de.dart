@@ -153,16 +153,17 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Konnte nicht deabonnieren';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => 'Oben anheften';
 
   @override
-  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+  String get actionSheetOptionUnpinChannel => 'Von oben lösen';
 
   @override
-  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+  String get errorPinChannelFailedTitle =>
+      'Kanal konnte nicht angeheftet werden';
 
   @override
-  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+  String get errorUnpinChannelFailedTitle => 'Kanal konnte nicht gelöst werden';
 
   @override
   String get actionSheetOptionMuteTopic => 'Thema stummschalten';
@@ -291,10 +292,76 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Löschen der Nachricht fehlgeschlagen';
 
   @override
+  String get actionSheetOptionReportMessage => 'Nachricht melden';
+
+  @override
+  String get reportMessageDialogTitle => 'Nachricht melden';
+
+  @override
+  String get reportMessageDescription =>
+      'Deine Meldung wird an den privaten Moderationsanfragen-Kanal dieser Organisation gesendet.';
+
+  @override
+  String get messageReportTypeSpam => 'Spam';
+
+  @override
+  String get messageReportTypeHarassment => 'Belästigung';
+
+  @override
+  String get messageReportTypeInappropriate => 'Unangemessener Inhalt';
+
+  @override
+  String get messageReportTypeNorms =>
+      'Verstößt gegen die Gemeinschaftsrichtlinien';
+
+  @override
+  String get messageReportTypeOther => 'Anderer Grund';
+
+  @override
+  String get reportMessageReasonLabel =>
+      'Was ist das Problem mit dieser Nachricht?';
+
+  @override
+  String get reportMessageDescriptionLabel =>
+      'Kannst du weitere Details angeben?';
+
+  @override
+  String get reportMessageDescriptionRequired =>
+      'Bitte gib weitere Details an.';
+
+  @override
+  String get reportMessageSubmitButton => 'Absenden';
+
+  @override
+  String get reportMessageSuccess => 'Nachricht gemeldet';
+
+  @override
+  String get errorReportMessageFailedTitle =>
+      'Nachricht konnte nicht gemeldet werden';
+
+  @override
   String get actionSheetOptionMarkTopicAsRead => 'Thema als gelesen markieren';
 
   @override
   String get actionSheetOptionCopyTopicLink => 'Link zum Thema kopieren';
+
+  @override
+  String actionSheetTitleDm(String user) {
+    return 'DMs mit $user';
+  }
+
+  @override
+  String get actionSheetTitleSelfDm => 'DMs mit dir selbst';
+
+  @override
+  String get actionSheetTitleGroupDm => 'Gruppen-DM';
+
+  @override
+  String get actionSheetOptionViewProfile => 'Profil ansehen';
+
+  @override
+  String get actionSheetOptionMarkDmConversationAsRead =>
+      'Unterhaltung als gelesen markieren';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Etwas ist schiefgelaufen';
@@ -473,11 +540,11 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnknownDmRecipient =>
-      'You cannot send messages to unknown users.';
+      'Du kannst keine Nachrichten an unbekannte Nutzer senden.';
 
   @override
   String get composeBoxBannerLabelCannotSendUnspecifiedReason =>
-      'You cannot send messages here.';
+      'Du kannst hier keine Nachrichten senden.';
 
   @override
   String get composeBoxBannerLabelCannotSendInChannel =>
@@ -485,7 +552,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get composeBoxBannerLabelUnsubscribed =>
-      'Replies to your messages will not appear automatically.';
+      'Antworten auf deine Nachrichten werden nicht automatisch angezeigt.';
 
   @override
   String get composeBoxBannerLabelUnsubscribedWhenCannotSend =>
@@ -550,10 +617,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get newDmSheetComposeButtonLabel => 'Verfassen';
 
   @override
-  String get newDmSheetScreenTitle => 'Neue DN';
+  String get newDmSheetScreenTitle => 'Neue DM';
 
   @override
-  String get newDmFabButtonLabel => 'Neue DN';
+  String get newDmFabButtonLabel => 'Neue DM';
 
   @override
   String get newDmSheetSearchHintEmpty =>
@@ -763,7 +830,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Account hinzufügen';
 
   @override
-  String get loginServerUrlLabel => 'Deine Zulip Server URL';
+  String get loginRealmUrlLabel => 'URL deiner Zulip-Organisation';
 
   @override
   String get loginHidePassword => 'Passwort verstecken';
@@ -809,13 +876,29 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Die einzufügende Datei ist leer oder kann nicht geöffnet werden.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url nutzt Zulip Server $zulipVersion, welche nicht unterstützt wird. Die unterstützte Mindestversion ist Zulip Server $minSupportedZulipVersion.';
+    return '$url nutzt Zulip Server $zulipVersion, welche nicht unterstützt wird. Die unterstützte Mindestversion ist Zulip Server $minAllowedZulipVersion.';
   }
+
+  @override
+  String serverCompatBannerAdminMessage(String url, String zulipVersion) {
+    return '$url verwendet Zulip Server $zulipVersion, was nicht unterstützt wird. Bitte aktualisiere deinen Server so bald wie möglich.';
+  }
+
+  @override
+  String serverCompatBannerUserMessage(String url, String zulipVersion) {
+    return '$url verwendet Zulip Server $zulipVersion, was nicht unterstützt wird. Bitte kontaktiere deinen Server-Administrator bezüglich eines Upgrades.';
+  }
+
+  @override
+  String get serverCompatBannerDismissLabel => 'Ausblenden';
+
+  @override
+  String get serverCompatBannerLearnMoreLabel => 'Mehr erfahren';
 
   @override
   String errorInvalidApiKeyMessage(String url) {
@@ -847,6 +930,13 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   @override
   String get errorVideoPlayerFailed =>
       'Video konnte nicht wiedergegeben werden.';
+
+  @override
+  String get errorVideoPlayerFailedTryBrowser =>
+      'Versuche stattdessen, es in deinem Browser zu öffnen.';
+
+  @override
+  String get dialogOpenInBrowser => 'Im Browser öffnen';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Bitte gib eine URL ein.';
@@ -911,22 +1001,23 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Mark $count+ messages as read?',
-      one: 'Mark $count+ messages as read?',
+      other: '$count+ Nachrichten als gelesen markieren?',
+      one: '$count+ Nachrichten als gelesen markieren?',
     );
     return '$_temp0';
   }
 
   @override
   String get markAllAsReadConfirmationDialogTitleNoCount =>
-      'Mark messages as read?';
+      'Nachrichten als gelesen markieren?';
 
   @override
   String get markAllAsReadConfirmationDialogMessage =>
-      'Messages in multiple conversations may be affected.';
+      'Nachrichten in mehreren Unterhaltungen könnten betroffen sein.';
 
   @override
-  String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
+  String get markAllAsReadConfirmationDialogConfirmButton =>
+      'Als gelesen markieren';
 
   @override
   String get today => 'Heute';
@@ -1080,7 +1171,16 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Nutze die Buttons unten, um den kombinierten Feed oder die Liste der Kanäle anzuzeigen.';
 
   @override
+  String get pinnedChannelsFolderName => 'Angeheftete Kanäle';
+
+  @override
+  String get otherChannelsFolderName => 'Weitere Kanäle';
+
+  @override
   String get recentDmConversationsPageTitle => 'Direktnachrichten';
+
+  @override
+  String get recentDmConversationsPageShortLabel => 'DMs';
 
   @override
   String get recentDmConversationsSectionHeader => 'Direktnachrichten';
@@ -1207,6 +1307,33 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get wildcardMentionTopicDescription => 'Thema benachrichtigen';
+
+  @override
+  String get systemGroupNameEveryoneOnInternet => 'Jeder im Internet';
+
+  @override
+  String get systemGroupNameEveryone => 'Alle einschließlich Gäste';
+
+  @override
+  String get systemGroupNameMembers => 'Alle außer Gäste';
+
+  @override
+  String get systemGroupNameFullMembers => 'Vollwertige Mitglieder';
+
+  @override
+  String get systemGroupNameModerators => 'Moderatoren';
+
+  @override
+  String get systemGroupNameAdministrators => 'Administratoren';
+
+  @override
+  String get systemGroupNameOwners => 'Besitzer';
+
+  @override
+  String get systemGroupNameNobody => 'Niemand';
+
+  @override
+  String get navBarFeedLabel => 'Feed';
 
   @override
   String get navBarMenuLabel => 'Menü';

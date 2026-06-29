@@ -4,14 +4,18 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/about_zulip.dart';
 import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/app_bar.dart';
+import 'package:zulip/widgets/banner.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/inbox.dart';
@@ -97,53 +101,70 @@ void main () {
     Finder findInBottomNav(Finder finder) =>
       find.descendant(of: findBottomNavSemantics, matching: finder);
 
-    testWidgets('preserve states when switching between views', (tester) async {
+    testWidgets('channel stays collapsed when switching between bottom-nav tabs', (tester) async {
+      // For simplicity, this test just checks the channel header as it appears
+      // in the list; it doesn't also check the case where it's in the
+      // sticky-header position (via [StickyHeaderItem]).
+      // We arrange that by also preparing an unread DM, which
+      // shifts the channel header down so it's not at the top of the viewport.
+
       await prepare(tester);
       await store.addUser(eg.otherUser);
       await store.addMessage(
         eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]));
+      final channel = eg.stream();
+      await store.addStream(channel);
+      await store.addSubscription(eg.subscription(channel));
+      await store.addMessage(eg.streamMessage(stream: channel));
       await tester.pump();
 
-      check(find.byIcon(ZulipIcons.arrow_down)).findsExactly(2);
-      check(find.byIcon(ZulipIcons.arrow_right)).findsNothing();
+      final findChevron = find.widgetWithIcon(
+        InboxChannelHeaderItem, ZulipIcons.chevron_down);
+
+      // Uncollapsed: no chevron visible.
+      check(findChevron).findsNothing();
 
       // Collapsing the header updates inbox's internal state.
-      await tester.tap(find.byIcon(ZulipIcons.arrow_down).first);
+      await tester.tap(find.byType(InboxChannelHeaderItem));
       await tester.pump();
-      check(find.byIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(find.byIcon(ZulipIcons.arrow_right)).findsExactly(2);
+      check(findChevron).findsOne();
 
       // Switch to channels view.
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
-      check(find.byIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(find.byIcon(ZulipIcons.arrow_right)).findsNothing();
+      check(findChevron).findsNothing();
 
       // The header should remain collapsed when we return to the inbox.
       await tester.tap(find.byIcon(ZulipIcons.inbox));
       await tester.pump();
-      check(find.byIcon(ZulipIcons.arrow_down)).findsNothing();
-      check(find.byIcon(ZulipIcons.arrow_right)).findsExactly(2);
+      check(findChevron).findsOne();
     });
 
-    testWidgets('update app bar title when switching between views', (tester) async {
+    testWidgets('update app bar title and actions when switching between views', (tester) async {
       await prepare(tester);
+
+      final findSearchButton = find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search));
 
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Inbox'))).findsOne();
+      check(findSearchButton).findsOne();
 
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Channels'))).findsOne();
+      check(findSearchButton).findsNothing();
 
       await tester.tap(find.byIcon(ZulipIcons.two_person));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text('Direct messages'))).findsOne();
+      check(findSearchButton).findsNothing();
     });
 
     testWidgets("view switches when labels are tapped", (tester) async {
@@ -159,7 +180,7 @@ void main () {
         of: find.byType(ZulipAppBar),
         matching: find.text('Channels'))).findsOne();
 
-      await tester.tap(findInBottomNav(find.text('Direct messages')));
+      await tester.tap(findInBottomNav(find.text('DMs')));
       await tester.pump();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
@@ -663,4 +684,162 @@ void main () {
   // TODO end-to-end widget test that checks the error dialog when connecting
   //   to an ancient server:
   //     https://github.com/zulip/zulip-flutter/pull/1410#discussion_r1999991512
+
+  group('server compatibility banner', () {
+    Future<void> prepareBanner(WidgetTester tester, {
+      int? zulipFeatureLevel,
+      String? zulipVersion,
+      User? selfUser,
+      Account? selfAccount,
+      Account? otherAccount,
+    }) async {
+      assert(selfAccount != null ||
+        (zulipFeatureLevel != null && zulipVersion != null));
+      addTearDown(testBinding.reset);
+      selfUser ??= eg.selfUser;
+      selfAccount ??= eg.account(
+        user: selfUser,
+        zulipFeatureLevel: zulipFeatureLevel,
+        zulipVersion: zulipVersion);
+      await testBinding.globalStore.add(
+        selfAccount,
+        eg.initialSnapshot(
+          zulipFeatureLevel: selfAccount.zulipFeatureLevel,
+          zulipVersion: selfAccount.zulipVersion,
+          realmUsers: [selfUser]));
+
+      if (otherAccount != null) {
+        await testBinding.globalStore.add(
+          otherAccount,
+          eg.initialSnapshot(
+            zulipFeatureLevel: otherAccount.zulipFeatureLevel,
+            zulipVersion: otherAccount.zulipVersion,
+            realmUsers: [eg.otherUser]),
+          markLastVisited: false);
+      }
+
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+      await tester.pump(Duration.zero); // wait for the loading page
+      await tester.pump(); // wait for store
+    }
+
+    Future<void> switchToAccount(WidgetTester tester, Account account) async {
+      await tester.tap(find.byIcon(ZulipIcons.menu));
+      await tester.pump();
+      final topRouteAfterPress = topRoute as ModalBottomSheetRoute<void>;
+      await tester.pump(topRouteAfterPress.transitionDuration);
+
+      await tester.tap(find.byIcon(ZulipIcons.arrow_left_right));
+      await tester.pump(Duration.zero);
+
+      final sheetPopDuration = topRouteAfterPress.reverseTransitionDuration;
+      await tester.pump(sheetPopDuration + Duration(milliseconds: 1));
+
+      lastPoppedRoute = null;
+      await tester.tap(find.text(account.email));
+      await tester.pump();
+      final popDuration = (lastPoppedRoute as TransitionRoute).reverseTransitionDuration;
+      final pushDuration = (topRoute as TransitionRoute).transitionDuration;
+      final animationDuration = popDuration > pushDuration ? popDuration : pushDuration;
+      await tester.pump(animationDuration + Duration(milliseconds: 1));
+    }
+
+    final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+    final sampleRealmUrl = eg.realmUrl.toString();
+    final unsupportedFeatureLevel = kMinSupportedZulipFeatureLevel - 1;
+    final unsupportedVersion = '3.0';
+
+    testWidgets('not shown when server is at supported feature level', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: kMinSupportedZulipFeatureLevel,
+        zulipVersion: kMinSupportedZulipVersion);
+      check(find.byType(ZulipBanner)).findsNothing();
+    });
+
+    testWidgets('shown for administrator when server is below supported feature level', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion,
+        selfUser: eg.user(role: UserRole.administrator));
+      check(find.text(zulipLocalizations.serverCompatBannerAdminMessage(
+        sampleRealmUrl, unsupportedVersion))).findsOne();
+    });
+
+    testWidgets('shown for owner when server is below supported feature level', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion,
+        selfUser: eg.user(role: UserRole.owner));
+      check(find.text(zulipLocalizations.serverCompatBannerAdminMessage(
+        sampleRealmUrl, unsupportedVersion))).findsOne();
+    });
+
+    testWidgets('shown for member when server is below supported feature level', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion);
+      check(find.text(zulipLocalizations.serverCompatBannerUserMessage(
+        sampleRealmUrl, unsupportedVersion))).findsOne();
+    });
+
+    testWidgets('banner has alert semantics role', (tester) async {
+      final findBannerSemantics = find.byWidgetPredicate((widget) =>
+        widget is Semantics && widget.properties.role == SemanticsRole.alert);
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion);
+      check(find.descendant(
+        of: find.byType(ZulipBanner),
+        matching: findBannerSemantics)
+      ).findsOne();
+    });
+
+    testWidgets('banner dismiss state persists when switching account away and back', (tester) async {
+      prepareBoringImageHttpClient();
+
+      final accountA = eg.selfAccount.copyWith(
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion);
+      final accountB = eg.otherAccount.copyWith(
+        zulipFeatureLevel: kMinSupportedZulipFeatureLevel,
+        zulipVersion: kMinSupportedZulipVersion);
+
+      await prepareBanner(tester,
+        selfAccount: accountA,
+        otherAccount: accountB);
+      checkOnHomePage(tester, expectedAccount: accountA);
+      check(find.byType(ZulipBanner)).findsOne();
+
+      await switchToAccount(tester, accountB);
+      checkOnHomePage(tester, expectedAccount: accountB);
+
+      await switchToAccount(tester, accountA);
+      checkOnHomePage(tester, expectedAccount: accountA);
+      // Banner reappears after switching accounts.
+      check(find.byType(ZulipBanner)).findsOne();
+
+      await tester.tap(find.text(zulipLocalizations.serverCompatBannerDismissLabel));
+      await tester.pump();
+      check(find.byType(ZulipBanner)).findsNothing();
+
+      await switchToAccount(tester, accountB);
+      checkOnHomePage(tester, expectedAccount: accountB);
+
+      await switchToAccount(tester, accountA);
+      checkOnHomePage(tester, expectedAccount: accountA);
+      // Dismissal persists after switching accounts.
+      check(find.byType(ZulipBanner)).findsNothing();
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('learn more opens kServerSupportDocUrl', (tester) async {
+      await prepareBanner(tester,
+        zulipFeatureLevel: unsupportedFeatureLevel,
+        zulipVersion: unsupportedVersion);
+      await tester.tap(find.text(zulipLocalizations.serverCompatBannerLearnMoreLabel));
+      check(testBinding.takeLaunchUrlCalls()).single
+        .equals((url: kServerSupportDocUrl, mode: LaunchMode.inAppBrowserView));
+    });
+  });
 }

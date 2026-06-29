@@ -78,6 +78,8 @@ class InitialSnapshot {
 
   final List<UserTopicItem> userTopics;
 
+  final Map<int, ClientDevice>? devices; // TODO(server-12)
+
   final GroupSettingValue? realmCanDeleteAnyMessageGroup; // TODO(server-10)
 
   final GroupSettingValue? realmCanDeleteOwnMessageGroup; // TODO(server-10)
@@ -94,7 +96,10 @@ class InitialSnapshot {
   /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
 
-  final bool realmMandatoryTopics;
+  @JsonKey(unknownEnumValue: RealmTopicsPolicy.unknown)
+  final RealmTopicsPolicy? realmTopicsPolicy; // TODO(server-11)
+
+  final bool? realmMandatoryTopics; // TODO(server-11) Remove deprecated setting.
 
   final String realmName;
 
@@ -126,6 +131,8 @@ class InitialSnapshot {
 
   final Uri serverEmojiDataUrl;
 
+  final int? realmModerationRequestChannelId; // TODO(server-10)
+
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
 
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
@@ -134,6 +141,8 @@ class InitialSnapshot {
   final List<User> realmNonActiveUsers;
   @JsonKey(readValue: _readUsersIsActiveFallbackTrue)
   final List<User> crossRealmBots;
+
+  final List<ReportMessageType>? serverReportMessageTypes; // TODO(server-12)
 
   // TODO(server): Get this API stabilized, to replace [SupportedPermissionSettings.fixture].
   // final SupportedPermissionSettings? serverSupportedPermissionSettings;
@@ -188,10 +197,12 @@ class InitialSnapshot {
     required this.userStatuses,
     required this.userSettings,
     required this.userTopics,
+    required this.devices,
     required this.realmCanDeleteAnyMessageGroup,
     required this.realmCanDeleteOwnMessageGroup,
     required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
+    required this.realmTopicsPolicy,
     required this.realmMandatoryTopics,
     required this.realmName,
     required this.realmWaitingPeriodThreshold,
@@ -205,10 +216,12 @@ class InitialSnapshot {
     required this.maxFileUploadSizeMib,
     required this.serverThumbnailFormats,
     required this.serverEmojiDataUrl,
+    required this.realmModerationRequestChannelId,
     required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
     required this.realmNonActiveUsers,
     required this.crossRealmBots,
+    required this.serverReportMessageTypes,
   });
 
   factory InitialSnapshot.fromJson(Map<String, dynamic> json) =>
@@ -246,6 +259,17 @@ enum RealmDeleteOwnMessagePolicy {
   final int apiValue;
 
   int toJson() => apiValue;
+}
+
+/// A value of [InitialSnapshot.realmTopicsPolicy].
+///
+/// For docs, search for "realm_topics_policy"
+/// in <https://zulip.com/api/register-queue>.
+@JsonEnum(fieldRename: FieldRename.snake)
+enum RealmTopicsPolicy {
+  allowEmptyTopic,
+  disableEmptyTopic,
+  unknown;
 }
 
 /// An item in `realm_default_external_accounts`.
@@ -296,6 +320,26 @@ class ThumbnailFormat {
     _$ThumbnailFormatFromJson(json);
 
   Map<String, dynamic> toJson() => _$ThumbnailFormatToJson(this);
+}
+
+/// An item in `server_report_message_types`.
+///
+/// For docs, search for "server_report_message_types:"
+/// in <https://zulip.com/api/register-queue>.
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ReportMessageType {
+  final String key;
+  final String name;
+
+  ReportMessageType({
+    required this.key,
+    required this.name,
+  });
+
+  factory ReportMessageType.fromJson(Map<String, dynamic> json) =>
+    _$ReportMessageTypeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ReportMessageTypeToJson(this);
 }
 
 /// An item in `recent_private_conversations`.

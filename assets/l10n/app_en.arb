@@ -333,6 +333,62 @@
   "@errorDeleteMessageFailedTitle": {
     "description": "Error title when deleting a message failed."
   },
+  "actionSheetOptionReportMessage": "Report message",
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
+  },
+  "reportMessageDialogTitle": "Report message",
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "reportMessageDescription": "Your report will be sent to the private moderation requests channel for this organization.",
+  "@reportMessageDescription": {
+    "description": "Explanatory text shown under the title in the report message dialog."
+  },
+  "messageReportTypeSpam": "Spam",
+  "@messageReportTypeSpam": {
+    "description": "Label for the 'Spam' report type in the report message dialog."
+  },
+  "messageReportTypeHarassment": "Harassment",
+  "@messageReportTypeHarassment": {
+    "description": "Label for the 'Harassment' report type in the report message dialog."
+  },
+  "messageReportTypeInappropriate": "Inappropriate content",
+  "@messageReportTypeInappropriate": {
+    "description": "Label for the 'Inappropriate content' report type in the report message dialog."
+  },
+  "messageReportTypeNorms": "Violates community norms",
+  "@messageReportTypeNorms": {
+    "description": "Label for the 'Violates community norms' report type in the report message dialog."
+  },
+  "messageReportTypeOther": "Other reason",
+  "@messageReportTypeOther": {
+    "description": "Label for the 'Other reason' report type in the report message dialog."
+  },
+  "reportMessageReasonLabel": "What’s the problem with this message?",
+  "@reportMessageReasonLabel": {
+    "description": "Label text for the report reason dropdown in the report message dialog."
+  },
+  "reportMessageDescriptionLabel": "Can you provide more details?",
+  "@reportMessageDescriptionLabel": {
+    "description": "Label text for the description field in the report message dialog."
+  },
+  "reportMessageDescriptionRequired": "Please provide details.",
+  "@reportMessageDescriptionRequired": {
+    "description": "Validation error shown in the report message dialog when the report type is \"Other\" and no description is provided."
+  },
+  "reportMessageSubmitButton": "Submit",
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
+  "reportMessageSuccess": "Message reported",
+  "@reportMessageSuccess": {
+    "description": "Snackbar message shown after successfully reporting a message."
+  },
+  "errorReportMessageFailedTitle": "Failed to report message",
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
+  },
   "actionSheetOptionMarkTopicAsRead": "Mark topic as read",
   "@actionSheetOptionMarkTopicAsRead": {
     "description": "Option to mark a specific topic as read in the action sheet."
@@ -340,6 +396,29 @@
   "actionSheetOptionCopyTopicLink": "Copy link to topic",
   "@actionSheetOptionCopyTopicLink": {
     "description": "Label for copy topic link button in action sheet."
+  },
+  "actionSheetTitleDm": "DMs with {user}",
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {"type": "String", "example": "Alice"}
+    }
+  },
+  "actionSheetTitleSelfDm": "DMs with yourself",
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
+  },
+  "actionSheetTitleGroupDm": "Group DM",
+  "@actionSheetTitleGroupDm": {
+    "description": "The title of an action sheet for a group DM conversation."
+  },
+  "actionSheetOptionViewProfile": "View profile",
+  "@actionSheetOptionViewProfile": {
+    "description": "Option to view the user's profile in the action sheet for a 1:1 DM conversation."
+  },
+  "actionSheetOptionMarkDmConversationAsRead": "Mark conversation as read",
+  "@actionSheetOptionMarkDmConversationAsRead": {
+    "description": "Option to mark a DM conversation as read in the action sheet."
   },
   "errorWebAuthOperationalErrorTitle": "Something went wrong",
   "@errorWebAuthOperationalErrorTitle": {
@@ -895,9 +974,9 @@
   "@loginAddAnAccountPageTitle": {
     "description": "Title for page to add a Zulip account."
   },
-  "loginServerUrlLabel": "Your Zulip server URL",
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
+  "loginRealmUrlLabel": "Your Zulip organization URL",
+  "@loginRealmUrlLabel": {
+    "description": "Label in login page for Zulip realm/org URL entry."
   },
   "loginHidePassword": "Hide password",
   "@loginHidePassword": {
@@ -937,7 +1016,7 @@
       }
     }
   },
-  "topicValidationErrorMandatoryButEmpty": "Topics are required in this organization.",
+  "topicValidationErrorMandatoryButEmpty": "Topics are required in this channel.",
   "@topicValidationErrorMandatoryButEmpty": {
     "description": "Topic validation error when topic is required but was empty."
   },
@@ -949,14 +1028,38 @@
   "@errorContentToInsertIsEmpty": {
     "description": "Error message when the rich content to be inserted is empty or cannot be accessed."
   },
-  "errorServerVersionUnsupportedMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minSupportedZulipVersion}.",
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "errorServerVersionNotAllowedMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. The minimum supported version is Zulip Server {minAllowedZulipVersion}.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
       "url": {"type": "String", "example": "http://chat.example.com/"},
       "zulipVersion": {"type": "String", "example": "3.2"},
-      "minSupportedZulipVersion": {"type": "String", "example": "4.0"}
+      "minAllowedZulipVersion": {"type": "String", "example": "4.0"}
     }
+  },
+  "serverCompatBannerAdminMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. Please upgrade your server as soon as possible.",
+  "@serverCompatBannerAdminMessage": {
+    "description": "Banner message shown to server admins when the server version is no longer supported.",
+    "placeholders": {
+      "url": {"type": "String", "example": "http://chat.example.com/"},
+      "zulipVersion": {"type": "String", "example": "9.0"}
+    }
+  },
+  "serverCompatBannerUserMessage": "{url} is running Zulip Server {zulipVersion}, which is unsupported. Please contact your server administrator about upgrading.",
+  "@serverCompatBannerUserMessage": {
+    "description": "Banner message shown to non-admin users when the server version is no longer supported.",
+    "placeholders": {
+      "url": {"type": "String", "example": "http://chat.example.com/"},
+      "zulipVersion": {"type": "String", "example": "9.0"}
+    }
+  },
+  "serverCompatBannerDismissLabel": "Dismiss",
+  "@serverCompatBannerDismissLabel": {
+    "description": "Label for the button that dismisses the server compatibility warning banner."
+  },
+  "serverCompatBannerLearnMoreLabel": "Learn more",
+  "@serverCompatBannerLearnMoreLabel": {
+    "description": "Label for the button in the server compatibility warning banner that opens the support policy doc."
   },
   "errorInvalidApiKeyMessage": "Your account at {url} could not be authenticated. Please try logging in again or use another account.",
   "@errorInvalidApiKeyMessage": {
@@ -998,6 +1101,14 @@
   "errorVideoPlayerFailed": "Unable to play the video.",
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
+  },
+  "errorVideoPlayerFailedTryBrowser": "Try opening it in your browser instead.",
+  "@errorVideoPlayerFailedTryBrowser": {
+    "description": "Body of a dialog suggesting the user open a video in the browser, after the app's video player failed to play it."
+  },
+  "dialogOpenInBrowser": "Open in browser",
+  "@dialogOpenInBrowser": {
+    "description": "Button label to confirm opening a link in the browser."
   },
   "serverUrlValidationErrorEmpty": "Please enter a URL.",
   "@serverUrlValidationErrorEmpty": {
@@ -1247,9 +1358,21 @@
   "@inboxEmptyPlaceholderMessage": {
     "description": "Additional centered text on the 'Inbox' page saying that there is no content to show."
   },
+  "pinnedChannelsFolderName": "Pinned channels",
+  "@pinnedChannelsFolderName": {
+    "description": "Label for the channel folder for pinned channels."
+  },
+  "otherChannelsFolderName": "Other channels",
+  "@otherChannelsFolderName": {
+    "description": "Label for the channel folder for other channels."
+  },
   "recentDmConversationsPageTitle": "Direct messages",
   "@recentDmConversationsPageTitle": {
     "description": "Title for the page with a list of DM conversations."
+  },
+  "recentDmConversationsPageShortLabel": "DMs",
+  "@recentDmConversationsPageShortLabel": {
+    "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
   },
   "recentDmConversationsSectionHeader": "Direct messages",
   "@recentDmConversationsSectionHeader": {
@@ -1403,6 +1526,42 @@
   "wildcardMentionTopicDescription": "Notify topic",
   "@wildcardMentionTopicDescription": {
     "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
+  },
+  "systemGroupNameEveryoneOnInternet": "Everyone on the internet",
+  "@systemGroupNameEveryoneOnInternet": {
+    "description": "Display name for the system group that includes everyone on the internet."
+  },
+  "systemGroupNameEveryone": "Everyone including guests",
+  "@systemGroupNameEveryone": {
+    "description": "Display name for the system group that includes all users including guests."
+  },
+  "systemGroupNameMembers": "Everyone except guests",
+  "@systemGroupNameMembers": {
+    "description": "Display name for the system group that includes all users excluding guests."
+  },
+  "systemGroupNameFullMembers": "Full members",
+  "@systemGroupNameFullMembers": {
+    "description": "Display name for the system group that includes all full members of the organization."
+  },
+  "systemGroupNameModerators": "Moderators",
+  "@systemGroupNameModerators": {
+    "description": "Display name for the system group that includes all users with at least the moderator role."
+  },
+  "systemGroupNameAdministrators": "Administrators",
+  "@systemGroupNameAdministrators": {
+    "description": "Display name for the system group that includes all users with at least the administrator role."
+  },
+  "systemGroupNameOwners": "Owners",
+  "@systemGroupNameOwners": {
+    "description": "Display name for the system group that includes all users with the owner role."
+  },
+  "systemGroupNameNobody": "Nobody",
+  "@systemGroupNameNobody": {
+    "description": "Display name for the system group that includes nobody."
+  },
+  "navBarFeedLabel": "Feed",
+  "@navBarFeedLabel": {
+    "description": "Label for the Feed button on the bottom navigation bar."
   },
   "navBarMenuLabel": "Menu",
   "@navBarMenuLabel": {

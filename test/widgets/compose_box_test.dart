@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
@@ -65,15 +66,16 @@ void main() {
     List<Subscription> subscriptions = const [],
     List<Message>? messages,
     bool? mandatoryTopics,
+    RealmTopicsPolicy? realmTopicsPolicy,
     int? zulipFeatureLevel,
     int? maxTopicLength,
   }) async {
     streams ??= subscriptions;
 
-    if (narrow case ChannelNarrow(:var streamId) || TopicNarrow(: var streamId)) {
-      final channel = streams.firstWhereOrNull((s) => s.streamId == streamId);
+    if (narrow case ChannelNarrow(:var channelId) || TopicNarrow(:var channelId)) {
+      final channel = streams.firstWhereOrNull((s) => s.streamId == channelId);
       assert(channel != null,
-        'Add a channel with "streamId" the same as of $narrow.streamId to the store.');
+        'Add a channel with "streamId" the same as of $narrow.channelId to the store.');
       if (narrow is ChannelNarrow) {
         // By default, bypass the complexity where the topic input is autofocused
         // on an empty fetch, by making the fetch not empty. (In particular that
@@ -85,12 +87,13 @@ void main() {
     messages ??= [];
     selfUser ??= eg.selfUser;
     zulipFeatureLevel ??= eg.futureZulipFeatureLevel;
-    final selfAccount = eg.account(user: selfUser, zulipFeatureLevel: zulipFeatureLevel);
+    final selfAccount = eg.account(user: selfUser);
     await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
       realmUsers: [selfUser, ...otherUsers],
       streams: streams,
       subscriptions: subscriptions,
       zulipFeatureLevel: zulipFeatureLevel,
+      realmTopicsPolicy: realmTopicsPolicy,
       realmMandatoryTopics: mandatoryTopics,
       realmAllowMessageEditing: true,
       realmMessageContentEditLimitSeconds: null,
@@ -132,7 +135,7 @@ void main() {
     await tester.enterText(topicInputFinder, topic);
     check(connection.takeRequests()).single
       ..method.equals('GET')
-      ..url.path.equals('/api/v1/users/me/${narrow.streamId}/topics');
+      ..url.path.equals('/api/v1/users/me/${narrow.channelId}/topics');
   }
 
   /// A [Finder] for the content input.
@@ -468,6 +471,7 @@ void main() {
 
     Future<void> prepare(WidgetTester tester, {
       required Narrow narrow,
+      RealmTopicsPolicy? realmTopicsPolicy,
       bool? mandatoryTopics,
       int? zulipFeatureLevel,
     }) async {
@@ -475,6 +479,7 @@ void main() {
         narrow: narrow,
         otherUsers: [eg.otherUser, eg.thirdUser],
         subscriptions: [eg.subscription(channel)],
+        realmTopicsPolicy: realmTopicsPolicy,
         mandatoryTopics: mandatoryTopics,
         zulipFeatureLevel: zulipFeatureLevel);
     }
@@ -501,7 +506,7 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
 
       testWidgets('with empty topic, topic input has focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .allowEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -521,7 +526,7 @@ void main() {
       });
 
       testWidgets('with non-empty but vacuous topic, topic input has focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .allowEmptyTopic);
         await enterTopic(tester, narrow: narrow,
           topic: eg.defaultRealmEmptyTopicDisplayName);
         await tester.pump();
@@ -532,7 +537,7 @@ void main() {
       });
 
       testWidgets('with empty topic, topic input has focus, then content input gains focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .allowEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -549,7 +554,7 @@ void main() {
       });
 
       testWidgets('with empty topic, topic input has focus, then loses it', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .allowEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -565,7 +570,7 @@ void main() {
       });
 
       testWidgets('with empty topic, content input has focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .allowEmptyTopic);
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -589,7 +594,7 @@ void main() {
       });
 
       testWidgets('with empty topic, content input has focus, then topic input gains focus', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .allowEmptyTopic);
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -606,7 +611,7 @@ void main() {
       });
 
       testWidgets('with empty topic, content input has focus, then loses it', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .allowEmptyTopic);
         await enterContent(tester, '');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -623,7 +628,7 @@ void main() {
       });
 
       testWidgets('with non-empty topic', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: false);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .allowEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
@@ -637,7 +642,7 @@ void main() {
       final narrow = ChannelNarrow(channel.streamId);
 
       testWidgets('with empty topic', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: true);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .disableEmptyTopic);
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name}');
@@ -653,7 +658,7 @@ void main() {
 
       group('with non-empty but vacuous topics', () {
         testWidgets('realm_empty_topic_display_name', (tester) async {
-          await prepare(tester, narrow: narrow, mandatoryTopics: true);
+          await prepare(tester, narrow: narrow, realmTopicsPolicy: .disableEmptyTopic);
           await enterTopic(tester, narrow: narrow,
             topic: eg.defaultRealmEmptyTopicDisplayName);
           await tester.pump();
@@ -663,7 +668,7 @@ void main() {
         });
 
         testWidgets('"(no topic)"', (tester) async {
-          await prepare(tester, narrow: narrow, mandatoryTopics: true);
+          await prepare(tester, narrow: narrow, realmTopicsPolicy: .disableEmptyTopic);
           await enterTopic(tester, narrow: narrow,
             topic: '(no topic)');
           await tester.pump();
@@ -674,13 +679,83 @@ void main() {
       });
 
       testWidgets('with non-empty topic', (tester) async {
-        await prepare(tester, narrow: narrow, mandatoryTopics: true);
+        await prepare(tester, narrow: narrow, realmTopicsPolicy: .disableEmptyTopic);
         await enterTopic(tester, narrow: narrow, topic: 'new topic');
         await tester.pump();
         checkComposeBoxHintTexts(tester,
           topicHintText: 'Topic',
           contentHintText: 'Message #${channel.name} > new topic');
       });
+    });
+
+    group('to ChannelNarrow, topic policy resolution', () {
+      void doTest(String description, {
+        ChannelTopicsPolicy? channelTopicsPolicy,
+        RealmTopicsPolicy? realmTopicsPolicy,
+        bool? mandatoryTopics,
+        required bool expectAllowsEmpty,
+      }) {
+        assert(
+          (mandatoryTopics == null && channelTopicsPolicy != null && realmTopicsPolicy != null)
+          || (mandatoryTopics != null && channelTopicsPolicy == null && realmTopicsPolicy == null),
+          'Pass either channel and realm policies or mandatoryTopics.');
+
+        testWidgets(description, (tester) async {
+          final channel = eg.stream(topicsPolicy: channelTopicsPolicy);
+          final narrow = ChannelNarrow(channel.streamId);
+          await prepareComposeBox(tester,
+            narrow: narrow,
+            subscriptions: [eg.subscription(channel)],
+            realmTopicsPolicy: realmTopicsPolicy,
+            mandatoryTopics: mandatoryTopics);
+
+          await enterTopic(tester, narrow: narrow, topic: '');
+          await tester.pump();
+          checkComposeBoxHintTexts(tester,
+            topicHintText: expectAllowsEmpty
+              ? 'Enter a topic (skip for “${eg.defaultRealmEmptyTopicDisplayName}”)'
+              : 'Topic',
+            contentHintText: 'Message #${channel.name}');
+        });
+      }
+
+      doTest('channel setting allows empty, realm setting allows empty',
+        channelTopicsPolicy: .allowEmptyTopic,
+        realmTopicsPolicy: .allowEmptyTopic,
+        expectAllowsEmpty: true);
+
+      doTest('channel setting allows empty, realm setting disables empty',
+        channelTopicsPolicy: .allowEmptyTopic,
+        realmTopicsPolicy: .disableEmptyTopic,
+        expectAllowsEmpty: true);
+
+      doTest('channel setting disables empty, realm setting allows empty',
+        channelTopicsPolicy: .disableEmptyTopic,
+        realmTopicsPolicy: .allowEmptyTopic,
+        expectAllowsEmpty: false);
+
+      doTest('channel setting disables empty, realm setting disables empty',
+        channelTopicsPolicy: .disableEmptyTopic,
+        realmTopicsPolicy: .disableEmptyTopic,
+        expectAllowsEmpty: false);
+
+      doTest('channel setting inherits, realm setting allows empty',
+        channelTopicsPolicy: .inherit,
+        realmTopicsPolicy: .allowEmptyTopic,
+        expectAllowsEmpty: true);
+
+      doTest('channel setting inherits, realm setting disables empty',
+        channelTopicsPolicy: .inherit,
+        realmTopicsPolicy: .disableEmptyTopic,
+        expectAllowsEmpty: false);
+
+      doTest('legacy: mandatoryTopics disables empty',
+        mandatoryTopics: true,
+        expectAllowsEmpty: false);
+
+      doTest('legacy: mandatoryTopics allows empty',
+        mandatoryTopics: false,
+        expectAllowsEmpty: true);
     });
 
     group('to TopicNarrow', () {
@@ -798,7 +873,7 @@ void main() {
 
     testWidgets('smoke ChannelNarrow', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
-      final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
+      final destinationNarrow = eg.topicNarrow(narrow.channelId, 'test topic');
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)]);
       await enterTopic(tester, narrow: narrow, topic: 'test topic');
@@ -870,7 +945,7 @@ void main() {
 
     testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
       final narrow = ChannelNarrow(channel.streamId);
-      final destinationNarrow = eg.topicNarrow(narrow.streamId, 'test topic');
+      final destinationNarrow = eg.topicNarrow(narrow.channelId, 'test topic');
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)]);
       await enterTopic(tester, narrow: narrow, topic: 'test topic');
@@ -1039,7 +1114,9 @@ void main() {
 
     Future<void> setupAndTapSend(WidgetTester tester, {
       required String topicInputText,
-      required bool mandatoryTopics,
+      ChannelTopicsPolicy? channelTopicsPolicy,
+      RealmTopicsPolicy? realmTopicsPolicy,
+      bool? mandatoryTopics,
       int? zulipFeatureLevel,
     }) async {
       TypingNotifier.debugEnable = false;
@@ -1047,11 +1124,12 @@ void main() {
       MessageStoreImpl.debugOutboxEnable = false;
       addTearDown(MessageStoreImpl.debugReset);
 
-      channel = eg.stream();
+      channel = eg.stream(topicsPolicy: channelTopicsPolicy);
       final narrow = ChannelNarrow(channel.streamId);
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)],
         mandatoryTopics: mandatoryTopics,
+        realmTopicsPolicy: realmTopicsPolicy,
         zulipFeatureLevel: zulipFeatureLevel);
 
       await enterTopic(tester, narrow: narrow, topic: topicInputText);
@@ -1064,13 +1142,13 @@ void main() {
       check(connection.takeRequests()).isEmpty();
       checkErrorDialog(tester,
         expectedTitle: 'Message not sent',
-        expectedMessage: 'Topics are required in this organization.');
+        expectedMessage: 'Topics are required in this channel.');
     }
 
     testWidgets('empty topic -> ""', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '',
-        mandatoryTopics: false);
+        realmTopicsPolicy: .allowEmptyTopic);
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
@@ -1091,21 +1169,21 @@ void main() {
     testWidgets('if topics are mandatory, reject empty topic', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '',
-        mandatoryTopics: true);
+        realmTopicsPolicy: .disableEmptyTopic);
       checkMessageNotSent(tester);
     });
 
     testWidgets('if topics are mandatory, reject `realmEmptyTopicDisplayName`', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: eg.defaultRealmEmptyTopicDisplayName,
-        mandatoryTopics: true);
+        realmTopicsPolicy: .disableEmptyTopic);
       checkMessageNotSent(tester);
     });
 
     testWidgets('if topics are mandatory, reject "(no topic)"', (tester) async {
       await setupAndTapSend(tester,
         topicInputText: '(no topic)',
-        mandatoryTopics: true);
+        realmTopicsPolicy: .disableEmptyTopic);
       checkMessageNotSent(tester);
     });
   });
@@ -1708,13 +1786,22 @@ void main() {
 
   group('ComposeBox content input scaling', () {
     const verticalPadding = 8;
+    const lineHeight = 22.0; // _fontSize * _lineHeightRatio
     final stream = eg.stream();
     final narrow = eg.topicNarrow(stream.streamId, 'foo');
 
+    /// Adds lines of content until the input stops getting taller,
+    /// then checks the height against [maxHeight] and the
+    /// number of visible lines against [maxVisibleLines].
+    ///
+    /// In the [maxVisibleLines] check, the partly-visible line at the bottom
+    /// is considered visible.
     Future<void> checkContentInputMaxHeight(WidgetTester tester, {
-      required double maxHeight,
+      required double scaleFactor,
       required int maxVisibleLines,
     }) async {
+      tester.platformDispatcher.textScaleFactorTestValue = scaleFactor;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       TypingNotifier.debugEnable = false;
       addTearDown(TypingNotifier.debugReset);
 
@@ -1725,13 +1812,17 @@ void main() {
         final content = List.generate(numLines, (_) => 'foo').join('\n');
         await enterContent(tester, content);
         await tester.pump();
-        final newHeight = tester.getRect(contentInputFinder).height;
+        final newHeight = tester.getRect(contentInputFinder).height
+          // max-height is applied to the Padding around the content-input field
+          + 2 * verticalPadding;
         if (newHeight == height) {
           break;
         }
         height = newHeight;
       }
-      check(height).isNotNull().isCloseTo(maxHeight, 0.5);
+      final expectedMaxHeight =
+        verticalPadding + scaleFactor * (maxVisibleLines - 0.273) * lineHeight;
+      check(height).isNotNull().isCloseTo(expectedMaxHeight, 0.5);
       // The last line added did not stretch the content input,
       // so only the lines before it are at least partially visible.
       check(numLines - 1).equals(maxVisibleLines);
@@ -1742,34 +1833,28 @@ void main() {
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
 
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + 170, maxVisibleLines: 8);
+        scaleFactor: 1.0, maxVisibleLines: 8);
     });
 
     testWidgets('lower text scale factor', (tester) async {
-      tester.platformDispatcher.textScaleFactorTestValue = 0.8;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + 170 * 0.8, maxVisibleLines: 8);
+        scaleFactor: 0.8, maxVisibleLines: 9);
     });
 
     testWidgets('higher text scale factor', (tester) async {
-      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 8);
+        scaleFactor: 1.5, maxVisibleLines: 8);
     });
 
-    testWidgets('higher text scale factor exceeding threshold', (tester) async {
-      tester.platformDispatcher.textScaleFactorTestValue = 2;
-      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    testWidgets('higher text scale factor exceeding 1.5x threshold', (tester) async {
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(stream)]);
       await checkContentInputMaxHeight(tester,
-        maxHeight: verticalPadding + 170 * 1.5, maxVisibleLines: 6);
+        scaleFactor: 2.0, maxVisibleLines: 6);
     });
   });
 

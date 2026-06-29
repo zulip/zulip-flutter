@@ -23,14 +23,7 @@ Future<GetServerSettingsResult> getServerSettings(ApiConnection connection) {
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class GetServerSettingsResult {
-  // This is marked as deprecated, but we still need it to answer some
-  // questions:
-  // - Do we offer dev login? (Yes if it has `dev: true`.)
-  // - Do we offer password login? (Yes if it has `password: true` or `ldap: true`.)
-  // - Do we offer a "Log in with SSO" button? (Yes if it has `remoteuser: true`.)
-  //
-  // Discussion: https://chat.zulip.org/#narrow/stream/378-api-design/topic/.60authentication_methods.60.20in.20server.20settings/near/1722986
-  final Map<String, bool> authenticationMethods;
+  final AuthenticationMethods authenticationMethods;
 
   final List<ExternalAuthenticationMethod> externalAuthenticationMethods;
 
@@ -73,6 +66,40 @@ class GetServerSettingsResult {
     _$GetServerSettingsResultFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetServerSettingsResultToJson(this);
+}
+
+// This is marked as deprecated, but we still need it to answer some
+// questions:
+// - Do we offer dev login? (Yes if it has `dev: true`.)
+// - Do we offer password login? (Yes if it has `password: true` or `ldap: true`.)
+// - Do we offer a "Log in with SSO" button? (Yes if it has `remoteuser: true`.)
+//
+// Discussion: https://chat.zulip.org/#narrow/stream/378-api-design/topic/.60authentication_methods.60.20in.20server.20settings/near/1722986
+@JsonSerializable(fieldRename: FieldRename.snake)
+class AuthenticationMethods {
+  // final bool password; // deprecated; ignore
+  // final bool dev; // deprecated; ignore
+  // final bool email; // deprecated; ignore
+  final bool ldap;
+  // final bool remoteuser; // deprecated; ignore
+  // final bool github; // deprecated; ignore
+  // final bool azuread; // deprecated; ignore
+  // final bool gitlab; // deprecated; ignore
+  // final bool apple; // deprecated; ignore
+  // final bool google; // deprecated; ignore
+  // final bool saml; // deprecated; ignore
+
+  // @JsonKey(name: 'openid connect')
+  // final bool openidConnect; // deprecated; ignore
+
+  AuthenticationMethods({
+    required this.ldap,
+  });
+
+  factory AuthenticationMethods.fromJson(Map<String, dynamic> json) =>
+    _$AuthenticationMethodsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$AuthenticationMethodsToJson(this);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

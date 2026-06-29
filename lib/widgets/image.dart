@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../api/core.dart';
 import '../api/model/initial_snapshot.dart';
+import '../model/binding.dart';
 import '../model/content.dart';
 import 'store.dart';
 
@@ -137,14 +137,27 @@ enum ImageAnimationMode {
         //   https://github.com/zulip/zulip-flutter/pull/410#discussion_r1408522293
         if (MediaQuery.disableAnimationsOf(context)) return false;
 
-        if (
-          defaultTargetPlatform == TargetPlatform.iOS
-          // TODO(#1924) On iOS 17+ (new in 2023), there's a more closely
-          //   relevant setting than "reduce motion". It's called "auto-play
-          //   animated images"; we should use that once Flutter exposes it.
-          && WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.reduceMotion
-        ) {
-          return false;
+        final deviceInfo = ZulipBinding.instance.syncDeviceInfo;
+        if (deviceInfo case IosDeviceInfo(:final majorVersion)) {
+          final accessibilityFeatures =
+            WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
+
+          if (majorVersion == null || majorVersion < 18) {
+            // [AccessibilityFeatures.autoPlayAnimatedImages] reflects iOS's
+            // Accessibility > Motion > "Auto-Play Animated Images" on iOS 18+.
+            // The setting was new in iOS 17:
+            //   https://support.apple.com/guide/iphone/reduce-onscreen-motion-iph0b691d3ed/17.0/ios/17.0
+            // but the API for *reading* it is iOS 18+:
+            //   https://developer.apple.com/documentation/accessibility/accessibilitysettings/animatedimagesenabled
+            // Flutter's behavior pre-18 is to always return true:
+            //   https://github.com/flutter/flutter/blob/0841ce10a/engine/src/flutter/shell/platform/darwin/ios/framework/Source/AccessibilityFeatures.swift#L178-L186
+            // so we do our own version check to fall back to the older
+            // "Reduce motion" setting.
+            // TODO(ios-18) simplify away
+            return !accessibilityFeatures.reduceMotion;
+          }
+
+          return accessibilityFeatures.autoPlayAnimatedImages;
         }
 
         return true;

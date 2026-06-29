@@ -5,9 +5,12 @@ import 'package:zulip/api/model/model.dart';
 
 import '../api/model/model_checks.dart';
 import '../example_data.dart' as eg;
+import 'binding.dart';
 import 'store_checks.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   test('handleSavedSnippetsEvent', () async {
     final store = eg.store(initialSnapshot: eg.initialSnapshot(
       savedSnippets: [eg.savedSnippet(id: 101)]));

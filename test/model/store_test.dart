@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:checks/checks.dart';
@@ -125,6 +126,14 @@ void main() {
     check(completers(1)).length.equals(1);
   });
 
+  test('GlobalStore get/setServerCompatBannerDismissed', () async {
+    final globalStore = eg.globalStore(accounts: [account1]);
+
+    check(globalStore.getServerCompatBannerDismissed(account1.id)).isFalse();
+    globalStore.setServerCompatBannerDismissed(account1.id);
+    check(globalStore.getServerCompatBannerDismissed(account1.id)).isTrue();
+  });
+
   test('GlobalStore.perAccount loading fails with HTTP status code 401', () => awaitFakeAsync((async) async {
     final globalStore = LoadingTestGlobalStore(accounts: [eg.selfAccount]);
     final future = globalStore.perAccount(eg.selfAccount.id);
@@ -192,6 +201,7 @@ void main() {
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls())
       .single.equals(eg.selfAccount.id);
@@ -213,6 +223,7 @@ void main() {
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls())
       .single.equals(eg.selfAccount.id);
@@ -236,6 +247,7 @@ void main() {
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 
@@ -260,6 +272,7 @@ void main() {
     final future = globalStore.perAccount(eg.selfAccount.id);
     check(connection.takeRequests()).length.equals(1); // register request
 
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 
@@ -283,6 +296,7 @@ void main() {
     check(connection.takeRequests()).length.equals(1); // register request
 
     assert(TestGlobalStore.removeAccountDuration < Duration(milliseconds: 500));
+    globalStore.clearCachedApiConnections();
     await logOutAccount(globalStore, eg.selfAccount.id);
     check(globalStore.takeDoRemoveAccountCalls())
       .single.equals(eg.selfAccount.id);
@@ -311,18 +325,18 @@ void main() {
       // Update a nullable field, and a non-nullable one.
       final account = eg.selfAccount.copyWith(
         zulipFeatureLevel: 123,
-        ackedPushToken: const Value('asdf'),
+        deviceId: const Value(3456),
       );
       final globalStore = eg.globalStore(accounts: [account]);
       final updated = await globalStore.updateAccount(account.id,
         const AccountsCompanion(
           zulipFeatureLevel: Value(234),
-          ackedPushToken: Value(null),
+          deviceId: Value(null),
         ));
       check(globalStore.getAccount(account.id)).identicalTo(updated);
       check(updated).equals(account.copyWith(
         zulipFeatureLevel: 234,
-        ackedPushToken: const Value(null),
+        deviceId: const Value(null),
       ));
     });
 
@@ -583,7 +597,8 @@ void main() {
     void checkLastRequest() {
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
-        ..url.path.equals('/api/v1/register');
+        ..url.path.equals('/api/v1/register')
+        ..bodyFields['idle_queue_timeout'].equals(jsonEncode('mobile'));
     }
 
     test('smoke', () => awaitFakeAsync((async) async {
@@ -1190,6 +1205,7 @@ void main() {
           json: eg.initialSnapshot().toJson());
       });
 
+      globalStore.clearCachedApiConnections();
       await logOutAccount(globalStore, eg.selfAccount.id);
       check(globalStore.takeDoRemoveAccountCalls()).single.equals(eg.selfAccount.id);
 

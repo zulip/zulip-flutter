@@ -11,9 +11,12 @@ import '../api/route/route_checks.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
+import 'binding.dart';
 import 'test_store.dart';
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   late PerAccountStore store;
   late Topics model;
   late FakeApiConnection connection;

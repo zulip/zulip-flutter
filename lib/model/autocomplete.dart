@@ -363,8 +363,7 @@ class AutocompleteViewManager {
 abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extends AutocompleteResult> extends ChangeNotifier {
   /// Construct a view-model for an autocomplete interaction,
   /// and begin the search for the initial query.
-  AutocompleteView({required this.store, required QueryT query})
-      : _query = query {
+  AutocompleteView({required this.store, required this._query}) {
     _startSearch();
     store.autocompleteViewManager.registerAutocomplete(this);
   }
@@ -560,13 +559,13 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
     // See also [MentionAutocompleteQuery._rankUserResult];
     // that ranking takes precedence over this.
 
-    int? streamId;
+    int? channelId;
     TopicName? topic;
     switch (narrow) {
       case ChannelNarrow():
-        streamId = narrow.streamId;
+        channelId = narrow.channelId;
       case TopicNarrow():
-        streamId = narrow.streamId;
+        channelId = narrow.channelId;
         topic = narrow.topic;
       case DmNarrow():
         break;
@@ -576,22 +575,31 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       case KeywordSearchNarrow():
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
+
+    // The [TopicKeyedMap] lookup calls [TopicName.canonicalize] each time,
+    // so do it once here rather than O(n log n) times in the sort.
+    final getRecencyInTopic = (channelId != null && topic != null)
+      ? store.recentSenders.latestMessageIdBySenderInTopic(
+          channelId: channelId, topic: topic)
+      : null;
+
     return (userA, userB) => _compareByRelevance(userA, userB,
-      streamId: streamId, topic: topic,
+      channelId: channelId,
+      getRecencyInTopic: getRecencyInTopic,
       store: store);
   }
 
   static int _compareByRelevance(User userA, User userB, {
-    required int? streamId,
-    required TopicName? topic,
+    required int? channelId,
+    required int? Function(int senderId)? getRecencyInTopic,
     required PerAccountStore store,
   }) {
     // TODO(#618): give preference to subscribed users first
 
-    if (streamId != null) {
+    if (channelId != null) {
       final recencyResult = compareByRecency(userA, userB,
-        streamId: streamId,
-        topic: topic,
+        channelId: channelId,
+        getRecencyInTopic: getRecencyInTopic,
         store: store);
       if (recencyResult != 0) return recencyResult;
     }
@@ -605,37 +613,38 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
   }
 
   /// Determines which of the two users has more recent activity (messages sent
-  /// recently) in the topic/stream.
+  /// recently) in the given topic and/or channel.
   ///
-  /// First checks for the activity in [topic] if provided.
+  /// First checks for the activity in the topic using [getRecencyInTopic]
+  /// if provided.
   ///
-  /// If no [topic] is provided, or there is no activity in the topic at all,
-  /// then checks for the activity in the stream with [streamId].
+  /// If [getRecencyInTopic] is not provided,
+  /// or neither user has sent messages in the topic,
+  /// then checks for the activity in the channel with [channelId].
   ///
   /// Returns a negative number if [userA] has more recent activity than [userB],
   /// returns a positive number if [userB] has more recent activity than [userA],
   /// and returns `0` if both [userA] and [userB] have no activity at all.
+  ///
+  /// See [RecentSenders.latestMessageIdBySenderInTopic].
   @visibleForTesting
   static int compareByRecency(User userA, User userB, {
-    required int streamId,
-    required TopicName? topic,
+    required int channelId,
+    required int? Function(int senderId)? getRecencyInTopic,
     required PerAccountStore store,
   }) {
-    final recentSenders = store.recentSenders;
-    if (topic != null) {
+    if (getRecencyInTopic != null) {
       final result = -compareRecentMessageIds(
-        recentSenders.latestMessageIdOfSenderInTopic(
-          streamId: streamId, topic: topic, senderId: userA.userId),
-        recentSenders.latestMessageIdOfSenderInTopic(
-          streamId: streamId, topic: topic, senderId: userB.userId));
+        getRecencyInTopic(userA.userId),
+        getRecencyInTopic(userB.userId));
       if (result != 0) return result;
     }
 
     return -compareRecentMessageIds(
-      recentSenders.latestMessageIdOfSenderInStream(
-        streamId: streamId, senderId: userA.userId),
-      recentSenders.latestMessageIdOfSenderInStream(
-        streamId: streamId, senderId: userB.userId));
+      store.recentSenders.latestMessageIdOfSenderInChannel(
+        channelId: channelId, senderId: userA.userId),
+      store.recentSenders.latestMessageIdOfSenderInChannel(
+        channelId: channelId, senderId: userB.userId));
   }
 
   /// Determines which of the two users is more recent in DM conversations.
@@ -1222,20 +1231,20 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   TopicAutocompleteView._({
     required super.store,
     required super.query,
-    required this.streamId,
+    required this.channelId,
   });
 
   factory TopicAutocompleteView.init({
     required PerAccountStore store,
-    required int streamId,
+    required int channelId,
     required TopicAutocompleteQuery query,
   }) {
-    return TopicAutocompleteView._(store: store, streamId: streamId, query: query)
+    return TopicAutocompleteView._(store: store, channelId: channelId, query: query)
       .._fetch();
   }
 
   /// The channel/stream the eventual message will be sent to.
-  final int streamId;
+  final int channelId;
 
   Iterable<TopicName> _topics = [];
 
@@ -1246,7 +1255,7 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// fetched topics.
   Future<void> _fetch() async {
     // TODO: handle fetch failure
-    _topics = (await store.topics.getChannelTopics(streamId)).map((e) => e.name);
+    _topics = (await store.topics.getChannelTopics(channelId)).map((e) => e.name);
     return _startSearch();
   }
 
@@ -1365,9 +1374,10 @@ class ChannelLinkAutocompleteView extends AutocompleteView<ChannelLinkAutocomple
 
     int? channelId;
     switch (narrow) {
-      case ChannelNarrow(:var streamId):
-      case TopicNarrow(:var streamId):
-        channelId = streamId;
+      case ChannelNarrow():
+        channelId = narrow.channelId;
+      case TopicNarrow():
+        channelId = narrow.channelId;
       case DmNarrow():
         break;
       case CombinedFeedNarrow():

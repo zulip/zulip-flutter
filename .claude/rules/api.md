@@ -89,6 +89,10 @@ Check extensions for result types go in `route_checks.dart`.
 
 - For the API changelog, never try to fetch https://zulip.com/api/changelog .
   Instead, read the source code of that page, at ../zulip/api_docs/changelog.md .
+- The pages at api/register-queue and api/get-events are very long. For these,
+  use curl to fetch the page and save the file, then find what you need in the
+  saved file. Other API doc pages are not too long; don't bother saving those
+  (the permissions prompts would be annoying).
 
 ## Key Conventions
 

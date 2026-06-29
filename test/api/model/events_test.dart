@@ -30,6 +30,40 @@ void main() {
     ).isEmpty();
   });
 
+  group('device/update', () {
+    final baseJson = {'id': 1, 'type': 'device', 'op': 'update', 'device_id': 3 };
+
+    test('push_key_id absent', () {
+      check(Event.fromJson({ ...baseJson }))
+        .isA<DeviceUpdateEvent>().pushKeyId.isNull();
+    });
+
+    test('push_key_id null', () {
+      check(Event.fromJson({ ...baseJson, 'push_key_id': null }))
+        .isA<DeviceUpdateEvent>().pushKeyId.equals(JsonNullable(null));
+    });
+
+    test('push_key_id an int', () {
+      check(Event.fromJson({ ...baseJson, 'push_key_id': 123 }))
+        .isA<DeviceUpdateEvent>().pushKeyId.equals(JsonNullable(123));
+    });
+
+    test('pending_push_token_id absent', () {
+      check(Event.fromJson({ ...baseJson }))
+        .isA<DeviceUpdateEvent>().pendingPushTokenId.isNull();
+    });
+
+    test('pending_push_token_id null', () {
+      check(Event.fromJson({ ...baseJson, 'pending_push_token_id': null }))
+        .isA<DeviceUpdateEvent>().pendingPushTokenId.equals(JsonNullable(null));
+    });
+
+    test('pending_push_token_id a string', () {
+      check(Event.fromJson({ ...baseJson, 'pending_push_token_id': 'ab12' }))
+        .isA<DeviceUpdateEvent>().pendingPushTokenId.equals(JsonNullable('ab12'));
+    });
+  });
+
   group('realm_user/update', () {
     Map<String, Object?> mkJson(Map<String, Object?> data) =>
       {'id': 1, 'type': 'realm_user', 'op': 'update',
@@ -61,7 +95,7 @@ void main() {
         {'stream_id': 123, 'name': 'name 1'},
         {'stream_id': 456, 'name': 'name 2'},
       ],
-    }) as SubscriptionRemoveEvent).streamIds.jsonEquals([123, 456]);
+    }) as SubscriptionRemoveEvent).channelIds.jsonEquals([123, 456]);
   });
 
   test('subscription/update: convert color correctly', () {

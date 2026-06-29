@@ -18,8 +18,8 @@ set -euo pipefail
 
 this_dir=${BASH_SOURCE[0]%/*}
 
-# shellcheck source=tools/lib/ensure-coreutils.sh
-. "${this_dir}"/lib/ensure-coreutils.sh
+# shellcheck source=tools/lib/ensure-shell-deps.sh
+. "${this_dir}"/lib/ensure-shell-deps.sh
 
 # shellcheck source=tools/lib/git.sh
 . "${this_dir}"/lib/git.sh
@@ -33,8 +33,8 @@ this_dir=${BASH_SOURCE[0]%/*}
 default_suites=(
     analyze test
     flutter_version
-    build_runner l10n drift pigeon icons
-    android  # This takes multiple minutes in CI, so do it last.
+    build_runner l10n drift pigeon icons swift_format
+    android ios  # These take multiple minutes in CI, so do them last.
 )
 
 extra_suites=(
@@ -517,6 +517,92 @@ run_android() {
     flutter build appbundle
 }
 
+run_ios() {
+    # Omitted from this check:
+    #   pubspec.{yaml,lock} tools/check
+    files_check ios/ \
+    || return 0
+
+    # iOS builds require macOS and Xcode.
+    if [ "$(uname -s)" != "Darwin" ]; then
+        echo "Skipping ios suite (not on macOS)."
+        return 0
+    fi
+
+    local build_opts=(
+        ${opt_no_pub:+--no-pub}
+    )
+
+    check_no_uncommitted_or_untracked ios/ macos/ \
+    || return
+
+    if_verbose echo "Checking for automated changes from Flutter tooling..."
+
+    flutter build ios "${build_opts[@]}" --config-only \
+    || return
+
+    # Check macos/ too, because desktop platforms are supported for dev:
+    #   https://github.com/zulip/zulip-flutter#desktop-support
+    # (This could live in its own suite. If doing that, we'd probably
+    # still want to run it in the same GitHub CI workflow as the iOS build,
+    # since GitHub's macOS-based runners use a lot of our free quota:
+    #   https://github.com/zulip/zulip-flutter/issues/329#issue-1950704934
+    # .)
+    flutter build macos "${build_opts[@]}" --config-only \
+    || return
+
+    check_no_changes "changes to ios" ios/ \
+    || return
+
+    check_no_changes "changes to macos" macos/ \
+    || return
+
+    if_verbose echo "Building for iOS (in release mode)..."
+
+    # Skip codesigning in CI.
+    if [ "${opt_output}" = ci ]; then
+        build_opts+=( --no-codesign )
+    fi
+
+    flutter build ipa "${build_opts[@]}"
+}
+
+run_swift_format() {
+    # Omitted from this check:
+    #   pubspec.{yaml,lock} tools/check
+    local swift_pathspecs=( ios/'*'.swift macos/'*'.swift )
+
+    files_check "${swift_pathspecs[@]}" ios/.swift-format \
+    || return 0
+
+    # swift-format comes from the Swift toolchain via `xcrun`, so needs macOS.
+    if [ "$(uname -s)" != "Darwin" ]; then
+        echo "Skipping swift_format suite (not on macOS)."
+        return 0
+    fi
+
+    check_no_uncommitted_or_untracked "${swift_pathspecs[@]}" \
+    || return
+
+    if_verbose echo "Checking for style issues in Swift code..."
+
+    # Omit generated code: Pigeon output (*.g.swift) and the plugin registrant.
+    # shellcheck disable=SC2207  # filenames in our own tree, assume well-behaved
+    local swift_targets=(
+        $(git ls-files -- "${swift_pathspecs[@]}" \
+            ':!:*.g.swift' ':!:*/GeneratedPluginRegistrant.swift')
+    )
+
+    # --in-place enables `tools/check --fix swift_format`; see `check_no_changes`.
+    xcrun swift-format format --in-place \
+        --configuration ios/.swift-format \
+        "${swift_targets[@]}" \
+    || return
+
+    check_no_changes "changes to Swift files (swift-format)" \
+        "${swift_pathspecs[@]}"
+}
+
 run_shellcheck() {
     # Omitted from this check: nothing (nothing known, anyway).
     files_check tools/ '!*.'{dart,js,json} \
@@ -568,7 +654,9 @@ print_header() {
 
     # We avoid `flutter --version` because, weirdly, when run in a
     # GitHub Actions step it takes about 30 seconds.  (The first time;
-    # it's fast subsequent times.)  That's even after `flutter precache`.
+    # it's fast subsequent times.)  That's even when the Flutter tool's
+    # binary artifacts have already been downloaded (which, in CI,
+    # happens during the `flutter pub get` step).
     describe_git_head "flutter/flutter" "$(flutter_tree)"
 
     dart --version
@@ -589,7 +677,9 @@ for suite in "${opt_suites[@]}"; do
         drift)        maybe_time "$suite" run_drift ;;
         pigeon)       maybe_time "$suite" run_pigeon ;;
         icons)        maybe_time "$suite" run_icons ;;
+        swift_format) maybe_time "$suite" run_swift_format ;;
         android)      maybe_time "$suite" run_android ;;
+        ios)          maybe_time "$suite" run_ios ;;
         shellcheck)   maybe_time "$suite" run_shellcheck ;;
         *)            echo >&2 "Internal error: unknown suite $suite" ;;
     esac || failed+=( "$suite" )

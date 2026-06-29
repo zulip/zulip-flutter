@@ -40,6 +40,9 @@ android {
         // These are synced to local.properties from pubspec.yaml by the flutter tool.
         versionCode localProperties.getProperty('flutter.versionCode').toInteger()
         versionName localProperties.getProperty('flutter.versionName')
+
+        testInstrumentationRunner "pl.leancode.patrol.PatrolJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: "true"
     }
 
     signingConfigs {
@@ -66,6 +69,10 @@ android {
             signingConfig project.hasProperty('signed') ?
                     signingConfigs.release : signingConfigs.debug
         }
+    }
+
+    testOptions {
+      execution "ANDROIDX_TEST_ORCHESTRATOR"
     }
 
     lint {
@@ -100,4 +107,5 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    androidTestUtil "androidx.test:orchestrator:1.5.1"
 }

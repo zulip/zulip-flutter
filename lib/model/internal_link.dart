@@ -84,10 +84,10 @@ String narrowLinkFragment(PerAccountStore store, Narrow narrow, {int? nearMessag
 
     switch (element) {
       case ApiNarrowChannel():
-        final streamId = element.operand;
-        final name = store.streams[streamId]?.name ?? 'unknown';
+        final channelId = element.operand;
+        final name = store.streams[channelId]?.name ?? 'unknown';
         final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
-        fragment.write('$streamId-$slugifiedName');
+        fragment.write('$channelId-$slugifiedName');
       case ApiNarrowTopic():
         fragment.write(_encodeHashComponent(element.operand.apiName));
       case ApiNarrowDmModern():

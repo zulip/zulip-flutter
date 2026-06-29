@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:checks/checks.dart';
@@ -14,6 +16,7 @@ import 'package:zulip/host/android_notifications.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/push_key.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/notifications/display.dart';
 import 'package:zulip/notifications/open.dart';
@@ -28,7 +31,57 @@ import '../model/store_checks.dart';
 import '../test_images.dart';
 import '../api/notifications_test.dart';
 
-MessageFcmMessage messageFcmMessage(
+Future<Uint8List> encryptNotification(Uint8List pushKey, Uint8List plaintext) async {
+  // Compare [PushKeyStore.decryptNotification].
+  final keyBytes = PushKeyStore.secretboxKeyFromPushKey(pushKey);
+
+  final sodium = await testBinding.sodiumInit();
+  final key = sodium.secureCopy(keyBytes);
+
+  const nonceLength = 24;
+  final rand = Random.secure();
+  final nonce = Uint8List(nonceLength)
+    ..setRange(0, nonceLength, Iterable.generate(nonceLength, (_) =>
+        rand.nextInt(1 << 8)));
+
+  final ciphertext = sodium.crypto.secretBox.easy(
+    key: key, message: plaintext, nonce: nonce);
+  return Uint8List.fromList([...nonce, ...ciphertext]);
+}
+
+/// Encode an FCM message payload into the form Firebase would supply it in.
+///
+/// The result is suitable for passing to a method like
+/// `testBinding.firebaseMessaging.onMessage`.
+///
+/// If the provided data is not a [LegacyFcmMessageWithIdentity],
+/// then produce an E2EE notification,
+/// encrypted to the latest push key found on the account
+/// that the payload is addressed to.
+/// Otherwise, produce a legacy non-E2EE notification.
+// TODO(server-12): cut the `LegacyFcmMessageWithIdentity` case
+Future<RemoteMessage> encodeFcmMessage(NotifPayloadWithIdentity data) async {
+  final Map<String, dynamic> payload;
+  if (data is LegacyFcmMessageWithIdentity) {
+    // Legacy plaintext notification.
+    payload = data.toJson();
+  } else {
+    final account = testBinding.globalStore.accounts.where((account) =>
+      account.realmUrl.origin == data.realmUrl.origin
+      && account.userId == data.userId).single;
+    final pushKey = testBinding.globalStore.pushKeys.perAccount(account.id)
+      .latestPushKey!;
+    final encrypted = await encryptNotification(pushKey.pushKey,
+      utf8.encode(jsonEncode(data)));
+    payload = {
+      'push_key_id': pushKey.pushKeyId.toString(),
+      'encrypted_data': base64Encode(encrypted),
+    };
+  }
+  return RemoteMessage(data: payload);
+}
+
+NotifPayloadNewMessage notifPayloadNewMessage(
   Message zulipMessage, {
   String? streamName,
   String? realmName,
@@ -37,7 +90,46 @@ MessageFcmMessage messageFcmMessage(
   account ??= eg.selfAccount;
   realmName ??= account.realmName;
   final narrow = SendableNarrow.ofMessage(zulipMessage, selfUserId: account.userId);
-  return FcmMessage.fromJson({
+  return NotifPayload.fromJson({
+    "type": "message",
+
+    "realm_url": account.realmUrl.toString(),
+    "realm_name": ?realmName,
+    "user_id": account.userId,
+
+    "message_id": zulipMessage.id,
+    "time": zulipMessage.timestamp,
+    "content": zulipMessage.content,
+
+    "sender_id": zulipMessage.senderId,
+    "sender_avatar_url": "${account.realmUrl}avatar/${zulipMessage.senderId}.jpeg",
+    "sender_full_name": zulipMessage.senderFullName,
+
+    ...(switch (narrow) {
+      TopicNarrow(:var channelId, :var topic) => {
+        "recipient_type": "channel",
+        "channel_id": channelId,
+        "channel_name": ?streamName,
+        "topic": topic,
+      },
+      DmNarrow(:var allRecipientIds) => {
+        "recipient_type": "direct",
+        "recipient_user_ids": allRecipientIds,
+      },
+    }),
+  }) as NotifPayloadNewMessage;
+}
+
+MessageLegacyFcmMessage legacyMessageFcmMessage(
+  Message zulipMessage, {
+  String? streamName,
+  String? realmName,
+  Account? account,
+}) {
+  account ??= eg.selfAccount;
+  realmName ??= account.realmName;
+  final narrow = SendableNarrow.ofMessage(zulipMessage, selfUserId: account.userId);
+  return LegacyFcmMessage.fromJson({
     "event": "message",
 
     "server": "zulip.example.cloud",
@@ -55,9 +147,9 @@ MessageFcmMessage messageFcmMessage(
     "sender_full_name": zulipMessage.senderFullName.toString(),
 
     ...(switch (narrow) {
-      TopicNarrow(:var streamId, :var topic) => {
+      TopicNarrow(:var channelId, :var topic) => {
         "recipient_type": "stream",
-        "stream_id": streamId.toString(),
+        "stream_id": channelId.toString(),
         "stream": ?streamName,
         "topic": topic,
       },
@@ -69,12 +161,25 @@ MessageFcmMessage messageFcmMessage(
         "recipient_type": "private",
       },
     }),
-  }) as MessageFcmMessage;
+  }) as MessageLegacyFcmMessage;
 }
 
-RemoveFcmMessage removeFcmMessage(List<Message> zulipMessages, {Account? account}) {
+NotifPayloadRemove notifPayloadRemove(List<Message> zulipMessages, {Account? account}) {
   account ??= eg.selfAccount;
-  return FcmMessage.fromJson({
+  return NotifPayload.fromJson({
+    "type": "remove",
+
+    "realm_url": account.realmUrl.toString(),
+    "realm_name": ?account.realmName,
+    "user_id": account.userId,
+
+    "message_ids": List<int>.unmodifiable(zulipMessages.map((e) => e.id)),
+  }) as NotifPayloadRemove;
+}
+
+RemoveLegacyFcmMessage legacyRemoveFcmMessage(List<Message> zulipMessages, {Account? account}) {
+  account ??= eg.selfAccount;
+  return LegacyFcmMessage.fromJson({
     "event": "remove",
 
     "server": "zulip.example.cloud",
@@ -83,7 +188,7 @@ RemoveFcmMessage removeFcmMessage(List<Message> zulipMessages, {Account? account
     "user_id": account.userId.toString(),
 
     "zulip_message_ids": zulipMessages.map((e) => e.id).join(','),
-  }) as RemoveFcmMessage;
+  }) as RemoveLegacyFcmMessage;
 }
 
 void main() {
@@ -108,11 +213,21 @@ void main() {
     return http.runWithClient(callback, httpClientFactory ?? () => fakeHttpClientGivingSuccess);
   }
 
+  Future<void> addAccount(Account account, {
+    int? zulipFeatureLevel,
+  }) async {
+    final initialSnapshot = eg.initialSnapshot(
+      zulipFeatureLevel: zulipFeatureLevel);
+    await testBinding.globalStore.add(account, initialSnapshot);
+    await testBinding.globalStore.pushKeys.perAccount(account.id).insertPushKey(
+      eg.pushKey(account: account).toCompanion(false));
+  }
+
   Future<void> init({bool addSelfAccount = true}) async {
-    if (addSelfAccount) {
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-    }
     addTearDown(testBinding.reset);
+    if (addSelfAccount) {
+      await addAccount(eg.selfAccount);
+    }
     testBinding.firebaseMessagingInitialToken = '012abc';
     addTearDown(NotificationService.debugReset);
     NotificationService.debugBackgroundIsolateIsLive = false;
@@ -349,9 +464,9 @@ void main() {
 
   group('NotificationDisplayManager show', () {
     void checkNotification(
-      MessageFcmMessage data, {
+      NotifPayloadNewMessage data, {
       Account? account,
-      required List<MessageFcmMessage> messageStyleMessages,
+      required List<NotifPayloadNewMessage> messageStyleMessages,
       required String expectedTitle,
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
@@ -373,11 +488,11 @@ void main() {
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
-        FcmMessageChannelRecipient(:var channelId, :var topic) =>
+        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
           TopicNarrow(channelId, topic),
-        FcmMessageDmRecipient(:var allRecipientIds) =>
+        NotifPayloadDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildAndroidNotificationUrl();
+      }).buildNotificationUrl();
       expectedSummaryText ??= account.realmName
         ?? data.realmName
         ?? data.realmUrl.toString();
@@ -451,18 +566,18 @@ void main() {
 
     Future<void> checkNotifications(
       FakeAsync async,
-      MessageFcmMessage data, {
+      NotifPayloadNewMessage data, {
       Account? account,
       required String expectedTitle,
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
     }) async {
-      // We could just call `NotificationDisplayManager.onFcmMessage`.
+      // We could just call `NotificationDisplayManager.onNotifPayload`.
       // But this way is cheap, and it provides our test coverage of
       // the logic in `NotificationService` that listens for these FCM messages.
 
       testBinding.firebaseMessaging.onMessage.add(
-        RemoteMessage(data: data.toJson()));
+        await encodeFcmMessage(data));
       async.flushMicrotasks();
       checkNotification(data,
         account: account,
@@ -473,7 +588,7 @@ void main() {
       testBinding.androidNotificationHost.clearActiveNotifications();
 
       testBinding.firebaseMessaging.onBackgroundMessage.add(
-        RemoteMessage(data: data.toJson()));
+        await encodeFcmMessage(data));
       async.flushMicrotasks();
       checkNotification(data,
         account: account,
@@ -483,13 +598,13 @@ void main() {
         expectedTagComponent: expectedTagComponent);
     }
 
-    void receiveFcmMessage(FakeAsync async, FcmMessage data) {
+    Future<void> receiveNotification(FakeAsync async, NotifPayloadWithIdentity data) async {
       testBinding.firebaseMessaging.onMessage.add(
-        RemoteMessage(data: data.toJson()));
+        await encodeFcmMessage(data));
       async.flushMicrotasks();
     }
 
-    Condition<Object?> conditionActiveNotif(MessageFcmMessage data, String tagComponent) {
+    Condition<Object?> conditionActiveNotif(NotifPayloadNewMessage data, String tagComponent) {
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedTag = '$expectedGroupKey|$tagComponent';
       return (it) => it.isA<StatusBarNotification>()
@@ -515,7 +630,37 @@ void main() {
       await init();
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
-      await checkNotifications(async, messageFcmMessage(message, streamName: stream.name),
+      await checkNotifications(async, notifPayloadNewMessage(message, streamName: stream.name),
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > ${message.topic}',
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
+    })));
+
+    test('stream message, legacy plaintext', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+      await addAccount(eg.selfAccount, zulipFeatureLevel: 468 - 1);
+      final stream = eg.stream();
+      final message = eg.streamMessage(stream: stream);
+      await checkNotifications(async, legacyMessageFcmMessage(message, streamName: stream.name),
+        expectedIsGroupConversation: true,
+        expectedTitle: '#${stream.name} > ${message.topic}',
+        expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
+    })));
+
+    test('stream message, ignore legacy plaintext on new server', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      final message = eg.streamMessage(stream: stream);
+
+      // A legacy plaintext notification arrives; we ignore it.
+      await receiveNotification(async, legacyMessageFcmMessage(message, streamName: stream.name));
+      check(testBinding.androidNotificationHost.takeNotifyCalls()).isEmpty();
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      // An encrypted notification for the same message arrives; we handle it as usual.
+      final data = notifPayloadNewMessage(message, streamName: stream.name);
+      await receiveNotification(async, data);
+      checkNotification(data, messageStyleMessages: [data],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
@@ -526,30 +671,30 @@ void main() {
       final stream = eg.stream();
       const topic = 'topic 1';
       final message1 = eg.streamMessage(topic: topic, stream: stream);
-      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
       final message2 = eg.streamMessage(topic: topic, stream: stream);
-      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(topic: topic, stream: stream);
-      final data3 = messageFcmMessage(message3, streamName: stream.name);
+      final data3 = notifPayloadNewMessage(message3, streamName: stream.name);
 
       final expectedTitle = '#${stream.name} > $topic';
       final expectedTagComponent = 'stream:${stream.streamId}:$topic';
 
-      receiveFcmMessage(async, data1);
+      await receiveNotification(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
 
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
 
-      receiveFcmMessage(async, data3);
+      await receiveNotification(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data2, data3],
         expectedIsGroupConversation: true,
@@ -563,27 +708,27 @@ void main() {
       const topicA = 'topic A';
       const topicB = 'topic B';
       final message1 = eg.streamMessage(topic: topicA, stream: stream);
-      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
       final message2 = eg.streamMessage(topic: topicB, stream: stream);
-      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(topic: topicA, stream: stream);
-      final data3 = messageFcmMessage(message3, streamName: stream.name);
+      final data3 = notifPayloadNewMessage(message3, streamName: stream.name);
 
-      receiveFcmMessage(async, data1);
+      await receiveNotification(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicA',
         expectedTagComponent: 'stream:${stream.streamId}:${topicA.toLowerCase()}');
 
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data2],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topicB',
         expectedTagComponent: 'stream:${stream.streamId}:${topicB.toLowerCase()}');
 
-      receiveFcmMessage(async, data3);
+      await receiveNotification(async, data3);
       checkNotification(data3,
         messageStyleMessages: [data1, data3],
         expectedIsGroupConversation: true,
@@ -597,18 +742,18 @@ void main() {
       const topic1 = 'A ToPic';
       const topic2 = 'a TOpic';
       final message1 = eg.streamMessage(topic: topic1, stream: stream);
-      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
       final message2 = eg.streamMessage(topic: topic2, stream: stream);
-      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
 
-      receiveFcmMessage(async, data1);
+      await receiveNotification(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: '#${stream.name} > $topic1',
         expectedTagComponent: 'stream:${stream.streamId}:a topic');
 
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
@@ -622,9 +767,9 @@ void main() {
       var stream = eg.stream(streamId: 1, name: 'Before');
       const topic = 'topic';
       final message1 = eg.streamMessage(topic: topic, stream: stream);
-      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
 
-      receiveFcmMessage(async, data1);
+      await receiveNotification(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
@@ -633,9 +778,9 @@ void main() {
 
       stream = eg.stream(streamId: 1, name: 'After');
       final message2 = eg.streamMessage(topic: topic, stream: stream);
-      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
 
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
@@ -643,11 +788,12 @@ void main() {
         expectedTagComponent: 'stream:${stream.streamId}:$topic');
     })));
 
-    test('stream message: stream name omitted', () => runWithHttpClient(() => awaitFakeAsync((async) async {
-      await init();
+    test('stream message: stream name omitted, legacy plaintext', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+      await addAccount(eg.selfAccount, zulipFeatureLevel: 468 - 1);
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream);
-      await checkNotifications(async, messageFcmMessage(message, streamName: null),
+      await checkNotifications(async, legacyMessageFcmMessage(message, streamName: null),
         expectedIsGroupConversation: true,
         expectedTitle: '#(unknown channel) > ${message.topic}',
         expectedTagComponent: 'stream:${message.streamId}:${message.topic}');
@@ -661,24 +807,25 @@ void main() {
         user: eg.user(),
         realmUrl: Uri.parse('http://realm1.example'),
         realmName: 'Realm 1');
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await addAccount(account1);
+
       final account2 = eg.account(
         id: 1002,
         user: eg.user(),
         realmUrl: Uri.parse('http://realm2.example'),
         realmName: 'Realm 2');
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account2);
 
       final stream = eg.stream();
       final topic = 'test topic';
-      final data1 = messageFcmMessage(
+      final data1 = notifPayloadNewMessage(
         eg.streamMessage(stream: stream, topic: topic),
         account: account1, streamName: stream.name);
-      final data2 = messageFcmMessage(
+      final data2 = notifPayloadNewMessage(
         eg.streamMessage(stream: stream, topic: topic),
         account: account2, streamName: stream.name);
 
-      receiveFcmMessage(async, data1);
+      await receiveNotification(async, data1);
       checkNotification(data1,
         account: account1,
         messageStyleMessages: [data1],
@@ -687,7 +834,7 @@ void main() {
         expectedTagComponent: 'stream:${stream.streamId}:$topic',
         expectedSummaryText: account1.realmName);
 
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data2);
       checkNotification(data2,
         account: account2,
         messageStyleMessages: [data2],
@@ -704,7 +851,8 @@ void main() {
         id: 1001,
         user: eg.user(),
         realmUrl: Uri.parse('http://realm1.example'));
-      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      await addAccount(account);
+
       // Override the default realmName from eg.account().
       account = await testBinding.globalStore.updateAccount(account.id,
         AccountsCompanion(realmName: const Value(null)));
@@ -712,14 +860,14 @@ void main() {
 
       final stream = eg.stream();
       final topic = 'test topic';
-      final data = messageFcmMessage(
+      final data = notifPayloadNewMessage(
         eg.streamMessage(stream: stream, topic: topic),
         account: account,
         streamName: stream.name,
         realmName: 'Notif realm name');
       check(data).realmName.equals('Notif realm name');
 
-      receiveFcmMessage(async, data);
+      await receiveNotification(async, data);
       checkNotification(data,
         account: account,
         messageStyleMessages: [data],
@@ -736,7 +884,8 @@ void main() {
         id: 1001,
         user: eg.user(),
         realmUrl: Uri.parse('http://realm1.example'));
-      await testBinding.globalStore.add(account, eg.initialSnapshot());
+      await addAccount(account);
+
       // Override the default realmName from eg.account().
       account = await testBinding.globalStore.updateAccount(account.id,
         AccountsCompanion(realmName: const Value(null)));
@@ -744,12 +893,12 @@ void main() {
 
       final stream = eg.stream();
       final topic = 'test topic';
-      final data = messageFcmMessage(
+      final data = notifPayloadNewMessage(
         eg.streamMessage(stream: stream, topic: topic),
         account: account, streamName: stream.name);
       check(data).realmName.isNull();
 
-      receiveFcmMessage(async, data);
+      await receiveNotification(async, data);
       checkNotification(data,
         account: account,
         messageStyleMessages: [data],
@@ -762,7 +911,7 @@ void main() {
     test('group DM: 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
-      await checkNotifications(async, messageFcmMessage(message),
+      await checkNotifications(async, notifPayloadNewMessage(message),
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
@@ -772,7 +921,7 @@ void main() {
       await init();
       final message = eg.dmMessage(from: eg.thirdUser,
         to: [eg.otherUser, eg.selfUser, eg.fourthUser]);
-      await checkNotifications(async, messageFcmMessage(message),
+      await checkNotifications(async, notifPayloadNewMessage(message),
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.thirdUser.fullName} to you and 2 others",
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
@@ -781,20 +930,20 @@ void main() {
     test('group DM: title updates with latest sender', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message1 = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser, eg.thirdUser]);
-      final data1 = messageFcmMessage(message1);
+      final data1 = notifPayloadNewMessage(message1);
       final message2 = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]);
-      final data2 = messageFcmMessage(message2);
+      final data2 = notifPayloadNewMessage(message2);
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      receiveFcmMessage(async, data1);
+      await receiveNotification(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: true,
         expectedTitle: "${eg.otherUser.fullName} to you and 1 other",
         expectedTagComponent: expectedTagComponent);
 
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: true,
@@ -805,7 +954,7 @@ void main() {
     test('1:1 DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      await checkNotifications(async, messageFcmMessage(message),
+      await checkNotifications(async, notifPayloadNewMessage(message),
         expectedIsGroupConversation: false,
         expectedTitle: eg.otherUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
@@ -815,11 +964,11 @@ void main() {
       await init();
       final otherUser = eg.user(fullName: 'Before');
       final message1 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
-      final data1 = messageFcmMessage(message1);
+      final data1 = notifPayloadNewMessage(message1);
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      receiveFcmMessage(async, data1);
+      await receiveNotification(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: false,
@@ -828,9 +977,9 @@ void main() {
 
       otherUser.fullName = 'After';
       final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
-      final data2 = messageFcmMessage(message2);
+      final data2 = notifPayloadNewMessage(message2);
 
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: false,
@@ -842,11 +991,11 @@ void main() {
       await init();
       final otherUser = eg.user(email: 'before@example.com');
       final message1 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
-      final data1 = messageFcmMessage(message1);
+      final data1 = notifPayloadNewMessage(message1);
 
       final expectedTagComponent = 'dm:${message1.allRecipientIds.join(",")}';
 
-      receiveFcmMessage(async, data1);
+      await receiveNotification(async, data1);
       checkNotification(data1,
         messageStyleMessages: [data1],
         expectedIsGroupConversation: false,
@@ -855,9 +1004,9 @@ void main() {
 
       otherUser.email = 'after@example.com';
       final message2 = eg.dmMessage(from: otherUser, to: [eg.selfUser]);
-      final data2 = messageFcmMessage(message2);
+      final data2 = notifPayloadNewMessage(message2);
 
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data2);
       checkNotification(data2,
         messageStyleMessages: [data1, data2],
         expectedIsGroupConversation: false,
@@ -869,8 +1018,8 @@ void main() {
       () => awaitFakeAsync((async) async {
         await init();
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-        final data = messageFcmMessage(message);
-        receiveFcmMessage(async, data);
+        final data = notifPayloadNewMessage(message);
+        await receiveNotification(async, data);
         checkNotification(data,
           messageStyleMessages: [data],
           expectedIsGroupConversation: false,
@@ -885,8 +1034,8 @@ void main() {
       () => awaitFakeAsync((async) async {
         await init();
         final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-        final data = messageFcmMessage(message);
-        receiveFcmMessage(async, data);
+        final data = notifPayloadNewMessage(message);
+        await receiveNotification(async, data);
         checkNotification(data,
           messageStyleMessages: [data],
           expectedIsGroupConversation: false,
@@ -900,7 +1049,7 @@ void main() {
     test('self-DM', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.selfUser, to: []);
-      await checkNotifications(async, messageFcmMessage(message),
+      await checkNotifications(async, notifPayloadNewMessage(message),
         expectedIsGroupConversation: false,
         expectedTitle: eg.selfUser.fullName,
         expectedTagComponent: 'dm:${message.allRecipientIds.join(",")}');
@@ -909,30 +1058,50 @@ void main() {
     test('remove: smoke', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.streamMessage();
-      final data = messageFcmMessage(message);
+      final data = notifPayloadNewMessage(message);
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Check on foreground event; onMessage
-      receiveFcmMessage(async, data);
+      await receiveNotification(async, data);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
       testBinding.firebaseMessaging.onMessage.add(
-        RemoteMessage(data: removeFcmMessage([message]).toJson()));
+        await encodeFcmMessage(notifPayloadRemove([message])));
       async.flushMicrotasks();
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Check on background event; onBackgroundMessage
-      receiveFcmMessage(async, data);
+      await receiveNotification(async, data);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
       testBinding.firebaseMessaging.onBackgroundMessage.add(
-        RemoteMessage(data: removeFcmMessage([message]).toJson()));
+        await encodeFcmMessage(notifPayloadRemove([message])));
+      async.flushMicrotasks();
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('remove: smoke; legacy plaintext', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init(addSelfAccount: false);
+      await addAccount(eg.selfAccount, zulipFeatureLevel: 468 - 1);
+      final message = eg.streamMessage();
+      final data = legacyMessageFcmMessage(message);
+      final expectedGroupKey = '${data.realmUrl}|${data.userId}';
+
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+
+      await receiveNotification(async, data);
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data, 'stream:${message.streamId}:${message.topic}'),
+        conditionSummaryActiveNotif(expectedGroupKey),
+      ]);
+      testBinding.firebaseMessaging.onMessage.add(
+        await encodeFcmMessage(legacyRemoveFcmMessage([message])));
       async.flushMicrotasks();
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
@@ -942,33 +1111,33 @@ void main() {
       final stream = eg.stream();
       const topicA = 'Topic A';
       final message1 = eg.streamMessage(stream: stream, topic: topicA);
-      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
       final message2 = eg.streamMessage(stream: stream, topic: topicA);
-      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
       final message3 = eg.streamMessage(stream: stream, topic: topicA);
-      final data3 = messageFcmMessage(message3, streamName: stream.name);
+      final data3 = notifPayloadNewMessage(message3, streamName: stream.name);
       final conversationKey = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
       final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      receiveFcmMessage(async, data1);
-      receiveFcmMessage(async, data2);
-      receiveFcmMessage(async, data3);
+      await receiveNotification(async, data1);
+      await receiveNotification(async, data2);
+      await receiveNotification(async, data3);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data3, conversationKey),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
-      // A RemoveFcmMessage for the first two messages; the notification stays.
-      receiveFcmMessage(async, removeFcmMessage([message1, message2]));
+      // A NotifPayloadRemove for the first two messages; the notification stays.
+      await receiveNotification(async, notifPayloadRemove([message1, message2]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data3, conversationKey),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
-      // Then a RemoveFcmMessage for the last message; clear the notification.
-      receiveFcmMessage(async, removeFcmMessage([message3]));
+      // Then a NotifPayloadRemove for the last message; clear the notification.
+      await receiveNotification(async, notifPayloadRemove([message3]));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -978,36 +1147,36 @@ void main() {
 
       const topicA = 'Topic A';
       final message1 = eg.streamMessage(stream: stream, topic: topicA);
-      final data1 = messageFcmMessage(message1, streamName: stream.name);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
       final conversationKey1 = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
       final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
       const topicB = 'Topic B';
       final message2 = eg.streamMessage(stream: stream, topic: topicB);
-      final data2 = messageFcmMessage(message2, streamName: stream.name);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
       final conversationKey2 = 'stream:${stream.streamId}:${topicB.toLowerCase()}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       // Two notifications for different conversations; but same account.
-      receiveFcmMessage(async, data1);
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data1);
+      await receiveNotification(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, conversationKey1),
         conditionSummaryActiveNotif(expectedGroupKey),
         conditionActiveNotif(data2, conversationKey2),
       ]);
 
-      // A RemoveFcmMessage for first conversation; only clears the first conversation notif.
-      receiveFcmMessage(async, removeFcmMessage([message1]));
+      // A NotifPayloadRemove for first conversation; only clears the first conversation notif.
+      await receiveNotification(async, notifPayloadRemove([message1]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionSummaryActiveNotif(expectedGroupKey),
         conditionActiveNotif(data2, conversationKey2),
       ]);
 
-      // Then a RemoveFcmMessage for the only remaining conversation;
+      // Then a NotifPayloadRemove for the only remaining conversation;
       // clears both the conversation notif and summary notif.
-      receiveFcmMessage(async, removeFcmMessage([message2]));
+      await receiveNotification(async, notifPayloadRemove([message2]));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -1022,26 +1191,26 @@ void main() {
         realmUrl: Uri.parse('https://1.chat.example'),
         id: 1001,
         user: eg.user(userId: 1001));
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await addAccount(account1);
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
-        messageFcmMessage(message1, account: account1, streamName: stream.name);
+        notifPayloadNewMessage(message1, account: account1, streamName: stream.name);
       final groupKey1 = '${account1.realmUrl}|${account1.userId}';
 
       final account2 = eg.account(
         realmUrl: Uri.parse('https://2.chat.example'),
         id: 1002,
         user: eg.user(userId: 1001));
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account2);
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
-        messageFcmMessage(message2, account: account2, streamName: stream.name);
+        notifPayloadNewMessage(message2, account: account2, streamName: stream.name);
       final groupKey2 = '${account2.realmUrl}|${account2.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      receiveFcmMessage(async, data1);
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data1);
+      await receiveNotification(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, conversationKey),
         conditionSummaryActiveNotif(groupKey1),
@@ -1049,13 +1218,13 @@ void main() {
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
+      await receiveNotification(async, notifPayloadRemove([message1], account: account1));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data2, conversationKey),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      await receiveNotification(async, notifPayloadRemove([message2], account: account2));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -1067,23 +1236,23 @@ void main() {
       final conversationKey = 'stream:${stream.streamId}:some topic';
 
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
+      await addAccount(account1);
       final message1 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data1 =
-        messageFcmMessage(message1, account: account1, streamName: stream.name);
+        notifPayloadNewMessage(message1, account: account1, streamName: stream.name);
       final groupKey1 = '${account1.realmUrl}|${account1.userId}';
 
       final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account2);
       final message2 = eg.streamMessage(id: 1000, stream: stream, topic: topic);
       final data2 =
-        messageFcmMessage(message2, account: account2, streamName: stream.name);
+        notifPayloadNewMessage(message2, account: account2, streamName: stream.name);
       final groupKey2 = '${account2.realmUrl}|${account2.userId}';
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      receiveFcmMessage(async, data1);
-      receiveFcmMessage(async, data2);
+      await receiveNotification(async, data1);
+      await receiveNotification(async, data2);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data1, conversationKey),
         conditionSummaryActiveNotif(groupKey1),
@@ -1091,20 +1260,20 @@ void main() {
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      receiveFcmMessage(async, removeFcmMessage([message1], account: account1));
+      await receiveNotification(async, notifPayloadRemove([message1], account: account1));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
         conditionActiveNotif(data2, conversationKey),
         conditionSummaryActiveNotif(groupKey2),
       ]);
 
-      receiveFcmMessage(async, removeFcmMessage([message2], account: account2));
+      await receiveNotification(async, notifPayloadRemove([message2], account: account2));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
     test('removeNotificationsForAccount: removes notifications', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
-      receiveFcmMessage(async, messageFcmMessage(message));
+      await receiveNotification(async, notifPayloadNewMessage(message));
       check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
 
       await NotificationDisplayManager.removeNotificationsForAccount(
@@ -1118,15 +1287,15 @@ void main() {
       final realmUrl = eg.realmUrl;
       final account1 = eg.account(id: 1001, user: eg.user(userId: 1001), realmUrl: realmUrl);
       final account2 = eg.account(id: 1002, user: eg.user(userId: 1002), realmUrl: realmUrl);
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account1);
+      await addAccount(account2);
 
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
-      receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
-      receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
+      await receiveNotification(async, notifPayloadNewMessage(message1, account: account1));
+      await receiveNotification(async, notifPayloadNewMessage(message2, account: account2));
       check(testBinding.androidNotificationHost.activeNotifications)
         .length.equals(4);
 
@@ -1147,13 +1316,13 @@ void main() {
       final account2 = eg.account(
         id: 1002, user: eg.user(userId: userId),
         realmUrl: Uri.parse('https://realm2.example'));
-      await testBinding.globalStore.add(account1, eg.initialSnapshot());
-      await testBinding.globalStore.add(account2, eg.initialSnapshot());
+      await addAccount(account1);
+      await addAccount(account2);
 
       final message1 = eg.streamMessage();
       final message2 = eg.streamMessage();
-      receiveFcmMessage(async, messageFcmMessage(message1, account: account1));
-      receiveFcmMessage(async, messageFcmMessage(message2, account: account2));
+      await receiveNotification(async, notifPayloadNewMessage(message1, account: account1));
+      await receiveNotification(async, notifPayloadNewMessage(message2, account: account2));
       check(testBinding.androidNotificationHost.activeNotifications)
         .length.equals(4);
 

@@ -149,6 +149,20 @@ class Accounts extends Table {
   /// It never changes for a given account.
   Column<int>    get userId => integer()();
 
+  /// The ID of this client device as logged into this account.
+  ///
+  /// This comes from [registerClientDevice] and corresponds to
+  /// a device ID in [InitialSnapshot.devices].
+  ///
+  /// Once this is no longer null, it never again changes for
+  /// a given account record.
+  ///
+  /// This is null if the server is old (TODO(server-12))
+  /// and lacks the concept of device ID,
+  /// as well as when the client has only recently upgraded from a
+  /// version that lacked this column and has not yet populated it.
+  Column<int>    get deviceId => integer().nullable()();
+
   Column<String> get email => text()();
   Column<String> get apiKey => text()();
 
@@ -156,12 +170,40 @@ class Accounts extends Table {
   Column<String> get zulipMergeBase => text().nullable()();
   Column<int>    get zulipFeatureLevel => integer()();
 
-  Column<String> get ackedPushToken => text().nullable()();
+  /// Whether this device might be registered with the server for
+  /// legacy plaintext push notifications.
+  ///
+  /// This is false for new [Account] records.
+  /// It's set to true on registering a legacy token or migrating old records.
+  //
+  // The default here, of true, is because that's what we need for the migration
+  // that adds this column.
+  // (And then SQLite makes it cumbersome to alter the column later).
+  // TODO ideally remove the default on this column
+  Column<bool>   get possibleLegacyPushToken => boolean()
+    .withDefault(Constant(true))();
 
   @override
   List<Set<Column<Object>>> get uniqueKeys => [
     {realmUrl, userId},
     {realmUrl, email},
+  ];
+}
+
+/// The table of [PushKey] records, with keys for E2EE push notifications.
+class PushKeys extends Table {
+  Column<int> get pushKeyId => integer()();
+  Column<Uint8List> get pushKey => blob()();
+
+  Column<int> get accountId => integer()
+    .references(Accounts, #id, onDelete: .cascade)();
+
+  Column<int> get createdTimestamp => integer()();
+  Column<int> get supersededTimestamp => integer().nullable()();
+
+  @override
+  List<Set<Column<Object>>> get uniqueKeys => [
+    {pushKeyId},
   ];
 }
 
@@ -171,20 +213,24 @@ class UriConverter extends TypeConverter<Uri, String> {
   @override Uri fromSql(String fromDb) => Uri.parse(fromDb);
 }
 
-@DriftDatabase(tables: [GlobalSettings, BoolGlobalSettings, IntGlobalSettings, Accounts])
+const _allTables = [
+  GlobalSettings, BoolGlobalSettings, IntGlobalSettings,
+  Accounts, PushKeys,
+];
+
+@DriftDatabase(tables: _allTables)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   // When updating the schema:
-  //  * Make the change in the table classes, and bump latestSchemaVersion.
-  //  * Export the new schema and generate test migrations with drift:
-  //    $ tools/check --fix drift
-  //    and generate database code with build_runner.
-  //    See ../../README.md#generated-files for more
-  //    information on using the build_runner.
-  //  * Write a migration in `_migrationSteps` below.
+  //  * Make the change in the table classes.
+  //  * Bump latestSchemaVersion.
+  //  * Updated generated code for the new schema:
+  //    $ tools/check --fix build_runner drift
+  //  * Fix resulting analyzer errors; in particular,
+  //    write a migration in `_migrationSteps` below.
   //  * Write tests.
-  static const int latestSchemaVersion = 12; // See note.
+  static const int latestSchemaVersion = 16; // See note.
 
   @override
   int get schemaVersion => latestSchemaVersion;
@@ -283,6 +329,18 @@ class AppDatabase extends _$AppDatabase {
       await m.addColumn(schema.accounts, schema.accounts.realmName);
       await m.addColumn(schema.accounts, schema.accounts.realmIcon);
     },
+    from12To13: (m, schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.deviceId);
+    },
+    from13To14: (m, schema) async {
+      await m.createTable(schema.pushKeys);
+    },
+    from14To15: (m, schema) async {
+      await m.dropColumn(schema.accounts, 'acked_push_token');
+    },
+    from15To16: (m, schema) async {
+      await m.addColumn(schema.accounts, schema.accounts.possibleLegacyPushToken);
+    },
   );
 
   Future<void> _createLatestSchema(Migrator m) async {
@@ -319,7 +377,11 @@ class AppDatabase extends _$AppDatabase {
 
         assert(debugLog('Upgrading DB schema from v$from to v$to.'));
         await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
-      });
+      },
+      beforeOpen: (details) async {
+        await customStatement('PRAGMA foreign_keys = ON');
+      },
+    );
   }
 
   Future<GlobalSettingsData> getGlobalSettings() async {
@@ -360,6 +422,24 @@ class AppDatabase extends _$AppDatabase {
       rethrow;
     }
   }
+
+  Future<void> createPushKey(PushKeysCompanion values) async {
+    try {
+      await into(pushKeys).insert(values);
+    } catch (e) {
+      // Unwrap cause if it's a remote Drift call. On the app, it's running
+      // via a remote, but on local tests, it's running natively so
+      // unwrapping is not required.
+      final cause = (e is DriftRemoteException) ? e.remoteCause : e;
+      if (cause case SqliteException(
+              extendedResultCode: SqlExtendedError.SQLITE_CONSTRAINT_UNIQUE)) {
+        throw PushKeyAlreadyExistsException();
+      }
+      rethrow;
+    }
+  }
 }
 
 class AccountAlreadyExistsException implements Exception {}
+
+class PushKeyAlreadyExistsException implements Exception {}

@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -538,13 +539,94 @@ class _TextWithLinkState extends State<TextWithLink> {
   }
 }
 
+/// A widget that reports its baseline as offset by [dy]
+/// from its child's baseline.
+///
+/// At layout time, passes its constraints through to its child
+/// and takes the same size as its child.
+/// A positive [dy] shifts the reported baseline downward
+/// (toward larger y values).
+///
+/// If the child has no baseline, the child's bottom edge is used,
+/// matching the convention used by [Baseline] and by [WidgetSpan]
+/// with [PlaceholderAlignment.baseline].
+// TODO(upstream) contribute this upstream?
+//   There's no upstream widget for this as of 2026-04-16.
+class AdjustBaseline extends SingleChildRenderObjectWidget {
+  const AdjustBaseline({
+    super.key,
+    required this.dy,
+    super.child,
+  });
+
+  final double dy;
+
+  @override
+  RenderAdjustBaseline createRenderObject(BuildContext context) {
+    return RenderAdjustBaseline(dy: dy);
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderAdjustBaseline renderObject,
+  ) {
+    renderObject.dy = dy;
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('dy', dy));
+  }
+}
+
+class RenderAdjustBaseline extends RenderProxyBox {
+  RenderAdjustBaseline({required this._dy, RenderBox? child})
+    : super(child);
+
+  double get dy => _dy;
+  double _dy;
+  set dy(double value) {
+    if (_dy == value) return;
+    _dy = value;
+    markNeedsLayout();
+  }
+
+  @override
+  double? computeDistanceToActualBaseline(TextBaseline baseline) {
+    final childBaseline = child?.getDistanceToActualBaseline(baseline);
+    if (childBaseline != null) return childBaseline + dy;
+    // Fall back to the bottom edge when the child reports no baseline,
+    // matching [RenderBox.getDistanceToBaseline]'s convention.
+    return size.height + dy;
+  }
+
+  @override
+  @protected
+  double? computeDryBaseline(BoxConstraints constraints, TextBaseline baseline) {
+    final childBaseline = child?.getDryBaseline(constraints, baseline);
+    if (childBaseline != null) return childBaseline + dy;
+    // Like in [computeDistanceToActualBaseline], fall back to the bottom edge,
+    // so that dry and actual baselines agree for baseline-less children.
+    return getDryLayout(constraints).height + dy;
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('dy', dy));
+  }
+}
+
 /// Data to size and position a square icon in a span of text.
 class InlineIconGeometryData {
   /// What size the icon should be,
   /// as a fraction of the surrounding text's font size.
   final double sizeFactor;
 
-  /// Where to assign the icon's baseline, as a fraction of the icon's size,
+  /// How far above the icon's bottom edge to assign the icon's baseline,
+  /// as a fraction of the icon's size,
   /// when the span is rendered with [TextBaseline.alphabetic].
   ///
   /// This is ignored when the span is rendered with [TextBaseline.ideographic];
@@ -569,6 +651,36 @@ class InlineIconGeometryData {
 
   // Values are ad hoc unless otherwise specified.
   static final Map<IconData, InlineIconGeometryData> _inlineIconGeometries = {
+    ZulipIcons.check: InlineIconGeometryData._(
+      sizeFactor: 1,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
+    ZulipIcons.at_sign: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
+    ZulipIcons.mute: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
+    ZulipIcons.unmute: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
+    ZulipIcons.follow: InlineIconGeometryData._(
+      sizeFactor: 16 / 17,
+      alphabeticBaselineFactor: 3 / 16,
+      paddingFactor: 1 / 4,
+    ),
+
     ZulipIcons.globe: InlineIconGeometryData._(
       sizeFactor: 0.8,
       alphabeticBaselineFactor: 1 / 8,
@@ -597,50 +709,126 @@ class InlineIconGeometryData {
   );
 }
 
-/// An icon, sized and aligned for use in a span of text.
-WidgetSpan iconWidgetSpan({
-  required IconData icon,
-  required double fontSize,
-  required TextBaseline baselineType,
-  required Color? color,
-  bool padBefore = false,
-  bool padAfter = false,
-}) {
-  final InlineIconGeometryData(
-    :sizeFactor,
-    :alphabeticBaselineFactor,
-    :paddingFactor,
-  ) = InlineIconGeometryData.forIcon(icon);
+/// An [Icon] that is sized, aligned, and (optionally) padded for use in text.
+///
+/// Use [InlineIcon.asWidgetSpan] for a [WidgetSpan] wrapping one of these.
+///
+/// [icon] must be square and have a corresponding entry in
+/// [InlineIconGeometryData].
+class InlineIcon extends StatelessWidget {
+  const InlineIcon({
+    super.key,
+    required this.icon,
+    required this.fontSize,
+    this.baselineType,
+    this.textScaler,
+    required this.color,
+    this.padBefore = false,
+    this.padAfter = false,
+    this.visible = true,
+  });
 
-  final size = sizeFactor * fontSize;
+  final IconData icon;
+  final double fontSize;
 
-  final effectiveBaselineOffset = switch (baselineType) {
-    TextBaseline.alphabetic => alphabeticBaselineFactor * size,
-    TextBaseline.ideographic => 0.0,
-  };
+  /// The [TextBaseline] to apply (alphabetic or ideographic).
+  ///
+  /// If null, [localizedTextBaseline] is used.
+  final TextBaseline? baselineType;
 
-  Widget child = Icon(size: size, color: color, icon);
+  /// The [TextScaler] to apply.
+  ///
+  /// If null, [MediaQuery.textScalerOf] is used.
+  final TextScaler? textScaler;
 
-  if (effectiveBaselineOffset != 0) {
-    child = Transform.translate(
-      offset: Offset(0, effectiveBaselineOffset),
-      child: child);
+  final Color? color;
+  final bool padBefore;
+  final bool padAfter;
+
+  /// Whether the icon is visible.
+  ///
+  /// Pass false to hide the icon but maintain its size.
+  final bool visible;
+
+  /// Creates an [InlineIcon] wrapped in a [WidgetSpan].
+  ///
+  /// The [WidgetSpan] has [PlaceholderAlignment.baseline].
+  static InlineSpan asWidgetSpan({
+    required IconData icon,
+    required double fontSize,
+    required TextBaseline baselineType,
+    required Color? color,
+    bool padBefore = false,
+    bool padAfter = false,
+    bool visible = true,
+  }) {
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.baseline,
+      baseline: baselineType,
+      child: InlineIcon(
+        icon: icon,
+        fontSize: fontSize,
+        baselineType: baselineType,
+        // TODO(#735) remove [TextScaler.noScaling] (works around double-scale bug)
+        textScaler: TextScaler.noScaling,
+        color: color,
+        padBefore: padBefore,
+        padAfter: padAfter,
+        visible: visible,
+      ));
   }
 
-  if (padBefore || padAfter) {
-    final padding = paddingFactor * size;
-    child = Padding(
-      padding: EdgeInsetsDirectional.only(
-        start: padBefore ? padding : 0,
-        end: padAfter ? padding : 0,
-      ),
-      child: child);
-  }
+  @override
+  Widget build(BuildContext context) {
+    final baselineType = this.baselineType ?? localizedTextBaseline(context);
+    final textScaler = this.textScaler ?? MediaQuery.textScalerOf(context);
 
-  return WidgetSpan(
-    alignment: PlaceholderAlignment.baseline,
-    baseline: baselineType,
-    child: child);
+    final InlineIconGeometryData(
+      :sizeFactor,
+      :alphabeticBaselineFactor,
+      :paddingFactor,
+    ) = InlineIconGeometryData.forIcon(icon);
+
+    final size = sizeFactor * textScaler.scale(fontSize);
+
+    final effectiveBaselineOffset = switch (baselineType) {
+      // I.e., consider the baseline to be farther up than the icon's bottom edge,
+      // at a smaller y-value.
+      TextBaseline.alphabetic => -alphabeticBaselineFactor * size,
+      TextBaseline.ideographic => 0.0,
+    };
+
+    Widget result = Icon(size: size, color: color, icon);
+
+    if (effectiveBaselineOffset != 0) {
+      result = AdjustBaseline(
+        dy: effectiveBaselineOffset,
+        child: result);
+    }
+
+    if (padBefore || padAfter) {
+      final padding = paddingFactor * size;
+      result = Padding(
+        padding: EdgeInsetsDirectional.only(
+          start: padBefore ? padding : 0,
+          end: padAfter ? padding : 0,
+        ),
+        child: result);
+    }
+
+    result = Visibility(
+      visible: visible,
+
+      // To set [maintainSize] true, apparently we have to set
+      // [maintainState] and [maintainAnimation] true too; sure.
+      maintainState: true,
+      maintainAnimation: true,
+      maintainSize: true,
+
+      child: result);
+
+    return result;
+  }
 }
 
 /// An [InlineSpan] with a channel privacy icon, channel name,
@@ -666,7 +854,7 @@ InlineSpan channelTopicLabelSpan({
 
   return TextSpan(children: [
     if (channelIcon != null)
-      iconWidgetSpan(
+      InlineIcon.asWidgetSpan(
         icon: channelIcon,
         fontSize: fontSize,
         baselineType: baselineType,
@@ -679,7 +867,7 @@ InlineSpan channelTopicLabelSpan({
         style: TextStyle(fontStyle: FontStyle.italic),
         text: zulipLocalizations.unknownChannelName),
     if (topic != null) ...[
-      iconWidgetSpan(
+      InlineIcon.asWidgetSpan(
         icon: ZulipIcons.chevron_right,
         fontSize: fontSize,
         baselineType: baselineType,

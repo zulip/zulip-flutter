@@ -8,8 +8,8 @@ import '../model/topics.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'app_bar.dart';
-import 'color.dart';
 import 'icons.dart';
+import 'inbox.dart';
 import 'message_list.dart';
 import 'page.dart';
 import 'store.dart';
@@ -18,17 +18,17 @@ import 'theme.dart';
 import 'counter_badge.dart';
 
 class TopicListPage extends StatelessWidget {
-  const TopicListPage({super.key, required this.streamId});
+  const TopicListPage({super.key, required this.channelId});
 
-  final int streamId;
+  final int channelId;
 
   static AccountRoute<void> buildRoute({
     required BuildContext context,
-    required int streamId,
+    required int channelId,
   }) {
     return MaterialAccountWidgetRoute(
       context: context,
-      page: TopicListPage(streamId: streamId));
+      page: TopicListPage(channelId: channelId));
   }
 
   @override
@@ -36,33 +36,33 @@ class TopicListPage extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
     final appBarBackgroundColor = colorSwatchFor(
-      context, store.subscriptions[streamId]).barBackground;
+      context, store.subscriptions[channelId]).barBackground;
 
     return PageRoot(child: Scaffold(
       appBar: ZulipAppBar(
         backgroundColor: appBarBackgroundColor,
         buildTitle: (willCenterTitle) =>
-          _TopicListAppBarTitle(streamId: streamId, willCenterTitle: willCenterTitle),
+          _TopicListAppBarTitle(channelId: channelId, willCenterTitle: willCenterTitle),
         actions: [
           IconButton(
             icon: const Icon(ZulipIcons.message_feed),
             tooltip: zulipLocalizations.channelFeedButtonTooltip,
             onPressed: () => Navigator.push(context,
               MessageListPage.buildRoute(context: context,
-                narrow: ChannelNarrow(streamId)))),
+                narrow: ChannelNarrow(channelId)))),
         ]),
-      body: _TopicList(streamId: streamId)));
+      body: _TopicList(channelId: channelId)));
   }
 }
 
 // This is adapted from [MessageListAppBarTitle].
 class _TopicListAppBarTitle extends StatelessWidget {
   const _TopicListAppBarTitle({
-    required this.streamId,
+    required this.channelId,
     required this.willCenterTitle,
   });
 
-  final int streamId;
+  final int channelId;
   final bool willCenterTitle;
 
   Widget _buildStreamRow(BuildContext context) {
@@ -70,9 +70,9 @@ class _TopicListAppBarTitle extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
     final store = PerAccountStoreWidget.of(context);
-    final stream = store.streams[streamId];
+    final stream = store.streams[channelId];
     final channelIconColor = colorSwatchFor(context,
-      store.subscriptions[streamId]).iconOnBarBackground;
+      store.subscriptions[channelId]).iconOnBarBackground;
 
     // A null [Icon.icon] makes a blank space.
     final icon = stream != null ? iconDataForStream(stream) : null;
@@ -106,7 +106,7 @@ class _TopicListAppBarTitle extends StatelessWidget {
         behavior: HitTestBehavior.translucent,
         onLongPress: () {
           showChannelActionSheet(context,
-            channelId: streamId,
+            channelId: channelId,
             // We're already on the topic list.
             showTopicListButton: false);
         },
@@ -116,9 +116,9 @@ class _TopicListAppBarTitle extends StatelessWidget {
 }
 
 class _TopicList extends StatefulWidget {
-  const _TopicList({required this.streamId});
+  const _TopicList({required this.channelId});
 
-  final int streamId;
+  final int channelId;
 
   @override
   State<_TopicList> createState() => _TopicListState();
@@ -156,12 +156,12 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
     // Do nothing when the fetch fails; the topic-list will stay on
     // the loading screen, until the user navigates away and back.
     // TODO(design) show a nice error message on screen when this fails
-    await topicsModel!.getChannelTopics(widget.streamId);
+    await topicsModel!.getChannelTopics(widget.channelId);
   }
 
   @override
   Widget build(BuildContext context) {
-    final channelTopics = topicsModel!.channelTopics(widget.streamId);
+    final channelTopics = topicsModel!.channelTopics(widget.channelId);
     if (channelTopics == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -176,7 +176,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
     final topicItems = <_TopicItemData>[];
     for (final GetChannelTopicsEntry(:maxId, name: topic) in channelTopics) {
       final unreadMessageIds =
-        unreadsModel!.streams[widget.streamId]?[topic] ?? <int>[];
+        unreadsModel!.streams[widget.channelId]?[topic] ?? <int>[];
       final countInTopic = unreadMessageIds.length;
       final hasMention = unreadMessageIds.any((messageId) =>
         unreadsModel!.mentions.contains(messageId));
@@ -194,7 +194,7 @@ class _TopicListState extends State<_TopicList> with PerAccountStoreAwareStateMi
       child: ListView.builder(
         itemCount: topicItems.length,
         itemBuilder: (context, index) =>
-          _TopicItem(streamId: widget.streamId, data: topicItems[index])),
+          _TopicItem(channelId: widget.channelId, data: topicItems[index])),
     );
   }
 }
@@ -216,9 +216,9 @@ class _TopicItemData {
 // This is adapted from `_TopicItem` in lib/widgets/inbox.dart.
 // TODO(#1527) see if we can reuse this in redesign
 class _TopicItem extends StatelessWidget {
-  const _TopicItem({required this.streamId, required this.data});
+  const _TopicItem({required this.channelId, required this.data});
 
-  final int streamId;
+  final int channelId;
   final _TopicItemData data;
 
   @override
@@ -234,11 +234,11 @@ class _TopicItem extends StatelessWidget {
     // if not, we just won't have `someMessageIdInTopic` for the action sheet.
     final maxIdMessage = store.messages[maxId];
     final someMessageIdInTopic =
-      (maxIdMessage != null && TopicNarrow(streamId, topic).containsMessage(maxIdMessage))
+      (maxIdMessage != null && TopicNarrow(channelId, topic).containsMessage(maxIdMessage))
         ? maxIdMessage.id
         : null;
 
-    final visibilityPolicy = store.topicVisibilityPolicy(streamId, topic);
+    final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
     final double opacity;
     switch (visibilityPolicy) {
       case UserTopicVisibilityPolicy.muted:
@@ -258,12 +258,12 @@ class _TopicItem extends StatelessWidget {
       color: designVariables.bgMessageRegular,
       child: InkWell(
         onTap: () {
-          final narrow = TopicNarrow(streamId, topic);
+          final narrow = TopicNarrow(channelId, topic);
           Navigator.push(context,
             MessageListPage.buildRoute(context: context, narrow: narrow));
         },
         onLongPress: () => showTopicActionSheet(context,
-          channelId: streamId,
+          channelId: channelId,
           topic: topic,
           someMessageIdInTopic: someMessageIdInTopic),
         splashFactory: NoSplash.splashFactory,
@@ -271,63 +271,37 @@ class _TopicItem extends StatelessWidget {
           constraints: BoxConstraints(minHeight: 40),
           child: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(6, 4, 12, 4),
-            child: Row(
-              spacing: 8,
-              // In the Figma design, the text and icons on the topic item row
-              // are aligned to the start on the cross axis
-              // (i.e., `align-items: flex-start`).  The icons are padded down
-              // 2px relative to the start, to visibly sit on the baseline.
-              // To account for scaled text, we align everything on the row
-              // to [CrossAxisAlignment.center] instead ([Row]'s default),
-              // like we do for the topic items on the inbox page.
-              // TODO(#1528): align to baseline (and therefore to first line of
-              //   topic name), but with adjustment for icons
-              // CZO discussion:
-              //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/topic.20list.20item.20alignment/near/2173252
-              children: [
-                // A null [Icon.icon] makes a blank space.
-                _IconMarker(icon: topic.isResolved ? ZulipIcons.check : null),
-                Expanded(child: Opacity(
-                  opacity: opacity,
-                  child: Text(
-                    style: TextStyle(
-                      fontSize: 17,
-                      height: 20 / 17,
-                      fontStyle: topic.displayName == null ? FontStyle.italic : null,
-                      color: designVariables.textMessage,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
-                Opacity(opacity: opacity, child: Row(
-                  spacing: 4,
-                  children: [
-                    if (hasMention) const _IconMarker(icon: ZulipIcons.at_sign),
-                    if (visibilityIcon != null) _IconMarker(icon: visibilityIcon),
-                    if (unreadCount > 0)
-                      CounterBadge(
-                        kind: CounterBadgeKind.unread,
-                        count: unreadCount,
-                        channelIdForBackground: null),
-                  ])),
-              ])),
-        )));
-  }
-}
-
-class _IconMarker extends StatelessWidget {
-  const _IconMarker({required this.icon});
-
-  final IconData? icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-    final textScaler = MediaQuery.textScalerOf(context);
-    // Since we align the icons to [CrossAxisAlignment.center], the top padding
-    // from the Figma design is omitted.
-    return Icon(icon,
-      size: textScaler.clamp(maxScaleFactor: 1.5).scale(16),
-      color: designVariables.textMessage.withFadedAlpha(0.4));
+            child: Center(
+              widthFactor: 1,
+              child: Row(
+                spacing: 8,
+                crossAxisAlignment: .baseline,
+                textBaseline: localizedTextBaseline(context),
+                children: [
+                  InboxRowMarkerIcon(
+                    icon: ZulipIcons.check,
+                    visible: topic.isResolved),
+                  Expanded(child: Opacity(
+                    opacity: opacity,
+                    child: Text(
+                      style: TextStyle(
+                        fontSize: InboxRowTrailingMarkers.fontSize,
+                        height: 20 / InboxRowTrailingMarkers.fontSize,
+                        fontStyle: topic.displayName == null ? FontStyle.italic : null,
+                        color: designVariables.textMessage,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      topic.unresolve().displayName ?? store.realmEmptyTopicDisplayName))),
+                  Opacity(opacity: opacity,
+                    child: InboxRowTrailingMarkers(
+                      hasMention: hasMention,
+                      visibilityIcon: visibilityIcon,
+                      unreadCountBadge: unreadCount == 0 ? null :
+                        CounterBadge(
+                          kind: CounterBadgeKind.unread,
+                          count: unreadCount,
+                          channelIdForBackground: null))),
+                ]))))));
   }
 }

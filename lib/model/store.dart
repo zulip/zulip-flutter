@@ -7,6 +7,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:path_provider_foundation/path_provider_foundation.dart';
 
 import '../api/core.dart';
 import '../api/exception.dart';
@@ -16,7 +17,9 @@ import '../api/model/model.dart';
 import '../api/route/events.dart';
 import '../api/backoff.dart';
 import '../api/route/realm.dart';
+import '../host/ios_native.g.dart';
 import '../log.dart';
+import '../notifications/ios_service.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'database.dart';
@@ -25,6 +28,7 @@ import 'localizations.dart';
 import 'message.dart';
 import 'presence.dart';
 import 'push_device.dart';
+import 'push_key.dart';
 import 'realm.dart';
 import 'recent_dm_conversations.dart';
 import 'recent_senders.dart';
@@ -39,7 +43,7 @@ import 'user.dart';
 import 'user_group.dart';
 
 export 'package:drift/drift.dart' show Value;
-export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException;
+export 'database.dart' show Account, AccountsCompanion, AccountAlreadyExistsException, PushKey;
 
 /// An underlying data store that can support a [GlobalStore],
 /// possibly storing the data to persist between runs of the app.
@@ -65,6 +69,21 @@ abstract class GlobalStoreBackend {
 
   // TODO move here the similar methods for accounts;
   //   perhaps the rest of the GlobalStore abstract methods, too.
+
+  /// Add a push key to the underlying data store.
+  ///
+  /// This should only be called from [GlobalPushKeyStore].
+  Future<PushKey> doInsertPushKey(PushKeysCompanion data);
+
+  /// Update a push key in the underlying data store.
+  ///
+  /// This should only be called from [GlobalPushKeyStore].
+  Future<void> doUpdatePushKey(int pushKeyId, PushKeysCompanion data);
+
+  /// Remove a push key from the underlying data store.
+  ///
+  /// This should only be called from [GlobalPushKeyStore].
+  Future<void> doRemovePushKey(int pushKeyId);
 }
 
 /// Store for all the user's data.
@@ -90,9 +109,12 @@ abstract class GlobalStore extends ChangeNotifier {
     required Map<BoolGlobalSetting, bool> boolGlobalSettings,
     required Map<IntGlobalSetting, int> intGlobalSettings,
     required Iterable<Account> accounts,
+    required Iterable<PushKey> pushKeys,
   })
     : settings = GlobalSettingsStore(backend: backend,
         data: globalSettings, boolData: boolGlobalSettings, intData: intGlobalSettings),
+      pushKeys = GlobalPushKeyStore(backend: backend,
+        data: pushKeys),
       _accounts = Map.fromEntries(accounts.map((a) => MapEntry(a.id, a)));
 
   /// The store for the user's account-independent settings.
@@ -103,10 +125,7 @@ abstract class GlobalStore extends ChangeNotifier {
   /// subscribes to changes in the [GlobalSettingsStore].
   final GlobalSettingsStore settings;
 
-  /// A cache of the [Accounts] table in the underlying data store.
-  final Map<int, Account> _accounts;
-
-  // TODO push token, and other data corresponding to GlobalSessionState
+  final GlobalPushKeyStore pushKeys;
 
   /// Construct a new [ApiConnection], real or fake as appropriate.
   ///
@@ -125,6 +144,10 @@ abstract class GlobalStore extends ChangeNotifier {
       realmUrl: account.realmUrl, zulipFeatureLevel: account.zulipFeatureLevel,
       email: account.email, apiKey: account.apiKey);
   }
+
+  //|//////////////////////////////////////////////////////////////
+  // The per-account stores.
+  //
 
   final Map<int, PerAccountStore> _perAccountStores = {};
 
@@ -216,13 +239,13 @@ abstract class GlobalStore extends ChangeNotifier {
       assert(account != null); // doLoadPerAccount would have thrown AccountNotFoundException
       final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
       switch (e) {
-        case ServerVersionUnsupportedException():
+        case ServerVersionNotAllowedException():
           reportErrorToUserModally(
             zulipLocalizations.errorCouldNotConnectTitle,
-            message: zulipLocalizations.errorServerVersionUnsupportedMessage(
+            message: zulipLocalizations.errorServerVersionNotAllowedMessage(
               account!.realmUrl.toString(),
               e.data.zulipVersion,
-              kMinSupportedZulipVersion),
+              kMinAllowedZulipVersion),
             learnMoreButtonUrl: kServerSupportDocUrl);
           // The important thing is to tear down per-account UI,
           // and logOutAccount conveniently handles that already.
@@ -257,6 +280,13 @@ abstract class GlobalStore extends ChangeNotifier {
   ///
   /// This method should be called only by [loadPerAccount].
   Future<PerAccountStore> doLoadPerAccount(int accountId);
+
+  //|//////////////////////////////////////////////////////////////
+  // The accounts.  TODO(store) move this to its own substore; cf GlobalSettingsStore
+  //
+
+  /// A cache of the [Accounts] table in the underlying data store.
+  final Map<int, Account> _accounts;
 
   // Just the Iterables, not the actual Map, to avoid clients mutating the map.
   // Mutations should go through the setters/mutators below.
@@ -349,9 +379,9 @@ abstract class GlobalStore extends ChangeNotifier {
   /// Fetches the server settings for the given [realmUrl].
   ///
   /// The caller is responsible for checking if the returned
-  /// [GetServerSettingsResult] represents a supported version, by
+  /// [GetServerSettingsResult] represents an allowed version, by
   /// parsing it via [ZulipVersionData.fromServerSettings] and checking
-  /// [ZulipVersionData.isUnsupported].
+  /// [ZulipVersionData.isNotAllowed].
   Future<GetServerSettingsResult> fetchServerSettings(Uri realmUrl) async {
     final connection = apiConnection(
       realmUrl: realmUrl,
@@ -360,8 +390,8 @@ abstract class GlobalStore extends ChangeNotifier {
       return await getServerSettings(connection);
     } on MalformedServerResponseException catch (e) {
       final zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e);
-      if (zulipVersionData != null && zulipVersionData.isUnsupported) {
-        throw ServerVersionUnsupportedException(zulipVersionData);
+      if (zulipVersionData != null && zulipVersionData.isNotAllowed) {
+        throw ServerVersionNotAllowedException(zulipVersionData);
       }
       rethrow;
     } finally {
@@ -424,11 +454,38 @@ abstract class GlobalStore extends ChangeNotifier {
     _accounts.remove(accountId);
     _perAccountStores.remove(accountId)?.dispose();
     unawaited(_perAccountStoresLoading.remove(accountId));
+    pushKeys.removeAccount(accountId);
     notifyListeners();
   }
 
   /// Remove an account from the underlying data store.
   Future<void> doRemoveAccount(int accountId);
+
+  //|//////////////////////////////////////////////////////////////
+  // Session data that lasts through the lifetime of this [GlobalStore].
+  //
+
+  /// The account IDs for which the server-compat banner has been dismissed.
+  final Set<int> _serverCompatBannerDismissedForAccounts = {};
+
+  /// Whether the server-compat banner has been dismissed for `accountId`.
+  ///
+  /// This dismissal only lasts through the current app session.
+  bool getServerCompatBannerDismissed(int accountId) {
+    return _serverCompatBannerDismissedForAccounts.contains(accountId);
+  }
+
+  /// Mark the server-compat banner as dismissed for `accountId`.
+  ///
+  /// This dismissal only lasts through the current app session.
+  void setServerCompatBannerDismissed(int accountId) {
+    _serverCompatBannerDismissedForAccounts.add(accountId);
+    notifyListeners();
+  }
+
+  //
+  // End of data.
+  //|//////////////////////////////////////////////////////////////
 
   @override
   String toString() => '${objectRuntimeType(this, 'GlobalStore')}#${shortHash(this)}';
@@ -445,13 +502,12 @@ class AccountNotFoundException implements Exception {}
 /// (for example, it calls [ApiConnection.dispose] on [connection]).
 class CorePerAccountStore {
   CorePerAccountStore._({
-    required GlobalStore globalStore,
+    required this._globalStore,
     required this.connection,
     required this.queueId,
     required this.accountId,
     required this.selfUserId,
-  }) : _globalStore = globalStore,
-       assert(connection.realmUrl == globalStore.getAccount(accountId)!.realmUrl);
+  }) : assert(connection.realmUrl == _globalStore.getAccount(accountId)!.realmUrl);
 
   final GlobalStore _globalStore;
   final ApiConnection connection; // TODO(#135): update zulipFeatureLevel with events
@@ -528,6 +584,12 @@ abstract class PerAccountStoreBase {
   ///
   /// For the corresponding [User] object, see [UserStore.selfUser].
   int get selfUserId => core.selfUserId;
+
+  Future<void> updateAccount(AccountsCompanion data) async {
+    await _globalStore.updateAccount(accountId, data);
+  }
+
+  PushKeyStore get pushKeys => _globalStore.pushKeys.perAccount(accountId);
 }
 
 const _tryResolveUrl = tryResolveUrl;
@@ -628,7 +690,8 @@ class PerAccountStore extends PerAccountStoreBase with
       emoji: EmojiStoreImpl(core: core,
         allRealmEmoji: initialSnapshot.realmEmoji),
       userSettings: initialSnapshot.userSettings,
-      pushDevices: PushDeviceManager(core: core),
+      pushDevices: PushDeviceManager(core: core,
+        devices: initialSnapshot.devices ?? {}),
       savedSnippets: SavedSnippetStoreImpl(core: core,
         savedSnippets: initialSnapshot.savedSnippets ?? []),
       typingNotifier: TypingNotifier(realm: realm),
@@ -650,29 +713,23 @@ class PerAccountStore extends PerAccountStoreBase with
 
   PerAccountStore._({
     required super.core,
-    required UserGroupStoreImpl groups,
-    required RealmStoreImpl realm,
-    required EmojiStoreImpl emoji,
+    required this._groups,
+    required this._realm,
+    required this._emoji,
     required this.userSettings,
     required this.pushDevices,
-    required SavedSnippetStoreImpl savedSnippets,
+    required this._savedSnippets,
     required this.typingNotifier,
-    required UserStoreImpl users,
+    required this._users,
     required this.typingStatus,
     required this.presence,
-    required ChannelStoreImpl channels,
+    required this._channels,
     required this.topics,
-    required MessageStoreImpl messages,
+    required this._messages,
     required this.unreads,
     required this.recentDmConversationsView,
     required this.recentSenders,
-  }) : _groups = groups,
-       _realm = realm,
-       _emoji = emoji,
-       _savedSnippets = savedSnippets,
-       _users = users,
-       _channels = channels,
-       _messages = messages;
+  });
 
   //|//////////////////////////////////////////////////////////////
   // Data.
@@ -865,6 +922,11 @@ class PerAccountStore extends PerAccountStoreBase with
         }
         notifyListeners();
 
+      case DeviceEvent():
+        assert(debugLog("server event: device"));
+        pushDevices.handleDeviceEvent(event);
+        notifyListeners();
+
       case CustomProfileFieldsEvent():
         assert(debugLog("server event: custom_profile_fields"));
         _realm.handleCustomProfileFieldsEvent(event);
@@ -1020,7 +1082,7 @@ class PerAccountStore extends PerAccountStoreBase with
 /// The underlying data store is an [AppDatabase] corresponding to a
 /// SQLite database file in the app's persistent storage on the device.
 class LiveGlobalStoreBackend implements GlobalStoreBackend {
-  LiveGlobalStoreBackend._({required AppDatabase db}) : _db = db;
+  LiveGlobalStoreBackend._({required this._db});
 
   final AppDatabase _db;
 
@@ -1053,6 +1115,30 @@ class LiveGlobalStoreBackend implements GlobalStoreBackend {
         IntGlobalSettingRow(name: setting.name, value: value));
     }
   }
+
+  @override
+  Future<PushKey> doInsertPushKey(PushKeysCompanion data) async {
+    await _db.createPushKey(data); // TODO(log): db errors
+    return await (_db.select(_db.pushKeys) // TODO perhaps put this logic in AppDatabase
+      ..where((a) => a.pushKeyId.equals(data.pushKeyId.value))
+    ).getSingle();
+  }
+
+  @override
+  Future<void> doUpdatePushKey(int pushKeyId, PushKeysCompanion data) async {
+    final rowsAffected = await (_db.update(_db.pushKeys)
+      ..where((a) => a.pushKeyId.equals(pushKeyId))
+    ).write(data);
+    assert(rowsAffected == 1);
+  }
+
+  @override
+  Future<void> doRemovePushKey(int pushKeyId) async {
+    final rowsAffected = await (_db.delete(_db.pushKeys)
+      ..where((a) => a.pushKeyId.equals(pushKeyId))
+    ).go();
+    assert(rowsAffected == 1);
+  }
 }
 
 /// A [GlobalStore] that uses a live server and live, persistent local database.
@@ -1064,13 +1150,13 @@ class LiveGlobalStoreBackend implements GlobalStoreBackend {
 /// and will have an associated [UpdateMachine].
 class LiveGlobalStore extends GlobalStore {
   LiveGlobalStore._({
-    required LiveGlobalStoreBackend backend,
+    required this._backend,
     required super.globalSettings,
     required super.boolGlobalSettings,
     required super.intGlobalSettings,
     required super.accounts,
-  }) : _backend = backend,
-       super(backend: backend);
+    required super.pushKeys,
+  }) : super(backend: _backend);
 
   @override
   ApiConnection apiConnection({
@@ -1092,7 +1178,8 @@ class LiveGlobalStore extends GlobalStore {
     // we'd invest in this area more.  For example we'd try doing these
     // in parallel, or deferring some to be concurrent with loading server data.
     final stopwatch = Stopwatch()..start();
-    final db = AppDatabase(NativeDatabase.createInBackground(await _dbFile()));
+    final file = await _dbFile();
+    final db = AppDatabase(NativeDatabase.createInBackground(file));
     final t1 = stopwatch.elapsed;
     final globalSettings = await db.getGlobalSettings();
     final t2 = stopwatch.elapsed;
@@ -1102,39 +1189,159 @@ class LiveGlobalStore extends GlobalStore {
     final t4 = stopwatch.elapsed;
     final accounts = await db.select(db.accounts).get();
     final t5 = stopwatch.elapsed;
+    final pushKeys = await db.select(db.pushKeys).get();
+    final t6 = stopwatch.elapsed;
     if (kProfileMode) {
       String format(Duration d) =>
         "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
       profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
         "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
-        "${format(t4 - t3)} int-settings, ${format(t5 - t4)} accounts");
+        "${format(t4 - t3)} int-settings, "
+        "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys");
     }
+
+    // Disable OS backups for the database file, see:
+    //   https://github.com/zulip/zulip-flutter/issues/2158
+    // This comes after the queries above, because it must come after
+    // the database file has been created on disk.
+    unawaited(_maybeDisableOsBackup(file)); // TODO(log) on error
 
     return LiveGlobalStore._(
       backend: LiveGlobalStoreBackend._(db: db),
       globalSettings: globalSettings,
       boolGlobalSettings: boolGlobalSettings,
       intGlobalSettings: intGlobalSettings,
-      accounts: accounts);
+      accounts: accounts,
+      pushKeys: pushKeys,
+    );
   }
 
   /// The file path to use for the app database.
   static Future<File> _dbFile() async {
-    // What directory should we use?
-    //   path_provider's getApplicationSupportDirectory:
-    //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
-    //       -> empirically /data/data/com.zulipmobile/files/
-    //     on iOS, -> "Library/Application Support" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsapplicationsupportdirectory
-    //     on Linux, -> "${XDG_DATA_HOME:-~/.local/share}/com.zulip.flutter/"
-    //     All seem reasonable.
-    //   path_provider's getApplicationDocumentsDirectory:
-    //     on Android, -> Flutter's PathUtils.getDataDirectory -> https://developer.android.com/reference/android/content/Context#getDir(java.lang.String,%20int)
-    //       with https://developer.android.com/reference/android/content/Context#MODE_PRIVATE
-    //     on iOS, "Document directory" via https://developer.apple.com/documentation/foundation/nssearchpathdirectory/nsdocumentdirectory
-    //     on Linux, -> `xdg-user-dir DOCUMENTS` -> e.g. ~/Documents
-    //     That Linux answer is definitely not a fit.  Harder to tell about the rest.
-    final dir = await getApplicationSupportDirectory();
-    return File(p.join(dir.path, 'zulip.db'));
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+        // On iOS, we store the database file in an iOS App Group container.
+        return _iosDbFile();
+
+      default:
+        // What directory should we use on other platforms?
+        //   path_provider's getApplicationSupportDirectory:
+        //     on Android, -> Flutter's PathUtils.getFilesDir -> https://developer.android.com/reference/android/content/Context#getFilesDir()
+        //       -> empirically /data/data/com.zulipmobile/files/
+        //     on Linux, -> "${XDG_DATA_HOME:-~/.local/share}/com.zulip.flutter/"
+        //     Both seem reasonable.
+        //   path_provider's getApplicationDocumentsDirectory:
+        //     on Android, -> Flutter's PathUtils.getDataDirectory -> https://developer.android.com/reference/android/content/Context#getDir(java.lang.String,%20int)
+        //       with https://developer.android.com/reference/android/content/Context#MODE_PRIVATE
+        //     on Linux, -> `xdg-user-dir DOCUMENTS` -> e.g. ~/Documents
+        //     That Linux answer is definitely not a fit.  Harder to tell about Android.
+        final dir = await getApplicationSupportDirectory();
+        return File(p.join(dir.path, 'zulip.db'));
+    }
+  }
+
+  /// The file path to use for the app database on iOS.
+  ///
+  /// When executing on the main Runner Xcode target, it may move the database
+  /// file from a directory that's only accessible to Runner target to a
+  /// directory in the shared iOS App Group container, if not already copied.
+  ///
+  /// This move is required for other Xcode targets (e.g.
+  /// NotificationService, and in future ShareExtension, etc) to be able to
+  /// access the same app database, as they do not have access to the main
+  /// Runner target's files because each of them run in a separate
+  /// sandbox.
+  ///
+  /// If the database file is not already in the iOS App Group container when
+  /// executing on the NotificationService target, it will throw an exception.
+  /// Because it will not have access to the database file in the Runner
+  /// target's files and thus it can't move the file.
+  ///
+  /// Returns a file path in the iOS app group container to use for the app
+  /// database.
+  static Future<File> _iosDbFile() async {
+    assert(defaultTargetPlatform == TargetPlatform.iOS);
+
+    final containerPath = await _getIosAppGroupContainerPath();
+    final containerDbFile = File(p.join(containerPath, 'zulip.db'));
+    if (await containerDbFile.exists()) {
+      assert(debugLog('Database file in iOS app group container '
+                      'already exists: $containerDbFile'));
+      return containerDbFile;
+    }
+
+    if (IosNotificationService.isExecutingInExtension) {
+      // The database file hasn't been copied to iOS App Group container yet.
+      throw Exception('Database file not found in the iOS App Group '
+        'container.');
+    }
+
+    // Older versions of the app stored the database file at a different path.
+    // Move it from there, if present.
+    final nonContainerDbDir = await getApplicationSupportDirectory();
+    final nonContainerDbFile = File(p.join(nonContainerDbDir.path, 'zulip.db'));
+    if (await nonContainerDbFile.exists()) {
+      assert(debugLog('Moving $nonContainerDbFile '
+                      'to iOS app group container path: $containerDbFile'));
+      // Dart doc for this function says that this function may have problems
+      // with moving/renaming files between different filesystems. But I have
+      // confirmed that this function is working fine for moving the file
+      // to the app group container path on iOS device running iOS 26.3.1 and
+      // also on iOS Simulator running iOS 15.5 .
+      await nonContainerDbFile.rename(containerDbFile.path);
+    }
+
+    return containerDbFile;
+  }
+
+  static Future<String> _getIosAppGroupContainerPath() async {
+    assert(defaultTargetPlatform == TargetPlatform.iOS);
+
+    // The iOS App Group identifier specified in the Xcode config
+    // for both the Runner target and the NotificationService target.
+    //
+    // This group identifier is used to access the shared directory,
+    // across the different targets which are sandboxed from each other.
+    // See: https://developer.apple.com/documentation/xcode/configuring-app-groups
+    //
+    // Generally this identifier should never be changed, because doing so
+    // will mean starting from new empty directory, causing the creation of new
+    // database from scratch.
+    //
+    // This should match ZULIP_APP_GROUP_IDENTIFIER in
+    // ios/Flutter/Zulip.xcconfig.
+    const iosAppGroupIdentifier = 'group.com.zulip.app';
+
+    final containerDbDir = await PathProviderFoundation().getContainerPath(
+      appGroupIdentifier: iosAppGroupIdentifier);
+
+    // From the Apple docs for `containerURL(forSecurityApplicationGroupIdentifier:)`
+    // which is what `pathProviderFoundation.getContainerPath` calls,
+    // this return value will only be null if the group identifier is invalid.
+    //   https://developer.apple.com/documentation/foundation/filemanager/containerurl(forsecurityapplicationgroupidentifier:)
+    return containerDbDir!;
+  }
+
+  /// Excludes the provided database file from OS backups.
+  ///
+  /// It is no-op on platforms other than iOS.
+  static Future<void> _maybeDisableOsBackup(File databaseFile) async {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+        await IosNativeHostApi().setExcludedFromBackup(databaseFile.path);
+
+      case TargetPlatform.android:
+        // On Android, backups are disabled for all files.
+        // See: https://github.com/zulip/zulip-flutter/pull/2160.
+        break;
+
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+        // Does nothing on these platforms.
+        break;
+    }
   }
 
   final LiveGlobalStoreBackend _backend;
@@ -1220,9 +1427,9 @@ class UpdateMachine {
     try {
       initialSnapshot = await _registerQueueWithRetry(connection,
         stopAndThrowIfNoAccount: stopAndThrowIfNoAccount);
-    } on ServerVersionUnsupportedException catch (e) {
+    } on ServerVersionNotAllowedException catch (e) {
       // `!` is OK because _registerQueueWithRetry would have thrown a
-      // not-ServerVersionUnsupportedException if no account
+      // not-ServerVersionNotAllowedException if no account
       final account = globalStore.getAccount(accountId)!;
       if (!e.data.matchesAccount(account)) {
         await globalStore.updateZulipVersionData(accountId, e.data);
@@ -1276,7 +1483,7 @@ class UpdateMachine {
     while (true) {
       InitialSnapshot? result;
       try {
-        result = await registerQueue(connection);
+        result = await registerQueue(connection, idleQueueTimeout: .mobile);
       } catch (e, stackTrace) {
         stopAndThrowIfNoAccount();
         // TODO(#890): tell user if initial-fetch errors persist, or look non-transient
@@ -1284,8 +1491,8 @@ class UpdateMachine {
         switch (e) {
           case MalformedServerResponseException()
             when (zulipVersionData = ZulipVersionData.fromMalformedServerResponseException(e))
-              ?.isUnsupported == true:
-            throw ServerVersionUnsupportedException(zulipVersionData!);
+              ?.isNotAllowed == true:
+            throw ServerVersionNotAllowedException(zulipVersionData!);
           case HttpException(httpStatus: 401):
             // We cannot recover from this error through retrying.
             // Leave it to [GlobalStore.loadPerAccount].
@@ -1317,8 +1524,8 @@ class UpdateMachine {
       if (result != null) {
         stopAndThrowIfNoAccount();
         final zulipVersionData = ZulipVersionData.fromInitialSnapshot(result);
-        if (zulipVersionData.isUnsupported) {
-          throw ServerVersionUnsupportedException(zulipVersionData);
+        if (zulipVersionData.isNotAllowed) {
+          throw ServerVersionNotAllowedException(zulipVersionData);
         }
         return result;
       }

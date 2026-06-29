@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/exception.dart';
@@ -14,6 +15,7 @@ import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
+import 'package:zulip/model/push_key.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/model/store.dart';
 
@@ -95,13 +97,21 @@ Uri get _realmUrl => realmUrl;
 final Uri realmIcon = Uri.parse('/user_avatars/2/realm/icon.png?version=3');
 Uri get _realmIcon => realmIcon;
 
-const String recentZulipVersion = '9.0';
-const int recentZulipFeatureLevel = 382;
+const String recentZulipVersion = '11.0';
+const int recentZulipFeatureLevel = 476;
 const int futureZulipFeatureLevel = 9999;
-const int ancientZulipFeatureLevel = kMinSupportedZulipFeatureLevel - 1;
+const int ancientZulipFeatureLevel = kMinAllowedZulipFeatureLevel - 1;
+
+AuthenticationMethods authMethods({
+  bool ldap = false,
+}) {
+  return AuthenticationMethods(
+    ldap: ldap,
+  );
+}
 
 GetServerSettingsResult serverSettings({
-  Map<String, bool>? authenticationMethods,
+  AuthenticationMethods? authenticationMethods,
   List<ExternalAuthenticationMethod>? externalAuthenticationMethods,
   int? zulipFeatureLevel,
   String? zulipVersion,
@@ -117,7 +127,7 @@ GetServerSettingsResult serverSettings({
   bool? realmWebPublicAccessEnabled,
 }) {
   return GetServerSettingsResult(
-    authenticationMethods: authenticationMethods ?? {},
+    authenticationMethods: authenticationMethods ?? authMethods(),
     externalAuthenticationMethods: externalAuthenticationMethods ?? [],
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
     zulipVersion: zulipVersion ?? recentZulipVersion,
@@ -318,7 +328,7 @@ Account account({
   int? zulipFeatureLevel,
   String? zulipVersion,
   String? zulipMergeBase,
-  String? ackedPushToken,
+  bool? possibleLegacyPushToken,
 }) {
   _checkPositive(id, 'account ID');
   // When `user.deliveryEmail` is null, using `user.email`
@@ -333,10 +343,11 @@ Account account({
     email: email,
     apiKey: apiKey ?? 'aeouasdf',
     userId: user.userId,
+    deviceId: 12345,
     zulipFeatureLevel: zulipFeatureLevel ?? recentZulipFeatureLevel,
     zulipVersion: zulipVersion ?? recentZulipVersion,
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
-    ackedPushToken: ackedPushToken,
+    possibleLegacyPushToken: possibleLegacyPushToken ?? false,
   );
 }
 const _account = account;
@@ -419,6 +430,46 @@ final Account thirdAccount = account(
 // Data attached to the self-account on the realm
 //
 
+ClientDevice clientDevice({
+  int? pushKeyId,
+  String? pushTokenId,
+  String? pendingPushTokenId,
+  int? pushTokenLastUpdatedTimestamp,
+  String? pushRegistrationErrorCode,
+}) {
+  return ClientDevice(
+    pushKeyId: pushKeyId,
+    pushTokenId: pushTokenId,
+    pendingPushTokenId: pendingPushTokenId,
+    pushTokenLastUpdatedTimestamp: pushTokenLastUpdatedTimestamp,
+    pushRegistrationErrorCode: pushRegistrationErrorCode,
+  );
+}
+
+Uint8List _pushKeyKey() {
+  final start = Random().nextInt(256);
+  return Uint8List.fromList([
+    PushKeyStore.pushKeyTagSecretbox,
+    ...Iterable.generate(32, (i) => (start + i) % 256),
+  ]);
+}
+
+PushKey pushKey({
+  required Account account,
+  int? pushKeyId,
+  Uint8List? pushKey,
+  int? createdTimestamp,
+  int? supersededTimestamp,
+}) {
+  return PushKey(
+    accountId: account.id,
+    pushKeyId: pushKeyId ?? Random().nextInt(1 << 32),
+    pushKey: pushKey ?? _pushKeyKey(),
+    createdTimestamp: createdTimestamp ?? 1771389742,
+    supersededTimestamp: supersededTimestamp,
+  );
+}
+
 int _nextSavedSnippetId() => _lastSavedSnippetId++;
 int _lastSavedSnippetId = 1;
 
@@ -464,6 +515,7 @@ ZulipStream stream({
   bool? isWebPublic,
   bool? historyPublicToSubscribers,
   int? messageRetentionDays,
+  ChannelTopicsPolicy? topicsPolicy,
   ChannelPostPolicy? channelPostPolicy,
   int? folderId,
   GroupSettingValue? canAddSubscribersGroup,
@@ -497,6 +549,7 @@ ZulipStream stream({
     isWebPublic: isWebPublic ?? false,
     historyPublicToSubscribers: historyPublicToSubscribers ?? true,
     messageRetentionDays: messageRetentionDays,
+    topicsPolicy: topicsPolicy ?? .inherit,
     channelPostPolicy: channelPostPolicy ?? ChannelPostPolicy.any,
     folderId: folderId,
     canAddSubscribersGroup: canAddSubscribersGroup ?? GroupSettingValueNamed(nobodyGroup.id),
@@ -543,6 +596,7 @@ Subscription subscription(
     isWebPublic: stream.isWebPublic,
     historyPublicToSubscribers: stream.historyPublicToSubscribers,
     messageRetentionDays: stream.messageRetentionDays,
+    topicsPolicy: stream.topicsPolicy,
     channelPostPolicy: stream.channelPostPolicy,
     folderId: stream.folderId,
     canAddSubscribersGroup: stream.canAddSubscribersGroup,
@@ -1006,6 +1060,25 @@ const _unreadMsgs = unreadMsgs;
 // Events.
 //
 
+DeviceUpdateEvent deviceUpdateEvent(
+  int deviceId, {
+  JsonNullable<int>? pushKeyId,
+  JsonNullable<String>? pushTokenId,
+  JsonNullable<String>? pendingPushTokenId,
+  JsonNullable<int>? pushTokenLastUpdatedTimestamp,
+  JsonNullable<String>? pushRegistrationErrorCode,
+}) {
+  return DeviceUpdateEvent(
+    id: 1,
+    deviceId: deviceId,
+    pushKeyId: pushKeyId,
+    pushTokenId: pushTokenId,
+    pendingPushTokenId: pendingPushTokenId,
+    pushTokenLastUpdatedTimestamp: pushTokenLastUpdatedTimestamp,
+    pushRegistrationErrorCode: pushRegistrationErrorCode,
+  );
+}
+
 UserTopicEvent userTopicEvent(
     int streamId, String topic, UserTopicVisibilityPolicy visibilityPolicy) {
   return UserTopicEvent(
@@ -1030,7 +1103,7 @@ DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   final streamId = messages.first.streamId;
   final topic = messages.first.topic;
   assert(messages.every((m) => m.streamId == streamId));
-  assert(messages.every((m) => m.topic == topic));
+  assert(messages.every((m) => m.topic.isSameAs(topic)));
   return DeleteMessageEvent(
     id: 0,
     messageIds: messages.map((message) => message.id).toList(),
@@ -1177,8 +1250,7 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
     flag: flag,
     messages: messages.map((m) => m.id).toList(),
     messageDetails: Map.fromEntries(messages.map((message) {
-      final mentioned = message.flags.contains(MessageFlag.mentioned)
-        || message.flags.contains(MessageFlag.wildcardMentioned);
+      final mentioned = message.flags.any((flag) => flag.isMentionFlag);
       return MapEntry(
         message.id,
         switch (message) {
@@ -1222,7 +1294,7 @@ TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
     case TopicNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
         messageType: MessageType.stream,
-        streamId: narrow.streamId,
+        streamId: narrow.channelId,
         topic: narrow.topic,
         recipientIds: null);
     case DmNarrow():
@@ -1264,6 +1336,8 @@ ChannelUpdateEvent channelUpdateEvent(
       assert(value is bool);
     case ChannelPropertyName.messageRetentionDays:
       assert(value is int?);
+    case ChannelPropertyName.topicsPolicy:
+      assert(value is ChannelTopicsPolicy);
     case ChannelPropertyName.channelPostPolicy:
       assert(value is ChannelPostPolicy);
     case ChannelPropertyName.folderId:
@@ -1297,6 +1371,7 @@ TestGlobalStore globalStore({
   Map<BoolGlobalSetting, bool>? boolGlobalSettings,
   Map<IntGlobalSetting, int>? intGlobalSettings,
   List<Account> accounts = const [],
+  Iterable<PushKey>? pushKeys,
 }) {
   return TestGlobalStore(
     globalSettings: globalSettings,
@@ -1308,6 +1383,7 @@ TestGlobalStore globalStore({
     },
     intGlobalSettings: intGlobalSettings,
     accounts: accounts,
+    pushKeys: pushKeys,
   );
 }
 const _globalStore = globalStore;
@@ -1359,10 +1435,12 @@ InitialSnapshot initialSnapshot({
   Map<int, UserStatusChange>? userStatuses,
   UserSettings? userSettings,
   List<UserTopicItem>? userTopics,
+  Map<int, ClientDevice>? devices,
   GroupSettingValue? realmCanDeleteAnyMessageGroup,
   GroupSettingValue? realmCanDeleteOwnMessageGroup,
   RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
+  RealmTopicsPolicy? realmTopicsPolicy,
   bool? realmMandatoryTopics,
   String? realmName,
   int? realmWaitingPeriodThreshold,
@@ -1376,10 +1454,12 @@ InitialSnapshot initialSnapshot({
   int? maxFileUploadSizeMib,
   List<ThumbnailFormat>? serverThumbnailFormats,
   Uri? serverEmojiDataUrl,
+  int? realmModerationRequestChannelId = -1,
   String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
   List<User>? realmNonActiveUsers,
   List<User>? crossRealmBots,
+  List<ReportMessageType>? serverReportMessageTypes,
 }) {
   if (realmDeleteOwnMessagePolicy == null) {
     // Set a default for realmCanDeleteOwnMessageGroup, but only if we're
@@ -1420,11 +1500,14 @@ InitialSnapshot initialSnapshot({
     userStatuses: userStatuses ?? {},
     userSettings: userSettings ?? _userSettings(),
     userTopics: userTopics ?? [],
+    devices: devices ?? {},
     // no default; allow `null` to simulate servers without this
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    // no default; allow `null` to simulate servers without this
+    realmTopicsPolicy: realmTopicsPolicy,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
     realmName: realmName ?? 'Example Zulip organization',
     realmWaitingPeriodThreshold: realmWaitingPeriodThreshold ?? 0,
@@ -1439,10 +1522,12 @@ InitialSnapshot initialSnapshot({
     serverThumbnailFormats: serverThumbnailFormats ?? [],
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
+    realmModerationRequestChannelId: realmModerationRequestChannelId,
     realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
     realmUsers: realmUsers ?? [selfUser],
     realmNonActiveUsers: realmNonActiveUsers ?? [],
     crossRealmBots: crossRealmBots ?? [],
+    serverReportMessageTypes: serverReportMessageTypes,
   );
 }
 const _initialSnapshot = initialSnapshot;

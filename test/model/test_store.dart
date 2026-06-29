@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -63,6 +64,14 @@ mixin _ApiConnectionsMixin on GlobalStore {
   }
 }
 
+/// A Drift database instance that knows our schema,
+/// but doesn't connect to any actual database, even fake or temporary.
+///
+/// This is useful because it enables the use of the `mapFromCompanion`
+/// methods.  See upstream discussion:
+///   https://github.com/simolus3/drift/issues/3761
+final _bogusDb = AppDatabase(LazyDatabase(() => throw 'used bogus DB'));
+
 class _TestGlobalStoreBackend implements GlobalStoreBackend {
   @override
   Future<void> doUpdateGlobalSettings(GlobalSettingsCompanion data) async {
@@ -76,6 +85,22 @@ class _TestGlobalStoreBackend implements GlobalStoreBackend {
 
   @override
   Future<void> doSetIntGlobalSetting(IntGlobalSetting setting, int? value) async {
+    // Nothing to do.
+  }
+
+  @override
+  Future<PushKey> doInsertPushKey(PushKeysCompanion data) async {
+    // TODO detect duplicate push keys here?
+    return await _bogusDb.pushKeys.mapFromCompanion(data, _bogusDb);
+  }
+
+  @override
+  Future<void> doUpdatePushKey(int pushKeyId, PushKeysCompanion data) async {
+    // Nothing to do.
+  }
+
+  @override
+  Future<void> doRemovePushKey(int pushKeyId) async {
     // Nothing to do.
   }
 }
@@ -96,20 +121,11 @@ mixin _DatabaseMixin on GlobalStore {
       throw AccountAlreadyExistsException();
     }
 
-    final accountId = data.id.present ? data.id.value : _nextAccountId++;
-    return Account(
-      id: accountId,
-      realmUrl: data.realmUrl.value,
-      realmName: data.realmName.value,
-      realmIcon: data.realmIcon.value,
-      userId: data.userId.value,
-      email: data.email.value,
-      apiKey: data.apiKey.value,
-      zulipFeatureLevel: data.zulipFeatureLevel.value,
-      zulipVersion: data.zulipVersion.value,
-      zulipMergeBase: data.zulipMergeBase.value,
-      ackedPushToken: data.ackedPushToken.value,
-    );
+    if (!data.id.present) {
+      data = data.copyWith(id: Value(_nextAccountId++));
+    }
+
+    return await _bogusDb.accounts.mapFromCompanion(data, _bogusDb);
   }
 
   @override
@@ -136,7 +152,8 @@ mixin _DatabaseMixin on GlobalStore {
 /// A [GlobalStore] containing data provided by callers,
 /// and that causes no database queries or network requests.
 ///
-/// Tests can provide data to the store by calling [add].
+/// Tests can provide data to the store by calling [add]
+/// or [addInitialSnapshot].
 ///
 /// The per-account stores will use [FakeApiConnection].
 ///
@@ -155,10 +172,12 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
     Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
+    Iterable<PushKey>? pushKeys,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
          intGlobalSettings: intGlobalSettings ?? {},
+         pushKeys: pushKeys ?? [],
        );
 
   final Map<int, InitialSnapshot> _initialSnapshots = {};
@@ -172,8 +191,14 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   /// [PerAccountStore] when [perAccount] is subsequently called for this
   /// account, in particular when a [PerAccountStoreWidget] is mounted.
   ///
+  /// The account's [Account.zulipFeatureLevel] will be updated to match
+  /// that of the initial snapshot.
+  ///
   /// By default, [setLastVisitedAccount] is called for the account.
   /// Pass false for [markLastVisited] to skip that.
+  ///
+  /// See also:
+  ///  * [addInitialSnapshot]
   Future<void> add(
     Account account,
     InitialSnapshot initialSnapshot, {
@@ -181,7 +206,9 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
   }) async {
     assert(initialSnapshot.zulipVersion == account.zulipVersion);
     assert(initialSnapshot.zulipMergeBase == account.zulipMergeBase);
-    assert(initialSnapshot.zulipFeatureLevel == account.zulipFeatureLevel);
+    if (initialSnapshot.zulipFeatureLevel != account.zulipFeatureLevel) {
+      account = account.copyWith(zulipFeatureLevel: initialSnapshot.zulipFeatureLevel);
+    }
     await insertAccount(account.toCompanion(false));
     assert(!_initialSnapshots.containsKey(account.id));
     _initialSnapshots[account.id] = initialSnapshot;
@@ -189,6 +216,20 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
     if (markLastVisited) {
       await setLastVisitedAccount(account.id);
     }
+  }
+
+  /// Add server data to the test data, for an account already present.
+  ///
+  /// The given initial snapshot will be used to initialize a corresponding
+  /// [PerAccountStore] when [perAccount] is subsequently called for this
+  /// account, in particular when a [PerAccountStoreWidget] is mounted.
+  ///
+  /// See also:
+  ///  * [add], for adding the account as well as the server data.
+  void addInitialSnapshot(int accountId, InitialSnapshot initialSnapshot) {
+    assert(accountIds.contains(accountId));
+    assert(!_initialSnapshots.containsKey(accountId));
+    _initialSnapshots[accountId] = initialSnapshot;
   }
 
   Duration? loadPerAccountDuration;
@@ -236,10 +277,12 @@ class UpdateMachineTestGlobalStore extends GlobalStore with _ApiConnectionsMixin
     Map<BoolGlobalSetting, bool>? boolGlobalSettings,
     Map<IntGlobalSetting, int>? intGlobalSettings,
     required super.accounts,
+    Iterable<PushKey>? pushKeys,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
          boolGlobalSettings: boolGlobalSettings ?? {},
          intGlobalSettings: intGlobalSettings ?? {},
+         pushKeys: pushKeys ?? [],
        );
 
   // [doLoadPerAccount] depends on the cache to prepare the API responses.
@@ -347,11 +390,17 @@ extension PerAccountStoreTestExtension on PerAccountStore {
   }
 
   Future<void> removeSubscriptions(List<int> channelIds) async {
-    await handleEvent(SubscriptionRemoveEvent(id: 1, streamIds: channelIds));
+    await handleEvent(SubscriptionRemoveEvent(id: 1, channelIds: channelIds));
   }
 
   Future<void> addChannelFolder(ChannelFolder channelFolder) async {
     await handleEvent(ChannelFolderAddEvent(id: 1, channelFolder: channelFolder));
+  }
+
+  Future<void> addChannelFolders(Iterable<ChannelFolder> channelFolders) async {
+    for (final channelFolder in channelFolders) {
+      await addChannelFolder(channelFolder);
+    }
   }
 
   Future<void> setUserTopic(ZulipStream stream, String topic, UserTopicVisibilityPolicy visibilityPolicy) async {

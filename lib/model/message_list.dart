@@ -564,8 +564,8 @@ bool haveSameRecipient(MessageBase prevMessage, MessageBase message) {
 @visibleForTesting
 bool messagesSameDay(MessageBase prevMessage, MessageBase message) {
   // TODO memoize [DateTime]s... also use memoized for showing date/time in msglist
-  final prevTime = DateTime.fromMillisecondsSinceEpoch(prevMessage.timestamp * 1000);
-  final time = DateTime.fromMillisecondsSinceEpoch(message.timestamp * 1000);
+  final prevTime = dateTimeFromTimestamp(prevMessage.timestamp);
+  final time = dateTimeFromTimestamp(message.timestamp);
   if (!_sameDay(prevTime, time)) return false;
   return true;
 }
@@ -609,9 +609,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   MessageListView._({
     required this.store,
-    required Narrow narrow,
-    required Anchor anchor,
-  }) : _narrow = narrow, _anchor = anchor;
+    required this._narrow,
+    required this._anchor,
+  });
 
   final PerAccountStore store;
 
@@ -692,11 +692,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
             DmNarrow.ofConversation(conversation, selfUserId: store.selfUserId)),
         };
 
-      case ChannelNarrow(:final streamId):
+      case ChannelNarrow(:final channelId):
         assert(message is MessageBase<StreamConversation>
-               && message.conversation.streamId == streamId);
+               && message.conversation.streamId == channelId);
         if (message is! MessageBase<StreamConversation>) return false;
-        return store.isTopicVisibleInStream(streamId, message.conversation.topic);
+        return store.isTopicVisibleInStream(channelId, message.conversation.topic);
 
       case TopicNarrow():
         assert((narrow as TopicNarrow).containsMessage(message));
@@ -767,8 +767,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case CombinedFeedNarrow():
         return store.willChangeIfTopicVisible(event);
 
-      case ChannelNarrow(:final streamId):
-        if (event.streamId != streamId) return UserTopicVisibilityEffect.none;
+      case ChannelNarrow(:final channelId):
+        if (event.streamId != channelId) return UserTopicVisibilityEffect.none;
         return store.willChangeIfTopicVisibleInStream(event);
 
       case TopicNarrow():
@@ -1082,12 +1082,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         bool removed = _removeMessagesWhere((message) =>
           message is StreamMessage
             && message.streamId == event.streamId
-            && message.topic == event.topicName);
+            && message.topic.isSameAs(event.topicName));
 
         removed |= _removeOutboxMessagesWhere((message) =>
           message is StreamOutboxMessage
             && message.conversation.streamId == event.streamId
-            && message.conversation.topic == event.topicName);
+            && message.conversation.topic.isSameAs(event.topicName));
 
         if (removed) {
           notifyListeners();
@@ -1252,20 +1252,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // without asking the server.
         _messagesMovedInternally(messageIds);
 
-      case ChannelNarrow(:final streamId):
-        switch ((origStreamId == streamId, newStreamId == streamId)) {
+      case ChannelNarrow(:final channelId):
+        switch ((origStreamId == channelId, newStreamId == channelId)) {
           case (false, false): return;
           case (true,  true ): _messagesMovedInternally(messageIds);
           case (false, true ): _messagesMovedIntoNarrow();
           case (true,  false): _messagesMovedFromNarrow(messageIds);
         }
 
-      case TopicNarrow(:final streamId, :final topic):
-        final oldMatch = (origStreamId == streamId && origTopic == topic);
-        final newMatch = (newStreamId == streamId && newTopic == topic);
+      case TopicNarrow(:final channelId, :final topic):
+        final oldMatch = (origStreamId == channelId && origTopic.isSameAs(topic));
+        final newMatch = (newStreamId == channelId && newTopic.isSameAs(topic));
         switch ((oldMatch, newMatch)) {
           case (false, false): return;
-          case (true,  true ): return; // TODO(log) no-op move
+          case (true,  true ): return; // TODO(log) when no-op move
           case (false, true ): _messagesMovedIntoNarrow();
           case (true,  false):
             _messagesMovedFromNarrow(messageIds);

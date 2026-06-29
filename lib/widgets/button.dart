@@ -12,6 +12,12 @@ import 'theme.dart';
 /// The Figma uses this for the "Cancel" and "Save" buttons in the compose box
 /// for editing an already-sent message.
 ///
+/// Pass null for [onPressed] to make the button disabled.
+/// The disabled state is essentially 50% opacity;
+/// this isn't specified in the Figma, but Vlad suggested it informally:
+///   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/toggle.3A.20disabled.20state/near/2250883
+/// and empirically web seems to do this too.
+///
 /// See Figma:
 ///   * Component: https://www.figma.com/design/msWyAJ8cnMHgOMPxi7BUvA/Zulip-Web-UI-kit?node-id=1-2780&t=Wia0D0i1I0GXdD9z-0
 ///   * Edit-message compose box: https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3988-38201&m=dev
@@ -31,64 +37,107 @@ class ZulipWebUiKitButton extends StatelessWidget {
   final ZulipWebUiKitButtonSize size;
   final String label;
   final IconData? icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   WidgetStateColor _backgroundColor(DesignVariables designVariables) {
+    WidgetStateColor result;
     switch ((attention, intent)) {
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
-        return WidgetStateColor.fromMap({
+        result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.neutralButtonBg.withFadedAlpha(0.3),
           ~WidgetState.pressed: designVariables.neutralButtonBg.withAlpha(0),
         });
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
         throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
-        return WidgetStateColor.fromMap({
+        result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttMediumIntWarningActive,
           ~WidgetState.pressed: designVariables.btnBgAttMediumIntWarningNormal,
         });
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
-        return WidgetStateColor.fromMap({
+        result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttHighIntWarningActive,
           ~WidgetState.pressed: designVariables.btnBgAttHighIntWarningNormal,
         });
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+        throw UnimplementedError();
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
+        result = WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive,
+          ~WidgetState.pressed: designVariables.btnBgAttLowIntDangerActive.withAlpha(0),
+        });
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+        result = WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.btnBgAttMediumIntDangerActive,
+          ~WidgetState.pressed: designVariables.btnBgAttMediumIntDangerNormal,
+        });
+      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
         throw UnimplementedError();
-      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
         return WidgetStateColor.fromMap({
+          WidgetState.pressed: designVariables.btnBgAttLowIntInfoActive,
+          ~WidgetState.pressed: designVariables.btnBgAttLowIntInfoActive.withAlpha(0),
+        });
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
+        result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttMediumIntInfoActive,
           ~WidgetState.pressed: designVariables.btnBgAttMediumIntInfoNormal,
         });
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
-        return WidgetStateColor.fromMap({
+        result = WidgetStateColor.fromMap({
           WidgetState.pressed: designVariables.btnBgAttHighIntInfoActive,
           ~WidgetState.pressed: designVariables.btnBgAttHighIntInfoNormal,
         });
     }
+
+    return WidgetStateColor.resolveWith((states) {
+      return states.contains(WidgetState.disabled)
+        ? result.resolve(states).withFadedAlpha(0.5)
+        : result.resolve(states);
+    });
   }
 
   Color _labelColor(DesignVariables designVariables) {
+    Color result;
     switch ((attention, intent)) {
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.neutral):
         // TODO nit: don't fade in pressed state
-        return designVariables.neutralButtonLabel.withFadedAlpha(0.85);
+        result = designVariables.neutralButtonLabel.withFadedAlpha(0.85);
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.neutral):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.warning):
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.warning):
         throw UnimplementedError();
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.warning):
-        return designVariables.btnLabelAttMediumIntWarning;
+        result = designVariables.btnLabelAttMediumIntWarning;
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.warning):
-        return designVariables.btnLabelAttHighIntWarning;
+        result = designVariables.btnLabelAttHighIntWarning;
+      case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.danger):
+        throw UnimplementedError();
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.danger):
+        result = designVariables.btnLabelAttLowIntDanger;
+      case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.danger):
+        result = designVariables.btnLabelAttMediumIntDanger;
+      case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.danger):
       case (ZulipWebUiKitButtonAttention.minimal, ZulipWebUiKitButtonIntent.info):
         throw UnimplementedError();
+      case (ZulipWebUiKitButtonAttention.low, ZulipWebUiKitButtonIntent.info):
+        result = designVariables.btnLabelAttLowIntInfo;
       case (ZulipWebUiKitButtonAttention.medium, ZulipWebUiKitButtonIntent.info):
-        return designVariables.btnLabelAttMediumIntInfo;
+        result = designVariables.btnLabelAttMediumIntInfo;
       case (ZulipWebUiKitButtonAttention.high, ZulipWebUiKitButtonIntent.info):
-        return designVariables.btnLabelAttHigh;
+        result = designVariables.btnLabelAttHigh;
     }
+
+    return onPressed == null
+      ? result.withFadedAlpha(0.5) // disabled state
+      : result;
   }
 
   TextStyle _labelStyle(BuildContext context, {required TextScaler textScaler}) {
@@ -117,6 +166,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
   BorderSide _borderSide(DesignVariables designVariables) {
     switch (attention) {
       case ZulipWebUiKitButtonAttention.minimal:
+      case ZulipWebUiKitButtonAttention.low:
         return BorderSide.none;
       case ZulipWebUiKitButtonAttention.medium:
         // TODO inner shadow effect like `box-shadow: inset`, following Figma;
@@ -160,51 +210,63 @@ class ZulipWebUiKitButton extends StatelessWidget {
 
     final labelColor = _labelColor(designVariables);
 
-    return AnimatedScaleOnPress(
-      scaleEnd: 0.96,
-      duration: Duration(milliseconds: 100),
-      child: TextButton.icon(
-        // TODO the gap between the icon and label should be 6px, not 8px
-        icon: icon != null ? Icon(icon) : null,
-        style: TextButton.styleFrom(
-          iconSize: 16,
-          iconColor: labelColor,
-          padding: EdgeInsets.symmetric(
-            horizontal: _forSize(6, 10),
-            vertical: 4 - densityVerticalAdjustment,
-          ),
-          foregroundColor: labelColor,
-          shape: RoundedRectangleBorder(
-            side: _borderSide(designVariables),
-            borderRadius: BorderRadius.circular(_forSize(6, 4))),
-          splashFactory: NoSplash.splashFactory,
+    Widget result = TextButton.icon(
+      // TODO the gap between the icon and label should be 6px, not 8px
+      icon: icon != null ? Icon(icon) : null,
+      style: TextButton.styleFrom(
+        iconSize: 16,
+        iconColor: labelColor,
+        padding: EdgeInsets.symmetric(
+          horizontal: _forSize(6, 10),
+          vertical: 4 - densityVerticalAdjustment,
+        ),
+        foregroundColor: labelColor,
+        shape: RoundedRectangleBorder(
+          side: _borderSide(designVariables),
+          borderRadius: BorderRadius.circular(_forSize(6, 4))),
+        splashFactory: NoSplash.splashFactory,
 
-          // These three arguments make the button `buttonHeight` tall,
-          // but with vertical padding to make the touch target 44px tall:
-          //   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
-          visualDensity: visualDensity,
-          tapTargetSize: MaterialTapTargetSize.padded,
-          minimumSize: Size(
-            kMinInteractiveDimension,
-            buttonHeight - densityVerticalAdjustment,
-          ),
-        ).copyWith(backgroundColor: _backgroundColor(designVariables)),
-        onPressed: onPressed,
-        label: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 240),
-          child: Text(label,
-            textScaler: textScaler,
-            maxLines: 1,
-            style: _labelStyle(context, textScaler: textScaler),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis))));
+        // These three arguments make the button `buttonHeight` tall,
+        // but with vertical padding to make the touch target 44px tall:
+        //   https://github.com/zulip/zulip-flutter/pull/1432#discussion_r2023907300
+        visualDensity: visualDensity,
+        tapTargetSize: MaterialTapTargetSize.padded,
+        minimumSize: Size(
+          kMinInteractiveDimension,
+          buttonHeight - densityVerticalAdjustment,
+        ),
+      ).copyWith(backgroundColor: _backgroundColor(designVariables)),
+      onPressed: onPressed,
+      label: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 240),
+        child: Text(label,
+          textScaler: textScaler,
+          maxLines: 1,
+          style: _labelStyle(context, textScaler: textScaler),
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis)));
+
+    if (onPressed != null) {
+      result = AnimatedScaleOnPress(
+        scaleEnd: 0.96,
+        duration: Duration(milliseconds: 100),
+        child: result);
+    }
+
+    return result;
   }
 }
 
+// TODO follow web's rename of "attention" to "variant":
+//   low, medium, high -> text, subtle, solid
+// See web PR:
+//   https://github.com/zulip/zulip/pull/37424
+// and discussion:
+//   https://chat.zulip.org/#narrow/channel/530-mobile-design/topic/Design.20of.20banner.20for.20unsupported.20server/near/2412680
 enum ZulipWebUiKitButtonAttention {
   high,
   medium,
-  // low,
+  low,
 
   /// An ad hoc value for the "Reveal message" button
   /// on a message from a muted sender:
@@ -215,7 +277,7 @@ enum ZulipWebUiKitButtonAttention {
 enum ZulipWebUiKitButtonIntent {
   neutral,
   warning,
-  // danger,
+  danger,
   info,
   // success,
   // brand,

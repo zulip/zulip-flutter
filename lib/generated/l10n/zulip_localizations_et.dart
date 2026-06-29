@@ -9,176 +9,183 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   ZulipLocalizationsEt([String locale = 'et']) : super(locale);
 
   @override
-  String get aboutPageTitle => 'About Zulip';
+  String get aboutPageTitle => 'Zulipi teave';
 
   @override
-  String get aboutPageAppVersion => 'App version';
+  String get aboutPageAppVersion => 'Rakenduse versioon';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-source licenses';
+  String get aboutPageOpenSourceLicenses =>
+      'Avatud lähtekoodiga tarkvara litsentsid';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
+  String get aboutPageTapToView => 'Vaatamiseks klõpsa';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle =>
+      'Tere tulemast kasutama uut Zulipi rakendust!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
+      'Tuttava kogemuse leiad kiiremast ja elegantsemast rakendusest.';
 
   @override
   String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
+      'Vaata teemakohast teavitust meie ajaveebi postitusest!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'Alustame';
 
   @override
-  String get chooseAccountPageTitle => 'Choose account';
+  String get chooseAccountPageTitle => 'Vali kasutajakonto';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => 'Seadistused';
 
   @override
-  String get switchAccountButtonTooltip => 'Switch account';
+  String get switchAccountButtonTooltip => 'Vaheta kasutajakontot';
 
   @override
   String tryAnotherAccountMessage(Object url) {
-    return 'Your account at $url is taking a while to load.';
+    return 'Sinu kasutajakonto laadimine asukohast „$url“ võtab üsna kaua aega.';
   }
 
   @override
-  String get tryAnotherAccountButton => 'Try another account';
+  String get tryAnotherAccountButton => 'Proovi mõnda muud kasutajakontot';
 
   @override
-  String get chooseAccountPageLogOutButton => 'Log out';
+  String get chooseAccountPageLogOutButton => 'Logi välja';
 
   @override
-  String get logOutConfirmationDialogTitle => 'Log out?';
+  String get logOutConfirmationDialogTitle => 'Kas logid välja?';
 
   @override
   String get logOutConfirmationDialogMessage =>
-      'To use this account in the future, you will have to re-enter the URL for your organization and your account information.';
+      'Kasutamaks seda kontot tulevikus pead oma organisatsiooni võrguaadressi ja konto teabe uuesti sisestama.';
 
   @override
-  String get logOutConfirmationDialogConfirmButton => 'Log out';
+  String get logOutConfirmationDialogConfirmButton => 'Logi välja';
 
   @override
-  String get chooseAccountButtonAddAnAccount => 'Add an account';
+  String get chooseAccountButtonAddAnAccount => 'Lisa kasutajakonto';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => 'Kõik kanalid';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => 'Kõik kanalid';
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>
-      'There are no channels you can view in this organization.';
+      'Selles organisatsioonis pole ühtegi kanalit, mida saaksid vaadata.';
 
   @override
-  String get profileButtonSendDirectMessage => 'Send direct message';
+  String get profileButtonSendDirectMessage => 'Saada otsesõnum';
 
   @override
-  String get errorCouldNotShowUserProfile => 'Could not show user profile.';
+  String get errorCouldNotShowUserProfile =>
+      'Kasutajaprofiili kuvamine ei õnnestunud.';
 
   @override
-  String get permissionsNeededTitle => 'Permissions needed';
+  String get permissionsNeededTitle => 'Vajalikud on õigused';
 
   @override
-  String get permissionsNeededOpenSettings => 'Open settings';
+  String get permissionsNeededOpenSettings => 'Ava seadistused';
 
   @override
   String get permissionsDeniedCameraAccess =>
-      'To upload an image, please grant Zulip additional permissions in Settings.';
+      'Pildi üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.';
 
   @override
   String get permissionsDeniedReadExternalStorage =>
-      'To upload files, please grant Zulip additional permissions in Settings.';
+      'Failide üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.';
 
   @override
-  String get actionSheetOptionSubscribe => 'Subscribe';
+  String get actionSheetOptionSubscribe => 'Telli';
 
   @override
-  String get subscribeFailedTitle => 'Failed to subscribe';
+  String get subscribeFailedTitle => 'Tellimine ei õnnestunud';
 
   @override
-  String get actionSheetOptionMarkChannelAsRead => 'Mark channel as read';
+  String get actionSheetOptionMarkChannelAsRead => 'Märgi kanal loetuks';
 
   @override
-  String get actionSheetOptionCopyChannelLink => 'Copy link to channel';
+  String get actionSheetOptionCopyChannelLink => 'Kopeeri kanali link';
 
   @override
-  String get actionSheetOptionListOfTopics => 'List of topics';
+  String get actionSheetOptionListOfTopics => 'Teemade loend';
 
   @override
-  String get actionSheetOptionChannelFeed => 'Channel feed';
+  String get actionSheetOptionChannelFeed => 'Kanali sisuvoog';
 
   @override
-  String get actionSheetOptionUnsubscribe => 'Unsubscribe';
+  String get actionSheetOptionUnsubscribe => 'Loobu tellimusest';
 
   @override
   String unsubscribeConfirmationDialogTitle(String channelName) {
-    return 'Unsubscribe from $channelName?';
+    return 'Kas loobud „$channelName“ kanali tellimusest?';
   }
 
   @override
   String get unsubscribeConfirmationDialogMessageCannotResubscribe =>
-      'Once you leave this channel, you will not be able to rejoin.';
+      'Kui oled sellest kanalist lahkunud, ei saa sa uuesti liituda.';
 
   @override
-  String get unsubscribeConfirmationDialogConfirmButton => 'Unsubscribe';
+  String get unsubscribeConfirmationDialogConfirmButton => 'Loobu tellimusest';
 
   @override
-  String get unsubscribeFailedTitle => 'Failed to unsubscribe';
+  String get unsubscribeFailedTitle => 'Tellimusest loobumine ei õnnestunud';
 
   @override
-  String get actionSheetOptionPinChannel => 'Pin to top';
+  String get actionSheetOptionPinChannel => 'Tõsta ülal ääres esile';
 
   @override
-  String get actionSheetOptionUnpinChannel => 'Unpin from top';
+  String get actionSheetOptionUnpinChannel =>
+      'Eemalda ülalt äärest esiletõstmine';
 
   @override
-  String get errorPinChannelFailedTitle => 'Failed to pin channel';
+  String get errorPinChannelFailedTitle => 'Kanali esiletõstmine ei õnnestunud';
 
   @override
-  String get errorUnpinChannelFailedTitle => 'Failed to unpin channel';
+  String get errorUnpinChannelFailedTitle =>
+      'Kanali esiletõstmise lõpetamine ei õnnestunud';
 
   @override
-  String get actionSheetOptionMuteTopic => 'Mute topic';
+  String get actionSheetOptionMuteTopic => 'Summuta teema';
 
   @override
-  String get actionSheetOptionUnmuteTopic => 'Unmute topic';
+  String get actionSheetOptionUnmuteTopic => 'Lõpeta teema summutamine';
 
   @override
-  String get actionSheetOptionFollowTopic => 'Follow topic';
+  String get actionSheetOptionFollowTopic => 'Jälgi teemat';
 
   @override
-  String get actionSheetOptionUnfollowTopic => 'Unfollow topic';
+  String get actionSheetOptionUnfollowTopic => 'Lõpeta teema jälgimine';
 
   @override
-  String get actionSheetOptionResolveTopic => 'Mark as resolved';
+  String get actionSheetOptionResolveTopic => 'Märgi lahendatuks';
 
   @override
-  String get actionSheetOptionUnresolveTopic => 'Mark as unresolved';
+  String get actionSheetOptionUnresolveTopic => 'Märgi mittelahendatuks';
 
   @override
-  String get errorResolveTopicFailedTitle => 'Failed to mark topic as resolved';
+  String get errorResolveTopicFailedTitle =>
+      'Teema lahendatuks märkimine ei õnnestunud';
 
   @override
   String get errorUnresolveTopicFailedTitle =>
-      'Failed to mark topic as unresolved';
+      'Teema mittelahendatuks märkimine ei õnnestunud';
 
   @override
-  String get actionSheetOptionSeeWhoReacted => 'See who reacted';
+  String get actionSheetOptionSeeWhoReacted => 'Vaata, kes reageeris';
 
   @override
-  String get seeWhoReactedSheetNoReactions => 'This message has no reactions.';
+  String get seeWhoReactedSheetNoReactions =>
+      'Sellele sõnumile pole mitte keegi reageerinud.';
 
   @override
   String seeWhoReactedSheetHeaderLabel(int num) {
-    return 'Emoji reactions ($num total)';
+    return 'Reageerimisi emojiga (kokku $num)';
   }
 
   @override
@@ -201,7 +208,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get actionSheetOptionViewReadReceipts => 'View read receipts';
 
   @override
-  String get actionSheetReadReceipts => 'Read receipts';
+  String get actionSheetReadReceipts => 'Lugemisteatised';
 
   @override
   String actionSheetReadReceiptsReadCount(int count) {
@@ -235,41 +242,104 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
 
   @override
-  String get actionSheetOptionShare => 'Share';
+  String get actionSheetOptionShare => 'Jaga';
 
   @override
-  String get actionSheetOptionQuoteMessage => 'Quote message';
+  String get actionSheetOptionQuoteMessage => 'Tsiteeri sõnumit';
 
   @override
-  String get actionSheetOptionStarMessage => 'Star message';
+  String get actionSheetOptionStarMessage => 'Märgi sõnum tärniga';
 
   @override
-  String get actionSheetOptionUnstarMessage => 'Unstar message';
+  String get actionSheetOptionUnstarMessage =>
+      'Eemalda sõnumilt tärniga märkimine';
 
   @override
-  String get actionSheetOptionEditMessage => 'Edit message';
+  String get actionSheetOptionEditMessage => 'Muuda sõnumit';
 
   @override
-  String get actionSheetOptionDeleteMessage => 'Delete message';
+  String get actionSheetOptionDeleteMessage => 'Kustuta sõnum';
 
   @override
-  String get deleteMessageConfirmationDialogTitle => 'Delete message?';
+  String get deleteMessageConfirmationDialogTitle => 'Kas kustutad sõnumi?';
 
   @override
   String get deleteMessageConfirmationDialogMessage =>
       'Deleting a message permanently removes it for everyone.';
 
   @override
-  String get deleteMessageConfirmationDialogConfirmButton => 'Delete';
+  String get deleteMessageConfirmationDialogConfirmButton => 'Kustuta';
 
   @override
   String get errorDeleteMessageFailedTitle => 'Failed to delete message';
+
+  @override
+  String get actionSheetOptionReportMessage => 'Report message';
+
+  @override
+  String get reportMessageDialogTitle => 'Report message';
+
+  @override
+  String get reportMessageDescription =>
+      'Your report will be sent to the private moderation requests channel for this organization.';
+
+  @override
+  String get messageReportTypeSpam => 'Spam';
+
+  @override
+  String get messageReportTypeHarassment => 'Harassment';
+
+  @override
+  String get messageReportTypeInappropriate => 'Inappropriate content';
+
+  @override
+  String get messageReportTypeNorms => 'Violates community norms';
+
+  @override
+  String get messageReportTypeOther => 'Other reason';
+
+  @override
+  String get reportMessageReasonLabel =>
+      'What’s the problem with this message?';
+
+  @override
+  String get reportMessageDescriptionLabel => 'Can you provide more details?';
+
+  @override
+  String get reportMessageDescriptionRequired => 'Please provide details.';
+
+  @override
+  String get reportMessageSubmitButton => 'Submit';
+
+  @override
+  String get reportMessageSuccess => 'Message reported';
+
+  @override
+  String get errorReportMessageFailedTitle => 'Failed to report message';
 
   @override
   String get actionSheetOptionMarkTopicAsRead => 'Mark topic as read';
 
   @override
   String get actionSheetOptionCopyTopicLink => 'Copy link to topic';
+
+  @override
+  String actionSheetTitleDm(String user) {
+    return 'DMs with $user';
+  }
+
+  @override
+  String get actionSheetTitleSelfDm => 'DMs with yourself';
+
+  @override
+  String get actionSheetTitleGroupDm => 'Group DM';
+
+  @override
+  String get actionSheetOptionViewProfile => 'View profile';
+
+  @override
+  String get actionSheetOptionMarkDmConversationAsRead =>
+      'Mark conversation as read';
 
   @override
   String get errorWebAuthOperationalErrorTitle => 'Something went wrong';
@@ -294,7 +364,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Could not access uploaded file';
 
   @override
-  String get errorCopyingFailed => 'Copying failed';
+  String get errorCopyingFailed => 'Kopeerimine ei õnnestunud';
 
   @override
   String errorFailedToUploadFileTitle(String filename) {
@@ -333,10 +403,10 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get errorLoginInvalidInputTitle => 'Invalid input';
+  String get errorLoginInvalidInputTitle => 'Vigane sisend';
 
   @override
-  String get errorLoginFailedTitle => 'Login failed';
+  String get errorLoginFailedTitle => 'Sisselogimine ei õnnestunud';
 
   @override
   String get errorMessageNotSent => 'Message not sent';
@@ -350,27 +420,27 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get errorCouldNotConnectTitle => 'Could not connect';
+  String get errorCouldNotConnectTitle => 'Ühendumine ei õnnestunud';
 
   @override
   String get errorMessageDoesNotSeemToExist =>
-      'That message does not seem to exist.';
+      'Tundub, et seda sõnumit pole olemas.';
 
   @override
-  String get errorQuotationFailed => 'Quotation failed';
+  String get errorQuotationFailed => 'Tsiteerimine ei õnnestunud';
 
   @override
   String errorServerMessage(String message) {
-    return 'The server said:\n\n$message';
+    return 'Server ütles:\n\n$message';
   }
 
   @override
   String get errorConnectingToServerShort =>
-      'Error connecting to Zulip. Retrying…';
+      'Viga Zulipiga ühendamisel. Proovin uuesti…';
 
   @override
   String errorConnectingToServerDetails(String serverUrl, String error) {
-    return 'Error connecting to Zulip at $serverUrl. Will retry:\n\n$error';
+    return 'Viga Zulipiga ühendamisel aadressil $serverUrl. Proovin uuesti:\n\n$error';
   }
 
   @override
@@ -407,7 +477,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get errorUnfollowTopicFailed => 'Failed to unfollow topic';
 
   @override
-  String get errorSharingFailed => 'Sharing failed';
+  String get errorSharingFailed => 'Jagamine ei õnnestunud';
 
   @override
   String get errorStarMessageFailedTitle => 'Failed to star message';
@@ -419,7 +489,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Could not edit message';
 
   @override
-  String get successLinkCopied => 'Link copied';
+  String get successLinkCopied => 'Link on kopeeritud';
 
   @override
   String get successMessageTextCopied => 'Message text copied';
@@ -458,19 +528,19 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'New messages will not appear automatically.';
 
   @override
-  String get composeBoxBannerButtonRefresh => 'Refresh';
+  String get composeBoxBannerButtonRefresh => 'Värskenda andmeid';
 
   @override
-  String get composeBoxBannerButtonSubscribe => 'Subscribe';
+  String get composeBoxBannerButtonSubscribe => 'Telli';
 
   @override
-  String get composeBoxBannerLabelEditMessage => 'Edit message';
+  String get composeBoxBannerLabelEditMessage => 'Muuda sõnumit';
 
   @override
-  String get composeBoxBannerButtonCancel => 'Cancel';
+  String get composeBoxBannerButtonCancel => 'Katkesta';
 
   @override
-  String get composeBoxBannerButtonSave => 'Save';
+  String get composeBoxBannerButtonSave => 'Salvesta';
 
   @override
   String get editAlreadyInProgressTitle => 'Cannot edit message';
@@ -480,7 +550,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'An edit is already in progress. Please wait for it to complete.';
 
   @override
-  String get savingMessageEditLabel => 'SAVING EDIT…';
+  String get savingMessageEditLabel => 'SALVESTAN MUUDATUST…';
 
   @override
   String get savingMessageEditFailedLabel => 'EDIT NOT SAVED';
@@ -498,10 +568,10 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'When you restore an unsent message, the content that was previously in the compose box is discarded.';
 
   @override
-  String get discardDraftConfirmationDialogConfirmButton => 'Discard';
+  String get discardDraftConfirmationDialogConfirmButton => 'Loobu';
 
   @override
-  String get composeBoxAttachFilesTooltip => 'Attach files';
+  String get composeBoxAttachFilesTooltip => 'Lisa faile manuseks';
 
   @override
   String get composeBoxAttachMediaTooltip => 'Attach images or videos';
@@ -513,13 +583,13 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get composeBoxGenericContentHint => 'Type a message';
 
   @override
-  String get newDmSheetComposeButtonLabel => 'Compose';
+  String get newDmSheetComposeButtonLabel => 'Koosta sõnum';
 
   @override
-  String get newDmSheetScreenTitle => 'New DM';
+  String get newDmSheetScreenTitle => 'Uus otsesõnum';
 
   @override
-  String get newDmFabButtonLabel => 'New DM';
+  String get newDmFabButtonLabel => 'Uus otsesõnum';
 
   @override
   String get newDmSheetSearchHintEmpty => 'Add one or more users';
@@ -532,14 +602,14 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
 
   @override
   String composeBoxDmContentHint(String user) {
-    return 'Message @$user';
+    return 'Sõnum kasutajale @$user';
   }
 
   @override
-  String get composeBoxGroupDmContentHint => 'Message group';
+  String get composeBoxGroupDmContentHint => 'Sõnum grupile';
 
   @override
-  String get composeBoxSelfDmContentHint => 'Write yourself a note';
+  String get composeBoxSelfDmContentHint => 'Koosta endale märge';
 
   @override
   String composeBoxChannelContentHint(String destination) {
@@ -547,16 +617,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get preparingEditMessageContentInput => 'Preparing…';
+  String get preparingEditMessageContentInput => 'Valmistun…';
 
   @override
-  String get composeBoxSendTooltip => 'Send';
+  String get composeBoxSendTooltip => 'Saada';
 
   @override
   String get unknownChannelName => '(unknown channel)';
 
   @override
-  String get composeBoxTopicHintText => 'Topic';
+  String get composeBoxTopicHintText => 'Teema';
 
   @override
   String composeBoxEnterTopicOrSkipHintText(String defaultTopicName) {
@@ -676,25 +746,25 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Please wait for the upload to complete.';
 
   @override
-  String get dialogCancel => 'Cancel';
+  String get dialogCancel => 'Katkesta';
 
   @override
-  String get dialogContinue => 'Continue';
+  String get dialogContinue => 'Jätka';
 
   @override
-  String get dialogClose => 'Close';
+  String get dialogClose => 'Sulge';
 
   @override
   String get errorDialogLearnMore => 'Learn more';
 
   @override
-  String get errorDialogContinue => 'OK';
+  String get errorDialogContinue => 'Sobib';
 
   @override
-  String get errorDialogTitle => 'Error';
+  String get errorDialogTitle => 'Viga';
 
   @override
-  String get snackBarDetails => 'Details';
+  String get snackBarDetails => 'Üksikasjad';
 
   @override
   String get lightboxCopyLinkTooltip => 'Copy link';
@@ -712,7 +782,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get loginFormSubmitLabel => 'Log in';
 
   @override
-  String get loginMethodDivider => 'OR';
+  String get loginMethodDivider => 'VÕI';
 
   @override
   String get loginMethodDividerSemanticLabel => 'Log-in alternatives';
@@ -726,10 +796,10 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get loginAddAnAccountPageTitle => 'Add an account';
 
   @override
-  String get loginServerUrlLabel => 'Your Zulip server URL';
+  String get loginRealmUrlLabel => 'Your Zulip organization URL';
 
   @override
-  String get loginHidePassword => 'Hide password';
+  String get loginHidePassword => 'Peida salasõna';
 
   @override
   String get loginEmailLabel => 'Email address';
@@ -738,13 +808,13 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get loginErrorMissingEmail => 'Please enter your email.';
 
   @override
-  String get loginPasswordLabel => 'Password';
+  String get loginPasswordLabel => 'Salasõna';
 
   @override
-  String get loginErrorMissingPassword => 'Please enter your password.';
+  String get loginErrorMissingPassword => 'Palun sisesta oma salasõna.';
 
   @override
-  String get loginUsernameLabel => 'Username';
+  String get loginUsernameLabel => 'Kasutajanimi';
 
   @override
   String get loginErrorMissingUsername => 'Please enter your username.';
@@ -762,7 +832,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Topics are required in this organization.';
+      'Topics are required in this channel.';
 
   @override
   String get errorContentNotInsertedTitle => 'Content not inserted';
@@ -772,13 +842,29 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'The file to be inserted is empty or cannot be accessed.';
 
   @override
-  String errorServerVersionUnsupportedMessage(
+  String errorServerVersionNotAllowedMessage(
     String url,
     String zulipVersion,
-    String minSupportedZulipVersion,
+    String minAllowedZulipVersion,
   ) {
-    return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minSupportedZulipVersion.';
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. The minimum supported version is Zulip Server $minAllowedZulipVersion.';
   }
+
+  @override
+  String serverCompatBannerAdminMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please upgrade your server as soon as possible.';
+  }
+
+  @override
+  String serverCompatBannerUserMessage(String url, String zulipVersion) {
+    return '$url is running Zulip Server $zulipVersion, which is unsupported. Please contact your server administrator about upgrading.';
+  }
+
+  @override
+  String get serverCompatBannerDismissLabel => 'Dismiss';
+
+  @override
+  String get serverCompatBannerLearnMoreLabel => 'Learn more';
 
   @override
   String errorInvalidApiKeyMessage(String url) {
@@ -808,6 +894,13 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
 
   @override
   String get errorVideoPlayerFailed => 'Unable to play the video.';
+
+  @override
+  String get errorVideoPlayerFailedTryBrowser =>
+      'Try opening it in your browser instead.';
+
+  @override
+  String get dialogOpenInBrowser => 'Open in browser';
 
   @override
   String get serverUrlValidationErrorEmpty => 'Please enter a URL.';
@@ -886,16 +979,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get markAllAsReadConfirmationDialogConfirmButton => 'Mark as read';
 
   @override
-  String get today => 'Today';
+  String get today => 'Täna';
 
   @override
-  String get yesterday => 'Yesterday';
+  String get yesterday => 'Eile';
 
   @override
   String get userActiveNow => 'Active now';
 
   @override
-  String get userIdle => 'Idle';
+  String get userIdle => 'Jõude';
 
   @override
   String userActiveMinutesAgo(int minutes) {
@@ -953,25 +1046,25 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Error turning off invisible mode. Please try again.';
 
   @override
-  String get userRoleOwner => 'Owner';
+  String get userRoleOwner => 'Omanik';
 
   @override
-  String get userRoleAdministrator => 'Administrator';
+  String get userRoleAdministrator => 'Peakasutaja';
 
   @override
-  String get userRoleModerator => 'Moderator';
+  String get userRoleModerator => 'Moderaator';
 
   @override
-  String get userRoleMember => 'Member';
+  String get userRoleMember => 'Liige';
 
   @override
-  String get userRoleGuest => 'Guest';
+  String get userRoleGuest => 'Külaline';
 
   @override
-  String get userRoleUnknown => 'Unknown';
+  String get userRoleUnknown => 'Teadmata';
 
   @override
-  String get statusButtonLabelStatusSet => 'Status';
+  String get statusButtonLabelStatusSet => 'Olek';
 
   @override
   String get statusButtonLabelStatusUnset => 'Set status';
@@ -983,28 +1076,28 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get setStatusPageTitle => 'Set status';
 
   @override
-  String get statusClearButtonLabel => 'Clear';
+  String get statusClearButtonLabel => 'Tühjenda';
 
   @override
-  String get statusSaveButtonLabel => 'Save';
+  String get statusSaveButtonLabel => 'Salvesta';
 
   @override
   String get statusTextHint => 'Your status';
 
   @override
-  String get userStatusBusy => 'Busy';
+  String get userStatusBusy => 'Hõivatud';
 
   @override
   String get userStatusInAMeeting => 'In a meeting';
 
   @override
-  String get userStatusCommuting => 'Commuting';
+  String get userStatusCommuting => 'Liikumas ühest kohast teise';
 
   @override
   String get userStatusOutSick => 'Out sick';
 
   @override
-  String get userStatusVacationing => 'Vacationing';
+  String get userStatusVacationing => 'Puhkusel';
 
   @override
   String get userStatusWorkingRemotely => 'Working remotely';
@@ -1017,16 +1110,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Error updating user status. Please try again.';
 
   @override
-  String get searchMessagesPageTitle => 'Search';
+  String get searchMessagesPageTitle => 'Otsing';
 
   @override
-  String get searchMessagesHintText => 'Search';
+  String get searchMessagesHintText => 'Otsi';
 
   @override
-  String get searchMessagesClearButtonTooltip => 'Clear';
+  String get searchMessagesClearButtonTooltip => 'Tühjenda';
 
   @override
-  String get inboxPageTitle => 'Inbox';
+  String get inboxPageTitle => 'Sisendkaust';
 
   @override
   String get inboxEmptyPlaceholderHeader =>
@@ -1037,7 +1130,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Use the buttons below to view the combined feed or list of channels.';
 
   @override
+  String get pinnedChannelsFolderName => 'Pinned channels';
+
+  @override
+  String get otherChannelsFolderName => 'Other channels';
+
+  @override
   String get recentDmConversationsPageTitle => 'Direct messages';
+
+  @override
+  String get recentDmConversationsPageShortLabel => 'Otsesõnumid';
 
   @override
   String get recentDmConversationsSectionHeader => 'Direct messages';
@@ -1054,13 +1156,13 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get combinedFeedPageTitle => 'Combined feed';
 
   @override
-  String get mentionsPageTitle => 'Mentions';
+  String get mentionsPageTitle => 'Mainimised';
 
   @override
   String get starredMessagesPageTitle => 'Starred messages';
 
   @override
-  String get channelsPageTitle => 'Channels';
+  String get channelsPageTitle => 'Kanalid';
 
   @override
   String get channelsEmptyPlaceholderHeader =>
@@ -1078,7 +1180,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get mainMenuMyProfile => 'My profile';
 
   @override
-  String get topicsButtonTooltip => 'Topics';
+  String get topicsButtonTooltip => 'Teemad';
 
   @override
   String get channelFeedButtonTooltip => 'Channel feed';
@@ -1095,19 +1197,19 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get pinnedSubscriptionsLabel => 'Pinned';
+  String get pinnedSubscriptionsLabel => 'Esiletõstetud';
 
   @override
-  String get unpinnedSubscriptionsLabel => 'Unpinned';
+  String get unpinnedSubscriptionsLabel => 'Pole esiletõstetud';
 
   @override
-  String get notifSelfUser => 'You';
+  String get notifSelfUser => 'Sina';
 
   @override
-  String get reactedEmojiSelfUser => 'You';
+  String get reactedEmojiSelfUser => 'Sina';
 
   @override
-  String get reactionChipsLabel => 'Reactions';
+  String get reactionChipsLabel => 'Reageerimised';
 
   @override
   String reactionChipLabel(String emojiName, String votes) {
@@ -1139,19 +1241,19 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get manyPeopleTyping => 'Several people are typing…';
 
   @override
-  String get wildcardMentionAll => 'all';
+  String get wildcardMentionAll => 'kõik';
 
   @override
-  String get wildcardMentionEveryone => 'everyone';
+  String get wildcardMentionEveryone => 'kogu seltskond';
 
   @override
-  String get wildcardMentionChannel => 'channel';
+  String get wildcardMentionChannel => 'kanal';
 
   @override
   String get wildcardMentionStream => 'stream';
 
   @override
-  String get wildcardMentionTopic => 'topic';
+  String get wildcardMentionTopic => 'teema';
 
   @override
   String get wildcardMentionChannelDescription => 'Notify channel';
@@ -1166,13 +1268,40 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Notify topic';
 
   @override
-  String get navBarMenuLabel => 'Menu';
+  String get systemGroupNameEveryoneOnInternet => 'Everyone on the internet';
 
   @override
-  String get messageIsEditedLabel => 'EDITED';
+  String get systemGroupNameEveryone => 'Everyone including guests';
 
   @override
-  String get messageIsMovedLabel => 'MOVED';
+  String get systemGroupNameMembers => 'Everyone except guests';
+
+  @override
+  String get systemGroupNameFullMembers => 'Full members';
+
+  @override
+  String get systemGroupNameModerators => 'Moderaatorid';
+
+  @override
+  String get systemGroupNameAdministrators => 'Peakasutajad';
+
+  @override
+  String get systemGroupNameOwners => 'Omanikud';
+
+  @override
+  String get systemGroupNameNobody => 'Mitte keegi';
+
+  @override
+  String get navBarFeedLabel => 'Feed';
+
+  @override
+  String get navBarMenuLabel => 'Menüü';
+
+  @override
+  String get messageIsEditedLabel => 'MUUDETUD';
+
+  @override
+  String get messageIsMovedLabel => 'TEISALDATUD';
 
   @override
   String get messageNotSentLabel => 'MESSAGE NOT SENT';
@@ -1183,16 +1312,16 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
-  String get themeSettingTitle => 'THEME';
+  String get themeSettingTitle => 'KUJUNDUS';
 
   @override
-  String get themeSettingDark => 'Dark';
+  String get themeSettingDark => 'Tume kujundus';
 
   @override
-  String get themeSettingLight => 'Light';
+  String get themeSettingLight => 'Hele kujundus';
 
   @override
-  String get themeSettingSystem => 'System';
+  String get themeSettingSystem => 'Süsteemi kujundus';
 
   @override
   String get openLinksWithInAppBrowser => 'Open links with in-app browser';
@@ -1228,10 +1357,10 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'When scrolling through messages, should they automatically be marked as read?';
 
   @override
-  String get markReadOnScrollSettingAlways => 'Always';
+  String get markReadOnScrollSettingAlways => 'Alati';
 
   @override
-  String get markReadOnScrollSettingNever => 'Never';
+  String get markReadOnScrollSettingNever => 'Mitte kunagi';
 
   @override
   String get markReadOnScrollSettingConversations =>
@@ -1242,7 +1371,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.';
 
   @override
-  String get experimentalFeatureSettingsPageTitle => 'Experimental features';
+  String get experimentalFeatureSettingsPageTitle => 'Katselised seadistused';
 
   @override
   String get experimentalFeatureSettingsWarning =>
@@ -1269,7 +1398,7 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'There is no account logged in. Please log in to an account and try again.';
 
   @override
-  String get emojiReactionsMore => 'more';
+  String get emojiReactionsMore => 'näita veel';
 
   @override
   String get emojiPickerSearchEmoji => 'Search emoji';

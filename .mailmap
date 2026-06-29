@@ -12,6 +12,7 @@
 #     # shows raw names/emails, filtered by mapped name:
 #   $ git log --format='%an %ae' --author=$NAME | uniq -c
 
+Amy Dyer <oxling@gmail.com> <amy@braid.co>
 Brynly Mitchell <u7088495@anu.edu.au>
 Chinmay Ajith <chinmayajith30@gmail.com>
 Chris Bobbe <cbobbe@zulip.com> <csbobbe@gmail.com>
@@ -19,9 +20,11 @@ Greg Price <greg@zulip.com> <gnprice@gmail.com>
 K Akhil <kssakhilraj@gmail.com>
 Lakshya Goel <lakshya1234goel@gmail.com>
 Lalit Kumar Singh <lalitkumarsingh3716@gmail.com>
+Mritunjay Tiwari <shreyashtiwari14.11@gmail.com> <shreyashtiwari14.11@gmailcom>
 Rajesh Malviya <rmalviya@zulip.com> <rajveer0malviya@gmail.com>
 Shu Chen <shu@zulip.com> <shu.chen@freelancedreams.com>
 Tomlin7 <billydevbusiness@gmail.com>
+Zixuan James Li <zixuan@zulip.com> <p359101898@gmail.com>
 
 # The goal when editing this file is to group all of a given person's
 # contributions together, and under their preferred name and email

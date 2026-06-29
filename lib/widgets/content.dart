@@ -8,6 +8,7 @@ import 'package:html/dom.dart' as dom;
 import 'package:intl/intl.dart' as intl;
 
 import '../api/model/model.dart';
+import '../api/model/permission.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
 import '../model/internal_link.dart';
@@ -21,6 +22,7 @@ import 'katex.dart';
 import 'lightbox.dart';
 import 'message_list.dart';
 import 'poll.dart';
+import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
@@ -42,6 +44,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
+      colorGroupMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.6, 0.45).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
@@ -76,6 +79,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
+      colorGroupMentionBackground: const HSLColor.fromAHSL(0.20, 183, 0.52, 0.4).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
@@ -109,6 +113,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme._({
     required this.colorCodeBlockBackground,
     required this.colorDirectMentionBackground,
+    required this.colorGroupMentionBackground,
     required this.colorGlobalTimeBackground,
     required this.colorGlobalTimeBorder,
     required this.colorLink,
@@ -142,6 +147,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   final Color colorCodeBlockBackground;
   final Color colorDirectMentionBackground;
+  final Color colorGroupMentionBackground;
   final Color colorGlobalTimeBackground;
   final Color colorGlobalTimeBorder;
   final Color colorLink;
@@ -203,6 +209,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme copyWith({
     Color? colorCodeBlockBackground,
     Color? colorDirectMentionBackground,
+    Color? colorGroupMentionBackground,
     Color? colorGlobalTimeBackground,
     Color? colorGlobalTimeBorder,
     Color? colorLink,
@@ -226,6 +233,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: colorCodeBlockBackground ?? this.colorCodeBlockBackground,
       colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
+      colorGroupMentionBackground: colorGroupMentionBackground ?? this.colorGroupMentionBackground,
       colorGlobalTimeBackground: colorGlobalTimeBackground ?? this.colorGlobalTimeBackground,
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
       colorLink: colorLink ?? this.colorLink,
@@ -256,6 +264,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: Color.lerp(colorCodeBlockBackground, other.colorCodeBlockBackground, t)!,
       colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
+      colorGroupMentionBackground: Color.lerp(colorGroupMentionBackground, other.colorGroupMentionBackground, t)!,
       colorGlobalTimeBackground: Color.lerp(colorGlobalTimeBackground, other.colorGlobalTimeBackground, t)!,
       colorGlobalTimeBorder: Color.lerp(colorGlobalTimeBorder, other.colorGlobalTimeBorder, t)!,
       colorLink: Color.lerp(colorLink, other.colorLink, t)!,
@@ -797,7 +806,7 @@ class MathBlock extends StatelessWidget {
         child: SingleChildScrollViewWithScrollbar(
           scrollDirection: Axis.horizontal,
           child: KatexWidget(
-            textStyle: ContentTheme.of(context).textStylePlainParagraph,
+            ambientTextStyle: ContentTheme.of(context).textStylePlainParagraph,
             nodes: nodes))));
   }
 }
@@ -1028,11 +1037,13 @@ class _InlineContentBuilder {
     _context = context;
     assert(_recognizer == widget.recognizer);
     assert(_recognizerStack == null || _recognizerStack!.isEmpty);
+    assert(_styleStack == null || _styleStack!.isEmpty);
     final result = _buildNodes(widget.nodes, style: widget.style);
     assert(identical(_context, context));
     _context = null;
     assert(_recognizer == widget.recognizer);
     assert(_recognizerStack == null || _recognizerStack!.isEmpty);
+    assert(_styleStack == null || _styleStack!.isEmpty);
     return result;
   }
 
@@ -1056,10 +1067,43 @@ class _InlineContentBuilder {
     _recognizer = _recognizerStack!.removeLast();
   }
 
-  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle? style}) {
+  /// A stack of the [TextStyle]s applied by ancestors of the node being built,
+  /// excluding the root [widget.style].
+  ///
+  /// Call [_resolveStyleStack] to merge [widget.style] and these styles
+  /// into one ambient style for the node being built.
+  ///
+  /// [widget.style] is excluded to avoid allocating an empty list
+  /// for unstyled paragraphs.
+  List<TextStyle>? _styleStack;
+
+  void _pushStyle(TextStyle style) {
+    if (identical(style, widget.style)) return;
+    (_styleStack ??= []).add(style);
+  }
+
+  void _popStyle(TextStyle style) {
+    if (identical(style, widget.style)) return;
+    _styleStack!.removeLast();
+  }
+
+  /// The merged result of [widget.style] and all styles on [_styleStack].
+  // In principle we could memoize this, but profiling suggests that's unnecessary:
+  //   https://github.com/zulip/zulip-flutter/pull/1821#discussion_r2608812752
+  TextStyle _resolveStyleStack() {
+    if (_styleStack == null || _styleStack!.isEmpty) return widget.style;
+    return _styleStack!.fold(widget.style,
+      (value, element) => value.merge(element));
+  }
+
+  InlineSpan _buildNodes(List<InlineContentNode> nodes, {required TextStyle style}) {
+    _pushStyle(style);
+    final children = nodes.map(_buildNode).toList(growable: false);
+    _popStyle(style);
+
     return TextSpan(
       style: style,
-      children: nodes.map(_buildNode).toList(growable: false));
+      children: children);
   }
 
   InlineSpan _buildNode(InlineContentNode node) {
@@ -1098,7 +1142,7 @@ class _InlineContentBuilder {
 
       case MentionNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: Mention(ambientTextStyle: widget.style, node: node));
+          child: Mention(ambientTextStyle: _resolveStyleStack(), node: node));
 
       case UnicodeEmojiNode():
         return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
@@ -1122,11 +1166,11 @@ class _InlineContentBuilder {
           : WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: KatexWidget(textStyle: widget.style, nodes: nodes));
+              child: KatexWidget(ambientTextStyle: _resolveStyleStack(), nodes: nodes));
 
       case GlobalTimeNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: GlobalTime(node: node, ambientTextStyle: widget.style));
+          child: GlobalTime(node: node, ambientTextStyle: _resolveStyleStack()));
 
       case UnimplementedInlineContentNode():
         return _errorUnimplemented(node, context: _context!);
@@ -1196,14 +1240,22 @@ class Mention extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
 
     var nodes = node.nodes;
     switch (node) {
       case UserGroupMentionNode(:final userGroupId):
         final userGroup = store.getGroup(userGroupId);
-        if (userGroup case UserGroup(:final name)) {
-          // TODO(#1260) Get display name for system groups using localization
-          nodes = [TextNode(node.isSilent ? name : '@$name')];
+        if (userGroup case UserGroup(:final name, :final isSystemGroup)) {
+          final String displayName;
+          if (isSystemGroup) {
+            final groupName = SystemGroupName.fromJson(name); // TODO(log) if null
+            displayName = groupName?.displayName(zulipLocalizations) ?? name;
+          } else {
+            displayName = name;
+          }
+
+          nodes = [TextNode(node.isSilent ? displayName : '@$displayName')];
         }
       case UserMentionNode(:final userId?):
         final user = store.getUser(userId);
@@ -1211,26 +1263,42 @@ class Mention extends StatelessWidget {
           nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
         }
       case UserMentionNode(userId: null):
+      case WildcardMentionNode():
     }
 
-    return Container(
+    final backgroundPillColor = switch (node) {
+      UserMentionNode() => contentTheme.colorDirectMentionBackground,
+      UserGroupMentionNode() || WildcardMentionNode()
+        => contentTheme.colorGroupMentionBackground,
+    };
+
+    Widget result = Container(
       decoration: BoxDecoration(
-        // TODO(#646) different for wildcard mentions
-        color: contentTheme.colorDirectMentionBackground,
+        color: backgroundPillColor,
         borderRadius: const BorderRadius.all(Radius.circular(3))),
       padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
       child: InlineContent(
         // If an @-mention is inside a link, let the @-mention override it.
-        recognizer: null,  // TODO(#1867) make @-mentions tappable, for info on user
+        recognizer: null,
         // One hopes an @-mention can't contain an embedded link.
         // (The parser on creating a MentionNode has a TODO to check that.)
         linkRecognizers: null,
 
-        // TODO(#647) when self-user is non-silently mentioned, make bold, and:
-        // TODO(#646) distinguish font color between direct and wildcard mentions
+        // TODO(#647) when self-user is mentioned, make bold, and change font color.
         style: ambientTextStyle,
 
         nodes: nodes));
+
+    if (node case UserMentionNode(:final userId?)) {
+      result = GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            ProfilePage.buildRoute(context: context, userId: userId));
+        },
+        child: result);
+    }
+
+    return result;
   }
 
 // This is a more literal translation of Zulip web's CSS.
@@ -1351,8 +1419,13 @@ class GlobalTime extends StatelessWidget {
   final GlobalTimeNode node;
   final TextStyle ambientTextStyle;
 
+  // Since https://github.com/flutter/flutter/commit/3ea161909,
+  // DateFormat with 'j'-prefix pattern (used by locale default pattern below)
+  // emits U+202F (NARROW NO-BREAK SPACE) character as a separator between time
+  // and its period (AM/PM), instead of the space character.
+  // So, do the same for 12-hour format here.
   static final _format12 =
-    intl.DateFormat('EEE, MMM d, y').addPattern('h:mm aa', ', ');
+    intl.DateFormat('EEE, MMM d, y').addPattern('h:mm\u{202F}aa', ', ');
   static final _format24 =
     intl.DateFormat('EEE, MMM d, y').addPattern('Hm', ', ');
   static final _formatLocaleDefault =
@@ -1388,7 +1461,7 @@ class GlobalTime extends StatelessWidget {
                 size: ambientTextStyle.fontSize!,
                 // (When GlobalTime appears in a link, it should be blue
                 // like the text.)
-                color: DefaultTextStyle.of(context).style.color!,
+                color: ambientTextStyle.color,
                 ZulipIcons.clock),
               // Ad-hoc spacing adjustment per feedback:
               //   https://chat.zulip.org/#narrow/stream/101-design/topic/clock.20icons/near/1729345

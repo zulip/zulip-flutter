@@ -18,14 +18,11 @@ jobs:
     - name: Clone Flutter SDK
       run: tools/ci/clone-flutter-sdk
 
-    - name: Download Flutter SDK artifacts (flutter precache)
-      run: flutter precache --universal
-
     - name: Download our dependencies (flutter pub get)
       run: flutter pub get
 
     - name: Run tools/check
-      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android
+      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android --exclude ios --exclude swift_format
 
   android:
     name: "Android build and lint"
@@ -42,11 +39,32 @@ jobs:
     - name: Clone Flutter SDK
       run: tools/ci/clone-flutter-sdk
 
-    - name: Download Flutter SDK artifacts (flutter precache)
-      run: flutter precache --universal
-
     - name: Download our dependencies (flutter pub get)
       run: flutter pub get
 
     - name: Run tools/check
       run: TERM=dumb tools/check --all --output ci android
+
+  ios:
+    name: "iOS build and lint"
+    runs-on: macos-26
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      # Modern Bash and coreutils don't come with macOS; get those.
+      # (See tools/lib/ensure-shell-deps.sh.)
+      run: brew install coreutils bash
+
+    - name: Clone Flutter SDK
+      run: tools/ci/clone-flutter-sdk
+
+    - name: Download our dependencies (flutter pub get)
+      run: flutter pub get
+
+    - name: Check Swift formatting
+      # Run before the (multi-minute) iOS build, so CI fails fast on nits.
+      run: TERM=dumb tools/check --no-pub --all --output ci swift_format
+
+    - name: Run tools/check
+      run: TERM=dumb tools/check --no-pub --all --output ci ios

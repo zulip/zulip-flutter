@@ -71,6 +71,108 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.presenceEnabled: 'presence_enabled',
 };
 
+DeviceAddEvent _$DeviceAddEventFromJson(Map<String, dynamic> json) =>
+    DeviceAddEvent(
+      id: (json['id'] as num).toInt(),
+      deviceId: (json['device_id'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$DeviceAddEventToJson(DeviceAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'device_id': instance.deviceId,
+      'op': instance.op,
+    };
+
+DeviceRemoveEvent _$DeviceRemoveEventFromJson(Map<String, dynamic> json) =>
+    DeviceRemoveEvent(
+      id: (json['id'] as num).toInt(),
+      deviceId: (json['device_id'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$DeviceRemoveEventToJson(DeviceRemoveEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'device_id': instance.deviceId,
+      'op': instance.op,
+    };
+
+DeviceUpdateEvent _$DeviceUpdateEventFromJson(
+  Map<String, dynamic> json,
+) => DeviceUpdateEvent(
+  id: (json['id'] as num).toInt(),
+  deviceId: (json['device_id'] as num).toInt(),
+  pushKeyId: _$JsonConverterFromJson<JsonNullable<int>, JsonNullable<int>>(
+    JsonNullable.readIntFromJson(json, 'push_key_id'),
+    const NullableIntJsonConverter().fromJson,
+  ),
+  pushTokenId:
+      _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+        JsonNullable.readStringFromJson(json, 'push_token_id'),
+        const NullableStringJsonConverter().fromJson,
+      ),
+  pendingPushTokenId:
+      _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+        JsonNullable.readStringFromJson(json, 'pending_push_token_id'),
+        const NullableStringJsonConverter().fromJson,
+      ),
+  pushTokenLastUpdatedTimestamp:
+      _$JsonConverterFromJson<JsonNullable<int>, JsonNullable<int>>(
+        JsonNullable.readIntFromJson(json, 'push_token_last_updated_timestamp'),
+        const NullableIntJsonConverter().fromJson,
+      ),
+  pushRegistrationErrorCode:
+      _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+        JsonNullable.readStringFromJson(json, 'push_registration_error_code'),
+        const NullableStringJsonConverter().fromJson,
+      ),
+);
+
+Map<String, dynamic> _$DeviceUpdateEventToJson(
+  DeviceUpdateEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'device_id': instance.deviceId,
+  'op': instance.op,
+  'push_key_id': _$JsonConverterToJson<JsonNullable<int>, JsonNullable<int>>(
+    instance.pushKeyId,
+    const NullableIntJsonConverter().toJson,
+  ),
+  'push_token_id':
+      _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
+        instance.pushTokenId,
+        const NullableStringJsonConverter().toJson,
+      ),
+  'pending_push_token_id':
+      _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
+        instance.pendingPushTokenId,
+        const NullableStringJsonConverter().toJson,
+      ),
+  'push_token_last_updated_timestamp':
+      _$JsonConverterToJson<JsonNullable<int>, JsonNullable<int>>(
+        instance.pushTokenLastUpdatedTimestamp,
+        const NullableIntJsonConverter().toJson,
+      ),
+  'push_registration_error_code':
+      _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
+        instance.pushRegistrationErrorCode,
+        const NullableStringJsonConverter().toJson,
+      ),
+};
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) => json == null ? null : fromJson(json as Json);
+
+Json? _$JsonConverterToJson<Json, Value>(
+  Value? value,
+  Json? Function(Value value) toJson,
+) => value == null ? null : toJson(value);
+
 CustomProfileFieldsEvent _$CustomProfileFieldsEventFromJson(
   Map<String, dynamic> json,
 ) => CustomProfileFieldsEvent(
@@ -333,16 +435,6 @@ const _$UserRoleEnumMap = {
   UserRole.unknown: null,
 };
 
-Value? _$JsonConverterFromJson<Json, Value>(
-  Object? json,
-  Value? Function(Json json) fromJson,
-) => json == null ? null : fromJson(json as Json);
-
-Json? _$JsonConverterToJson<Json, Value>(
-  Value? value,
-  Json? Function(Value value) toJson,
-) => value == null ? null : toJson(value);
-
 SavedSnippetsAddEvent _$SavedSnippetsAddEventFromJson(
   Map<String, dynamic> json,
 ) => SavedSnippetsAddEvent(
@@ -464,6 +556,7 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.firstMessageId: 'first_message_id',
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
+  ChannelPropertyName.topicsPolicy: 'topics_policy',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
   ChannelPropertyName.folderId: 'folder_id',
   ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
@@ -497,8 +590,8 @@ SubscriptionRemoveEvent _$SubscriptionRemoveEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionRemoveEvent(
   id: (json['id'] as num).toInt(),
-  streamIds:
-      (SubscriptionRemoveEvent._readStreamIds(json, 'stream_ids')
+  channelIds:
+      (SubscriptionRemoveEvent._readChannelIds(json, 'channel_ids')
               as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
@@ -510,14 +603,14 @@ Map<String, dynamic> _$SubscriptionRemoveEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_ids': instance.streamIds,
+  'channel_ids': instance.channelIds,
 };
 
 SubscriptionUpdateEvent _$SubscriptionUpdateEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionUpdateEvent(
   id: (json['id'] as num).toInt(),
-  streamId: (json['stream_id'] as num).toInt(),
+  channelId: (json['stream_id'] as num).toInt(),
   property: $enumDecode(
     _$SubscriptionPropertyEnumMap,
     json['property'],
@@ -532,7 +625,7 @@ Map<String, dynamic> _$SubscriptionUpdateEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_id': instance.streamId,
+  'stream_id': instance.channelId,
   'property': instance.property,
   'value': instance.value,
 };
@@ -553,7 +646,7 @@ SubscriptionPeerAddEvent _$SubscriptionPeerAddEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionPeerAddEvent(
   id: (json['id'] as num).toInt(),
-  streamIds: (json['stream_ids'] as List<dynamic>)
+  channelIds: (json['stream_ids'] as List<dynamic>)
       .map((e) => (e as num).toInt())
       .toList(),
   userIds: (json['user_ids'] as List<dynamic>)
@@ -567,7 +660,7 @@ Map<String, dynamic> _$SubscriptionPeerAddEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_ids': instance.streamIds,
+  'stream_ids': instance.channelIds,
   'user_ids': instance.userIds,
 };
 
@@ -575,7 +668,7 @@ SubscriptionPeerRemoveEvent _$SubscriptionPeerRemoveEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionPeerRemoveEvent(
   id: (json['id'] as num).toInt(),
-  streamIds: (json['stream_ids'] as List<dynamic>)
+  channelIds: (json['stream_ids'] as List<dynamic>)
       .map((e) => (e as num).toInt())
       .toList(),
   userIds: (json['user_ids'] as List<dynamic>)
@@ -589,7 +682,7 @@ Map<String, dynamic> _$SubscriptionPeerRemoveEventToJson(
   'id': instance.id,
   'type': instance.type,
   'op': instance.op,
-  'stream_ids': instance.streamIds,
+  'stream_ids': instance.channelIds,
   'user_ids': instance.userIds,
 };
 
@@ -779,6 +872,8 @@ const _$MessageFlagEnumMap = {
   MessageFlag.starred: 'starred',
   MessageFlag.collapsed: 'collapsed',
   MessageFlag.mentioned: 'mentioned',
+  MessageFlag.topicWildcardMentioned: 'topic_wildcard_mentioned',
+  MessageFlag.streamWildcardMentioned: 'stream_wildcard_mentioned',
   MessageFlag.wildcardMentioned: 'wildcard_mentioned',
   MessageFlag.hasAlertWord: 'has_alert_word',
   MessageFlag.historical: 'historical',

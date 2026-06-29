@@ -1011,22 +1011,26 @@ void main() {
       await store.addSubscription(eg.subscription(otherStream));
       await prepareMessages(foundOldest: true, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: 'bar'),
-        eg.streamMessage(id: 2, stream: stream, topic: topic),
-        eg.streamMessage(id: 3, stream: otherStream, topic: 'elsewhere'),
-        eg.dmMessage(    id: 4, from: eg.otherUser, to: [eg.selfUser]),
+        eg.streamMessage(id: 2, stream: stream, topic: 'foo'),
+        eg.streamMessage(id: 3, stream: stream, topic: 'FOO'),
+        eg.streamMessage(id: 4, stream: otherStream, topic: 'elsewhere'),
+        eg.dmMessage(    id: 5, from: eg.otherUser, to: [eg.selfUser]),
       ]);
-      checkHasMessageIds([1, 2, 3, 4]);
+      checkHasMessageIds([1, 2, 3, 4, 5]);
 
       await prepareOutboxMessagesTo([
-        StreamDestination(stream.streamId, eg.t(topic)),
+        StreamDestination(stream.streamId, eg.t('foo')),
+        StreamDestination(stream.streamId, eg.t('FOO')),
         StreamDestination(stream.streamId, eg.t('elsewhere')),
         DmDestination(userIds: [eg.selfUser.userId]),
       ]);
       async.elapse(kLocalEchoDebounceDuration);
-      checkNotified(count: 3);
+      checkNotified(count: 4);
       check(model).outboxMessages.deepEquals(<Condition<Object?>>[
         (it) => it.isA<StreamOutboxMessage>()
-                  .conversation.topic.equals(eg.t(topic)),
+                  .conversation.topic.equals(eg.t('foo')),
+        (it) => it.isA<StreamOutboxMessage>()
+                  .conversation.topic.equals(eg.t('FOO')),
         (it) => it.isA<StreamOutboxMessage>()
                   .conversation.topic.equals(eg.t('elsewhere')),
         (it) => it.isA<DmOutboxMessage>()
@@ -1035,7 +1039,7 @@ void main() {
 
       await setVisibility(UserTopicVisibilityPolicy.muted);
       checkNotifiedOnce();
-      checkHasMessageIds([1, 3, 4]);
+      checkHasMessageIds([1, 4, 5]);
       check(model).outboxMessages.deepEquals(<Condition<Object?>>[
         (it) => it.isA<StreamOutboxMessage>()
                   .conversation.topic.equals(eg.t('elsewhere')),
@@ -1051,10 +1055,11 @@ void main() {
       await prepareOutboxMessagesTo([
         StreamDestination(stream.streamId, eg.t(topic)),
         StreamDestination(stream.streamId, eg.t(topic)),
+        StreamDestination(stream.streamId, eg.t(topic.toUpperCase())),
       ]);
       async.elapse(kLocalEchoDebounceDuration);
-      check(model).outboxMessages.length.equals(2);
-      checkNotified(count: 2);
+      check(model).outboxMessages.length.equals(3);
+      checkNotified(count: 3);
 
       await setVisibility(UserTopicVisibilityPolicy.muted);
       check(model).outboxMessages.isEmpty();
@@ -1101,7 +1106,7 @@ void main() {
       checkHasMessageIds([1]);
 
       // Dropping from none to muted hides the message
-      // (whereas it'd have no effect in a stream narrow).
+      // (whereas it'd have no effect in the combined feed).
       await setVisibility(UserTopicVisibilityPolicy.muted);
       checkNotifiedOnce();
       checkHasMessageIds([]);
@@ -1713,17 +1718,23 @@ void main() {
       final narrow = eg.topicNarrow(stream.streamId, 'topic');
       final initialMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
       final movedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'topic'));
+      final differentlyCasedMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'ToPiC'));
       final otherTopicMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: stream, topic: 'other topic'));
       final otherChannelMovedMessages = List.generate(5, (i) => eg.streamMessage(stream: otherStream, topic: 'topic'));
 
       group('moved into narrow: should refetch messages', () {
         final testCases = [
-          ('(old channel, topic) -> (channel, topic)',     200,   null),
-          ('(channel, old topic) -> (channel, topic)',     null, 'other'),
-          ('(old channel, old topic) -> (channel, topic)', 200,  'other'),
+          ('(old channel, topic) -> (channel, topic)',
+           origStreamId: 200,  origTopic:  null,   movedMessages: movedMessages),
+          ('(channel, old topic) -> (channel, topic)',
+           origStreamId: null, origTopic: 'other', movedMessages: movedMessages),
+          ('(old channel, old topic) -> (channel, topic)',
+           origStreamId: 200,  origTopic: 'other', movedMessages: movedMessages),
+          ('(channel, old topic) -> (channel, ToPiC)',
+           origStreamId: null, origTopic: 'other', movedMessages: differentlyCasedMovedMessages),
         ];
 
-        for (final (description, origStreamId, origTopic) in testCases) {
+        for (final (description, :origStreamId, :origTopic, :movedMessages) in testCases) {
           test(description, () => awaitFakeAsync((async) async {
             await prepareNarrow(narrow, initialMessages);
 
@@ -1749,12 +1760,17 @@ void main() {
 
       group('moved from narrow: should remove moved messages', () {
         final testCases = [
-          ('(channel, topic) -> (new channel, topic)',     200,   null),
-          ('(channel, topic) -> (channel, new topic)',     null, 'new'),
-          ('(channel, topic) -> (new channel, new topic)', 200,  'new'),
+          ('(channel, topic) -> (new channel, topic)',
+           newStreamId: 200,  newTopic: null,  movedMessages: movedMessages),
+          ('(channel, topic) -> (channel, new topic)',
+           newStreamId: null, newTopic: 'new', movedMessages: movedMessages),
+          ('(channel, topic) -> (new channel, new topic)',
+           newStreamId: 200,  newTopic: 'new', movedMessages: movedMessages),
+          ('(channel, ToPiC) -> (channel, new topic)',
+           newStreamId: null, newTopic: 'new', movedMessages: differentlyCasedMovedMessages),
         ];
 
-        for (final (description, newStreamId, newTopic) in testCases) {
+        for (final (description, :newStreamId, :newTopic, :movedMessages) in testCases) {
           test(description, () async {
             await prepareNarrow(narrow, initialMessages + movedMessages);
 
@@ -1767,6 +1783,30 @@ void main() {
             checkNotifiedOnce();
           });
         }
+      });
+
+      group('moved inside narrow: unaffected', () {
+        test('(channel, topic) -> (channel, ToPiC)', () async {
+          await prepareNarrow(narrow, initialMessages + movedMessages);
+
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: movedMessages,
+            newTopicStr: 'ToPiC',
+          ));
+          checkHasMessages(initialMessages + movedMessages);
+          checkNotifiedOnce();
+        });
+
+        test('(channel, ToPiC) -> (channel, topic)', () async {
+          await prepareNarrow(narrow, initialMessages + differentlyCasedMovedMessages);
+
+          await store.handleEvent(eg.updateMessageEventMoveFrom(
+            origMessages: differentlyCasedMovedMessages,
+            newTopicStr: 'topic',
+          ));
+          checkHasMessages(initialMessages + differentlyCasedMovedMessages);
+          checkNotifiedOnce();
+        });
       });
 
       group('irrelevant moves', () {
@@ -2432,28 +2472,32 @@ void main() {
 
       List<Message> getMessages(int startingId) => [
         eg.streamMessage(id: startingId,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.wildcardMentioned]),
+          stream: stream, topic: mutedTopic, flags: [MessageFlag.topicWildcardMentioned]),
         eg.streamMessage(id: startingId + 1,
+          stream: stream, topic: mutedTopic, flags: [MessageFlag.streamWildcardMentioned]),
+        eg.streamMessage(id: startingId + 2,
+          stream: stream, topic: mutedTopic, flags: [MessageFlag.wildcardMentioned]),
+        eg.streamMessage(id: startingId + 3,
           stream: stream, topic: mutedTopic, flags: [MessageFlag.mentioned]),
-        eg.dmMessage(id: startingId + 2,
+        eg.dmMessage(id: startingId + 4,
           from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
       ];
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: getMessages(201));
       final expected = <int>[];
-      checkHasMessageIds(expected..addAll([201, 202, 203]));
+      checkHasMessageIds(expected..addAll([201, 202, 203, 204, 205]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      checkHasMessageIds(expected..insertAll(0, [101, 102, 103]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102, 103, 104, 105]));
 
       // … and on MessageEvent.
       final messages = getMessages(301);
-      for (var i = 0; i < 3; i += 1) {
+      for (var i = 0; i < messages.length; i += 1) {
         await store.addMessage(messages[i]);
         checkNotifiedOnce();
         checkHasMessageIds(expected..add(301 + i));

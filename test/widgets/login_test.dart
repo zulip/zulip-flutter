@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:checks/checks.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/core.dart';
@@ -131,7 +133,7 @@ void main() {
       await attempt(tester, serverSettings.realmUrl, serverSettings.toJson());
       checkErrorDialog(tester,
         expectedTitle: 'Could not connect',
-        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinSupportedZulipVersion.');
+        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinAllowedZulipVersion.');
       // i.e., not the login route
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });
@@ -149,7 +151,7 @@ void main() {
       await attempt(tester, serverSettings.realmUrl, serverSettingsMalformedJson);
       checkErrorDialog(tester,
         expectedTitle: 'Could not connect',
-        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinSupportedZulipVersion.');
+        expectedMessage: '${serverSettings.realmUrl} is running Zulip Server 3.0, which is unsupported. The minimum supported version is Zulip Server $kMinAllowedZulipVersion.');
       // i.e., not the login route
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });
@@ -214,6 +216,13 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    final googleAuthMethod = ExternalAuthenticationMethod(
+      name: 'google',
+      displayName: 'Google',
+      displayIcon: eg.realmUrl.resolve('/static/images/authentication_backends/googl_e-icon.png').toString(),
+      loginUrl: '/accounts/login/social/google',
+      signupUrl: '/accounts/register/social/google');
+
     final findUsernameInput = find.byWidgetPredicate((widget) =>
       widget is TextField
       && (widget.autofillHints ?? []).contains(AutofillHints.email));
@@ -221,6 +230,19 @@ void main() {
       widget is TextField
       && (widget.autofillHints ?? []).contains(AutofillHints.password));
     final findSubmitButton = find.widgetWithText(ElevatedButton, 'Log in');
+
+    /// Check the account is as expected, ignoring fields that are
+    /// freshly generated at login time.
+    void checkMatchesAccount(Account actual, Account expected) {
+      check(actual).equals(expected.copyWith(
+        id: actual.id,
+        // The example accounts have non-null deviceId because that's how
+        // an account will typically look in the app after fully set up.
+        // But it doesn't happen at login time, so expect null at this stage.
+        deviceId: drift.Value(null),
+        possibleLegacyPushToken: false,
+      ));
+    }
 
     group('username/password login', () {
       void checkFetchApiKey({required String username, required String password}) {
@@ -255,9 +277,8 @@ void main() {
         check(testBinding.globalStore.accounts).isEmpty();
 
         await login(tester, eg.selfAccount);
-        check(testBinding.globalStore.accounts).single
-          .equals(eg.selfAccount.copyWith(
-            id: testBinding.globalStore.accounts.single.id));
+        checkMatchesAccount(testBinding.globalStore.accounts.single,
+          eg.selfAccount);
       });
 
       testWidgets('logging into a second account', (tester) async {
@@ -273,8 +294,8 @@ void main() {
 
         await login(tester, eg.otherAccount);
         final newAccount = testBinding.globalStore.accounts.singleWhere(
-          (account) => account != eg.selfAccount);
-        check(newAccount).equals(eg.otherAccount.copyWith(id: newAccount.id));
+          (account) => account.userId != eg.selfAccount.userId);
+        checkMatchesAccount(newAccount, eg.otherAccount);
         check(poppedRoutes).length.equals(2);
         check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
       });
@@ -297,9 +318,8 @@ void main() {
         await tester.tap(findSubmitButton);
         checkFetchApiKey(username: eg.selfAccount.email, password: 'p455w0rd');
         await tester.idle();
-        check(testBinding.globalStore.accounts).single
-          .equals(eg.selfAccount.copyWith(
-            id: testBinding.globalStore.accounts.single.id));
+        checkMatchesAccount(testBinding.globalStore.accounts.single,
+          eg.selfAccount);
       });
 
       testWidgets('account already exists', (tester) async {
@@ -340,9 +360,8 @@ void main() {
         check(testBinding.globalStore.accounts).isEmpty();
 
         await login(tester, eg.selfAccount);
-        check(testBinding.globalStore.accounts).single
-          .equals(eg.selfAccount.copyWith(
-            id: testBinding.globalStore.accounts.single.id,
+        checkMatchesAccount(testBinding.globalStore.accounts.single,
+          eg.selfAccount.copyWith(
             realmName: Value('Some organization'),
             realmIcon: Value(Uri.parse('/some-image.png')),
             zulipFeatureLevel: 427,
@@ -356,17 +375,63 @@ void main() {
       // TODO test _inProgress logic
     });
 
+    group('password auth visibility', () {
+      testWidgets('hides username/password fields and login button', (tester) async {
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          authenticationMethods: eg.authMethods(ldap: false));
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsNothing();
+        check(findPasswordInput).findsNothing();
+        check(findSubmitButton).findsNothing();
+      });
+
+      testWidgets('shows fields when email auth disabled but LDAP enabled', (tester) async {
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          authenticationMethods: eg.authMethods(ldap: true),
+        );
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsOne();
+        check(findPasswordInput).findsOne();
+        check(findSubmitButton).findsOne();
+      });
+
+      testWidgets('shows external auth methods without divider', (tester) async {
+        prepareBoringImageHttpClient(); // icon on social-auth button
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          authenticationMethods: eg.authMethods(ldap: false),
+          externalAuthenticationMethods: [googleAuthMethod]);
+        await prepare(tester, serverSettings);
+        check(find.textContaining('Google')).findsOne();
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        check(find.bySemanticsLabel(zulipLocalizations.loginMethodDividerSemanticLabel))
+          .findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('shows divider when email auth enabled with external methods', (tester) async {
+        prepareBoringImageHttpClient(); // icon on social-auth button
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: true,
+          externalAuthenticationMethods: [googleAuthMethod]);
+        await prepare(tester, serverSettings);
+        check(findUsernameInput).findsOne();
+        check(findPasswordInput).findsOne();
+        check(findSubmitButton).findsOne();
+        check(find.textContaining('Google')).findsOne();
+        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+        check(find.bySemanticsLabel(zulipLocalizations.loginMethodDividerSemanticLabel))
+          .findsOne();
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
+
     group('web auth', () {
       testWidgets('basic happy case', (tester) async {
-        final method = ExternalAuthenticationMethod(
-          name: 'google',
-          displayName: 'Google',
-          displayIcon: eg.realmUrl.resolve('/static/images/authentication_backends/googl_e-icon.png').toString(),
-          loginUrl: '/accounts/login/social/google',
-          signupUrl: '/accounts/register/social/google',
-        );
         final serverSettings = eg.serverSettings(
-          externalAuthenticationMethods: [method]);
+          externalAuthenticationMethods: [googleAuthMethod]);
         prepareBoringImageHttpClient(); // icon on social-auth button
         await prepare(tester, serverSettings);
         takeStartingRoutes();
@@ -377,7 +442,7 @@ void main() {
         LoginPage.debugOtpOverride = otp;
         await tester.tap(find.textContaining('Google'));
 
-        final expectedUrl = eg.realmUrl.resolve(method.loginUrl)
+        final expectedUrl = eg.realmUrl.resolve(googleAuthMethod.loginUrl)
           .replace(queryParameters: {'mobile_flow_otp': otp});
         check(testBinding.takeLaunchUrlCalls())
           .deepEquals([(url: expectedUrl, mode: UrlLaunchMode.inAppBrowserView)]);
@@ -400,7 +465,7 @@ void main() {
         check(testBinding.takeCloseInAppWebViewCallCount()).equals(1);
 
         final account = testBinding.globalStore.accounts.single;
-        check(account).equals(eg.selfAccount.copyWith(id: account.id));
+        checkMatchesAccount(account, eg.selfAccount);
         check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(account.id)
           ..page.isA<HomePage>();

@@ -53,6 +53,9 @@
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
   },
+  "@actionSheetOptionPinChannel": {
+    "description": "Label in the channel action sheet for pinning the channel."
+  },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionUnmuteTopic": {
     "description": "Label for unmuting a topic on action sheet."
+  },
+  "@actionSheetOptionUnpinChannel": {
+    "description": "Label in the channel action sheet for unpinning the channel."
   },
   "@actionSheetOptionUnresolveTopic": {
     "description": "Label for the 'Mark as unresolved' button on the topic action sheet."
@@ -106,6 +112,18 @@
   },
   "@actionSheetReadReceiptsZeroReadCount": {
     "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
   },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
@@ -146,17 +164,35 @@
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonRefresh": {
+    "description": "Label text for the 'Refresh' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerButtonSave": {
     "description": "Label text for the 'Save' button in the compose-box banner when you are editing a message."
   },
+  "@composeBoxBannerButtonSubscribe": {
+    "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
+  },
   "@composeBoxBannerLabelCannotSendInChannel": {
     "description": "Error-banner text replacing the compose box when you do not have permission to send a message to the channel."
+  },
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
   },
   "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for error banner when sending a message to one or multiple deactivated users."
   },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
   },
   "@composeBoxChannelContentHint": {
     "description": "Hint text for content input when sending a message to a channel.",
@@ -331,6 +367,9 @@
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
   },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
+  },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
   },
@@ -501,6 +540,9 @@
   "@errorNotificationOpenTitle": {
     "description": "Error title when notification opening fails"
   },
+  "@errorPinChannelFailedTitle": {
+    "description": "Error title when pinning a channel to the top fails."
+  },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
   },
@@ -531,10 +573,10 @@
       }
     }
   },
-  "@errorServerVersionUnsupportedMessage": {
-    "description": "Error message in the dialog for when the Zulip Server version is unsupported.",
+  "@errorServerVersionNotAllowedMessage": {
+    "description": "Error message in the dialog for when the Zulip Server version is not allowed.",
     "placeholders": {
-      "minSupportedZulipVersion": {
+      "minAllowedZulipVersion": {
         "example": "4.0",
         "type": "String"
       },
@@ -565,6 +607,9 @@
   },
   "@errorUnmuteTopicFailed": {
     "description": "Error message when unmuting a topic failed."
+  },
+  "@errorUnpinChannelFailedTitle": {
+    "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
@@ -668,9 +713,6 @@
   },
   "@loginPasswordLabel": {
     "description": "Label for password input field."
-  },
-  "@loginServerUrlLabel": {
-    "description": "Label in login page for Zulip server URL entry."
   },
   "@loginUsernameLabel": {
     "description": "Label for input when a username is required to log in."
@@ -1239,6 +1281,7 @@
   "actionSheetOptionMarkChannelAsRead": "标记频道为已读",
   "actionSheetOptionMarkTopicAsRead": "将话题标为已读",
   "actionSheetOptionMuteTopic": "静音话题",
+  "actionSheetOptionPinChannel": "置顶",
   "actionSheetOptionQuoteMessage": "引用消息",
   "actionSheetOptionResolveTopic": "标记为已解决",
   "actionSheetOptionSeeWhoReacted": "查看谁做出了表情符号回应",
@@ -1247,6 +1290,7 @@
   "actionSheetOptionSubscribe": "订阅",
   "actionSheetOptionUnfollowTopic": "取消关注话题",
   "actionSheetOptionUnmuteTopic": "取消静音话题",
+  "actionSheetOptionUnpinChannel": "去掉置顶",
   "actionSheetOptionUnresolveTopic": "标记为未解决",
   "actionSheetOptionUnstarMessage": "取消星标消息标记",
   "actionSheetOptionUnsubscribe": "取消订阅",
@@ -1255,6 +1299,8 @@
   "actionSheetReadReceiptsErrorReadCount": "加载已读回执失败。",
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{此消息已被<z-link>阅读</z-link>，共有 {count} 人：} other{此消息已被<z-link>阅读</z-link>，共有 {count} 人：}}",
   "actionSheetReadReceiptsZeroReadCount": "尚无人阅读此消息。",
+  "actionSheetTitleDm": "与{user}的私信",
+  "actionSheetTitleSelfDm": "与自己的私信",
   "allChannelsEmptyPlaceholderHeader": "目前组织中没有您可见的频道。",
   "allChannelsPageTitle": "所有频道",
   "appVersionUnknownPlaceholder": "(…)",
@@ -1268,10 +1314,16 @@
   "composeBoxAttachFromCameraTooltip": "拍摄照片",
   "composeBoxAttachMediaTooltip": "上传图片或视频",
   "composeBoxBannerButtonCancel": "取消",
+  "composeBoxBannerButtonRefresh": "刷新",
   "composeBoxBannerButtonSave": "保存",
+  "composeBoxBannerButtonSubscribe": "订阅",
   "composeBoxBannerLabelCannotSendInChannel": "您没有足够的权限在此频道发送消息。",
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "你不能在这里发送消息。",
   "composeBoxBannerLabelDeactivatedDmRecipient": "您不能向被停用的用户发送消息。",
   "composeBoxBannerLabelEditMessage": "编辑消息",
+  "composeBoxBannerLabelUnknownDmRecipient": "你不能向未知用户发送消息。",
+  "composeBoxBannerLabelUnsubscribed": "对您消息的回复不会自动显示。",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "新消息将不会自动出现。",
   "composeBoxChannelContentHint": "发送消息到 {destination}",
   "composeBoxDmContentHint": "发送私信给 @{user}",
   "composeBoxEnterTopicOrSkipHintText": "输入话题（默认为“{defaultTopicName}”）",
@@ -1311,6 +1363,7 @@
   "errorContentNotInsertedTitle": "未插入内容",
   "errorContentToInsertIsEmpty": "要插入的文件为空或无法访问。",
   "errorCopyingFailed": "未能复制消息文本",
+  "errorCouldNotAccessUploadedFileTitle": "无法访问上传的文件",
   "errorCouldNotConnectTitle": "未能连接",
   "errorCouldNotEditMessageTitle": "未能编辑消息",
   "errorCouldNotFetchMessageSource": "未能获取原始消息。",
@@ -1343,19 +1396,21 @@
   "errorNetworkRequestFailed": "网络请求失败",
   "errorNotificationOpenAccountNotFound": "未能找到关联该消息提醒的账号。",
   "errorNotificationOpenTitle": "未能打开消息提醒",
+  "errorPinChannelFailedTitle": "置顶频道失败",
   "errorQuotationFailed": "未能引用消息",
   "errorReactionAddingFailedTitle": "未能添加表情符号",
   "errorReactionRemovingFailedTitle": "未能移除表情符号",
   "errorRequestFailed": "网络请求失败；HTTP 状态码 {httpStatus}",
   "errorResolveTopicFailedTitle": "未能将话题标记为解决",
   "errorServerMessage": "服务器：\n\n{message}",
-  "errorServerVersionUnsupportedMessage": "{url} 运行的 Zulip 服务器版本 {zulipVersion} 过低。该客户端只支持 {minSupportedZulipVersion} 及以后的服务器版本。",
+  "errorServerVersionNotAllowedMessage": "{url} 运行的 Zulip 服务器版本 {zulipVersion} 过低。该客户端只支持 {minAllowedZulipVersion} 及以后的服务器版本。",
   "errorSharingAccountNotLoggedIn": "尚未登录任何账号。请登录账号后再次尝试。",
   "errorSharingFailed": "分享失败",
   "errorSharingTitle": "分享内容失败",
   "errorStarMessageFailedTitle": "未能添加星标消息标记",
   "errorUnfollowTopicFailed": "未能取消关注话题",
   "errorUnmuteTopicFailed": "未能取消静音话题",
+  "errorUnpinChannelFailedTitle": "取消置顶频道失败",
   "errorUnresolveTopicFailedTitle": "未能将话题标记为未解决",
   "errorUnstarMessageFailedTitle": "未能取消星标消息标记",
   "errorVideoPlayerFailed": "未能播放视频。",
@@ -1387,7 +1442,6 @@
   "loginMethodDivider": "或",
   "loginPageTitle": "登入",
   "loginPasswordLabel": "密码",
-  "loginServerUrlLabel": "Zulip 服务器网址",
   "loginUsernameLabel": "用户名",
   "mainMenuMyProfile": "个人资料",
   "manyPeopleTyping": "多个用户正在输入…",
@@ -1406,7 +1460,7 @@
   "messageIsEditedLabel": "已编辑",
   "messageIsMovedLabel": "已移动",
   "messageListGroupYouAndOthers": "您和{others}",
-  "messageListGroupYouWithYourself": "与自己的私信",
+  "messageListGroupYouWithYourself": "与自己的消息",
   "messageNotSentLabel": "消息未发送",
   "mutedUser": "静音用户",
   "navButtonAllChannels": "所有频道",
@@ -1477,7 +1531,7 @@
   "themeSettingTitle": "主题",
   "today": "今天",
   "topicValidationErrorMandatoryButEmpty": "话题在该组织为必填项。",
-  "topicValidationErrorTooLong": "话题长度不应该超过 60 个字符。",
+  "topicValidationErrorTooLong": "话题长度不应该大于{maxLength, plural, =1{1 character} other{{maxLength} 字符}}。",
   "topicsButtonTooltip": "话题",
   "tryAnotherAccountButton": "尝试另一个账号",
   "tryAnotherAccountMessage": "您在 {url} 的账号加载时间过长。",

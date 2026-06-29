@@ -82,14 +82,13 @@ void main() {
     addTearDown(testBinding.reset);
     streams ??= subscriptions ??= [eg.subscription(eg.stream(streamId: eg.defaultStreamMessageStreamId))];
     zulipFeatureLevel ??= eg.recentZulipFeatureLevel;
-    final selfAccount = eg.selfAccount.copyWith(zulipFeatureLevel: zulipFeatureLevel);
-    await testBinding.globalStore.add(selfAccount, eg.initialSnapshot(
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
       zulipFeatureLevel: zulipFeatureLevel,
       streams: streams,
       subscriptions: subscriptions,
       unreadMsgs: unreadMsgs,
       starredMessages: starredMessages));
-    store = await testBinding.globalStore.perAccount(selfAccount.id);
+    store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
     // prepare message list data
@@ -110,7 +109,7 @@ void main() {
     }
     connection.prepare(json: fetchResult.toJson());
 
-    await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
+    await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       skipAssertAccountExists: skipAssertAccountExists,
       navigatorObservers: navObservers,
       child: MessageListPage(initNarrow: narrow)));
@@ -371,6 +370,38 @@ void main() {
       );
 
       check(find.text('DMs with Muted user, User 2, Muted user')).findsOne();
+    });
+
+    testWidgets('search button on combined feed navigates to search page', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+      await setupMessageListPage(tester,
+        narrow: const CombinedFeedNarrow(),
+        messages: [],
+        navObservers: [testNavObserver]);
+      pushedRoutes.clear();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+
+      await tester.tap(find.descendant(of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search)));
+      await tester.pump();
+
+      check(pushedRoutes).single.isA<WidgetRoute>().page
+        .isA<MessageListPage>()
+        .initNarrow.equals(KeywordSearchNarrow(''));
+    });
+
+    testWidgets('no search button in channel narrow', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: const ChannelNarrow(1), messages: []);
+
+      check(find.descendant(of: find.byType(ZulipAppBar),
+        matching: find.byIcon(ZulipIcons.search))
+      ).findsNothing();
     });
   });
 
@@ -810,35 +841,39 @@ void main() {
       check(itemCount(tester)).equals(401);
     });
 
-    testWidgets('observe double-fetch glitch', (tester) async {
+    testWidgets('no double-fetch glitch', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(101);
+        messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
+      connection.takeRequests();
+      check(itemCount(tester)).equals(301);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
       await tester.pump();
 
       // ... and we fetch more messages as we go.
-      connection.prepare(json: eg.olderGetMessagesResult(anchor: 950, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(anchor: 950, foundOldest: false,
+          messages: List.generate(100, (i) => eg.streamMessage(id: 850 + i, sender: eg.selfUser))).toJson());
       for (int i = 0; i < 30; i++) {
         // Find the point in the fling where the fetch starts.
         await tester.pump(const Duration(milliseconds: 100));
-        if (itemCount(tester)! > 101) break; // The loading indicator appeared.
+        final requests = connection.takeRequests();
+        if (requests.isNotEmpty) {
+          check(requests).single.isA<http.Request>()
+            ..method.equals('GET')
+            ..url.path.equals('/api/v1/messages');
+          break;
+        }
       }
-      await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
-      check(itemCount(tester)).equals(201);
 
-      // On the next frame, we promptly fetch *another* batch.
-      // This is a glitch and it'd be nicer if we didn't.
-      connection.prepare(json: eg.olderGetMessagesResult(anchor: 850, foundOldest: false,
-        messages: List.generate(100, (i) => eg.streamMessage(id: 750 + i, sender: eg.selfUser))).toJson());
-      await tester.pump(const Duration(milliseconds: 1));
-      await tester.pump(Duration.zero);
-      check(itemCount(tester)).equals(301);
-    }, skip: true); // TODO this still reproduces manually, still needs debugging,
-                    // but has become harder to reproduce in a test.
+      // Allow a delayed frame for the response to arrive.
+      await tester.pump(Duration(milliseconds: 1));
+      check(itemCount(tester)).equals(401);
+      await tester.pumpAndSettle();
+      // Check there is no additional request made to cause double-fetch glitch.
+      check(connection.takeRequests()).isEmpty();
+    });
 
     testWidgets("avoid getting distracted by nested viewports' metrics", (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/507
@@ -2146,16 +2181,16 @@ void main() {
               ("2023-01-11 00:00", "Jan 11, 2023", "Jan 11, 2023"),
             ]);
         case MessageTimestampStyle.timeOnly:
-          doTests(style, [('2023-01-10 12:00', '12:00 PM', '12:00')]);
+          doTests(style, [('2023-01-10 12:00', '12:00\u{202F}PM', '12:00')]);
         case MessageTimestampStyle.lightbox:
           doTests(style,
             [('2023-01-10 12:00',
-              'Jan 10, 2023 12:00:00 PM',
+              'Jan 10, 2023 12:00:00\u{202F}PM',
               'Jan 10, 2023 12:00:00')]);
         case MessageTimestampStyle.full:
           doTests(style,
             [('2023-01-10 12:00',
-              'Jan 10, 2023 12:00 PM',
+              'Jan 10, 2023 12:00\u{202F}PM',
               'Jan 10, 2023 12:00')]);
       }
     }

@@ -7,11 +7,13 @@ import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messagin
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
+import 'package:sodium/sodium.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
 import 'package:wakelock_plus/wakelock_plus.dart' as wakelock_plus;
 
 import '../host/android_intents.dart' as android_intents_pigeon;
 import '../host/android_notifications.dart';
+import '../host/ios_notifications.g.dart';
 import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
 import 'store.dart';
@@ -98,6 +100,9 @@ abstract class ZulipBinding {
   /// a widget test neglects to clean up with `testBinding.reset`.
   Future<GlobalStore> getGlobalStoreUniquely();
 
+  /// If true, make [getGlobalStoreUniquely] behave just like [getGlobalStore].
+  bool debugRelaxGetGlobalStoreUniquely = false;
+
   /// Checks whether the platform can launch [url], via package:url_launcher.
   ///
   /// This wraps [url_launcher.canLaunchUrl].
@@ -163,6 +168,12 @@ abstract class ZulipBinding {
   /// or null if that hasn't resolved yet.
   PackageInfo? get syncPackageInfo;
 
+  /// Get the singleton for `package:sodium` aka libsodium,
+  /// used for cryptography.
+  ///
+  /// This wraps [SodiumInit.init].
+  FutureOr<Sodium> sodiumInit();
+
   /// Initialize Firebase, to use for notifications.
   ///
   /// This wraps [firebase_core.Firebase.initializeApp].
@@ -185,6 +196,9 @@ abstract class ZulipBinding {
   NotificationPigeonApi get notificationPigeonApi;
 
   Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents;
+
+  /// Wraps the [IosNotifFlutterApi.setUp] method.
+  void setupIosNotifFlutterApi(IosNotifFlutterApi api);
 
   /// Pick files from the media library, via package:file_picker.
   ///
@@ -247,6 +261,17 @@ class IosDeviceInfo extends BaseDeviceInfo {
   ///
   /// See: https://developer.apple.com/documentation/uikit/uidevice/1620043-systemversion
   final String systemVersion;
+
+  /// The major component of the iOS version, from [systemVersion].
+  ///
+  /// Returns null if [systemVersion] can't be parsed.
+  ///
+  /// Callers should write e.g. `// TODO(ios-18)`
+  /// so we remember to simplify our code as our minimum iOS version advances.
+  // TODO(log) if can't be parsed
+  int? get majorVersion =>
+    // [IosDeviceInfo.systemVersion] is a dotted string, e.g. "17.5.1".
+    int.tryParse(systemVersion.split('.').first, radix: 10);
 
   const IosDeviceInfo({required this.systemVersion});
 }
@@ -384,9 +409,15 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
+    assert(debugRelaxGetGlobalStoreUniquely
+        || _debugEnforceGetGlobalStoreUniquely());
+    return getGlobalStore();
+  }
+
+  bool _debugEnforceGetGlobalStoreUniquely() {
     assert(!_debugCalledGetGlobalStoreUniquely);
     assert(_debugCalledGetGlobalStoreUniquely = true);
-    return getGlobalStore();
+    return true;
   }
   bool _debugCalledGetGlobalStoreUniquely = false;
 
@@ -469,6 +500,9 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
+  FutureOr<Sodium> sodiumInit() => SodiumInit.init();
+
+  @override
   Future<void> firebaseInitializeApp({
       required firebase_core.FirebaseOptions options}) {
     return firebase_core.Firebase.initializeApp(options: options);
@@ -499,12 +533,15 @@ class LiveZulipBinding extends ZulipBinding {
   Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents => android_intents_pigeon.androidIntentEvents();
 
   @override
+  void setupIosNotifFlutterApi(IosNotifFlutterApi api) => IosNotifFlutterApi.setUp(api);
+
+  @override
   Future<file_picker.FilePickerResult?> pickFiles({
     bool allowMultiple = false,
     bool withReadStream = false,
     file_picker.FileType type = file_picker.FileType.any,
   }) async {
-    return file_picker.FilePicker.platform.pickFiles(
+    return file_picker.FilePicker.pickFiles(
       allowMultiple: allowMultiple,
       withReadStream: withReadStream,
       type: type,

@@ -44,6 +44,11 @@ If you're reading this page for the first time, see the sections on
   flutter build appbundle -Psigned && flutter build apk -Psigned
   ```
 
+  Look for these at `build/app/outputs/bundle/release/app-release.aab`
+  and `build/app/outputs/apk/release/app-release.apk` respectively.
+  Check their creation dates (`ls -la`) to avoid accidentally re-uploading
+  the previous release.
+
 * Upload the AAB to Google Play via the "Create new release" button
   at the top of the
   [Release > Testing > Internal testing][play-internaltesting]
@@ -129,13 +134,15 @@ If you're reading this page for the first time, see the sections on
 
   * After the build reaches alpha, you can add it to TestFlight so it
     goes to our beta users.  Go in App Store Connect to [TestFlight >
-    Testers & Groups > External Testers][asc-external],
+    Testers > "External Testers" (left sidebar) > Builds (tab)][asc-external],
     and hit the "+" icon at the top of the list of builds to enter a
     modal dialog.
 
-    * For the "What to Test" notes, see remark above about release notes.
+    * For the "What to Test" notes, start with `tools/format-changelog user`.
+      Edit as needed to resolve "(Android)" and "(iOS)" labels
+      and for formatting.
 
-  * The same External Testers page should now show the build in status
+  * The same "External Testers" > Builds page should now show the build in status
     "Waiting for Review".  This typically comes back the next morning,
     California time.  If successful, the app is out in beta!
 
@@ -351,15 +358,12 @@ which it's very important to handle securely.
 
 [app signing key]: https://developer.android.com/studio/publish/app-signing#secure_key
 
-(This setup is similar to what we used for the legacy mobile app,
-but the key is a fresh one.)
-
 * Get the keystore file, and the keystore properties file.
   An existing/previous release manager can send these to you,
   encrypted to your PGP key.
 
   * Never make an unencrypted version visible to the network or to a
-    cloud service (including Zulip).
+    cloud service (including Zulip and iCloud Drive).
 
 * Put the release-signing keystore, PGP-encrypted to yourself,
   at `android/release.keystore.pgp`.
@@ -388,9 +392,9 @@ keyPassword=*****
   can be edited to refer to a new cert.
 
   To create these, see <https://developer.apple.com/account/resources>.
-  Or for a bit more automation: go in Xcode to Settings -> Accounts
-  -> (your Apple ID) -> "Kandra Labs, Inc.".  Hit the "add" icon,
-  and choose "Apple Distribution", to create a key and cert.
+  Or for a bit more automation: go in Xcode to Settings -> Apple Accounts ->
+  (your Apple ID) -> "Kandra Labs, Inc." -> Manage Certificates.
+  Hit the "add" icon, and choose "Apple Distribution", to create a key and cert.
   Then use the website only to create or edit the profile.
 
 * For iOS uploads, you'll want the Transporter app — it's published by

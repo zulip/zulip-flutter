@@ -42,6 +42,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   /// and filtered to those with `animated: false`.
   List<ThumbnailFormat> get sortedStillThumbnailFormats;
 
+  List<ReportMessageType>? get serverReportMessageTypes; // TODO(server-12)
+
   //|//////////////////////////////////////////////////////////////
   // Realm settings.
 
@@ -56,7 +58,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   GroupSettingValue? get realmCanDeleteAnyMessageGroup; // TODO(server-10)
   GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
   bool get realmEnableReadReceipts;
-  bool get realmMandatoryTopics;
+  RealmTopicsPolicy? get realmTopicsPolicy; // TODO(server-11)
+  bool? get realmMandatoryTopics; // TODO(server-11) Remove deprecated setting.
   int get maxFileUploadSizeMib;
   int? get realmMessageContentDeleteLimitSeconds;
   Duration? get realmMessageContentEditLimit =>
@@ -70,7 +73,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   // Realm settings previously found in realm/update_dict events,
   // but now deprecated.
 
-  RealmWildcardMentionPolicy get realmWildcardMentionPolicy; // TODO(#662): replaced by can_mention_many_users_group
+  RealmWildcardMentionPolicy get realmWildcardMentionPolicy; // TODO(server-10) remove
   RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy; // TODO(server-10) remove
 
   //|//////////////////////////////
@@ -85,6 +88,8 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   String get realmEmptyTopicDisplayName;
 
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts;
+
+  int? get realmModerationRequestChannelId; // TODO(server-10)
 
   int get maxChannelNameLength;
   int get maxTopicLength;
@@ -183,6 +188,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   List<ThumbnailFormat> get sortedStillThumbnailFormats => realmStore.sortedStillThumbnailFormats;
   @override
+  List<ReportMessageType>? get serverReportMessageTypes => realmStore.serverReportMessageTypes;
+  @override
   bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
   GroupSettingValue? get realmCanDeleteAnyMessageGroup => realmStore.realmCanDeleteAnyMessageGroup;
@@ -191,7 +198,9 @@ mixin ProxyRealmStore on RealmStore {
   @override
   bool get realmEnableReadReceipts => realmStore.realmEnableReadReceipts;
   @override
-  bool get realmMandatoryTopics => realmStore.realmMandatoryTopics;
+  RealmTopicsPolicy? get realmTopicsPolicy => realmStore.realmTopicsPolicy;
+  @override
+  bool? get realmMandatoryTopics => realmStore.realmMandatoryTopics;
   @override
   int get maxFileUploadSizeMib => realmStore.maxFileUploadSizeMib;
   @override
@@ -210,6 +219,8 @@ mixin ProxyRealmStore on RealmStore {
   String get realmEmptyTopicDisplayName => realmStore.realmEmptyTopicDisplayName;
   @override
   Map<String, RealmDefaultExternalAccount> get realmDefaultExternalAccounts => realmStore.realmDefaultExternalAccounts;
+  @override
+  int? get realmModerationRequestChannelId => realmStore.realmModerationRequestChannelId;
   @override
   int get maxChannelNameLength => realmStore.maxChannelNameLength;
   @override
@@ -254,9 +265,11 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
       initialSnapshot.serverThumbnailFormats, animated: true),
     _sortedStillThumbnailFormats = _filterAndSortThumbnailFormats(
       initialSnapshot.serverThumbnailFormats, animated: false),
+    serverReportMessageTypes = initialSnapshot.serverReportMessageTypes,
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
+    realmTopicsPolicy = initialSnapshot.realmTopicsPolicy,
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
     maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
     realmMessageContentDeleteLimitSeconds = initialSnapshot.realmMessageContentDeleteLimitSeconds,
@@ -267,6 +280,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmWildcardMentionPolicy = initialSnapshot.realmWildcardMentionPolicy,
     realmDeleteOwnMessagePolicy = initialSnapshot.realmDeleteOwnMessagePolicy,
     _realmEmptyTopicDisplayName = initialSnapshot.realmEmptyTopicDisplayName,
+    realmModerationRequestChannelId = initialSnapshot.realmModerationRequestChannelId,
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
@@ -409,6 +423,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final List<ThumbnailFormat> _sortedStillThumbnailFormats;
 
   @override
+  final List<ReportMessageType>? serverReportMessageTypes;
+
+  @override
   final bool realmAllowMessageEditing;
   @override
   final GroupSettingValue? realmCanDeleteAnyMessageGroup;
@@ -417,7 +434,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   @override
   final bool realmEnableReadReceipts;
   @override
-  final bool realmMandatoryTopics;
+  final RealmTopicsPolicy? realmTopicsPolicy;
+  @override
+  final bool? realmMandatoryTopics;
   @override
   final int maxFileUploadSizeMib;
   @override
@@ -441,6 +460,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     return _realmEmptyTopicDisplayName ?? 'general chat';
   }
   final String? _realmEmptyTopicDisplayName;
+
+  @override
+  final int? realmModerationRequestChannelId;
 
   @override
   final Map<String, RealmDefaultExternalAccount> realmDefaultExternalAccounts;

@@ -983,6 +983,17 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _deviceIdMeta = const VerificationMeta(
+    'deviceId',
+  );
+  @override
+  late final GeneratedColumn<int> deviceId = GeneratedColumn<int>(
+    'device_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _emailMeta = const VerificationMeta('email');
   @override
   late final GeneratedColumn<String> email = GeneratedColumn<String>(
@@ -1034,17 +1045,21 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _ackedPushTokenMeta = const VerificationMeta(
-    'ackedPushToken',
-  );
+  static const VerificationMeta _possibleLegacyPushTokenMeta =
+      const VerificationMeta('possibleLegacyPushToken');
   @override
-  late final GeneratedColumn<String> ackedPushToken = GeneratedColumn<String>(
-    'acked_push_token',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+  late final GeneratedColumn<bool> possibleLegacyPushToken =
+      GeneratedColumn<bool>(
+        'possible_legacy_push_token',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("possible_legacy_push_token" IN (0, 1))',
+        ),
+        defaultValue: Constant(true),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1052,12 +1067,13 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     realmName,
     realmIcon,
     userId,
+    deviceId,
     email,
     apiKey,
     zulipVersion,
     zulipMergeBase,
     zulipFeatureLevel,
-    ackedPushToken,
+    possibleLegacyPushToken,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1087,6 +1103,12 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
       );
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('device_id')) {
+      context.handle(
+        _deviceIdMeta,
+        deviceId.isAcceptableOrUnknown(data['device_id']!, _deviceIdMeta),
+      );
     }
     if (data.containsKey('email')) {
       context.handle(
@@ -1135,12 +1157,12 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
     } else if (isInserting) {
       context.missing(_zulipFeatureLevelMeta);
     }
-    if (data.containsKey('acked_push_token')) {
+    if (data.containsKey('possible_legacy_push_token')) {
       context.handle(
-        _ackedPushTokenMeta,
-        ackedPushToken.isAcceptableOrUnknown(
-          data['acked_push_token']!,
-          _ackedPushTokenMeta,
+        _possibleLegacyPushTokenMeta,
+        possibleLegacyPushToken.isAcceptableOrUnknown(
+          data['possible_legacy_push_token']!,
+          _possibleLegacyPushTokenMeta,
         ),
       );
     }
@@ -1182,6 +1204,10 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         DriftSqlType.int,
         data['${effectivePrefix}user_id'],
       )!,
+      deviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}device_id'],
+      ),
       email: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}email'],
@@ -1202,10 +1228,10 @@ class $AccountsTable extends Accounts with TableInfo<$AccountsTable, Account> {
         DriftSqlType.int,
         data['${effectivePrefix}zulip_feature_level'],
       )!,
-      ackedPushToken: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}acked_push_token'],
-      ),
+      possibleLegacyPushToken: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}possible_legacy_push_token'],
+      )!,
     );
   }
 
@@ -1253,24 +1279,45 @@ class Account extends DataClass implements Insertable<Account> {
   /// This is the identifier the server uses for the account.
   /// It never changes for a given account.
   final int userId;
+
+  /// The ID of this client device as logged into this account.
+  ///
+  /// This comes from [registerClientDevice] and corresponds to
+  /// a device ID in [InitialSnapshot.devices].
+  ///
+  /// Once this is no longer null, it never again changes for
+  /// a given account record.
+  ///
+  /// This is null if the server is old (TODO(server-12))
+  /// and lacks the concept of device ID,
+  /// as well as when the client has only recently upgraded from a
+  /// version that lacked this column and has not yet populated it.
+  final int? deviceId;
   final String email;
   final String apiKey;
   final String zulipVersion;
   final String? zulipMergeBase;
   final int zulipFeatureLevel;
-  final String? ackedPushToken;
+
+  /// Whether this device might be registered with the server for
+  /// legacy plaintext push notifications.
+  ///
+  /// This is false for new [Account] records.
+  /// It's set to true on registering a legacy token or migrating old records.
+  final bool possibleLegacyPushToken;
   const Account({
     required this.id,
     required this.realmUrl,
     this.realmName,
     this.realmIcon,
     required this.userId,
+    this.deviceId,
     required this.email,
     required this.apiKey,
     required this.zulipVersion,
     this.zulipMergeBase,
     required this.zulipFeatureLevel,
-    this.ackedPushToken,
+    required this.possibleLegacyPushToken,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1290,6 +1337,9 @@ class Account extends DataClass implements Insertable<Account> {
       );
     }
     map['user_id'] = Variable<int>(userId);
+    if (!nullToAbsent || deviceId != null) {
+      map['device_id'] = Variable<int>(deviceId);
+    }
     map['email'] = Variable<String>(email);
     map['api_key'] = Variable<String>(apiKey);
     map['zulip_version'] = Variable<String>(zulipVersion);
@@ -1297,9 +1347,7 @@ class Account extends DataClass implements Insertable<Account> {
       map['zulip_merge_base'] = Variable<String>(zulipMergeBase);
     }
     map['zulip_feature_level'] = Variable<int>(zulipFeatureLevel);
-    if (!nullToAbsent || ackedPushToken != null) {
-      map['acked_push_token'] = Variable<String>(ackedPushToken);
-    }
+    map['possible_legacy_push_token'] = Variable<bool>(possibleLegacyPushToken);
     return map;
   }
 
@@ -1314,6 +1362,9 @@ class Account extends DataClass implements Insertable<Account> {
           ? const Value.absent()
           : Value(realmIcon),
       userId: Value(userId),
+      deviceId: deviceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deviceId),
       email: Value(email),
       apiKey: Value(apiKey),
       zulipVersion: Value(zulipVersion),
@@ -1321,9 +1372,7 @@ class Account extends DataClass implements Insertable<Account> {
           ? const Value.absent()
           : Value(zulipMergeBase),
       zulipFeatureLevel: Value(zulipFeatureLevel),
-      ackedPushToken: ackedPushToken == null && nullToAbsent
-          ? const Value.absent()
-          : Value(ackedPushToken),
+      possibleLegacyPushToken: Value(possibleLegacyPushToken),
     );
   }
 
@@ -1338,12 +1387,15 @@ class Account extends DataClass implements Insertable<Account> {
       realmName: serializer.fromJson<String?>(json['realmName']),
       realmIcon: serializer.fromJson<Uri?>(json['realmIcon']),
       userId: serializer.fromJson<int>(json['userId']),
+      deviceId: serializer.fromJson<int?>(json['deviceId']),
       email: serializer.fromJson<String>(json['email']),
       apiKey: serializer.fromJson<String>(json['apiKey']),
       zulipVersion: serializer.fromJson<String>(json['zulipVersion']),
       zulipMergeBase: serializer.fromJson<String?>(json['zulipMergeBase']),
       zulipFeatureLevel: serializer.fromJson<int>(json['zulipFeatureLevel']),
-      ackedPushToken: serializer.fromJson<String?>(json['ackedPushToken']),
+      possibleLegacyPushToken: serializer.fromJson<bool>(
+        json['possibleLegacyPushToken'],
+      ),
     );
   }
   @override
@@ -1355,12 +1407,15 @@ class Account extends DataClass implements Insertable<Account> {
       'realmName': serializer.toJson<String?>(realmName),
       'realmIcon': serializer.toJson<Uri?>(realmIcon),
       'userId': serializer.toJson<int>(userId),
+      'deviceId': serializer.toJson<int?>(deviceId),
       'email': serializer.toJson<String>(email),
       'apiKey': serializer.toJson<String>(apiKey),
       'zulipVersion': serializer.toJson<String>(zulipVersion),
       'zulipMergeBase': serializer.toJson<String?>(zulipMergeBase),
       'zulipFeatureLevel': serializer.toJson<int>(zulipFeatureLevel),
-      'ackedPushToken': serializer.toJson<String?>(ackedPushToken),
+      'possibleLegacyPushToken': serializer.toJson<bool>(
+        possibleLegacyPushToken,
+      ),
     };
   }
 
@@ -1370,18 +1425,20 @@ class Account extends DataClass implements Insertable<Account> {
     Value<String?> realmName = const Value.absent(),
     Value<Uri?> realmIcon = const Value.absent(),
     int? userId,
+    Value<int?> deviceId = const Value.absent(),
     String? email,
     String? apiKey,
     String? zulipVersion,
     Value<String?> zulipMergeBase = const Value.absent(),
     int? zulipFeatureLevel,
-    Value<String?> ackedPushToken = const Value.absent(),
+    bool? possibleLegacyPushToken,
   }) => Account(
     id: id ?? this.id,
     realmUrl: realmUrl ?? this.realmUrl,
     realmName: realmName.present ? realmName.value : this.realmName,
     realmIcon: realmIcon.present ? realmIcon.value : this.realmIcon,
     userId: userId ?? this.userId,
+    deviceId: deviceId.present ? deviceId.value : this.deviceId,
     email: email ?? this.email,
     apiKey: apiKey ?? this.apiKey,
     zulipVersion: zulipVersion ?? this.zulipVersion,
@@ -1389,9 +1446,8 @@ class Account extends DataClass implements Insertable<Account> {
         ? zulipMergeBase.value
         : this.zulipMergeBase,
     zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
-    ackedPushToken: ackedPushToken.present
-        ? ackedPushToken.value
-        : this.ackedPushToken,
+    possibleLegacyPushToken:
+        possibleLegacyPushToken ?? this.possibleLegacyPushToken,
   );
   Account copyWithCompanion(AccountsCompanion data) {
     return Account(
@@ -1400,6 +1456,7 @@ class Account extends DataClass implements Insertable<Account> {
       realmName: data.realmName.present ? data.realmName.value : this.realmName,
       realmIcon: data.realmIcon.present ? data.realmIcon.value : this.realmIcon,
       userId: data.userId.present ? data.userId.value : this.userId,
+      deviceId: data.deviceId.present ? data.deviceId.value : this.deviceId,
       email: data.email.present ? data.email.value : this.email,
       apiKey: data.apiKey.present ? data.apiKey.value : this.apiKey,
       zulipVersion: data.zulipVersion.present
@@ -1411,9 +1468,9 @@ class Account extends DataClass implements Insertable<Account> {
       zulipFeatureLevel: data.zulipFeatureLevel.present
           ? data.zulipFeatureLevel.value
           : this.zulipFeatureLevel,
-      ackedPushToken: data.ackedPushToken.present
-          ? data.ackedPushToken.value
-          : this.ackedPushToken,
+      possibleLegacyPushToken: data.possibleLegacyPushToken.present
+          ? data.possibleLegacyPushToken.value
+          : this.possibleLegacyPushToken,
     );
   }
 
@@ -1425,12 +1482,13 @@ class Account extends DataClass implements Insertable<Account> {
           ..write('realmName: $realmName, ')
           ..write('realmIcon: $realmIcon, ')
           ..write('userId: $userId, ')
+          ..write('deviceId: $deviceId, ')
           ..write('email: $email, ')
           ..write('apiKey: $apiKey, ')
           ..write('zulipVersion: $zulipVersion, ')
           ..write('zulipMergeBase: $zulipMergeBase, ')
           ..write('zulipFeatureLevel: $zulipFeatureLevel, ')
-          ..write('ackedPushToken: $ackedPushToken')
+          ..write('possibleLegacyPushToken: $possibleLegacyPushToken')
           ..write(')'))
         .toString();
   }
@@ -1442,12 +1500,13 @@ class Account extends DataClass implements Insertable<Account> {
     realmName,
     realmIcon,
     userId,
+    deviceId,
     email,
     apiKey,
     zulipVersion,
     zulipMergeBase,
     zulipFeatureLevel,
-    ackedPushToken,
+    possibleLegacyPushToken,
   );
   @override
   bool operator ==(Object other) =>
@@ -1458,12 +1517,13 @@ class Account extends DataClass implements Insertable<Account> {
           other.realmName == this.realmName &&
           other.realmIcon == this.realmIcon &&
           other.userId == this.userId &&
+          other.deviceId == this.deviceId &&
           other.email == this.email &&
           other.apiKey == this.apiKey &&
           other.zulipVersion == this.zulipVersion &&
           other.zulipMergeBase == this.zulipMergeBase &&
           other.zulipFeatureLevel == this.zulipFeatureLevel &&
-          other.ackedPushToken == this.ackedPushToken);
+          other.possibleLegacyPushToken == this.possibleLegacyPushToken);
 }
 
 class AccountsCompanion extends UpdateCompanion<Account> {
@@ -1472,24 +1532,26 @@ class AccountsCompanion extends UpdateCompanion<Account> {
   final Value<String?> realmName;
   final Value<Uri?> realmIcon;
   final Value<int> userId;
+  final Value<int?> deviceId;
   final Value<String> email;
   final Value<String> apiKey;
   final Value<String> zulipVersion;
   final Value<String?> zulipMergeBase;
   final Value<int> zulipFeatureLevel;
-  final Value<String?> ackedPushToken;
+  final Value<bool> possibleLegacyPushToken;
   const AccountsCompanion({
     this.id = const Value.absent(),
     this.realmUrl = const Value.absent(),
     this.realmName = const Value.absent(),
     this.realmIcon = const Value.absent(),
     this.userId = const Value.absent(),
+    this.deviceId = const Value.absent(),
     this.email = const Value.absent(),
     this.apiKey = const Value.absent(),
     this.zulipVersion = const Value.absent(),
     this.zulipMergeBase = const Value.absent(),
     this.zulipFeatureLevel = const Value.absent(),
-    this.ackedPushToken = const Value.absent(),
+    this.possibleLegacyPushToken = const Value.absent(),
   });
   AccountsCompanion.insert({
     this.id = const Value.absent(),
@@ -1497,12 +1559,13 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     this.realmName = const Value.absent(),
     this.realmIcon = const Value.absent(),
     required int userId,
+    this.deviceId = const Value.absent(),
     required String email,
     required String apiKey,
     required String zulipVersion,
     this.zulipMergeBase = const Value.absent(),
     required int zulipFeatureLevel,
-    this.ackedPushToken = const Value.absent(),
+    this.possibleLegacyPushToken = const Value.absent(),
   }) : realmUrl = Value(realmUrl),
        userId = Value(userId),
        email = Value(email),
@@ -1515,12 +1578,13 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Expression<String>? realmName,
     Expression<String>? realmIcon,
     Expression<int>? userId,
+    Expression<int>? deviceId,
     Expression<String>? email,
     Expression<String>? apiKey,
     Expression<String>? zulipVersion,
     Expression<String>? zulipMergeBase,
     Expression<int>? zulipFeatureLevel,
-    Expression<String>? ackedPushToken,
+    Expression<bool>? possibleLegacyPushToken,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1528,12 +1592,14 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       if (realmName != null) 'realm_name': realmName,
       if (realmIcon != null) 'realm_icon': realmIcon,
       if (userId != null) 'user_id': userId,
+      if (deviceId != null) 'device_id': deviceId,
       if (email != null) 'email': email,
       if (apiKey != null) 'api_key': apiKey,
       if (zulipVersion != null) 'zulip_version': zulipVersion,
       if (zulipMergeBase != null) 'zulip_merge_base': zulipMergeBase,
       if (zulipFeatureLevel != null) 'zulip_feature_level': zulipFeatureLevel,
-      if (ackedPushToken != null) 'acked_push_token': ackedPushToken,
+      if (possibleLegacyPushToken != null)
+        'possible_legacy_push_token': possibleLegacyPushToken,
     });
   }
 
@@ -1543,12 +1609,13 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     Value<String?>? realmName,
     Value<Uri?>? realmIcon,
     Value<int>? userId,
+    Value<int?>? deviceId,
     Value<String>? email,
     Value<String>? apiKey,
     Value<String>? zulipVersion,
     Value<String?>? zulipMergeBase,
     Value<int>? zulipFeatureLevel,
-    Value<String?>? ackedPushToken,
+    Value<bool>? possibleLegacyPushToken,
   }) {
     return AccountsCompanion(
       id: id ?? this.id,
@@ -1556,12 +1623,14 @@ class AccountsCompanion extends UpdateCompanion<Account> {
       realmName: realmName ?? this.realmName,
       realmIcon: realmIcon ?? this.realmIcon,
       userId: userId ?? this.userId,
+      deviceId: deviceId ?? this.deviceId,
       email: email ?? this.email,
       apiKey: apiKey ?? this.apiKey,
       zulipVersion: zulipVersion ?? this.zulipVersion,
       zulipMergeBase: zulipMergeBase ?? this.zulipMergeBase,
       zulipFeatureLevel: zulipFeatureLevel ?? this.zulipFeatureLevel,
-      ackedPushToken: ackedPushToken ?? this.ackedPushToken,
+      possibleLegacyPushToken:
+          possibleLegacyPushToken ?? this.possibleLegacyPushToken,
     );
   }
 
@@ -1587,6 +1656,9 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     if (userId.present) {
       map['user_id'] = Variable<int>(userId.value);
     }
+    if (deviceId.present) {
+      map['device_id'] = Variable<int>(deviceId.value);
+    }
     if (email.present) {
       map['email'] = Variable<String>(email.value);
     }
@@ -1602,8 +1674,10 @@ class AccountsCompanion extends UpdateCompanion<Account> {
     if (zulipFeatureLevel.present) {
       map['zulip_feature_level'] = Variable<int>(zulipFeatureLevel.value);
     }
-    if (ackedPushToken.present) {
-      map['acked_push_token'] = Variable<String>(ackedPushToken.value);
+    if (possibleLegacyPushToken.present) {
+      map['possible_legacy_push_token'] = Variable<bool>(
+        possibleLegacyPushToken.value,
+      );
     }
     return map;
   }
@@ -1616,12 +1690,407 @@ class AccountsCompanion extends UpdateCompanion<Account> {
           ..write('realmName: $realmName, ')
           ..write('realmIcon: $realmIcon, ')
           ..write('userId: $userId, ')
+          ..write('deviceId: $deviceId, ')
           ..write('email: $email, ')
           ..write('apiKey: $apiKey, ')
           ..write('zulipVersion: $zulipVersion, ')
           ..write('zulipMergeBase: $zulipMergeBase, ')
           ..write('zulipFeatureLevel: $zulipFeatureLevel, ')
-          ..write('ackedPushToken: $ackedPushToken')
+          ..write('possibleLegacyPushToken: $possibleLegacyPushToken')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PushKeysTable extends PushKeys with TableInfo<$PushKeysTable, PushKey> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PushKeysTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _pushKeyIdMeta = const VerificationMeta(
+    'pushKeyId',
+  );
+  @override
+  late final GeneratedColumn<int> pushKeyId = GeneratedColumn<int>(
+    'push_key_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pushKeyMeta = const VerificationMeta(
+    'pushKey',
+  );
+  @override
+  late final GeneratedColumn<Uint8List> pushKey = GeneratedColumn<Uint8List>(
+    'push_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<int> accountId = GeneratedColumn<int>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES accounts (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _createdTimestampMeta = const VerificationMeta(
+    'createdTimestamp',
+  );
+  @override
+  late final GeneratedColumn<int> createdTimestamp = GeneratedColumn<int>(
+    'created_timestamp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _supersededTimestampMeta =
+      const VerificationMeta('supersededTimestamp');
+  @override
+  late final GeneratedColumn<int> supersededTimestamp = GeneratedColumn<int>(
+    'superseded_timestamp',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    pushKeyId,
+    pushKey,
+    accountId,
+    createdTimestamp,
+    supersededTimestamp,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'push_keys';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PushKey> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('push_key_id')) {
+      context.handle(
+        _pushKeyIdMeta,
+        pushKeyId.isAcceptableOrUnknown(data['push_key_id']!, _pushKeyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pushKeyIdMeta);
+    }
+    if (data.containsKey('push_key')) {
+      context.handle(
+        _pushKeyMeta,
+        pushKey.isAcceptableOrUnknown(data['push_key']!, _pushKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pushKeyMeta);
+    }
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('created_timestamp')) {
+      context.handle(
+        _createdTimestampMeta,
+        createdTimestamp.isAcceptableOrUnknown(
+          data['created_timestamp']!,
+          _createdTimestampMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdTimestampMeta);
+    }
+    if (data.containsKey('superseded_timestamp')) {
+      context.handle(
+        _supersededTimestampMeta,
+        supersededTimestamp.isAcceptableOrUnknown(
+          data['superseded_timestamp']!,
+          _supersededTimestampMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {pushKeyId},
+  ];
+  @override
+  PushKey map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PushKey(
+      pushKeyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}push_key_id'],
+      )!,
+      pushKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}push_key'],
+      )!,
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}account_id'],
+      )!,
+      createdTimestamp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_timestamp'],
+      )!,
+      supersededTimestamp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}superseded_timestamp'],
+      ),
+    );
+  }
+
+  @override
+  $PushKeysTable createAlias(String alias) {
+    return $PushKeysTable(attachedDatabase, alias);
+  }
+}
+
+class PushKey extends DataClass implements Insertable<PushKey> {
+  final int pushKeyId;
+  final Uint8List pushKey;
+  final int accountId;
+  final int createdTimestamp;
+  final int? supersededTimestamp;
+  const PushKey({
+    required this.pushKeyId,
+    required this.pushKey,
+    required this.accountId,
+    required this.createdTimestamp,
+    this.supersededTimestamp,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['push_key_id'] = Variable<int>(pushKeyId);
+    map['push_key'] = Variable<Uint8List>(pushKey);
+    map['account_id'] = Variable<int>(accountId);
+    map['created_timestamp'] = Variable<int>(createdTimestamp);
+    if (!nullToAbsent || supersededTimestamp != null) {
+      map['superseded_timestamp'] = Variable<int>(supersededTimestamp);
+    }
+    return map;
+  }
+
+  PushKeysCompanion toCompanion(bool nullToAbsent) {
+    return PushKeysCompanion(
+      pushKeyId: Value(pushKeyId),
+      pushKey: Value(pushKey),
+      accountId: Value(accountId),
+      createdTimestamp: Value(createdTimestamp),
+      supersededTimestamp: supersededTimestamp == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supersededTimestamp),
+    );
+  }
+
+  factory PushKey.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PushKey(
+      pushKeyId: serializer.fromJson<int>(json['pushKeyId']),
+      pushKey: serializer.fromJson<Uint8List>(json['pushKey']),
+      accountId: serializer.fromJson<int>(json['accountId']),
+      createdTimestamp: serializer.fromJson<int>(json['createdTimestamp']),
+      supersededTimestamp: serializer.fromJson<int?>(
+        json['supersededTimestamp'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'pushKeyId': serializer.toJson<int>(pushKeyId),
+      'pushKey': serializer.toJson<Uint8List>(pushKey),
+      'accountId': serializer.toJson<int>(accountId),
+      'createdTimestamp': serializer.toJson<int>(createdTimestamp),
+      'supersededTimestamp': serializer.toJson<int?>(supersededTimestamp),
+    };
+  }
+
+  PushKey copyWith({
+    int? pushKeyId,
+    Uint8List? pushKey,
+    int? accountId,
+    int? createdTimestamp,
+    Value<int?> supersededTimestamp = const Value.absent(),
+  }) => PushKey(
+    pushKeyId: pushKeyId ?? this.pushKeyId,
+    pushKey: pushKey ?? this.pushKey,
+    accountId: accountId ?? this.accountId,
+    createdTimestamp: createdTimestamp ?? this.createdTimestamp,
+    supersededTimestamp: supersededTimestamp.present
+        ? supersededTimestamp.value
+        : this.supersededTimestamp,
+  );
+  PushKey copyWithCompanion(PushKeysCompanion data) {
+    return PushKey(
+      pushKeyId: data.pushKeyId.present ? data.pushKeyId.value : this.pushKeyId,
+      pushKey: data.pushKey.present ? data.pushKey.value : this.pushKey,
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      createdTimestamp: data.createdTimestamp.present
+          ? data.createdTimestamp.value
+          : this.createdTimestamp,
+      supersededTimestamp: data.supersededTimestamp.present
+          ? data.supersededTimestamp.value
+          : this.supersededTimestamp,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PushKey(')
+          ..write('pushKeyId: $pushKeyId, ')
+          ..write('pushKey: $pushKey, ')
+          ..write('accountId: $accountId, ')
+          ..write('createdTimestamp: $createdTimestamp, ')
+          ..write('supersededTimestamp: $supersededTimestamp')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    pushKeyId,
+    $driftBlobEquality.hash(pushKey),
+    accountId,
+    createdTimestamp,
+    supersededTimestamp,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PushKey &&
+          other.pushKeyId == this.pushKeyId &&
+          $driftBlobEquality.equals(other.pushKey, this.pushKey) &&
+          other.accountId == this.accountId &&
+          other.createdTimestamp == this.createdTimestamp &&
+          other.supersededTimestamp == this.supersededTimestamp);
+}
+
+class PushKeysCompanion extends UpdateCompanion<PushKey> {
+  final Value<int> pushKeyId;
+  final Value<Uint8List> pushKey;
+  final Value<int> accountId;
+  final Value<int> createdTimestamp;
+  final Value<int?> supersededTimestamp;
+  final Value<int> rowid;
+  const PushKeysCompanion({
+    this.pushKeyId = const Value.absent(),
+    this.pushKey = const Value.absent(),
+    this.accountId = const Value.absent(),
+    this.createdTimestamp = const Value.absent(),
+    this.supersededTimestamp = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PushKeysCompanion.insert({
+    required int pushKeyId,
+    required Uint8List pushKey,
+    required int accountId,
+    required int createdTimestamp,
+    this.supersededTimestamp = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : pushKeyId = Value(pushKeyId),
+       pushKey = Value(pushKey),
+       accountId = Value(accountId),
+       createdTimestamp = Value(createdTimestamp);
+  static Insertable<PushKey> custom({
+    Expression<int>? pushKeyId,
+    Expression<Uint8List>? pushKey,
+    Expression<int>? accountId,
+    Expression<int>? createdTimestamp,
+    Expression<int>? supersededTimestamp,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (pushKeyId != null) 'push_key_id': pushKeyId,
+      if (pushKey != null) 'push_key': pushKey,
+      if (accountId != null) 'account_id': accountId,
+      if (createdTimestamp != null) 'created_timestamp': createdTimestamp,
+      if (supersededTimestamp != null)
+        'superseded_timestamp': supersededTimestamp,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PushKeysCompanion copyWith({
+    Value<int>? pushKeyId,
+    Value<Uint8List>? pushKey,
+    Value<int>? accountId,
+    Value<int>? createdTimestamp,
+    Value<int?>? supersededTimestamp,
+    Value<int>? rowid,
+  }) {
+    return PushKeysCompanion(
+      pushKeyId: pushKeyId ?? this.pushKeyId,
+      pushKey: pushKey ?? this.pushKey,
+      accountId: accountId ?? this.accountId,
+      createdTimestamp: createdTimestamp ?? this.createdTimestamp,
+      supersededTimestamp: supersededTimestamp ?? this.supersededTimestamp,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (pushKeyId.present) {
+      map['push_key_id'] = Variable<int>(pushKeyId.value);
+    }
+    if (pushKey.present) {
+      map['push_key'] = Variable<Uint8List>(pushKey.value);
+    }
+    if (accountId.present) {
+      map['account_id'] = Variable<int>(accountId.value);
+    }
+    if (createdTimestamp.present) {
+      map['created_timestamp'] = Variable<int>(createdTimestamp.value);
+    }
+    if (supersededTimestamp.present) {
+      map['superseded_timestamp'] = Variable<int>(supersededTimestamp.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PushKeysCompanion(')
+          ..write('pushKeyId: $pushKeyId, ')
+          ..write('pushKey: $pushKey, ')
+          ..write('accountId: $accountId, ')
+          ..write('createdTimestamp: $createdTimestamp, ')
+          ..write('supersededTimestamp: $supersededTimestamp, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -1636,6 +2105,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $IntGlobalSettingsTable intGlobalSettings =
       $IntGlobalSettingsTable(this);
   late final $AccountsTable accounts = $AccountsTable(this);
+  late final $PushKeysTable pushKeys = $PushKeysTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1645,7 +2115,18 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     boolGlobalSettings,
     intGlobalSettings,
     accounts,
+    pushKeys,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('push_keys', kind: UpdateKind.delete)],
+    ),
+  ]);
 }
 
 typedef $$GlobalSettingsTableCreateCompanionBuilder =
@@ -2213,12 +2694,13 @@ typedef $$AccountsTableCreateCompanionBuilder =
       Value<String?> realmName,
       Value<Uri?> realmIcon,
       required int userId,
+      Value<int?> deviceId,
       required String email,
       required String apiKey,
       required String zulipVersion,
       Value<String?> zulipMergeBase,
       required int zulipFeatureLevel,
-      Value<String?> ackedPushToken,
+      Value<bool> possibleLegacyPushToken,
     });
 typedef $$AccountsTableUpdateCompanionBuilder =
     AccountsCompanion Function({
@@ -2227,13 +2709,38 @@ typedef $$AccountsTableUpdateCompanionBuilder =
       Value<String?> realmName,
       Value<Uri?> realmIcon,
       Value<int> userId,
+      Value<int?> deviceId,
       Value<String> email,
       Value<String> apiKey,
       Value<String> zulipVersion,
       Value<String?> zulipMergeBase,
       Value<int> zulipFeatureLevel,
-      Value<String?> ackedPushToken,
+      Value<bool> possibleLegacyPushToken,
     });
+
+final class $$AccountsTableReferences
+    extends BaseReferences<_$AppDatabase, $AccountsTable, Account> {
+  $$AccountsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$PushKeysTable, List<PushKey>> _pushKeysRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.pushKeys,
+    aliasName: $_aliasNameGenerator(db.accounts.id, db.pushKeys.accountId),
+  );
+
+  $$PushKeysTableProcessedTableManager get pushKeysRefs {
+    final manager = $$PushKeysTableTableManager(
+      $_db,
+      $_db.pushKeys,
+    ).filter((f) => f.accountId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pushKeysRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$AccountsTableFilterComposer
     extends Composer<_$AppDatabase, $AccountsTable> {
@@ -2271,6 +2778,11 @@ class $$AccountsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get email => $composableBuilder(
     column: $table.email,
     builder: (column) => ColumnFilters(column),
@@ -2296,10 +2808,35 @@ class $$AccountsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get ackedPushToken => $composableBuilder(
-    column: $table.ackedPushToken,
+  ColumnFilters<bool> get possibleLegacyPushToken => $composableBuilder(
+    column: $table.possibleLegacyPushToken,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> pushKeysRefs(
+    Expression<bool> Function($$PushKeysTableFilterComposer f) f,
+  ) {
+    final $$PushKeysTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pushKeys,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PushKeysTableFilterComposer(
+            $db: $db,
+            $table: $db.pushKeys,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AccountsTableOrderingComposer
@@ -2336,6 +2873,11 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get deviceId => $composableBuilder(
+    column: $table.deviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get email => $composableBuilder(
     column: $table.email,
     builder: (column) => ColumnOrderings(column),
@@ -2361,8 +2903,8 @@ class $$AccountsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get ackedPushToken => $composableBuilder(
-    column: $table.ackedPushToken,
+  ColumnOrderings<bool> get possibleLegacyPushToken => $composableBuilder(
+    column: $table.possibleLegacyPushToken,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -2391,6 +2933,9 @@ class $$AccountsTableAnnotationComposer
   GeneratedColumn<int> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
 
+  GeneratedColumn<int> get deviceId =>
+      $composableBuilder(column: $table.deviceId, builder: (column) => column);
+
   GeneratedColumn<String> get email =>
       $composableBuilder(column: $table.email, builder: (column) => column);
 
@@ -2412,10 +2957,35 @@ class $$AccountsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get ackedPushToken => $composableBuilder(
-    column: $table.ackedPushToken,
+  GeneratedColumn<bool> get possibleLegacyPushToken => $composableBuilder(
+    column: $table.possibleLegacyPushToken,
     builder: (column) => column,
   );
+
+  Expression<T> pushKeysRefs<T extends Object>(
+    Expression<T> Function($$PushKeysTableAnnotationComposer a) f,
+  ) {
+    final $$PushKeysTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pushKeys,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PushKeysTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pushKeys,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AccountsTableTableManager
@@ -2429,9 +2999,9 @@ class $$AccountsTableTableManager
           $$AccountsTableAnnotationComposer,
           $$AccountsTableCreateCompanionBuilder,
           $$AccountsTableUpdateCompanionBuilder,
-          (Account, BaseReferences<_$AppDatabase, $AccountsTable, Account>),
+          (Account, $$AccountsTableReferences),
           Account,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool pushKeysRefs})
         > {
   $$AccountsTableTableManager(_$AppDatabase db, $AccountsTable table)
     : super(
@@ -2451,24 +3021,26 @@ class $$AccountsTableTableManager
                 Value<String?> realmName = const Value.absent(),
                 Value<Uri?> realmIcon = const Value.absent(),
                 Value<int> userId = const Value.absent(),
+                Value<int?> deviceId = const Value.absent(),
                 Value<String> email = const Value.absent(),
                 Value<String> apiKey = const Value.absent(),
                 Value<String> zulipVersion = const Value.absent(),
                 Value<String?> zulipMergeBase = const Value.absent(),
                 Value<int> zulipFeatureLevel = const Value.absent(),
-                Value<String?> ackedPushToken = const Value.absent(),
+                Value<bool> possibleLegacyPushToken = const Value.absent(),
               }) => AccountsCompanion(
                 id: id,
                 realmUrl: realmUrl,
                 realmName: realmName,
                 realmIcon: realmIcon,
                 userId: userId,
+                deviceId: deviceId,
                 email: email,
                 apiKey: apiKey,
                 zulipVersion: zulipVersion,
                 zulipMergeBase: zulipMergeBase,
                 zulipFeatureLevel: zulipFeatureLevel,
-                ackedPushToken: ackedPushToken,
+                possibleLegacyPushToken: possibleLegacyPushToken,
               ),
           createCompanionCallback:
               ({
@@ -2477,29 +3049,57 @@ class $$AccountsTableTableManager
                 Value<String?> realmName = const Value.absent(),
                 Value<Uri?> realmIcon = const Value.absent(),
                 required int userId,
+                Value<int?> deviceId = const Value.absent(),
                 required String email,
                 required String apiKey,
                 required String zulipVersion,
                 Value<String?> zulipMergeBase = const Value.absent(),
                 required int zulipFeatureLevel,
-                Value<String?> ackedPushToken = const Value.absent(),
+                Value<bool> possibleLegacyPushToken = const Value.absent(),
               }) => AccountsCompanion.insert(
                 id: id,
                 realmUrl: realmUrl,
                 realmName: realmName,
                 realmIcon: realmIcon,
                 userId: userId,
+                deviceId: deviceId,
                 email: email,
                 apiKey: apiKey,
                 zulipVersion: zulipVersion,
                 zulipMergeBase: zulipMergeBase,
                 zulipFeatureLevel: zulipFeatureLevel,
-                ackedPushToken: ackedPushToken,
+                possibleLegacyPushToken: possibleLegacyPushToken,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AccountsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({pushKeysRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (pushKeysRefs) db.pushKeys],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (pushKeysRefs)
+                    await $_getPrefetchedData<Account, $AccountsTable, PushKey>(
+                      currentTable: table,
+                      referencedTable: $$AccountsTableReferences
+                          ._pushKeysRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$AccountsTableReferences(db, table, p0).pushKeysRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.accountId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -2514,9 +3114,330 @@ typedef $$AccountsTableProcessedTableManager =
       $$AccountsTableAnnotationComposer,
       $$AccountsTableCreateCompanionBuilder,
       $$AccountsTableUpdateCompanionBuilder,
-      (Account, BaseReferences<_$AppDatabase, $AccountsTable, Account>),
+      (Account, $$AccountsTableReferences),
       Account,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool pushKeysRefs})
+    >;
+typedef $$PushKeysTableCreateCompanionBuilder =
+    PushKeysCompanion Function({
+      required int pushKeyId,
+      required Uint8List pushKey,
+      required int accountId,
+      required int createdTimestamp,
+      Value<int?> supersededTimestamp,
+      Value<int> rowid,
+    });
+typedef $$PushKeysTableUpdateCompanionBuilder =
+    PushKeysCompanion Function({
+      Value<int> pushKeyId,
+      Value<Uint8List> pushKey,
+      Value<int> accountId,
+      Value<int> createdTimestamp,
+      Value<int?> supersededTimestamp,
+      Value<int> rowid,
+    });
+
+final class $$PushKeysTableReferences
+    extends BaseReferences<_$AppDatabase, $PushKeysTable, PushKey> {
+  $$PushKeysTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $AccountsTable _accountIdTable(_$AppDatabase db) => db.accounts
+      .createAlias($_aliasNameGenerator(db.pushKeys.accountId, db.accounts.id));
+
+  $$AccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<int>('account_id')!;
+
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PushKeysTableFilterComposer
+    extends Composer<_$AppDatabase, $PushKeysTable> {
+  $$PushKeysTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get pushKeyId => $composableBuilder(
+    column: $table.pushKeyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<Uint8List> get pushKey => $composableBuilder(
+    column: $table.pushKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdTimestamp => $composableBuilder(
+    column: $table.createdTimestamp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get supersededTimestamp => $composableBuilder(
+    column: $table.supersededTimestamp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AccountsTableFilterComposer get accountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PushKeysTableOrderingComposer
+    extends Composer<_$AppDatabase, $PushKeysTable> {
+  $$PushKeysTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get pushKeyId => $composableBuilder(
+    column: $table.pushKeyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get pushKey => $composableBuilder(
+    column: $table.pushKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdTimestamp => $composableBuilder(
+    column: $table.createdTimestamp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get supersededTimestamp => $composableBuilder(
+    column: $table.supersededTimestamp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AccountsTableOrderingComposer get accountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PushKeysTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PushKeysTable> {
+  $$PushKeysTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get pushKeyId =>
+      $composableBuilder(column: $table.pushKeyId, builder: (column) => column);
+
+  GeneratedColumn<Uint8List> get pushKey =>
+      $composableBuilder(column: $table.pushKey, builder: (column) => column);
+
+  GeneratedColumn<int> get createdTimestamp => $composableBuilder(
+    column: $table.createdTimestamp,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get supersededTimestamp => $composableBuilder(
+    column: $table.supersededTimestamp,
+    builder: (column) => column,
+  );
+
+  $$AccountsTableAnnotationComposer get accountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PushKeysTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PushKeysTable,
+          PushKey,
+          $$PushKeysTableFilterComposer,
+          $$PushKeysTableOrderingComposer,
+          $$PushKeysTableAnnotationComposer,
+          $$PushKeysTableCreateCompanionBuilder,
+          $$PushKeysTableUpdateCompanionBuilder,
+          (PushKey, $$PushKeysTableReferences),
+          PushKey,
+          PrefetchHooks Function({bool accountId})
+        > {
+  $$PushKeysTableTableManager(_$AppDatabase db, $PushKeysTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PushKeysTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PushKeysTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PushKeysTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> pushKeyId = const Value.absent(),
+                Value<Uint8List> pushKey = const Value.absent(),
+                Value<int> accountId = const Value.absent(),
+                Value<int> createdTimestamp = const Value.absent(),
+                Value<int?> supersededTimestamp = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PushKeysCompanion(
+                pushKeyId: pushKeyId,
+                pushKey: pushKey,
+                accountId: accountId,
+                createdTimestamp: createdTimestamp,
+                supersededTimestamp: supersededTimestamp,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int pushKeyId,
+                required Uint8List pushKey,
+                required int accountId,
+                required int createdTimestamp,
+                Value<int?> supersededTimestamp = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PushKeysCompanion.insert(
+                pushKeyId: pushKeyId,
+                pushKey: pushKey,
+                accountId: accountId,
+                createdTimestamp: createdTimestamp,
+                supersededTimestamp: supersededTimestamp,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PushKeysTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountId,
+                                referencedTable: $$PushKeysTableReferences
+                                    ._accountIdTable(db),
+                                referencedColumn: $$PushKeysTableReferences
+                                    ._accountIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PushKeysTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PushKeysTable,
+      PushKey,
+      $$PushKeysTableFilterComposer,
+      $$PushKeysTableOrderingComposer,
+      $$PushKeysTableAnnotationComposer,
+      $$PushKeysTableCreateCompanionBuilder,
+      $$PushKeysTableUpdateCompanionBuilder,
+      (PushKey, $$PushKeysTableReferences),
+      PushKey,
+      PrefetchHooks Function({bool accountId})
     >;
 
 class $AppDatabaseManager {
@@ -2530,4 +3451,6 @@ class $AppDatabaseManager {
       $$IntGlobalSettingsTableTableManager(_db, _db.intGlobalSettings);
   $$AccountsTableTableManager get accounts =>
       $$AccountsTableTableManager(_db, _db.accounts);
+  $$PushKeysTableTableManager get pushKeys =>
+      $$PushKeysTableTableManager(_db, _db.pushKeys);
 }

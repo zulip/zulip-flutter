@@ -21,6 +21,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
+import 'binding.dart';
 import 'test_store.dart';
 import 'autocomplete_checks.dart';
 
@@ -29,6 +30,8 @@ typedef MarkedTextParse = ({int? expectedSyntaxStart, TextEditingValue value});
 final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
 void main() {
+  TestZulipBinding.ensureInitialized();
+
   MarkedTextParse parseMarkedText(String markedText) {
     final TextSelection selection;
     int? expectedSyntaxStart;
@@ -578,10 +581,17 @@ void main() {
 
       int compareAB({required String? topic}) {
         final realTopic = topic == null ? null : TopicName(topic);
+        final getRecencyInTopic = realTopic == null ? null
+          : store.recentSenders.latestMessageIdBySenderInTopic(
+              channelId: stream.streamId, topic: realTopic);
         final resultAB = MentionAutocompleteView.compareByRecency(userA, userB,
-          streamId: stream.streamId, topic: realTopic, store: store);
+          channelId: stream.streamId,
+          getRecencyInTopic: getRecencyInTopic,
+          store: store);
         final resultBA = MentionAutocompleteView.compareByRecency(userB, userA,
-          streamId: stream.streamId, topic: realTopic, store: store);
+          channelId: stream.streamId,
+          getRecencyInTopic: getRecencyInTopic,
+          store: store);
         switch (resultAB) {
           case <0: check(resultBA).isGreaterThan(0);
           case >0: check(resultBA).isLessThan(0);
@@ -1307,7 +1317,9 @@ void main() {
       final description = 'topic-input with text: $markedText produces: ${expectedQuery?.raw ?? 'No Query!'}';
       test(description, () {
         final store = eg.store();
-        final controller = ComposeTopicController(store: store);
+        final controller = ComposeTopicController(
+          store: store,
+          channelId: eg.stream().streamId);
         controller.value = parsed.value;
         if (expectedQuery == null) {
           check(controller).autocompleteIntent.isNull();
@@ -1342,7 +1354,7 @@ void main() {
 
     final view = TopicAutocompleteView.init(
       store: store,
-      streamId: eg.stream().streamId,
+      channelId: eg.stream().streamId,
       query: TopicAutocompleteQuery('Third'));
     bool done = false;
     view.addListener(() { done = true; });
@@ -1363,7 +1375,7 @@ void main() {
 
     final view = TopicAutocompleteView.init(
       store: store,
-      streamId: eg.stream().streamId,
+      channelId: eg.stream().streamId,
       query: TopicAutocompleteQuery('te'));
     bool done = false;
     view.addListener(() { done = true; });
@@ -1381,7 +1393,7 @@ void main() {
     final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'mobile releases');
 
     connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
-    final view1 = TopicAutocompleteView.init(store: store, streamId: 1000,
+    final view1 = TopicAutocompleteView.init(store: store, channelId: 1000,
       query: TopicAutocompleteQuery(''));
     bool done = false;
     view1.addListener(() { done = true; });
@@ -1403,7 +1415,7 @@ void main() {
     view1.dispose();
 
     // No need to prepare a response as there will be no request made.
-    final view2 = TopicAutocompleteView.init(store: store, streamId: 1000,
+    final view2 = TopicAutocompleteView.init(store: store, channelId: 1000,
       query: TopicAutocompleteQuery('mobile'));
     done = false;
     view2.addListener(() { done = true; });

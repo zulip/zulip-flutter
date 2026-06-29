@@ -61,11 +61,11 @@ class ZulipVersionData {
     && zulipMergeBase == account.zulipMergeBase
     && zulipFeatureLevel == account.zulipFeatureLevel;
 
-  bool get isUnsupported => zulipFeatureLevel < kMinSupportedZulipFeatureLevel;
+  bool get isNotAllowed => zulipFeatureLevel < kMinAllowedZulipFeatureLevel;
 }
 
-class ServerVersionUnsupportedException implements Exception {
+class ServerVersionNotAllowedException implements Exception {
   final ZulipVersionData data;
 
-  ServerVersionUnsupportedException(this.data);
+  ServerVersionNotAllowedException(this.data);
 }

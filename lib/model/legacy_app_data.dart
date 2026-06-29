@@ -102,11 +102,7 @@ Future<void> migrateLegacyAppData(AppDatabase db) async {
         zulipVersion: account.zulipVersion!,
         // no zulipMergeBase; legacy app didn't record it
         zulipFeatureLevel: account.zulipFeatureLevel!,
-        // This app doesn't yet maintain ackedPushToken (#322), so avoid recording
-        // a value that would then be allowed to get stale.  See discussion:
-        //   https://github.com/zulip/zulip-flutter/pull/1588#discussion_r2148817025
-        // TODO(#322): apply ackedPushToken
-        // ackedPushToken: drift.Value(account.ackedPushToken),
+        possibleLegacyPushToken: const drift.Value(true),
       ));
     } on AccountAlreadyExistsException {
       // There's one known way this can actually happen: the legacy app doesn't
@@ -419,7 +415,9 @@ class LegacyAppAccount {
 
   final int? zulipFeatureLevel;
 
-  final String? ackedPushToken;
+  // This is ignored because we never ended up using such a field in this app.
+  // (We eventually solved the same problem better in the E2EE notifs protocol.)
+  // final String? ackedPushToken; // ignore
 
   // These three are ignored because this app doesn't currently have such
   // notices or banners for them to control; and because if we later introduce
@@ -436,7 +434,6 @@ class LegacyAppAccount {
     required this.userId,
     required this.zulipVersion,
     required this.zulipFeatureLevel,
-    required this.ackedPushToken,
   });
 
   factory LegacyAppAccount.fromJson(Map<String, Object?> json) =>

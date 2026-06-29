@@ -12,16 +12,31 @@ import 'exception.dart';
 
 /// The Zulip Server version below which we should refuse to connect.
 ///
-/// When updating this, also update [kMinSupportedZulipFeatureLevel]
+/// When updating this, also update [kMinAllowedZulipFeatureLevel]
 /// and the README.
 // TODO(#1838) address all TODO(server-7)
-const kMinSupportedZulipVersion = '7.0';
+const kMinAllowedZulipVersion = '7.0';
+
+/// The Zulip feature level reserved for the [kMinAllowedZulipVersion] release.
+///
+/// For this value, see the API changelog:
+///   https://zulip.com/api/changelog
+const kMinAllowedZulipFeatureLevel = 185;
+
+/// The oldest Zulip Server version we currently support.
+///
+/// Should match the policy stated at [kServerSupportDocUrl]:
+/// all versions below this should be older than 18 months.
+///
+/// See also [kMinAllowedZulipVersion], for the version below
+/// which we just refuse to connect.
+const kMinSupportedZulipVersion = '9.2';
 
 /// The Zulip feature level reserved for the [kMinSupportedZulipVersion] release.
 ///
 /// For this value, see the API changelog:
 ///   https://zulip.com/api/changelog
-const kMinSupportedZulipFeatureLevel = 185;
+const kMinSupportedZulipFeatureLevel = 278;
 
 /// The doc stating our oldest supported server version.
 // TODO: Instead, link to new Help Center doc once we have it:
@@ -58,13 +73,12 @@ class ApiConnection {
     required this.zulipFeatureLevel, // required even though nullable; see field doc
     String? email,
     String? apiKey,
-    required http.Client client,
+    required this._client,
     required this.useBinding,
   }) : assert((email != null) == (apiKey != null)),
        _authValue = (email != null && apiKey != null)
          ? _authHeaderValue(email: email, apiKey: apiKey)
-         : null,
-       _client = client;
+         : null;
 
   /// Construct an API connection that talks to a live Zulip server over the real network.
   ApiConnection.live({

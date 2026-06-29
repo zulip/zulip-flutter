@@ -7,7 +7,11 @@
    <application
         android:label="Zulip"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="@xml/full_backup_content"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        >
         <activity
             android:name=".MainActivity"
             android:exported="true"

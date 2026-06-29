@@ -407,6 +407,28 @@ enum Emojiset {
   String toJson() => _$EmojisetEnumMap[this]!;
 }
 
+@JsonSerializable(fieldRename: FieldRename.snake)
+class ClientDevice {
+  int? pushKeyId;
+  String? pushTokenId;
+  String? pendingPushTokenId;
+  int? pushTokenLastUpdatedTimestamp;
+  String? pushRegistrationErrorCode;
+
+  ClientDevice({
+    required this.pushKeyId,
+    required this.pushTokenId,
+    required this.pendingPushTokenId,
+    required this.pushTokenLastUpdatedTimestamp,
+    required this.pushRegistrationErrorCode,
+  });
+
+  factory ClientDevice.fromJson(Map<String, dynamic> json) =>
+    _$ClientDeviceFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ClientDeviceToJson(this);
+}
+
 /// As in [InitialSnapshot.realmUserGroups] or [UserGroupAddEvent].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UserGroup {
@@ -661,6 +683,10 @@ class ZulipStream {
   bool isWebPublic; // present since 2.1, according to /api/changelog
   bool historyPublicToSubscribers;
   int? messageRetentionDays;
+  // TODO(server-11) remove default value
+  @JsonKey(defaultValue: ChannelTopicsPolicy.inherit,
+    unknownEnumValue: ChannelTopicsPolicy.unknown)
+  ChannelTopicsPolicy topicsPolicy;
   @JsonKey(name: 'stream_post_policy')
   ChannelPostPolicy? channelPostPolicy; // TODO(server-10) remove
   // final bool isAnnouncementOnly; // deprecated for `channelPostPolicy`; ignore
@@ -687,6 +713,7 @@ class ZulipStream {
     required this.isWebPublic,
     required this.historyPublicToSubscribers,
     required this.messageRetentionDays,
+    required this.topicsPolicy,
     required this.channelPostPolicy,
     required this.folderId,
     required this.canAddSubscribersGroup,
@@ -712,6 +739,7 @@ class ZulipStream {
       isWebPublic: subscription.isWebPublic,
       historyPublicToSubscribers: subscription.historyPublicToSubscribers,
       messageRetentionDays: subscription.messageRetentionDays,
+      topicsPolicy: subscription.topicsPolicy,
       channelPostPolicy: subscription.channelPostPolicy,
       folderId: subscription.folderId,
       canAddSubscribersGroup: subscription.canAddSubscribersGroup,
@@ -749,6 +777,7 @@ enum ChannelPropertyName {
   // isWebPublic is updated via its own [ChannelUpdateEvent] field
   // historyPublicToSubscribers is updated via its own [ChannelUpdateEvent] field
   messageRetentionDays,
+  topicsPolicy,
   @JsonValue('stream_post_policy')
   channelPostPolicy,
   folderId,
@@ -768,6 +797,32 @@ enum ChannelPropertyName {
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$ChannelPropertyNameEnumMap
+    .map((key, value) => MapEntry(value, key));
+}
+
+/// A value of [ZulipStream.topicsPolicy].
+///
+/// For docs, search for "topics_policy"
+/// in <https://zulip.com/api/get-stream-by-id>.
+@JsonEnum(fieldRename: FieldRename.snake)
+enum ChannelTopicsPolicy {
+  inherit,
+  allowEmptyTopic,
+  disableEmptyTopic,
+  emptyTopicOnly,
+  unknown;
+
+  /// The [ChannelTopicsPolicy] corresponding to the given [RealmTopicsPolicy].
+  static ChannelTopicsPolicy forRealmPolicy(RealmTopicsPolicy realmPolicy) =>
+    switch (realmPolicy) {
+      .allowEmptyTopic   => .allowEmptyTopic,
+      .disableEmptyTopic => .disableEmptyTopic,
+      .unknown           => .unknown,
+    };
+
+  static ChannelTopicsPolicy fromApiValue(String value) => _byApiValue[value] ?? unknown;
+
+  static final _byApiValue = _$ChannelTopicsPolicyEnumMap
     .map((key, value) => MapEntry(value, key));
 }
 
@@ -836,6 +891,7 @@ class Subscription extends ZulipStream {
     required super.isWebPublic,
     required super.historyPublicToSubscribers,
     required super.messageRetentionDays,
+    required super.topicsPolicy,
     required super.channelPostPolicy,
     required super.folderId,
     required super.canAddSubscribersGroup,
@@ -1151,7 +1207,12 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   @JsonKey(fromJson: _reactionsFromJson, toJson: _reactionsToJson)
   Reactions? reactions; // null is equivalent to an empty [Reactions]
 
-  final int recipientId;
+  // The `recipient_id` field in the API doesn't add any information,
+  // so we ignore it.  It's not clear it belongs in the API in the first place:
+  //   https://chat.zulip.org/#narrow/channel/19-documentation/topic/recipient_id/near/1203219
+  //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/recipient_id.20and.20sender_id/near/1211949
+  // final int recipientId;  // ignored
+
   final String senderEmail;
   final String senderFullName;
   final String senderRealmStr;
@@ -1206,7 +1267,6 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
     required this.isMeMessage,
     required this.lastEditTimestamp,
     required this.reactions,
-    required this.recipientId,
     required this.senderEmail,
     required this.senderFullName,
     required super.senderId,
@@ -1236,7 +1296,9 @@ enum MessageFlag {
   starred,
   collapsed,
   mentioned,
-  wildcardMentioned,
+  topicWildcardMentioned,
+  streamWildcardMentioned,
+  wildcardMentioned, // TODO(server-8) Remove deprecated flag.
   hasAlertWord,
   historical,
   unknown;
@@ -1246,13 +1308,31 @@ enum MessageFlag {
   /// Will be [MessageFlag.unknown] if we don't recognize the string.
   ///
   /// Example:
-  ///   'wildcard_mentioned' -> Flag.wildcardMentioned
+  ///   'topic_wildcard_mentioned' -> Flag.topicWildcardMentioned
   static MessageFlag fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$MessageFlagEnumMap.map((key, value) => MapEntry(value, key));
 
   String toJson() => _$MessageFlagEnumMap[this]!;
+
+  bool get isMentionFlag {
+    switch (this) {
+      case MessageFlag.mentioned:
+      case MessageFlag.topicWildcardMentioned:
+      case MessageFlag.streamWildcardMentioned:
+      case MessageFlag.wildcardMentioned:
+        return true;
+
+      case MessageFlag.read:
+      case MessageFlag.starred:
+      case MessageFlag.collapsed:
+      case MessageFlag.hasAlertWord:
+      case MessageFlag.historical:
+      case MessageFlag.unknown:
+        return false;
+    }
+  }
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -1291,7 +1371,6 @@ class StreamMessage extends Message<StreamConversation> {
     required super.isMeMessage,
     required super.lastEditTimestamp,
     required super.reactions,
-    required super.recipientId,
     required super.senderEmail,
     required super.senderFullName,
     required super.senderId,
@@ -1353,7 +1432,6 @@ class DmMessage extends Message<DmConversation> {
     required super.isMeMessage,
     required super.lastEditTimestamp,
     required super.reactions,
-    required super.recipientId,
     required super.senderEmail,
     required super.senderFullName,
     required super.senderId,
@@ -1464,4 +1542,12 @@ enum PropagateMode {
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$PropagateModeEnumMap
     .map((key, value) => MapEntry(value, key));
+}
+
+/// The [DateTime] corresponding to a UNIX timestamp, in UTC seconds.
+///
+/// The input format here is the form typically used in the Zulip API
+/// for representing a timestamp.
+DateTime dateTimeFromTimestamp(int timestamp) {
+  return DateTime.fromMillisecondsSinceEpoch(1000 * timestamp);
 }

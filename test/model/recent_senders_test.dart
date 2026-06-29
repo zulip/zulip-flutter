@@ -24,7 +24,7 @@ void checkMatchesMessages(RecentSenders model, List<Message> messages) {
       [senderId] ??= {}).add(messageId);
   }
 
-  final actualMessagesByUserInStream = model.streamSenders.map((streamId, sendersByStream) =>
+  final actualMessagesByUserInStream = model.channelSenders.map((streamId, sendersByStream) =>
     MapEntry(streamId, sendersByStream.map((senderId, tracker) =>
       MapEntry(senderId, Set<int>.from(tracker.ids)))));
   final actualMessagesByUserInTopic = model.topicSenders.map((streamId, topicsByStream) =>
@@ -199,14 +199,14 @@ void main() {
 
     model.handleMessages(messages);
 
-    check(model.latestMessageIdOfSenderInStream(
-      streamId: 1, senderId: 10)).equals(300);
+    check(model.latestMessageIdOfSenderInChannel(
+      channelId: 1, senderId: 10)).equals(300);
     // No message of user 20 in stream1.
-    check(model.latestMessageIdOfSenderInStream(
-      streamId: 1, senderId: 20)).equals(null);
+    check(model.latestMessageIdOfSenderInChannel(
+      channelId: 1, senderId: 20)).equals(null);
     // No message in stream 2 at all.
-    check(model.latestMessageIdOfSenderInStream(
-      streamId: 2, senderId: 10)).equals(null);
+    check(model.latestMessageIdOfSenderInChannel(
+      channelId: 2, senderId: 10)).equals(null);
   });
 
   test('RecentSenders.latestMessageIdOfSenderInTopic', () {

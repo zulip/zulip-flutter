@@ -1,12 +1,13 @@
 # shellcheck shell=bash
 #
 # Usage:
-#   . ensure-coreutils.sh
+#   . ensure-shell-deps.sh
 #
-# Ensures GNU coreutils are available in PATH.
+# Ensures this script is running on a reasonably modern Bash,
+# and has GNU coreutils available in PATH.
 # May add to PATH, or exit with a message to stderr.
 #
-# The GNU coreutils are a basic piece of infrastructure for having
+# Bash and the GNU coreutils are basic infrastructure for having
 # a reasonable 21st-century shell scripting environment, so we
 # freely invoke this in any of our scripts that need `readlink -f`
 # or other features not always found without them.
@@ -15,10 +16,63 @@
 # on Windows: we inevitably require Git, and Git for Windows comes
 # with a GNU environment called "Git BASH", based on MSYS2.
 #
-# So this is really all about macOS.  Fortunately it's easy to get
-# coreutils installed there too... plus, many people already have
-# it installed but just not in their PATH.  We write our scripts
-# for a GNU environment, so we bring it into the PATH.
+# So this is really all about macOS, which comes with an ancient
+# Bash 3.2.57 dating to 2007 and an '80s-style BSD utility suite.
+# Fortunately it's easy to get modern Bash and coreutils installed
+# there too... plus, many people already have coreutils installed
+# but just not in their PATH.  We write our scripts for a GNU
+# environment, so we bring it into the PATH.
+
+
+## BASH
+
+# Check if this Bash is a recent enough version.
+check_bash_version() {
+    # First, check this shell is even Bash.
+    [ -n "${BASH_VERSION-}" ] || return
+
+    # Bash 5.0 was released in 2019.
+    # If we run into a good reason to raise this further, we can do so.
+    local required_major_version=5
+
+    # See docs: https://www.gnu.org/software/bash/manual/bash.html#index-BASH_005fVERSINFO
+    (( "${BASH_VERSINFO[0]}" >= "$required_major_version" ))
+}
+
+# Ensures a recent enough Bash is being used to run this script.
+# If not, exits with a message to stderr.
+ensure_recent_bash() {
+    check_bash_version && return
+
+    homebrew_prefix=$(brew --prefix || :)
+    if [ -n "${homebrew_prefix}" ]; then
+        cat >&2 <<EOF
+This script requires at least Bash 5.0.
+
+Try installing Bash from Homebrew with:
+  brew install bash
+
+If you have any questions, ask in #mobile-dev-help on https://chat.zulip.org/
+and we'll be happy to help.
+EOF
+        return 2
+    fi
+
+    cat >&2 <<EOF
+This script requires at least Bash 5.0.
+
+Install from upstream:
+  https://www.gnu.org/software/bash/
+or from your favorite package manager.
+
+If you have any questions, ask in #mobile-dev-help on https://chat.zulip.org/
+and we'll be happy to help.
+EOF
+    return 2
+}
+
+
+## COREUTILS
 
 # Check, silently, for a working coreutils on the PATH.
 check_coreutils() {
@@ -66,6 +120,8 @@ EOF
     fi
 }
 
+# Ensures GNU coreutils are available in PATH.
+# May add to PATH, or exit with a message to stderr.
 ensure_coreutils() {
     # If we already have it, then great.
     check_coreutils && return
@@ -93,4 +149,8 @@ EOF
     return 2
 }
 
+
+## EXECUTION
+
+ensure_recent_bash || exit
 ensure_coreutils || exit

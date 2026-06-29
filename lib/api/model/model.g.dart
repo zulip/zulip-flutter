@@ -112,6 +112,25 @@ Map<String, dynamic> _$RealmEmojiItemToJson(RealmEmojiItem instance) =>
       'author_id': instance.authorId,
     };
 
+ClientDevice _$ClientDeviceFromJson(Map<String, dynamic> json) => ClientDevice(
+  pushKeyId: (json['push_key_id'] as num?)?.toInt(),
+  pushTokenId: json['push_token_id'] as String?,
+  pendingPushTokenId: json['pending_push_token_id'] as String?,
+  pushTokenLastUpdatedTimestamp:
+      (json['push_token_last_updated_timestamp'] as num?)?.toInt(),
+  pushRegistrationErrorCode: json['push_registration_error_code'] as String?,
+);
+
+Map<String, dynamic> _$ClientDeviceToJson(
+  ClientDevice instance,
+) => <String, dynamic>{
+  'push_key_id': instance.pushKeyId,
+  'push_token_id': instance.pushTokenId,
+  'pending_push_token_id': instance.pendingPushTokenId,
+  'push_token_last_updated_timestamp': instance.pushTokenLastUpdatedTimestamp,
+  'push_registration_error_code': instance.pushRegistrationErrorCode,
+};
+
 UserGroup _$UserGroupFromJson(Map<String, dynamic> json) => UserGroup(
   id: (json['id'] as num).toInt(),
   members: (json['members'] as List<dynamic>)
@@ -247,6 +266,13 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
   isWebPublic: json['is_web_public'] as bool,
   historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
   messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
+  topicsPolicy:
+      $enumDecodeNullable(
+        _$ChannelTopicsPolicyEnumMap,
+        json['topics_policy'],
+        unknownValue: ChannelTopicsPolicy.unknown,
+      ) ??
+      ChannelTopicsPolicy.inherit,
   channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
@@ -285,6 +311,7 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'is_web_public': instance.isWebPublic,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
+      'topics_policy': _$ChannelTopicsPolicyEnumMap[instance.topicsPolicy]!,
       'stream_post_policy': instance.channelPostPolicy,
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
       'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
@@ -294,6 +321,14 @@ Map<String, dynamic> _$ZulipStreamToJson(ZulipStream instance) =>
       'is_recently_active': instance.isRecentlyActive,
       'stream_weekly_traffic': instance.streamWeeklyTraffic,
     };
+
+const _$ChannelTopicsPolicyEnumMap = {
+  ChannelTopicsPolicy.inherit: 'inherit',
+  ChannelTopicsPolicy.allowEmptyTopic: 'allow_empty_topic',
+  ChannelTopicsPolicy.disableEmptyTopic: 'disable_empty_topic',
+  ChannelTopicsPolicy.emptyTopicOnly: 'empty_topic_only',
+  ChannelTopicsPolicy.unknown: 'unknown',
+};
 
 const _$ChannelPostPolicyEnumMap = {
   ChannelPostPolicy.any: 1,
@@ -315,6 +350,13 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   isWebPublic: json['is_web_public'] as bool,
   historyPublicToSubscribers: json['history_public_to_subscribers'] as bool,
   messageRetentionDays: (json['message_retention_days'] as num?)?.toInt(),
+  topicsPolicy:
+      $enumDecodeNullable(
+        _$ChannelTopicsPolicyEnumMap,
+        json['topics_policy'],
+        unknownValue: ChannelTopicsPolicy.unknown,
+      ) ??
+      ChannelTopicsPolicy.inherit,
   channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
@@ -361,6 +403,7 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'is_web_public': instance.isWebPublic,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'message_retention_days': instance.messageRetentionDays,
+      'topics_policy': _$ChannelTopicsPolicyEnumMap[instance.topicsPolicy]!,
       'stream_post_policy': instance.channelPostPolicy,
       'can_add_subscribers_group': instance.canAddSubscribersGroup,
       'can_delete_any_message_group': instance.canDeleteAnyMessageGroup,
@@ -428,7 +471,6 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       isMeMessage: json['is_me_message'] as bool,
       lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
       reactions: Message._reactionsFromJson(json['reactions']),
-      recipientId: (json['recipient_id'] as num).toInt(),
       senderEmail: json['sender_email'] as String,
       senderFullName: json['sender_full_name'] as String,
       senderId: (json['sender_id'] as num).toInt(),
@@ -455,7 +497,6 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'is_me_message': instance.isMeMessage,
       'last_edit_timestamp': instance.lastEditTimestamp,
       'reactions': Message._reactionsToJson(instance.reactions),
-      'recipient_id': instance.recipientId,
       'sender_email': instance.senderEmail,
       'sender_full_name': instance.senderFullName,
       'sender_realm_str': instance.senderRealmStr,
@@ -486,7 +527,6 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
   isMeMessage: json['is_me_message'] as bool,
   lastEditTimestamp: (json['last_edit_timestamp'] as num?)?.toInt(),
   reactions: Message._reactionsFromJson(json['reactions']),
-  recipientId: (json['recipient_id'] as num).toInt(),
   senderEmail: json['sender_email'] as String,
   senderFullName: json['sender_full_name'] as String,
   senderId: (json['sender_id'] as num).toInt(),
@@ -511,7 +551,6 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
   'is_me_message': instance.isMeMessage,
   'last_edit_timestamp': instance.lastEditTimestamp,
   'reactions': Message._reactionsToJson(instance.reactions),
-  'recipient_id': instance.recipientId,
   'sender_email': instance.senderEmail,
   'sender_full_name': instance.senderFullName,
   'sender_realm_str': instance.senderRealmStr,
@@ -553,6 +592,7 @@ const _$ChannelPropertyNameEnumMap = {
   ChannelPropertyName.firstMessageId: 'first_message_id',
   ChannelPropertyName.inviteOnly: 'invite_only',
   ChannelPropertyName.messageRetentionDays: 'message_retention_days',
+  ChannelPropertyName.topicsPolicy: 'topics_policy',
   ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
   ChannelPropertyName.folderId: 'folder_id',
   ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
@@ -581,6 +621,8 @@ const _$MessageFlagEnumMap = {
   MessageFlag.starred: 'starred',
   MessageFlag.collapsed: 'collapsed',
   MessageFlag.mentioned: 'mentioned',
+  MessageFlag.topicWildcardMentioned: 'topic_wildcard_mentioned',
+  MessageFlag.streamWildcardMentioned: 'stream_wildcard_mentioned',
   MessageFlag.wildcardMentioned: 'wildcard_mentioned',
   MessageFlag.hasAlertWord: 'has_alert_word',
   MessageFlag.historical: 'historical',
