@@ -14,8 +14,8 @@ environment:
   # We use a recent version of Flutter from its main channel, and
   # the corresponding recent version of the Dart SDK.
   # Feel free to update these regularly; see README.md for instructions.
-  sdk: '>=3.13.0-89.0.dev <4.0.0'
-  flutter: '>=3.44.0-1.0.pre-377'  # 31796c1f2d5c98aae266267c682434f3ac3da636
+  sdk: '>=3.13.0-251.0.dev <4.0.0'
+  flutter: '>=3.46.0-1.0.pre-318'  # ac6f8e696dc06dcb6f576015bfd7a3fc3ac4f643
 
 # To update dependencies, see instructions in README.md.
 dependencies:
@@ -105,7 +105,7 @@ dev_dependencies:
   json_serializable: ^6.5.4
   legacy_checks: ^0.1.0
   patrol: ^4.1.1
-  pigeon: ^26.0.0
+  pigeon: ^27.1.0
   stack_trace: ^1.11.1
   test: ^1.23.1
   test_api: ^0.7.3
