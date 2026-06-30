@@ -141,4 +141,83 @@ void main() {
     });
 
   });
+
+  group('AvatarShape', () {
+    final findBlockIcon = find.descendant(
+      of: find.byType(AvatarShape),
+      matching: find.byIcon(Icons.block));
+
+    Future<void> pumpShape(WidgetTester tester, {
+      int? userIdForPresence,
+      bool showDeactivatedBadge = false,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: AvatarShape(size: 30, borderRadius: 4,
+            userIdForPresence: userIdForPresence,
+            showDeactivatedBadge: showDeactivatedBadge,
+            child: const SizedBox.shrink())));
+      await tester.pump();
+    }
+
+    testWidgets('showDeactivatedBadge: false paints presence, no badge', (tester) async {
+      await pumpShape(tester, userIdForPresence: eg.selfUser.userId);
+      check(find.byType(PresenceCircle)).findsOne();
+      check(findBlockIcon).findsNothing();
+    });
+
+    testWidgets('showDeactivatedBadge: true paints badge, suppresses presence', (tester) async {
+      await pumpShape(tester,
+        userIdForPresence: eg.selfUser.userId, showDeactivatedBadge: true);
+      check(findBlockIcon).findsOne();
+      check(find.byType(PresenceCircle)).findsNothing();
+    });
+
+    testWidgets('no overlay when neither presence nor badge requested', (tester) async {
+      await pumpShape(tester);
+      check(find.byType(PresenceCircle)).findsNothing();
+      check(findBlockIcon).findsNothing();
+    });
+  });
+
+  group('DeactivatedUserIcon', () {
+    Future<void> pumpIcon(WidgetTester tester, {Color? backgroundColor}) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: DeactivatedUserIcon(size: 16, backgroundColor: backgroundColor)));
+      await tester.pump();
+    }
+
+    final findBlockIcon = find.descendant(
+      of: find.byType(DeactivatedUserIcon),
+      matching: find.byIcon(Icons.block));
+    final findDecoratedBox = find.descendant(
+      of: find.byType(DeactivatedUserIcon),
+      matching: find.byType(DecoratedBox));
+
+    testWidgets('renders a block icon', (tester) async {
+      await pumpIcon(tester);
+      check(findBlockIcon).findsOne();
+    });
+
+    testWidgets('no backgroundColor: bare icon, no DecoratedBox', (tester) async {
+      await pumpIcon(tester);
+      check(findDecoratedBox).findsNothing();
+    });
+
+    testWidgets('backgroundColor: icon on a filled circle', (tester) async {
+      await pumpIcon(tester, backgroundColor: const Color(0xFF112233));
+      check(findBlockIcon).findsOne();
+      final decoratedBox = tester.widget<DecoratedBox>(findDecoratedBox);
+      final decoration = decoratedBox.decoration as BoxDecoration;
+      check(decoration.color).equals(const Color(0xFF112233));
+      check(decoration.shape).equals(BoxShape.circle);
+    });
+  });
 }
