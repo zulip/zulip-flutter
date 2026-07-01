@@ -3,8 +3,11 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/model/model.dart';
+import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/text.dart';
 
+import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import 'test_app.dart';
@@ -418,6 +421,101 @@ void main() {
 
     // "und" is a special language code meaning undefined; see [Locale]
     testLocalizedTextBaseline(const Locale('und'), TextBaseline.alphabetic);
+  });
+
+  group('topicLabelSpan', () {
+    Future<void> prepareWidget(WidgetTester tester, {
+      required TopicName topic,
+      String? realmEmptyTopicDisplayName,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        realmEmptyTopicDisplayName: realmEmptyTopicDisplayName));
+
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: Builder(builder: (context) => Text.rich(
+          topicLabelSpan(
+            context: context,
+            topic: topic,
+            fontSize: 17,
+            color: Colors.black)))));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+    }
+
+    Finder findCheckIcon() => find.byWidgetPredicate(
+      (w) => w is InlineIcon && w.icon == ZulipIcons.check);
+
+    testWidgets('resolved topic shows checkmark and strips prefix', (tester) async {
+      await prepareWidget(tester, topic: eg.t('✔ some topic'));
+      check(findCheckIcon()).findsOne();
+      check(find.textContaining('some topic', findRichText: true)).findsOne();
+      check(find.textContaining('✔', findRichText: true)).findsNothing();
+    });
+
+    testWidgets('unresolved topic shows no checkmark', (tester) async {
+      await prepareWidget(tester, topic: eg.t('some topic'));
+      check(findCheckIcon()).findsNothing();
+      check(find.textContaining('some topic', findRichText: true)).findsOne();
+    });
+
+    testWidgets('empty topic shows italic placeholder', (tester) async {
+      await prepareWidget(tester, topic: eg.t(''),
+        realmEmptyTopicDisplayName: 'general chat');
+      check(find.textContaining('general chat', findRichText: true)).findsOne();
+
+      FontStyle? italicFontStyle;
+      final richText = tester.widget<RichText>(
+        find.textContaining('general chat', findRichText: true));
+      richText.text.visitChildren((span) {
+        if (span is TextSpan && span.text == 'general chat') {
+          italicFontStyle = span.style?.fontStyle;
+          return false;
+        }
+        return true;
+      });
+      check(italicFontStyle).equals(FontStyle.italic);
+    });
+  });
+
+  group('channelTopicLabelSpan', () {
+    final channel = eg.stream();
+
+    Future<void> prepareWidget(WidgetTester tester, {
+      required TopicName topic,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        streams: [channel],
+        subscriptions: [eg.subscription(channel)]));
+
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: Builder(builder: (context) => Text.rich(
+          channelTopicLabelSpan(
+            context: context,
+            channelId: channel.streamId,
+            topic: topic,
+            fontSize: 17,
+            color: Colors.black)))));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+    }
+
+    Finder findCheckIcon() => find.byWidgetPredicate(
+      (w) => w is InlineIcon && w.icon == ZulipIcons.check);
+
+    testWidgets('resolved topic shows checkmark and strips prefix', (tester) async {
+      await prepareWidget(tester, topic: eg.t('✔ some topic'));
+      check(findCheckIcon()).findsOne();
+      check(find.textContaining('some topic', findRichText: true)).findsOne();
+      check(find.textContaining('✔', findRichText: true)).findsNothing();
+    });
+
+    testWidgets('unresolved topic shows no checkmark', (tester) async {
+      await prepareWidget(tester, topic: eg.t('some topic'));
+      check(findCheckIcon()).findsNothing();
+      check(find.textContaining('some topic', findRichText: true)).findsOne();
+    });
   });
 
   group('TextWithLink', () {
