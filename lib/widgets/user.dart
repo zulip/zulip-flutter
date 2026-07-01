@@ -20,6 +20,7 @@ class Avatar extends StatelessWidget {
     this.backgroundColor,
     this.showPresence = true,
     this.replaceIfMuted = true,
+    this.markIfDeactivated = true,
   });
 
   final int userId;
@@ -29,17 +30,29 @@ class Avatar extends StatelessWidget {
   final bool showPresence;
   final bool replaceIfMuted;
 
+  /// If true (the default), a deactivated (or deleted) user's avatar is
+  /// dimmed and overlaid with a small badge in the bottom-right corner.
+  /// Callers that show the deactivated indicator separately -- e.g. the
+  /// profile page header, which puts the badge next to the user's name --
+  /// should pass false.
+  final bool markIfDeactivated;
+
   @override
   Widget build(BuildContext context) {
     // (The backgroundColor is only meaningful if presence will be shown;
     // see [PresenceCircle.backgroundColor].)
     assert(backgroundColor == null || showPresence);
+    final isDeactivated = markIfDeactivated
+      && PerAccountStoreWidget.of(context).isUserDeactivated(userId);
     return AvatarShape(
       size: size,
       borderRadius: borderRadius,
       backgroundColor: backgroundColor,
       userIdForPresence: showPresence ? userId : null,
-      child: AvatarImage(userId: userId, size: size, replaceIfMuted: replaceIfMuted));
+      showDeactivatedBadge: isDeactivated,
+      child: AvatarImage(userId: userId, size: size,
+        replaceIfMuted: replaceIfMuted,
+        markIfDeactivated: markIfDeactivated));
   }
 }
 
@@ -54,11 +67,20 @@ class AvatarImage extends StatelessWidget {
     required this.userId,
     required this.size,
     this.replaceIfMuted = true,
+    this.markIfDeactivated = true,
   });
 
   final int userId;
   final double size;
   final bool replaceIfMuted;
+
+  /// If true (the default), a deactivated (or deleted) user's avatar is faded
+  /// to [deactivatedOpacity].  This takes priority over muting, so the
+  /// deactivated state stays visible.
+  final bool markIfDeactivated;
+
+  /// Matches the web client's deactivated-avatar opacity.
+  static const double deactivatedOpacity = 0.5;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +91,10 @@ class AvatarImage extends StatelessWidget {
       return _AvatarPlaceholder(size: size);
     }
 
-    if (replaceIfMuted && store.isUserMuted(userId)) {
+    final isDeactivated = markIfDeactivated && store.isUserDeactivated(userId);
+
+    // Deactivation takes priority over muting.
+    if (!isDeactivated && replaceIfMuted && store.isUserMuted(userId)) {
       return _AvatarPlaceholder(size: size);
     }
 
@@ -78,19 +103,24 @@ class AvatarImage extends StatelessWidget {
       var avatarUrl => store.tryResolveUrl(avatarUrl),
     };
 
+    Widget child;
     if (resolvedUrl == null) {
-      return _AvatarPlaceholder(size: size);
+      child = _AvatarPlaceholder(size: size);
+    } else {
+      final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl);
+      final physicalSize = (MediaQuery.devicePixelRatioOf(context) * size).ceil();
+      child = RealmContentNetworkImage(
+        avatarUrl.get(physicalSize),
+        filterQuality: FilterQuality.medium,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => _AvatarPlaceholder(size: size),
+      );
     }
 
-    final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl);
-    final physicalSize = (MediaQuery.devicePixelRatioOf(context) * size).ceil();
-
-    return RealmContentNetworkImage(
-      avatarUrl.get(physicalSize),
-      filterQuality: FilterQuality.medium,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => _AvatarPlaceholder(size: size),
-    );
+    if (isDeactivated) {
+      child = Opacity(opacity: deactivatedOpacity, child: child);
+    }
+    return child;
   }
 }
 
@@ -124,6 +154,9 @@ class _AvatarPlaceholder extends StatelessWidget {
 ///
 /// If [userIdForPresence] is provided, this will paint a [PresenceCircle]
 /// on the shape.
+///
+/// If [showDeactivatedBadge] is true, this paints a "deactivated user" badge
+/// in the same overlay slot, taking priority over the presence circle.
 class AvatarShape extends StatelessWidget {
   const AvatarShape({
     super.key,
@@ -131,6 +164,7 @@ class AvatarShape extends StatelessWidget {
     required this.borderRadius,
     this.backgroundColor,
     this.userIdForPresence,
+    this.showDeactivatedBadge = false,
     required this.child,
   });
 
@@ -138,13 +172,16 @@ class AvatarShape extends StatelessWidget {
   final double borderRadius;
   final Color? backgroundColor;
   final int? userIdForPresence;
+  final bool showDeactivatedBadge;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    // (The backgroundColor is only meaningful if presence will be shown;
-    // see [PresenceCircle.backgroundColor].)
-    assert(backgroundColor == null || userIdForPresence != null);
+    // backgroundColor is the fill painted behind whichever overlay occupies
+    // this slot, so it's meaningless without one.
+    assert(backgroundColor == null
+        || userIdForPresence != null
+        || showDeactivatedBadge);
 
     Widget result = SizedBox.square(
       dimension: size,
@@ -153,17 +190,32 @@ class AvatarShape extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: child));
 
-    if (userIdForPresence != null) {
-      final presenceCircleSize = size / 4; // TODO(design) is this right?
+    // The presence circle and the deactivated badge share this overlay slot,
+    // so they get the same size.
+    final overlaySize = size / 4; // TODO(design) is this right?
+    final Widget? overlay;
+    if (showDeactivatedBadge) {
+      // The badge takes priority over presence, which is meaningless for a
+      // deactivated user.
+      overlay = DeactivatedUserIcon(
+        size: overlaySize,
+        backgroundColor: backgroundColor ?? DesignVariables.of(context).mainBackground);
+    } else if (userIdForPresence != null) {
+      overlay = PresenceCircle(
+        userId: userIdForPresence!,
+        size: overlaySize,
+        backgroundColor: backgroundColor);
+    } else {
+      overlay = null;
+    }
+
+    if (overlay != null) {
       result = Stack(children: [
         result,
         Positioned.directional(textDirection: Directionality.of(context),
           end: 0,
           bottom: 0,
-          child: PresenceCircle(
-            userId: userIdForPresence!,
-            size: presenceCircleSize,
-            backgroundColor: backgroundColor)),
+          child: overlay),
       ]);
     }
 
@@ -284,6 +336,54 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
           color: color,
           gradient: gradient,
           shape: BoxShape.circle)));
+  }
+}
+
+/// An [Icons.block] badge marking a deactivated (or deleted) user.
+///
+/// Shown in the slot otherwise used by a [PresenceCircle], since presence is
+/// meaningless for a deactivated user.
+///
+/// If [backgroundColor] is given, the icon is painted on a filled circle of
+/// that color, so it stays legible as an overlay on an avatar image.
+/// Pass null (the default) for a bare icon, e.g. inline before a user's name.
+class DeactivatedUserIcon extends StatelessWidget {
+  const DeactivatedUserIcon({
+    super.key,
+    required this.size,
+    this.backgroundColor,
+  });
+
+  final double size;
+  final Color? backgroundColor;
+
+  /// Creates a [WidgetSpan] with a [DeactivatedUserIcon], for use in rich text
+  /// before a user's name.
+  ///
+  /// Sized larger than [PresenceCircle.asWidgetSpan]: the block glyph has
+  /// internal detail that needs more room to read as clearly as a presence dot.
+  static InlineSpan asWidgetSpan({
+    required double fontSize,
+    required TextScaler textScaler,
+  }) {
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(end: 4),
+        child: DeactivatedUserIcon(size: textScaler.scale(fontSize))));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    Widget result = Icon(Icons.block, size: size, color: designVariables.icon);
+    if (backgroundColor != null) {
+      result = DecoratedBox(
+        decoration: BoxDecoration(
+          color: backgroundColor, shape: BoxShape.circle),
+        child: result);
+    }
+    return result;
   }
 }
 

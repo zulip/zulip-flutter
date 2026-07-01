@@ -593,6 +593,10 @@
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
   },
+  "composeBoxBannerLabelDeletedDmRecipient": "You cannot send messages to deleted users.",
+  "@composeBoxBannerLabelDeletedDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deleted."
+  },
   "composeBoxBannerLabelDeactivatedDmRecipient": "You cannot send messages to deactivated users.",
   "@composeBoxBannerLabelDeactivatedDmRecipient": {
     "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are deactivated."
@@ -1689,6 +1693,10 @@
   "mutedUser": "Muted user",
   "@mutedUser": {
     "description": "Text to display in place of a muted user's name."
+  },
+  "deletedUser": "Deleted user",
+  "@deletedUser": {
+    "description": "Text to display in place of a deleted user's name."
   },
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {

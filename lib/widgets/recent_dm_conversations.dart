@@ -335,12 +335,17 @@ class DmConversationAvatar extends StatelessWidget {
 
     final Widget avatar;
     int? userIdForPresence;
+    bool showDeactivatedBadge = false;
     switch (narrow.otherRecipientIds) {
       case []:
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
-        userIdForPresence = otherUserId;
+        if (store.isUserDeactivated(otherUserId)) {
+          showDeactivatedBadge = true;
+        } else {
+          userIdForPresence = otherUserId;
+        }
       default:
         final allRecipientsCount = narrow.allRecipientIds.length;
         if (allRecipientsCount < 10) {
@@ -374,11 +379,15 @@ class DmConversationAvatar extends StatelessWidget {
         }
     }
 
+    // [backgroundColor] is only meaningful behind a presence circle or the
+    // deactivated badge; pass null otherwise (see [AvatarShape]'s assert).
+    final hasOverlay = userIdForPresence != null || showDeactivatedBadge;
     return AvatarShape(
       size: _avatarSize,
       borderRadius: 3,
-      backgroundColor: userIdForPresence != null ? backgroundColor : null,
+      backgroundColor: hasOverlay ? backgroundColor : null,
       userIdForPresence: userIdForPresence,
+      showDeactivatedBadge: showDeactivatedBadge,
       child: avatar);
   }
 }

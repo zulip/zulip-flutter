@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'zulip_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -512,6 +513,10 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get successChannelLinkCopied => 'Link al canale copiato';
+
+  @override
+  String get composeBoxBannerLabelDeletedDmRecipient =>
+      'You cannot send messages to deleted users.';
 
   @override
   String get composeBoxBannerLabelDeactivatedDmRecipient =>
@@ -1436,6 +1441,9 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get mutedUser => 'Utente silenziato';
+
+  @override
+  String get deletedUser => 'Deleted user';
 
   @override
   String get scrollToBottomTooltip => 'Scorri fino in fondo';

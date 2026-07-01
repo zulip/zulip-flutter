@@ -29,6 +29,21 @@ void main() {
       final store = eg.store();
       check(store.userDisplayName(eg.user().userId)).equals('(unknown user)');
     });
+
+    test('on a deleted user', () async {
+      final user = eg.user(fullName: 'Deleted User 12', isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.userDisplayName(user.userId)).equals('Deleted user');
+    });
+
+    test('deleted takes priority over muted', () async {
+      final user = eg.user(fullName: 'Deleted User 12', isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      await store.setMutedUsers([user.userId]);
+      check(store.userDisplayName(user.userId)).equals('Deleted user');
+    });
   });
 
   group('senderDisplayName', () {
@@ -59,6 +74,53 @@ void main() {
       // for fallback) only has a generic fallback name.
       check(store.userDisplayName(message.senderId)).equals('(unknown user)');
     });
+
+    test('on a deleted sender', () async {
+      final user = eg.user(fullName: 'Deleted User 12', isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      final message = eg.streamMessage(sender: user);
+      await store.addMessage(message);
+      check(store.senderDisplayName(message)).equals('Deleted user');
+    });
+  });
+
+  group('isUserDeactivated', () {
+    test('active user', () async {
+      final user = eg.user(isActive: true);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.isUserDeactivated(user.userId)).isFalse();
+    });
+
+    test('deactivated user', () async {
+      final user = eg.user(isActive: false);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.isUserDeactivated(user.userId)).isTrue();
+    });
+
+    test('deleted user, which implies deactivated', () async {
+      final user = eg.user(isActive: false, isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.isUserDeactivated(user.userId)).isTrue();
+    });
+
+    test('deleted but still active: deactivated, checked via isDeleted', () async {
+      // The server sends is_deleted only on already-deactivated users, but an
+      // incremental event could carry is_deleted without is_active, so we
+      // check is_deleted directly rather than relying on is_active.
+      final user = eg.user(isActive: true, isDeleted: true);
+      final store = eg.store();
+      await store.addUser(user);
+      check(store.isUserDeactivated(user.userId)).isTrue();
+    });
+
+    test('unknown user', () {
+      final store = eg.store();
+      check(store.isUserDeactivated(eg.user().userId)).isFalse();
+    });
   });
 
   group('RealmUserUpdateEvent', () {
@@ -86,6 +148,19 @@ void main() {
       await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
         deliveryEmail: const JsonNullable('c@mail.example')));
       check(getUser()).deliveryEmail.equals('c@mail.example');
+    });
+
+    test('isDeleted', () async {
+      final user = eg.user();
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        realmUsers: [eg.selfUser, user]));
+
+      User getUser() => store.getUser(user.userId)!;
+      check(getUser()).isDeleted.isFalse();
+
+      await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+        isDeleted: true));
+      check(getUser()).isDeleted.isTrue();
     });
   });
 
