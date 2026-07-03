@@ -1169,6 +1169,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get starredMessagesPageTitle => 'Označené správy';
 
   @override
+  String get searchPageTitle => 'Search';
+
+  @override
   String get channelsPageTitle => 'Kanály';
 
   @override

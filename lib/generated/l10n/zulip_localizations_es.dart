@@ -1185,6 +1185,9 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get starredMessagesPageTitle => 'Mensajes destacados';
 
   @override
+  String get searchPageTitle => 'Search';
+
+  @override
   String get channelsPageTitle => 'Canales';
 
   @override

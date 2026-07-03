@@ -1185,6 +1185,9 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get starredMessagesPageTitle => 'Wiadomości z gwiazdką';
 
   @override
+  String get searchPageTitle => 'Search';
+
+  @override
   String get channelsPageTitle => 'Kanały';
 
   @override

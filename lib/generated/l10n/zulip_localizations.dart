@@ -2034,6 +2034,12 @@ abstract class ZulipLocalizations {
   /// **'Starred messages'**
   String get starredMessagesPageTitle;
 
+  /// Page title for the 'Search' message view.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchPageTitle;
+
   /// Title for the page with a list of subscribed channels.
   ///
   /// In en, this message translates to:

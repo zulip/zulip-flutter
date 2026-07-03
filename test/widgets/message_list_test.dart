@@ -249,6 +249,32 @@ void main() {
       await future;
       check(store.debugMessageListViews).isEmpty();
     });
+
+    group('has search bar in', () {
+      final testCases = [
+        (expected: false, narrow: CombinedFeedNarrow()),
+        (expected: false, narrow: ChannelNarrow(1)),
+        (expected: false, narrow: TopicNarrow(1, TopicName('topic'))),
+        (expected: false, narrow: DmNarrow.withUsers([1, 2], selfUserId: eg.selfUser.userId)),
+        (expected: false, narrow: MentionsNarrow()),
+        (expected: false, narrow: StarredMessagesNarrow()),
+        (expected: true,  narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')])),
+      ];
+
+      for (final (:expected, :narrow) in testCases) {
+        testWidgets('${narrow.runtimeType}? ${expected ? 'YES' : 'NO'}', (tester) async {
+          await setupMessageListPage(tester, narrow: narrow, messages: []);
+
+          check(find.descendant(of: find.byType(MessageListPage),
+            matching: searchFieldFinder)
+          ).findsExactly(expected ? 1 : 0);
+
+          check(find.descendant(of: find.byType(ZulipAppBar),
+            matching: searchFieldFinder)
+          ).findsNothing();
+        });
+      }
+    });
   });
 
   group('app bar', () {
@@ -431,28 +457,6 @@ void main() {
       check(find.descendant(of: find.byType(ZulipAppBar),
         matching: find.byIcon(ZulipIcons.search))
       ).findsNothing();
-    });
-
-    group('has search bar in', () {
-      final testCases = [
-        (expected: false, narrow: CombinedFeedNarrow()),
-        (expected: false, narrow: ChannelNarrow(1)),
-        (expected: false, narrow: TopicNarrow(1, TopicName('topic'))),
-        (expected: false, narrow: DmNarrow.withUsers([1, 2], selfUserId: eg.selfUser.userId)),
-        (expected: false, narrow: MentionsNarrow()),
-        (expected: false, narrow: StarredMessagesNarrow()),
-        (expected: true,  narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')])),
-      ];
-
-      for (final (:expected, :narrow) in testCases) {
-        testWidgets('${narrow.runtimeType}? ${expected ? 'YES' : 'NO'}', (tester) async {
-          await setupMessageListPage(tester, narrow: narrow, messages: []);
-
-          check(find.descendant(of: find.byType(ZulipAppBar),
-            matching: searchFieldFinder)
-          ).findsExactly(expected ? 1 : 0);
-        });
-      }
     });
   });
 

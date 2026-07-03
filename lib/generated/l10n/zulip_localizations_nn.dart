@@ -1171,6 +1171,9 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get starredMessagesPageTitle => 'Stjernemerkte';
 
   @override
+  String get searchPageTitle => 'Search';
+
+  @override
   String get channelsPageTitle => 'Kanalar';
 
   @override

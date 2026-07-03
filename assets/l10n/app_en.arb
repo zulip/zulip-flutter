@@ -1393,6 +1393,10 @@
   "@starredMessagesPageTitle": {
     "description": "Page title for the 'Starred messages' message view."
   },
+  "searchPageTitle": "Search",
+  "@searchPageTitle": {
+    "description": "Page title for the 'Search' message view."
+  },
   "channelsPageTitle": "Channels",
   "@channelsPageTitle": {
     "description": "Title for the page with a list of subscribed channels."

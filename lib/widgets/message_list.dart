@@ -407,6 +407,13 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
           // and handle the horizontal device insets.
           // The bottom inset should be handled by the last child only.
           children: [
+            if (narrow case SearchNarrow())
+              Padding(
+                padding: const .symmetric(horizontal: 8, vertical: 6),
+                child: _SearchBar(onSubmitted: (narrow) {
+                  MessageListPage.ancestorOf(context).model!
+                    .renarrowAndFetch(narrow, AnchorCode.newest);
+                })),
             MediaQuery.removePadding(
               // Scaffold knows about the app bar, and so has run this
               // BuildContext, which is under `body`, through
@@ -510,14 +517,6 @@ abstract class _MessageListAppBar {
     }
 
     return ZulipAppBar(
-      centerTitle: switch (narrow) {
-        CombinedFeedNarrow() || ChannelNarrow()
-            || TopicNarrow() || DmNarrow()
-            || MentionsNarrow() || StarredMessagesNarrow()
-          => null,
-        SearchNarrow()
-          => false,
-      },
       buildTitle: (willCenterTitle) =>
         MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
       actions: actions,
@@ -732,11 +731,7 @@ class MessageListAppBarTitle extends StatelessWidget {
               child: child)));
 
       case SearchNarrow():
-        assert(!willCenterTitle);
-        return _SearchBar(onSubmitted: (narrow) {
-          MessageListPage.ancestorOf(context).model!
-            .renarrowAndFetch(narrow, AnchorCode.newest);
-        });
+        return Text(zulipLocalizations.searchPageTitle);
     }
   }
 }
