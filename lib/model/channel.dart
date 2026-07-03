@@ -46,6 +46,21 @@ mixin ChannelStore on UserStore {
   /// All the channel folders, including archived ones, indexed by ID.
   Map<int, ChannelFolder> get channelFolders;
 
+  /// The base color to use for the given channel, as 0xffRRGGBB.
+  ///
+  /// For a channel the self-user is subscribed to, this is
+  /// [Subscription.color], the color the server holds for the subscription.
+  ///
+  /// The server assigns a color only on subscribing.  For other channels,
+  /// we choose a color client-side from [kChannelColorPalette],
+  /// the way the web app does: avoiding colors already claimed by
+  /// other channels, until the palette runs out.
+  /// The choice lasts for the lifetime of this store,
+  /// like web's choices last for the lifetime of a page.
+  ///
+  /// Returns null if the channel isn't known to the store.
+  int? channelColor(int channelId);
+
   static int compareChannelsByName(ZulipStream a, ZulipStream b) {
     // A user gave feedback wanting zulip-flutter to match web in putting
     // emoji-prefixed channels first; see #1202.
@@ -407,6 +422,9 @@ mixin ProxyChannelStore on ChannelStore {
   Map<int, ChannelFolder> get channelFolders => channelStore.channelFolders;
 
   @override
+  int? channelColor(int channelId) => channelStore.channelColor(channelId);
+
+  @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) =>
     channelStore.topicVisibilityPolicy(streamId, topic);
 
@@ -426,6 +444,19 @@ abstract class HasChannelStore extends HasUserStore with ChannelStore, ProxyChan
   @override
   final ChannelStore channelStore;
 }
+
+/// The palette the web app assigns channel colors from, as 0xffRRGGBB.
+///
+/// See:
+///   https://github.com/zulip/zulip/blob/c6d410659/web/src/color_data.ts#L6-L31
+const kChannelColorPalette = [
+  0xff76ce90, 0xfffae589, 0xffa6c7e5, 0xffe79ab5,
+  0xffbfd56f, 0xfff4ae55, 0xffb0a5fd, 0xffaddfe5,
+  0xfff5ce6e, 0xffc2726a, 0xff94c849, 0xffbd86e5,
+  0xffee7e4a, 0xffa6dcbf, 0xff95a5fd, 0xff53a063,
+  0xff9987e1, 0xffe4523d, 0xffc2c2c2, 0xff4f8de4,
+  0xffc6a8ad, 0xffe7cc4d, 0xffc8bebf, 0xffa47462,
+];
 
 /// The implementation of [ChannelStore] that does the work.
 ///
@@ -475,7 +506,11 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
     required this.subscriptions,
     required this.channelFolders,
     required this.topicVisibility,
-  });
+  }) {
+    for (final subscription in subscriptions.values) {
+      _claimChannelColor(subscription.color);
+    }
+  }
 
   @override
   final Map<int, ZulipStream> streams;
@@ -485,6 +520,81 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
   final Map<int, Subscription> subscriptions;
   @override
   final Map<int, ChannelFolder> channelFolders;
+
+  @override
+  int? channelColor(int channelId) {
+    return switch (streams[channelId]) {
+      Subscription(:final color) => color,
+      ZulipStream() => _clientChannelColors[channelId] ??= _pickChannelColor(),
+      null => null,
+    };
+  }
+
+  /// The colors chosen client-side for unsubscribed channels, by channel ID.
+  final Map<int, int> _clientChannelColors = {};
+
+  /// The palette colors available for [_pickChannelColor] to choose from.
+  ///
+  /// A color is removed when a channel claims it,
+  /// and once all colors have been claimed the whole palette
+  /// becomes available again (see [_claimChannelColor]).
+  late final List<int> _unusedChannelColors = List.of(_shuffledChannelColors);
+
+  /// The palette, in the order this store draws colors from it.
+  ///
+  /// Like web, we shuffle the palette to prevent bias
+  /// toward "early" colors:
+  ///   https://github.com/zulip/zulip/blob/c6d410659/web/src/color_data.ts#L33-L36
+  /// Web shuffles once per page load; we shuffle once per store.
+  final List<int> _shuffledChannelColors = _shuffleChannelColors();
+
+  static List<int> _shuffleChannelColors() {
+    final colors = List.of(kChannelColorPalette);
+    if (!debugDisableColorShuffle) colors.shuffle();
+    return colors;
+  }
+
+  /// In debug mode, controls whether the channel color palette
+  /// is shuffled, for use by tests that need deterministic choices.
+  ///
+  /// Outside of debug mode, this is always false and the setter
+  /// has no effect.
+  static bool get debugDisableColorShuffle {
+    bool result = false;
+    assert(() {
+      result = _debugDisableColorShuffle;
+      return true;
+    }());
+    return result;
+  }
+  static bool _debugDisableColorShuffle = false;
+  static set debugDisableColorShuffle(bool value) {
+    assert(() {
+      _debugDisableColorShuffle = value;
+      return true;
+    }());
+  }
+
+  /// Choose a color for a channel the server doesn't assign one to.
+  ///
+  /// Web picks the same way:
+  ///   https://github.com/zulip/zulip/blob/c6d410659/web/src/color_data.ts#L33-L57
+  /// except that web picks eagerly, for all channels,
+  /// as it loads channel data;
+  /// we pick lazily, when a channel's color is first asked for.
+  int _pickChannelColor() {
+    final color = _unusedChannelColors.first;
+    _claimChannelColor(color);
+    return color;
+  }
+
+  void _claimChannelColor(int color) {
+    _unusedChannelColors.remove(color);
+    if (_unusedChannelColors.isEmpty) {
+      // All palette colors are in use; start the palette over, like web.
+      _unusedChannelColors.addAll(_shuffledChannelColors);
+    }
+  }
 
   @override
   Map<int, TopicKeyedMap<UserTopicVisibilityPolicy>> get debugTopicVisibility => topicVisibility;
@@ -600,6 +710,7 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
           streams[subscription.streamId] = subscription;
           streamsByName[subscription.name] = subscription;
           subscriptions[subscription.streamId] = subscription;
+          _claimChannelColor(subscription.color);
         }
 
       case SubscriptionRemoveEvent():
@@ -624,6 +735,7 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
         switch (event.property) {
           case SubscriptionProperty.color:
             subscription.color                  = event.value as int;
+            _claimChannelColor(subscription.color);
           case SubscriptionProperty.isMuted:
             // TODO(#1255) update [MessageListView] if affected
             subscription.isMuted                = event.value as bool;
