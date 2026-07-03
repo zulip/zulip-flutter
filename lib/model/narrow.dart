@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -371,30 +373,71 @@ class StarredMessagesNarrow extends Narrow {
   int get hashCode => 'StarredMessagesNarrow'.hashCode;
 }
 
-/// A search narrow.
+/// A search narrow: the messages matching a set of search filters.
 ///
-/// [keyword] must have been trimmed with [String.trim].
+/// See the [ApiNarrowElement] subclasses for the kinds of filters.
+/// An empty [filters] list means no filters, hence no search.
+///
+/// [filters] preserves the order it was given in,
+/// for encoding the narrow and for displaying it in the UI.
+/// Equality, though, ignores differences that don't affect
+/// which messages are selected: the filters' order,
+/// a topic filter's case, and the order of a DM filter's recipients.
 class SearchNarrow extends Narrow {
-  SearchNarrow(this.keyword)
-    : assert(keyword.trim() == keyword);
+  SearchNarrow({required List<ApiNarrowElement> filters})
+    : filters = List.unmodifiable(filters);
 
-  final String keyword;
+  /// The filters of this search, as an unmodifiable list.
+  final List<ApiNarrowElement> filters;
+
+  /// A string that uniquely identifies this narrow's set of filters,
+  /// ignoring their order.
+  late final String _key = jsonEncode(filters.map(_filterKey).toList()..sort());
+
+  /// A string that uniquely identifies [filter], for use in [_key].
+  ///
+  /// Filters that select the same messages get the same key.
+  static String _filterKey(ApiNarrowElement filter) =>
+    _filterString(filter, canonical: true);
+
+  /// A description of [filter] for [toString], with its operand as given.
+  static String _filterDescription(ApiNarrowElement filter) =>
+    _filterString(filter, canonical: false);
+
+  // This deliberately doesn't use [ApiNarrowElement.operator]: that getter
+  // asserts when called on an unresolved [ApiNarrowChannel] or [ApiNarrowDm],
+  // and the legacy vs. modern operator name says which server version we'd
+  // send the filter to, not which messages it selects.
+  static String _filterString(ApiNarrowElement filter, {required bool canonical}) {
+    final negated = filter.negated ? '-' : '';
+    return switch (filter) {
+      ApiNarrowChannel(:final operand)   => '${negated}channel:$operand',
+      ApiNarrowTopic(:final operand)     => '${negated}topic:'
+        '${canonical ? operand.canonicalize() : operand.apiName}',
+      ApiNarrowDm(:final operand)        => '${negated}dm:'
+        '${(canonical ? (operand.toList()..sort()) : operand).join(',')}',
+      ApiNarrowSearch(:final operand)    => '${negated}search:$operand',
+      ApiNarrowIs(:final operand)        => '${negated}is:$operand',
+      ApiNarrowWith(:final operand)      => '${negated}with:$operand',
+      ApiNarrowMessageId(:final operand) => '${negated}id:$operand',
+    };
+  }
 
   @override
   bool? containsMessage(MessageBase message) => null;
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowSearch(keyword)];
+  ApiNarrow apiEncode() => filters;
 
   @override
-  String toString() => 'SearchNarrow($keyword)';
+  String toString() => 'SearchNarrow(${filters.map(_filterDescription).toList()})';
 
   @override
   bool operator ==(Object other) {
     if (other is! SearchNarrow) return false;
-    return other.keyword == keyword;
+    return other._key == _key;
   }
 
   @override
-  int get hashCode => Object.hash('SearchNarrow', keyword);
+  int get hashCode => Object.hash('SearchNarrow', _key);
 }

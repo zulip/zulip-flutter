@@ -2,6 +2,7 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/model/narrow.dart';
 
 import '../example_data.dart' as eg;
@@ -249,6 +250,74 @@ void main() {
         eg.streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
       check(narrow.containsMessage(
         eg.dmOutboxMessage(from: eg.selfUser, to: []))).isFalse();
+    });
+  });
+
+  group('SearchNarrow', () {
+    SearchNarrow mkNarrow(List<ApiNarrowElement> filters) =>
+      SearchNarrow(filters: filters);
+
+    void checkEqual(SearchNarrow a, SearchNarrow b) {
+      check(a).equals(b);
+      check(a.hashCode).equals(b.hashCode);
+    }
+
+    void checkNotEqual(SearchNarrow a, SearchNarrow b) =>
+      check(a).not((it) => it.equals(b));
+
+    test('filters is unmodifiable, and copied from the caller', () {
+      final filters = <ApiNarrowElement>[ApiNarrowSearch('foo')];
+      final narrow = mkNarrow(filters);
+      check(() => narrow.filters.add(ApiNarrowChannel(1)))
+        .throws<UnsupportedError>(); // "Cannot add to an unmodifiable list"
+
+      filters.add(ApiNarrowChannel(1));
+      check(narrow.filters).length.equals(1);
+    });
+
+    test("apiEncode keeps the filters' original order", () {
+      check(mkNarrow([]).apiEncode()).isEmpty();
+
+      final keyword = ApiNarrowSearch('foo');
+      final dm = ApiNarrowDm([2, 1]);
+      final channel = ApiNarrowChannel(1);
+      check(mkNarrow([keyword, dm, channel]).apiEncode())
+        .deepEquals([keyword, dm, channel]);
+    });
+
+    group('==', () {
+      test('equal narrows', () {
+        checkEqual(mkNarrow([ApiNarrowSearch('foo')]),
+                   mkNarrow([ApiNarrowSearch('foo')]));
+        // Different order of filters.
+        checkEqual(mkNarrow([ApiNarrowChannel(1), ApiNarrowSearch('foo')]),
+                   mkNarrow([ApiNarrowSearch('foo'), ApiNarrowChannel(1)]));
+      });
+
+      test('unequal narrows', () {
+        checkNotEqual(mkNarrow([ApiNarrowSearch('foo')]),
+                      mkNarrow([ApiNarrowSearch('bar')]));
+        checkNotEqual(mkNarrow([]), mkNarrow([ApiNarrowSearch('foo')]));
+        checkNotEqual(mkNarrow([ApiNarrowSearch('foo', negated: true)]),
+                      mkNarrow([ApiNarrowSearch('foo')]));
+      });
+
+      test('dm recipients in a different order', () {
+        checkEqual(mkNarrow([ApiNarrowDm([1, 2])]), mkNarrow([ApiNarrowDm([2, 1])]));
+        checkNotEqual(mkNarrow([ApiNarrowDm([1, 2])]), mkNarrow([ApiNarrowDm([1, 3])]));
+      });
+
+      test('topics differing only in case', () {
+        checkEqual(mkNarrow([ApiNarrowTopic(eg.t('Foo'))]),
+                   mkNarrow([ApiNarrowTopic(eg.t('foo'))]));
+      });
+
+      test('no keyword impersonating other filters', () {
+        // A keyword is arbitrary text, so the key of one filter must not be
+        // confusable with the keys of several filters run together.
+        checkNotEqual(mkNarrow([ApiNarrowSearch('foo topic:bar')]),
+          mkNarrow([ApiNarrowSearch('foo'), ApiNarrowTopic(eg.t('bar'))]));
+      });
     });
   });
 }

@@ -946,7 +946,7 @@ void main() {
         // belongs (containsMessage returns null), but a message the view
         // already has must still adopt the event's copy.
         final stream = eg.stream();
-        await prepare(narrow: SearchNarrow('hello'), stream: stream);
+        await prepare(narrow: SearchNarrow(filters: [ApiNarrowSearch('hello')]), stream: stream);
         final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
         final message = eg.streamMessage(stream: stream, content: '<p>edited</p>');
         await prepareMessages(foundOldest: true,
@@ -3136,7 +3136,8 @@ void main() {
     doTest(narrow: TopicNarrow(channelId, eg.t(topic)), expected: false);
     doTest(narrow: StarredMessagesNarrow(),             expected: true);
     doTest(narrow: MentionsNarrow(),                    expected: true);
-    doTest(narrow: SearchNarrow('keyword'),             expected: true);
+    doTest(narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')]),
+                                                        expected: true);
   });
 
   test('showSender is maintained correctly', () => awaitFakeAsync((async) async {
