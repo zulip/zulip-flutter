@@ -254,6 +254,30 @@ void main() {
       await future;
       check(store.debugMessageListViews).isEmpty();
     });
+
+    group('has search bar in', () {
+      void doTest({required Narrow narrow, required bool expected}) {
+        testWidgets('${narrow.runtimeType}? ${expected ? 'YES' : 'NO'}', (tester) async {
+          await setupMessageListPage(tester, narrow: narrow, messages: []);
+
+          check(find.descendant(of: find.byType(MessageListPage),
+            matching: searchFieldFinder)
+          ).findsExactly(expected ? 1 : 0);
+
+          check(find.descendant(of: find.byType(ZulipAppBar),
+            matching: searchFieldFinder)
+          ).findsNothing();
+        });
+      }
+
+      doTest(expected: false, narrow: CombinedFeedNarrow());
+      doTest(expected: false, narrow: ChannelNarrow(1));
+      doTest(expected: false, narrow: TopicNarrow(1, TopicName('topic')));
+      doTest(expected: false, narrow: DmNarrow.withUsers([1, 2], selfUserId: eg.selfUser.userId));
+      doTest(expected: false, narrow: MentionsNarrow());
+      doTest(expected: false, narrow: StarredMessagesNarrow());
+      doTest(expected: true,  narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')]));
+    });
   });
 
   group('app bar', () {
@@ -436,26 +460,6 @@ void main() {
       check(find.descendant(of: find.byType(ZulipAppBar),
         matching: find.byIcon(ZulipIcons.search))
       ).findsNothing();
-    });
-
-    group('has search bar in', () {
-      void doTest({required Narrow narrow, required bool expected}) {
-        testWidgets('${narrow.runtimeType}? ${expected ? 'YES' : 'NO'}', (tester) async {
-          await setupMessageListPage(tester, narrow: narrow, messages: []);
-
-          check(find.descendant(of: find.byType(ZulipAppBar),
-            matching: searchFieldFinder)
-          ).findsExactly(expected ? 1 : 0);
-        });
-      }
-
-      doTest(expected: false, narrow: CombinedFeedNarrow());
-      doTest(expected: false, narrow: ChannelNarrow(1));
-      doTest(expected: false, narrow: TopicNarrow(1, TopicName('topic')));
-      doTest(expected: false, narrow: DmNarrow.withUsers([1, 2], selfUserId: eg.selfUser.userId));
-      doTest(expected: false, narrow: MentionsNarrow());
-      doTest(expected: false, narrow: StarredMessagesNarrow());
-      doTest(expected: true,  narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')]));
     });
   });
 
