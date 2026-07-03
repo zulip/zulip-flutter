@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../api/model/model.dart';
+import '../model/channel.dart';
 import '../model/settings.dart';
 import 'compose_box.dart';
 import 'content.dart';
@@ -915,16 +915,15 @@ const kDefaultChannelColorSwatchBaseColor = 0xffc2c2c2;
 
 /// The theme-appropriate [ChannelColorSwatch] for the given channel ID.
 ///
-/// For a channel the self-user is subscribed to,
-/// this is based on [Subscription.color].
-/// If the channel is unsubscribed,
+/// This is based on the channel's base color from the store;
+/// see [ChannelStore.channelColor].
+/// If the channel isn't in the store,
 /// [ChannelColorSwatch] will be based on [kDefaultChannelColorSwatchBaseColor].
 ///
 /// For how this value is cached, see [ChannelColorSwatches.forBaseColor].
-// TODO(#188) pick different colors for unsubscribed channels
 ChannelColorSwatch colorSwatchFor(BuildContext context, int channelId) {
-  final subscription = PerAccountStoreWidget.of(context).subscriptions[channelId];
+  final baseColor = PerAccountStoreWidget.of(context).channelColor(channelId);
   return DesignVariables.of(context)
     .channelColorSwatches.forBaseColor(
-      subscription?.color ?? kDefaultChannelColorSwatchBaseColor);
+      baseColor ?? kDefaultChannelColorSwatchBaseColor);
 }

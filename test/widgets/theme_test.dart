@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zulip/model/channel.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/text.dart';
@@ -183,11 +184,28 @@ void main() {
         .isSameColorSwatchAs(ChannelColorSwatch.dark(baseColor));
     });
 
-    testWidgets('fall back to default base color when unsubscribed', (tester) async {
+    testWidgets('client-side color when unsubscribed (channel known)', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1848
       addTearDown(testBinding.reset);
+      ChannelStoreImpl.debugDisableColorShuffle = true;
+      addTearDown(() => ChannelStoreImpl.debugDisableColorShuffle = false);
       final channel = eg.stream();
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
         streams: [channel]));
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+      final element = tester.element(find.byType(Placeholder));
+      // An unused palette color; for the details of the choice,
+      // see ChannelStore.channelColor and its tests.
+      check(colorSwatchFor(element, channel.streamId)).isSameColorSwatchAs(
+        ChannelColorSwatch.light(kChannelColorPalette[0]));
+    });
+
+    testWidgets('fall back to default base color when unsubscribed (channel unknown)', (tester) async {
+      addTearDown(testBinding.reset);
+      final channel = eg.stream();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id));
       await tester.pump(); // global store
       await tester.pump(); // per-account store
