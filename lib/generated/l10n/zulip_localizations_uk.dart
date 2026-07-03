@@ -738,7 +738,7 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageListSearch => 'Немає результатів пошуку.';
+  String get emptyMessageListSearchDefault => 'No search results.';
 
   @override
   String get messageListGroupYouWithYourself => 'Повідомлення з собою';

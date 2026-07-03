@@ -1332,11 +1332,11 @@ abstract class ZulipLocalizations {
   /// **'<z-link>Starring</z-link> is a good way to keep track of important messages, such as tasks you need to go back to, or useful references. To star a message, long-press it and tap “{button}.”'**
   String emptyMessageListStarredMessage(String button);
 
-  /// Placeholder for the 'Search' page when there are no messages.
+  /// Default placeholder for the 'Search' page when there are no messages.
   ///
   /// In en, this message translates to:
   /// **'No search results.'**
-  String get emptyMessageListSearch;
+  String get emptyMessageListSearchDefault;
 
   /// Message list recipient header for a DM group that only includes yourself.
   ///

@@ -737,7 +737,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageListSearch => 'Ничего не найдено.';
+  String get emptyMessageListSearchDefault => 'No search results.';
 
   @override
   String get messageListGroupYouWithYourself => 'Сообщения с собой';

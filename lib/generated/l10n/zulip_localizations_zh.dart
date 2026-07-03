@@ -723,7 +723,7 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageListSearch => 'No search results.';
+  String get emptyMessageListSearchDefault => 'No search results.';
 
   @override
   String get messageListGroupYouWithYourself => 'Messages with yourself';
@@ -2007,9 +2007,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get emptyMessageList => '这里没有消息。';
 
   @override
-  String get emptyMessageListSearch => '没有搜索结果。';
-
-  @override
   String get messageListGroupYouWithYourself => '与自己的消息';
 
   @override
@@ -3189,9 +3186,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String emptyMessageListStarredMessage(String button) {
     return '<z-link>星號標記</z-link>是追蹤重要訊息的好方法，例如您需要回頭處理的工作，或是實用的參考資料。若要將訊息加入星號，請長按訊息並點擊「$button」';
   }
-
-  @override
-  String get emptyMessageListSearch => '沒有搜尋結果。';
 
   @override
   String get messageListGroupYouWithYourself => '與自己的訊息';

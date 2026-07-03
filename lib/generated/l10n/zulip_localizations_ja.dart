@@ -706,7 +706,7 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageListSearch => '検索結果はありません。';
+  String get emptyMessageListSearchDefault => 'No search results.';
 
   @override
   String get messageListGroupYouWithYourself => '自分とのメッセージ';

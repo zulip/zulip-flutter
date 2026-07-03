@@ -870,9 +870,9 @@
       "button": {"type": "String", "example": "Star message"}
     }
   },
-  "emptyMessageListSearch": "No search results.",
-  "@emptyMessageListSearch": {
-    "description": "Placeholder for the 'Search' page when there are no messages."
+  "emptyMessageListSearchDefault": "No search results.",
+  "@emptyMessageListSearchDefault": {
+    "description": "Default placeholder for the 'Search' page when there are no messages."
   },
   "messageListGroupYouWithYourself": "Messages with yourself",
   "@messageListGroupYouWithYourself": {
