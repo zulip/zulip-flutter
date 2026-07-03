@@ -905,8 +905,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     assert(messages.isEmpty && contents.isEmpty);
     assert(oldestFetchedMessageId == null && newestFetchedMessageId == null);
 
-    if (narrow case SearchNarrow(keyword: '')) {
-      // The server would reject an empty keyword search; skip the request.
+    if (narrow is EmptySearchNarrow) {
       // TODO this seems like an awkward layer to handle this at --
       //   probably better if the UI code doesn't take it to this point.
       _haveOldest = true;
