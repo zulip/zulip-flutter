@@ -771,8 +771,7 @@ class _SearchBarState extends State<_SearchBar> {
     _handleSubmitted('');
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSearchField(BuildContext context) {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -782,28 +781,53 @@ class _SearchBarState extends State<_SearchBar> {
 
       // Servers as of 2025-07 seem to require straight quotes for the
       // "exact match"- style query. (N.B. the doc says this param is iOS-only.)
-      smartQuotesType: SmartQuotesType.disabled,
+      smartQuotesType: .disabled,
 
       autofocus: true,
       onSubmitted: _handleSubmitted,
       style: filledInputTextStyle(designVariables),
-      textInputAction: TextInputAction.search,
-      decoration: baseFilledInputDecoration(designVariables)
-        .copyWith(
-          hintText: zulipLocalizations.searchMessagesHintText,
-          prefixIcon: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 0, 8),
-            child: Icon(size: 24, ZulipIcons.search)),
-          prefixIconColor: designVariables.labelSearchPrompt,
-          prefixIconConstraints: BoxConstraints(),
-          suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.medium.surface),
-          suffixIcon: ZulipIconButton(
+      textInputAction: .search,
+      decoration: InputDecoration(
+        isDense: true,
+        contentPadding: .zero,
+        border: .none,
+        hintText: zulipLocalizations.searchMessagesHintText,
+        hintStyle: TextStyle(color: designVariables.labelSearchPrompt)));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: designVariables.bgSearchInput,
+        borderRadius: .circular(10)),
+      child: Row(children: [
+        Padding(
+          padding: const .fromSTEB(8, 9, 6, 9),
+          child: Icon(ZulipIcons.search,
+            size: 24, color: designVariables.labelSearchPrompt)),
+        Expanded(child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          child: _buildSearchField(context))),
+        ConstrainedBox(
+          constraints: BoxConstraints.tight(ZulipIconButtonSize.medium.surface),
+          child: ZulipIconButton(
             icon: ZulipIcons.remove,
             tooltip: zulipLocalizations.searchMessagesClearButtonTooltip,
             onPressed: _clearInput,
             size: .medium,
             backgroundWhenPressed: false,
-            intent: .neutral)));
+            intent: .neutral)),
+      ]));
   }
 }
 
