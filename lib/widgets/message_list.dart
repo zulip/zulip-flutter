@@ -1437,7 +1437,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
 
       case SearchNarrow():
         return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.emptyMessageListSearch);
+          header: zulipLocalizations.emptyMessageListSearchDefault);
     }
   }
 }
