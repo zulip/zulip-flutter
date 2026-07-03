@@ -1,4 +1,6 @@
 
+import 'package:collection/collection.dart';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -373,28 +375,30 @@ class StarredMessagesNarrow extends Narrow {
 
 /// A search narrow.
 ///
-/// [keyword] must have been trimmed with [String.trim].
+/// Use [filters] to pass the filters for a search. See the [ApiNarrowElement]
+/// subclasses for different filters.
+///
+/// An empty list means no filters, thus no search.
 class SearchNarrow extends Narrow {
-  SearchNarrow(this.keyword)
-    : assert(keyword.trim() == keyword);
+  SearchNarrow({required this.filters});
 
-  final String keyword;
+  final List<ApiNarrowElement> filters;
 
   @override
   bool? containsMessage(MessageBase message) => null;
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowSearch(keyword)];
+  ApiNarrow apiEncode() => filters;
 
   @override
-  String toString() => 'SearchNarrow($keyword)';
+  String toString() => 'SearchNarrow(${filters.map((e) => e.toJson()).toList()})';
 
   @override
   bool operator ==(Object other) {
     if (other is! SearchNarrow) return false;
-    return other.keyword == keyword;
+    return other.filters.equals(filters);
   }
 
   @override
-  int get hashCode => Object.hash('SearchNarrow', keyword);
+  int get hashCode => Object.hash('SearchNarrow', filters);
 }

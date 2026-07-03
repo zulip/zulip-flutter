@@ -103,7 +103,7 @@ class _HomePageState extends State<HomePage> {
             tooltip: ZulipLocalizations.of(context).searchMessagesPageTitle,
             onPressed: () => Navigator.push(context,
               MessageListPage.buildRoute(context: context,
-                narrow: SearchNarrow('')))),
+                narrow: SearchNarrow(filters: [])))),
         ];
       case .channels:
       case .directMessages:
@@ -642,7 +642,7 @@ class _SearchButton extends MenuButton {
   @override
   void onPressed(BuildContext context) {
     Navigator.of(context).push(MessageListPage.buildRoute(
-      context: context, narrow: SearchNarrow('')));
+      context: context, narrow: SearchNarrow(filters: [])));
   }
 }
 

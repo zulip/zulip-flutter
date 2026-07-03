@@ -3026,7 +3026,8 @@ void main() {
     doTest(narrow: TopicNarrow(channelId, eg.t(topic)), expected: false);
     doTest(narrow: StarredMessagesNarrow(),             expected: true);
     doTest(narrow: MentionsNarrow(),                    expected: true);
-    doTest(narrow: SearchNarrow('keyword'),             expected: true);
+    doTest(narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')]),
+                                                        expected: true);
   });
 
   test('showSender is maintained correctly', () => awaitFakeAsync((async) async {

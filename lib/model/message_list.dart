@@ -815,8 +815,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
 
-    if (narrow case SearchNarrow(keyword: '')) {
-      // The server would reject an empty keyword search; skip the request.
+    if (narrow case SearchNarrow(filters: [])) {
+      // The server would interpret this as the CombinedFeedNarrow request; skip.
       // TODO this seems like an awkward layer to handle this at --
       //   probably better if the UI code doesn't take it to this point.
       _haveOldest = true;

@@ -7,6 +7,7 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
+import '../api/model/narrow.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/database.dart';
@@ -490,7 +491,7 @@ abstract class _MessageListAppBar {
           tooltip: zulipLocalizations.searchMessagesPageTitle,
           onPressed: () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: SearchNarrow('')))));
+              narrow: SearchNarrow(filters: [])))));
       case MentionsNarrow():
       case StarredMessagesNarrow():
       case SearchNarrow():
@@ -752,8 +753,13 @@ class _SearchBar extends StatefulWidget {
 class _SearchBarState extends State<_SearchBar> {
   late TextEditingController _controller;
 
-  static SearchNarrow _valueToNarrow(String value) =>
-    SearchNarrow(value.trim());
+  static SearchNarrow _valueToNarrow(String value) {
+    final trimmed = value.trim();
+    return SearchNarrow(filters: [
+      // The server rejects an empty keyword search.
+      if (trimmed.isNotEmpty) ApiNarrowSearch(trimmed),
+    ]);
+  }
 
   @override
   void initState() {

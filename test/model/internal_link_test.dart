@@ -143,15 +143,28 @@ void main() {
     });
 
     test('SearchNarrow', () {
-      final store = eg.store();
-      check(narrowLink(store, SearchNarrow('keyword')))
-        .equals(store.realmUrl.resolve('#narrow/search/keyword'));
-      check(narrowLink(store, SearchNarrow('search keyword')))
-        .equals(store.realmUrl.resolve('#narrow/search/search.20keyword'));
-      check(narrowLink(store, SearchNarrow('chat.zulip.org')))
-        .equals(store.realmUrl.resolve('#narrow/search/chat.2Ezulip.2Eorg'));
-      check(narrowLink(store, SearchNarrow('français')))
-        .equals(store.realmUrl.resolve('#narrow/search/fran.C3.A7ais'));
+      void checkNarrow({
+        required List<ApiNarrowElement> filters,
+        required String expectedFragment,
+      }) {
+        assert(expectedFragment.startsWith('#'), 'wrong-looking expectedFragment');
+        final store = eg.store();
+        check(narrowLink(store, SearchNarrow(filters: filters)))
+          .equals(store.realmUrl.resolve(expectedFragment));
+      }
+
+      checkNarrow(
+        filters: [ApiNarrowSearch('keyword')],
+        expectedFragment: '#narrow/search/keyword');
+      checkNarrow(
+        filters: [ApiNarrowSearch('search keyword')],
+        expectedFragment: '#narrow/search/search.20keyword');
+      checkNarrow(
+        filters: [ApiNarrowSearch('chat.zulip.org')],
+        expectedFragment: '#narrow/search/chat.2Ezulip.2Eorg');
+      checkNarrow(
+        filters: [ApiNarrowSearch('français')],
+        expectedFragment: '#narrow/search/fran.C3.A7ais');
     });
 
     test('normalize links to always include a "/" after hostname', () {
