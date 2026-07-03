@@ -1876,7 +1876,7 @@ void main() {
 
         test('SearchNarrow gives error', () async {
           prepare();
-          final narrow = SearchNarrow('');
+          final narrow = SearchNarrow.empty();
           check(() => ChannelLinkAutocompleteView.init(store: store,
                         narrow: narrow, query: ChannelLinkAutocompleteQuery('')))
             .throws<AssertionError>();

@@ -1,3 +1,4 @@
+import 'dart:convert';
 
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
@@ -371,31 +372,92 @@ class StarredMessagesNarrow extends Narrow {
   int get hashCode => 'StarredMessagesNarrow'.hashCode;
 }
 
-/// A search narrow.
+/// A search narrow: the messages matching a set of search filters.
 ///
-/// [keyword] must have been trimmed with [String.trim].
-// TODO: support all the search filters, not just keyword
+/// See the [ApiNarrowElement] subclasses for the kinds of filters.
+/// [filters] is never empty; for a search with no filters,
+/// see [SearchNarrow.empty].
+///
+/// [filters] preserves the order it was given in,
+/// for encoding the narrow and for displaying it in the UI.
 class SearchNarrow extends Narrow {
-  SearchNarrow(this.keyword)
-    : assert(keyword.trim() == keyword);
+  SearchNarrow({required List<ApiNarrowElement> filters})
+    : assert(filters.isNotEmpty,
+        'For a search narrow with no filters, use SearchNarrow.empty.'),
+      filters = List.unmodifiable(filters);
 
-  final String keyword;
+  SearchNarrow._empty() : filters = const [];
+
+  /// A search narrow with no filters; see [EmptySearchNarrow].
+  factory SearchNarrow.empty() => EmptySearchNarrow();
+
+  /// The filters of this search, as an unmodifiable list.
+  final List<ApiNarrowElement> filters;
+
+  /// A string that uniquely identifies [filters].
+  ///
+  /// This is a JSON-encoded list with one `operator:operand` entry per filter,
+  /// prefixed with `-` if the filter is negated.
+  /// JSON-encoding the entries means a keyword containing spaces or commas
+  /// can't be mistaken for several filters.
+  late final String _key = jsonEncode(filters.map(_filterString).toList());
+
+  // This deliberately doesn't use [ApiNarrowElement.operator]: that getter
+  // asserts when called on an unresolved [ApiNarrowChannel],
+  // and the legacy vs. modern operator name says which server version we'd
+  // send the filter to, not which messages it selects.
+  static String _filterString(ApiNarrowElement filter) {
+    final negated = filter.negated ? '-' : '';
+    return switch (filter) {
+      ApiNarrowChannel(:final operand)   => '${negated}channel:$operand',
+      ApiNarrowTopic(:final operand)     => '${negated}topic:${operand.apiName}',
+      ApiNarrowDm(:final operand)        => '${negated}dm:$operand',
+      ApiNarrowSearch(:final operand)    => '${negated}search:$operand',
+      ApiNarrowIs(:final operand)        => '${negated}is:$operand',
+      ApiNarrowWith(:final operand)      => '${negated}with:$operand',
+      ApiNarrowMessageId(:final operand) => '${negated}id:$operand',
+    };
+  }
 
   @override
   bool? containsMessage(MessageBase message) => null;
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowSearch(keyword)];
+  ApiNarrow apiEncode() => filters;
 
+  /// For example:
+  ///
+  ///   SearchNarrow(filters: [ApiNarrowChannel(10), ApiNarrowIs(.followed), ApiNarrowSearch('keyword')])
+  ///     -> SearchNarrow(filters: ["channel:10","is:followed","search:keyword"])
+  ///
+  ///   SearchNarrow(filters: [ApiNarrowDm([20, 30]), ApiNarrowIs(.mentioned), ApiNarrowIs(.unread, negated: true)])
+  ///     -> SearchNarrow(filters: ["dm:[20, 30]","is:mentioned","-is:unread"])
   @override
-  String toString() => 'SearchNarrow($keyword)';
+  String toString() => 'SearchNarrow(filters: $_key)';
 
   @override
   bool operator ==(Object other) {
     if (other is! SearchNarrow) return false;
-    return other.keyword == keyword;
+    return other._key == _key;
   }
 
   @override
-  int get hashCode => Object.hash('SearchNarrow', keyword);
+  int get hashCode => Object.hash('SearchNarrow', _key);
+}
+
+/// A [SearchNarrow] with no filters,
+/// as when the user hasn't entered a search yet, or has cleared it.
+///
+/// This narrow selects no messages, and must not be sent to the server:
+/// the server would interpret an empty narrow as the combined feed.
+/// So [apiEncode] throws; see [MessageListView.fetchInitial].
+class EmptySearchNarrow extends SearchNarrow {
+  EmptySearchNarrow() : super._empty();
+
+  @override
+  ApiNarrow apiEncode() =>
+    throw UnsupportedError('EmptySearchNarrow has no API encoding.');
+
+  @override
+  String toString() => 'EmptySearchNarrow()';
 }

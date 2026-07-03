@@ -168,12 +168,17 @@ class ApiNarrowDm extends ApiNarrowElement {
 }
 
 /// An [ApiNarrowElement] with the 'search' operator.
+///
+/// The search string, i.e. [operand], must not be empty
+/// or consist only of whitespace;
+/// the server rejects such a search string with an error.
 class ApiNarrowSearch extends ApiNarrowElement {
   @override String get operator => 'search';
 
   @override final String operand;
 
-  ApiNarrowSearch(this.operand, {super.negated});
+  ApiNarrowSearch(this.operand, {super.negated})
+    : assert(operand.trim().isNotEmpty);
 
   factory ApiNarrowSearch.fromJson(Map<String, dynamic> json) => ApiNarrowSearch(
     json['operand'] as String,
