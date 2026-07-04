@@ -44,7 +44,7 @@ InputDecoration baseFilledInputDecoration(DesignVariables designVariables) {
     errorStyle: TextStyle(color: designVariables.contextMenuItemTextDanger),
     isDense: true,
     contentPadding: EdgeInsets.symmetric(
-      vertical: 8,
+      vertical: 7,
       // Subtracting 4 pixels to account for the internal
       // 4-pixel horizontal padding (_kInputExtraPadding in InputDecorator).
       horizontal: 10 - 4,
@@ -71,9 +71,9 @@ InputDecoration baseFilledInputDecoration(DesignVariables designVariables) {
 /// This is intended to be paired with [baseFilledInputDecoration].
 TextStyle filledInputTextStyle(DesignVariables designVariables) => TextStyle(
   // Font size and height from
-  //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10806-25228&m=dev
+  //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10806-61289&t=z5wi63tpgKmVIMuo-0
   fontSize: 19,
-  height: 26 / 19,
+  height: 28 / 19,
 
   // https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=10867-99284&m=dev
   color: designVariables.textInput,
