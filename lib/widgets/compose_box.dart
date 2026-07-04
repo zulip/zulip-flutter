@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -1202,8 +1203,27 @@ class _AttachMediaButton extends _AttachUploadsButton {
 
   @override
   Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      // On iOS, this gives the native media picker. Switching to
+      // `image_picker` would be a regression: it re-encodes picked images
+      // to JPEG instead of giving the original files. See:
+      //   https://github.com/zulip/zulip-flutter/pull/2331#pullrequestreview-4604793479
+      return _getFilePickerFiles(context, FileType.media);
+    }
+
     // TODO(#114): This doesn't give quite the right UI on Android.
-    return _getFilePickerFiles(context, FileType.media);
+    final List<XFile> results;
+    try {
+      results = await ZulipBinding.instance.pickMultipleMedia(
+        requestFullMetadata: false);
+    } catch (e) {
+      if (!context.mounted) return [];
+      showErrorDialog(context: context,
+        title: ZulipLocalizations.of(context).errorDialogTitle,
+        message: e.toString());
+      return [];
+    }
+    return Future.wait(results.map(_fileFromXFile));
   }
 }
 

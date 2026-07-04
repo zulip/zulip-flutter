@@ -1219,7 +1219,103 @@ void main() {
     }
 
     group('attach from media library', () {
-      testWidgets('success', (tester) async {
+      group('Android (uses image_picker)', () {
+        testWidgets('success', (tester) async {
+          await prepare(tester);
+          checkAppearsLoading(tester, false);
+
+          testBinding.pickMultipleMediaResult = [XFile.fromData(
+            // TODO test inference of MIME type when it's missing here
+            mimeType: 'image/jpeg',
+            utf8.encode('asdf'),
+            name: 'image.jpg',
+            length: 12345,
+            path: '/data/user/0/com.zulipmobile/cache/image.jpg',
+          )];
+          connection.prepare(delay: const Duration(seconds: 1), json:
+            UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+          await tester.tap(find.byIcon(ZulipIcons.image));
+          await tester.pump();
+          final call = testBinding.takePickMultipleMediaCalls().single;
+          check(call.requestFullMetadata).equals(false);
+
+          checkNoDialog(tester);
+
+          check(controller!.content.text)
+            .equals('see image: [Uploading image.jpg…]()\n\n');
+          // (the request is checked more thoroughly in API tests)
+          check(connection.lastRequest!).isA<http.MultipartRequest>()
+            ..method.equals('POST')
+            ..files.single.which((it) => it
+              ..field.equals('file')
+              ..length.equals(12345)
+              ..filename.equals('image.jpg')
+              ..contentType.asString.equals('image/jpeg')
+              ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+                .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
+            );
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(seconds: 1));
+          check(controller!.content.text)
+            .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          checkAppearsLoading(tester, false);
+        }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+
+        testWidgets('multiple files', (tester) async {
+          await prepare(tester);
+          checkAppearsLoading(tester, false);
+
+          testBinding.pickMultipleMediaResult = [
+            XFile.fromData(
+              mimeType: 'image/jpeg',
+              utf8.encode('asdf'),
+              name: 'image.jpg',
+              length: 12345,
+              path: '/data/user/0/com.zulipmobile/cache/image.jpg'),
+            XFile.fromData(
+              mimeType: 'image/gif',
+              utf8.encode('asdf'),
+              name: 'test.gif',
+              length: 12345,
+              path: '/data/user/0/com.zulipmobile/cache/test.gif'),
+          ];
+          connection.prepare(delay: const Duration(seconds: 1), json:
+            UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+          connection.prepare(delay: const Duration(seconds: 1), json:
+            UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif').toJson());
+
+          await tester.tap(find.byIcon(ZulipIcons.image));
+          await tester.pump();
+          final call = testBinding.takePickMultipleMediaCalls().single;
+          check(call.requestFullMetadata).equals(false);
+
+          checkNoDialog(tester);
+
+          check(controller!.content.text).equals(
+            'see image: [Uploading image.jpg…]()\n\n[Uploading test.gif…]()\n\n');
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(seconds: 1));
+          check(controller!.content.text).equals(
+            'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[Uploading test.gif…]()\n\n');
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(seconds: 1));
+          check(controller!.content.text).equals(
+            'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[test.gif](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif)\n\n');
+          checkAppearsLoading(tester, false);
+        }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+      },
+      // These tests fail on Windows because [XFile.name] splits on
+      // [Platform.pathSeparator], corresponding to the actual host platform
+      // the test is running on, instead of the path separator for the
+      // target platform the test is simulating.
+      // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+      skip: Platform.isWindows);
+
+      testWidgets('iOS (uses file_picker): success', (tester) async {
         await prepare(tester);
         checkAppearsLoading(tester, false);
 
@@ -1261,7 +1357,7 @@ void main() {
         check(controller!.content.text)
           .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
-      });
+      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
       // TODO test what happens when selecting/uploading fails
     });
@@ -1313,10 +1409,6 @@ void main() {
 
       // TODO test what happens when capturing/uploading fails
     },
-    // This test fails on Windows because [XFile.name] splits on
-    // [Platform.pathSeparator], corresponding to the actual host platform
-    // the test is running on, instead of the path separator for the
-    // target platform the test is simulating.
     // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
     skip: Platform.isWindows);
 
@@ -1338,7 +1430,7 @@ void main() {
       )]);
       connection.prepare(json: UploadFileResult(url:
         '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt').toJson());
-      await tester.tap(find.byIcon(ZulipIcons.image));
+      await tester.tap(find.byIcon(ZulipIcons.attach_file));
       await tester.pump();
       check(controller!.content.text)
         .equals('[Uploading 한국어 파일.txt…]()\n\n');
