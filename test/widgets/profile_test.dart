@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/basic.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -111,6 +112,25 @@ void main() {
     check(pushedRoutes).last.isA<WidgetRoute>().page
       .isA<MessageListPage>()
       .initNarrow.equals(DmNarrow.withUser(1, selfUserId: eg.selfUser.userId));
+  });
+
+  testWidgets('page builds; "View messages sent" links to correct narrow', (tester) async {
+    final pushedRoutes = <Route<dynamic>>[];
+    final testNavObserver = TestNavigatorObserver()
+      ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+
+    await setupPage(tester,
+      users: [eg.user(userId: 1)],
+      pageUserId: 1,
+      navigatorObserver: testNavObserver,
+    );
+
+    final targetWidget = find.byIcon(ZulipIcons.message_square);
+    await tester.ensureVisible(targetWidget);
+    await tester.tap(targetWidget);
+    check(pushedRoutes).last.isA<WidgetRoute>().page
+      .isA<MessageListPage>()
+      .initNarrow.equals(SearchNarrow(filters: [ApiNarrowSender(1)]));
   });
 
   testWidgets('page builds; ensure long name does not overflow', (tester) async {

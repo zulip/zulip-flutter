@@ -240,6 +240,15 @@ class ApiNarrowSearch extends ApiNarrowElement {
   );
 }
 
+/// An [ApiNarrowElement] with the 'sender' operator.
+class ApiNarrowSender extends ApiNarrowElement {
+  @override String get operator => 'sender';
+
+  @override final int operand;
+
+  ApiNarrowSender(this.operand, {super.negated});
+}
+
 class ApiNarrowIs extends ApiNarrowElement {
   @override String get operator => 'is';
 

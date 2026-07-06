@@ -8,6 +8,7 @@ import 'emoji.dart';
 import 'icons.dart';
 import 'image.dart';
 import 'store.dart';
+import 'text.dart';
 import 'theme.dart';
 
 /// A rounded square with size [size] showing a user's avatar.
@@ -416,6 +417,52 @@ class UserChip extends StatelessWidget {
                   color: designVariables.labelMenuButton)))),
           UserStatusEmoji(userId: userId, size: 16,
             padding: EdgeInsetsDirectional.only(end: 4)),
+        ])));
+  }
+}
+
+class SearchPillSender extends StatelessWidget {
+  const SearchPillSender({
+    super.key,
+    required this.senderId,
+    required this.onTap,
+  });
+
+  final int senderId;
+  final void Function() onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    final clampedTextScaler = MediaQuery.textScalerOf(context)
+      .clamp(maxScaleFactor: 1.5);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const .fromSTEB(3, 3, 6, 3),
+        decoration: BoxDecoration(
+          color: designVariables.bgMenuButtonSelected,
+          borderRadius: .circular(5)),
+        child: Row(spacing: 5, mainAxisSize: .min, children: [
+          Avatar(userId: senderId, size: clampedTextScaler.scale(22), borderRadius: 3),
+          Text('sender:',
+            textScaler: clampedTextScaler,
+            style: TextStyle(
+              fontSize: 16,
+              height: 16 / 16,
+              color: designVariables.searchPillKeyText,
+            ).merge(weightVariableTextStyle(context, wght: 500))),
+          Flexible(child: Text(store.userDisplayName(senderId),
+            textScaler: clampedTextScaler,
+            maxLines: 1,
+            overflow: .ellipsis,
+            style: TextStyle(
+              fontSize: 16,
+              height: 16 / 16,
+              color: designVariables.labelMenuButton))),
+          UserStatusEmoji(userId: senderId, size: 16),
         ])));
   }
 }

@@ -82,6 +82,9 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'שלח הודעה ישירה';
 
   @override
+  String get profileButtonViewMessagesSent => 'View messages sent';
+
+  @override
   String get errorCouldNotShowUserProfile => 'לא ניתן להציג פרופיל משתמש.';
 
   @override
@@ -724,6 +727,15 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
 
   @override
   String get emptyMessageListSearchDefault => 'No search results.';
+
+  @override
+  String emptyMessageListSearchFromSender(String sender) {
+    return 'You haven\'t received any messages sent by $sender yet.';
+  }
+
+  @override
+  String get emptyMessageListSearchFromUnknownSender =>
+      'This user doesn\'t exist, or you are not allowed to view any of their messages.';
 
   @override
   String get messageListGroupYouWithYourself => 'Messages with yourself';

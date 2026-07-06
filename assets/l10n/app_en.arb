@@ -88,6 +88,10 @@
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
+  "profileButtonViewMessagesSent": "View messages sent",
+  "@profileButtonViewMessagesSent": {
+    "description": "Label for button in profile screen to navigate to the messages sent by the shown user that the self-user can access."
+  },
   "errorCouldNotShowUserProfile": "Could not show user profile.",
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
@@ -873,6 +877,17 @@
   "emptyMessageListSearchDefault": "No search results.",
   "@emptyMessageListSearchDefault": {
     "description": "Default placeholder for the 'Search' page when there are no messages."
+  },
+  "emptyMessageListSearchFromSender": "You haven't received any messages sent by {sender} yet.",
+  "@emptyMessageListSearchFromSender": {
+    "description": "Placeholder for the 'Search' page when there are no messages from a sender.",
+    "placeholders": {
+      "sender": {"type": "String", "example": "Sayed Mahmood"}
+    }
+  },
+  "emptyMessageListSearchFromUnknownSender": "This user doesn't exist, or you are not allowed to view any of their messages.",
+  "@emptyMessageListSearchFromUnknownSender": {
+    "description": "Placeholder for the 'Search' page when the sender doesn't exist or the self-user isn't allowed to view any of the sender's messages."
   },
   "messageListGroupYouWithYourself": "Messages with yourself",
   "@messageListGroupYouWithYourself": {

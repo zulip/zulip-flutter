@@ -143,12 +143,15 @@ void main() {
     });
 
     test('SearchNarrow', () {
+      final sender = eg.user(userId: 10, fullName: 'José Lima');
+
       void checkNarrow({
         required List<ApiNarrowElement> filters,
         required String expectedFragment,
       }) {
         assert(expectedFragment.startsWith('#'), 'wrong-looking expectedFragment');
-        final store = eg.store();
+        final store = eg.store(initialSnapshot: eg.initialSnapshot(
+          realmUsers: [eg.selfUser, sender]));
         check(narrowLink(store, SearchNarrow(filters: filters)))
           .equals(store.realmUrl.resolve(expectedFragment));
       }
@@ -165,6 +168,12 @@ void main() {
       checkNarrow(
         filters: [ApiNarrowSearch('français')],
         expectedFragment: '#narrow/search/fran.C3.A7ais');
+      checkNarrow(
+        filters: [ApiNarrowSender(sender.userId), ApiNarrowSearch('assert()')],
+        expectedFragment: '#narrow/sender/10-Jos.C3.A9-Lima/search/assert.28.29');
+      checkNarrow(
+        filters: [ApiNarrowSender(1000), ApiNarrowSearch('mobile-team')],
+        expectedFragment: '#narrow/sender/1000-unknown/search/mobile-team');
     });
 
     test('normalize links to always include a "/" after hostname', () {
