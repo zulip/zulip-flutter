@@ -11,10 +11,12 @@ import '../api/model/model.dart';
 import '../api/model/permission.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/content.dart';
+import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import 'actions.dart';
 import 'code_block.dart';
 import 'dialog.dart';
+import 'emoji.dart';
 import 'icons.dart';
 import 'image.dart';
 import 'inset_shadow.dart';
@@ -1145,12 +1147,33 @@ class _InlineContentBuilder {
           child: Mention(ambientTextStyle: _resolveStyleStack(), node: node));
 
       case UnicodeEmojiNode():
-        return TextSpan(text: node.emojiUnicode, recognizer: _recognizer,
-          style: ContentTheme.of(_context!).textStyleEmoji);
+        final store = PerAccountStoreWidget.of(_context!);
+        final emojiName = store.getUnicodeEmojiNameByCode(node.emojiCode);
+
+        return emojiName == null
+          ? WidgetSpan(alignment: PlaceholderAlignment.middle, child: const SizedBox.shrink())
+          : EmojiWidget.asWidgetSpan(
+              emojiDisplay: UnicodeEmojiDisplay(
+                emojiName: emojiName,
+                emojiUnicode: node.emojiUnicode,
+              ).resolve(store.userSettings),
+              fontSize: widget.style.fontSize!,
+              textScaler: MediaQuery.textScalerOf(_context!));
 
       case ImageEmojiNode():
-        return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: MessageImageEmoji(node: node));
+        final store = PerAccountStoreWidget.of(_context!);
+        final resolvedUrl = store.tryResolveUrl(node.src);
+        final imageEmojiDisplay = store.imageEmojiDisplayForContent(
+          src: node.src,
+          emojiName: node.emojiName
+        );
+
+        return resolvedUrl == null //TODO(log)
+          ? WidgetSpan(alignment: PlaceholderAlignment.middle, child: const SizedBox.shrink())
+          : EmojiWidget.asWidgetSpan(
+              emojiDisplay: imageEmojiDisplay.resolve(store.userSettings),
+              fontSize: widget.style.fontSize!,
+              textScaler: MediaQuery.textScalerOf(_context!));
 
       case InlineImageNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
@@ -1322,37 +1345,6 @@ class Mention extends StatelessWidget {
 //     borderRadius: BorderRadius.all(Radius.circular(3))));
 }
 
-class MessageImageEmoji extends StatelessWidget {
-  const MessageImageEmoji({super.key, required this.node});
-
-  final ImageEmojiNode node;
-
-  @override
-  Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
-    final resolvedSrc = store.tryResolveUrl(node.src);
-
-    const size = 20.0;
-
-    return Stack(
-      alignment: Alignment.center,
-      clipBehavior: Clip.none,
-      children: [
-        const SizedBox(width: size, height: kBaseFontSize),
-        Positioned(
-          // Web's css makes this seem like it should be -0.5, but that looks
-          // too low.
-          top: -1.5,
-          child: resolvedSrc == null ? const SizedBox.shrink() // TODO(log)
-            : RealmContentNetworkImage(
-                resolvedSrc,
-                filterQuality: FilterQuality.medium,
-                width: size,
-                height: size,
-              )),
-      ]);
-  }
-}
 
 class InlineImage extends StatelessWidget {
   const InlineImage({

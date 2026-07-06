@@ -1142,9 +1142,14 @@ sealed class EmojiNode extends InlineContentNode {
 }
 
 class UnicodeEmojiNode extends EmojiNode {
-  const UnicodeEmojiNode({super.debugHtmlNode, required this.emojiUnicode});
+  const UnicodeEmojiNode({
+    super.debugHtmlNode,
+    required this.emojiUnicode,
+    required this.emojiCode,
+  });
 
   final String emojiUnicode;
+  final String emojiCode;
 
   @override
   bool operator ==(Object other) {
@@ -1158,14 +1163,23 @@ class UnicodeEmojiNode extends EmojiNode {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(StringProperty('emojiUnicode', emojiUnicode));
+    properties.add(StringProperty('emojiCode', emojiCode));
   }
 }
 
 class ImageEmojiNode extends EmojiNode {
-  const ImageEmojiNode({super.debugHtmlNode, required this.src, required this.alt });
+  const ImageEmojiNode({
+    super.debugHtmlNode,
+    required this.src,
+    required this.alt,
+    required this.emojiName,
+  });
 
   final String src;
   final String alt;
+
+  /// The emoji's name, as in [Reaction.emojiName].
+  final String emojiName;
 
   @override
   bool operator ==(Object other) {
@@ -1180,6 +1194,7 @@ class ImageEmojiNode extends EmojiNode {
     super.debugFillProperties(properties);
     properties.add(StringProperty('alt', alt));
     properties.add(StringProperty('src', src));
+    properties.add(StringProperty('emojiName', emojiName));
   }
 }
 
@@ -1487,16 +1502,27 @@ class _ZulipInlineContentParser {
         .group(1)!;
       final unicode = tryParseEmojiCodeToUnicode(emojiCode);
       if (unicode == null) return unimplemented();
-      return UnicodeEmojiNode(emojiUnicode: unicode, debugHtmlNode: debugHtmlNode);
+      return UnicodeEmojiNode(
+        emojiUnicode: unicode,
+        debugHtmlNode: debugHtmlNode,
+        emojiCode: emojiCode,
+      );
     }
 
     if (localName == 'img') {
       if (className == 'emoji') {
         final alt = element.attributes['alt'];
         if (alt == null) return unimplemented();
+        final emojiName = element.attributes['title'];
+        if (emojiName == null) return unimplemented();
         final src = element.attributes['src'];
         if (src == null) return unimplemented();
-        return ImageEmojiNode(src: src, alt: alt, debugHtmlNode: debugHtmlNode);
+        return ImageEmojiNode(
+          src: src,
+          alt: alt,
+          emojiName: emojiName,
+          debugHtmlNode: debugHtmlNode,
+        );
       }
 
       if (className == 'inline-image') {

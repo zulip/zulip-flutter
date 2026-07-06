@@ -116,6 +116,26 @@ final class EmojiCandidate {
 
 /// The portion of [PerAccountStore] describing what emoji exist.
 mixin EmojiStore {
+  /// An [EmojiDisplay] for an image-emoji node in Zulip message content.
+  ///
+  /// An image-emoji node in Zulip message content doesn't have an "emoji code",
+  /// which we'd normally use for lookups into [allRealmEmoji].
+  /// To work around -- in particular to get [RealmEmojiItem.stillUrl]
+  /// in order to support the device animation settings --
+  /// this function looks for [src]
+  /// in an index of [allRealmEmoji] by [RealmEmojiItem.sourceUrl].
+  ///
+  /// Returns an [ImageEmojiDisplay],
+  /// including [ImageEmojiDisplay.resolvedStillUrl] if one was found,
+  /// and falls back to [TextEmojiDisplay]
+  /// if [src] or the still URL fails parsing.
+  // TODO(server) maybe servers can start including the emoji-code in the HTML?
+  //   Discussion: https://chat.zulip.org/#narrow/channel/378-api-design/topic/Image-emoji.20IDs.20in.20message.20content/near/2431748
+  EmojiDisplay imageEmojiDisplayForContent({
+    required String src,
+    required String emojiName,
+  });
+
   /// An [EmojiDisplay] for the specified emoji.
   ///
   /// Use [EmojiDisplay.resolve] on the result to apply the user's [Emojiset]
@@ -151,6 +171,14 @@ mixin ProxyEmojiStore on EmojiStore {
   EmojiStore get emojiStore;
 
   @override
+  EmojiDisplay imageEmojiDisplayForContent({
+    required String src,
+    required String emojiName,
+  }) {
+    return emojiStore.imageEmojiDisplayForContent(src: src, emojiName: emojiName);
+  }
+
+  @override
   EmojiDisplay emojiDisplayFor({
     required ReactionType emojiType,
     required String emojiCode,
@@ -183,7 +211,8 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   EmojiStoreImpl({
     required super.core,
     required this.allRealmEmoji,
-  }) : _serverEmojiData = null; // TODO(#974) maybe start from a hard-coded baseline
+  }) : _serverEmojiData = null, // TODO(#974) maybe start from a hard-coded baseline
+       _imageEmojiCodesBySourceUrl = null;
 
   /// The realm's custom emoji, indexed by their [RealmEmojiItem.emojiCode],
   /// including deactivated emoji not available for new uses.
@@ -201,6 +230,25 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
 
   /// The realm-relative URL of the unique "Zulip extra emoji", :zulip:.
   static const kZulipEmojiUrl = '/static/generated/emoji/images/emoji/unicode/zulip.png';
+
+  /// A map from [RealmEmojiItem.sourceUrl] to [RealmEmojiItem.emojiCode].
+  ///
+  /// Computed lazily, and invalidated on [RealmEmojiUpdateEvent].
+  Map<String, String>? _imageEmojiCodesBySourceUrl;
+
+  @override
+  EmojiDisplay imageEmojiDisplayForContent({
+    required String src,
+    required String emojiName,
+  }) {
+    _imageEmojiCodesBySourceUrl
+      ??= allRealmEmoji.map((key, value) => MapEntry(value.sourceUrl, key));
+    final emojiCode = _imageEmojiCodesBySourceUrl![src];
+    final item = emojiCode == null ? null : allRealmEmoji[emojiCode];
+
+    return _tryImageEmojiDisplay(
+      sourceUrl: src, stillUrl: item?.stillUrl, emojiName: emojiName);
+  }
 
   @override
   EmojiDisplay emojiDisplayFor({
@@ -435,6 +483,7 @@ class EmojiStoreImpl extends PerAccountStoreBase with EmojiStore {
   void handleRealmEmojiUpdateEvent(RealmEmojiUpdateEvent event) {
     allRealmEmoji = event.realmEmoji;
     _allEmojiCandidates = null;
+    _imageEmojiCodesBySourceUrl = null;
   }
 }
 
