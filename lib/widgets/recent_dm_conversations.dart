@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vector_graphics/vector_graphics.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
@@ -108,8 +109,29 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
       children: [
         if (sorted.isEmpty)
           PageBodyEmptyContentPlaceholder(
+            illustration: VectorGraphic(
+              loader: const AssetBytesLoader(
+                'assets/images/empty-dm.svg.vec',
+              ),
+              width: 150,
+              height: 150,
+              colorFilter: ColorFilter.mode(
+                DesignVariables.of(context).labelSearchPrompt.withValues(alpha: 0.8),
+                BlendMode.srcIn,
+              )),
             header: zulipLocalizations.recentDmConversationsEmptyPlaceholderHeader,
-            message: zulipLocalizations.recentDmConversationsEmptyPlaceholderMessage)
+            message: zulipLocalizations.recentDmConversationsEmptyPlaceholderMessage,
+            trailing: VectorGraphic(
+              loader: const AssetBytesLoader(
+                'assets/images/dm-arrow.svg.vec',
+              ),
+              width: 150,
+              height: 150,
+              colorFilter: ColorFilter.mode(
+                DesignVariables.of(context).labelSearchPrompt.withValues(alpha: 0.8),
+                BlendMode.srcIn,
+              )),
+          )
         else
           SafeArea(
             // Don't pad the bottom here; we want the list content to do that.
