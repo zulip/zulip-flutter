@@ -1158,6 +1158,10 @@ class _InlineContentBuilder {
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: MessageImageEmoji(node: node));
 
+      case InlineImageNodeList():
+        return WidgetSpan(alignment: PlaceholderAlignment.middle,
+          child: MessageImageGallery(images: node.inlineImages));
+
       case InlineImageNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
           child: InlineImage(node: node, ambientTextStyle: widget.style));
