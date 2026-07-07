@@ -631,6 +631,8 @@ class MessageImagePreviewList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
+      spacing: 5,
+      runSpacing: 5,
       children: node.imagePreviews.map((node) => MessageImagePreview(node: node)).toList());
   }
 }
@@ -642,10 +644,12 @@ class MessageImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The gray background and border are present only for gallery items on web, not
+    // for standalone inline images; see web/styles/rendered_markdown.css.
     return ColoredBox(
       color: ContentTheme.of(context).colorMessageMediaContainerBackground,
       child: Padding(
-        padding: const EdgeInsets.all(1),
+        padding: const EdgeInsets.all(3),
         child: _Image(node: node,
           ambientTextStyle: DefaultTextStyle.of(context).style)));
   }
