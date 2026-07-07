@@ -614,6 +614,21 @@ void main() {
       // Multi-code-point emoji work fine.
       check(matchOfLiteral('🏳‍🌈', aka: '\u{1f3f3}\u{200d}\u{1f308}',
         '1f3f3-200d-1f308')).exact;
+
+      // Regression tests for: https://github.com/zulip/zulip-flutter/issues/2358
+      // The platform's native emoji picker reportedly can append a space;
+      // the query still matches, thanks to trimming.
+      check(matchOfLiteral('🙂 ', aka: '\u{1f642} ', '1f642')).exact;
+      // Combining marks that are part of the emoji are preserved, unlike in
+      // the name-matching adjustment; e.g. the keypad emoji's enclosing keycap
+      // (U+20E3).  Only the presentation selector (U+FE0F) is stripped.
+      check(matchOfLiteral('#️⃣', aka: '\u{23}\u{fe0f}\u{20e3}',
+        '0023-20e3')).exact;
+      // Symbol emoji that compatibility-decompose to ASCII are matched by
+      // their glyph, not mangled as the name-matching adjustment would (its
+      // NFKD pass folds U+2139 to "i"); e.g. :information_source:.
+      check(matchOfLiteral('ℹ️', aka: '\u{2139}\u{fe0f}', '2139')).exact;
+
       // Only exact matches count; no partial matches.
       check(matchOfLiteral('🏳', aka: '\u{1f3f3}',
         '1f3f3-200d-1f308')).none;

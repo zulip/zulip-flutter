@@ -502,7 +502,8 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
 
 class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   EmojiAutocompleteQuery(super.raw)
-    : _adjusted = _adjustQuery(raw);
+    : _adjusted = _adjustQuery(raw),
+      _adjustedForExactUnicode = _adjustQueryForExactUnicode(raw);
 
   /// The query string as adjusted for comparing to emoji names,
   /// via [_adjustQuery].
@@ -513,10 +514,30 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   /// Useful for finding word-aligned matches in an emoji name.
   late final String _sepAdjusted = _separator + _adjusted;
 
+  /// The query string as adjusted for comparing to a Unicode emoji's literal
+  /// value, as in [UnicodeEmojiDisplay.emojiUnicode].
+  ///
+  /// The platform's native emoji picker reportedly sometimes adds a space
+  /// (#2358), so this has been passed through [String.trim].
+  ///
+  /// The value we compare against comes from an emoji code (see
+  /// [ServerEmojiData.codeToNames]), which is "unqualified": it omits the
+  /// emoji-presentation variation selector (U+FE0F).  The native picker can
+  /// instead produce the "qualified" form, with that selector.  So this has
+  /// also had that selector stripped, to match.
+  final String _adjustedForExactUnicode;
+
   static const _separator = '_';
 
   static String _adjustQuery(String raw) =>
     AutocompleteQuery.lowercaseAndStripDiacritics(raw.replaceAll(' ', '_'));
+
+  // Behavior differences that web should probably fix, TODO(web):
+  //  * Web compares the literal-glyph query against the emoji's Unicode value
+  //    without trimming spaces or stripping U+FE0F (see get_emoji_matcher),
+  //    so a space-padded or qualified glyph fails to match there.
+  static String _adjustQueryForExactUnicode(String raw) =>
+    raw.trim().replaceAll('\u{fe0f}', '');
 
   @override
   EmojiAutocompleteView initViewModel({
@@ -541,7 +562,7 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
     if (_adjusted == '') return EmojiMatchQuality.prefix;
 
     if (candidate.emojiDisplay case UnicodeEmojiDisplay(:var emojiUnicode)) {
-      if (_adjusted == emojiUnicode) {
+      if (_adjustedForExactUnicode == emojiUnicode) {
         return EmojiMatchQuality.exact;
       }
     }
