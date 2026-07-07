@@ -624,16 +624,23 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
 }
 
 class MessageImageGallery extends StatelessWidget {
-  const MessageImageGallery({super.key, required this.images});
+  const MessageImageGallery({
+    super.key,
+    required this.images,
+    this.padding = EdgeInsets.zero,
+  });
 
   final List<ImageNode> images;
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 5,
-      runSpacing: 5,
-      children: images.map((node) => MessageImageGalleryItem(node: node)).toList());
+    return Padding(
+      padding: padding,
+      child: Wrap(
+        spacing: 5,
+        runSpacing: 5,
+        children: images.map((node) => MessageImageGalleryItem(node: node)).toList()));
   }
 }
 
@@ -1160,7 +1167,12 @@ class _InlineContentBuilder {
 
       case InlineImageNodeList():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
-          child: MessageImageGallery(images: node.inlineImages));
+          child: MessageImageGallery(
+            images: node.inlineImages,
+            // Half of [Paragraph]'s vertical spacing, mirroring web, which halves
+            // its inter-element space for the same case; see
+            // `p .message-thumbnail-gallery` in web/styles/rendered_markdown.css.
+            padding: const EdgeInsets.symmetric(vertical: 2)));
 
       case InlineImageNode():
         return WidgetSpan(alignment: PlaceholderAlignment.middle,
