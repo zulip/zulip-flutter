@@ -501,12 +501,8 @@ class EmojiAutocompleteView extends AutocompleteView<EmojiAutocompleteQuery, Emo
 }
 
 class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
-  factory EmojiAutocompleteQuery(String raw)
-    => EmojiAutocompleteQuery._(raw, _adjustQuery(raw));
-
-  EmojiAutocompleteQuery._(super.raw, String adjusted)
-    : _adjusted = adjusted,
-      _sepAdjusted = _separator + adjusted;
+  EmojiAutocompleteQuery(super.raw)
+    : _adjusted = _adjustQuery(raw);
 
   /// The query string as adjusted for comparing to emoji names,
   /// via [_adjustQuery].
@@ -515,7 +511,7 @@ class EmojiAutocompleteQuery extends ComposeAutocompleteQuery {
   /// The concatenation of [_separator] with [_adjusted].
   ///
   /// Useful for finding word-aligned matches in an emoji name.
-  final String _sepAdjusted;
+  late final String _sepAdjusted = _separator + _adjusted;
 
   static const _separator = '_';
 
