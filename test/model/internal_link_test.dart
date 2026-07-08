@@ -142,6 +142,18 @@ void main() {
         '#narrow/pm-with/1,2-pm/near/12345');
     });
 
+    test('KeywordSearchNarrow', () {
+      final store = eg.store();
+      check(narrowLink(store, KeywordSearchNarrow('keyword')))
+        .equals(store.realmUrl.resolve('#narrow/search/keyword'));
+      check(narrowLink(store, KeywordSearchNarrow('search keyword')))
+        .equals(store.realmUrl.resolve('#narrow/search/search.20keyword'));
+      check(narrowLink(store, KeywordSearchNarrow('chat.zulip.org')))
+        .equals(store.realmUrl.resolve('#narrow/search/chat.2Ezulip.2Eorg'));
+      check(narrowLink(store, KeywordSearchNarrow('français')))
+        .equals(store.realmUrl.resolve('#narrow/search/fran.C3.A7ais'));
+    });
+
     test('normalize links to always include a "/" after hostname', () {
       String narrowLinkFor({required String realmUrl}) {
         final store = eg.store(

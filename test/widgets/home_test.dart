@@ -393,6 +393,18 @@ void main () {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('_SearchButton', (tester) async {
+      await prepare(tester);
+      await tapOpenMenuAndAwait(tester);
+
+      final findSearchButton = find.byWidgetPredicate((widget) =>
+        widget is MenuButton && widget.icon == ZulipIcons.search);
+      await tapButtonAndAwaitTransition(tester, findSearchButton);
+
+      check(find.byType(MessageListPage)).findsOne();
+      check(find.text('No search results.')).findsOne();
+    });
+
     testWidgets('_StarredMessagesButton', (tester) async {
       prepareBoringImageHttpClient();
 
