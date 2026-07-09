@@ -725,10 +725,11 @@ class MessageMediaContainer extends StatelessWidget {
   final Widget? child;
 
   /// The container's size, in logical pixels.
-  static const size = Size(150, 100);
+  static const baseSize = Size(150, 100);
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     return GestureDetector(
       onTap: onTap,
       child: UnconstrainedBox(
@@ -742,7 +743,7 @@ class MessageMediaContainer extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(1),
               child: SizedBox.fromSize(
-                size: size,
+                size: baseSize * store.mediaPreviewSizeFactor,
                 child: child))))));
   }
 }
@@ -1526,17 +1527,18 @@ class _Image extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
 
     // Follow web's max-height behavior (10em);
     // see image_box_em in web/src/postprocess_content.ts.
-    final maxHeight = ambientTextStyle.fontSize! * 10;
+    final maxHeight = ambientTextStyle.fontSize! * 10 * store.mediaPreviewSizeFactor;
 
     final imageSize = (node.originalWidth != null && node.originalHeight != null)
       ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio
       // Layout plan when original dimensions are unknown:
       // a [MessageMediaContainer]-sized and -colored rectangle.
-      : MessageMediaContainer.size;
+      : MessageMediaContainer.baseSize;
 
     // (a) Don't let tall, thin images take up too much vertical space,
     //     which could be annoying to scroll through. And:
@@ -1549,7 +1551,6 @@ class _Image extends StatelessWidget {
     final size = BoxConstraints(maxHeight: maxHeight)
       .constrainSizeAndAttemptToPreserveAspectRatio(imageSize);
 
-    final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
     final resolvedSrc = switch (node.src) {
