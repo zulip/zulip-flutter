@@ -62,7 +62,7 @@ Uses Pigeon for type-safe platform channels (Android intents, notifications).
 ### Key conventions
 
 - **All API type constructor params are `required`**, even nullable ones — no default values. Use `test/example_data.dart` for test defaults.
-- **Server compatibility**: minimum Zulip Server 7.0 (feature level 185). Use `TODO(server-N)` comments for newer features.
+- **Server compatibility**: the minimum supported server version is `kMinAllowedZulipVersion` in `lib/api/core.dart`. Use `TODO(server-N)` comments for newer features.
 - **Tests use `package:checks`** (not `expect`/`matcher`).
 - **No `dart format`** — follow existing code style manually. Auto-format is disabled in VS Code settings.
 - **Prefer relative imports** within the package.

@@ -625,25 +625,25 @@ void main() {
       final account = eg.account(user: eg.selfUser,
         realmName: 'Organization A',
         realmIcon: Uri.parse('/image-a.png'),
-        zulipVersion: '6.0+gabcd',
-        zulipMergeBase: '6.0',
-        zulipFeatureLevel: 123,
+        zulipVersion: '9.0+gabcd',
+        zulipMergeBase: '9.0',
+        zulipFeatureLevel: 277,
       );
       await prepareStore(account: account);
       check(globalStore.getAccount(account.id)).isNotNull()
         ..realmName.equals('Organization A')
         ..realmIcon.equals(Uri.parse('/image-a.png'))
-        ..zulipVersion.equals('6.0+gabcd')
-        ..zulipMergeBase.equals('6.0')
-        ..zulipFeatureLevel.equals(123);
+        ..zulipVersion.equals('9.0+gabcd')
+        ..zulipMergeBase.equals('9.0')
+        ..zulipFeatureLevel.equals(277);
 
       globalStore.useCachedApiConnections = true;
       connection.prepare(json: eg.initialSnapshot(
         realmName: 'Organization B',
         realmIconUrl: Uri.parse('/image-b.png'),
-        zulipVersion: '8.0+g9876',
-        zulipMergeBase: '8.0',
-        zulipFeatureLevel: 234,
+        zulipVersion: '10.0+g9876',
+        zulipMergeBase: '10.0',
+        zulipFeatureLevel: 371,
       ).toJson());
       final updateMachine = await UpdateMachine.load(globalStore, account.id);
       updateMachine.debugPauseLoop();
@@ -651,9 +651,9 @@ void main() {
         ..identicalTo(updateMachine.store.account)
         ..realmName.equals('Organization B')
         ..realmIcon.equals(Uri.parse('/image-b.png'))
-        ..zulipVersion.equals('8.0+g9876')
-        ..zulipMergeBase.equals('8.0')
-        ..zulipFeatureLevel.equals(234);
+        ..zulipVersion.equals('10.0+g9876')
+        ..zulipMergeBase.equals('10.0')
+        ..zulipFeatureLevel.equals(371);
     }));
 
     test('retries registerQueue on NetworkError', () => awaitFakeAsync((async) async {
