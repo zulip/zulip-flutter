@@ -58,6 +58,9 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   GroupSettingValue? get realmCanDeleteAnyMessageGroup; // TODO(server-10)
   GroupSettingValue? get realmCanDeleteOwnMessageGroup; // TODO(server-10)
   bool get realmEnableReadReceipts;
+  /// The scale factor for image and video preview thumbnails in messages.
+  double get mediaPreviewSizeFactor => (realmMediaPreviewSize?.apiValue ?? 100) / 100;
+  RealmMediaPreviewSize? get realmMediaPreviewSize; // TODO(server-12)
   RealmTopicsPolicy? get realmTopicsPolicy; // TODO(server-11)
   bool? get realmMandatoryTopics; // TODO(server-11) Remove deprecated setting.
   int get maxFileUploadSizeMib;
@@ -198,6 +201,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   bool get realmEnableReadReceipts => realmStore.realmEnableReadReceipts;
   @override
+  RealmMediaPreviewSize? get realmMediaPreviewSize => realmStore.realmMediaPreviewSize;
+  @override
   RealmTopicsPolicy? get realmTopicsPolicy => realmStore.realmTopicsPolicy;
   @override
   bool? get realmMandatoryTopics => realmStore.realmMandatoryTopics;
@@ -269,6 +274,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
+    realmMediaPreviewSize = initialSnapshot.realmMediaPreviewSize,
     realmTopicsPolicy = initialSnapshot.realmTopicsPolicy,
     realmMandatoryTopics = initialSnapshot.realmMandatoryTopics,
     maxFileUploadSizeMib = initialSnapshot.maxFileUploadSizeMib,
@@ -433,6 +439,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final GroupSettingValue? realmCanDeleteOwnMessageGroup;
   @override
   final bool realmEnableReadReceipts;
+  @override
+  final RealmMediaPreviewSize? realmMediaPreviewSize;
   @override
   final RealmTopicsPolicy? realmTopicsPolicy;
   @override
