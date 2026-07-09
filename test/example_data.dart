@@ -1437,6 +1437,7 @@ InitialSnapshot initialSnapshot({
   GroupSettingValue? realmCanDeleteOwnMessageGroup,
   RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy,
   RealmWildcardMentionPolicy? realmWildcardMentionPolicy,
+  RealmMediaPreviewSize? realmMediaPreviewSize,
   RealmTopicsPolicy? realmTopicsPolicy,
   bool? realmMandatoryTopics,
   String? realmName,
@@ -1503,6 +1504,7 @@ InitialSnapshot initialSnapshot({
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
     realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    realmMediaPreviewSize: realmMediaPreviewSize,
     // no default; allow `null` to simulate servers without this
     realmTopicsPolicy: realmTopicsPolicy,
     realmMandatoryTopics: realmMandatoryTopics ?? true,
