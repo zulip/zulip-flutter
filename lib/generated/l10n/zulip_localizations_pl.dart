@@ -407,6 +407,11 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Could not read file: $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => 'Błędny wsad';
 
   @override

@@ -404,6 +404,11 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Could not read file: $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => 'Vigane sisend';
 
   @override

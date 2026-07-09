@@ -794,6 +794,12 @@ abstract class ZulipLocalizations {
   /// **'{num, plural, =1{File} other{Files}} too large'**
   String errorFilesTooLargeTitle(int num);
 
+  /// Error message when an attached file could not be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read file: {filename}'**
+  String errorCouldNotReadFile(String filename);
+
   /// Error title for login when input is invalid.
   ///
   /// In en, this message translates to:

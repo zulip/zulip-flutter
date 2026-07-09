@@ -463,6 +463,13 @@
       "num": {"type": "int", "example": "4"}
     }
   },
+  "errorCouldNotReadFile": "Could not read file: {filename}",
+  "@errorCouldNotReadFile": {
+    "description": "Error message when an attached file could not be read.",
+    "placeholders": {
+      "filename": {"type": "String", "example": "foo.txt"}
+    }
+  },
   "errorLoginInvalidInputTitle": "Invalid input",
   "@errorLoginInvalidInputTitle": {
     "description": "Error title for login when input is invalid."

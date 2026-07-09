@@ -14,8 +14,10 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../log.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
+import '../model/localizations.dart';
 import '../model/message.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -1166,8 +1168,19 @@ class _AttachFileButton extends _AttachUploadsButton {
   }
 }
 
-Future<FileToUpload> _fileFromXFile(XFile xFile) async {
-  final length = await xFile.length();
+/// Make a [FileToUpload] from an [XFile],
+/// or null (with a brief error message shown to the user)
+/// if the file can't be read, e.g. because it's gone missing.
+Future<FileToUpload?> _fileFromXFile(XFile xFile) async {
+  final int length;
+  try {
+    length = await xFile.length();
+  } catch (e) {
+    // TODO(log)
+    reportErrorToUserBriefly(GlobalLocalizations.zulipLocalizations
+      .errorCouldNotReadFile(xFile.name));
+    return null;
+  }
 
   List<int>? headerBytes;
   try {
@@ -1222,7 +1235,7 @@ class _AttachMediaButton extends _AttachUploadsButton {
         message: e.toString());
       return [];
     }
-    return Future.wait(results.map(_fileFromXFile));
+    return (await Future.wait(results.map(_fileFromXFile))).nonNulls;
   }
 }
 
@@ -1272,7 +1285,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
     if (result == null) {
       return []; // User cancelled; do nothing
     }
-    return [await _fileFromXFile(result)];
+    return [?await _fileFromXFile(result)];
   }
 }
 

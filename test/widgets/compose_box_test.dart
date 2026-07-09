@@ -18,6 +18,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/log.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
@@ -1306,6 +1307,37 @@ void main() {
           check(controller!.content.text).equals(
             'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[test.gif](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif)\n\n');
           checkAppearsLoading(tester, false);
+        }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+
+        testWidgets('unreadable file skipped with message; other file uploads', (tester) async {
+          await prepare(tester);
+
+          final reportedErrors = <String?>[];
+          reportErrorToUserBriefly = (message, {details}) => reportedErrors.add(message);
+          addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+
+          testBinding.pickMultipleMediaResult = [
+            XFile.fromData(
+              mimeType: 'image/jpeg',
+              utf8.encode('asdf'),
+              name: 'image.jpg',
+              length: 12345,
+              path: '/data/user/0/com.zulipmobile/cache/image.jpg'),
+            _UnreadableXFile('/data/user/0/com.zulipmobile/cache/missing.jpg'),
+          ];
+          connection.prepare(json:
+            UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+          await tester.tap(find.byIcon(ZulipIcons.image));
+          await tester.pump();
+          check(reportedErrors).single.equals('Could not read file: missing.jpg');
+
+          check(controller!.content.text)
+            .equals('see image: [Uploading image.jpg…]()\n\n');
+
+          await tester.pump(const Duration(seconds: 1));
+          check(controller!.content.text)
+            .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         }, variant: const TargetPlatformVariant({TargetPlatform.android}));
       },
       // These tests fail on Windows because [XFile.name] splits on
@@ -2714,4 +2746,14 @@ enum _EditInteractionStart {
       _EditInteractionStart.restoreFailedEdit => 'from restoring a failed edit',
     };
   }
+}
+
+/// An [XFile] whose contents can't be read, as when the underlying file
+/// has gone missing from the filesystem.
+class _UnreadableXFile extends XFile {
+  _UnreadableXFile(super.path);
+
+  @override
+  Future<int> length() async =>
+    throw PathNotFoundException(path, const OSError());
 }

@@ -396,6 +396,11 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Could not read file: $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => 'קלט לא תקין';
 
   @override
