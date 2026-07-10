@@ -190,9 +190,8 @@ class RealmEmojiItem {
   /// As of 2025-10, this will be missing on animated emoji
   /// that were uploaded before Zulip Server 5 when this was added;
   /// see https://github.com/zulip/zulip/issues/36339 .
-  // TODO(server-future) Update dartdoc once all supported servers
-  //   have a fix for https://github.com/zulip/zulip/issues/36339
-  //   i.e. that have run a migration to fill this in for animated emoji.
+  // TODO(server-12) Remove the "missing" comment; a migration fixing the issue
+  //   was merged in zulip/zulip@648bdc52c, which was in the 12.0 release.
   final String? stillUrl;
 
   bool deactivated;
