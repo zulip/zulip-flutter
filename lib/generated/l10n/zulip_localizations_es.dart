@@ -39,6 +39,11 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get switchAccountButtonTooltip => 'Cambiar cuenta';
 
   @override
+  String switchAccountOrgIconTooltip(Object orgName) {
+    return 'Switch account ($orgName)';
+  }
+
+  @override
   String tryAnotherAccountMessage(Object url) {
     return 'Tu cuenta en $url está tomando más de lo normal en cargar.';
   }

@@ -152,15 +152,19 @@ class _AppBarRealmIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final store = PerAccountStoreWidget.of(context);
     return Center(
-      child: Tooltip(
-        message: store.realmName,
+      child: TooltipTheme(
         // Above the icon, the tooltip would overlap the status bar,
         // where e.g. the iPhone's Dynamic Island can hide it.
         // TODO(upstream) have tooltips avoid the status bar
-        preferBelow: true,
-        child: const _RealmIcon()));
+        data: TooltipTheme.of(context).copyWith(preferBelow: true),
+        child: IconButton(
+          tooltip: zulipLocalizations.switchAccountOrgIconTooltip(store.realmName),
+          onPressed: () => Navigator.push(context,
+            MaterialWidgetRoute(page: const ChooseAccountPage())),
+          icon: const _RealmIcon())));
   }
 }
 

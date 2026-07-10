@@ -107,7 +107,18 @@ void main () {
         matching: findRealmIcon)).findsOne();
       check(find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.byTooltip(store.realmName))).findsOne();
+        matching: find.byTooltip('Switch account (${store.realmName})'))).findsOne();
+    });
+
+    testWidgets('tap opens choose-account page', (tester) async {
+      await prepare(tester);
+      pushedRoutes.clear();
+      await tester.tap(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: findRealmIcon));
+      await tester.pump();
+      check(pushedRoutes).single.isA<MaterialWidgetRoute>()
+        .page.isA<ChooseAccountPage>();
     });
 
     testWidgets('tooltip clear of status bar', (tester) async {
@@ -120,7 +131,7 @@ void main () {
         of: find.byType(ZulipAppBar),
         matching: findRealmIcon));
       await tester.pump();
-      check(tester.getRect(find.text(store.realmName)).top)
+      check(tester.getRect(find.text('Switch account (${store.realmName})')).top)
         .isGreaterOrEqual(statusBarHeight);
     });
   });
