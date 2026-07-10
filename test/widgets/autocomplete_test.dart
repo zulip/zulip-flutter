@@ -497,10 +497,13 @@ void main() {
       check(find.text('zulip')).findsOne();
 
       // But no emoji image appears.
-      check(find.byWidgetPredicate((widget) => switch(widget) {
-        Image(image: NetworkImage()) => true,
-        _ => false,
-      })).findsNothing();
+      // (The avatar images in the message list don't count.)
+      check(find.descendant(
+        of: find.byType(EmojiAutocompleteItem),
+        matching: find.byWidgetPredicate((widget) => switch(widget) {
+          Image(image: NetworkImage()) => true,
+          _ => false,
+        }))).findsNothing();
 
       debugNetworkImageHttpClientProvider = null;
     });
