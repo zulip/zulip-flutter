@@ -154,9 +154,13 @@ class _OrgIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     return Center(
-      child: Tooltip(
-        message: store.realmName,
-        child: AvatarShape(
+      child: IconButton(
+        tooltip: store.realmName,
+        onPressed: () {
+          Navigator.push(context,
+            MaterialWidgetRoute(page: const ChooseAccountPage()));
+        },
+        icon: AvatarShape(
           size: 28,
           borderRadius: 4,
           child: RealmContentNetworkImage(
