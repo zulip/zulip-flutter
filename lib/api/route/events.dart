@@ -36,7 +36,7 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection, {
     'client_capabilities': {
       'notification_settings_null': true,
       'bulk_message_deletion': true,
-      'user_avatar_url_field_optional': false, // TODO(#254): turn on
+      'user_avatar_url_field_optional': true,
       'stream_typing_notifications': true,
       'user_settings_object': true,
       'include_deactivated_groups': true,
