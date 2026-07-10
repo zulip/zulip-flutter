@@ -4,6 +4,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
@@ -21,17 +22,18 @@ void main() {
 
   group('AvatarImage', () {
     late PerAccountStore store;
+    late User user;
 
     final findPlaceholder = find.descendant(
       of: find.byType(AvatarImage),
       matching: find.byIcon(ZulipIcons.person),
     );
 
-    Future<Uri?> actualUrl(WidgetTester tester, String avatarUrl, [double? size]) async {
+    Future<Uri?> actualUrl(WidgetTester tester, String? avatarUrl, [double? size]) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-      final user = eg.user(avatarUrl: avatarUrl);
+      user = eg.user(avatarUrl: avatarUrl);
       await store.addUser(user);
 
       prepareBoringImageHttpClient();
@@ -101,19 +103,19 @@ void main() {
       check(findPlaceholder).findsOne();
     });
 
-    testWidgets('shows placeholder when user avatarUrl is null', (tester) async {
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+    testWidgets('fallback URL when avatarUrl is missing', (tester) async {
+      check(await actualUrl(tester, null))
+        .equals(store.realmUrl.resolve('/avatar/${user.userId}'));
+      debugNetworkImageHttpClientProvider = null;
+    });
 
-      final userWithNoUrl = eg.user(avatarUrl: null);
-      await store.addUser(userWithNoUrl);
+    testWidgets('fallback URL when avatarUrl is missing, larger size', (tester) async {
+      tester.view.devicePixelRatio = 2.5;
+      addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        TestZulipApp(accountId: eg.selfAccount.id,
-          child: AvatarImage(userId: userWithNoUrl.userId, size: 30)));
-      await tester.pump();
-      check(findPlaceholder).findsOne();
+      check(await actualUrl(tester, null, 50))
+        .equals(store.realmUrl.resolve('/avatar/${user.userId}/medium'));
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('shows placeholder when image fails to load', (tester) async {

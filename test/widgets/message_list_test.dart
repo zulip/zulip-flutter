@@ -2267,16 +2267,14 @@ void main() {
             matching: find.byType(RealmContentNetworkImage))).firstOrNull;
       }
 
-      void checkResultForSender(String? avatarUrl) {
-        if (avatarUrl == null) {
-          check(findAvatarImageWidget(tester)).isNull();
-        } else {
-          check(findAvatarImageWidget(tester)).isNotNull()
-            .src.equals(eg.selfAccount.realmUrl.resolve(avatarUrl));
-        }
-      }
-
       final user = eg.user();
+
+      void checkResultForSender(String? avatarUrl) {
+        final expectedUrl = eg.selfAccount.realmUrl.resolve(
+          avatarUrl ?? '/avatar/${user.userId}');
+        check(findAvatarImageWidget(tester)).isNotNull()
+          .src.equals(expectedUrl);
+      }
 
       Future<void> handleNewAvatarEventAndPump(WidgetTester tester, String avatarUrl) async {
         await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId, avatarUrl: avatarUrl));
