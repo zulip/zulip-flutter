@@ -44,6 +44,7 @@ void main () {
   late PerAccountStore store;
   late FakeApiConnection connection;
 
+  late TransitionDurationObserver transitionDurationObserver;
   late Route<dynamic>? topRoute;
   late Route<dynamic>? previousTopRoute;
   late List<Route<dynamic>> pushedRoutes;
@@ -63,6 +64,7 @@ void main () {
     previousTopRoute = null;
     pushedRoutes = [];
     lastPoppedRoute = null;
+    transitionDurationObserver = TransitionDurationObserver();
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
@@ -70,7 +72,7 @@ void main () {
 
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
-      navigatorObservers: [testNavObserver],
+      navigatorObservers: [testNavObserver, transitionDurationObserver],
       child: const HomePage()));
     await tester.pump();
   }
@@ -179,6 +181,19 @@ void main () {
       check(iconFinder).findsOne();
       check(tester.widget<RealmContentNetworkImage>(iconFinder).src)
         .equals(store.resolvedRealmIcon);
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('tapping organization icon opens the account list', (tester) async {
+      prepareBoringImageHttpClient();
+      await prepare(tester);
+
+      await tester.tap(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage)));
+      await tester.pump();
+      await transitionDurationObserver.pumpPastTransition(tester);
+      check(find.byType(ChooseAccountPage)).findsOne();
       debugNetworkImageHttpClientProvider = null;
     });
 
