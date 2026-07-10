@@ -294,6 +294,7 @@ void main() {
       });
 
       testWidgets('logging into a second account', (tester) async {
+        prepareBoringImageHttpClient();
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
         final serverSettings = eg.serverSettings();
         await prepare(tester, serverSettings);
@@ -310,6 +311,7 @@ void main() {
         checkMatchesAccount(newAccount, eg.otherAccount);
         check(poppedRoutes).length.equals(2);
         check(pushedRoutes).single.isA<WidgetRoute>().page.isA<HomePage>();
+        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('trims whitespace on username', (tester) async {
