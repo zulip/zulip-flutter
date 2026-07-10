@@ -121,7 +121,8 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(titleSpacing: 16,
+      appBar: ZulipAppBar(
+        leading: const _AppBarRealmIcon(),
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
@@ -143,6 +144,23 @@ class _HomePageState extends State<HomePage> {
                 ]))),
         ]),
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
+  }
+}
+
+class _AppBarRealmIcon extends StatelessWidget {
+  const _AppBarRealmIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    return Center(
+      child: Tooltip(
+        message: store.realmName,
+        // Above the icon, the tooltip would overlap the status bar,
+        // where e.g. the iPhone's Dynamic Island can hide it.
+        // TODO(upstream) have tooltips avoid the status bar
+        preferBelow: true,
+        child: const _RealmIcon()));
   }
 }
 

@@ -99,6 +99,32 @@ void main () {
       .isA<MaterialAccountWidgetRoute>().accountId.equals(expectedAccount.id);
   }
 
+  group('_AppBarRealmIcon', () {
+    testWidgets('smoke', (tester) async {
+      await prepare(tester);
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: findRealmIcon)).findsOne();
+      check(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byTooltip(store.realmName))).findsOne();
+    });
+
+    testWidgets('tooltip clear of status bar', (tester) async {
+      const statusBarHeight = 62.0;
+      addTearDown(tester.view.reset);
+      tester.view.padding = FakeViewPadding(
+        top: statusBarHeight * tester.view.devicePixelRatio);
+      await prepare(tester);
+      await tester.longPress(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: findRealmIcon));
+      await tester.pump();
+      check(tester.getRect(find.text(store.realmName)).top)
+        .isGreaterOrEqual(statusBarHeight);
+    });
+  });
+
   group('bottom nav navigation', () {
     final findBottomNavSemantics = find.byWidgetPredicate((widget) {
       if (widget is! Semantics) return false;
