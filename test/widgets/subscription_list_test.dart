@@ -16,6 +16,7 @@ import 'package:zulip/widgets/counter_badge.dart';
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../example_data.dart' as eg;
+import '../test_images.dart';
 import 'test_app.dart';
 
 void main() {
@@ -59,12 +60,14 @@ void main() {
   }
 
   testWidgets('empty', (tester) async {
+    prepareBoringImageHttpClient();
     await setupStreamListPage(tester, subscriptions: []);
     check(getItemCount()).equals(0);
     check(isPinnedHeaderInTree()).isFalse();
     check(isUnpinnedHeaderInTree()).isFalse();
     check(find.text('You’re not subscribed to any channels yet.')).findsOne();
     check(find.text('Try going to All channels and joining some of them.')).findsOne();
+    debugNetworkImageHttpClientProvider = null;
   });
 
   testWidgets('basic subscriptions', (tester) async {
