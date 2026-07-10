@@ -15,6 +15,7 @@ import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import '../test_navigation.dart';
 import 'dialog_checks.dart';
 import 'checks.dart';
@@ -304,6 +305,7 @@ void main() {
     });
 
     testWidgets('choosing an account clears the navigator stack', (tester) async {
+      prepareBoringImageHttpClient();
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await testBinding.globalStore.add(
@@ -343,6 +345,7 @@ void main() {
       check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(eg.otherAccount.id)
         ..page.isA<HomePage>();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('choosing an account changes the last visited account', (tester) async {

@@ -321,12 +321,14 @@ void main() {
           find.descendant(of: findHeader, matching: finder);
 
         testWidgets('public channel', (tester) async {
+          prepareBoringImageHttpClient();
           await prepare();
           check(store.streams[someChannel.streamId]).isNotNull()
             ..inviteOnly.isFalse()..isWebPublic.isFalse();
           await showFromInbox(tester);
           check(findInHeader(find.byIcon(ZulipIcons.hash_sign))).findsOne();
           check(findInHeader(find.textContaining(someChannel.name))).findsOne();
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('web-public channel', (tester) async {

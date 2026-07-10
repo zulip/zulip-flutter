@@ -24,6 +24,7 @@ import '../model/binding.dart';
 import '../example_data.dart' as eg;
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
+import '../test_images.dart';
 import 'checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -75,6 +76,7 @@ void main() {
   }
 
   testWidgets('navigate to page', (tester) async {
+    prepareBoringImageHttpClient();
     addTearDown(testBinding.reset);
 
     final channel = eg.stream();
@@ -108,6 +110,7 @@ void main() {
 
     check(find.byType(AllChannelsPageBody)).findsOne();
     check(find.widgetWithText(ZulipAppBar, 'All channels')).findsOne();
+    debugNetworkImageHttpClientProvider = null;
   });
 
   testWidgets('navigate to page from empty subscription list', (tester) async {

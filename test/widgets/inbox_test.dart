@@ -20,6 +20,7 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
 import 'test_app.dart';
@@ -235,8 +236,10 @@ void main() {
 
   group('InboxPage', () {
     testWidgets('page builds; empty', (tester) async {
+      prepareBoringImageHttpClient();
       await setupPage(tester, unreadMessages: []);
       check(find.textContaining('There are no unread messages in your inbox.')).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('page builds; not empty', (tester) async {
