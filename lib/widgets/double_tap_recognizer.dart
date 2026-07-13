@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 
-// Copied verbatim from the upstream Flutter repo,
-// only renaming DoubleTapGestureRecognizer to DoubleTapRecognizer.
+// Copied from the upstream Flutter repo, but adjusted to not participate
+// in the gesture arena.
 //   https://github.com/flutter/flutter/blob/ab7eb7aff/packages/flutter/lib/src/gestures/multitap.dart#L49-L382
 
 /// CountdownZoned tracks whether the specified duration has elapsed since
@@ -31,7 +31,6 @@ class _CountdownZoned {
 class _TapTracker {
   _TapTracker({
     required PointerDownEvent event,
-    required this.entry,
     required Duration doubleTapMinTime,
     required this.gestureSettings,
   }) : pointer = event.pointer,
@@ -41,7 +40,6 @@ class _TapTracker {
 
   final DeviceGestureSettings? gestureSettings;
   final int pointer;
-  final GestureArenaEntry entry;
   final Offset _initialGlobalPosition;
   final int initialButtons;
   final _CountdownZoned _doubleTapMinTimeCountdown;
@@ -77,19 +75,38 @@ class _TapTracker {
 }
 
 /// Recognizes when the user has tapped the screen at the same location twice in
-/// quick succession.
+/// quick succession, without participating in the gesture arena.
 ///
-/// [DoubleTapRecognizer] competes on pointer events when it
-/// has a non-null callback. If it has no callbacks, it is a no-op.
+/// This class is meant to be used in conjunction with a class that can receive
+/// a [PointerDownEvent], such as [Listener] or [HitTestTarget]. To detect a
+/// double tap, set [onDoubleTap]. Then, whenever the other class receives a
+/// [PointerDownEvent], call [addPointer].
 ///
-class DoubleTapRecognizer extends GestureRecognizer {
-  /// Create a gesture recognizer for double taps.
+/// ```
+///   final doubleTapRecognizer = DoubleTapRecognizer()
+///     ..onDoubleTap = () {
+///       // double tap detected
+///     };
+///   if (event is PointerDownEvent) {
+///     doubleTapRecognizer.addPointer(event);
+///   }
+/// ```
+///
+/// Whenever a valid double tap is detected, [onDoubleTap] is called.
+//
+// TODO(upstream): Delete this class if Flutter gains a way to detect
+//   double taps without delaying single taps:
+//     https://github.com/flutter/flutter/issues/106170
+//     https://github.com/flutter/flutter/issues/110300
+class DoubleTapRecognizer {
+  /// Create a recognizer for double taps that doesn't participate
+  /// in the gesture arena.
   ///
   /// {@macro flutter.gestures.GestureRecognizer.supportedDevices}
   DoubleTapRecognizer({
-    super.debugOwner,
-    super.supportedDevices,
-    super.allowedButtonsFilter = _defaultButtonAcceptBehavior,
+    this.debugOwner,
+    this.supportedDevices,
+    this.allowedButtonsFilter = _defaultButtonAcceptBehavior,
   });
 
   // The default value for [allowedButtonsFilter].
@@ -118,23 +135,41 @@ class DoubleTapRecognizer extends GestureRecognizer {
   //
   // - All in-progress taps are rejected (by time, distance, pointercancel, etc)
   // - The long timer between taps expires
-  // - The gesture arena decides we have been rejected wholesale
 
-  /// A pointer has contacted the screen with a primary button at the same
-  /// location twice in quick succession, which might be the start of a double
-  /// tap.
+  /// The recognizer's owner.
   ///
-  /// This triggers immediately after the down event of the second tap.
+  /// This is used in the [toString] serialization to report the object for which
+  /// this gesture recognizer was created, to aid in debugging.
+  final Object? debugOwner;
+
+  /// Optional device specific configuration for device gestures that will
+  /// take precedence over framework defaults.
+  DeviceGestureSettings? gestureSettings;
+
+  /// The kind of devices that are allowed to be recognized as provided by
+  /// `supportedDevices` in the constructor, or the currently deprecated `kind`.
+  /// These cannot both be set. If both are null, events from all device kinds will be
+  /// tracked and recognized.
+  Set<PointerDeviceKind>? supportedDevices;
+
+  /// {@template flutter.gestures.multidrag._allowedButtonsFilter}
+  /// Called when interaction starts. This limits the dragging behavior
+  /// for custom clicks (such as scroll click). Its parameter comes
+  /// from [PointerEvent.buttons].
   ///
-  /// If this recognizer doesn't win the arena, [onDoubleTapCancel] is called
-  /// next. Otherwise, [onDoubleTap] is called next.
+  /// Due to how [kPrimaryButton], [kSecondaryButton], etc., use integers,
+  /// bitwise operations can help filter how buttons are pressed.
+  /// For example, if someone simultaneously presses the primary and secondary
+  /// buttons, the default behavior will return false. The following code
+  /// accepts any button press with primary:
+  /// `(int buttons) => buttons & kPrimaryButton != 0`.
   ///
-  /// See also:
+  /// When value is `(int buttons) => false`, allow no interactions.
+  /// When value is `(int buttons) => true`, allow all interactions.
   ///
-  ///  * [allowedButtonsFilter], which decides which button will be allowed.
-  ///  * [TapDownDetails], which is passed as an argument to this callback.
-  ///  * [GestureDetector.onDoubleTapDown], which exposes this callback.
-  GestureTapDownCallback? onDoubleTapDown;
+  /// Defaults to all buttons.
+  /// {@endtemplate}
+  final AllowedButtonsFilter allowedButtonsFilter;
 
   /// Called when the user has tapped the screen with a primary button at the
   /// same location twice in quick succession.
@@ -145,44 +180,33 @@ class DoubleTapRecognizer extends GestureRecognizer {
   /// See also:
   ///
   ///  * [allowedButtonsFilter], which decides which button will be allowed.
-  ///  * [GestureDetector.onDoubleTap], which exposes this callback.
   GestureDoubleTapCallback? onDoubleTap;
-
-  /// A pointer that previously triggered [onDoubleTapDown] will not end up
-  /// causing a double tap.
-  ///
-  /// This triggers once the gesture loses the arena if [onDoubleTapDown] has
-  /// previously been triggered.
-  ///
-  /// If this recognizer wins the arena, [onDoubleTap] is called instead.
-  ///
-  /// See also:
-  ///
-  ///  * [allowedButtonsFilter], which decides which button will be allowed.
-  ///  * [GestureDetector.onDoubleTapCancel], which exposes this callback.
-  GestureTapCancelCallback? onDoubleTapCancel;
 
   Timer? _doubleTapTimer;
   _TapTracker? _firstTap;
   final Map<int, _TapTracker> _trackers = <int, _TapTracker>{};
 
-  @override
+  void addPointer(PointerDownEvent event) {
+    if (!isPointerAllowed(event)) return;
+    addAllowedPointer(event);
+  }
+
   bool isPointerAllowed(PointerDownEvent event) {
     if (_firstTap == null) {
-      if (onDoubleTapDown == null && onDoubleTap == null && onDoubleTapCancel == null) {
+      if (onDoubleTap == null) {
         return false;
       }
     }
 
     // If second tap is not allowed, reset the state.
-    final bool isPointerAllowed = super.isPointerAllowed(event);
+    final bool isPointerAllowed = (supportedDevices?.contains(event.kind) ?? true)
+      && allowedButtonsFilter(event.buttons);
     if (!isPointerAllowed) {
       _reset();
     }
     return isPointerAllowed;
   }
 
-  @override
   void addAllowedPointer(PointerDownEvent event) {
     if (_firstTap != null) {
       if (!_firstTap!.isWithinGlobalTolerance(event, kDoubleTapSlop)) {
@@ -193,13 +217,6 @@ class DoubleTapRecognizer extends GestureRecognizer {
         // often detect touches intermittently), or when buttons mismatch.
         _reset();
         return _trackTap(event);
-      } else if (onDoubleTapDown != null) {
-        final details = TapDownDetails(
-          globalPosition: event.position,
-          localPosition: event.localPosition,
-          kind: getKindForPointer(event.pointer),
-        );
-        invokeCallback<void>('onDoubleTapDown', () => onDoubleTapDown!(details));
       }
     }
     _trackTap(event);
@@ -209,7 +226,6 @@ class DoubleTapRecognizer extends GestureRecognizer {
     _stopDoubleTapTimer();
     final tracker = _TapTracker(
       event: event,
-      entry: GestureBinding.instance.gestureArena.add(event.pointer, this),
       doubleTapMinTime: kDoubleTapMinTime,
       gestureSettings: gestureSettings,
     );
@@ -234,31 +250,13 @@ class DoubleTapRecognizer extends GestureRecognizer {
     }
   }
 
-  @override
-  void acceptGesture(int pointer) {}
-
-  @override
-  void rejectGesture(int pointer) {
-    _TapTracker? tracker = _trackers[pointer];
-    // If tracker isn't in the list, check if this is the first tap tracker
-    if (tracker == null && _firstTap != null && _firstTap!.pointer == pointer) {
-      tracker = _firstTap;
-    }
-    // If tracker is still null, we rejected ourselves already
-    if (tracker != null) {
-      _reject(tracker);
-    }
-  }
-
   void _reject(_TapTracker tracker) {
     _trackers.remove(tracker.pointer);
-    tracker.entry.resolve(GestureDisposition.rejected);
     _freezeTracker(tracker);
     if (_firstTap != null) {
       if (tracker == _firstTap) {
         _reset();
       } else {
-        _checkCancel();
         if (_trackers.isEmpty) {
           _reset();
         }
@@ -266,33 +264,22 @@ class DoubleTapRecognizer extends GestureRecognizer {
     }
   }
 
-  @override
   void dispose() {
     _reset();
-    super.dispose();
   }
 
   void _reset() {
     _stopDoubleTapTimer();
     if (_firstTap != null) {
-      if (_trackers.isNotEmpty) {
-        _checkCancel();
-      }
-      // Note, order is important below in order for the resolve -> reject logic
-      // to work properly.
       final _TapTracker tracker = _firstTap!;
       _firstTap = null;
       _reject(tracker);
-      GestureBinding.instance.gestureArena.release(tracker.pointer);
     }
     _clearTrackers();
   }
 
   void _registerFirstTap(_TapTracker tracker) {
     _startDoubleTapTimer();
-    GestureBinding.instance.gestureArena.hold(tracker.pointer);
-    // Note, order is important below in order for the clear -> reject logic to
-    // work properly.
     _freezeTracker(tracker);
     _trackers.remove(tracker.pointer);
     _clearTrackers();
@@ -300,8 +287,6 @@ class DoubleTapRecognizer extends GestureRecognizer {
   }
 
   void _registerSecondTap(_TapTracker tracker) {
-    _firstTap!.entry.resolve(GestureDisposition.accepted);
-    tracker.entry.resolve(GestureDisposition.accepted);
     _freezeTracker(tracker);
     _trackers.remove(tracker.pointer);
     _checkUp(tracker.initialButtons);
@@ -330,16 +315,7 @@ class DoubleTapRecognizer extends GestureRecognizer {
 
   void _checkUp(int buttons) {
     if (onDoubleTap != null) {
-      invokeCallback<void>('onDoubleTap', onDoubleTap!);
+      onDoubleTap!();
     }
   }
-
-  void _checkCancel() {
-    if (onDoubleTapCancel != null) {
-      invokeCallback<void>('onDoubleTapCancel', onDoubleTapCancel!);
-    }
-  }
-
-  @override
-  String get debugDescription => 'double tap';
 }
