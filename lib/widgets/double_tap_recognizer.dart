@@ -32,13 +32,11 @@ class _TapTracker {
   _TapTracker({
     required PointerDownEvent event,
     required Duration doubleTapMinTime,
-    required this.gestureSettings,
   }) : pointer = event.pointer,
        _initialGlobalPosition = event.position,
        initialButtons = event.buttons,
        _doubleTapMinTimeCountdown = _CountdownZoned(duration: doubleTapMinTime);
 
-  final DeviceGestureSettings? gestureSettings;
   final int pointer;
   final Offset _initialGlobalPosition;
   final int initialButtons;
@@ -104,7 +102,6 @@ class DoubleTapRecognizer {
   ///
   /// {@macro flutter.gestures.GestureRecognizer.supportedDevices}
   DoubleTapRecognizer({
-    this.debugOwner,
     this.supportedDevices,
     this.allowedButtonsFilter = _defaultButtonAcceptBehavior,
   });
@@ -135,16 +132,6 @@ class DoubleTapRecognizer {
   //
   // - All in-progress taps are rejected (by time, distance, pointercancel, etc)
   // - The long timer between taps expires
-
-  /// The recognizer's owner.
-  ///
-  /// This is used in the [toString] serialization to report the object for which
-  /// this gesture recognizer was created, to aid in debugging.
-  final Object? debugOwner;
-
-  /// Optional device specific configuration for device gestures that will
-  /// take precedence over framework defaults.
-  DeviceGestureSettings? gestureSettings;
 
   /// The kind of devices that are allowed to be recognized as provided by
   /// `supportedDevices` in the constructor, or the currently deprecated `kind`.
@@ -227,7 +214,6 @@ class DoubleTapRecognizer {
     final tracker = _TapTracker(
       event: event,
       doubleTapMinTime: kDoubleTapMinTime,
-      gestureSettings: gestureSettings,
     );
     _trackers[event.pointer] = tracker;
     tracker.startTrackingPointer(_handleEvent, event.transform);
