@@ -728,6 +728,26 @@ void main() {
     });
   });
 
+  group('topic input', () {
+    testWidgets('clear topic input on policy change to emptyTopicOnly', (tester) async {
+      final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        subscriptions: [eg.subscription(channel)]);
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('some topic');
+
+      await store.handleEvent(eg.channelUpdateEvent(store.streams[channel.streamId]!,
+        property: ChannelPropertyName.topicsPolicy,
+        value: ChannelTopicsPolicy.emptyTopicOnly));
+      await tester.pump(Duration.zero);
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('');
+    });
+  });
+
   group('ComposeBox textCapitalization', () {
     void checkComposeBoxTextFields(WidgetTester tester, {
       required bool expectTopicTextField,
@@ -1965,6 +1985,74 @@ void main() {
         ..streams.containsKey(channel.streamId);
 
       checkContentInputValue(tester, 'some content');
+    });
+
+    testWidgets('topic input cleared if empty topic only policy set after store changes', (tester) async {
+      final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        subscriptions: [eg.subscription(channel)]);
+
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+
+      // For the message-list fetch and the topic-autocomplete refetch.
+      prepareNewConnection([
+        eg.newestGetMessagesResult(foundOldest: true,
+          messages: [eg.streamMessage(stream: channel)]).toJson(),
+        GetChannelTopicsResult(topics: []).toJson(),
+      ]);
+
+      expireEventQueue();
+      await tester.pump();
+      await tester.pump(Duration.zero);
+
+      final newStore = testBinding.globalStore.perAccountSync(store.accountId)!;
+      check(newStore).not((it) => it.identicalTo(store));
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('some topic');
+
+      await newStore.handleEvent(eg.channelUpdateEvent(newStore.streams[channel.streamId]!,
+        property: ChannelPropertyName.topicsPolicy,
+        value: ChannelTopicsPolicy.emptyTopicOnly));
+      await tester.pump(Duration.zero);
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('');
+    });
+
+    testWidgets('topic input cleared if empty topic only policy set while disconnected', (tester) async {
+      final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
+      final subscription = eg.subscription(channel);
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        subscriptions: [subscription]);
+
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('some topic');
+
+      // For the message-list fetch and the topic-autocomplete refetch.
+      prepareNewConnection([
+        eg.newestGetMessagesResult(foundOldest: true,
+          messages: [eg.streamMessage(stream: channel, topic: '')]).toJson(),
+        GetChannelTopicsResult(topics: []).toJson(),
+      ]);
+
+      testBinding.globalStore.loadPerAccountDuration = const Duration(seconds: 1);
+      expireEventQueue();
+      await tester.pump();
+
+      // The policy changes while disconnected, mid-reload. The reload's snapshot
+      // will already reflect it, and no event about it will ever arrive.
+      subscription.topicsPolicy = ChannelTopicsPolicy.emptyTopicOnly;
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(Duration.zero);
+
+      final newStore = testBinding.globalStore.perAccountSync(store.accountId)!;
+      check(newStore).not((it) => it.identicalTo(store));
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('');
     });
   });
 

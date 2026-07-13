@@ -171,6 +171,8 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   // TODO(#668): listen to [PerAccountStore] once we subscribe to topic policies.
   bool get mandatory => store.effectiveTopicsPolicy(channelId) == .disableEmptyTopic;
 
+  bool get emptyTopicOnly => store.effectiveTopicsPolicy(channelId) == .emptyTopicOnly;
+
   @override int get maxLengthUnicodeCodePoints => store.maxTopicLength;
 
   @override
@@ -2095,6 +2097,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
 
+  PerAccountStore? _store;
+
   @override
   void restoreMessageNotSent(int localMessageId) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -2241,17 +2245,26 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     });
   }
 
+  void _storeChanged() {
+    final controller = _controller;
+    if (controller is! StreamComposeBoxController) return;
+    final topic = controller.topic;
+    if (topic.emptyTopicOnly && topic.text.isNotEmpty) {
+      topic.clear();
+    }
+  }
+
   @override
   void onNewStore() {
     final newStore = PerAccountStoreWidget.of(context);
+    _store?.removeListener(_storeChanged);
+    _store = newStore;
+    _store!.addListener(_storeChanged);
 
     final controller = _controller;
-    if (controller == null) {
-      _setNewController(newStore);
-      return;
-    }
-
     switch (controller) {
+      case null:
+        _setNewController(newStore);
       case StreamComposeBoxController():
         controller.content.store = newStore;
         controller.topic.store = newStore;
@@ -2259,6 +2272,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case EditMessageComposeBoxController():
         controller.content.store = newStore;
     }
+    // The policy may have changed while disconnected; run the check immediately
+    // instead of waiting for the next store notification.
+    _storeChanged();
   }
 
   void _setNewController(PerAccountStore store) {
@@ -2279,6 +2295,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   void dispose() {
+    _store?.removeListener(_storeChanged);
     controller.dispose();
     super.dispose();
   }
