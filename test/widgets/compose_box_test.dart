@@ -1913,6 +1913,25 @@ void main() {
   });
 
   group('ComposeBoxState new-event-queue transition', () {
+    void prepareNewConnection(List<Map<String, dynamic>> responses) {
+      final connection = (testBinding.globalStore
+          ..clearCachedApiConnections()
+          ..useCachedApiConnections = true)
+        .apiConnectionFromAccount(store.account) as FakeApiConnection;
+      for (final json in responses) {
+        connection.prepare(json: json);
+      }
+    }
+
+    void expireEventQueue() {
+      store.updateMachine!
+        ..debugPauseLoop()
+        ..poll()
+        ..debugPrepareLoopError(
+            eg.apiExceptionBadEventQueueId(queueId: store.queueId))
+        ..debugAdvanceLoop();
+    }
+
     testWidgets('content input not cleared when store changes', (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/1470
 
@@ -1927,20 +1946,12 @@ void main() {
       await enterContent(tester, 'some content');
       checkContentInputValue(tester, 'some content');
 
-      // Encache a new connection; prepare it for the message-list fetch
-      final newConnection = (testBinding.globalStore
-          ..clearCachedApiConnections()
-          ..useCachedApiConnections = true)
-        .apiConnectionFromAccount(store.account) as FakeApiConnection;
-      newConnection.prepare(json:
-        eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson());
+      // For the message-list fetch.
+      prepareNewConnection([
+        eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson(),
+      ]);
 
-      store.updateMachine!
-        ..debugPauseLoop()
-        ..poll()
-        ..debugPrepareLoopError(
-            eg.apiExceptionBadEventQueueId(queueId: store.queueId))
-        ..debugAdvanceLoop();
+      expireEventQueue();
       await tester.pump();
       await tester.pump(Duration.zero);
 
