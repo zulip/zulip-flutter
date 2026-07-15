@@ -20,6 +20,7 @@ class Avatar extends StatelessWidget {
     this.backgroundColor,
     this.showPresence = true,
     this.replaceIfMuted = true,
+    this.markIfDeactivated = true,
   });
 
   final int userId;
@@ -29,18 +30,28 @@ class Avatar extends StatelessWidget {
   final bool showPresence;
   final bool replaceIfMuted;
 
+  /// If true (the default), a deactivated user's avatar is
+  /// dimmed and overlaid with a small badge in the bottom-right corner.
+  /// Callers that show the deactivated indicator separately -- e.g. the
+  /// profile page header, which puts the badge next to the user's name --
+  /// should pass false.
+  final bool markIfDeactivated;
+
   @override
   Widget build(BuildContext context) {
-    // (The backgroundColor is only meaningful if presence will be shown;
-    // see [PresenceCircle.backgroundColor].)
-    assert(backgroundColor == null || showPresence);
+    // (The backgroundColor is only meaningful if an overlay will be shown;
+    // see [PresenceCircle.backgroundColor] and [DeactivatedUserIcon].)
+    assert(backgroundColor == null || showPresence || markIfDeactivated);
     return AvatarShape(
       size: size,
       borderRadius: borderRadius,
       backgroundColor: backgroundColor,
       userId: userId,
       showPresence: showPresence,
-      child: AvatarImage(userId: userId, size: size, replaceIfMuted: replaceIfMuted));
+      markIfDeactivated: markIfDeactivated,
+      child: AvatarImage(userId: userId, size: size,
+        replaceIfMuted: replaceIfMuted,
+        markIfDeactivated: markIfDeactivated));
   }
 }
 
@@ -55,11 +66,22 @@ class AvatarImage extends StatelessWidget {
     required this.userId,
     required this.size,
     this.replaceIfMuted = true,
+    this.markIfDeactivated = true,
   });
 
   final int userId;
   final double size;
   final bool replaceIfMuted;
+
+  /// If true (the default), a deactivated user's avatar is faded
+  /// to [deactivatedOpacity].
+  ///
+  /// For a user who is also muted, the avatar is still replaced by
+  /// the muted placeholder, and the fade applies to the placeholder.
+  final bool markIfDeactivated;
+
+  /// Matches the web client's deactivated-avatar opacity.
+  static const double deactivatedOpacity = 0.5;
 
   @override
   Widget build(BuildContext context) {
@@ -70,10 +92,26 @@ class AvatarImage extends StatelessWidget {
       return _AvatarPlaceholder(size: size);
     }
 
+    final markDeactivated = markIfDeactivated && !user.isActive;
+
+    Widget child;
     if (replaceIfMuted && store.isUserMuted(userId)) {
-      return _AvatarPlaceholder(size: size);
+      // Muting hides the user's identity even when they're deactivated;
+      // the deactivated fade below applies to the placeholder too,
+      // like web's behavior in its message list.
+      child = _AvatarPlaceholder(size: size);
+    } else {
+      child = _buildImageOrPlaceholder(context, user);
     }
 
+    if (markDeactivated) {
+      child = Opacity(opacity: deactivatedOpacity, child: child);
+    }
+    return child;
+  }
+
+  Widget _buildImageOrPlaceholder(BuildContext context, User user) {
+    final store = PerAccountStoreWidget.of(context);
     Uri? resolvedUrl;
     if (user.avatarUrl != null) {
       resolvedUrl = store.tryResolveUrl(user.avatarUrl!);
@@ -125,6 +163,10 @@ class _AvatarPlaceholder extends StatelessWidget {
 ///
 /// If [userId] is provided and [showPresence] is true,
 /// this will paint a [PresenceCircle] on the shape.
+///
+/// If [userId] is provided and [markIfDeactivated] is true,
+/// a deactivated user gets a [DeactivatedUserIcon] badge instead,
+/// painted in the same overlay slot.
 class AvatarShape extends StatelessWidget {
   const AvatarShape({
     super.key,
@@ -133,6 +175,7 @@ class AvatarShape extends StatelessWidget {
     this.backgroundColor,
     this.userId,
     this.showPresence = true,
+    this.markIfDeactivated = true,
     required this.child,
   });
 
@@ -144,15 +187,22 @@ class AvatarShape extends StatelessWidget {
   /// Defaults to true.  Ignored when [userId] is null.
   final bool showPresence;
 
+  /// Whether to mark a deactivated [userId] with a [DeactivatedUserIcon]
+  /// badge, taking priority over the presence circle.
+  ///
+  /// Defaults to true.  Ignored when [userId] is null.
+  final bool markIfDeactivated;
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final userId = this.userId;
 
-    // (The backgroundColor is only meaningful if presence will be shown;
-    // see [PresenceCircle.backgroundColor].)
-    assert(backgroundColor == null || (userId != null && showPresence));
+    // (The backgroundColor is only meaningful if an overlay will be shown;
+    // see [PresenceCircle.backgroundColor] and [DeactivatedUserIcon].)
+    assert(backgroundColor == null
+        || (userId != null && (showPresence || markIfDeactivated)));
 
     Widget result = SizedBox.square(
       dimension: size,
@@ -161,17 +211,45 @@ class AvatarShape extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: child));
 
-    if (userId != null && showPresence) {
-      final presenceCircleSize = size / 4; // TODO(design) is this right?
+    final markDeactivated = userId != null && markIfDeactivated
+      && !(PerAccountStoreWidget.of(context).getUser(userId)?.isActive ?? true);
+
+    final Widget? overlay;
+    if (markDeactivated) {
+      // The badge takes priority over presence, which is meaningless for a
+      // deactivated user.
+      //
+      // Sized to match web's message list, where the badge is an 0.8em
+      // (11.2px) icon plus 2px of padding on each side, so 15.2px, on a
+      // 2.5em (35px) avatar: 15.2 / 35 ≈ 0.43, nudged up to 0.45 because
+      // [Icons.block] leaves some empty margin inside its own box.  See:
+      //   https://github.com/zulip/zulip/blob/41480799c379715d6248e8282f040b99ebae3f33/web/styles/zulip.css#L2546-L2562
+      // Two details differ from web on purpose:
+      //  * Web's badge sticks 2px past the avatar's corner (as does its
+      //    presence circle, slightly).  Ours sits entirely within the
+      //    avatar, matching where this app puts the presence circle.
+      //  * On web, 2px of padding keeps the icon clear of its circle's
+      //    edge; we add no padding, because the [Icons.block] image
+      //    already has blank space around it.
+      overlay = DeactivatedUserIcon(
+        size: size * 0.45,
+        backgroundColor: backgroundColor);
+    } else if (userId != null && showPresence) {
+      overlay = PresenceCircle(
+        userId: userId,
+        size: size / 4, // TODO(design) is this right?
+        backgroundColor: backgroundColor);
+    } else {
+      overlay = null;
+    }
+
+    if (overlay != null) {
       result = Stack(children: [
         result,
         Positioned.directional(textDirection: Directionality.of(context),
           end: 0,
           bottom: 0,
-          child: PresenceCircle(
-            userId: userId,
-            size: presenceCircleSize,
-            backgroundColor: backgroundColor)),
+          child: overlay),
       ]);
     }
 
