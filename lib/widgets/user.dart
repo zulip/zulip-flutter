@@ -295,6 +295,79 @@ class _PresenceCircleState extends State<PresenceCircle> with PerAccountStoreAwa
   }
 }
 
+/// An [Icons.block] badge marking a deactivated user.
+///
+/// See [DeactivatedUserIconStyle] for the possible presentations.
+class DeactivatedUserIcon extends StatelessWidget {
+  const DeactivatedUserIcon({
+    super.key,
+    required this.size,
+    this.style = DeactivatedUserIconStyle.avatarOverlay,
+    this.backgroundColor,
+  }) : assert(style == DeactivatedUserIconStyle.avatarOverlay
+           || backgroundColor == null);
+
+  final double size;
+  final DeactivatedUserIconStyle style;
+
+  /// The fill color of the circle behind the icon,
+  /// for [DeactivatedUserIconStyle.avatarOverlay].
+  ///
+  /// If not passed, [DesignVariables.mainBackground] is used.
+  final Color? backgroundColor;
+
+  /// Creates a [WidgetSpan] with a [DeactivatedUserIcon] in the
+  /// [DeactivatedUserIconStyle.inlineText] style, for use in rich text
+  /// before a user's name.
+  ///
+  /// Sized larger than [PresenceCircle.asWidgetSpan]: the block glyph has
+  /// internal detail that needs more room to read as clearly as a presence dot.
+  static InlineSpan asWidgetSpan({
+    required double fontSize,
+    required TextScaler textScaler,
+  }) {
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Padding(
+        padding: const EdgeInsetsDirectional.only(end: 4),
+        child: DeactivatedUserIcon(size: textScaler.scale(fontSize),
+          style: DeactivatedUserIconStyle.inlineText)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    // TODO(design): use a custom Zulip icon instead of Material's,
+    //   as we do for other icons in the app.  [Icons.block] stands in
+    //   for the web app's `fa-ban` in the meantime; see discussion:
+    //     https://chat.zulip.org/#narrow/channel/516-mobile-dev-help/topic/Approach.20towards.20icons/with/2468257
+    final result = Icon(Icons.block, size: size, color: designVariables.icon);
+    switch (style) {
+      case DeactivatedUserIconStyle.avatarOverlay:
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            color: backgroundColor ?? designVariables.mainBackground,
+            shape: BoxShape.circle),
+          child: result);
+      case DeactivatedUserIconStyle.inlineText:
+        return result;
+    }
+  }
+}
+
+/// How a [DeactivatedUserIcon] is being presented.
+enum DeactivatedUserIconStyle {
+  /// As a badge overlaid on an avatar, in the slot otherwise used by a
+  /// [PresenceCircle] (since presence is meaningless for a deactivated user).
+  ///
+  /// The icon is painted on a filled circle of
+  /// [DeactivatedUserIcon.backgroundColor].
+  avatarOverlay,
+
+  /// Inline in rich text before a user's name: the bare icon, with no circle.
+  inlineText,
+}
+
 /// A user status emoji to be displayed in different parts of the app.
 ///
 /// Use [userId] to show status emoji for that user.

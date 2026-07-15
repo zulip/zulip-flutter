@@ -8,6 +8,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
+import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/user.dart';
 
 import '../example_data.dart' as eg;
@@ -142,5 +143,57 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+  });
+
+  group('DeactivatedUserIcon', () {
+    Future<void> pumpIcon(WidgetTester tester, {
+      DeactivatedUserIconStyle style = DeactivatedUserIconStyle.avatarOverlay,
+      Color? backgroundColor,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: DeactivatedUserIcon(size: 16,
+            style: style, backgroundColor: backgroundColor)));
+      await tester.pump();
+    }
+
+    final findBlockIcon = find.descendant(
+      of: find.byType(DeactivatedUserIcon),
+      matching: find.byIcon(Icons.block));
+    final findDecoratedBox = find.descendant(
+      of: find.byType(DeactivatedUserIcon),
+      matching: find.byType(DecoratedBox));
+
+    testWidgets('renders a block icon', (tester) async {
+      await pumpIcon(tester);
+      check(findBlockIcon).findsOne();
+    });
+
+    testWidgets('avatarOverlay: icon on a filled circle of backgroundColor', (tester) async {
+      await pumpIcon(tester, backgroundColor: const Color(0xFF112233));
+      check(findBlockIcon).findsOne();
+      final decoratedBox = tester.widget<DecoratedBox>(findDecoratedBox);
+      final decoration = decoratedBox.decoration as BoxDecoration;
+      check(decoration.color).equals(const Color(0xFF112233));
+      check(decoration.shape).equals(BoxShape.circle);
+    });
+
+    testWidgets('avatarOverlay, no backgroundColor: circle filled with default background', (tester) async {
+      await pumpIcon(tester);
+      final decoratedBox = tester.widget<DecoratedBox>(findDecoratedBox);
+      final decoration = decoratedBox.decoration as BoxDecoration;
+      check(decoration.color).equals(
+        DesignVariables.of(tester.element(findBlockIcon)).mainBackground);
+      check(decoration.shape).equals(BoxShape.circle);
+    });
+
+    testWidgets('inlineText: just the icon, no DecoratedBox', (tester) async {
+      await pumpIcon(tester, style: DeactivatedUserIconStyle.inlineText);
+      check(findBlockIcon).findsOne();
+      check(findDecoratedBox).findsNothing();
+    });
   });
 }
