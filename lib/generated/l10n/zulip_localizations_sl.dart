@@ -1459,6 +1459,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get mutedUser => 'Uporabnik je utišan';
 
   @override
+  String get deletedUser => 'Deleted user';
+
+  @override
   String get scrollToBottomTooltip => 'Premakni se na konec';
 
   @override

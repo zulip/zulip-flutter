@@ -1705,6 +1705,10 @@
   "@mutedUser": {
     "description": "Text to display in place of a muted user's name."
   },
+  "deletedUser": "Deleted user",
+  "@deletedUser": {
+    "description": "Text to display in place of a deleted user's name."
+  },
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
