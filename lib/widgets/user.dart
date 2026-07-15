@@ -38,7 +38,8 @@ class Avatar extends StatelessWidget {
       size: size,
       borderRadius: borderRadius,
       backgroundColor: backgroundColor,
-      userIdForPresence: showPresence ? userId : null,
+      userId: userId,
+      showPresence: showPresence,
       child: AvatarImage(userId: userId, size: size, replaceIfMuted: replaceIfMuted));
   }
 }
@@ -122,29 +123,36 @@ class _AvatarPlaceholder extends StatelessWidget {
 
 /// A rounded square shape, to wrap an [AvatarImage] or similar.
 ///
-/// If [userIdForPresence] is provided, this will paint a [PresenceCircle]
-/// on the shape.
+/// If [userId] is provided and [showPresence] is true,
+/// this will paint a [PresenceCircle] on the shape.
 class AvatarShape extends StatelessWidget {
   const AvatarShape({
     super.key,
     required this.size,
     required this.borderRadius,
     this.backgroundColor,
-    this.userIdForPresence,
+    this.userId,
+    this.showPresence = true,
     required this.child,
   });
 
   final double size;
   final double borderRadius;
   final Color? backgroundColor;
-  final int? userIdForPresence;
+  final int? userId;
+
+  /// Defaults to true.  Ignored when [userId] is null.
+  final bool showPresence;
+
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
+    final userId = this.userId;
+
     // (The backgroundColor is only meaningful if presence will be shown;
     // see [PresenceCircle.backgroundColor].)
-    assert(backgroundColor == null || userIdForPresence != null);
+    assert(backgroundColor == null || (userId != null && showPresence));
 
     Widget result = SizedBox.square(
       dimension: size,
@@ -153,7 +161,7 @@ class AvatarShape extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: child));
 
-    if (userIdForPresence != null) {
+    if (userId != null && showPresence) {
       final presenceCircleSize = size / 4; // TODO(design) is this right?
       result = Stack(children: [
         result,
@@ -161,7 +169,7 @@ class AvatarShape extends StatelessWidget {
           end: 0,
           bottom: 0,
           child: PresenceCircle(
-            userId: userIdForPresence!,
+            userId: userId,
             size: presenceCircleSize,
             backgroundColor: backgroundColor)),
       ]);
