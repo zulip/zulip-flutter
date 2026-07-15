@@ -3,11 +3,13 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legacy_checks/legacy_checks.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
+import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/user.dart';
 
 import '../example_data.dart' as eg;
@@ -142,5 +144,55 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+  });
+
+  group('DeactivatedUserIcon', () {
+    Future<void> pumpIcon(WidgetTester tester, {
+      DeactivatedUserIconStyle style = DeactivatedUserIconStyle.avatarOverlay,
+      Color? backgroundColor,
+    }) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: DeactivatedUserIcon(size: 16,
+            style: style, backgroundColor: backgroundColor)));
+      await tester.pump();
+    }
+
+    final findIcon = find.descendant(
+      of: find.byType(DeactivatedUserIcon),
+      matching: find.byIcon(Icons.block));
+
+    RenderBox renderBox(WidgetTester tester) =>
+      tester.renderObject<RenderBox>(find.byType(DeactivatedUserIcon));
+
+    testWidgets('smoke', (tester) async {
+      await pumpIcon(tester);
+      check(findIcon).findsOne();
+    });
+
+    testWidgets('avatarOverlay: icon on a filled circle of backgroundColor', (tester) async {
+      await pumpIcon(tester, backgroundColor: const Color(0xFF112233));
+      check(findIcon).findsOne();
+      check(renderBox(tester)).legacyMatcher(
+        // `paints` isn't a [Matcher] so we wrap it with `equals`;
+        // awkward but it works
+        equals(paints..circle(color: const Color(0xFF112233))));
+    });
+
+    testWidgets('avatarOverlay, no backgroundColor: circle filled with default background', (tester) async {
+      await pumpIcon(tester);
+      final designVariables = DesignVariables.of(tester.element(findIcon));
+      check(renderBox(tester)).legacyMatcher(
+        equals(paints..circle(color: designVariables.mainBackground)));
+    });
+
+    testWidgets('inlineText: just the icon, no circle', (tester) async {
+      await pumpIcon(tester, style: DeactivatedUserIconStyle.inlineText);
+      check(findIcon).findsOne();
+      check(renderBox(tester)).legacyMatcher(isNot(paints..circle()));
+    });
   });
 }
