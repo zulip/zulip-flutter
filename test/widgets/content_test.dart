@@ -364,7 +364,7 @@ void main() {
 
   testContentSmoke(ContentExample.quotation);
 
-  group('MessageImagePreview, MessageImagePreviewList', () {
+  group('MessageImageGallery, MessageImageGalleryItem', () {
     Future<void> prepare(WidgetTester tester, String html, {
       List<NavigatorObserver> navObservers = const [],
     }) async {
@@ -406,7 +406,7 @@ void main() {
           ..contains('href="$rawHref"')
           ..contains('src="$rawSrc"');
 
-        final findImagePreview = find.byType(MessageImagePreview);
+        final findImagePreview = find.byType(MessageImageGalleryItem);
         final findLoadingIndicator = find.descendant(
           of: findImagePreview, matching: find.byType(CupertinoActivityIndicator));
 
