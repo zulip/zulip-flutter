@@ -758,24 +758,24 @@ class _TopicInput extends StatefulWidget {
 }
 
 class _TopicInputState extends State<_TopicInput> {
-  void _topicOrContentFocusChanged() {
+  void _updateTopicInteractionStatus() {
+    // A notification from a [FocusNode] doesn't mean its focus changed;
+    // it fires for other state too, like [FocusNode.canRequestFocus]
+    // when its TextField is disabled or re-enabled.
+    // So don't assume there was a focus change: choose the new status
+    // from the current focus state and the previous status,
+    // making a notification with no focus change a no-op.
     final status = widget.controller.topicInteractionStatus;
     if (widget.controller.topicFocusNode.hasFocus) {
-      // topic input gains focus
       status.value = ComposeTopicInteractionStatus.isEditing;
     } else if (widget.controller.contentFocusNode.hasFocus) {
-      // content input gains focus
       status.value = ComposeTopicInteractionStatus.hasChosen;
+    } else if (status.value == ComposeTopicInteractionStatus.isEditing) {
+      // topic input lost focus, without content input gaining it
+      status.value = ComposeTopicInteractionStatus.notEditingNotChosen;
     } else {
-      // neither input has focus, the new value of topicInteractionStatus
-      // depends on its previous value
-      if (status.value == ComposeTopicInteractionStatus.isEditing) {
-        // topic input loses focus
-        status.value = ComposeTopicInteractionStatus.notEditingNotChosen;
-      } else {
-        // content input loses focus; stay in hasChosen
-        assert(status.value == ComposeTopicInteractionStatus.hasChosen);
-      }
+      // neither input has focus and the status is already
+      // notEditingNotChosen or hasChosen; leave it
     }
   }
 
@@ -788,8 +788,8 @@ class _TopicInputState extends State<_TopicInput> {
   @override
   void initState() {
     super.initState();
-    widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
-    widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
+    widget.controller.topicFocusNode.addListener(_updateTopicInteractionStatus);
+    widget.controller.contentFocusNode.addListener(_updateTopicInteractionStatus);
     widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
   }
 
@@ -797,10 +797,10 @@ class _TopicInputState extends State<_TopicInput> {
   void didUpdateWidget(covariant _TopicInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.topicFocusNode.removeListener(_topicOrContentFocusChanged);
-      widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
-      oldWidget.controller.contentFocusNode.removeListener(_topicOrContentFocusChanged);
-      widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
+      oldWidget.controller.topicFocusNode.removeListener(_updateTopicInteractionStatus);
+      widget.controller.topicFocusNode.addListener(_updateTopicInteractionStatus);
+      oldWidget.controller.contentFocusNode.removeListener(_updateTopicInteractionStatus);
+      widget.controller.contentFocusNode.addListener(_updateTopicInteractionStatus);
       oldWidget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
       widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
     }
@@ -808,8 +808,8 @@ class _TopicInputState extends State<_TopicInput> {
 
   @override
   void dispose() {
-    widget.controller.topicFocusNode.removeListener(_topicOrContentFocusChanged);
-    widget.controller.contentFocusNode.removeListener(_topicOrContentFocusChanged);
+    widget.controller.topicFocusNode.removeListener(_updateTopicInteractionStatus);
+    widget.controller.contentFocusNode.removeListener(_updateTopicInteractionStatus);
     widget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
     super.dispose();
   }
