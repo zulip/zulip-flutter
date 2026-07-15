@@ -10,59 +10,6 @@ import 'package:flutter/gestures.dart';
 // in the gesture arena.
 //   https://github.com/flutter/flutter/blob/ab7eb7aff/packages/flutter/lib/src/gestures/multitap.dart#L49-L382
 
-/// CountdownZoned tracks whether the specified duration has elapsed since
-/// creation, honoring [Zone].
-class _CountdownZoned {
-  _CountdownZoned({required Duration duration}) {
-    Timer(duration, _onTimeout);
-  }
-
-  bool get timeout => _timeout;
-  bool _timeout = false;
-
-  void _onTimeout() => _timeout = true;
-}
-
-/// TapTracker helps track individual tap sequences as part of a
-/// larger gesture.
-class _TapTracker {
-  _TapTracker(PointerDownEvent event)
-    : pointer = event.pointer,
-      _initialGlobalPosition = event.position,
-      initialButtons = event.buttons,
-      _doubleTapMinTimeCountdown = _CountdownZoned(duration: kDoubleTapMinTime);
-
-  final int pointer;
-  final Offset _initialGlobalPosition;
-  final int initialButtons;
-  final _CountdownZoned _doubleTapMinTimeCountdown;
-
-  bool _isTrackingPointer = false;
-
-  void startTrackingPointer(PointerRoute route, Matrix4? transform) {
-    if (!_isTrackingPointer) {
-      _isTrackingPointer = true;
-      GestureBinding.instance.pointerRouter.addRoute(pointer, route, transform);
-    }
-  }
-
-  void stopTrackingPointer(PointerRoute route) {
-    if (_isTrackingPointer) {
-      _isTrackingPointer = false;
-      GestureBinding.instance.pointerRouter.removeRoute(pointer, route);
-    }
-  }
-
-  bool isWithinGlobalTolerance(PointerEvent event, double tolerance) {
-    final offset = event.position - _initialGlobalPosition;
-    return offset.distance <= tolerance;
-  }
-
-  bool hasElapsedMinTime() => _doubleTapMinTimeCountdown.timeout;
-
-  bool hasSameButton(PointerDownEvent event) => event.buttons == initialButtons;
-}
-
 /// Recognizes when the user has tapped the screen at the same location twice in
 /// quick succession, without participating in the gesture arena.
 ///
@@ -284,4 +231,57 @@ class DoubleTapRecognizer {
       _doubleTapTimer = null;
     }
   }
+}
+
+/// TapTracker helps track individual tap sequences as part of a
+/// larger gesture.
+class _TapTracker {
+  _TapTracker(PointerDownEvent event)
+    : pointer = event.pointer,
+      _initialGlobalPosition = event.position,
+      initialButtons = event.buttons,
+      _doubleTapMinTimeCountdown = _CountdownZoned(duration: kDoubleTapMinTime);
+
+  final int pointer;
+  final Offset _initialGlobalPosition;
+  final int initialButtons;
+  final _CountdownZoned _doubleTapMinTimeCountdown;
+
+  bool _isTrackingPointer = false;
+
+  void startTrackingPointer(PointerRoute route, Matrix4? transform) {
+    if (!_isTrackingPointer) {
+      _isTrackingPointer = true;
+      GestureBinding.instance.pointerRouter.addRoute(pointer, route, transform);
+    }
+  }
+
+  void stopTrackingPointer(PointerRoute route) {
+    if (_isTrackingPointer) {
+      _isTrackingPointer = false;
+      GestureBinding.instance.pointerRouter.removeRoute(pointer, route);
+    }
+  }
+
+  bool isWithinGlobalTolerance(PointerEvent event, double tolerance) {
+    final offset = event.position - _initialGlobalPosition;
+    return offset.distance <= tolerance;
+  }
+
+  bool hasElapsedMinTime() => _doubleTapMinTimeCountdown.timeout;
+
+  bool hasSameButton(PointerDownEvent event) => event.buttons == initialButtons;
+}
+
+/// CountdownZoned tracks whether the specified duration has elapsed since
+/// creation, honoring [Zone].
+class _CountdownZoned {
+  _CountdownZoned({required Duration duration}) {
+    Timer(duration, _onTimeout);
+  }
+
+  bool get timeout => _timeout;
+  bool _timeout = false;
+
+  void _onTimeout() => _timeout = true;
 }
