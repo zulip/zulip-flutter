@@ -759,26 +759,24 @@ class _TopicInput extends StatefulWidget {
 
 class _TopicInputState extends State<_TopicInput> {
   void _topicOrContentFocusChanged() {
-    setState(() {
-      final status = widget.controller.topicInteractionStatus;
-      if (widget.controller.topicFocusNode.hasFocus) {
-        // topic input gains focus
-        status.value = ComposeTopicInteractionStatus.isEditing;
-      } else if (widget.controller.contentFocusNode.hasFocus) {
-        // content input gains focus
-        status.value = ComposeTopicInteractionStatus.hasChosen;
+    final status = widget.controller.topicInteractionStatus;
+    if (widget.controller.topicFocusNode.hasFocus) {
+      // topic input gains focus
+      status.value = ComposeTopicInteractionStatus.isEditing;
+    } else if (widget.controller.contentFocusNode.hasFocus) {
+      // content input gains focus
+      status.value = ComposeTopicInteractionStatus.hasChosen;
+    } else {
+      // neither input has focus, the new value of topicInteractionStatus
+      // depends on its previous value
+      if (status.value == ComposeTopicInteractionStatus.isEditing) {
+        // topic input loses focus
+        status.value = ComposeTopicInteractionStatus.notEditingNotChosen;
       } else {
-        // neither input has focus, the new value of topicInteractionStatus
-        // depends on its previous value
-        if (status.value == ComposeTopicInteractionStatus.isEditing) {
-          // topic input loses focus
-          status.value = ComposeTopicInteractionStatus.notEditingNotChosen;
-        } else {
-          // content input loses focus; stay in hasChosen
-          assert(status.value == ComposeTopicInteractionStatus.hasChosen);
-        }
+        // content input loses focus; stay in hasChosen
+        assert(status.value == ComposeTopicInteractionStatus.hasChosen);
       }
-    });
+    }
   }
 
   void _topicInteractionStatusChanged() {
