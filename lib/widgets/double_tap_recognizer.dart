@@ -17,25 +17,20 @@ class _CountdownZoned {
     Timer(duration, _onTimeout);
   }
 
+  bool get timeout => _timeout;
   bool _timeout = false;
 
-  bool get timeout => _timeout;
-
-  void _onTimeout() {
-    _timeout = true;
-  }
+  void _onTimeout() => _timeout = true;
 }
 
 /// TapTracker helps track individual tap sequences as part of a
 /// larger gesture.
 class _TapTracker {
-  _TapTracker({
-    required PointerDownEvent event,
-    required Duration doubleTapMinTime,
-  }) : pointer = event.pointer,
-       _initialGlobalPosition = event.position,
-       initialButtons = event.buttons,
-       _doubleTapMinTimeCountdown = _CountdownZoned(duration: doubleTapMinTime);
+  _TapTracker(PointerDownEvent event)
+    : pointer = event.pointer,
+      _initialGlobalPosition = event.position,
+      initialButtons = event.buttons,
+      _doubleTapMinTimeCountdown = _CountdownZoned(duration: kDoubleTapMinTime);
 
   final int pointer;
   final Offset _initialGlobalPosition;
@@ -59,17 +54,13 @@ class _TapTracker {
   }
 
   bool isWithinGlobalTolerance(PointerEvent event, double tolerance) {
-    final Offset offset = event.position - _initialGlobalPosition;
+    final offset = event.position - _initialGlobalPosition;
     return offset.distance <= tolerance;
   }
 
-  bool hasElapsedMinTime() {
-    return _doubleTapMinTimeCountdown.timeout;
-  }
+  bool hasElapsedMinTime() => _doubleTapMinTimeCountdown.timeout;
 
-  bool hasSameButton(PointerDownEvent event) {
-    return event.buttons == initialButtons;
-  }
+  bool hasSameButton(PointerDownEvent event) => event.buttons == initialButtons;
 }
 
 /// Recognizes when the user has tapped the screen at the same location twice in
@@ -105,10 +96,6 @@ class DoubleTapRecognizer {
     this.supportedDevices,
     this.allowedButtonsFilter = _defaultButtonAcceptBehavior,
   });
-
-  // The default value for [allowedButtonsFilter].
-  // Accept the input if, and only if, [kPrimaryButton] is pressed.
-  static bool _defaultButtonAcceptBehavior(int buttons) => buttons == kPrimaryButton;
 
   // Implementation notes:
   //
@@ -169,9 +156,13 @@ class DoubleTapRecognizer {
   ///  * [allowedButtonsFilter], which decides which button will be allowed.
   GestureDoubleTapCallback? onDoubleTap;
 
+  // The default value for [allowedButtonsFilter].
+  // Accept the input if, and only if, [kPrimaryButton] is pressed.
+  static bool _defaultButtonAcceptBehavior(int buttons) => buttons == kPrimaryButton;
+
   Timer? _doubleTapTimer;
   _TapTracker? _firstTap;
-  final Map<int, _TapTracker> _trackers = <int, _TapTracker>{};
+  final _trackers = <int, _TapTracker>{};
 
   void addPointer(PointerDownEvent event) {
     if (!isPointerAllowed(event)) return;
@@ -179,14 +170,12 @@ class DoubleTapRecognizer {
   }
 
   bool isPointerAllowed(PointerDownEvent event) {
-    if (_firstTap == null) {
-      if (onDoubleTap == null) {
-        return false;
-      }
+    if (_firstTap == null && onDoubleTap == null) {
+      return false;
     }
 
     // If second tap is not allowed, reset the state.
-    final bool isPointerAllowed = (supportedDevices?.contains(event.kind) ?? true)
+    final isPointerAllowed = (supportedDevices?.contains(event.kind) ?? true)
       && allowedButtonsFilter(event.buttons);
     if (!isPointerAllowed) {
       _reset();
@@ -211,16 +200,13 @@ class DoubleTapRecognizer {
 
   void _trackTap(PointerDownEvent event) {
     _stopDoubleTapTimer();
-    final tracker = _TapTracker(
-      event: event,
-      doubleTapMinTime: kDoubleTapMinTime,
-    );
+    final tracker = _TapTracker(event);
     _trackers[event.pointer] = tracker;
     tracker.startTrackingPointer(_handleEvent, event.transform);
   }
 
   void _handleEvent(PointerEvent event) {
-    final _TapTracker tracker = _trackers[event.pointer]!;
+    final tracker = _trackers[event.pointer]!;
     if (event is PointerUpEvent) {
       if (_firstTap == null) {
         _registerFirstTap(tracker);
@@ -257,7 +243,7 @@ class DoubleTapRecognizer {
   void _reset() {
     _stopDoubleTapTimer();
     if (_firstTap != null) {
-      final _TapTracker tracker = _firstTap!;
+      final tracker = _firstTap!;
       _firstTap = null;
       _reject(tracker);
     }
@@ -275,7 +261,7 @@ class DoubleTapRecognizer {
   void _registerSecondTap(_TapTracker tracker) {
     _freezeTracker(tracker);
     _trackers.remove(tracker.pointer);
-    _checkUp(tracker.initialButtons);
+    onDoubleTap?.call();
     _reset();
   }
 
@@ -296,12 +282,6 @@ class DoubleTapRecognizer {
     if (_doubleTapTimer != null) {
       _doubleTapTimer!.cancel();
       _doubleTapTimer = null;
-    }
-  }
-
-  void _checkUp(int buttons) {
-    if (onDoubleTap != null) {
-      onDoubleTap!();
     }
   }
 }
