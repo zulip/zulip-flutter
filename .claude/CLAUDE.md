@@ -187,3 +187,11 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Instead, use `git cherry-pick`
   (with `--no-commit` when modifications are needed)
   to replay commits.
+
+- **Don't commit files that aren't meant for the repo** —
+  reports, reviews, drafts, and other output addressed to the
+  person you're working with rather than to the codebase.
+  Leave these uncommitted unless explicitly asked.
+  This matters most on Claude Code on the web, which pushes
+  commits to GitHub automatically: a committed security review
+  would go public before any human had looked at it.

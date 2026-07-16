@@ -132,6 +132,11 @@ unaffected.
 
 ## Limitations / rough edges
 
+- Sessions push without asking: when Claude reaches a stopping
+  point, it pushes its branch, and no setting gates that on
+  your approval. Anything committed thus becomes public on
+  your fork.
+
 - Asking Claude to read issues or PRs on `zulip/zulip-flutter`
   is limited: GitHub API access is scoped to the fork the
   session was started from, and supplying your own token
