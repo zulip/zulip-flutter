@@ -238,15 +238,13 @@ private class AndroidNotificationHost(val context: Context)
         NotificationManagerCompat.from(context).notify(tag, id.toInt(), notification)
     }
 
-    override fun getActiveNotificationMessagingStyleByTag(tag: String): MessagingStyle? {
-        val activeNotification = NotificationManagerCompat.from(context)
-            .activeNotifications
-            .find { it.tag == tag }
-        activeNotification?.notification?.let { notification ->
-            NotificationCompat.MessagingStyle
+    override fun getActiveNotifications(desiredExtras: List<String>, includeMessagingStyle: Boolean): List<StatusBarNotification> {
+        return NotificationManagerCompat.from(context).activeNotifications.map { statusBarNotification ->
+            val notification = statusBarNotification.notification
+            val messagingStyle = if (!includeMessagingStyle) null else NotificationCompat.MessagingStyle
                 .extractMessagingStyleFromNotification(notification)
                 ?.let { style ->
-                    return MessagingStyle(
+                    MessagingStyle(
                         toPigeonPerson(style.user),
                         style.conversationTitle!!.toString(),
                         style.messages.map { MessagingStyleMessage(
@@ -257,23 +255,18 @@ private class AndroidNotificationHost(val context: Context)
                         style.isGroupConversation,
                     )
                 }
-        }
-        return null
-    }
-
-    override fun getActiveNotifications(desiredExtras: List<String>): List<StatusBarNotification> {
-        return NotificationManagerCompat.from(context).activeNotifications.map {
             StatusBarNotification(
-                it.id.toLong(),
-                it.tag,
+                statusBarNotification.id.toLong(),
+                statusBarNotification.tag,
                 Notification(
-                    it.notification.group,
+                    notification.group,
                     desiredExtras
                         .mapNotNull { key ->
-                            it.notification.extras.getString(key)?.let { value ->
+                            notification.extras.getString(key)?.let { value ->
                                 key to value
                             } }
-                        .toMap()
+                        .toMap(),
+                    messagingStyle,
                 ),
             )
         }

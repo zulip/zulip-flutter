@@ -537,16 +537,22 @@ class Notification {
   Notification({
     required this.group,
     required this.extras,
+    this.messagingStyle,
   });
 
   String group;
 
   Map<String, String> extras;
 
+  /// The notification's messaging style, if any, via
+  /// `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
+  MessagingStyle? messagingStyle;
+
   List<Object?> _toList() {
     return <Object?>[
       group,
       extras,
+      messagingStyle,
     ];
   }
 
@@ -558,6 +564,7 @@ class Notification {
     return Notification(
       group: result[0]! as String,
       extras: (result[1]! as Map<Object?, Object?>).cast<String, String>(),
+      messagingStyle: result[2] as MessagingStyle?,
     );
   }
 
@@ -570,7 +577,7 @@ class Notification {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(group, other.group) && _deepEquals(extras, other.extras);
+    return _deepEquals(group, other.group) && _deepEquals(extras, other.extras) && _deepEquals(messagingStyle, other.messagingStyle);
   }
 
   @override
@@ -579,7 +586,7 @@ class Notification {
 
   @override
   String toString() {
-    return 'Notification(group: $group, extras: $extras)';
+    return 'Notification(group: $group, extras: $extras, messagingStyle: $messagingStyle)';
   }
 }
 
@@ -953,52 +960,29 @@ class AndroidNotificationHostApi {
     ;
   }
 
-  /// Wraps `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
-  /// combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
-  ///
-  /// Returns the messaging style, if any, of an active notification
-  /// that has tag `tag`.  If there are several such notifications,
-  /// an arbitrary one of them is used.
-  /// Returns null if there are no such notifications.
-  ///
-  /// See:
-  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getActiveNotifications()
-  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
-  Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(String tag) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotificationMessagingStyleByTag$pigeonVar_messageChannelSuffix';
-    final pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
-    );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[tag]);
-    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
-
-    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: true,
-    )
-    ;
-    return pigeonVar_replyValue as MessagingStyle?;
-  }
-
-  /// Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`.
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
+  /// optionally combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`
+  /// for each notification's [Notification.messagingStyle].
   ///
   /// The keys of entries to fetch from notification's extras bundle must be
   /// specified in the [desiredExtras] list. If this list is empty, then
-  /// [Notifications.extras] will also be empty. If value of the matched entry
+  /// [Notification.extras] will also be empty. If value of the matched entry
   /// is not of type string or is null, then that entry will be skipped.
   ///
-  /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
-  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras}) async {
+  /// Each notification's [Notification.messagingStyle] is populated only when
+  /// [includeMessagingStyle] is true; otherwise it is null.
+  ///
+  /// See:
+  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
+  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
+  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras, required bool includeMessagingStyle}) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotifications$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[desiredExtras]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[desiredExtras, includeMessagingStyle]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
