@@ -173,6 +173,11 @@ the session wrote commits you want to send in a PR.
 
 ## Limitations / rough edges
 
+- Sessions push without asking: when Claude reaches a stopping
+  point, it pushes its branch, and no setting gates that on your
+  approval (checked 2026-09). Anything committed thus becomes
+  public on your fork.
+
 - The VM has no device or emulator, so the app can't be run
   there. Manual testing means teleporting the branch to your
   machine; see the [session workflow](#session-workflow).
