@@ -171,6 +171,7 @@ class DoubleTapRecognizer {
 
   void _reject(_TapTracker tracker) {
     _trackers.remove(tracker.pointer);
+    tracker.cancelCountdown();
     _freezeTracker(tracker);
     if (_firstTap != null) {
       if (tracker == _firstTap) {
@@ -208,6 +209,7 @@ class DoubleTapRecognizer {
   void _registerSecondTap(_TapTracker tracker) {
     _freezeTracker(tracker);
     _trackers.remove(tracker.pointer);
+    tracker.cancelCountdown();
     onDoubleTap?.call();
     _reset();
   }
@@ -271,17 +273,19 @@ class _TapTracker {
   bool hasElapsedMinTime() => _doubleTapMinTimeCountdown.timeout;
 
   bool hasSameButton(PointerDownEvent event) => event.buttons == initialButtons;
+
+  void cancelCountdown() => _doubleTapMinTimeCountdown.cancel();
 }
 
 /// CountdownZoned tracks whether the specified duration has elapsed since
 /// creation, honoring [Zone].
 class _CountdownZoned {
-  _CountdownZoned({required Duration duration}) {
-    Timer(duration, _onTimeout);
-  }
+  _CountdownZoned({required Duration duration})
+    : _timer = Timer(duration, () {});
 
-  bool get timeout => _timeout;
-  bool _timeout = false;
+  final Timer _timer;
 
-  void _onTimeout() => _timeout = true;
+  bool get timeout => !_timer.isActive;
+
+  void cancel() => _timer.cancel();
 }
