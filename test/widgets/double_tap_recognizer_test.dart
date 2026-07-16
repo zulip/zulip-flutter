@@ -619,12 +619,12 @@ void main() {
     late DoubleTapRecognizer doubleTap;
     setUp(() {
       tapPrimary = TapGestureRecognizer()
-        ..onTapDown = (TapDownDetails details) {
+        ..onTap = () {
           recognized.add('tapPrimary');
         };
       addTearDown(tapPrimary.dispose);
       tapSecondary = TapGestureRecognizer()
-        ..onSecondaryTapDown = (TapDownDetails details) {
+        ..onSecondaryTap = () {
           recognized.add('tapSecondary');
         };
       addTearDown(tapSecondary.dispose);
@@ -650,6 +650,7 @@ void main() {
         tester.closeArena(down6.pointer);
 
         tester.route(down6);
+        tester.route(up6);
         expect(recognized, <String>['tapSecondary']);
       },
     );
@@ -662,9 +663,13 @@ void main() {
       tester.closeArena(down1.pointer);
 
       tester.route(down1);
+      tester.route(up1);
       expect(recognized, <String>[]);
 
-      tester.async.elapse(const Duration(milliseconds: 300));
+      tester.async.elapse(const Duration(milliseconds: 299));
+      expect(recognized, <String>[]);
+
+      tester.async.elapse(const Duration(milliseconds: 1));
       expect(recognized, <String>['tapPrimary']);
     });
   });
