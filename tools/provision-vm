@@ -55,9 +55,12 @@ fi
 #   package:sodium's build hook compiles libsodium.
 # gh: GitHub CLI, for reading issues and PRs and for
 #   authenticating `git fetch`; see docs/howto/lima.md.
+# ShellCheck: for the `shellcheck` suite in tools/check, which CI runs.
+#   (Capitalized because a comment starting `# shellcheck` is a directive.)
 run_visibly sudo apt-get update
 run_visibly sudo apt-get install -y \
-    curl git unzip xz-utils zip libsqlite3-dev build-essential gh
+    curl git unzip xz-utils zip libsqlite3-dev build-essential gh \
+    shellcheck
 
 rootdir=$(cd "$this_dir"/.. && pwd -P)
 cd "$rootdir"
