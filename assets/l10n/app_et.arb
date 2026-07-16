@@ -17,6 +17,15 @@
   "@actionSheetOptionCopyChannelLink": {
     "description": "Label for copy channel link button on action sheet."
   },
+  "@actionSheetOptionCopyMessageLink": {
+    "description": "Label for copy message link button on action sheet."
+  },
+  "@actionSheetOptionCopyMessageText": {
+    "description": "Label for copy message text button on action sheet."
+  },
+  "@actionSheetOptionCopyTopicLink": {
+    "description": "Label for copy topic link button in action sheet."
+  },
   "@actionSheetOptionDeleteMessage": {
     "description": "Label for the 'Delete message' button in the message action sheet."
   },
@@ -26,11 +35,23 @@
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
   },
+  "@actionSheetOptionHideMutedMessage": {
+    "description": "Label for hide muted message again button on action sheet."
+  },
   "@actionSheetOptionListOfTopics": {
     "description": "Label for navigating to a channel's topic-list page."
   },
+  "@actionSheetOptionMarkAsUnread": {
+    "description": "Label for mark as unread button on action sheet."
+  },
   "@actionSheetOptionMarkChannelAsRead": {
     "description": "Label for marking a channel as read."
+  },
+  "@actionSheetOptionMarkDmConversationAsRead": {
+    "description": "Option to mark a DM conversation as read in the action sheet."
+  },
+  "@actionSheetOptionMarkTopicAsRead": {
+    "description": "Option to mark a specific topic as read in the action sheet."
   },
   "@actionSheetOptionMuteTopic": {
     "description": "Label for muting a topic on action sheet."
@@ -40,6 +61,9 @@
   },
   "@actionSheetOptionQuoteMessage": {
     "description": "Label for the 'Quote message' button in the message action sheet."
+  },
+  "@actionSheetOptionReportMessage": {
+    "description": "Label for the 'Report message' button in the message action sheet."
   },
   "@actionSheetOptionResolveTopic": {
     "description": "Label for the 'Mark as resolved' button on the topic action sheet."
@@ -74,8 +98,35 @@
   "@actionSheetOptionUnsubscribe": {
     "description": "Label in the channel action sheet for unsubscribing from the channel."
   },
+  "@actionSheetOptionViewProfile": {
+    "description": "Option to view the user's profile in the action sheet for a 1:1 DM conversation."
+  },
+  "@actionSheetOptionViewReadReceipts": {
+    "description": "Label for the 'View read receipts' button in the message action sheet."
+  },
   "@actionSheetReadReceipts": {
     "description": "Title for the \"Read receipts\" bottom sheet."
+  },
+  "@actionSheetReadReceiptsErrorReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when loading read receipts failed."
+  },
+  "@actionSheetReadReceiptsZeroReadCount": {
+    "description": "Label in the \"Read receipts\" bottom sheet when no one has read the message."
+  },
+  "@actionSheetTitleDm": {
+    "description": "The title of an action sheet for a 1:1 DM conversation with another user.",
+    "placeholders": {
+      "user": {
+        "example": "Alice",
+        "type": "String"
+      }
+    }
+  },
+  "@actionSheetTitleGroupDm": {
+    "description": "The title of an action sheet for a group DM conversation."
+  },
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
   },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
@@ -101,6 +152,12 @@
   "@composeBoxAttachFilesTooltip": {
     "description": "Tooltip for compose box icon to attach a file to the message."
   },
+  "@composeBoxAttachFromCameraTooltip": {
+    "description": "Tooltip for compose box icon to attach an image from the camera to the message."
+  },
+  "@composeBoxAttachMediaTooltip": {
+    "description": "Tooltip for compose box icon to attach media to the message."
+  },
   "@composeBoxBannerButtonCancel": {
     "description": "Label text for the 'Cancel' button in the compose-box banner when you are editing a message."
   },
@@ -113,8 +170,32 @@
   "@composeBoxBannerButtonSubscribe": {
     "description": "Label text for the 'Subscribe' button in the compose-box banner when you are viewing an unsubscribed channel."
   },
+  "@composeBoxBannerLabelCannotSendInChannel": {
+    "description": "Label text for a banner replacing the compose box when you do not have permission to send messages in the channel."
+  },
+  "@composeBoxBannerLabelCannotSendUnspecifiedReason": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the channel for an unspecified reason."
+  },
   "@composeBoxBannerLabelEditMessage": {
     "description": "Label text for the compose-box banner when you are editing a message."
+  },
+  "@composeBoxBannerLabelUnknownDmRecipient": {
+    "description": "Label text for a banner replacing the compose box when you cannot send messages in the DM conversation because one or more members are unknown."
+  },
+  "@composeBoxBannerLabelUnsubscribed": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel."
+  },
+  "@composeBoxBannerLabelUnsubscribedWhenCannotSend": {
+    "description": "Label text for a compose-box banner when you are viewing an unsubscribed channel in which you do not have permission to send messages."
+  },
+  "@composeBoxChannelContentHint": {
+    "description": "Hint text for content input when sending a message to a channel.",
+    "placeholders": {
+      "destination": {
+        "example": "#channel name > topic name",
+        "type": "String"
+      }
+    }
   },
   "@composeBoxDmContentHint": {
     "description": "Hint text for content input when sending a message to one other person.",
@@ -125,8 +206,20 @@
       }
     }
   },
+  "@composeBoxGenericContentHint": {
+    "description": "Hint text for content input when sending a message."
+  },
   "@composeBoxGroupDmContentHint": {
     "description": "Hint text for content input when sending a message to a group."
+  },
+  "@composeBoxLoadingMessage": {
+    "description": "Placeholder in compose box showing the quoted message is currently loading.",
+    "placeholders": {
+      "messageId": {
+        "example": "1234",
+        "type": "int"
+      }
+    }
   },
   "@composeBoxSelfDmContentHint": {
     "description": "Hint text for content input when sending a message to yourself."
@@ -137,8 +230,20 @@
   "@composeBoxTopicHintText": {
     "description": "Hint text for topic input widget in compose box."
   },
+  "@composeBoxUploadingFilename": {
+    "description": "Placeholder in compose box showing the specified file is currently uploading.",
+    "placeholders": {
+      "filename": {
+        "example": "file.txt",
+        "type": "String"
+      }
+    }
+  },
   "@deleteMessageConfirmationDialogConfirmButton": {
     "description": "Label for the 'Delete' button on a confirmation dialog for deleting a message."
+  },
+  "@deleteMessageConfirmationDialogMessage": {
+    "description": "Message for a confirmation dialog for deleting a message."
   },
   "@deleteMessageConfirmationDialogTitle": {
     "description": "Title for a confirmation dialog for deleting a message."
@@ -155,8 +260,33 @@
   "@discardDraftConfirmationDialogConfirmButton": {
     "description": "Label for the 'Discard' button on a confirmation dialog for discarding message text that was typed into the compose box."
   },
+  "@discardDraftConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for discarding message text that was typed into the compose box."
+  },
+  "@editAlreadyInProgressMessage": {
+    "description": "Error message when a message edit cannot be saved because there is another edit already in progress."
+  },
+  "@editAlreadyInProgressTitle": {
+    "description": "Error title when a message edit cannot be saved because there is another edit already in progress."
+  },
   "@emojiReactionsMore": {
     "description": "Label for a button opening the emoji picker."
+  },
+  "@errorAccountLoggedIn": {
+    "description": "Error message on attempting to log into an account that's already logged in.",
+    "placeholders": {
+      "email": {
+        "example": "user@example.com",
+        "type": "String"
+      },
+      "server": {
+        "example": "https://example.com",
+        "type": "String"
+      }
+    }
+  },
+  "@errorAccountLoggedInTitle": {
+    "description": "Error title on attempting to log into an account that's already logged in."
   },
   "@errorConnectingToServerDetails": {
     "description": "Dialog error message for a generic unknown error connecting to the server with details.",
@@ -177,17 +307,62 @@
   "@errorCopyingFailed": {
     "description": "Error message when copying the text of a message to the user's system clipboard failed."
   },
+  "@errorCouldNotAccessUploadedFileTitle": {
+    "description": "Error title on failure in opening a file someone previously uploaded to Zulip"
+  },
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
   },
+  "@errorCouldNotEditMessageTitle": {
+    "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "@errorCouldNotFetchMessageSource": {
+    "description": "Error message when the source of a message could not be fetched."
+  },
+  "@errorCouldNotOpenLink": {
+    "description": "Error message when opening a link failed.",
+    "placeholders": {
+      "url": {
+        "example": "https://chat.example.com",
+        "type": "String"
+      }
+    }
+  },
+  "@errorCouldNotOpenLinkTitle": {
+    "description": "Error title when opening a link failed."
+  },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
+  },
+  "@errorDeleteMessageFailedTitle": {
+    "description": "Error title when deleting a message failed."
   },
   "@errorDialogContinue": {
     "description": "Button label in error dialogs to acknowledge the error and close the dialog."
   },
   "@errorDialogTitle": {
     "description": "Generic title for error dialog."
+  },
+  "@errorFailedToUploadFileTitle": {
+    "description": "Error title when the specified file failed to upload.",
+    "placeholders": {
+      "filename": {
+        "example": "file.txt",
+        "type": "String"
+      }
+    }
+  },
+  "@errorFollowTopicFailed": {
+    "description": "Error message when following a topic failed."
+  },
+  "@errorLoginCouldNotConnect": {
+    "description": "Error message when the app could not connect to the server.",
+    "placeholders": {
+      "url": {
+        "example": "http://example.com/",
+        "type": "String"
+      }
+    }
   },
   "@errorLoginFailedTitle": {
     "description": "Error title for login when signing into a Zulip server fails."
@@ -198,11 +373,23 @@
   "@errorMessageDoesNotSeemToExist": {
     "description": "Error message when loading a message that does not exist."
   },
+  "@errorMessageEditNotSaved": {
+    "description": "Error message for compose box when a message edit could not be saved."
+  },
+  "@errorMessageNotSent": {
+    "description": "Error message for compose box when a message could not be sent."
+  },
+  "@errorMuteTopicFailed": {
+    "description": "Error message when muting a topic failed."
+  },
   "@errorPinChannelFailedTitle": {
     "description": "Error title when pinning a channel to the top fails."
   },
   "@errorQuotationFailed": {
     "description": "Error message when quoting a message failed."
+  },
+  "@errorReportMessageFailedTitle": {
+    "description": "Error title when reporting a message failed."
   },
   "@errorResolveTopicFailedTitle": {
     "description": "Error title when marking a topic as resolved failed."
@@ -219,14 +406,45 @@
   "@errorSharingFailed": {
     "description": "Error message when sharing a message failed."
   },
+  "@errorStarMessageFailedTitle": {
+    "description": "Error title when starring a message failed."
+  },
+  "@errorUnfollowTopicFailed": {
+    "description": "Error message when unfollowing a topic failed."
+  },
+  "@errorUnmuteTopicFailed": {
+    "description": "Error message when unmuting a topic failed."
+  },
   "@errorUnpinChannelFailedTitle": {
     "description": "Error title when unpinning a channel from the top fails."
   },
   "@errorUnresolveTopicFailedTitle": {
     "description": "Error title when marking a topic as unresolved failed."
   },
+  "@errorUnstarMessageFailedTitle": {
+    "description": "Error title when unstarring a message failed."
+  },
+  "@errorWebAuthOperationalError": {
+    "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
+  "@errorWebAuthOperationalErrorTitle": {
+    "description": "Error title when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
+  },
   "@experimentalFeatureSettingsPageTitle": {
     "description": "Title of settings page for experimental, in-development features"
+  },
+  "@filenameAndSizeInMiB": {
+    "description": "The name of a file, and its size in mebibytes.",
+    "placeholders": {
+      "filename": {
+        "example": "foo.txt",
+        "type": "String"
+      },
+      "size": {
+        "example": "20.2",
+        "type": "String"
+      }
+    }
   },
   "@inboxPageTitle": {
     "description": "Title for the page with unreads."
@@ -270,6 +488,21 @@
   "@messageIsMovedLabel": {
     "description": "Label for a moved message. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "@messageReportTypeHarassment": {
+    "description": "Label for the 'Harassment' report type in the report message dialog."
+  },
+  "@messageReportTypeInappropriate": {
+    "description": "Label for the 'Inappropriate content' report type in the report message dialog."
+  },
+  "@messageReportTypeNorms": {
+    "description": "Label for the 'Violates community norms' report type in the report message dialog."
+  },
+  "@messageReportTypeOther": {
+    "description": "Label for the 'Other reason' report type in the report message dialog."
+  },
+  "@messageReportTypeSpam": {
+    "description": "Label for the 'Spam' report type in the report message dialog."
+  },
   "@navBarMenuLabel": {
     "description": "Label for the Menu button on the bottom navigation bar."
   },
@@ -282,8 +515,17 @@
   "@newDmSheetComposeButtonLabel": {
     "description": "Label for the compose button in the new DM sheet that starts composing a message to the selected users."
   },
+  "@newDmSheetNoUsersFound": {
+    "description": "Message shown in the new DM sheet when no users match the search."
+  },
   "@newDmSheetScreenTitle": {
     "description": "Title displayed at the top of the new DM screen."
+  },
+  "@newDmSheetSearchHintEmpty": {
+    "description": "Hint text for the search bar when no users are selected"
+  },
+  "@newDmSheetSearchHintSomeSelected": {
+    "description": "Hint text for the search bar when at least one user is selected."
   },
   "@notifSelfUser": {
     "description": "Display name for the user themself, to show after replying in an Android notification"
@@ -327,6 +569,30 @@
   "@recentDmConversationsPageShortLabel": {
     "description": "Short label for the recent-DMs page. Used in the bottom nav bar and for a tab in the share-to-Zulip sheet."
   },
+  "@reportMessageDescription": {
+    "description": "Explanatory text shown under the title in the report message dialog."
+  },
+  "@reportMessageDescriptionLabel": {
+    "description": "Label text for the description field in the report message dialog."
+  },
+  "@reportMessageDescriptionRequired": {
+    "description": "Validation error shown in the report message dialog when the report type is \"Other\" and no description is provided."
+  },
+  "@reportMessageDialogTitle": {
+    "description": "Title for the report message dialog."
+  },
+  "@reportMessageReasonLabel": {
+    "description": "Label text for the report reason dropdown in the report message dialog."
+  },
+  "@reportMessageSubmitButton": {
+    "description": "Label for the submit button in the report message dialog."
+  },
+  "@reportMessageSuccess": {
+    "description": "Snackbar message shown after successfully reporting a message."
+  },
+  "@savingMessageEditFailedLabel": {
+    "description": "Text on a message in the message list saying that a message edit request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
+  },
   "@savingMessageEditLabel": {
     "description": "Text on a message in the message list saying that a message edit request is processing. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
@@ -339,6 +605,19 @@
   "@searchMessagesPageTitle": {
     "description": "Page title for the 'Search' message view."
   },
+  "@seeWhoReactedSheetEmojiNameWithVoteCount": {
+    "description": "In the 'See who reacted' sheet, an emoji reaction's name and how many votes it has. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {
+        "example": "working_on_it",
+        "type": "String"
+      },
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
+  },
   "@seeWhoReactedSheetHeaderLabel": {
     "description": "In the 'See who reacted' sheet, a label for the list of emoji reactions at the top, with the total number of reactions. (An accessibility label for assistive technology.)",
     "placeholders": {
@@ -350,6 +629,19 @@
   },
   "@seeWhoReactedSheetNoReactions": {
     "description": "Explanation on the 'See who reacted' sheet when the message has no reactions (because they were removed after the sheet was opened)."
+  },
+  "@seeWhoReactedSheetUserListLabel": {
+    "description": "In the 'See who reacted' sheet, a label for the list of users who chose an emoji reaction, with the emoji's name and how many votes it has. (An accessibility label for assistive technology.)",
+    "placeholders": {
+      "emojiName": {
+        "example": "working_on_it",
+        "type": "String"
+      },
+      "num": {
+        "example": "2",
+        "type": "int"
+      }
+    }
   },
   "@settingsPageTitle": {
     "description": "Title for the settings page."
@@ -372,8 +664,20 @@
   "@subscribeFailedTitle": {
     "description": "Error title when subscribing to a channel failed."
   },
+  "@successChannelLinkCopied": {
+    "description": "Message when link of a channel was copied to the user's system clipboard."
+  },
   "@successLinkCopied": {
     "description": "Success message after copy link action completed."
+  },
+  "@successMessageLinkCopied": {
+    "description": "Message when link of a message was copied to the user's system clipboard."
+  },
+  "@successMessageTextCopied": {
+    "description": "Message when content of a message was copied to the user's system clipboard."
+  },
+  "@successTopicLinkCopied": {
+    "description": "Message when link of a topic was copied to the user's system clipboard."
   },
   "@switchAccountButtonTooltip": {
     "description": "Tooltip message for main-menu button leading to the choose-account page."
@@ -417,6 +721,12 @@
       "example": "http://chat.example.com/",
       "type": "String"
     }
+  },
+  "@unknownChannelName": {
+    "description": "Replacement name for channel when it cannot be found in the store."
+  },
+  "@unknownUserName": {
+    "description": "Name placeholder to use for a user when we don't know their name."
   },
   "@unpinnedSubscriptionsLabel": {
     "description": "Label for the list of unpinned subscribed channels."
@@ -505,14 +815,22 @@
   "aboutPageTitle": "Zulipi teave",
   "actionSheetOptionChannelFeed": "Kanali sisuvoog",
   "actionSheetOptionCopyChannelLink": "Kopeeri kanali link",
+  "actionSheetOptionCopyMessageLink": "Kopeeri sõnumi link",
+  "actionSheetOptionCopyMessageText": "Kopeeri sõnumi tekst",
+  "actionSheetOptionCopyTopicLink": "Kopeeri teema link",
   "actionSheetOptionDeleteMessage": "Kustuta sõnum",
   "actionSheetOptionEditMessage": "Muuda sõnumit",
   "actionSheetOptionFollowTopic": "Jälgi teemat",
+  "actionSheetOptionHideMutedMessage": "Peida summutatud sõnum uuesti",
   "actionSheetOptionListOfTopics": "Teemade loend",
+  "actionSheetOptionMarkAsUnread": "Märgi sõnumid siit maalt loetuks",
   "actionSheetOptionMarkChannelAsRead": "Märgi kanal loetuks",
+  "actionSheetOptionMarkDmConversationAsRead": "Märgi vestlus loetuks",
+  "actionSheetOptionMarkTopicAsRead": "Märgi teema loetuks",
   "actionSheetOptionMuteTopic": "Summuta teema",
   "actionSheetOptionPinChannel": "Tõsta ülal ääres esile",
   "actionSheetOptionQuoteMessage": "Tsiteeri sõnumit",
+  "actionSheetOptionReportMessage": "Teata sõnumist",
   "actionSheetOptionResolveTopic": "Märgi lahendatuks",
   "actionSheetOptionSeeWhoReacted": "Vaata, kes reageeris",
   "actionSheetOptionShare": "Jaga",
@@ -524,7 +842,14 @@
   "actionSheetOptionUnresolveTopic": "Märgi mittelahendatuks",
   "actionSheetOptionUnstarMessage": "Eemalda sõnumilt tärniga märkimine",
   "actionSheetOptionUnsubscribe": "Loobu tellimusest",
+  "actionSheetOptionViewProfile": "Vaata profiili",
+  "actionSheetOptionViewReadReceipts": "Vaata lugemisteatisi",
   "actionSheetReadReceipts": "Lugemisteatised",
+  "actionSheetReadReceiptsErrorReadCount": "Lugemisteatiste laadimine ei õnnestunud.",
+  "actionSheetReadReceiptsZeroReadCount": "Mitte keegi pole veel seda sõnumit lugenud.",
+  "actionSheetTitleDm": "Otsesõnumid kasutajaga {user}",
+  "actionSheetTitleGroupDm": "Grupi otsesõnumid",
+  "actionSheetTitleSelfDm": "Otsesõnumid sinu endaga",
   "allChannelsEmptyPlaceholderHeader": "Selles organisatsioonis pole ühtegi kanalit, mida saaksid vaadata.",
   "allChannelsPageTitle": "Kõik kanalid",
   "appVersionUnknownPlaceholder": "(…)",
@@ -533,41 +858,78 @@
   "chooseAccountPageLogOutButton": "Logi välja",
   "chooseAccountPageTitle": "Vali kasutajakonto",
   "composeBoxAttachFilesTooltip": "Lisa faile manuseks",
+  "composeBoxAttachFromCameraTooltip": "Pildista",
+  "composeBoxAttachMediaTooltip": "Lisa pilte või videoid",
   "composeBoxBannerButtonCancel": "Katkesta",
   "composeBoxBannerButtonRefresh": "Värskenda andmeid",
   "composeBoxBannerButtonSave": "Salvesta",
   "composeBoxBannerButtonSubscribe": "Telli",
+  "composeBoxBannerLabelCannotSendInChannel": "Sul pole õigusi siin kanalis postitada.",
+  "composeBoxBannerLabelCannotSendUnspecifiedReason": "Sa ei või siit sõnumeid saata.",
   "composeBoxBannerLabelEditMessage": "Muuda sõnumit",
+  "composeBoxBannerLabelUnknownDmRecipient": "Sa ei või saata sõnumeid tundmatutele kasutajatele.",
+  "composeBoxBannerLabelUnsubscribed": "Vastused sinu sõnumitele ei saa olema nähtavad automaatselt.",
+  "composeBoxBannerLabelUnsubscribedWhenCannotSend": "Uued sõnumid ei saa olema nähtavad automaatselt.",
+  "composeBoxChannelContentHint": "Saada sõnum „{destination}“ kanalisse",
   "composeBoxDmContentHint": "Sõnum kasutajale @{user}",
+  "composeBoxGenericContentHint": "Sisesta sõnum",
   "composeBoxGroupDmContentHint": "Sõnum grupile",
+  "composeBoxLoadingMessage": "(laadin sõnumit tunnusega {messageId})",
   "composeBoxSelfDmContentHint": "Koosta endale märge",
   "composeBoxSendTooltip": "Saada",
   "composeBoxTopicHintText": "Teema",
+  "composeBoxUploadingFilename": "Laadin „{filename}“ faili üles…",
   "deleteMessageConfirmationDialogConfirmButton": "Kustuta",
+  "deleteMessageConfirmationDialogMessage": "Selle sõnumi kustutamisel kaob ta jäädavalt kõigi jaoks.",
   "deleteMessageConfirmationDialogTitle": "Kas kustutad sõnumi?",
   "dialogCancel": "Katkesta",
   "dialogClose": "Sulge",
   "dialogContinue": "Jätka",
   "discardDraftConfirmationDialogConfirmButton": "Loobu",
+  "discardDraftConfirmationDialogTitle": "Kas loobud sõnumist, mille oled koostanud?",
+  "editAlreadyInProgressMessage": "Muutmine on juba pooleli. Palun oota, kuni see lõppeb.",
+  "editAlreadyInProgressTitle": "Sõnumi muutmine pole võimalik",
   "emojiReactionsMore": "näita veel",
+  "errorAccountLoggedIn": "„{server}“ serveri „{email}“ kasutajakonto on juba sinu kontaktide loendis.",
+  "errorAccountLoggedInTitle": "Kasutajakonto on juba sisse loginud",
   "errorConnectingToServerDetails": "Viga Zulipiga ühendamisel aadressil {serverUrl}. Proovin uuesti:\n\n{error}",
   "errorConnectingToServerShort": "Viga Zulipiga ühendamisel. Proovin uuesti…",
   "errorCopyingFailed": "Kopeerimine ei õnnestunud",
+  "errorCouldNotAccessUploadedFileTitle": "Üleslaaditud faili polnud võimalik kasutada",
   "errorCouldNotConnectTitle": "Ühendumine ei õnnestunud",
+  "errorCouldNotEditMessageTitle": "Sõnumi muutmine ei õnnestunud",
+  "errorCouldNotFetchMessageSource": "Sõnumi lähtekoodi laadimine ei õnnestu.",
+  "errorCouldNotOpenLink": "Lingi avamine ei õnnestunud: {url}",
+  "errorCouldNotOpenLinkTitle": "Lingi avamine ei õnnestu",
   "errorCouldNotShowUserProfile": "Kasutajaprofiili kuvamine ei õnnestunud.",
+  "errorDeleteMessageFailedTitle": "Sõnumi kustutamine ei õnnestnunud",
   "errorDialogContinue": "Sobib",
   "errorDialogTitle": "Viga",
+  "errorFailedToUploadFileTitle": "Faili üleslaadimine ei õnnestunud: {filename}",
+  "errorFollowTopicFailed": "Teema jälgimine ei õnnestunud",
+  "errorLoginCouldNotConnect": "Serveriga ühendamine ei õnnestu:\n{url}",
   "errorLoginFailedTitle": "Sisselogimine ei õnnestunud",
   "errorLoginInvalidInputTitle": "Vigane sisend",
   "errorMessageDoesNotSeemToExist": "Tundub, et seda sõnumit pole olemas.",
+  "errorMessageEditNotSaved": "Sõnum pole salvestatud",
+  "errorMessageNotSent": "Sõnum on saatmata",
+  "errorMuteTopicFailed": "Teema summutamine ei õnnestunud",
   "errorPinChannelFailedTitle": "Kanali esiletõstmine ei õnnestunud",
   "errorQuotationFailed": "Tsiteerimine ei õnnestunud",
+  "errorReportMessageFailedTitle": "Sõnumikohase teatise edastamine ei õnnestunud",
   "errorResolveTopicFailedTitle": "Teema lahendatuks märkimine ei õnnestunud",
   "errorServerMessage": "Server ütles:\n\n{message}",
   "errorSharingFailed": "Jagamine ei õnnestunud",
+  "errorStarMessageFailedTitle": "Sõnumi tärniga märkimine ei õnnestunud",
+  "errorUnfollowTopicFailed": "Teema jälgimise lõpetamine ei õnnestunud",
+  "errorUnmuteTopicFailed": "Teema summutamise lõpetamine ei õnnestunud",
   "errorUnpinChannelFailedTitle": "Kanali esiletõstmise lõpetamine ei õnnestunud",
   "errorUnresolveTopicFailedTitle": "Teema mittelahendatuks märkimine ei õnnestunud",
+  "errorUnstarMessageFailedTitle": "Sõnumi tärniga märkimise eemaldamine ei õnnestunud",
+  "errorWebAuthOperationalError": "Tekkis ootamatu viga.",
+  "errorWebAuthOperationalErrorTitle": "Midagi läks valesti",
   "experimentalFeatureSettingsPageTitle": "Katselised seadistused",
+  "filenameAndSizeInMiB": "{filename}: {size} MiB",
   "inboxPageTitle": "Sisendkaust",
   "logOutConfirmationDialogConfirmButton": "Logi välja",
   "logOutConfirmationDialogMessage": "Kasutamaks seda kontot tulevikus pead oma organisatsiooni võrguaadressi ja konto teabe uuesti sisestama.",
@@ -582,11 +944,19 @@
   "mentionsPageTitle": "Mainimised",
   "messageIsEditedLabel": "MUUDETUD",
   "messageIsMovedLabel": "TEISALDATUD",
+  "messageReportTypeHarassment": "Ahistamine",
+  "messageReportTypeInappropriate": "Sobimatu sisu",
+  "messageReportTypeNorms": "Rikub kogukonna reegleid",
+  "messageReportTypeOther": "Muu põhjus",
+  "messageReportTypeSpam": "Spämm",
   "navBarMenuLabel": "Menüü",
   "navButtonAllChannels": "Kõik kanalid",
   "newDmFabButtonLabel": "Uus otsesõnum",
   "newDmSheetComposeButtonLabel": "Koosta sõnum",
+  "newDmSheetNoUsersFound": "Ühtegi kasutajat ei leidu",
   "newDmSheetScreenTitle": "Uus otsesõnum",
+  "newDmSheetSearchHintEmpty": "Lisa üks või enam kasutajat",
+  "newDmSheetSearchHintSomeSelected": "Lisa veel üks kasutaja…",
   "notifSelfUser": "Sina",
   "permissionsDeniedCameraAccess": "Pildi üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.",
   "permissionsDeniedReadExternalStorage": "Failide üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.",
@@ -599,12 +969,22 @@
   "reactedEmojiSelfUser": "Sina",
   "reactionChipsLabel": "Reageerimised",
   "recentDmConversationsPageShortLabel": "Otsesõnumid",
+  "reportMessageDescription": "Sinu teatis saadetakse selle organisatsiooni privaatsesse modereerimispäringute kanalisse.",
+  "reportMessageDescriptionLabel": "Kas sa saad lisada täiendavaid üksikasju?",
+  "reportMessageDescriptionRequired": "Palun lisa täiendavat teavet.",
+  "reportMessageDialogTitle": "Teata sõnumist",
+  "reportMessageReasonLabel": "Mis on selle sõnumi puhul valesti?",
+  "reportMessageSubmitButton": "Saada",
+  "reportMessageSuccess": "Oled teatise edastanud",
+  "savingMessageEditFailedLabel": "MUUDATUS POLE SALVESTATUD",
   "savingMessageEditLabel": "SALVESTAN MUUDATUST…",
   "searchMessagesClearButtonTooltip": "Tühjenda",
   "searchMessagesHintText": "Otsi",
   "searchMessagesPageTitle": "Otsing",
+  "seeWhoReactedSheetEmojiNameWithVoteCount": "{emojiName}: {num, plural, =1{1 hääl} other{{num} häält}}",
   "seeWhoReactedSheetHeaderLabel": "Reageerimisi emojiga (kokku {num})",
   "seeWhoReactedSheetNoReactions": "Sellele sõnumile pole mitte keegi reageerinud.",
+  "seeWhoReactedSheetUserListLabel": "Hääli {emojiName} emoji poolt ({num})",
   "settingsPageTitle": "Seadistused",
   "snackBarDetails": "Üksikasjad",
   "spoilerDefaultHeaderText": "Spoiler",
@@ -612,7 +992,11 @@
   "statusClearButtonLabel": "Tühjenda",
   "statusSaveButtonLabel": "Salvesta",
   "subscribeFailedTitle": "Tellimine ei õnnestunud",
+  "successChannelLinkCopied": "Kanali link on kopeeritud",
   "successLinkCopied": "Link on kopeeritud",
+  "successMessageLinkCopied": "Sõnumi link on kopeeritud",
+  "successMessageTextCopied": "Sõnumi tekst on kopeeritud",
+  "successTopicLinkCopied": "Teema link on kopeeritud",
   "switchAccountButtonTooltip": "Vaheta kasutajakontot",
   "systemGroupNameAdministrators": "Peakasutajad",
   "systemGroupNameModerators": "Moderaatorid",
@@ -626,6 +1010,8 @@
   "topicsButtonTooltip": "Teemad",
   "tryAnotherAccountButton": "Proovi mõnda muud kasutajakontot",
   "tryAnotherAccountMessage": "Sinu kasutajakonto laadimine asukohast „{url}“ võtab üsna kaua aega.",
+  "unknownChannelName": "(tundmatu kanal)",
+  "unknownUserName": "(tundmatu kasutaja)",
   "unpinnedSubscriptionsLabel": "Pole esiletõstetud",
   "unsubscribeConfirmationDialogConfirmButton": "Loobu tellimusest",
   "unsubscribeConfirmationDialogMessageCannotResubscribe": "Kui oled sellest kanalist lahkunud, ei saa sa uuesti liituda.",

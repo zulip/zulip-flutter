@@ -481,6 +481,15 @@
   "@errorCouldNotOpenLinkTitle": {
     "description": "Error title when opening a link failed."
   },
+  "@errorCouldNotReadFile": {
+    "description": "Error message when an attached file could not be read.",
+    "placeholders": {
+      "filename": {
+        "example": "foo.txt",
+        "type": "String"
+      }
+    }
+  },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
   },
@@ -818,6 +827,12 @@
   },
   "@loginPasswordLabel": {
     "description": "Label for password input field."
+  },
+  "@loginRealmUrlHelpButton": {
+    "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
+  },
+  "@loginRealmUrlHelperText": {
+    "description": "Helper text below the Zulip organization URL entry field on the login page."
   },
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
@@ -1639,6 +1654,7 @@
   "errorCouldNotFetchMessageSource": "Не удалось извлечь источник сообщения.",
   "errorCouldNotOpenLink": "Не удалось открыть ссылку: {url}",
   "errorCouldNotOpenLinkTitle": "Не удалось открыть ссылку",
+  "errorCouldNotReadFile": "Не удалось прочитать файл: {filename}",
   "errorCouldNotShowUserProfile": "Не удалось показать профиль пользователя.",
   "errorDeleteMessageFailedTitle": "Не удалось удалить сообщение",
   "errorDialogContinue": "OK",
@@ -1717,6 +1733,8 @@
   "loginMethodDividerSemanticLabel": "Другие варианты входа",
   "loginPageTitle": "Вход в систему",
   "loginPasswordLabel": "Пароль",
+  "loginRealmUrlHelpButton": "Помощь",
+  "loginRealmUrlHelperText": "Адрес для использования Zulip в браузере.",
   "loginRealmUrlLabel": "URL вашей организации Zulip",
   "loginUsernameLabel": "Имя пользователя",
   "mainMenuMyProfile": "Мой профиль",
