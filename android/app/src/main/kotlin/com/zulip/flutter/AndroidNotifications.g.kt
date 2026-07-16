@@ -589,20 +589,27 @@ data class MessagingStyle (
  */
 data class Notification (
   val group: String,
-  val extras: Map<String, String>
+  val extras: Map<String, String>,
+  /**
+   * The notification's messaging style, if any, via
+   * `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
+   */
+  val messagingStyle: MessagingStyle? = null
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): Notification {
       val group = pigeonVar_list[0] as String
       val extras = pigeonVar_list[1] as Map<String, String>
-      return Notification(group, extras)
+      val messagingStyle = pigeonVar_list[2] as MessagingStyle?
+      return Notification(group, extras, messagingStyle)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       group,
       extras,
+      messagingStyle,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -613,17 +620,18 @@ data class Notification (
       return true
     }
     val other = other as Notification
-    return AndroidNotificationsPigeonUtils.deepEquals(this.group, other.group) && AndroidNotificationsPigeonUtils.deepEquals(this.extras, other.extras)
+    return AndroidNotificationsPigeonUtils.deepEquals(this.group, other.group) && AndroidNotificationsPigeonUtils.deepEquals(this.extras, other.extras) && AndroidNotificationsPigeonUtils.deepEquals(this.messagingStyle, other.messagingStyle)
   }
 
   override fun hashCode(): Int {
     var result = javaClass.hashCode()
     result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.group)
     result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.extras)
+    result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.messagingStyle)
     return result
   }
   override fun toString(): String {
-    return "Notification(group=$group, extras=$extras)"
+    return "Notification(group=$group, extras=$extras, messagingStyle=$messagingStyle)"
   }
 }
 
@@ -912,30 +920,23 @@ interface AndroidNotificationHostApi {
    */
   fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String, String>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, messagingStyle: MessagingStyle?, number: Long?, smallIconResourceName: String?)
   /**
-   * Wraps `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
-   * combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
-   *
-   * Returns the messaging style, if any, of an active notification
-   * that has tag `tag`.  If there are several such notifications,
-   * an arbitrary one of them is used.
-   * Returns null if there are no such notifications.
-   *
-   * See:
-   *   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getActiveNotifications()
-   *   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
-   */
-  fun getActiveNotificationMessagingStyleByTag(tag: String): MessagingStyle?
-  /**
-   * Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`.
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
+   * optionally combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`
+   * for each notification's [Notification.messagingStyle].
    *
    * The keys of entries to fetch from notification's extras bundle must be
    * specified in the [desiredExtras] list. If this list is empty, then
-   * [Notifications.extras] will also be empty. If value of the matched entry
+   * [Notification.extras] will also be empty. If value of the matched entry
    * is not of type string or is null, then that entry will be skipped.
    *
-   * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
+   * Each notification's [Notification.messagingStyle] is populated only when
+   * [includeMessagingStyle] is true; otherwise it is null.
+   *
+   * See:
+   *   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
+   *   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
    */
-  fun getActiveNotifications(desiredExtras: List<String>): List<StatusBarNotification>
+  fun getActiveNotifications(desiredExtras: List<String>, includeMessagingStyle: Boolean): List<StatusBarNotification>
   /**
    * Corresponds to `androidx.core.app.NotificationManagerCompat.cancel`.
    *
@@ -1069,30 +1070,14 @@ interface AndroidNotificationHostApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotificationMessagingStyleByTag$separatedMessageChannelSuffix", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val tagArg = args[0] as String
-            val wrapped: List<Any?> = try {
-              listOf(api.getActiveNotificationMessagingStyleByTag(tagArg))
-            } catch (exception: Throwable) {
-              AndroidNotificationsPigeonUtils.wrapError(exception)
-            }
-            reply.reply(wrapped)
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotifications$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val desiredExtrasArg = args[0] as List<String>
+            val includeMessagingStyleArg = args[1] as Boolean
             val wrapped: List<Any?> = try {
-              listOf(api.getActiveNotifications(desiredExtrasArg))
+              listOf(api.getActiveNotifications(desiredExtrasArg, includeMessagingStyleArg))
             } catch (exception: Throwable) {
               AndroidNotificationsPigeonUtils.wrapError(exception)
             }

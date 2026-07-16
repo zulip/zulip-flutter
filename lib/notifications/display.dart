@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -234,8 +235,12 @@ class NotificationDisplayManager {
     final groupKey = _groupKey(data.realmUrl, data.userId);
     final conversationKey = _conversationKey(data, groupKey);
 
-    final oldMessagingStyle = await _androidHost
-      .getActiveNotificationMessagingStyleByTag(conversationKey);
+    final activeNotifications =
+      await _androidHost.getActiveNotifications(
+        desiredExtras: const [], includeMessagingStyle: true);
+    final oldNotification =
+      activeNotifications.firstWhereOrNull((notif) => notif.tag == conversationKey);
+    final oldMessagingStyle = oldNotification?.notification.messagingStyle;
 
     final MessagingStyle messagingStyle;
     if (oldMessagingStyle != null) {
@@ -357,7 +362,7 @@ class NotificationDisplayManager {
     //   https://github.com/zulip/zulip-mobile/pull/4842#pullrequestreview-725817909
     var haveRemaining = false;
     final activeNotifications = await _androidHost.getActiveNotifications(
-      desiredExtras: [kExtraLastMessageId]);
+      desiredExtras: [kExtraLastMessageId], includeMessagingStyle: false);
     for (final statusBarNotification in activeNotifications) {
       // The StatusBarNotification object describes an active notification in the UI.
       // Its `.tag`, `.id`, and `.notification` are the same values as we passed to
@@ -447,7 +452,7 @@ class NotificationDisplayManager {
 
     final groupKey = _groupKey(realmUrl, userId);
     final activeNotifications = await _androidHost.getActiveNotifications(
-      desiredExtras: []);
+      desiredExtras: [], includeMessagingStyle: false);
     for (final statusBarNotification in activeNotifications) {
       if (statusBarNotification.notification.group == groupKey) {
         await _androidHost.cancel(

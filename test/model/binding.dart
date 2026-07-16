@@ -854,12 +854,9 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   Iterable<StatusBarNotification> get activeNotifications => _activeNotifications.values;
   final Map<(int, String?), StatusBarNotification> _activeNotifications = {};
 
-  final Map<String, MessagingStyle?> _activeNotificationsMessagingStyle = {};
-
   /// Clears all active notifications that have been created via [notify].
   void clearActiveNotifications() {
     _activeNotifications.clear();
-    _activeNotificationsMessagingStyle.clear();
   }
 
   @override
@@ -899,12 +896,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     ));
 
     if (tag != null) {
-      _activeNotifications[(id, tag)] = StatusBarNotification(
-        id: id,
-        notification: Notification(group: groupKey ?? '', extras: extras ?? {}),
-        tag: tag);
-
-      _activeNotificationsMessagingStyle[tag] = messagingStyle == null
+      final storedMessagingStyle = messagingStyle == null
         ? null
         : MessagingStyle(
             user: messagingStyle.user,
@@ -919,23 +911,35 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
                   name: message.person.name,
                   iconBitmap: null)),
             ).toList(growable: false));
+      _activeNotifications[(id, tag)] = StatusBarNotification(
+        id: id,
+        notification: Notification(
+          group: groupKey ?? '',
+          extras: extras ?? {},
+          messagingStyle: storedMessagingStyle),
+        tag: tag);
     }
   }
 
   @override
-  Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(String tag) async =>
-    _activeNotificationsMessagingStyle[tag];
-
-  @override
-  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras}) async {
+  Future<List<StatusBarNotification>> getActiveNotifications({
+    required List<String> desiredExtras,
+    required bool includeMessagingStyle,
+  }) async {
     return _activeNotifications.values.map((statusNotif) {
       final notificationExtras = statusNotif.notification.extras;
-      statusNotif.notification.extras = {
-        for (final key in desiredExtras)
-          if (notificationExtras[key] != null)
-            key: notificationExtras[key]!,
-      };
-      return statusNotif;
+      return StatusBarNotification(
+        id: statusNotif.id,
+        tag: statusNotif.tag,
+        notification: Notification(
+          group: statusNotif.notification.group,
+          extras: {
+            for (final key in desiredExtras)
+              if (notificationExtras[key] != null)
+                key: notificationExtras[key]!,
+          },
+          messagingStyle: includeMessagingStyle
+            ? statusNotif.notification.messagingStyle : null));
     }).toList(growable: false);
   }
 
