@@ -167,11 +167,12 @@ commit with no responsible human author shouldn't land in a
 PR. When adopting a session's commit, take authorship
 (`git cherry-pick` preserves the old author; amend with
 `--reset-author`), and let a Co-Authored-By trailer credit
-Claude, as with local Claude commits. A PR the session opens
-is the reverse: it's created on behalf of your own GitHub
-account. So a session opens one only as a draft, a handoff
-that still needs you to adopt the commits and mark it ready
-for review.
+Claude, as with local Claude commits. The `authorship` suite
+in `tools/check` enforces this, in CI and locally. A PR the
+session opens is the reverse: it's created on behalf of your
+own GitHub account. So a session opens one only as a draft,
+a handoff that still needs you to adopt the commits and mark
+it ready for review.
 
 [ai-policy]: https://zulip.readthedocs.io/en/latest/contributing/contributing.html#ai-use-policy-and-guidelines
 

@@ -33,6 +33,7 @@ this_dir=${BASH_SOURCE[0]%/*}
 default_suites=(
     analyze test
     flutter_version
+    authorship
     build_runner l10n drift pigeon icons swift_format
     android ios  # These take multiple minutes in CI, so do them last.
 )
@@ -350,6 +351,70 @@ EOF
     if_verbose echo "OK Flutter ${flutter_version} aka ${flutter_commit}"
 
     return 0
+}
+
+# Check that the branch's commits are authored and committed by a
+# human, not by Claude.  Claude Code on the web makes commits as
+# "Claude <noreply@anthropic.com>"; that's honest for a draft, but a
+# human takes authorship before it lands in a PR.  See
+# docs/howto/claude-web.md ("Trust model").
+run_authorship() {
+    # In a cloud session itself, Claude-authored commits are the
+    # expected state, so don't flag them.  Elsewhere the check runs:
+    # on a pushed claude/* draft branch that means CI fails until a
+    # human adopts the commits -- an accurate "not ready" signal.
+    if [ "${CLAUDE_CODE_REMOTE-}" = true ]; then
+        return 0
+    fi
+
+    # Emails that mark a commit as machine-authored, not by a
+    # responsible human.  Add other coding agents' addresses
+    # here as needed.
+    local bot_emails=(
+        'noreply@anthropic.com'    # Claude Code
+    )
+
+    local base bad commits email rc hashes
+    local -a grep_args=()
+    # CI fetches full history for this; see .github/workflows/ci.yml.
+    base=$(base_commit_with_hint) || return
+    # The <>s let the grep below match only a whole address.
+    commits=$(git log --format='%h  <%ae>  <%ce>' "${base}..@") || return
+    for email in "${bot_emails[@]}"; do
+        grep_args+=(-e "<${email}>")
+    done
+    # grep exits 0 (match), 1 (no match), or >=2 (error).  A clean
+    # "no match" passes; an error fails the check rather than
+    # slipping through -- fail closed, like the git log above.
+    rc=0
+    bad=$(grep -F "${grep_args[@]}" <<<"$commits") || rc=$?
+    case $rc in
+        0) ;;                        # bot-authored commit(s) found
+        1) return 0 ;;               # none -- clean
+        *) echo "authorship: grep failed" >&2; return 2 ;;
+    esac
+
+    # Re-list the flagged commits with subjects, for readability.
+    # (Detection above matches %ae/%ce, not %s, so a subject that
+    # mentions the address can't cause a false positive here.)
+    hashes=$(awk '{print $1}' <<<"$bad")
+    # shellcheck disable=SC2086  # deliberately word-split the hash list
+    bad=$(git show -s --format='  %h  %ae  %ce  %s' $hashes) || return
+
+    cat >&2 <<EOF
+error: commit(s) authored or committed as Claude:
+
+${bad}
+
+Take authorship of these when adopting them.  For a flagged commit
+at the tip of the branch:
+  \$ git commit --amend --reset-author
+Or, when adopting a branch that's wholly Claude's, re-author every
+commit in the range since upstream:
+  \$ git rebase ${base} --exec 'git commit --amend --reset-author --no-edit'
+See docs/howto/claude-web.md ("Trust model").
+EOF
+    return 1
 }
 
 # Whether the build_runner suite should run, given $opt_files.
@@ -689,6 +754,7 @@ for suite in "${opt_suites[@]}"; do
         test)         maybe_time "$suite" run_test ;;
         flutter_version)
                       maybe_time "$suite" run_flutter_version ;;
+        authorship)   maybe_time "$suite" run_authorship ;;
         build_runner) maybe_time "$suite" run_build_runner ;;
         l10n)         maybe_time "$suite" run_l10n ;;
         drift)        maybe_time "$suite" run_drift ;;
