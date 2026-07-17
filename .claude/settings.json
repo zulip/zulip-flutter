@@ -41,5 +41,19 @@
       "Read(android/*keystore*)",
       "Read(android/*.jks)"
     ]
+  },
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/tools/cloud-session-start"
+          }
+        ]
+      }
+    ]
   }
 }

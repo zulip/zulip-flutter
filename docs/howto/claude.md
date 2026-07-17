@@ -115,7 +115,8 @@ the wall they actually build:
 - A **[dev container][claude-devcontainer]**, with caveats[^dev-container].
 - **[Claude Code on the web][ccweb]** runs each session in an
   Anthropic-hosted VM. Useful for delegating tasks; this doc is about
-  local development.
+  local development. See [claude-web.md](claude-web.md) for setting
+  up a cloud environment for this repo.
 
 One risk is shared by every option that runs against the same
 clone your host uses: `.git/` is a host-execution path. Git runs
