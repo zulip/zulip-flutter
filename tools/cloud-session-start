@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# SessionStart hook, configured in .claude/settings.json.
+#
+# In a Claude Code on the web session, finish setting up the
+# environment provisioned by tools/provision-cloud (which runs as
+# the cloud environment's setup script; see docs/howto/claude-web.md).
+#
+# In other sessions (a local machine, the Lima VM), do nothing.
+
+if [ "${CLAUDE_CODE_REMOTE-}" != true ]; then
+    exit 0
+fi
+
+cd "$CLAUDE_PROJECT_DIR"
+
+# Warn if this session was started on zulip/zulip-flutter instead of
+# a personal fork. A SessionStart hook can't halt a session (no
+# blocking or decision control, per the hooks docs), so tell Claude
+# to stop instead.
+origin_url=$(git config --get remote.origin.url || true)
+origin_url=${origin_url%/}
+case "${origin_url%.git}" in
+    *[/:]zulip/zulip-flutter)
+        cat <<'EOF'
+STOP: this session is on zulip/zulip-flutter, the upstream repo, not a
+personal fork. Do not make any changes, commits, or pushes. Tell the
+user to start a new session and pick their own fork from the repo
+dropdown; the team workflow is fork + PR, and scratch branches don't
+belong on the upstream repo.
+EOF
+        exit 0;;
+esac
+
+# The container would sign commits as Anthropic's `claude` GitHub
+# identity, which stops making sense once a human takes authorship;
+# see docs/howto/claude-web.md ("Trust model").
+git config commit.gpgsign false
+
+# Find the session branch's merge-base with main, which `tools/check`
+# needs to pick which files to check. The clone starts out shallow
+# and single-branch, so that takes (a) fetching main and (b)
+# unshallowing, to restore the branch's ancestry back through the
+# merge-base.
+if ! git rev-parse -q --verify refs/remotes/origin/main >/dev/null; then
+    fetch_opts=()
+    if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+        fetch_opts+=(--unshallow)
+    fi
+    git fetch -q "${fetch_opts[@]}" origin main:refs/remotes/origin/main \
+        || echo "cloud-session-start: couldn't fetch origin/main; tools/check will want it."
+fi
+
+# Fetch pub deps for the fresh clone, unless already done (on resume
+# and compaction the clone is unchanged). The check is pub's, hidden
+# from `dart pub --help` as tool-facing; the Flutter tool relies on it
+# (e.g. for its implicit `pub get` before `flutter test`).
+if ! dart pub check-resolution-up-to-date >/dev/null 2>&1; then
+    # Quiet on success, because this hook's output lands in Claude's
+    # context. On failure, show the output and let Claude sort it out.
+    # The Flutter tool's version check runs here on purpose (no
+    # --no-version-check): its once-a-day "new version available" nag
+    # then lands in discarded output, not in Claude's first `flutter test`.
+    if ! output=$(flutter pub get 2>&1); then
+        echo "$output"
+        echo "cloud-session-start: \`flutter pub get\` failed; see above."
+        echo "If the cached Flutter SDK is too old for pubspec.yaml," \
+             "\`flutter upgrade\` brings it forward; then retry."
+        exit 0
+    fi
+fi
+
+# (So that success is distinguishable from not running at all.)
+echo "cloud-session-start: ok"

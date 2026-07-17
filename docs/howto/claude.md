@@ -114,8 +114,9 @@ the wall they actually build:
   (for macOS hosts); see its [trust model](lima.md#trust-model).
 - A **[dev container][claude-devcontainer]**, with caveats[^dev-container].
 - **[Claude Code on the web][ccweb]** runs each session in an
-  Anthropic-hosted VM. Useful for delegating tasks; this doc is about
-  local development.
+  Anthropic-hosted VM, with nothing to install locally; see
+  [claude-web.md](claude-web.md) to set it up for this repo. The
+  rest of this section is about running Claude on your own machine.
 
 One risk is shared by every option that runs against the same
 clone your host uses: `.git/` is a host-execution path. Git runs
