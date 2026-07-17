@@ -154,10 +154,23 @@ if (( "${#opt_exclude[@]}" )); then
 fi
 
 files_base_commit=
-# shellcheck disable=SC2119  # this is a silly warning
 case "$opt_files" in
     all) ;;
-    branch) files_base_commit="$(git_base_commit)";;
+    branch)
+        # Let git's own error through (don't swallow it), then add a
+        # hint -- so a different cause isn't masked by a canned message.
+        # shellcheck disable=SC2119  # this is a silly warning
+        if ! files_base_commit="$(git_base_commit)"; then
+            cat >&2 <<'EOF'
+tools/check: couldn't find the merge-base of @ with upstream (see the
+git error above).  Often this is a shallow or single-branch clone
+lacking the branch's fork point; if so, fetch enough history:
+    git fetch --unshallow                                # a shallow clone
+    git fetch <remote> main:refs/remotes/<remote>/main   # if main is absent
+EOF
+            exit 1
+        fi
+        ;;
     diff:*) files_base_commit="${opt_files#diff:}";;
 esac
 
