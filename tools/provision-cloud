@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Setup script for a Claude Code on the web cloud environment;
+# see docs/howto/claude-web.md.
+#
+# Not a script we invoke manually in routine development: the
+# environment's "Setup script" field invokes it, once per build of
+# the environment cache, as root on a fresh Ubuntu VM. The
+# resulting filesystem is snapshotted into the cache. Each session
+# then starts from that snapshot plus a fresh clone of the repo, so
+# state that lives in the clone (its pub deps, Git config, and
+# fetched history) is left to a SessionStart hook,
+# tools/cloud-session-start.
+
+this_dir=${BASH_SOURCE[0]%/*}
+
+# shellcheck source=tools/lib/cli.sh
+. "${this_dir}"/lib/cli.sh
+
+# shellcheck source=tools/lib/clone-flutter-sdk.sh
+. "${this_dir}"/lib/clone-flutter-sdk.sh
+
+if [ "$(uname)" != Linux ] || [ "$(id -u)" != 0 ]; then
+    echo >&2 "error: This script is meant to run as root in a Claude Code"
+    echo >&2 "  on the web environment. See docs/howto/claude-web.md, or"
+    echo >&2 "  for a local VM see tools/provision-vm and docs/howto/lima.md."
+    exit 1
+fi
+
+rootdir=$(cd "$this_dir"/.. && pwd -P)
+cd "$rootdir"
+
+# Each command is echoed before it runs (run_visibly): the setup log
+# is the only place to debug this script.
+echo "==> Installing system packages"
+# curl, git, unzip, xz-utils, zip: needed by the Flutter tool:
+#   https://docs.flutter.dev/install/manual#download-prerequisites
+#   (That list also has libglu1-mesa, for Linux desktop apps; not
+#   needed here.)
+# libsqlite3-dev: package:sqlite3's build hook normally downloads
+#   libsqlite3 from GitHub, but the cloud proxy blocks that
+#   (anthropics/claude-code#78330), so tests here fall back to the
+#   system library, which this provides.
+# build-essential: for native-assets builds in `flutter test`;
+#   package:sodium's build hook compiles libsodium.
+# ShellCheck: for the `shellcheck` suite in tools/check, which CI runs.
+#   (Capitalized because a comment starting `# shellcheck` is a directive.)
+#
+# No gh, unlike tools/provision-vm: the cloud proxy blocks its
+# repo-scoped API paths, so it can't read issues or PRs here.
+# See docs/howto/claude-web.md.
+#
+# The image ships some third-party apt sources (PPAs) that its own
+# network proxy blocks with a 403, so `apt-get update` exits nonzero
+# even when the Ubuntu archives we actually need refreshed fine.
+run_visibly apt-get update || true
+run_visibly apt-get install -y \
+    curl git unzip xz-utils zip libsqlite3-dev build-essential \
+    shellcheck
+
+echo "==> Cloning the Flutter SDK"
+# Sessions run as root, the same user as this script (empirically,
+# 2026-07; the docs don't say), so ~/flutter and the pub cache
+# carry over into sessions via the environment cache.
+flutter_tree=~/flutter
+clone_flutter_sdk "$flutter_tree"
+
+# Sessions don't read ~/.profile, so instead put the SDK where the
+# default PATH already looks. The flutter and dart launchers resolve
+# symlinks to find their SDK tree.
+run_visibly ln -sf "$flutter_tree"/bin/flutter /usr/local/bin/flutter
+run_visibly ln -sf "$flutter_tree"/bin/dart /usr/local/bin/dart
+
+echo "==> Downloading Flutter artifacts and pub dependencies"
+# Do this here to warm the pub cache: downloads made during a
+# session don't survive into the environment cache. (The checkout's
+# own .dart_tool doesn't survive either; the hook redoes pub get
+# from the warm cache.)
+run_visibly flutter precache --universal
+run_visibly flutter pub get
+
+echo "==> Cloning the Zulip server repo"
+# For researching server behavior the API docs don't answer, and for
+# reading the API changelog's source; see .claude/rules/api.md.
+# A full clone (about 600 MiB), not blob-filtered: history searches
+# like `git log -S` stay fast, and sessions never need to fetch from
+# it on demand through the proxy.
+run_visibly git clone https://github.com/zulip/zulip ../zulip
+
+echo "==> Done."

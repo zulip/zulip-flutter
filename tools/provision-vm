@@ -42,7 +42,8 @@ done
 if [ "$(uname)" != Linux ] || ! systemd-detect-virt -q; then
     echo >&2 "error: This script is meant for a Linux VM, not the host"
     echo >&2 "  or another non-VM machine (it edits /etc/fstab)."
-    echo >&2 "  See docs/howto/lima.md ."
+    echo >&2 "  See docs/howto/lima.md . (For a Claude Code on the web"
+    echo >&2 "  environment, see tools/provision-cloud instead.)"
     exit 1
 fi
 
