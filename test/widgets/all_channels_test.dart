@@ -189,8 +189,7 @@ void main() {
         find.descendant(of: findElement, matching: finder);
 
       final icon = tester.widget<Icon>(findInRow(find.byIcon(iconDataForStream(channel))));
-      final maybeSubscription = channel is Subscription ? channel : null;
-      final colorSwatch = colorSwatchFor(element, maybeSubscription);
+      final colorSwatch = colorSwatchFor(element, channel.streamId);
       check(icon).color.equals(colorSwatch.iconOnPlainBackground);
 
       check(findInRow(find.text(channel.name))).findsOne();

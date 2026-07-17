@@ -33,10 +33,9 @@ class TopicListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final appBarBackgroundColor = colorSwatchFor(
-      context, store.subscriptions[channelId]).barBackground;
+    final appBarBackgroundColor = colorSwatchFor(context, channelId)
+      .barBackground;
 
     return PageRoot(child: Scaffold(
       appBar: ZulipAppBar(
@@ -71,8 +70,8 @@ class _TopicListAppBarTitle extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final store = PerAccountStoreWidget.of(context);
     final stream = store.streams[channelId];
-    final channelIconColor = colorSwatchFor(context,
-      store.subscriptions[channelId]).iconOnBarBackground;
+    final channelIconColor = colorSwatchFor(context, channelId)
+      .iconOnBarBackground;
 
     // A null [Icon.icon] makes a blank space.
     final icon = stream != null ? iconDataForStream(stream) : null;
