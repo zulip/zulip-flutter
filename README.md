@@ -126,14 +126,10 @@ using the Flutter `main` channel:
 3. Ensure Flutter is correctly configured by running `flutter doctor`.
 4. Start the app with `flutter run`, or from your IDE.
 
-Parts of our test suite require an additional dependency:
-
-5. Install SQLite, for example by running `sudo apt install libsqlite3-dev`.
-
 Developing on Windows requires
 an [additional step](docs/setup.md#autocrlf):
 
-6. Run `git config core.autocrlf input`.
+5. Run `git config core.autocrlf input`.
 
 For more details and help with unusual configurations,
 see our [full setup guide](docs/setup.md).
