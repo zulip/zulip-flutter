@@ -1808,9 +1808,9 @@ void main() {
             .throws<AssertionError>();
         });
 
-        test('KeywordSearchNarrow gives error', () async {
+        test('SearchNarrow gives error', () async {
           prepare();
-          final narrow = KeywordSearchNarrow('');
+          final narrow = SearchNarrow(filters: []);
           check(() => ChannelLinkAutocompleteView.init(store: store,
                         narrow: narrow, query: ChannelLinkAutocompleteQuery('')))
             .throws<AssertionError>();

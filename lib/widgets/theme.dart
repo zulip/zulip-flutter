@@ -221,6 +221,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     neutralButtonLabel: const Color(0xff433d5c),
     radioBorder: Color(0xffbbbdc8),
     radioFillSelected: Color(0xff4370f0),
+    searchPillKeyText: Color(0xff4040bf),
     statusAway: Color(0xff73788c).withValues(alpha: 0.25),
 
     // Following Web because it uses a gradient, to distinguish it by shape from
@@ -333,6 +334,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     neutralButtonLabel: const Color(0xffa9a3c2),
     radioBorder: Color(0xff626573),
     radioFillSelected: Color(0xff4e7cfa),
+    searchPillKeyText: Color(0xffaeb0f4),
     statusAway: Color(0xffabaeba).withValues(alpha: 0.30),
 
     // Following Web because it uses a gradient, to distinguish it by shape from
@@ -449,6 +451,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.neutralButtonLabel,
     required this.radioBorder,
     required this.radioFillSelected,
+    required this.searchPillKeyText,
     required this.statusAway,
     required this.statusIdle,
     required this.statusOnline,
@@ -562,6 +565,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color neutralButtonLabel;
   final Color radioBorder;
   final Color radioFillSelected;
+  final Color searchPillKeyText;
   final Color statusAway;
   final Color statusIdle;
   final Color statusOnline;
@@ -669,6 +673,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? neutralButtonLabel,
     Color? radioBorder,
     Color? radioFillSelected,
+    Color? searchPillKeyText,
     Color? statusAway,
     Color? statusIdle,
     Color? statusOnline,
@@ -771,6 +776,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       neutralButtonLabel: neutralButtonLabel ?? this.neutralButtonLabel,
       radioBorder: radioBorder ?? this.radioBorder,
       radioFillSelected: radioFillSelected ?? this.radioFillSelected,
+      searchPillKeyText: searchPillKeyText ?? this.searchPillKeyText,
       statusAway: statusAway ?? this.statusAway,
       statusIdle: statusIdle ?? this.statusIdle,
       statusOnline: statusOnline ?? this.statusOnline,
@@ -880,6 +886,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       neutralButtonLabel: Color.lerp(neutralButtonLabel, other.neutralButtonLabel, t)!,
       radioBorder: Color.lerp(radioBorder, other.radioBorder, t)!,
       radioFillSelected: Color.lerp(radioFillSelected, other.radioFillSelected, t)!,
+      searchPillKeyText: Color.lerp(searchPillKeyText, other.searchPillKeyText, t)!,
       statusAway: Color.lerp(statusAway, other.statusAway, t)!,
       statusIdle: Color.lerp(statusIdle, other.statusIdle, t)!,
       statusOnline: Color.lerp(statusOnline, other.statusOnline, t)!,

@@ -772,7 +772,7 @@ void main() {
 
       check(pushedRoutes).single.isA<WidgetRoute>().page
         .isA<MessageListPage>()
-        .initNarrow.equals(KeywordSearchNarrow(''));
+        .initNarrow.equals(SearchNarrow(filters: []));
     });
   });
 }

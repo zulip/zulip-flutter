@@ -7,6 +7,7 @@ import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import '../api/model/model.dart';
+import '../api/model/narrow.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import '../model/database.dart';
@@ -381,7 +382,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   @override
   Widget build(BuildContext context) {
     final Anchor initAnchor;
-    if (narrow is KeywordSearchNarrow) {
+    if (narrow is SearchNarrow) {
       initAnchor = AnchorCode.newest;
     } else if (widget.initAnchorMessageId != null) {
       initAnchor = NumericAnchor(widget.initAnchorMessageId!);
@@ -406,6 +407,15 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
           // and handle the horizontal device insets.
           // The bottom inset should be handled by the last child only.
           children: [
+            if (narrow case SearchNarrow())
+              Padding(
+                padding: const .symmetric(horizontal: 8, vertical: 6),
+                child: _SearchBar(
+                  narrow: narrow as SearchNarrow,
+                  onSubmitted: (narrow) {
+                    MessageListPage.ancestorOf(context).model!
+                      .renarrowAndFetch(narrow, AnchorCode.newest);
+                  })),
             MediaQuery.removePadding(
               // Scaffold knows about the app bar, and so has run this
               // BuildContext, which is under `body`, through
@@ -463,7 +473,7 @@ abstract class _MessageListAppBar {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         appBarBackgroundColor = null; // i.e., inherit
 
       case ChannelNarrow(:final channelId):
@@ -490,10 +500,10 @@ abstract class _MessageListAppBar {
           tooltip: zulipLocalizations.searchMessagesPageTitle,
           onPressed: () => Navigator.push(context,
             MessageListPage.buildRoute(context: context,
-              narrow: KeywordSearchNarrow('')))));
+              narrow: SearchNarrow(filters: [])))));
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
       case DmNarrow():
         break;
       case ChannelNarrow(:final channelId):
@@ -509,14 +519,6 @@ abstract class _MessageListAppBar {
     }
 
     return ZulipAppBar(
-      centerTitle: switch (narrow) {
-        CombinedFeedNarrow() || ChannelNarrow()
-            || TopicNarrow() || DmNarrow()
-            || MentionsNarrow() || StarredMessagesNarrow()
-          => null,
-        KeywordSearchNarrow()
-          => false,
-      },
       buildTitle: (willCenterTitle) =>
         MessageListAppBarTitle(narrow: narrow, willCenterTitle: willCenterTitle),
       actions: actions,
@@ -730,20 +732,20 @@ class MessageListAppBarTitle extends StatelessWidget {
             child: Align(alignment: alignment,
               child: child)));
 
-      case KeywordSearchNarrow():
-        assert(!willCenterTitle);
-        return _SearchBar(onSubmitted: (narrow) {
-          MessageListPage.ancestorOf(context).model!
-            .renarrowAndFetch(narrow, AnchorCode.newest);
-        });
+      case SearchNarrow():
+        return Text(zulipLocalizations.searchPageTitle);
     }
   }
 }
 
 class _SearchBar extends StatefulWidget {
-  const _SearchBar({required this.onSubmitted});
+  const _SearchBar({
+    required this.narrow,
+    required this.onSubmitted,
+  });
 
-  final void Function(KeywordSearchNarrow) onSubmitted;
+  final SearchNarrow narrow;
+  final void Function(SearchNarrow) onSubmitted;
 
   @override
   State<_SearchBar> createState() => _SearchBarState();
@@ -751,23 +753,87 @@ class _SearchBar extends StatefulWidget {
 
 class _SearchBarState extends State<_SearchBar> {
   late TextEditingController _controller;
+  late final FocusNode _focusNode;
 
-  static KeywordSearchNarrow _valueToNarrow(String value) =>
-    KeywordSearchNarrow(value.trim());
+  SearchNarrow get _narrow => widget.narrow;
+  late final List<ApiNarrowElement> _searchFilters;
 
   @override
   void initState() {
     _controller = TextEditingController();
+    _focusNode = FocusNode();
+    _searchFilters = [..._narrow.filters];
     super.initState();
   }
 
+  void _udpateSearch() {
+    widget.onSubmitted(SearchNarrow(filters: [..._searchFilters]));
+  }
+
   void _handleSubmitted(String value) {
-    widget.onSubmitted(_valueToNarrow(value));
+    _searchFilters.removeWhere((e) => e is ApiNarrowSearch);
+    final trimmed = value.trim();
+    // The server rejects an empty keyword search.
+    if (trimmed.isNotEmpty) _searchFilters.add(ApiNarrowSearch(trimmed));
+    _udpateSearch();
+  }
+
+  void _onSenderPillTapped(ApiNarrowSender senderFilter) {
+    setState(() {
+      _searchFilters.remove(senderFilter);
+    });
+    _focusNode.requestFocus();
   }
 
   void _clearInput() {
     _controller.clear();
-    _handleSubmitted('');
+    _searchFilters.clear();
+    _udpateSearch();
+    _focusNode.requestFocus();
+  }
+
+  Iterable<Widget> _buildPills() {
+    return _searchFilters.map((e) {
+      return switch (e) {
+        ApiNarrowSender() => SearchPillSender(
+                               senderId: e.operand,
+                               onTap: () => _onSenderPillTapped(e)),
+        // TODO(#1660): handle more cases
+        _ => null,
+      };
+    }).nonNulls;
+  }
+
+  Widget _buildSearchField(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return TextField(
+      controller: _controller,
+      focusNode: _focusNode,
+      autocorrect: false,
+
+      // Servers as of 2025-07 seem to require straight quotes for the
+      // "exact match"- style query. (N.B. the doc says this param is iOS-only.)
+      smartQuotesType: .disabled,
+
+      autofocus: _narrow.filters.isEmpty,
+      onSubmitted: _handleSubmitted,
+      style: filledInputTextStyle(designVariables),
+      textInputAction: .search,
+      decoration: InputDecoration(
+        isDense: true,
+        contentPadding: .zero,
+        border: .none,
+        hintText: zulipLocalizations.searchMessagesHintText,
+        hintStyle: TextStyle(color: designVariables.labelSearchPrompt)));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -775,34 +841,49 @@ class _SearchBarState extends State<_SearchBar> {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    return TextField(
-      controller: _controller,
-      autocorrect: false,
-
-      // Servers as of 2025-07 seem to require straight quotes for the
-      // "exact match"- style query. (N.B. the doc says this param is iOS-only.)
-      smartQuotesType: SmartQuotesType.disabled,
-
-      autofocus: true,
-      onSubmitted: _handleSubmitted,
-      style: filledInputTextStyle(designVariables),
-      textInputAction: TextInputAction.search,
-      decoration: baseFilledInputDecoration(designVariables)
-        .copyWith(
-          hintText: zulipLocalizations.searchMessagesHintText,
-          prefixIcon: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 0, 8),
-            child: Icon(size: 24, ZulipIcons.search)),
-          prefixIconColor: designVariables.labelSearchPrompt,
-          prefixIconConstraints: BoxConstraints(),
-          suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.medium.surface),
-          suffixIcon: ZulipIconButton(
+    return Container(
+      // Uses the constraint value of a similar search field in new_dm_sheet.dart:
+      //   https://github.com/zulip/zulip-flutter/blob/01907d833/lib/widgets/new_dm_sheet.dart#L265
+      constraints: const BoxConstraints(maxHeight: 124),
+      decoration: BoxDecoration(
+        color: designVariables.bgSearchInput,
+        borderRadius: .circular(10)),
+      child: Row(crossAxisAlignment: .start, children: [
+        Padding(
+          padding: const .fromSTEB(8, 9, 6, 9),
+          child: Icon(ZulipIcons.search,
+            size: 24, color: designVariables.labelSearchPrompt)),
+        Expanded(child: GestureDetector(
+          // Because of the search field being wrapped in IntrinsicWidth,
+          // its tap-to-focus only works on its (hint) text. This handler
+          // enables a wider tap target for search field to request focus.
+          onTap: _focusNode.requestFocus,
+          child: SingleChildScrollView(
+            reverse: true,
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              crossAxisAlignment: .center,
+              children: [
+                ..._buildPills(),
+                // The IntrinsicWidth lets the text field participate in the
+                // Wrap when its content fits on the same line with a user
+                // chip, by preventing it from expanding to fill the
+                // available width. See:
+                //   https://github.com/zulip/zulip-flutter/pull/1322#discussion_r2094112488
+                IntrinsicWidth(child: _buildSearchField(context)),
+              ])))),
+        ConstrainedBox(
+          constraints: BoxConstraints.tight(ZulipIconButtonSize.medium.surface),
+          child: ZulipIconButton(
             icon: ZulipIcons.remove,
             tooltip: zulipLocalizations.searchMessagesClearButtonTooltip,
             onPressed: _clearInput,
             size: .medium,
             backgroundWhenPressed: false,
-            intent: .neutral)));
+            intent: .neutral)),
+      ]));
   }
 }
 
@@ -1410,10 +1491,28 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           onTapMessageLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/star-a-message')!));
 
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.emptyMessageListSearch);
+          header: emptyMessageListSearchHeader(context, narrow as SearchNarrow));
     }
+  }
+
+  // Borrows the logic from pick_empty_narrow_banner in Zulip web:
+  //   https://github.com/zulip/zulip/blob/19ed17c38/web/src/narrow_banner.ts#L181
+  String emptyMessageListSearchHeader(BuildContext context, SearchNarrow narrow) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    if (narrow.filters.length == 1) {
+      final element = narrow.filters.single;
+      if (element case ApiNarrowSender(operand: final senderId)) {
+        final sender = store.getUser(senderId);
+        return sender != null
+          ? zulipLocalizations.emptyMessageListSearchFromSender(sender.fullName)
+          : zulipLocalizations.emptyMessageListSearchFromUnknownSender;
+      }
+    }
+    return zulipLocalizations.emptyMessageListSearchDefault;
   }
 }
 
@@ -1847,7 +1946,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return true;
 
       case ChannelNarrow():
@@ -2366,7 +2465,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         || DmNarrow() => false,
       MentionsNarrow()
         || StarredMessagesNarrow()
-        || KeywordSearchNarrow() => true,
+        || SearchNarrow() => true,
     };
 
     final showAsMuted = store.isUserMuted(message.senderId)

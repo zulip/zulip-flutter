@@ -98,14 +98,19 @@ String narrowLinkFragment(PerAccountStore store, Narrow narrow, {int? nearMessag
         fragment.write('${element.operand.join(',')}-$suffix');
       case ApiNarrowDm():
         assert(false, 'ApiNarrowDm should have been resolved');
-      case ApiNarrowWith():
-        fragment.write(element.operand.toString());
+      case ApiNarrowSearch():
+        fragment.write(_encodeHashComponent(element.operand));
+      case ApiNarrowSender():
+        final senderId = element.operand;
+        final name = store.getUser(senderId)?.fullName ?? 'unknown';
+        final slugifiedName = _encodeHashComponent(name.replaceAll(' ', '-'));
+        fragment.write('$senderId-$slugifiedName');
       case ApiNarrowIs():
+        fragment.write(element.operand.toString());
+      case ApiNarrowWith():
         fragment.write(element.operand.toString());
       case ApiNarrowMessageId():
         fragment.write(element.operand.toString());
-      case ApiNarrowSearch():
-        fragment.write(_encodeHashComponent(element.operand));
     }
   }
 

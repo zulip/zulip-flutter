@@ -572,7 +572,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
 
@@ -1383,7 +1383,7 @@ class ChannelLinkAutocompleteView extends AutocompleteView<ChannelLinkAutocomple
       case CombinedFeedNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         assert(false, 'No compose box, thus no autocomplete is available in ${narrow.runtimeType}.');
     }
     return (a, b) => _compareByRelevance(a, b, composingToChannelId: channelId);

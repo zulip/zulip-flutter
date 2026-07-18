@@ -3026,6 +3026,8 @@ void main() {
     doTest(narrow: TopicNarrow(channelId, eg.t(topic)), expected: false);
     doTest(narrow: StarredMessagesNarrow(),             expected: true);
     doTest(narrow: MentionsNarrow(),                    expected: true);
+    doTest(narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')]),
+                                                        expected: true);
   });
 
   test('showSender is maintained correctly', () => awaitFakeAsync((async) async {
@@ -3310,14 +3312,14 @@ void checkInvariants(MessageListView model) {
         case DmNarrow():
         case MentionsNarrow():
         case StarredMessagesNarrow():
-        case KeywordSearchNarrow():
+        case SearchNarrow():
       }
     } else if (message is DmMessage) {
       final narrow = DmNarrow.ofMessage(message, selfUserId: model.store.selfUserId);
       switch (model.narrow) {
         case CombinedFeedNarrow():
         case MentionsNarrow():
-        case KeywordSearchNarrow():
+        case SearchNarrow():
           check(model.store.shouldMuteDmConversation(narrow)).isFalse();
         case ChannelNarrow():
         case TopicNarrow():

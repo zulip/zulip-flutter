@@ -98,17 +98,23 @@ void main() {
     if (mutedUserIds != null) {
       await store.setMutedUsers(mutedUserIds);
     }
-    if (fetchResult != null) {
-      assert(foundOldest && messageCount == null && messages == null);
+    if (narrow case SearchNarrow(filters: [])) {
+      assert(messageCount == null && messages == null && fetchResult == null,
+        'There is no need to prepare the initial message response when '
+        'the search narrow has no filters.');
     } else {
-      assert((messageCount == null) != (messages == null));
-      messages ??= List.generate(messageCount!, (index) {
-        return eg.streamMessage(sender: eg.selfUser);
-      });
-      fetchResult = eg.newestGetMessagesResult(
-        foundOldest: foundOldest, messages: messages);
+      if (fetchResult != null) {
+        assert(foundOldest && messageCount == null && messages == null);
+      } else {
+        assert((messageCount == null) != (messages == null));
+        messages ??= List.generate(messageCount!, (index) {
+          return eg.streamMessage(sender: eg.selfUser);
+        });
+        fetchResult = eg.newestGetMessagesResult(
+          foundOldest: foundOldest, messages: messages);
+      }
+      connection.prepare(json: fetchResult.toJson());
     }
-    connection.prepare(json: fetchResult.toJson());
 
     await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
       skipAssertAccountExists: skipAssertAccountExists,
@@ -128,6 +134,12 @@ void main() {
     check(find.descendant(of: appBarFinder, matching: find.text(topic)))
       .findsOne();
   }
+
+  Finder searchFieldFinder = find.byWidgetPredicate((widget) => switch (widget) {
+    TextField(decoration: InputDecoration(hintText: 'Search'))
+      => true,
+    _ => false,
+  });
 
   ScrollView findScrollView(WidgetTester tester) =>
     tester.widget<ScrollView>(find.bySubtype<ScrollView>());
@@ -236,6 +248,32 @@ void main() {
       await tester.pump(TestGlobalStore.removeAccountDuration);
       await future;
       check(store.debugMessageListViews).isEmpty();
+    });
+
+    group('has search bar in', () {
+      final testCases = [
+        (expected: false, narrow: CombinedFeedNarrow()),
+        (expected: false, narrow: ChannelNarrow(1)),
+        (expected: false, narrow: TopicNarrow(1, TopicName('topic'))),
+        (expected: false, narrow: DmNarrow.withUsers([1, 2], selfUserId: eg.selfUser.userId)),
+        (expected: false, narrow: MentionsNarrow()),
+        (expected: false, narrow: StarredMessagesNarrow()),
+        (expected: true,  narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')])),
+      ];
+
+      for (final (:expected, :narrow) in testCases) {
+        testWidgets('${narrow.runtimeType}? ${expected ? 'YES' : 'NO'}', (tester) async {
+          await setupMessageListPage(tester, narrow: narrow, messages: []);
+
+          check(find.descendant(of: find.byType(MessageListPage),
+            matching: searchFieldFinder)
+          ).findsExactly(expected ? 1 : 0);
+
+          check(find.descendant(of: find.byType(ZulipAppBar),
+            matching: searchFieldFinder)
+          ).findsNothing();
+        });
+      }
     });
   });
 
@@ -409,7 +447,7 @@ void main() {
 
       check(pushedRoutes).single.isA<WidgetRoute>().page
         .isA<MessageListPage>()
-        .initNarrow.equals(KeywordSearchNarrow(''));
+        .initNarrow.equals(SearchNarrow(filters: []));
     });
 
     testWidgets('no search button in channel narrow', (tester) async {
@@ -643,14 +681,38 @@ void main() {
         expectedUrl: store.tryResolveUrl('/help/star-a-message')!);
     });
 
-    testWidgets('Search, empty keyword', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow(''), messages: []);
+    testWidgets('Search, empty filters', (tester) async {
+      await setupMessageListPage(tester, narrow: SearchNarrow(filters: []));
       check(findTextInPlaceholder('No search results.')).findsOne();
     });
 
-    testWidgets('Search, non-empty keyword', (tester) async {
-      await setupMessageListPage(tester, narrow: KeywordSearchNarrow('hello'), messages: []);
-      check(findTextInPlaceholder('No search results.')).findsOne();
+    group('Search, non-empty filters', () {
+      testWidgets('only keyword', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: SearchNarrow(filters: [ApiNarrowSearch('hello')]), messages: []);
+        check(findTextInPlaceholder('No search results.')).findsOne();
+      });
+
+      testWidgets('only sender', (tester) async {
+        final sender = eg.user(fullName: 'User Foo');
+        await setupMessageListPage(tester,
+          narrow: SearchNarrow(filters: [ApiNarrowSender(sender.userId)]),
+          messages: [], users: [sender]);
+        check(findTextInPlaceholder("You haven't received any messages sent by User Foo yet.")).findsOne();
+      });
+
+      testWidgets('only sender, but unknown', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: SearchNarrow(filters: [ApiNarrowSender(10)]), messages: []);
+        check(findTextInPlaceholder("This user doesn't exist, or you are not allowed to view any of their messages.")).findsOne();
+      });
+
+      testWidgets('multiple', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: SearchNarrow(filters: [ApiNarrowSender(10), ApiNarrowSearch('keyword')]),
+          messages: []);
+        check(findTextInPlaceholder('No search results.')).findsOne();
+      });
     });
 
     testWidgets('when `messages` empty but `outboxMessages` not empty, show outboxes, not placeholder', (tester) async {
@@ -1782,6 +1844,15 @@ void main() {
         check(findInMessageList('topic name')).length.equals(1);
       });
 
+      testWidgets('show channel name in SearchNarrow', (tester) async {
+        await setupMessageListPage(tester,
+          narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')]),
+          messages: [message], subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        check(findInMessageList('stream name')).length.equals(1);
+        check(findInMessageList('topic name')).length.equals(1);
+      });
+
       testWidgets('do not show channel name in ChannelNarrow', (tester) async {
         await setupMessageListPage(tester,
           narrow: ChannelNarrow(stream.streamId),
@@ -2551,6 +2622,8 @@ void main() {
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.starred]));
       doTest(expected: true, MentionsNarrow(),
         mkMessage: () => eg.streamMessage(flags: [MessageFlag.mentioned]));
+      doTest(expected: true, SearchNarrow(filters: [ApiNarrowSearch('keyword')]),
+        mkMessage: () => eg.streamMessage());
     });
   });
 
@@ -3046,6 +3119,227 @@ void main() {
       check(pushedRoutes).single.isA<WidgetRoute>().page.isA<MessageListPage>()
         .initNarrow.equals(TopicNarrow(channel.streamId, message.topic));
       await tester.pumpAndSettle();
+    });
+  });
+
+  group('Search page', () {
+    TextField findSearchField(WidgetTester tester) => tester.widget(searchFieldFinder);
+
+    Finder senderPillFinder(User sender) {
+      return find.ancestor(of: find.byWidgetPredicate(
+          (widget) => widget is Avatar && widget.userId == sender.userId),
+        matching: find.ancestor(of: find.text('sender:'),
+          matching: find.ancestor(of: find.text(sender.fullName),
+            matching: find.byType(SearchPillSender))));
+    }
+
+    Finder messageFinder(int id) => find.byWidgetPredicate(
+      (widget) => widget is MessageItem && widget.item.message.id == id);
+
+    Condition<Object?> isSearchRequest(SearchNarrow narrow) {
+      return (it) => it.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/messages')
+        ..url.queryParameters.deepEquals({
+          'narrow': jsonEncode(resolveApiNarrowForServer(narrow.apiEncode(), connection.zulipFeatureLevel!)),
+          'anchor': AnchorCode.newest.toJson(),
+          'num_before': kMessageListFetchBatchSize.toString(),
+          'num_after': kMessageListFetchBatchSize.toString(),
+          'allow_empty_topic_name': 'true',
+        });
+    }
+
+    testWidgets('when first opened with no filter, search field is auto focused', (tester) async {
+      await setupMessageListPage(tester, narrow: SearchNarrow(filters: []));
+      check(findSearchField(tester)).autofocus.isTrue();
+    });
+
+    testWidgets("when first opened with a filter, search field isn't auto focused", (tester) async {
+      await setupMessageListPage(tester,
+        narrow: SearchNarrow(filters: [ApiNarrowSender(1)]), messages: []);
+      check(findSearchField(tester)).autofocus.isFalse();
+    });
+
+    testWidgets('when first opened with no filter, no search request sent', (tester) async {
+      await setupMessageListPage(tester, narrow: SearchNarrow(filters: []));
+      check(connection.takeRequests()).isEmpty();
+    });
+
+    testWidgets('when first opened with a filter, search request sent', (tester) async {
+      final narrow = SearchNarrow(filters: [ApiNarrowSender(1)]);
+      await setupMessageListPage(tester, narrow: narrow, messages: []);
+      check(connection.takeRequests()).single.which(isSearchRequest(narrow));
+    });
+
+    testWidgets('write keyword, submit: search request sent', (tester) async {
+      await setupMessageListPage(tester, narrow: SearchNarrow(filters: []));
+      connection.takeRequests();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [eg.streamMessage()]).toJson());
+      await tester.enterText(searchFieldFinder, 'search');
+      await tester.testTextInput.receiveAction(.search);
+      await tester.pump(Duration.zero);
+      check(connection.takeRequests())
+        .single.which(isSearchRequest(SearchNarrow(filters: [ApiNarrowSearch('search')])));
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [eg.streamMessage()]).toJson());
+      await tester.enterText(searchFieldFinder, 'search keyword');
+      await tester.testTextInput.receiveAction(.search);
+      await tester.pump(Duration.zero);
+      check(connection.takeRequests())
+        .single.which(isSearchRequest(SearchNarrow(filters: [ApiNarrowSearch('search keyword')])));
+    });
+
+    testWidgets('write keyword, no submitting: no search request sent', (tester) async {
+      await setupMessageListPage(tester, narrow: SearchNarrow(filters: []));
+      connection.takeRequests();
+
+      await tester.enterText(searchFieldFinder, 'search');
+      check(connection.lastRequest).isNull();
+
+      await tester.enterText(searchFieldFinder, 'search keyword');
+      check(connection.lastRequest).isNull();
+    });
+
+    testWidgets('write empty keyword, submit: no search request sent', (tester) async {
+      await setupMessageListPage(tester, narrow: SearchNarrow(filters: []));
+      connection.takeRequests();
+
+      await tester.testTextInput.receiveAction(.search);
+      check(connection.lastRequest).isNull();
+
+      await tester.enterText(searchFieldFinder, ' ');
+      await tester.testTextInput.receiveAction(.search);
+      check(connection.lastRequest).isNull();
+    });
+
+    testWidgets('for sender filter, displays sender pill', (tester) async {
+      final sender = eg.user(userId: 1);
+      await setupMessageListPage(tester,
+        narrow: SearchNarrow(filters: [ApiNarrowSender(1)]),
+        messages: [], users: [sender]);
+
+      check(senderPillFinder(sender)).findsOne();
+    });
+
+    testWidgets('sender filter, write keyword, submit: sender and keyword search request sent', (tester) async {
+      final sender = eg.user();
+      final initialNarrow = SearchNarrow(filters: [ApiNarrowSender(sender.userId)]);
+      await setupMessageListPage(tester,
+        narrow: initialNarrow,
+        messages: [], users: [sender]);
+
+      check(connection.takeRequests()).single.which(isSearchRequest(initialNarrow));
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [eg.streamMessage()]).toJson());
+      await tester.enterText(searchFieldFinder, 'keyword');
+      await tester.testTextInput.receiveAction(.search);
+      await tester.pump(Duration.zero);
+
+      final updatedNarrow = SearchNarrow(filters: [
+        ApiNarrowSender(sender.userId),
+        ApiNarrowSearch('keyword'),
+      ]);
+      check(connection.takeRequests()).single.which(isSearchRequest(updatedNarrow));
+    });
+
+    testWidgets('tap sender pill: pill removed, message list not refreshed/cleared', (tester) async {
+      final sender = eg.user();
+      final message = eg.streamMessage();
+      await setupMessageListPage(tester,
+        narrow: SearchNarrow(filters: [ApiNarrowSender(sender.userId)]),
+        messages: [message], users: [sender]);
+      connection.takeRequests();
+
+      check(senderPillFinder(sender)).findsOne();
+      check(messageFinder(message.id)).findsOne();
+
+      await tester.tap(senderPillFinder(sender));
+      await tester.pump();
+
+      check(senderPillFinder(sender)).findsNothing();
+      check(connection.takeRequests()).isEmpty();
+      check(messageFinder(message.id)).findsOne();
+    });
+
+    testWidgets('tap sender pill: pill removed, search field gets focused', (tester) async {
+      final sender = eg.user();
+      await setupMessageListPage(tester,
+        narrow: SearchNarrow(filters: [ApiNarrowSender(sender.userId)]),
+        messages: [], users: [sender]);
+
+      check(senderPillFinder(sender)).findsOne();
+      check(findSearchField(tester)).focusNode.isNotNull().hasFocus.isFalse();
+
+      await tester.tap(senderPillFinder(sender));
+      await tester.pump();
+
+      check(senderPillFinder(sender)).findsNothing();
+      check(findSearchField(tester)).focusNode.isNotNull().hasFocus.isTrue();
+    });
+
+    testWidgets('tap sender pill: pill removed; write keyword, submit: only keyword search request sent', (tester) async {
+      final sender = eg.user();
+      await setupMessageListPage(tester,
+        narrow: SearchNarrow(filters: [ApiNarrowSender(sender.userId)]),
+        messages: [], users: [sender]);
+      connection.takeRequests();
+
+      check(senderPillFinder(sender)).findsOne();
+
+      await tester.tap(senderPillFinder(sender));
+      await tester.pump();
+
+      check(senderPillFinder(sender)).findsNothing();
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [eg.streamMessage()]).toJson());
+      await tester.enterText(searchFieldFinder, 'keyword');
+      await tester.testTextInput.receiveAction(.search);
+      await tester.pump(Duration.zero);
+
+      check(connection.takeRequests())
+        .single.which(isSearchRequest(SearchNarrow(filters: [ApiNarrowSearch('keyword')])));
+    });
+
+    testWidgets('tap "x" icon: sender pill, search field, and message list are cleared', (tester) async {
+      final sender = eg.user();
+      await setupMessageListPage(tester,
+        narrow: SearchNarrow(filters: [ApiNarrowSender(sender.userId)]),
+        messages: [], users: [sender]);
+
+      final message = eg.streamMessage();
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: [message]).toJson());
+      await tester.enterText(searchFieldFinder, 'keyword');
+      await tester.testTextInput.receiveAction(.search);
+      await tester.pump(Duration.zero);
+
+      check(senderPillFinder(sender)).findsOne();
+      check(findSearchField(tester)).controller.isNotNull().text.equals('keyword');
+      check(messageFinder(message.id)).findsOne();
+
+      await tester.tap(find.byIcon(ZulipIcons.remove));
+      await tester.pump();
+
+      check(senderPillFinder(sender)).findsNothing();
+      check(findSearchField(tester)).controller.isNotNull().text.equals('');
+      check(messageFinder(message.id)).findsNothing();
+    });
+
+    testWidgets('tap "x" icon: search field gets focused', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: SearchNarrow(filters: [ApiNarrowSender(1)]), messages: []);
+
+      check(findSearchField(tester)).focusNode.isNotNull().hasFocus.isFalse();
+
+      await tester.tap(find.byIcon(ZulipIcons.remove));
+      await tester.pump();
+
+      check(findSearchField(tester)).focusNode.isNotNull().hasFocus.isTrue();
     });
   });
 }

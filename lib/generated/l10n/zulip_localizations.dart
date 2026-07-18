@@ -286,6 +286,12 @@ abstract class ZulipLocalizations {
   /// **'Send direct message'**
   String get profileButtonSendDirectMessage;
 
+  /// Label for button in profile screen to navigate to the messages sent by the shown user that the self-user can access.
+  ///
+  /// In en, this message translates to:
+  /// **'View messages sent'**
+  String get profileButtonViewMessagesSent;
+
   /// Message that appears on the user profile page when the profile cannot be shown.
   ///
   /// In en, this message translates to:
@@ -1332,11 +1338,23 @@ abstract class ZulipLocalizations {
   /// **'<z-link>Starring</z-link> is a good way to keep track of important messages, such as tasks you need to go back to, or useful references. To star a message, long-press it and tap “{button}.”'**
   String emptyMessageListStarredMessage(String button);
 
-  /// Placeholder for the 'Search' page when there are no messages.
+  /// Default placeholder for the 'Search' page when there are no messages.
   ///
   /// In en, this message translates to:
   /// **'No search results.'**
-  String get emptyMessageListSearch;
+  String get emptyMessageListSearchDefault;
+
+  /// Placeholder for the 'Search' page when there are no messages from a sender.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t received any messages sent by {sender} yet.'**
+  String emptyMessageListSearchFromSender(String sender);
+
+  /// Placeholder for the 'Search' page when the sender doesn't exist or the self-user isn't allowed to view any of the sender's messages.
+  ///
+  /// In en, this message translates to:
+  /// **'This user doesn\'t exist, or you are not allowed to view any of their messages.'**
+  String get emptyMessageListSearchFromUnknownSender;
 
   /// Message list recipient header for a DM group that only includes yourself.
   ///
@@ -2033,6 +2051,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Starred messages'**
   String get starredMessagesPageTitle;
+
+  /// Page title for the 'Search' message view.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchPageTitle;
 
   /// Title for the page with a list of subscribed channels.
   ///

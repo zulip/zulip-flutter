@@ -83,6 +83,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Надіслати особисте повідомлення';
 
   @override
+  String get profileButtonViewMessagesSent => 'View messages sent';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'Не вдалося показати профіль користувача.';
 
@@ -738,7 +741,16 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageListSearch => 'Немає результатів пошуку.';
+  String get emptyMessageListSearchDefault => 'No search results.';
+
+  @override
+  String emptyMessageListSearchFromSender(String sender) {
+    return 'You haven\'t received any messages sent by $sender yet.';
+  }
+
+  @override
+  String get emptyMessageListSearchFromUnknownSender =>
+      'This user doesn\'t exist, or you are not allowed to view any of their messages.';
 
   @override
   String get messageListGroupYouWithYourself => 'Повідомлення з собою';
@@ -1184,6 +1196,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get starredMessagesPageTitle => 'Вибрані повідомлення';
+
+  @override
+  String get searchPageTitle => 'Search';
 
   @override
   String get channelsPageTitle => 'Канали';

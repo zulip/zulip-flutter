@@ -1,4 +1,6 @@
 
+import 'package:collection/collection.dart';
+
 import '../api/model/events.dart';
 import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
@@ -371,30 +373,32 @@ class StarredMessagesNarrow extends Narrow {
   int get hashCode => 'StarredMessagesNarrow'.hashCode;
 }
 
-/// A keyword-search narrow.
+/// A search narrow.
 ///
-/// [keyword] must have been trimmed with [String.trim].
-class KeywordSearchNarrow extends Narrow {
-  KeywordSearchNarrow(this.keyword)
-    : assert(keyword.trim() == keyword);
+/// Use [filters] to pass the filters for a search. See the [ApiNarrowElement]
+/// subclasses for different filters.
+///
+/// An empty list means no filters, thus no search.
+class SearchNarrow extends Narrow {
+  SearchNarrow({required this.filters});
 
-  final String keyword;
+  final List<ApiNarrowElement> filters;
 
   @override
   bool? containsMessage(MessageBase message) => null;
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowSearch(keyword)];
+  ApiNarrow apiEncode() => filters;
 
   @override
-  String toString() => 'KeywordSearchNarrow($keyword)';
+  String toString() => 'SearchNarrow(${filters.map((e) => e.toJson()).toList()})';
 
   @override
   bool operator ==(Object other) {
-    if (other is! KeywordSearchNarrow) return false;
-    return other.keyword == keyword;
+    if (other is! SearchNarrow) return false;
+    return other.filters.equals(filters);
   }
 
   @override
-  int get hashCode => Object.hash('KeywordSearchNarrow', keyword);
+  int get hashCode => Object.hash('SearchNarrow', filters);
 }

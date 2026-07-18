@@ -82,6 +82,9 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Send direct message';
 
   @override
+  String get profileButtonViewMessagesSent => 'View messages sent';
+
+  @override
   String get errorCouldNotShowUserProfile => 'Could not show user profile.';
 
   @override
@@ -723,7 +726,16 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageListSearch => 'No search results.';
+  String get emptyMessageListSearchDefault => 'No search results.';
+
+  @override
+  String emptyMessageListSearchFromSender(String sender) {
+    return 'You haven\'t received any messages sent by $sender yet.';
+  }
+
+  @override
+  String get emptyMessageListSearchFromUnknownSender =>
+      'This user doesn\'t exist, or you are not allowed to view any of their messages.';
 
   @override
   String get messageListGroupYouWithYourself => 'Messages with yourself';
@@ -1165,6 +1177,9 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get starredMessagesPageTitle => 'Starred messages';
+
+  @override
+  String get searchPageTitle => 'Search';
 
   @override
   String get channelsPageTitle => 'Channels';
@@ -2002,9 +2017,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get emptyMessageList => '这里没有消息。';
-
-  @override
-  String get emptyMessageListSearch => '没有搜索结果。';
 
   @override
   String get messageListGroupYouWithYourself => '与自己的消息';
@@ -3186,9 +3198,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String emptyMessageListStarredMessage(String button) {
     return '<z-link>星號標記</z-link>是追蹤重要訊息的好方法，例如您需要回頭處理的工作，或是實用的參考資料。若要將訊息加入星號，請長按訊息並點擊「$button」';
   }
-
-  @override
-  String get emptyMessageListSearch => '沒有搜尋結果。';
 
   @override
   String get messageListGroupYouWithYourself => '與自己的訊息';
