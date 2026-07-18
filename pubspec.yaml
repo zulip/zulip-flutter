@@ -65,6 +65,7 @@ dependencies:
   unorm_dart: ^0.3.1+1
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"
+  vector_graphics: 1.2.2
   video_player: ^2.10.0
   wakelock_plus: ^1.2.8
   zulip_plugin:
@@ -123,6 +124,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/
     - assets/KaTeX/LICENSE
     - assets/Noto_Color_Emoji/LICENSE
     - assets/Pygments/AUTHORS.txt

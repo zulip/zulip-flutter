@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vector_graphics/vector_graphics.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -194,6 +195,18 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
 
     if (items.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
+        illustration: VectorGraphic(
+          loader: const AssetBytesLoader(
+            'assets/images/empty-inbox.svg.vec',
+          ),
+          width: 150,
+          height: 150,
+          colorFilter: ColorFilter.mode(
+            DesignVariables.of(context)
+                .labelSearchPrompt
+                .withValues(alpha: 0.8),
+            BlendMode.srcIn,
+          )),
         // TODO(#315) add e.g. "You might be interested in recent conversations."
         header: zulipLocalizations.inboxEmptyPlaceholderHeader,
         message: zulipLocalizations.inboxEmptyPlaceholderMessage);
