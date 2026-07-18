@@ -1277,6 +1277,12 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Varsle emne';
 
   @override
+  String get topicAutocompleteChannelOptionLabel => '(link to channel)';
+
+  @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get systemGroupNameEveryoneOnInternet => 'Alle på Internett';
 
   @override
