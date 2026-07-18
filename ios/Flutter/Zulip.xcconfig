@@ -1,8 +1,7 @@
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
 
-// This should match the value in ios/Podfile
-// and MinimumOSVersion in ios/Flutter/AppFrameworkInfo.plist.
+// This should match the value in ios/Podfile.
 IPHONEOS_DEPLOYMENT_TARGET=16.0
 
 DEVELOPMENT_TEAM=66KHCWMEYB
