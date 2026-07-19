@@ -852,14 +852,15 @@ void main() {
         ]);
       }
 
+      transitionDurationObserver = TransitionDurationObserver();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const HomePage()));
       await tester.pump();
       check(find.byType(InboxPageBody)).findsOne();
 
       await tester.longPress(find.text(topic));
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromAppBar(WidgetTester tester, {
@@ -872,9 +873,11 @@ void main() {
       final effectiveMessages = messages ?? [someMessage];
       assert(effectiveMessages.every((m) => m.topic.apiName == effectiveTopic.apiName));
 
+      transitionDurationObserver = TransitionDurationObserver();
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: effectiveMessages).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: MessageListPage(
           initNarrow: TopicNarrow(effectiveChannel.streamId, effectiveTopic))));
       // global store, per-account store, and message list get loaded
@@ -886,8 +889,7 @@ void main() {
           effectiveTopic.unresolve().displayName ?? eg.defaultRealmEmptyTopicDisplayName,
           findRichText: true));
       await tester.longPress(topicRow);
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromRecipientHeader(WidgetTester tester, {
@@ -895,9 +897,11 @@ void main() {
     }) async {
       final effectiveMessage = message ?? someMessage;
 
+      transitionDurationObserver = TransitionDurationObserver();
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [effectiveMessage]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
       // global store, per-account store, and message list get loaded
       await tester.pumpAndSettle();
@@ -907,8 +911,7 @@ void main() {
         matching: find.textContaining(
           effectiveMessage.topic.unresolve().displayName!,
           findRichText: true)));
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     final actionSheetFinder = find.byType(BottomSheet);
