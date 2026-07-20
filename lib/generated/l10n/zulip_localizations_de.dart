@@ -417,7 +417,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'Datei konnte nicht gelesen werden: $filename';
   }
 
   @override
@@ -826,7 +826,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'This is the address you would use to open Zulip in a browser.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Hilfe';
 
   @override
   String get loginHidePassword => 'Passwort verstecken';
@@ -862,7 +862,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Themen sind in dieser Organisation erforderlich.';
+      'Themen sind in diesem Kanal||Kanals erforderlich.';
 
   @override
   String get errorContentNotInsertedTitle => 'Inhalt nicht eingefügt';

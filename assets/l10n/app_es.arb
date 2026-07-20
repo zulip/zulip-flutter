@@ -481,6 +481,15 @@
   "@errorCouldNotOpenLinkTitle": {
     "description": "Error title when opening a link failed."
   },
+  "@errorCouldNotReadFile": {
+    "description": "Error message when an attached file could not be read.",
+    "placeholders": {
+      "filename": {
+        "example": "foo.txt",
+        "type": "String"
+      }
+    }
+  },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
   },
@@ -818,6 +827,12 @@
   },
   "@loginPasswordLabel": {
     "description": "Label for password input field."
+  },
+  "@loginRealmUrlHelpButton": {
+    "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
+  },
+  "@loginRealmUrlHelperText": {
+    "description": "Helper text below the Zulip organization URL entry field on the login page."
   },
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
@@ -1645,6 +1660,7 @@
   "errorCouldNotFetchMessageSource": "No se pudo obtener el origen del mensaje.",
   "errorCouldNotOpenLink": "No se pudo abrir el enlace: {url}",
   "errorCouldNotOpenLinkTitle": "No se puede abrir el enlace",
+  "errorCouldNotReadFile": "No se ha podido leer el archivo: {filename}",
   "errorCouldNotShowUserProfile": "No se pudo mostrar el perfil de usuario.",
   "errorDeleteMessageFailedTitle": "No se pudo eliminar el mensaje",
   "errorDialogContinue": "OK",
@@ -1723,6 +1739,8 @@
   "loginMethodDividerSemanticLabel": "Alternativas de Inicio de Sesión",
   "loginPageTitle": "Iniciar sesión",
   "loginPasswordLabel": "Contraseña",
+  "loginRealmUrlHelpButton": "Ayuda",
+  "loginRealmUrlHelperText": "Esta es la dirección que debes utilizar para abrir Zulip en un navegador.",
   "loginRealmUrlLabel": "URL de tu organización de Zulip",
   "loginUsernameLabel": "Nombre de usuario",
   "mainMenuMyProfile": "Mi perfil",

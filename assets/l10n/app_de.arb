@@ -481,6 +481,15 @@
   "@errorCouldNotOpenLinkTitle": {
     "description": "Error title when opening a link failed."
   },
+  "@errorCouldNotReadFile": {
+    "description": "Error message when an attached file could not be read.",
+    "placeholders": {
+      "filename": {
+        "example": "foo.txt",
+        "type": "String"
+      }
+    }
+  },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
   },
@@ -818,6 +827,9 @@
   },
   "@loginPasswordLabel": {
     "description": "Label for password input field."
+  },
+  "@loginRealmUrlHelpButton": {
+    "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
   },
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
@@ -1639,6 +1651,7 @@
   "errorCouldNotFetchMessageSource": "Konnte Nachrichtenquelle nicht abrufen.",
   "errorCouldNotOpenLink": "Link konnte nicht geöffnet werden: {url}",
   "errorCouldNotOpenLinkTitle": "Link kann nicht geöffnet werden",
+  "errorCouldNotReadFile": "Datei konnte nicht gelesen werden: {filename}",
   "errorCouldNotShowUserProfile": "Nutzerprofil kann nicht angezeigt werden.",
   "errorDeleteMessageFailedTitle": "Löschen der Nachricht fehlgeschlagen",
   "errorDialogContinue": "OK",
@@ -1717,6 +1730,7 @@
   "loginMethodDividerSemanticLabel": "Alternative Möglichkeiten zum Einloggen",
   "loginPageTitle": "Anmelden",
   "loginPasswordLabel": "Passwort",
+  "loginRealmUrlHelpButton": "Hilfe",
   "loginRealmUrlLabel": "URL deiner Zulip-Organisation",
   "loginUsernameLabel": "Benutzername",
   "mainMenuMyProfile": "Mein Profil",
@@ -1843,7 +1857,7 @@
   "themeSettingTitle": "THEMA",
   "today": "Heute",
   "topicListEmptyPlaceholderHeader": "Es gibt noch keine Themen.",
-  "topicValidationErrorMandatoryButEmpty": "Themen sind in dieser Organisation erforderlich.",
+  "topicValidationErrorMandatoryButEmpty": "Themen sind in diesem Kanal||Kanals erforderlich.",
   "topicValidationErrorTooLong": "Länge des Themas sollte {maxLength, plural, =1{1 Zeichen} other{{maxLength} Zeichen}} nicht überschreiten.",
   "topicsButtonTooltip": "Themen",
   "tryAnotherAccountButton": "Anderen Account ausprobieren",
