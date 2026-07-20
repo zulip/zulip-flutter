@@ -850,3 +850,26 @@ class Toggle extends StatelessWidget {
     );
   }
 }
+
+class ZulipCheckbox extends StatelessWidget {
+  const ZulipCheckbox({
+    super.key,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Checkbox(
+      value: value,
+      onChanged: (bool? newValue) {
+        if (newValue != null) {
+          onChanged(newValue);
+        }
+      },
+    );
+  }
+}
