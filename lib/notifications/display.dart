@@ -243,6 +243,25 @@ class NotificationDisplayManager {
       activeNotifications.firstWhereOrNull((notif) => notif.tag == conversationKey);
     final oldMessagingStyle = oldNotification?.notification.messagingStyle;
 
+    // Choose the anchor for the notification's intent URL;
+    // see [NotificationOpenPayload.messageId].
+    // Each MessagingStyle message carries its Zulip message ID, so we take
+    // the earliest one we have.  Android keeps only the latest
+    // MessagingStyle.MAXIMUM_RETAINED_MESSAGES of the group, so this can be
+    // later than the group's true first, and may not even be shown in the
+    // drawer; that's fine.  See:
+    //   https://developer.android.com/reference/android/app/Notification.MessagingStyle#MAXIMUM_RETAINED_MESSAGES
+    final int firstMessageId;
+    if (oldMessagingStyle == null) {
+      firstMessageId = data.messageId;
+    } else {
+      final firstMessageIdStr =
+        oldMessagingStyle.messages.firstOrNull?.extras[kExtraZulipMessageId];
+      firstMessageId = firstMessageIdStr == null
+        ? data.messageId // TODO(log)
+        : int.parse(firstMessageIdStr, radix: 10);
+    }
+
     final MessagingStyle messagingStyle;
     if (oldMessagingStyle != null) {
       messagingStyle = oldMessagingStyle;
@@ -277,7 +296,7 @@ class NotificationDisplayManager {
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl)),
       extras: {kExtraZulipMessageId: data.messageId.toString()}));
 
-    final intentDataUrl = notificationUrlForNotifPayload(data);
+    final intentDataUrl = notificationUrlForNotifPayload(data, messageId: firstMessageId);
 
     await _androidHost.notify(
       id: kNotificationId,
@@ -439,7 +458,9 @@ class NotificationDisplayManager {
     };
   }
 
-  static Uri notificationUrlForNotifPayload(NotifPayloadNewMessage data) {
+  static Uri notificationUrlForNotifPayload(NotifPayloadNewMessage data, {
+    required int? messageId,
+  }) {
     return NotificationOpenPayload(
       realmUrl: data.realmUrl,
       userId: data.userId,
@@ -448,7 +469,8 @@ class NotificationDisplayManager {
           TopicNarrow(channelId, topic),
         NotifPayloadDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildNotificationUrl();
+      },
+      messageId: messageId).buildNotificationUrl();
   }
 
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {

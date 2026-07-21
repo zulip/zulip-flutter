@@ -488,11 +488,13 @@ void main() {
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
-        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
-          TopicNarrow(channelId, topic),
-        NotifPayloadDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildNotificationUrl();
+          NotifPayloadChannelRecipient(:var channelId, :var topic) =>
+            TopicNarrow(channelId, topic),
+          NotifPayloadDmRecipient(:var allRecipientIds) =>
+            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+        },
+        // The notification opens at the earliest message of the conversation.
+        messageId: messageStyleMessages.first.messageId).buildNotificationUrl();
       expectedSummaryText ??= account.realmName
         ?? data.realmName
         ?? data.realmUrl.toString();
@@ -704,6 +706,49 @@ void main() {
         expectedIsGroupConversation: true,
         expectedTitle: expectedTitle,
         expectedTagComponent: expectedTagComponent);
+    })));
+
+    test('stream message: existing notification messages lack message IDs', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      final topic = eg.t('topic 1');
+      final message1 = eg.streamMessage(topic: topic.toJson(), stream: stream);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
+      final message2 = eg.streamMessage(topic: topic.toJson(), stream: stream);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
+      final message3 = eg.streamMessage(topic: topic.toJson(), stream: stream);
+      final data3 = notifPayloadNewMessage(message3, streamName: stream.name);
+
+      void checkOpensAtMessage(int expectedMessageId, {
+        required int expectedNumMessages,
+      }) {
+        check(testBinding.androidNotificationHost.takeNotifyCalls()).first
+          ..messagingStyle.isNotNull().messages.length.equals(expectedNumMessages)
+          ..contentIntent.isNotNull().intent.dataUrl.equals(
+              NotificationOpenPayload(
+                realmUrl: data1.realmUrl,
+                userId: data1.userId,
+                narrow: TopicNarrow(stream.streamId, topic),
+                messageId: expectedMessageId,
+              ).buildNotificationUrl().toString());
+      }
+
+      await receiveNotification(async, data1);
+      checkOpensAtMessage(message1.id, expectedNumMessages: 1);
+
+      // The messages on the existing notification record their Zulip message
+      // IDs, so we open at the earliest of them.
+      await receiveNotification(async, data2);
+      checkOpensAtMessage(message1.id, expectedNumMessages: 2);
+
+      // Simulate a notification posted by a version of the app from before
+      // we recorded each message's Zulip message ID.
+      testBinding.androidNotificationHost.clearActiveNotificationMessageExtras();
+
+      // With no message ID recorded on the existing notification,
+      // we open at the new message instead.
+      await receiveNotification(async, data3);
+      checkOpensAtMessage(message3.id, expectedNumMessages: 3);
     })));
 
     test('stream message: multiple messages, different topics', () => runWithHttpClient(() => awaitFakeAsync((async) async {

@@ -881,6 +881,17 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     _activeNotifications.clear();
   }
 
+  /// Clears the [MessagingStyleMessage.extras] on all active notifications.
+  void clearActiveNotificationMessageExtras() {
+    for (final statusNotif in _activeNotifications.values) {
+      final messagingStyle = statusNotif.notification.messagingStyle;
+      if (messagingStyle == null) continue;
+      for (final message in messagingStyle.messages) {
+        message.extras.clear();
+      }
+    }
+  }
+
   @override
   Future<void> notify({
     String? tag,
