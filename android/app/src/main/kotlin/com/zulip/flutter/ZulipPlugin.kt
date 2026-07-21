@@ -222,12 +222,16 @@ private class AndroidNotificationHost(val context: Context)
                 val style = NotificationCompat.MessagingStyle(toAndroidPerson(messagingStyle.user))
                     .setConversationTitle(messagingStyle.conversationTitle)
                     .setGroupConversation(messagingStyle.isGroupConversation)
-                messagingStyle.messages.forEach {
-                    style.addMessage(NotificationCompat.MessagingStyle.Message(
-                        it.text,
-                        it.timestampMs,
-                        toAndroidPerson(it.person),
-                    ))
+                messagingStyle.messages.forEach { message ->
+                    val androidMessage = NotificationCompat.MessagingStyle.Message(
+                        message.text,
+                        message.timestampMs,
+                        toAndroidPerson(message.person),
+                    )
+                    message.extras.forEach { (key, value) ->
+                        androidMessage.extras.putString(key, value)
+                    }
+                    style.addMessage(androidMessage)
                 }
                 setStyle(style)
             }
@@ -238,7 +242,7 @@ private class AndroidNotificationHost(val context: Context)
         NotificationManagerCompat.from(context).notify(tag, id.toInt(), notification)
     }
 
-    override fun getActiveNotifications(desiredNotificationExtras: List<String>, includeMessagingStyle: Boolean): List<StatusBarNotification> {
+    override fun getActiveNotifications(desiredNotificationExtras: List<String>, desiredMessageExtras: List<String>, includeMessagingStyle: Boolean): List<StatusBarNotification> {
         return NotificationManagerCompat.from(context).activeNotifications.map { statusBarNotification ->
             val notification = statusBarNotification.notification
             val messagingStyle = if (!includeMessagingStyle) null else NotificationCompat.MessagingStyle
@@ -247,10 +251,16 @@ private class AndroidNotificationHost(val context: Context)
                     MessagingStyle(
                         toPigeonPerson(style.user),
                         style.conversationTitle!!.toString(),
-                        style.messages.map { MessagingStyleMessage(
-                            it.text!!.toString(),
-                            it.timestamp,
-                            toPigeonPerson(it.person!!)
+                        style.messages.map { message -> MessagingStyleMessage(
+                            message.text!!.toString(),
+                            message.timestamp,
+                            toPigeonPerson(message.person!!),
+                            desiredMessageExtras
+                                .mapNotNull { key ->
+                                    message.extras.getString(key)?.let { value ->
+                                        key to value
+                                    } }
+                                .toMap(),
                         ) },
                         style.isGroupConversation,
                     )
