@@ -104,52 +104,58 @@ fi
 # persistent across reboots via /etc/fstab.
 # See docs/howto/lima.md.
 
-# The fstab lines below embed this path, and fstab splits fields on
-# whitespace (a literal space would need a \040 escape).
-case "$rootdir" in
-    *[[:space:]]*)
-        echo >&2 "error: workspace path contains whitespace: $rootdir"
-        echo >&2 "  Unsupported, because it gets written into /etc/fstab."
-        exit 1;;
-esac
-
 state_root="$HOME"/.local/state/zulip-flutter-vm
-state_dirs=( .dart_tool build android/.gradle )
-state_files=( .flutter-plugins-dependencies )
 
-fstab_changed=
-for path in "${state_dirs[@]}" "${state_files[@]}"; do
-    fstab_line="$state_root$rootdir/$path $rootdir/$path none bind,nofail 0 0"
-    if ! grep -qxF "$fstab_line" /etc/fstab; then
-        echo "Adding to /etc/fstab: $fstab_line"
-        echo "$fstab_line" | sudo tee -a /etc/fstab >/dev/null
-        fstab_changed=y
-    fi
-done
-if [ -n "$fstab_changed" ]; then
-    run_visibly sudo systemctl daemon-reload
-fi
-
-# usage: ensure_state_mount {dir|file} <path relative to repo root>
+# usage: ensure_state_mount {dir|file} <absolute path>
 ensure_state_mount() {
     local kind="$1" path="$2"
-    if mountpoint -q "$rootdir/$path"; then
+    if mountpoint -q "$path"; then
         return
     fi
     case "$kind" in
-        dir)  mkdir -p "$state_root$rootdir/$path" "$rootdir/$path";;
-        file) mkdir -p "$(dirname "$state_root$rootdir/$path")"
-              touch "$state_root$rootdir/$path" "$rootdir/$path";;
+        dir)  mkdir -p "$state_root$path" "$path";;
+        file) mkdir -p "$(dirname "$state_root$path")" "$(dirname "$path")"
+              touch "$state_root$path" "$path";;
     esac
-    run_visibly sudo mount "$rootdir/$path"
+    run_visibly sudo mount "$path"
 }
 
-for dir in "${state_dirs[@]}"; do
-    ensure_state_mount dir "$dir"
-done
-for file in "${state_files[@]}"; do
-    ensure_state_mount file "$file"
-done
+# usage: mask_build_state <base dir> <path>...
+# A trailing slash marks a path as a directory; otherwise a file.
+mask_build_state() {
+    local base="$1"; shift
+
+    # The fstab lines below embed these paths, and fstab splits fields on
+    # whitespace (a literal space would need a \040 escape).
+    local arg
+    for arg in "$base" "$@"; do
+        case "$arg" in
+            *[[:space:]]*)
+                echo >&2 "error: path contains whitespace: $arg"
+                echo >&2 "  Unsupported, because it gets written into /etc/fstab."
+                exit 1;;
+        esac
+    done
+
+    local path kind fstab_line fstab_changed=
+    for arg; do
+        path="${arg%/}"
+        kind='file'; [ "$arg" = "$path" ] || kind='dir'
+        fstab_line="$state_root$base/$path $base/$path none bind,nofail 0 0"
+        if ! grep -qxF "$fstab_line" /etc/fstab; then
+            echo "Adding to /etc/fstab: $fstab_line"
+            echo "$fstab_line" | sudo tee -a /etc/fstab >/dev/null
+            fstab_changed=y
+        fi
+        ensure_state_mount "$kind" "$base/$path"
+    done
+    if [ -n "$fstab_changed" ]; then
+        run_visibly sudo systemctl daemon-reload
+    fi
+}
+
+mask_build_state "$rootdir" .dart_tool/ build/ android/.gradle/ \
+    .flutter-plugins-dependencies
 
 
 ## FLUTTER ARTIFACTS AND PUB DEPS
