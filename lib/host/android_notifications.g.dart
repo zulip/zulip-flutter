@@ -417,6 +417,7 @@ class MessagingStyleMessage {
     required this.text,
     required this.timestampMs,
     required this.person,
+    required this.extras,
   });
 
   String text;
@@ -425,11 +426,19 @@ class MessagingStyleMessage {
 
   Person person;
 
+  /// Entries from this message's own extras bundle, like [Notification.extras].
+  ///
+  /// These round-trip through
+  /// [AndroidNotificationHostApi.getActiveNotifications], filtered to the keys
+  /// in its `desiredMessageExtras`.
+  Map<String, String> extras;
+
   List<Object?> _toList() {
     return <Object?>[
       text,
       timestampMs,
       person,
+      extras,
     ];
   }
 
@@ -442,6 +451,7 @@ class MessagingStyleMessage {
       text: result[0]! as String,
       timestampMs: result[1]! as int,
       person: result[2]! as Person,
+      extras: (result[3]! as Map<Object?, Object?>).cast<String, String>(),
     );
   }
 
@@ -454,7 +464,7 @@ class MessagingStyleMessage {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(text, other.text) && _deepEquals(timestampMs, other.timestampMs) && _deepEquals(person, other.person);
+    return _deepEquals(text, other.text) && _deepEquals(timestampMs, other.timestampMs) && _deepEquals(person, other.person) && _deepEquals(extras, other.extras);
   }
 
   @override
@@ -463,7 +473,7 @@ class MessagingStyleMessage {
 
   @override
   String toString() {
-    return 'MessagingStyleMessage(text: $text, timestampMs: $timestampMs, person: $person)';
+    return 'MessagingStyleMessage(text: $text, timestampMs: $timestampMs, person: $person, extras: $extras)';
   }
 }
 
@@ -964,25 +974,28 @@ class AndroidNotificationHostApi {
   /// optionally combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`
   /// for each notification's [Notification.messagingStyle].
   ///
-  /// The keys of entries to fetch from notification's extras bundle must be
-  /// specified in the [desiredNotificationExtras] list. If this list is empty, then
-  /// [Notification.extras] will also be empty. If value of the matched entry
-  /// is not of type string or is null, then that entry will be skipped.
+  /// The keys of entries to fetch from each notification's own extras bundle
+  /// ([Notification.extras]) must be specified in [desiredNotificationExtras],
+  /// and those to fetch from each MessagingStyle message's extras bundle
+  /// ([MessagingStyleMessage.extras]) in [desiredMessageExtras]. For an empty
+  /// list, the corresponding map will also be empty. If the value of a matched
+  /// entry is not of type string or is null, then that entry will be skipped.
   ///
   /// Each notification's [Notification.messagingStyle] is populated only when
-  /// [includeMessagingStyle] is true; otherwise it is null.
+  /// [includeMessagingStyle] is true; otherwise it is null, and
+  /// [desiredMessageExtras] has no effect.
   ///
   /// See:
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
-  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredNotificationExtras, required bool includeMessagingStyle}) async {
+  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredNotificationExtras, required List<String> desiredMessageExtras, required bool includeMessagingStyle, }) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotifications$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[desiredNotificationExtras, includeMessagingStyle]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[desiredNotificationExtras, desiredMessageExtras, includeMessagingStyle]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
