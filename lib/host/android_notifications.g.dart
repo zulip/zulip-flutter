@@ -965,7 +965,7 @@ class AndroidNotificationHostApi {
   /// for each notification's [Notification.messagingStyle].
   ///
   /// The keys of entries to fetch from notification's extras bundle must be
-  /// specified in the [desiredExtras] list. If this list is empty, then
+  /// specified in the [desiredNotificationExtras] list. If this list is empty, then
   /// [Notification.extras] will also be empty. If value of the matched entry
   /// is not of type string or is null, then that entry will be skipped.
   ///
@@ -975,14 +975,14 @@ class AndroidNotificationHostApi {
   /// See:
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
-  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras, required bool includeMessagingStyle}) async {
+  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredNotificationExtras, required bool includeMessagingStyle}) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.getActiveNotifications$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[desiredExtras, includeMessagingStyle]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[desiredNotificationExtras, includeMessagingStyle]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(

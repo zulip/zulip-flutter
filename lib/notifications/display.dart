@@ -237,7 +237,7 @@ class NotificationDisplayManager {
 
     final activeNotifications =
       await _androidHost.getActiveNotifications(
-        desiredExtras: const [], includeMessagingStyle: true);
+        desiredNotificationExtras: const [], includeMessagingStyle: true);
     final oldNotification =
       activeNotifications.firstWhereOrNull((notif) => notif.tag == conversationKey);
     final oldMessagingStyle = oldNotification?.notification.messagingStyle;
@@ -362,7 +362,7 @@ class NotificationDisplayManager {
     //   https://github.com/zulip/zulip-mobile/pull/4842#pullrequestreview-725817909
     var haveRemaining = false;
     final activeNotifications = await _androidHost.getActiveNotifications(
-      desiredExtras: [kExtraLastMessageId], includeMessagingStyle: false);
+      desiredNotificationExtras: [kExtraLastMessageId], includeMessagingStyle: false);
     for (final statusBarNotification in activeNotifications) {
       // The StatusBarNotification object describes an active notification in the UI.
       // Its `.tag`, `.id`, and `.notification` are the same values as we passed to
@@ -452,7 +452,7 @@ class NotificationDisplayManager {
 
     final groupKey = _groupKey(realmUrl, userId);
     final activeNotifications = await _androidHost.getActiveNotifications(
-      desiredExtras: [], includeMessagingStyle: false);
+      desiredNotificationExtras: [], includeMessagingStyle: false);
     for (final statusBarNotification in activeNotifications) {
       if (statusBarNotification.notification.group == groupKey) {
         await _androidHost.cancel(

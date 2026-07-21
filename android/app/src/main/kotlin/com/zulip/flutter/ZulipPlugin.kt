@@ -238,7 +238,7 @@ private class AndroidNotificationHost(val context: Context)
         NotificationManagerCompat.from(context).notify(tag, id.toInt(), notification)
     }
 
-    override fun getActiveNotifications(desiredExtras: List<String>, includeMessagingStyle: Boolean): List<StatusBarNotification> {
+    override fun getActiveNotifications(desiredNotificationExtras: List<String>, includeMessagingStyle: Boolean): List<StatusBarNotification> {
         return NotificationManagerCompat.from(context).activeNotifications.map { statusBarNotification ->
             val notification = statusBarNotification.notification
             val messagingStyle = if (!includeMessagingStyle) null else NotificationCompat.MessagingStyle
@@ -260,7 +260,7 @@ private class AndroidNotificationHost(val context: Context)
                 statusBarNotification.tag,
                 Notification(
                     notification.group,
-                    desiredExtras
+                    desiredNotificationExtras
                         .mapNotNull { key ->
                             notification.extras.getString(key)?.let { value ->
                                 key to value
