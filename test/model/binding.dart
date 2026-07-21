@@ -906,6 +906,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
               MessagingStyleMessage(
                 text: message.text,
                 timestampMs: message.timestampMs,
+                extras: message.extras,
                 person: Person(
                   key: message.person.key,
                   name: message.person.name,
@@ -924,10 +925,12 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   @override
   Future<List<StatusBarNotification>> getActiveNotifications({
     required List<String> desiredNotificationExtras,
+    required List<String> desiredMessageExtras,
     required bool includeMessagingStyle,
   }) async {
     return _activeNotifications.values.map((statusNotif) {
       final notificationExtras = statusNotif.notification.extras;
+      final storedMessagingStyle = statusNotif.notification.messagingStyle;
       return StatusBarNotification(
         id: statusNotif.id,
         tag: statusNotif.tag,
@@ -938,8 +941,22 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
               if (notificationExtras[key] != null)
                 key: notificationExtras[key]!,
           },
-          messagingStyle: includeMessagingStyle
-            ? statusNotif.notification.messagingStyle : null));
+          messagingStyle: !includeMessagingStyle || storedMessagingStyle == null
+            ? null
+            : MessagingStyle(
+                user: storedMessagingStyle.user,
+                conversationTitle: storedMessagingStyle.conversationTitle,
+                isGroupConversation: storedMessagingStyle.isGroupConversation,
+                messages: storedMessagingStyle.messages.map((message) =>
+                  MessagingStyleMessage(
+                    text: message.text,
+                    timestampMs: message.timestampMs,
+                    person: message.person,
+                    extras: {
+                      for (final key in desiredMessageExtras)
+                        if (message.extras[key] != null)
+                          key: message.extras[key]!,
+                    })).toList(growable: false))));
     }).toList(growable: false);
   }
 

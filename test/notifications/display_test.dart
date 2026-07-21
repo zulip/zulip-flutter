@@ -505,6 +505,10 @@ void main() {
           return (Subject<Object?> it) => it.isA<MessagingStyleMessage>()
             ..text.equals(messageData.content)
             ..timestampMs.equals(messageData.time * 1000)
+            ..extras.deepEquals({
+              NotificationDisplayManager.kExtraZulipMessageId:
+                messageData.messageId.toString(),
+            })
             ..person.which((it) => it.isNotNull()
               ..iconBitmap.which((it) => (isLast && expectedIconBitmap != null)
                 ? it.isNotNull().deepEquals(expectedIconBitmap) : it.isNull())
@@ -1407,6 +1411,7 @@ extension on Subject<MessagingStyleMessage> {
   Subject<String> get text => has((x) => x.text, 'text');
   Subject<int> get timestampMs => has((x) => x.timestampMs, 'timestampMs');
   Subject<Person> get person => has((x) => x.person, 'person');
+  Subject<Map<String, String>> get extras => has((x) => x.extras, 'extras');
 }
 
 extension on Subject<Notification> {
