@@ -88,6 +88,7 @@ void main() {
         checkNarrow(channelId: 415, name: 'chat.zulip.org', '#narrow/channel/415-chat.2Ezulip.2Eorg');
         checkNarrow(channelId: 419, name: 'français',       '#narrow/channel/419-fran.C3.A7ais');
         checkNarrow(channelId: 403, name: 'Hshs[™~}(.',     '#narrow/channel/403-Hshs.5B.E2.84.A2~.7D.28.2E');
+        checkNarrow(channelId: 404, name: "a'b*c!d",        '#narrow/channel/404-a.27b.2Ac.21d');
         checkNarrow(channelId: 60,  name: 'twitter', nearMessageId: 1570686, '#narrow/channel/60-twitter/near/1570686');
 
         checkNarrow(channelId: 48,  name: 'mobile', topic: 'Welcome screen UI',

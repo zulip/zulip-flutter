@@ -11,12 +11,15 @@ part 'internal_link.g.dart';
 
 const _hashReplacements = {
   "%": ".",
+  "!": ".21",
+  "'": ".27",
   "(": ".28",
   ")": ".29",
+  "*": ".2A",
   ".": ".2E",
 };
 
-final _encodeHashComponentRegex = RegExp(r'[%().]');
+final _encodeHashComponentRegex = RegExp(r"[%!'()*.]");
 
 // Corresponds to encodeHashComponent in Zulip web;
 // see web/shared/src/internal_url.ts.
