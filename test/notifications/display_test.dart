@@ -487,6 +487,8 @@ void main() {
       final expectedIntentDataUrl = NotificationOpenPayload(
         realmUrl: data.realmUrl,
         userId: data.userId,
+        // The notification opens at the earliest message of the conversation.
+        messageId: messageStyleMessages.first.messageId,
         narrow: switch (data.recipient) {
         NotifPayloadChannelRecipient(:var channelId, :var topic) =>
           TopicNarrow(channelId, topic),

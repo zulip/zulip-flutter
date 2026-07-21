@@ -70,6 +70,8 @@ void main() {
     final expectedNotificationUrl = NotificationOpenPayload(
       realmUrl: data.realmUrl,
       userId: data.userId,
+      // TODO(#1565): also open at the specific message on iOS
+      messageId: null,
       narrow: switch (data.recipient) {
         NotifPayloadChannelRecipient(:var channelId, :var topic) =>
           TopicNarrow(channelId, topic),

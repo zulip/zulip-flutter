@@ -135,8 +135,8 @@ class NotificationOpenService {
 
     return MessageListPage.buildRoute(
       accountId: account.id,
-      // TODO(#1565): Open at specific message, not just conversation
-      narrow: data.narrow);
+      narrow: data.narrow,
+      initAnchorMessageId: data.messageId);
   }
 
   /// Navigate appropriately for opening the given notification.
@@ -176,8 +176,8 @@ class NotificationOpenService {
     }
     unawaited(navigator.push(MessageListPage.buildRoute(
       accountId: account.id,
-      // TODO(#1565): Open at specific message, not just conversation
-      narrow: data.narrow)));
+      narrow: data.narrow,
+      initAnchorMessageId: data.messageId)));
   }
 
   /// Navigate appropriately for opening the notification described by
@@ -267,11 +267,13 @@ class NotificationOpenService {
 class NotificationOpenPayload {
   final Uri realmUrl;
   final int userId;
+  final int? messageId;
   final Narrow narrow;
 
   NotificationOpenPayload({
     required this.realmUrl,
     required this.userId,
+    required this.messageId,
     required this.narrow,
   });
 
@@ -357,6 +359,7 @@ class NotificationOpenPayload {
       return NotificationOpenPayload(
         realmUrl: Uri.parse(realmUrl),
         userId: userId,
+        messageId: null,
         narrow: narrow);
     } else {
       // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
@@ -385,6 +388,11 @@ class NotificationOpenPayload {
       final realmUrl = Uri.parse(realmUrlStr);
       final userId = int.parse(userIdStr, radix: 10);
 
+      final messageId = switch (url.queryParameters['message_id']) {
+        final messageIdStr? => int.parse(messageIdStr, radix: 10),
+        null => null,
+      };
+
       final Narrow narrow;
       switch (narrowType) {
         case 'topic':
@@ -405,6 +413,7 @@ class NotificationOpenPayload {
       return NotificationOpenPayload(
         realmUrl: realmUrl,
         userId: userId,
+        messageId: messageId,
         narrow: narrow,
       );
     } else {
@@ -420,6 +429,7 @@ class NotificationOpenPayload {
       queryParameters: <String, String>{
         'realm_url': realmUrl.toString(),
         'user_id': userId.toString(),
+        if (messageId != null) 'message_id': messageId.toString(),
         ...(switch (narrow) {
           TopicNarrow(:var channelId, :var topic) => {
             'narrow_type': 'topic',
