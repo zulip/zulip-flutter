@@ -22,7 +22,7 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get aboutPageTapToView => 'Tap to view';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+  String get upgradeWelcomeDialogTitle => 'Velkommen til den nye Zulip-appen!';
 
   @override
   String get upgradeWelcomeDialogMessage =>
@@ -33,13 +33,13 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
       'Check out the announcement blog post!';
 
   @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
+  String get upgradeWelcomeDialogDismiss => 'La oss gå';
 
   @override
-  String get chooseAccountPageTitle => 'Choose account';
+  String get chooseAccountPageTitle => 'Velg konto';
 
   @override
-  String get settingsPageTitle => 'Settings';
+  String get settingsPageTitle => 'Innstillinger';
 
   @override
   String get switchAccountButtonTooltip => 'Switch account';
@@ -53,33 +53,33 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get tryAnotherAccountButton => 'Try another account';
 
   @override
-  String get chooseAccountPageLogOutButton => 'Log out';
+  String get chooseAccountPageLogOutButton => 'Logg ut';
 
   @override
-  String get logOutConfirmationDialogTitle => 'Log out?';
+  String get logOutConfirmationDialogTitle => 'Logg ut?';
 
   @override
   String get logOutConfirmationDialogMessage =>
       'To use this account in the future, you will have to re-enter the URL for your organization and your account information.';
 
   @override
-  String get logOutConfirmationDialogConfirmButton => 'Log out';
+  String get logOutConfirmationDialogConfirmButton => 'Logg ut';
 
   @override
-  String get chooseAccountButtonAddAnAccount => 'Add an account';
+  String get chooseAccountButtonAddAnAccount => 'Legg til en konto';
 
   @override
-  String get navButtonAllChannels => 'All channels';
+  String get navButtonAllChannels => 'Alle kanaler';
 
   @override
-  String get allChannelsPageTitle => 'All channels';
+  String get allChannelsPageTitle => 'Alle kanaler';
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>
-      'There are no channels you can view in this organization.';
+      'Det er ingen kanaler du kan se i denne organisasjonen.';
 
   @override
-  String get profileButtonSendDirectMessage => 'Send direct message';
+  String get profileButtonSendDirectMessage => 'Send direktemelding';
 
   @override
   String get errorCouldNotShowUserProfile => 'Could not show user profile.';
