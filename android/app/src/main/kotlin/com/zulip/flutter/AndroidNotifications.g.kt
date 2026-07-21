@@ -925,7 +925,7 @@ interface AndroidNotificationHostApi {
    * for each notification's [Notification.messagingStyle].
    *
    * The keys of entries to fetch from notification's extras bundle must be
-   * specified in the [desiredExtras] list. If this list is empty, then
+   * specified in the [desiredNotificationExtras] list. If this list is empty, then
    * [Notification.extras] will also be empty. If value of the matched entry
    * is not of type string or is null, then that entry will be skipped.
    *
@@ -936,7 +936,7 @@ interface AndroidNotificationHostApi {
    *   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
    *   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
    */
-  fun getActiveNotifications(desiredExtras: List<String>, includeMessagingStyle: Boolean): List<StatusBarNotification>
+  fun getActiveNotifications(desiredNotificationExtras: List<String>, includeMessagingStyle: Boolean): List<StatusBarNotification>
   /**
    * Corresponds to `androidx.core.app.NotificationManagerCompat.cancel`.
    *
@@ -1074,10 +1074,10 @@ interface AndroidNotificationHostApi {
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
-            val desiredExtrasArg = args[0] as List<String>
+            val desiredNotificationExtrasArg = args[0] as List<String>
             val includeMessagingStyleArg = args[1] as Boolean
             val wrapped: List<Any?> = try {
-              listOf(api.getActiveNotifications(desiredExtrasArg, includeMessagingStyleArg))
+              listOf(api.getActiveNotifications(desiredNotificationExtrasArg, includeMessagingStyleArg))
             } catch (exception: Throwable) {
               AndroidNotificationsPigeonUtils.wrapError(exception)
             }

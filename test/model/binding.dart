@@ -923,7 +923,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
 
   @override
   Future<List<StatusBarNotification>> getActiveNotifications({
-    required List<String> desiredExtras,
+    required List<String> desiredNotificationExtras,
     required bool includeMessagingStyle,
   }) async {
     return _activeNotifications.values.map((statusNotif) {
@@ -934,7 +934,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
         notification: Notification(
           group: statusNotif.notification.group,
           extras: {
-            for (final key in desiredExtras)
+            for (final key in desiredNotificationExtras)
               if (notificationExtras[key] != null)
                 key: notificationExtras[key]!,
           },
