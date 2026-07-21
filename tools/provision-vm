@@ -12,6 +12,9 @@ this_dir=${BASH_SOURCE[0]%/*}
 # shellcheck source=tools/lib/clone-flutter-sdk.sh
 . "${this_dir}"/lib/clone-flutter-sdk.sh
 
+# shellcheck source=tools/lib/deps.sh
+. "${this_dir}"/lib/deps.sh
+
 usage() {
     cat <<EOF
 usage: tools/provision-vm
@@ -21,9 +24,11 @@ as described in docs/howto/lima.md:
 
   - install needed system packages, with apt;
   - clone the Flutter SDK to ~/flutter, and put it on the
-    PATH via ~/.profile;
+    PATH via ~/.profile -- or use a Flutter SDK already on
+    the PATH, such as one mounted from the host;
   - bind-mount VM-local dirs and files over this clone's
-    build-state paths, keeping them separate from the host's;
+    build-state paths (and a host-mounted SDK's, if using
+    one), keeping them separate from the host's;
   - download Flutter's platform-independent artifacts;
   - fetch this clone's pub dependencies.
 
@@ -69,7 +74,15 @@ cd "$rootdir"
 flutter_tree=~/flutter
 
 if type -p flutter >/dev/null; then
-    echo "Found Flutter already in PATH: $(type -p flutter)"
+    flutter_bin=$(type -p flutter)
+    flutter_tree=$(flutter_tree)
+    if [ ! -x "$flutter_tree"/bin/flutter ]; then
+        echo >&2 "error: Found 'flutter' in PATH at $flutter_bin,"
+        echo >&2 "  but couldn't find its SDK tree"
+        echo >&2 "  (expected the resolved path to end in /bin/flutter)."
+        exit 1
+    fi
+    echo "Found Flutter already in PATH: $flutter_bin"
 else
     if [ -e "$flutter_tree" ]; then
         if [ ! -x "$flutter_tree"/bin/flutter ]; then
@@ -156,6 +169,22 @@ mask_build_state() {
 
 mask_build_state "$rootdir" .dart_tool/ build/ android/.gradle/ \
     .flutter-plugins-dependencies
+
+# A Flutter SDK mounted from the host needs the same treatment,
+# on the paths where the flutter tool keeps platform- and
+# machine-specific state.  The fstypes are the ones a Lima host
+# mount can have, depending on the config's mountType setting.
+# See docs/howto/lima.md, under "Developing Flutter SDK changes".
+case "$(findmnt -no FSTYPE --target "$flutter_tree")" in
+    virtiofs|9p|fuse.sshfs)
+        echo "Flutter SDK at $flutter_tree is mounted from the host;"
+        echo "  masking its build state."
+        mask_build_state "$flutter_tree" bin/cache/ .dart_tool/ \
+            dev/integration_tests/hook_user_defines/.dart_tool/ \
+            dev/integration_tests/hook_user_defines/pubspec.lock \
+            packages/flutter/build/ packages/flutter_tools/.dart_tool/ \
+            packages/flutter_tools/pubspec.lock;;
+esac
 
 
 ## FLUTTER ARTIFACTS AND PUB DEPS
