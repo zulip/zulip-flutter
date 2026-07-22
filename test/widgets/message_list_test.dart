@@ -73,6 +73,7 @@ void main() {
     List<Subscription>? subscriptions,
     UnreadMessagesSnapshot? unreadMsgs,
     List<int>? starredMessages,
+    List<String>? stopWords,
     int? zulipFeatureLevel,
     List<NavigatorObserver> navObservers = const [],
     bool skipAssertAccountExists = false,
@@ -88,7 +89,8 @@ void main() {
       streams: streams,
       subscriptions: subscriptions,
       unreadMsgs: unreadMsgs,
-      starredMessages: starredMessages));
+      starredMessages: starredMessages,
+      stopWords: stopWords));
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
 
@@ -428,6 +430,18 @@ void main() {
     Finder findTextInPlaceholder(String text) =>
       find.descendant(of: findPlaceholder, matching: find.textContaining(text));
 
+    List<String> struckWords(Text text) {
+      final words = <String>[];
+      text.textSpan!.visitChildren((span) {
+        if (span is TextSpan
+            && span.style?.decoration == TextDecoration.lineThrough) {
+          words.add(span.text!);
+        }
+        return true;
+      });
+      return words;
+    }
+
     Future<void> checkLink(WidgetTester tester, {
         required String linkText, required Uri expectedUrl}) async {
       await tester.tapOnText(find.textRange.ofSubstring(linkText));
@@ -651,6 +665,33 @@ void main() {
     testWidgets('Search, non-empty keyword', (tester) async {
       await setupMessageListPage(tester, narrow: KeywordSearchNarrow('hello'), messages: []);
       check(findTextInPlaceholder('No search results.')).findsOne();
+    });
+
+    testWidgets('Search, keyword contains stopwords', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: KeywordSearchNarrow('the example a'), messages: [],
+        stopWords: ['the', 'a']);
+      check(findTextInPlaceholder('No search results.')).findsOne();
+      final message = tester.widget<Text>(findTextInPlaceholder(
+        'Common words were excluded from your search:\nthe example a'));
+      check(struckWords(message)).deepEquals(['the', 'a']);
+    });
+
+    testWidgets('Search, stopword matched case-insensitively', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: KeywordSearchNarrow('The'), messages: [],
+        stopWords: ['the', 'a']);
+      final message = tester.widget<Text>(findTextInPlaceholder(
+        'Common words were excluded from your search:\nThe'));
+      check(struckWords(message)).deepEquals(['The']);
+    });
+
+    testWidgets('Search, no stopwords in keyword', (tester) async {
+      await setupMessageListPage(tester,
+        narrow: KeywordSearchNarrow('example'), messages: [],
+        stopWords: ['the', 'a']);
+      check(findTextInPlaceholder('No search results.')).findsOne();
+      check(findTextInPlaceholder('Common words were excluded')).findsNothing();
     });
 
     testWidgets('when `messages` empty but `outboxMessages` not empty, show outboxes, not placeholder', (tester) async {

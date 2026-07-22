@@ -709,6 +709,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get emptyMessageListSearch => '検索結果はありません。';
 
   @override
+  String get emptyMessageListSearchStopwords =>
+      'Common words were excluded from your search:';
+
+  @override
   String get messageListGroupYouWithYourself => '自分とのメッセージ';
 
   @override

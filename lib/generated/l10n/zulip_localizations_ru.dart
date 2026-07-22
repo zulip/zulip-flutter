@@ -740,6 +740,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get emptyMessageListSearch => 'Ничего не найдено.';
 
   @override
+  String get emptyMessageListSearchStopwords =>
+      'Common words were excluded from your search:';
+
+  @override
   String get messageListGroupYouWithYourself => 'Сообщения с собой';
 
   @override
