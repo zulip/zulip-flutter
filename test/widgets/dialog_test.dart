@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -36,6 +37,28 @@ void main() {
       showErrorDialog(context: context, title: title, message: message);
       await tester.pump();
       checkErrorDialog(tester, expectedTitle: title, expectedMessage: message);
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    testWidgets('triggers error haptic feedback', (tester) async {
+      await prepare(tester);
+
+      final calls = <MethodCall>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (methodCall) async {
+          calls.add(methodCall);
+          return null;
+        });
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform, null);
+      });
+
+      showErrorDialog(context: context, title: title, message: message);
+      await tester.pump();
+
+      check(calls).single.isMethodCall(
+          'HapticFeedback.vibrate', arguments: 'HapticFeedbackType.errorNotification');
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('user closes error dialog', (tester) async {
