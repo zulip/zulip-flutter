@@ -1428,6 +1428,7 @@ InitialSnapshot initialSnapshot({
   List<ChannelFolder>? channelFolders,
   UnreadMessagesSnapshot? unreadMsgs,
   List<int>? starredMessages,
+  List<String>? stopWords,
   List<ZulipStream>? streams,
   Map<int, UserStatusChange>? userStatuses,
   UserSettings? userSettings,
@@ -1493,6 +1494,7 @@ InitialSnapshot initialSnapshot({
     channelFolders: channelFolders ?? [],
     unreadMsgs: unreadMsgs ?? _unreadMsgs(),
     starredMessages: starredMessages ?? [],
+    stopWords: stopWords ?? [],
     streams: streams ?? [], // TODO add streams to default
     userStatuses: userStatuses ?? {},
     userSettings: userSettings ?? _userSettings(),
