@@ -758,6 +758,10 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get emptyMessageListSearch => 'Ni zadetkov iskanja.';
 
   @override
+  String get emptyMessageListSearchStopwords =>
+      'Common words were excluded from your search:';
+
+  @override
   String get messageListGroupYouWithYourself => 'Sporočila sebi';
 
   @override
