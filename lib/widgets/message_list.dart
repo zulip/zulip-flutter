@@ -894,7 +894,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     model.fetchInitial();
   }
 
-  bool _prevFetched = false;
+  bool _hasAutofocused = false;
 
   void _modelChanged() {
     // When you're scrolling quickly, our mark-as-read requests include the
@@ -922,14 +922,36 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // This method was called because that just changed.
     });
 
-    if (!_prevFetched && model.fetched && model.messages.isEmpty) {
-      // If the fetch came up empty, there's nothing to read,
-      // so opening the keyboard won't be bothersome and could be helpful.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!model.fetched || !scrollController.hasClients) {
+        return;
+      }
+
+      // If fetchInitial or fetchOlder/fetchNewer
+      // haven't filled model.messages with any visible (i.e. unmuted) messages,
+      // or anyway not enough to fill the screen, fetch again.
+      // If we're in a long run of muted messages, this has the effect of
+      // fetching in a loop until we've either fetched the narrow's whole history
+      // or we've filled the screen with visible messages,
+      // without needing user scroll input between iterations.
+      //
+      // The right time for the "if-needed" check is
+      // after the current model change has been laid out
+      // and the scroll metrics have been updated,
+      // so that when we receive and lay out a screenful of messages,
+      // we don't fetch again unnecessarily.
+      // That's why we do it in a post-frame callback.
+      _fetchMoreIfNeeded(scrollController.position);
+    });
+
+    if (model.messages.isEmpty && model.haveNewest && model.haveOldest && !_hasAutofocused) {
+      // If there are no messages to show in the whole history,
+      // opening the keyboard won't be bothersome and could be helpful.
       // It's definitely helpful if we got here from the new-DM page.
       MessageListPage.ancestorOf(context)
         .composeBoxState?.controller.requestFocusIfUnfocused();
+      _hasAutofocused = true;
     }
-    _prevFetched = model.fetched;
   }
 
   /// Find the range of message IDs on screen, as a (first, last) tuple,
