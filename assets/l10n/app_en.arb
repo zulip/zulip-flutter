@@ -716,6 +716,10 @@
   "@newDmSheetNoUsersFound": {
     "description": "Message shown in the new DM sheet when no users match the search."
   },
+  "you": "you",
+  "@you": {
+    "description": "Label identifying the self-user, shown in places like user lists as '(you)'."
+  },
   "composeBoxDmContentHint": "Message @{user}",
   "@composeBoxDmContentHint": {
     "description": "Hint text for content input when sending a message to one other person.",

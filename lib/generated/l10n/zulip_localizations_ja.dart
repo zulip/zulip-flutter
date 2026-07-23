@@ -587,6 +587,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get newDmSheetNoUsersFound => 'ユーザーが見つかりません';
 
   @override
+  String get you => 'you';
+
+  @override
   String composeBoxDmContentHint(String user) {
     return '@$user さんにメッセージ';
   }
