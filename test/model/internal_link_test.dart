@@ -108,6 +108,51 @@ void main() {
                     zulipFeatureLevel: 249,
                     '#narrow/stream/48-mobile-team/topic/Welcome.20screen.20UI');
       });
+
+      // Mirrors Zulip web's shared encodeHashComponent fixture,
+      // driven through a topic operand:
+      //   https://github.com/zulip/zulip/blob/9c6bbba27/zerver/tests/fixtures/url_encoding_test_cases.json
+      test('encode each character like Zulip web', () {
+        void checkTopic(String topic, String expectedEncoded) {
+          checkNarrow(channelId: 1, name: 'general', topic: topic,
+            '#narrow/channel/1-general/topic/$expectedEncoded');
+        }
+        checkTopic('-', '-');
+        checkTopic('_', '_');
+        checkTopic('~', '~');
+        checkTopic(' ', '.20');
+        checkTopic('!', '.21');
+        checkTopic('"', '.22');
+        checkTopic('#', '.23');
+        checkTopic(r'$', '.24');
+        checkTopic('%', '.25');
+        checkTopic('&', '.26');
+        checkTopic("'", '.27');
+        checkTopic('(', '.28');
+        checkTopic(')', '.29');
+        checkTopic('*', '.2A');
+        checkTopic('+', '.2B');
+        checkTopic(',', '.2C');
+        checkTopic('.', '.2E');
+        checkTopic('/', '.2F');
+        checkTopic(':', '.3A');
+        checkTopic(';', '.3B');
+        checkTopic('<', '.3C');
+        checkTopic('=', '.3D');
+        checkTopic('>', '.3E');
+        checkTopic('?', '.3F');
+        checkTopic('@', '.40');
+        checkTopic('[', '.5B');
+        checkTopic(r'\', '.5C');
+        checkTopic(']', '.5D');
+        checkTopic('^', '.5E');
+        checkTopic('`', '.60');
+        checkTopic('{', '.7B');
+        checkTopic('|', '.7C');
+        checkTopic('}', '.7D');
+        checkTopic('https://zulip.example',
+                   'https.3A.2F.2Fzulip.2Eexample');
+      });
     });
 
     test('DmNarrow', () {
