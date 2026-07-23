@@ -28,6 +28,7 @@ import '../model/narrow_checks.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../stdlib_checks.dart';
+import '../test_images.dart';
 import '../test_navigation.dart';
 import '../widgets/checks.dart';
 import '../widgets/dialog_checks.dart';
@@ -315,6 +316,7 @@ void main() {
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('mismatching account', (tester) async {
+      prepareBoringImageHttpClient();
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       await prepare(tester);
@@ -324,6 +326,7 @@ void main() {
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: zulipLocalizations.errorNotificationOpenTitle,
         expectedMessage: zulipLocalizations.errorNotificationOpenAccountNotFound)));
+      debugNetworkImageHttpClientProvider = null;
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
     testWidgets('find account among several', (tester) async {

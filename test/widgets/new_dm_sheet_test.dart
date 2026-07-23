@@ -19,6 +19,7 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import '../test_navigation.dart';
 import 'finders.dart';
 import 'test_app.dart';
@@ -87,6 +88,7 @@ void main() {
   }
 
   testWidgets('shows header with correct buttons', (tester) async {
+    prepareBoringImageHttpClient();
     await setupSheet(tester, users: []);
 
     check(find.descendant(
@@ -96,9 +98,11 @@ void main() {
     check(findComposeButton).findsOne();
 
     checkComposeButtonEnabled(tester, false);
+    debugNetworkImageHttpClientProvider = null;
   });
 
   testWidgets('search field has focus when sheet opens', (tester) async {
+    prepareBoringImageHttpClient();
     await setupSheet(tester, users: []);
 
     void checkHasFocus() {
@@ -117,6 +121,7 @@ void main() {
     checkHasFocus(); // It's focused initially.
     await tester.pump(Duration(seconds: 1));
     checkHasFocus(); // Something else doesn't come along and steal the focus.
+    debugNetworkImageHttpClientProvider = null;
   });
 
   group('user filtering', () {
@@ -128,24 +133,29 @@ void main() {
     ];
 
     testWidgets('shows full list initially', (tester) async {
+      prepareBoringImageHttpClient();
       await setupSheet(tester, selfUser: testUsers[0], users: testUsers);
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
       check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(testUsers.length);
       check(find.byIcon(ZulipIcons.check_circle_checked)).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('shows filtered users based on search', (tester) async {
+      prepareBoringImageHttpClient();
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'Alice');
       await tester.pump();
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsNothing();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('deactivated users excluded', (tester) async {
+      prepareBoringImageHttpClient();
       // Omit a deactivated user both before there's a query…
       final deactivatedUser = eg.user(fullName: 'Impostor Charlie', isActive: false);
       await setupSheet(tester, selfUser: testUsers[0],
@@ -160,9 +170,11 @@ void main() {
       check(findText(includePlaceholders: false, 'Impostor Charlie')).findsNothing();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
       check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(1);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('muted users excluded', (tester) async {
+      prepareBoringImageHttpClient();
       // Omit muted users both before there's a query…
       final mutedUser = eg.user(fullName: 'Someone Muted');
       await setupSheet(tester, selfUser: testUsers[0],
@@ -182,12 +194,14 @@ void main() {
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsOne();
       check(findText(includePlaceholders: false, 'Édith Piaf')).findsOne();
       check(find.byIcon(ZulipIcons.check_circle_unchecked)).findsExactly(3);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     // TODO test sorting by recent-DMs
     // TODO test that scroll position resets on query change
 
     testWidgets('search is case- and diacritics-insensitive', (tester) async {
+      prepareBoringImageHttpClient();
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'alice');
       await tester.pump();
@@ -204,9 +218,11 @@ void main() {
       await tester.enterText(find.byType(TextField), 'edith');
       await tester.pump();
       check(findText(includePlaceholders: false, 'Édith Piaf')).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('partial name and last name search handling', (tester) async {
+      prepareBoringImageHttpClient();
       await setupSheet(tester, users: testUsers);
 
       await tester.enterText(find.byType(TextField), 'Ali');
@@ -226,9 +242,11 @@ void main() {
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsOne();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsNothing();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('shows empty state when no users match', (tester) async {
+      prepareBoringImageHttpClient();
       await setupSheet(tester, users: testUsers);
       await tester.enterText(find.byType(TextField), 'Zebra');
       await tester.pump();
@@ -236,9 +254,11 @@ void main() {
       check(findText(includePlaceholders: false, 'Alice Anderson')).findsNothing();
       check(findText(includePlaceholders: false, 'Bob Brown')).findsNothing();
       check(findText(includePlaceholders: false, 'Charlie Carter')).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('search text clears when user is selected', (tester) async {
+      prepareBoringImageHttpClient();
       final user = eg.user(fullName: 'Test User');
       await setupSheet(tester, users: [user]);
 
@@ -250,6 +270,7 @@ void main() {
       await tester.tap(findUserTile(user));
       await tester.pump();
       check(textField.controller!.text).isEmpty();
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -276,6 +297,7 @@ void main() {
     }
 
     testWidgets('tapping user chip deselects the user', (tester) async {
+      prepareBoringImageHttpClient();
       await setupSheet(tester, users: [eg.otherUser, eg.thirdUser]);
 
       await tester.tap(findUserTile(eg.otherUser));
@@ -284,9 +306,11 @@ void main() {
       await tester.tap(findUserChip(eg.otherUser));
       await tester.pump();
       checkUserSelected(tester, eg.otherUser, false);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('selecting and deselecting a user', (tester) async {
+      prepareBoringImageHttpClient();
       final user = eg.user(fullName: 'Test User');
       await setupSheet(tester, users: [user]);
 
@@ -303,9 +327,11 @@ void main() {
       await tester.pump();
       checkUserSelected(tester, user, false);
       checkComposeButtonEnabled(tester, false);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('other user selection deselects self user', (tester) async {
+      prepareBoringImageHttpClient();
       final otherUser = eg.user(fullName: 'Other User');
       await setupSheet(tester, users: [otherUser]);
 
@@ -318,9 +344,11 @@ void main() {
       await tester.pump();
       checkUserSelected(tester, otherUser, true);
       check(find.text(eg.selfUser.fullName)).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('other user selection hides self user', (tester) async {
+      prepareBoringImageHttpClient();
       final otherUser = eg.user(fullName: 'Other User');
       await setupSheet(tester, users: [otherUser]);
 
@@ -329,9 +357,11 @@ void main() {
       await tester.tap(findUserTile(otherUser));
       await tester.pump();
       check(find.text(eg.selfUser.fullName)).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('can select multiple users', (tester) async {
+      prepareBoringImageHttpClient();
       final user1 = eg.user(fullName: 'Test User 1');
       final user2 = eg.user(fullName: 'Test User 2');
       await setupSheet(tester, users: [user1, user2]);
@@ -342,6 +372,7 @@ void main() {
       await tester.pump();
       checkUserSelected(tester, user1, true);
       checkUserSelected(tester, user2, true);
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -367,6 +398,7 @@ void main() {
     }
 
     testWidgets('emoji & text are set -> emoji is displayed, text is not', (tester) async {
+      prepareBoringImageHttpClient();
       final user = eg.user();
       await setupSheet(tester, users: [user]);
       await store.changeUserStatus(user.userId, UserStatusChange(
@@ -386,9 +418,11 @@ void main() {
       check(findUserChip(user)).findsOne();
       checkFindsChipStatusEmoji(tester, user, find.text('\u{1f6e0}'));
       check(find.textContaining('Busy')).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('emoji is not set, text is set -> text is not displayed', (tester) async {
+      prepareBoringImageHttpClient();
       final user = eg.user();
       await setupSheet(tester, users: [user]);
       await store.changeUserStatus(user.userId, UserStatusChange(
@@ -405,6 +439,7 @@ void main() {
       check(findUserTile(user)).findsOne();
       check(findUserChip(user)).findsOne();
       check(find.textContaining('Busy')).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -413,6 +448,7 @@ void main() {
       required List<User> users,
       required String expectedAppBarTitle,
     }) async {
+      prepareBoringImageHttpClient();
       await setupSheet(tester, users: users);
 
       final context = tester.element(find.byType(NewDmPicker));
@@ -430,6 +466,7 @@ void main() {
       check(find.widgetWithText(ZulipAppBar, expectedAppBarTitle)).findsOne();
 
       check(find.byType(ComposeBox)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     }
 
     testWidgets('navigates to self DM', (tester) async {

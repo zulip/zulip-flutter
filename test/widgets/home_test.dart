@@ -18,6 +18,7 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/banner.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -43,6 +44,7 @@ void main () {
   late PerAccountStore store;
   late FakeApiConnection connection;
 
+  late TransitionDurationObserver transitionDurationObserver;
   late Route<dynamic>? topRoute;
   late Route<dynamic>? previousTopRoute;
   late List<Route<dynamic>> pushedRoutes;
@@ -62,6 +64,7 @@ void main () {
     previousTopRoute = null;
     pushedRoutes = [];
     lastPoppedRoute = null;
+    transitionDurationObserver = TransitionDurationObserver();
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;
@@ -69,7 +72,7 @@ void main () {
 
     await tester.pumpWidget(TestZulipApp(
       accountId: eg.selfAccount.id,
-      navigatorObservers: [testNavObserver],
+      navigatorObservers: [testNavObserver, transitionDurationObserver],
       child: const HomePage()));
     await tester.pump();
   }
@@ -107,7 +110,7 @@ void main () {
       // sticky-header position (via [StickyHeaderItem]).
       // We arrange that by also preparing an unread DM, which
       // shifts the channel header down so it's not at the top of the viewport.
-
+      prepareBoringImageHttpClient();
       await prepare(tester);
       await store.addUser(eg.otherUser);
       await store.addMessage(
@@ -138,6 +141,7 @@ void main () {
       await tester.tap(find.byIcon(ZulipIcons.inbox));
       await tester.pump();
       check(findChevron).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('update app bar title and actions when switching between views', (tester) async {
@@ -165,6 +169,32 @@ void main () {
         of: find.byType(ZulipAppBar),
         matching: find.text('Direct messages'))).findsOne();
       check(findSearchButton).findsNothing();
+    });
+
+    testWidgets('organization icon in app bar shows the realm icon', (tester) async {
+      prepareBoringImageHttpClient();
+      await prepare(tester);
+
+      final iconFinder = find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage));
+      check(iconFinder).findsOne();
+      check(tester.widget<RealmContentNetworkImage>(iconFinder).src)
+        .equals(store.resolvedRealmIcon);
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('tapping organization icon opens the account list', (tester) async {
+      prepareBoringImageHttpClient();
+      await prepare(tester);
+
+      await tester.tap(find.descendant(
+        of: find.byType(ZulipAppBar),
+        matching: find.byType(RealmContentNetworkImage)));
+      await tester.pump();
+      await transitionDurationObserver.pumpPastTransition(tester);
+      check(find.byType(ChooseAccountPage)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets("view switches when labels are tapped", (tester) async {
@@ -535,6 +565,7 @@ void main () {
     });
 
     testWidgets('while loading, choose a different account', (tester) async {
+      prepareBoringImageHttpClient();
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       await prepare(tester);
       await tester.pump(kTryAnotherAccountWaitPeriod);
@@ -550,6 +581,7 @@ void main () {
       await tester.pump(loadPerAccountDuration);
       // The second loadPerAccount finished.
       checkOnHomePage(tester, expectedAccount: eg.otherAccount);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('while loading, choosing an account disallows going back', (tester) async {
@@ -571,6 +603,7 @@ void main () {
     });
 
     testWidgets('while loading, go to nested levels of ChooseAccountPage', (tester) async {
+      prepareBoringImageHttpClient();
       testBinding.globalStore.loadPerAccountDuration = loadPerAccountDuration;
       final thirdAccount = eg.account(user: eg.thirdUser);
       await testBinding.globalStore.add(thirdAccount, eg.initialSnapshot(
@@ -601,6 +634,7 @@ void main () {
 
       await tester.pump(loadPerAccountDuration); // wait for loadPerAccount
       checkOnHomePage(tester, expectedAccount: thirdAccount);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('after finishing loading, go back from ChooseAccountPage', (tester) async {
@@ -750,39 +784,48 @@ void main () {
     final unsupportedVersion = '3.0';
 
     testWidgets('not shown when server is at supported feature level', (tester) async {
+      prepareBoringImageHttpClient();
       await prepareBanner(tester,
         zulipFeatureLevel: kMinSupportedZulipFeatureLevel,
         zulipVersion: kMinSupportedZulipVersion);
       check(find.byType(ZulipBanner)).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('shown for administrator when server is below supported feature level', (tester) async {
+      prepareBoringImageHttpClient();
       await prepareBanner(tester,
         zulipFeatureLevel: unsupportedFeatureLevel,
         zulipVersion: unsupportedVersion,
         selfUser: eg.user(role: UserRole.administrator));
       check(find.text(zulipLocalizations.serverCompatBannerAdminMessage(
         sampleRealmUrl, unsupportedVersion))).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('shown for owner when server is below supported feature level', (tester) async {
+      prepareBoringImageHttpClient();
       await prepareBanner(tester,
         zulipFeatureLevel: unsupportedFeatureLevel,
         zulipVersion: unsupportedVersion,
         selfUser: eg.user(role: UserRole.owner));
       check(find.text(zulipLocalizations.serverCompatBannerAdminMessage(
         sampleRealmUrl, unsupportedVersion))).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('shown for member when server is below supported feature level', (tester) async {
+      prepareBoringImageHttpClient();
       await prepareBanner(tester,
         zulipFeatureLevel: unsupportedFeatureLevel,
         zulipVersion: unsupportedVersion);
       check(find.text(zulipLocalizations.serverCompatBannerUserMessage(
         sampleRealmUrl, unsupportedVersion))).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('banner has alert semantics role', (tester) async {
+      prepareBoringImageHttpClient();
       final findBannerSemantics = find.byWidgetPredicate((widget) =>
         widget is Semantics && widget.properties.role == SemanticsRole.alert);
       await prepareBanner(tester,
@@ -792,6 +835,7 @@ void main () {
         of: find.byType(ZulipBanner),
         matching: findBannerSemantics)
       ).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('banner dismiss state persists when switching account away and back', (tester) async {
@@ -834,12 +878,14 @@ void main () {
     });
 
     testWidgets('learn more opens kServerSupportDocUrl', (tester) async {
+      prepareBoringImageHttpClient();
       await prepareBanner(tester,
         zulipFeatureLevel: unsupportedFeatureLevel,
         zulipVersion: unsupportedVersion);
       await tester.tap(find.text(zulipLocalizations.serverCompatBannerLearnMoreLabel));
       check(testBinding.takeLaunchUrlCalls()).single
         .equals((url: kServerSupportDocUrl, mode: LaunchMode.inAppBrowserView));
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 }
