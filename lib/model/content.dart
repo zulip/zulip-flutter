@@ -536,6 +536,17 @@ class ImagePreviewNodeList extends BlockContentNode {
   }
 }
 
+class InlineImageNodeList extends InlineContentNode {
+  const InlineImageNodeList(this.inlineImages, {super.debugHtmlNode});
+
+  final List<InlineImageNode> inlineImages;
+
+  @override
+  List<DiagnosticsNode> debugDescribeChildren() {
+    return inlineImages.map((node) => node.toDiagnosticsNode()).toList();
+  }
+}
+
 sealed class ImageNode extends ContentNode {
   const ImageNode({
     super.debugHtmlNode,
@@ -2088,6 +2099,70 @@ class _ZulipContentParser {
     }
   }
 
+  /// Group eligible runs of inline images into [InlineImageNodeList] galleries.
+  ///
+  /// A run of one or more consecutive [InlineImageNode]s inside a paragraph is
+  /// collected into a gallery when it is bounded on each side by a
+  /// [LineBreakInlineNode] (or the start/end of the paragraph). Images inside the
+  /// run may be separated from each other by [LineBreakInlineNode]s and/or
+  /// whitespace-only [TextNode]s. Those separators are consumed into the gallery.
+  List<InlineContentNode> _gallerifyInlineImages(List<InlineContentNode> nodes) {
+    final List<InlineContentNode> result = [];
+    List<InlineContentNode> cluster = [];
+    List<InlineImageNode> gallery = [];
+    bool validGalleryStart = true;
+
+    void commitCluster() {
+      gallery.addAll(cluster.whereType<InlineImageNode>());
+      cluster = [];
+    }
+
+    void consumeGalleryAndCluster() {
+      if (gallery.isNotEmpty) {
+        result.add(InlineImageNodeList(gallery));
+      }
+      result.addAll(cluster);
+      gallery = [];
+      cluster = [];
+    }
+
+    for (final node in nodes) {
+      switch (node) {
+        case InlineImageNode():
+          if (validGalleryStart) {
+            cluster.add(node);
+          } else {
+            result.add(node);
+          }
+        case TextNode() when node.text.trim().isEmpty:
+          if (validGalleryStart && cluster.isNotEmpty) {
+            cluster.add(node);
+          } else {
+            result.add(node);
+          }
+        case LineBreakInlineNode():
+          if (validGalleryStart) {
+            // The images up to this point will be put in a gallery as the run is
+            // bounded on both sides.
+            commitCluster();
+            // There is a possibility of more images in the next line that are
+            // eligible to be in the current gallery.
+            cluster.add(node);
+          } else {
+            result.add(node);
+          }
+          validGalleryStart = true;
+        default:
+          consumeGalleryAndCluster();
+          result.add(node);
+          validGalleryStart = false;
+      }
+    }
+    if (validGalleryStart) commitCluster();
+    consumeGalleryAndCluster();
+    return result;
+  }
+
   BlockContentNode parseBlockContent(dom.Node node) {
     final debugHtmlNode = kDebugMode ? node : null;
     if (node is! dom.Element) {
@@ -2109,7 +2184,7 @@ class _ZulipContentParser {
       final parsed = parseBlockInline(element.nodes);
       return ParagraphNode(debugHtmlNode: debugHtmlNode,
         links: parsed.links,
-        nodes: parsed.nodes);
+        nodes: _gallerifyInlineImages(parsed.nodes));
     }
 
     HeadingLevel? headingLevel;
@@ -2217,7 +2292,7 @@ class _ZulipContentParser {
       result.add(ParagraphNode(
         wasImplicit: true,
         links: parsed.links,
-        nodes: parsed.nodes));
+        nodes: _gallerifyInlineImages(parsed.nodes)));
       currentParagraph.clear();
     }
 
