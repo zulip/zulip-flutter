@@ -110,7 +110,7 @@ class _AutocompleteFieldState<QueryT extends AutocompleteQuery, ResultT extends 
 
   void _viewModelChanged() {
     setState(() {
-      _resultsToDisplay = _viewModel!.results.toList();
+      _resultsToDisplay = _viewModel!.results?.toList() ?? [];
     });
   }
 
@@ -490,7 +490,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
     final intent = autocompleteIntent();
     if (intent == null) return;
     assert(intent.syntaxStart == 0);
-    controller.setTopic(option.topic);
+    controller.setTopic(option.topic.name);
     contentFocusNode.requestFocus();
   }
 
@@ -524,7 +524,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
             child: Text.rich(
               topicLabelSpan(
                 context: context,
-                topic: option.topic,
+                topic: option.topic.name,
                 fontSize: style.fontSize!,
                 color: style.color!),
               maxLines: 2,
