@@ -225,8 +225,10 @@ permission checks relaxed or off, and is treated as untrusted.
 
 What the VM wall defends:
 
-- **Host filesystem**: the VM sees only the mounted clone. SSH
-  keys, browser state, and everything else on the host are
+- **Host filesystem**: the VM sees only the mounted clone (or
+  clones; see
+  [Developing Flutter SDK changes](#developing-flutter-sdk-changes)).
+  SSH keys, browser state, and everything else on the host are
   unreachable, and SSH agent forwarding is off (see
   [`zulip-flutter.yaml`](../../.lima/zulip-flutter.yaml)).
 - **GitHub**: the VM's only GitHub credential is the read-only
@@ -273,17 +275,94 @@ What this setup knowingly accepts:
 
 ## Developing Flutter SDK changes
 
-If you're developing changes to Flutter itself that you want visible
-in both the VM and on your host, you can add a second mount in
-`.lima/local.yaml` pointing at your host's Flutter clone. We haven't
-tried this yet; we expect there's extra handling needed for the
-platform-specific `bin/cache/` (Linux binaries can't run on macOS).
+The setup for working on Flutter itself: a Flutter clone on the
+host, mounted into the VM alongside the workspace. The clone's
+source is shared between host and VM -- an edit made on either
+side is visible on both -- while each side keeps its own
+platform-specific build state (Linux binaries can't run on
+macOS, nor vice versa). Inside the VM, the mounted clone
+replaces the VM-local `~/flutter` from
+[step 4](#4-set-up-zulip-flutter-inside-the-vm) as the Flutter
+SDK.
 
-If you try it, put the mounted clone's `bin/` on your PATH before
-running `tools/provision-vm`: the script uses whatever `flutter` it
-finds on the PATH, and clones its own SDK to `~/flutter` only when
-there is none. (If you've already run the script, you'll have a
-`~/flutter` clone to remove, or to shadow in PATH order.)
+
+### Add the mount
+
+Clone Flutter on the host, and add it to `.lima/local.yaml` as a
+second mount:
+
+```yaml
+mounts:
+# ... the workspace mount ...
+- location: "~/dev/flutter-for-jail"
+  writable: true
+```
+
+If the VM instance already exists, editing `local.yaml` isn't
+enough: the instance copied its config when it was created.
+Stop the VM, apply the same change to the live config with
+`limactl edit zulip-flutter`, and start it again. (`local.yaml`
+still matters as the record for any future re-creation.)
+
+Dedicate the clone to jail use, as the name in the example
+suggests, rather than mounting a clone your other host work
+relies on. The agent can write to the whole tree -- including
+its `.git/`, a host-execution path like the workspace's (see
+[trust model](#trust-model)) -- and the host's `flutter` tool
+is built from whatever the tree contains. So review the agent's
+SDK changes before running them host-side, as you would its app
+changes; and above all, never build an app release with this
+clone.
+
+
+### Set up the VM side
+
+In the VM's `~/.profile`, replace the Flutter PATH line that
+`tools/provision-vm` added with one for the mounted clone's
+`bin/`:
+
+```bash
+# Flutter SDK, host clone mounted into the VM
+PATH="/Users/you/dev/flutter-for-jail/bin:$PATH"
+```
+
+Then, in a fresh shell, check that `type -p flutter` shows the
+mounted clone, and re-run `tools/provision-vm`. (If the check
+fails, the script would set `~/flutter` back up.)
+Finding the mounted SDK on the PATH, the script skips cloning
+its own, masks the SDK's build state with VM-local bind mounts,
+as for the workspace (see [Workflow](#workflow)), and
+bootstraps the Linux toolchain into the masked cache. Don't
+run `flutter` in the VM before that point: with the masks not
+yet up, it would write Linux artifacts into the shared tree.
+
+The VM-local clone is then unused; reclaim the space with
+`rm -rf ~/flutter`. On a fresh VM, put the PATH line in place
+before first running `tools/provision-vm`, and there's no
+`~/flutter` to clean up.
+
+
+### Verify
+
+Check `flutter test` passes in the VM. On the host, plain
+`flutter` still uses your regular install; to run the app with
+the modified SDK, invoke the clone explicitly, as in
+`~/dev/flutter-for-jail/bin/flutter run`. The first such run
+does the corresponding macOS-side setup; those artifacts land
+in the clone's real directories, which the VM never sees
+behind its masks. (A fork clone may
+report `channel [user-branch]`; harmless. If version detection
+ever misbehaves, see the workaround in `tools/lib/clone-flutter-sdk.sh`.)
+
+To check that nothing escaped the masks, run
+`git status --ignored=matching` in the SDK clone after
+exercising `flutter` on both sides: apart from the masked
+paths, the tree should stay clean. The masks cover framework
+tests and `flutter update-packages`; those may also leave a
+few harmless artifacts that are the same from either side
+(per-package pub-workspace `.dart_tool/` shims, and coverage
+data in `packages/flutter`). Expect SDK workflows we haven't
+exercised to need more masks.
 
 
 ## Questions or trouble?

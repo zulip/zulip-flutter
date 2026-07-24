@@ -12,6 +12,9 @@ this_dir=${BASH_SOURCE[0]%/*}
 # shellcheck source=tools/lib/clone-flutter-sdk.sh
 . "${this_dir}"/lib/clone-flutter-sdk.sh
 
+# shellcheck source=tools/lib/deps.sh
+. "${this_dir}"/lib/deps.sh
+
 usage() {
     cat <<EOF
 usage: tools/provision-vm
@@ -21,9 +24,11 @@ as described in docs/howto/lima.md:
 
   - install needed system packages, with apt;
   - clone the Flutter SDK to ~/flutter, and put it on the
-    PATH via ~/.profile;
+    PATH via ~/.profile -- or use a Flutter SDK already on
+    the PATH, such as one mounted from the host;
   - bind-mount VM-local dirs and files over this clone's
-    build-state paths, keeping them separate from the host's;
+    build-state paths (and a host-mounted SDK's, if using
+    one), keeping them separate from the host's;
   - download Flutter's platform-independent artifacts;
   - fetch this clone's pub dependencies.
 
@@ -69,7 +74,15 @@ cd "$rootdir"
 flutter_tree=~/flutter
 
 if type -p flutter >/dev/null; then
-    echo "Found Flutter already in PATH: $(type -p flutter)"
+    flutter_bin=$(type -p flutter)
+    flutter_tree=$(flutter_tree)
+    if [ ! -x "$flutter_tree"/bin/flutter ]; then
+        echo >&2 "error: Found 'flutter' in PATH at $flutter_bin,"
+        echo >&2 "  but couldn't find its SDK tree"
+        echo >&2 "  (expected the resolved path to end in /bin/flutter)."
+        exit 1
+    fi
+    echo "Found Flutter already in PATH: $flutter_bin"
 else
     if [ -e "$flutter_tree" ]; then
         if [ ! -x "$flutter_tree"/bin/flutter ]; then
@@ -104,52 +117,74 @@ fi
 # persistent across reboots via /etc/fstab.
 # See docs/howto/lima.md.
 
-# The fstab lines below embed this path, and fstab splits fields on
-# whitespace (a literal space would need a \040 escape).
-case "$rootdir" in
-    *[[:space:]]*)
-        echo >&2 "error: workspace path contains whitespace: $rootdir"
-        echo >&2 "  Unsupported, because it gets written into /etc/fstab."
-        exit 1;;
-esac
-
 state_root="$HOME"/.local/state/zulip-flutter-vm
-state_dirs=( .dart_tool build android/.gradle )
-state_files=( .flutter-plugins-dependencies )
 
-fstab_changed=
-for path in "${state_dirs[@]}" "${state_files[@]}"; do
-    fstab_line="$state_root$rootdir/$path $rootdir/$path none bind,nofail 0 0"
-    if ! grep -qxF "$fstab_line" /etc/fstab; then
-        echo "Adding to /etc/fstab: $fstab_line"
-        echo "$fstab_line" | sudo tee -a /etc/fstab >/dev/null
-        fstab_changed=y
-    fi
-done
-if [ -n "$fstab_changed" ]; then
-    run_visibly sudo systemctl daemon-reload
-fi
-
-# usage: ensure_state_mount {dir|file} <path relative to repo root>
+# usage: ensure_state_mount {dir|file} <absolute path>
 ensure_state_mount() {
     local kind="$1" path="$2"
-    if mountpoint -q "$rootdir/$path"; then
+    if mountpoint -q "$path"; then
         return
     fi
     case "$kind" in
-        dir)  mkdir -p "$state_root$rootdir/$path" "$rootdir/$path";;
-        file) mkdir -p "$(dirname "$state_root$rootdir/$path")"
-              touch "$state_root$rootdir/$path" "$rootdir/$path";;
+        dir)  mkdir -p "$state_root$path" "$path";;
+        file) mkdir -p "$(dirname "$state_root$path")" "$(dirname "$path")"
+              touch "$state_root$path" "$path";;
     esac
-    run_visibly sudo mount "$rootdir/$path"
+    run_visibly sudo mount "$path"
 }
 
-for dir in "${state_dirs[@]}"; do
-    ensure_state_mount dir "$dir"
-done
-for file in "${state_files[@]}"; do
-    ensure_state_mount file "$file"
-done
+# usage: mask_build_state <base dir> <path>...
+# A trailing slash marks a path as a directory; otherwise a file.
+mask_build_state() {
+    local base="$1"; shift
+
+    # The fstab lines below embed these paths, and fstab splits fields on
+    # whitespace (a literal space would need a \040 escape).
+    local arg
+    for arg in "$base" "$@"; do
+        case "$arg" in
+            *[[:space:]]*)
+                echo >&2 "error: path contains whitespace: $arg"
+                echo >&2 "  Unsupported, because it gets written into /etc/fstab."
+                exit 1;;
+        esac
+    done
+
+    local path kind fstab_line fstab_changed=
+    for arg; do
+        path="${arg%/}"
+        kind='file'; [ "$arg" = "$path" ] || kind='dir'
+        fstab_line="$state_root$base/$path $base/$path none bind,nofail 0 0"
+        if ! grep -qxF "$fstab_line" /etc/fstab; then
+            echo "Adding to /etc/fstab: $fstab_line"
+            echo "$fstab_line" | sudo tee -a /etc/fstab >/dev/null
+            fstab_changed=y
+        fi
+        ensure_state_mount "$kind" "$base/$path"
+    done
+    if [ -n "$fstab_changed" ]; then
+        run_visibly sudo systemctl daemon-reload
+    fi
+}
+
+mask_build_state "$rootdir" .dart_tool/ build/ android/.gradle/ \
+    .flutter-plugins-dependencies
+
+# A Flutter SDK mounted from the host needs the same treatment,
+# on the paths where the flutter tool keeps platform- and
+# machine-specific state.  The fstypes are the ones a Lima host
+# mount can have, depending on the config's mountType setting.
+# See docs/howto/lima.md, under "Developing Flutter SDK changes".
+case "$(findmnt -no FSTYPE --target "$flutter_tree")" in
+    virtiofs|9p|fuse.sshfs)
+        echo "Flutter SDK at $flutter_tree is mounted from the host;"
+        echo "  masking its build state."
+        mask_build_state "$flutter_tree" bin/cache/ .dart_tool/ \
+            dev/integration_tests/hook_user_defines/.dart_tool/ \
+            dev/integration_tests/hook_user_defines/pubspec.lock \
+            packages/flutter/build/ packages/flutter_tools/.dart_tool/ \
+            packages/flutter_tools/pubspec.lock;;
+esac
 
 
 ## FLUTTER ARTIFACTS AND PUB DEPS
