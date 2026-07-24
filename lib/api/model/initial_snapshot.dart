@@ -96,6 +96,9 @@ class InitialSnapshot {
   /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
   final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
 
+  @JsonKey(unknownEnumValue: RealmMediaPreviewSize.unknown)
+  final RealmMediaPreviewSize? realmMediaPreviewSize; // TODO(server-12)
+
   @JsonKey(unknownEnumValue: RealmTopicsPolicy.unknown)
   final RealmTopicsPolicy? realmTopicsPolicy; // TODO(server-11)
 
@@ -202,6 +205,7 @@ class InitialSnapshot {
     required this.realmCanDeleteOwnMessageGroup,
     required this.realmDeleteOwnMessagePolicy,
     required this.realmWildcardMentionPolicy,
+    required this.realmMediaPreviewSize,
     required this.realmTopicsPolicy,
     required this.realmMandatoryTopics,
     required this.realmName,
@@ -259,6 +263,24 @@ enum RealmDeleteOwnMessagePolicy {
   final int apiValue;
 
   int toJson() => apiValue;
+}
+
+/// A value of [InitialSnapshot.realmMediaPreviewSize].
+///
+/// For docs, search for "realm_media_preview_size"
+/// in <https://zulip.com/api/register-queue>.
+@JsonEnum(valueField: 'apiValue')
+enum RealmMediaPreviewSize {
+  small(apiValue: 100),
+  medium(apiValue: 150),
+  large(apiValue: 200),
+  unknown(apiValue: null);
+
+  const RealmMediaPreviewSize({required this.apiValue});
+
+  final int? apiValue;
+
+  int? toJson() => apiValue;
 }
 
 /// A value of [InitialSnapshot.realmTopicsPolicy].
