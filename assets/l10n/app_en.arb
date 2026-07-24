@@ -874,6 +874,10 @@
   "@emptyMessageListSearch": {
     "description": "Placeholder for the 'Search' page when there are no messages."
   },
+  "emptyMessageListSearchStopwords": "Common words were excluded from your search:",
+  "@emptyMessageListSearchStopwords": {
+    "description": "Extra detail in the placeholder for the 'Search' page when the search ignored some very common words in the query. The search query is shown below this text, with the ignored words struck through."
+  },
   "messageListGroupYouWithYourself": "Messages with yourself",
   "@messageListGroupYouWithYourself": {
     "description": "Message list recipient header for a DM group that only includes yourself."

@@ -1338,6 +1338,12 @@ abstract class ZulipLocalizations {
   /// **'No search results.'**
   String get emptyMessageListSearch;
 
+  /// Extra detail in the placeholder for the 'Search' page when the search ignored some very common words in the query. The search query is shown below this text, with the ignored words struck through.
+  ///
+  /// In en, this message translates to:
+  /// **'Common words were excluded from your search:'**
+  String get emptyMessageListSearchStopwords;
+
   /// Message list recipient header for a DM group that only includes yourself.
   ///
   /// In en, this message translates to:

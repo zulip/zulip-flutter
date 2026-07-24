@@ -746,6 +746,10 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get emptyMessageListSearch => 'Nessun risultato trovato.';
 
   @override
+  String get emptyMessageListSearchStopwords =>
+      'Common words were excluded from your search:';
+
+  @override
   String get messageListGroupYouWithYourself => 'Messaggi con te stesso';
 
   @override

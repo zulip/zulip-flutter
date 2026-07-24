@@ -74,6 +74,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
   starredMessages: (json['starred_messages'] as List<dynamic>)
       .map((e) => (e as num).toInt())
       .toList(),
+  stopWords: (json['stop_words'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   streams: (json['streams'] as List<dynamic>)
       .map((e) => ZulipStream.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -201,6 +204,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'channel_folders': instance.channelFolders,
   'unread_msgs': instance.unreadMsgs,
   'starred_messages': instance.starredMessages,
+  'stop_words': instance.stopWords,
   'streams': instance.streams,
   'user_status': instance.userStatuses.map((k, e) => MapEntry(k.toString(), e)),
   'user_settings': instance.userSettings,

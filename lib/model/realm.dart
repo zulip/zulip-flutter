@@ -44,6 +44,11 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
 
   List<ReportMessageType>? get serverReportMessageTypes; // TODO(server-12)
 
+  /// The stopwords used by the server's full-text search.
+  ///
+  /// Search for "stop_words" in https://zulip.com/api/register-queue.
+  List<String> get stopWords;
+
   //|//////////////////////////////////////////////////////////////
   // Realm settings.
 
@@ -190,6 +195,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   List<ReportMessageType>? get serverReportMessageTypes => realmStore.serverReportMessageTypes;
   @override
+  List<String> get stopWords => realmStore.stopWords;
+  @override
   bool get realmAllowMessageEditing => realmStore.realmAllowMessageEditing;
   @override
   GroupSettingValue? get realmCanDeleteAnyMessageGroup => realmStore.realmCanDeleteAnyMessageGroup;
@@ -266,6 +273,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     _sortedStillThumbnailFormats = _filterAndSortThumbnailFormats(
       initialSnapshot.serverThumbnailFormats, animated: false),
     serverReportMessageTypes = initialSnapshot.serverReportMessageTypes,
+    stopWords = initialSnapshot.stopWords,
     realmAllowMessageEditing = initialSnapshot.realmAllowMessageEditing,
     realmCanDeleteAnyMessageGroup = initialSnapshot.realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup = initialSnapshot.realmCanDeleteOwnMessageGroup,
@@ -424,6 +432,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
   @override
   final List<ReportMessageType>? serverReportMessageTypes;
+
+  @override
+  final List<String> stopWords;
 
   @override
   final bool realmAllowMessageEditing;

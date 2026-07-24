@@ -62,6 +62,8 @@ class InitialSnapshot {
 
   final List<int> starredMessages;
 
+  final List<String> stopWords;
+
   final List<ZulipStream> streams;
 
   // In register-queue, the name of this field is the singular "user_status",
@@ -193,6 +195,7 @@ class InitialSnapshot {
     required this.channelFolders,
     required this.unreadMsgs,
     required this.starredMessages,
+    required this.stopWords,
     required this.streams,
     required this.userStatuses,
     required this.userSettings,
