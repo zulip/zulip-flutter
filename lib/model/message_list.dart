@@ -676,9 +676,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// see [RevealedMutedMessagesState] in lib/widgets/message_list.dart.
   ///
   /// See also [_allMessagesVisible].
-  // When updating this, check [_allMessagesVisible], [_canAffectVisibility],
-  // and [_mutedUsersEventCanAffectVisibility] to see whether they need to be
-  // updated too.
+  // When updating this, check [_allMessagesVisible], [_willAffectVisibility],
+  // [_mutedUsersEventWillAffectVisibility], and [messagesMoved] to see whether
+  // they need to be updated too.
   // Also check the unread-count methods in [Unreads] to make sure they count
   // exactly the unread messages for which this would return true.
   bool _messageVisible(MessageBase message) {
@@ -696,7 +696,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         assert(message is MessageBase<StreamConversation>
                && message.conversation.streamId == channelId);
         if (message is! MessageBase<StreamConversation>) return false;
-        return store.isTopicVisibleInStream(channelId, message.conversation.topic);
+        return store.isTopicVisibleInChannel(channelId, message.conversation.topic);
 
       case TopicNarrow():
         assert((narrow as TopicNarrow).containsMessage(message));
@@ -762,14 +762,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  UserTopicVisibilityEffect _canAffectVisibility(UserTopicEvent event) {
+  UserTopicVisibilityEffect _willAffectVisibility(UserTopicEvent event) {
     switch (narrow) {
       case CombinedFeedNarrow():
-        return store.willChangeIfTopicVisible(event);
+        return store.willAffectIfTopicVisible(event);
 
       case ChannelNarrow(:final channelId):
         if (event.streamId != channelId) return UserTopicVisibilityEffect.none;
-        return store.willChangeIfTopicVisibleInStream(event);
+        return store.willAffectIfTopicVisibleInChannel(event);
 
       case TopicNarrow():
       case DmNarrow():
@@ -782,10 +782,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  MutedUsersVisibilityEffect _mutedUsersEventCanAffectVisibility(MutedUsersEvent event) {
+  MutedUsersVisibilityEffect _mutedUsersEventWillAffectVisibility(MutedUsersEvent event) {
     switch(narrow) {
       case CombinedFeedNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
 
       case ChannelNarrow():
       case TopicNarrow():
@@ -793,13 +793,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return MutedUsersVisibilityEffect.none;
 
       case MentionsNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
 
       case StarredMessagesNarrow():
         return MutedUsersVisibilityEffect.none;
 
       case KeywordSearchNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
     }
   }
 
@@ -1074,7 +1074,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   void handleUserTopicEvent(UserTopicEvent event) {
-    switch (_canAffectVisibility(event)) {
+    switch (_willAffectVisibility(event)) {
       case UserTopicVisibilityEffect.none:
         return;
 
@@ -1106,7 +1106,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   void handleMutedUsersEvent(MutedUsersEvent event) {
-    switch (_mutedUsersEventCanAffectVisibility(event)) {
+    switch (_mutedUsersEventWillAffectVisibility(event)) {
       case MutedUsersVisibilityEffect.none:
         return;
 
@@ -1197,7 +1197,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  void _messagesMovedIntoNarrow() {
+  void _messagesMovedIntoMessageList() {
     // If there are some messages we don't have in [MessageStore], and they
     // occur later than the messages we have here, then we just have to
     // re-fetch from scratch.  That's always valid, so just do that always.
@@ -1207,7 +1207,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     fetchInitial();
   }
 
-  void _messagesMovedFromNarrow(List<int> messageIds) {
+  void _messagesMovedFromMessageList(List<int> messageIds) {
     if (_removeMessagesById(messageIds)) {
       notifyListeners();
     }
@@ -1237,11 +1237,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return;
 
       case CombinedFeedNarrow():
+        final wasVisible = store.isTopicVisible(origStreamId, origTopic);
+        final isVisible = store.isTopicVisible(newStreamId, newTopic);
+        switch((wasVisible, isVisible)) {
+          case (false, false): return;
+          case (true,  true ): _messagesMovedInternally(messageIds);
+          case (false, true ): _messagesMovedIntoMessageList();
+          case (true,  false): _messagesMovedFromMessageList(messageIds);
+        }
+
       case MentionsNarrow():
       case StarredMessagesNarrow():
-        // The messages didn't enter or leave this narrow.
-        // TODO(#1255): … except they may have become muted or not.
-        //   We'll handle that at the same time as we handle muting itself changing.
+        // The messages didn't enter or leave this message list.
+        // (They may have been (un)muted, but we don't exclude channel messages
+        // in these narrows on the basis of muting. See _messageVisible.)
         // Recipient headers, and downstream of those, may change, though.
         _messagesMovedInternally(messageIds);
 
@@ -1250,14 +1259,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // the topic alone, and topics change. Punt on trying to add/remove
         // messages, though, because we aren't equipped to evaluate the match
         // without asking the server.
+        // (Messages may have been (un)muted, but we don't exclude channel
+        // messages in this narrow on the basis of muting. See _messageVisible.)
         _messagesMovedInternally(messageIds);
 
       case ChannelNarrow(:final channelId):
-        switch ((origStreamId == channelId, newStreamId == channelId)) {
+        final wasInChannelAndVisible = origStreamId == channelId
+          && store.isTopicVisibleInChannel(origStreamId, origTopic);
+        final isInChannelAndVisible = newStreamId == channelId
+          && store.isTopicVisibleInChannel(newStreamId, newTopic);
+        switch ((wasInChannelAndVisible, isInChannelAndVisible)) {
           case (false, false): return;
           case (true,  true ): _messagesMovedInternally(messageIds);
-          case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false): _messagesMovedFromNarrow(messageIds);
+          case (false, true ): _messagesMovedIntoMessageList();
+          case (true,  false): _messagesMovedFromMessageList(messageIds);
         }
 
       case TopicNarrow(:final channelId, :final topic):
@@ -1266,9 +1281,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         switch ((oldMatch, newMatch)) {
           case (false, false): return;
           case (true,  true ): return; // TODO(log) when no-op move
-          case (false, true ): _messagesMovedIntoNarrow();
+          case (false, true ): _messagesMovedIntoMessageList();
           case (true,  false):
-            _messagesMovedFromNarrow(messageIds);
+            _messagesMovedFromMessageList(messageIds);
             _handlePropagateMode(propagateMode, TopicNarrow(newStreamId, newTopic));
         }
     }
