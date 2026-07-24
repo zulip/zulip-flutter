@@ -276,6 +276,7 @@ ZulipStream _$ZulipStreamFromJson(Map<String, dynamic> json) => ZulipStream(
   channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
+    unknownValue: ChannelPostPolicy.unknown,
   ),
   folderId: (json['folder_id'] as num?)?.toInt(),
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
@@ -360,6 +361,7 @@ Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
   channelPostPolicy: $enumDecodeNullable(
     _$ChannelPostPolicyEnumMap,
     json['stream_post_policy'],
+    unknownValue: ChannelPostPolicy.unknown,
   ),
   folderId: (json['folder_id'] as num?)?.toInt(),
   canAddSubscribersGroup: json['can_add_subscribers_group'] == null
@@ -476,7 +478,7 @@ StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
       senderId: (json['sender_id'] as num).toInt(),
       senderRealmStr: json['sender_realm_str'] as String,
       timestamp: (json['timestamp'] as num).toInt(),
-      flags: Message._flagsFromJson(json['flags']),
+      flags: flagsFromJson(json['flags']),
       matchContent: json['match_content'] as String?,
       matchTopic: json['match_subject'] as String?,
       conversation: StreamConversation.fromJson(
@@ -504,7 +506,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'flags': instance.flags,
       'match_content': instance.matchContent,
       'match_subject': instance.matchTopic,
-      'type': instance.type,
+      'type': _$MessageTypeEnumMap[instance.type]!,
       'stream_id': instance.streamId,
       'subject': instance.topic,
       'display_recipient': instance.displayRecipient,
@@ -514,6 +516,11 @@ const _$MessageEditStateEnumMap = {
   MessageEditState.none: 'none',
   MessageEditState.edited: 'edited',
   MessageEditState.moved: 'moved',
+};
+
+const _$MessageTypeEnumMap = {
+  MessageType.channel: 'channel',
+  MessageType.direct: 'direct',
 };
 
 DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
@@ -532,7 +539,7 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
   senderId: (json['sender_id'] as num).toInt(),
   senderRealmStr: json['sender_realm_str'] as String,
   timestamp: (json['timestamp'] as num).toInt(),
-  flags: Message._flagsFromJson(json['flags']),
+  flags: flagsFromJson(json['flags']),
   matchContent: json['match_content'] as String?,
   matchTopic: json['match_subject'] as String?,
   conversation: DmMessage._conversationFromJson(
@@ -558,7 +565,7 @@ Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
   'flags': instance.flags,
   'match_content': instance.matchContent,
   'match_subject': instance.matchTopic,
-  'type': instance.type,
+  'type': _$MessageTypeEnumMap[instance.type]!,
   'display_recipient': DmMessage._allRecipientIdsToJson(
     instance.allRecipientIds,
   ),
@@ -571,6 +578,7 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.emojiset: 'emojiset',
   UserSettingName.webInboxShowChannelFolders: 'web_inbox_show_channel_folders',
   UserSettingName.presenceEnabled: 'presence_enabled',
+  UserSettingName.unknown: 'unknown',
 };
 
 const _$EmojisetEnumMap = {
@@ -586,23 +594,24 @@ const _$PresenceStatusEnumMap = {
   PresenceStatus.idle: 'idle',
 };
 
-const _$ChannelPropertyNameEnumMap = {
-  ChannelPropertyName.name: 'name',
-  ChannelPropertyName.isArchived: 'is_archived',
-  ChannelPropertyName.description: 'description',
-  ChannelPropertyName.firstMessageId: 'first_message_id',
-  ChannelPropertyName.inviteOnly: 'invite_only',
-  ChannelPropertyName.messageRetentionDays: 'message_retention_days',
-  ChannelPropertyName.topicsPolicy: 'topics_policy',
-  ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
-  ChannelPropertyName.folderId: 'folder_id',
-  ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
-  ChannelPropertyName.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
-  ChannelPropertyName.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
-  ChannelPropertyName.canSendMessageGroup: 'can_send_message_group',
-  ChannelPropertyName.canSubscribeGroup: 'can_subscribe_group',
-  ChannelPropertyName.isRecentlyActive: 'is_recently_active',
-  ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
+const _$ChannelPropertyEnumMap = {
+  ChannelProperty.name: 'name',
+  ChannelProperty.isArchived: 'is_archived',
+  ChannelProperty.description: 'description',
+  ChannelProperty.firstMessageId: 'first_message_id',
+  ChannelProperty.inviteOnly: 'invite_only',
+  ChannelProperty.messageRetentionDays: 'message_retention_days',
+  ChannelProperty.topicsPolicy: 'topics_policy',
+  ChannelProperty.channelPostPolicy: 'stream_post_policy',
+  ChannelProperty.folderId: 'folder_id',
+  ChannelProperty.canAddSubscribersGroup: 'can_add_subscribers_group',
+  ChannelProperty.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
+  ChannelProperty.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
+  ChannelProperty.canSendMessageGroup: 'can_send_message_group',
+  ChannelProperty.canSubscribeGroup: 'can_subscribe_group',
+  ChannelProperty.isRecentlyActive: 'is_recently_active',
+  ChannelProperty.streamWeeklyTraffic: 'stream_weekly_traffic',
+  ChannelProperty.unknown: 'unknown',
 };
 
 const _$SubscriptionPropertyEnumMap = {
@@ -634,4 +643,5 @@ const _$PropagateModeEnumMap = {
   PropagateMode.changeOne: 'change_one',
   PropagateMode.changeLater: 'change_later',
   PropagateMode.changeAll: 'change_all',
+  PropagateMode.unknown: 'unknown',
 };

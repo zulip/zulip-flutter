@@ -81,7 +81,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   assert(narrow.containsMessage(message)!);
 
   selfUser ??= eg.selfUser;
-  assert(!(hasDeletePermission && selfUser.role == UserRole.guest));
+  assert(!(hasDeletePermission && selfUser.role == .guest));
   final selfAccount = eg.account(user: selfUser,
     zulipFeatureLevel: zulipFeatureLevel);
   await testBinding.globalStore.add(
@@ -188,7 +188,7 @@ void main() {
       someChannel = eg.stream();
       someMessage = eg.streamMessage(
         stream: someChannel, topic: someTopic, sender: eg.otherUser,
-        flags: hasUnreadMessages ? [] : [MessageFlag.read]);
+        flags: hasUnreadMessages ? [] : [.read]);
       addTearDown(testBinding.reset);
 
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -334,7 +334,7 @@ void main() {
           await store.handleEvent(ChannelUpdateEvent(id: 1,
             streamId: someChannel.streamId,
             name: someChannel.name,
-            property: null, value: null,
+            property: .unknown, value: null,
             // (Ideally we'd use `property` and `value` but I'm not sure if
             // modern servers actually do that or if they still use this
             // separate field.)
@@ -349,7 +349,7 @@ void main() {
         testWidgets('private channel', (tester) async {
           await prepare();
           await store.handleEvent(eg.channelUpdateEvent(someChannel,
-            property: ChannelPropertyName.inviteOnly, value: true));
+            property: .inviteOnly, value: true));
           check(store.streams[someChannel.streamId]).isNotNull()
             ..inviteOnly.isTrue()..isWebPublic.isFalse();
           await showFromInbox(tester);
@@ -433,9 +433,9 @@ void main() {
         await prepare();
         await store.addStream(privateChannel);
         await store.updateChannel(privateChannel.streamId,
-          ChannelPropertyName.canSubscribeGroup, eg.groupSetting(members: []));
+          .canSubscribeGroup, eg.groupSetting(members: []));
         await store.updateChannel(privateChannel.streamId,
-          ChannelPropertyName.canAddSubscribersGroup, eg.groupSetting(members: []));
+          .canAddSubscribersGroup, eg.groupSetting(members: []));
         final narrow = ChannelNarrow(privateChannel.streamId);
         check(store.selfHasContentAccess(privateChannel)).isFalse();
         await showFromMsglistAppBar(tester,
@@ -1070,52 +1070,52 @@ void main() {
       testWidgets('unmuteInMutedChannel', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: true,
-          visibilityPolicy: UserTopicVisibilityPolicy.none);
+          visibilityPolicy: .none);
         await tester.tap(unmute);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.unmuted);
+        checkUpdateUserTopicRequest(.unmuted);
       });
 
       testWidgets('unmute', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.muted);
+          visibilityPolicy: .muted);
         await tester.tap(unmute);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.none);
+        checkUpdateUserTopicRequest(.none);
       });
 
       testWidgets('mute', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.none);
+          visibilityPolicy: .none);
         await tester.tap(mute);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.muted);
+        checkUpdateUserTopicRequest(.muted);
       });
 
       testWidgets('follow', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.none);
+          visibilityPolicy: .none);
         await tester.tap(follow);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.followed);
+        checkUpdateUserTopicRequest(.followed);
       });
 
       testWidgets('unfollow', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.followed);
+          visibilityPolicy: .followed);
         await tester.tap(unfollow);
         await tester.pump();
-        checkUpdateUserTopicRequest(UserTopicVisibilityPolicy.none);
+        checkUpdateUserTopicRequest(.none);
       });
 
       testWidgets('request fails with an error dialog', (tester) async {
         await setupToTopicActionSheet(tester,
           isChannelMuted: false,
-          visibilityPolicy: UserTopicVisibilityPolicy.followed);
+          visibilityPolicy: .followed);
 
         connection.prepare(apiException: eg.apiBadRequest());
         await tester.tap(unfollow);
@@ -1125,18 +1125,18 @@ void main() {
       });
 
       group('check expected buttons', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute, follow]),
-          (false, UserTopicVisibilityPolicy.none,     [mute, follow]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute, follow]),
-          (false, UserTopicVisibilityPolicy.followed, [mute, unfollow]),
+        final testCases = <(bool?, UserTopicVisibilityPolicy, List<Finder>)>[
+          (false, .muted,    [unmute, follow]),
+          (false, .none,     [mute, follow]),
+          (false, .unmuted,  [mute, follow]),
+          (false, .followed, [mute, unfollow]),
 
-          (true,  UserTopicVisibilityPolicy.muted,    [unmute, follow]),
-          (true,  UserTopicVisibilityPolicy.none,     [unmute, follow]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  [mute, follow]),
-          (true,  UserTopicVisibilityPolicy.followed, [mute, unfollow]),
+          (true,  .muted,    [unmute, follow]),
+          (true,  .none,     [unmute, follow]),
+          (true,  .unmuted,  [mute, follow]),
+          (true,  .followed, [mute, unfollow]),
 
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+          (null,  .none,     []),
         ];
 
         for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
@@ -1151,18 +1151,18 @@ void main() {
       });
 
       group('legacy: follow is unsupported when FL < 219', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
+        final testCases = <(bool?, UserTopicVisibilityPolicy, List<Finder>)>[
+          (false, .muted,    [unmute]),
+          (false, .none,     [mute]),
+          (false, .unmuted,  [mute]),
+          (false, .followed, [mute]),
 
-          (true,  UserTopicVisibilityPolicy.muted,    [unmute]),
-          (true,  UserTopicVisibilityPolicy.none,     [unmute]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (true,  UserTopicVisibilityPolicy.followed, [mute]),
+          (true,  .muted,    [unmute]),
+          (true,  .none,     [unmute]),
+          (true,  .unmuted,  [mute]),
+          (true,  .followed, [mute]),
 
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+          (null,  .none,     []),
         ];
 
         for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
@@ -1178,18 +1178,18 @@ void main() {
       });
 
       group('legacy: unmute is unsupported when FL < 170', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
+        final testCases = <(bool?, UserTopicVisibilityPolicy, List<Finder>)>[
+          (false, .muted,    [unmute]),
+          (false, .none,     [mute]),
+          (false, .unmuted,  [mute]),
+          (false, .followed, [mute]),
 
-          (true,  UserTopicVisibilityPolicy.muted,    <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.followed, <Finder>[]),
+          (true,  .muted,    []),
+          (true,  .none,     []),
+          (true,  .unmuted,  []),
+          (true,  .followed, []),
 
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
+          (null,  .none,     []),
         ];
 
         for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
@@ -1323,7 +1323,7 @@ void main() {
       testWidgets('not visible if topic has no unread messages', (tester) async {
         await prepare();
         final message = eg.streamMessage(stream: someChannel, topic: someTopic,
-          flags: [MessageFlag.read]);
+          flags: [.read]);
         await store.addMessage(message);
         await showFromAppBar(tester, messages: [message]);
         check(find.text('Mark topic as read')).findsNothing();
@@ -1349,7 +1349,7 @@ void main() {
               ...resolveApiNarrowForServer(
                 eg.topicNarrow(someChannel.streamId, someTopic).apiEncode(),
                 connection.zulipFeatureLevel!),
-              ApiNarrowIs(IsOperand.unread),
+              ApiNarrowIs(.unread),
             ]))
           ..bodyFields['op'].equals('add')
           ..bodyFields['flag'].equals('read');
@@ -1673,7 +1673,7 @@ void main() {
               ...resolveApiNarrowForServer(
                 narrow.apiEncode(),
                 connection.zulipFeatureLevel!),
-              ApiNarrowIs(IsOperand.unread),
+              ApiNarrowIs(.unread),
             ]))
           ..bodyFields['op'].equals('add')
           ..bodyFields['flag'].equals('read');
@@ -1827,7 +1827,7 @@ void main() {
               reactions: [Reaction(
                 emojiName: emoji.emojiName,
                 emojiCode: emoji.emojiCode,
-                reactionType: ReactionType.unicodeEmoji,
+                reactionType: .unicodeEmoji,
                 userId: eg.selfAccount.userId)]
             );
             await setupToMessageActionSheet(tester,
@@ -1988,7 +1988,7 @@ void main() {
       });
 
       testWidgets('unstar success', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.streamMessage(flags: [.starred]);
         await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
         connection.prepare(json: {});
@@ -2021,7 +2021,7 @@ void main() {
       });
 
       testWidgets('unstar request has an error', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.streamMessage(flags: [.starred]);
         await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
 
@@ -2156,16 +2156,16 @@ void main() {
         });
 
         testWidgets('no error if user lost posting permission after action sheet opened', (tester) async {
-          final selfUser = eg.user(role: UserRole.member);
+          final selfUser = eg.user(role: .member);
           final stream = eg.stream();
           final message = eg.streamMessage(stream: stream);
           await setupToMessageActionSheet(tester, selfUser: selfUser,
             message: message, narrow: TopicNarrow.ofMessage(message));
 
           await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: selfUser.userId,
-            role: UserRole.guest));
+            role: .guest));
           await store.handleEvent(eg.channelUpdateEvent(stream,
-            property: ChannelPropertyName.channelPostPolicy,
+            property: .channelPostPolicy,
             value: ChannelPostPolicy.administrators));
           await tester.pump();
 
@@ -2251,13 +2251,13 @@ void main() {
       });
 
       testWidgets('not offered in MentionsNarrow (composing to reply is not yet supported)', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
+        final message = eg.streamMessage(flags: [.mentioned]);
         await setupToMessageActionSheet(tester, message: message, narrow: const MentionsNarrow());
         check(findQuoteAndReplyButton(tester)).isNull();
       });
 
       testWidgets('not offered in StarredMessagesNarrow (composing to reply is not yet supported)', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.streamMessage(flags: [.starred]);
         await setupToMessageActionSheet(tester,
           message: message,
           narrow: const StarredMessagesNarrow());
@@ -2286,7 +2286,7 @@ void main() {
       });
 
       testWidgets('visible if message is read', (tester) async {
-        final readMessage = eg.streamMessage(flags: [MessageFlag.read]);
+        final readMessage = eg.streamMessage(flags: [.read]);
         await setupToMessageActionSheet(tester, message: readMessage, narrow: TopicNarrow.ofMessage(readMessage));
 
         check(find.byIcon(Icons.mark_chat_unread_outlined).evaluate()).single;
@@ -2294,7 +2294,7 @@ void main() {
 
       group('onPressed', () {
         testWidgets('smoke test', (tester) async {
-          final message = eg.streamMessage(flags: [MessageFlag.read]);
+          final message = eg.streamMessage(flags: [.read]);
           await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
           connection.prepare(json: UpdateMessageFlagsForNarrowResult(
@@ -2324,7 +2324,7 @@ void main() {
         testWidgets('on topic move, acts on new topic', (tester) async {
           final stream = eg.stream();
           const topic = 'old topic';
-          final message = eg.streamMessage(flags: [MessageFlag.read],
+          final message = eg.streamMessage(flags: [.read],
             stream: stream, topic: topic);
           await setupToMessageActionSheet(tester, message: message,
             narrow: TopicNarrow.ofMessage(message));
@@ -2345,7 +2345,7 @@ void main() {
             ]).toJson());
           await store.handleEvent(eg.updateMessageEventMoveFrom(
             newStreamId: newStream.streamId, newTopicStr: newTopic,
-            propagateMode: PropagateMode.changeAll,
+            propagateMode: .changeAll,
             origMessages: [message]));
 
           connection.prepare(json: UpdateMessageFlagsForNarrowResult(
@@ -2364,7 +2364,7 @@ void main() {
         });
 
         testWidgets('shows error when fails', (tester) async {
-          final message = eg.streamMessage(flags: [MessageFlag.read]);
+          final message = eg.streamMessage(flags: [.read]);
           await setupToMessageActionSheet(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
           connection.prepare(httpException: http.ClientException('Oops'));

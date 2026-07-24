@@ -88,7 +88,7 @@ void main() {
 
     typistsByNarrow.forEach((narrow, typists) {
       for (final typist in typists) {
-        handleTypingEvent(narrow, TypingOp.start, typist);
+        handleTypingEvent(narrow, .start, typist);
         checkNotifiedOnce();
       }
     });
@@ -114,15 +114,15 @@ void main() {
     test('add typists in separate narrows', () {
       prepareModel();
 
-      handleTypingEvent(dmNarrow, TypingOp.start, eg.otherUser);
+      handleTypingEvent(dmNarrow, .start, eg.otherUser);
       checkTypists({dmNarrow: [eg.otherUser]});
       checkNotifiedOnce();
 
-      handleTypingEvent(groupNarrow, TypingOp.start, eg.thirdUser);
+      handleTypingEvent(groupNarrow, .start, eg.thirdUser);
       checkTypists({dmNarrow: [eg.otherUser], groupNarrow: [eg.thirdUser]});
       checkNotifiedOnce();
 
-      handleTypingEvent(topicNarrow, TypingOp.start, eg.fourthUser);
+      handleTypingEvent(topicNarrow, .start, eg.fourthUser);
       checkTypists({
         dmNarrow: [eg.otherUser],
         groupNarrow: [eg.thirdUser],
@@ -133,7 +133,7 @@ void main() {
     test('add a typist in the same narrow', () {
       prepareModel(typistsByNarrow: {groupNarrow: [eg.otherUser]});
 
-      handleTypingEvent(groupNarrow, TypingOp.start, eg.thirdUser);
+      handleTypingEvent(groupNarrow, .start, eg.thirdUser);
       checkTypists({groupNarrow: [eg.otherUser, eg.thirdUser]});
       checkNotifiedOnce();
     });
@@ -142,7 +142,7 @@ void main() {
       prepareModel();
 
       model.handleTypingEvent(
-        eg.typingEvent(groupNarrow, TypingOp.start, eg.selfUser.userId));
+        eg.typingEvent(groupNarrow, .start, eg.selfUser.userId));
       checkTypists({});
       checkNotNotified();
     });
@@ -152,7 +152,7 @@ void main() {
     test('remove a typist from an unknown narrow', () {
       prepareModel(typistsByNarrow:  {groupNarrow: [eg.otherUser]});
 
-      handleTypingEvent(dmNarrow, TypingOp.stop, eg.otherUser);
+      handleTypingEvent(dmNarrow, .stop, eg.otherUser);
       checkTypists({groupNarrow: [eg.otherUser]});
       checkNotNotified();
     });
@@ -160,7 +160,7 @@ void main() {
     test('remove an unknown typist from a known narrow', () {
       prepareModel(typistsByNarrow:  {groupNarrow: [eg.otherUser]});
 
-      handleTypingEvent(groupNarrow, TypingOp.stop, eg.thirdUser);
+      handleTypingEvent(groupNarrow, .stop, eg.thirdUser);
       checkTypists({groupNarrow: [eg.otherUser]});
       checkNotNotified();
     });
@@ -170,7 +170,7 @@ void main() {
         groupNarrow: [eg.otherUser, eg.thirdUser],
       });
 
-      handleTypingEvent(groupNarrow, TypingOp.stop, eg.otherUser);
+      handleTypingEvent(groupNarrow, .stop, eg.otherUser);
       checkTypists({groupNarrow: [eg.thirdUser]});
       checkNotifiedOnce();
     });
@@ -178,7 +178,7 @@ void main() {
     test('remove all typists in a narrow', () {
       prepareModel(typistsByNarrow: {dmNarrow: [eg.otherUser]});
 
-      handleTypingEvent(dmNarrow, TypingOp.stop, eg.otherUser);
+      handleTypingEvent(dmNarrow, .stop, eg.otherUser);
       checkTypists({});
       checkNotifiedOnce();
     });
@@ -190,15 +190,15 @@ void main() {
         topicNarrow: [eg.fourthUser],
       });
 
-      handleTypingEvent(groupNarrow, TypingOp.stop, eg.thirdUser);
+      handleTypingEvent(groupNarrow, .stop, eg.thirdUser);
       checkTypists({dmNarrow: [eg.otherUser], topicNarrow: [eg.fourthUser]});
       checkNotifiedOnce();
 
-      handleTypingEvent(dmNarrow, TypingOp.stop, eg.otherUser);
+      handleTypingEvent(dmNarrow, .stop, eg.otherUser);
       checkTypists({topicNarrow: [eg.fourthUser]});
       checkNotifiedOnce();
 
-      handleTypingEvent(topicNarrow, TypingOp.stop, eg.fourthUser);
+      handleTypingEvent(topicNarrow, .stop, eg.fourthUser);
       checkTypists({});
       checkNotifiedOnce();
     });
@@ -222,7 +222,7 @@ void main() {
       prepareModel(typistsByNarrow: {dmNarrow: [eg.otherUser]});
       check(async.pendingTimers).length.equals(1);
 
-      handleTypingEvent(dmNarrow, TypingOp.stop, eg.otherUser);
+      handleTypingEvent(dmNarrow, .stop, eg.otherUser);
       checkTypists({});
       check(async.pendingTimers).isEmpty();
       checkNotifiedOnce();
@@ -235,7 +235,7 @@ void main() {
       async.elapse(const Duration(seconds: 10));
       checkTypists({dmNarrow: [eg.otherUser]});
       // The timer should restart from the event.
-      handleTypingEvent(dmNarrow, TypingOp.start, eg.otherUser);
+      handleTypingEvent(dmNarrow, .start, eg.otherUser);
       check(async.pendingTimers).length.equals(1);
       checkNotNotified();
 
@@ -282,7 +282,7 @@ void main() {
       await prepare();
       connection.prepare(json: {});
       model.keystroke(narrow);
-      checkTypingRequest(TypingOp.start, narrow);
+      checkTypingRequest(.start, narrow);
 
       // Finish the pending API request first,
       // so that the idle timer is the only timer left.
@@ -316,7 +316,7 @@ void main() {
       async.elapse(const Duration(milliseconds: 1));
       // t = typingStoppedWaitPeriod + 100ms:
       //   The new timer expires and the "typing stopped" notice is sent.
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     }));
 
     test('start typing repeatedly does not resend "typing started" notices', () => awaitFakeAsync((async) async {
@@ -342,12 +342,12 @@ void main() {
       // t > typingStartedWaitPeriod: Resume sending "typing started" notices.
       connection.prepare(json: {});
       model.keystroke(narrow);
-      checkTypingRequest(TypingOp.start, narrow);
+      checkTypingRequest(.start, narrow);
 
       // Ensures that a "typing stopped" notice is sent when the test ends.
       connection.prepare(json: {});
       async.flushTimers();
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     }));
 
     test('after stopped wait period, send a "typing stopped" notice', () => awaitFakeAsync((async) async {
@@ -355,7 +355,7 @@ void main() {
 
       connection.prepare(json: {});
       async.elapse(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
       check(async.pendingTimers).isEmpty();
     }));
 
@@ -364,7 +364,7 @@ void main() {
 
       connection.prepare(json: {});
       model.stoppedComposing();
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
 
       async.elapse(Duration.zero);
       check(async.pendingTimers).isEmpty();
@@ -375,19 +375,19 @@ void main() {
 
       connection.prepare(json: {});
       model.stoppedComposing();
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
 
       // The "typing started" notice would have been throttled if we did not
       // reset the TypingNotifier internal states before sending the "typing
       // stopped" notice.
       connection.prepare(json: {});
       model.keystroke(narrow);
-      checkTypingRequest(TypingOp.start, narrow);
+      checkTypingRequest(.start, narrow);
 
       // Ensures that a "typing stopped" notice is sent when the test ends.
       connection.prepare(json: {});
       async.flushTimers();
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     }));
 
     test('disposing store cancels the idle timer', () => awaitFakeAsync((async) async {
@@ -411,7 +411,7 @@ void main() {
       // t = 0ms: Start typing. The idle timer is set to typingStoppedWaitPeriod.
       connection.prepare(json: {});
       model.keystroke(topicNarrow);
-      checkTypingRequest(TypingOp.start, topicNarrow);
+      checkTypingRequest(.start, topicNarrow);
 
       async.elapse(Duration.zero);
       check(async.pendingTimers).single;
@@ -424,7 +424,7 @@ void main() {
       connection.prepare(json: {});
       model.keystroke(dmNarrow);
       checkSetTypingStatusRequests(connection.takeRequests(),
-        [(TypingOp.stop, topicNarrow), (TypingOp.start, dmNarrow)]);
+        [(.stop, topicNarrow), (.start, dmNarrow)]);
 
       async.elapse(Duration.zero);
       check(async.pendingTimers).single;
@@ -440,7 +440,7 @@ void main() {
       async.elapse(waitTime);
       // t = typingStoppedPeriod + 100ms:
       //   The new timer has expired, and a "typing stopped" notice is expected.
-      checkTypingRequest(TypingOp.stop, dmNarrow);
+      checkTypingRequest(.stop, dmNarrow);
     }));
 
     test('start typing in a different destination resets typing started wait timeout', () => awaitFakeAsync((async) async {
@@ -457,7 +457,7 @@ void main() {
       // t = 0ms: Start typing. The typing started time is set to 0ms.
       connection.prepare(json: {});
       model.keystroke(topicNarrow);
-      checkTypingRequest(TypingOp.start, topicNarrow);
+      checkTypingRequest(.start, topicNarrow);
 
       async.elapse(waitInterval);
       // t = waitInterval * 1:
@@ -469,7 +469,7 @@ void main() {
       connection.prepare(json: {});
       model.keystroke(dmNarrow);
       checkSetTypingStatusRequests(connection.takeRequests(),
-        [(TypingOp.stop, topicNarrow), (TypingOp.start, dmNarrow)]);
+        [(.stop, topicNarrow), (.start, dmNarrow)]);
 
       while (async.elapsed <= store.serverTypingStartedWaitPeriod) {
         // t <= typingStartedWaitPeriod: "still typing" requests are throttled.
@@ -494,12 +494,12 @@ void main() {
       //   enough time since the last time we sent a "typing started" notice.
       connection.prepare(json: {});
       model.keystroke(dmNarrow);
-      checkTypingRequest(TypingOp.start, dmNarrow);
+      checkTypingRequest(.start, dmNarrow);
 
       // Ensures that a "typing stopped" notice is sent when the test ends.
       connection.prepare(json: {});
       async.flushTimers();
-      checkTypingRequest(TypingOp.stop, dmNarrow);
+      checkTypingRequest(.stop, dmNarrow);
     }));
   });
 }

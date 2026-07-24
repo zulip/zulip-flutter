@@ -286,7 +286,7 @@ void main() {
           localId: '456',
           readBySender: true,
           expectedBodyFields: {
-            'type': 'stream',
+            'type': 'channel',
             'to': streamId.toString(),
             'topic': topic,
             'content': content,
@@ -299,6 +299,21 @@ void main() {
 
     test('to stream', () {
       return FakeApiConnection.with_((connection) async {
+        await checkSendMessage(connection,
+          destination: StreamDestination(streamId, eg.t(topic)), content: content,
+          readBySender: true,
+          expectedBodyFields: {
+            'type': 'channel',
+            'to': streamId.toString(),
+            'topic': topic,
+            'content': content,
+            'read_by_sender': 'true',
+          });
+      });
+    });
+
+    test('to stream, with legacy type "stream"', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 247, (connection) async {
         await checkSendMessage(connection,
           destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: true,
@@ -347,7 +362,7 @@ void main() {
           destination: StreamDestination(streamId, eg.t(topic)), content: content,
           readBySender: null,
           expectedBodyFields: {
-            'type': 'stream',
+            'type': 'channel',
             'to': streamId.toString(),
             'topic': topic,
             'content': content,
@@ -425,7 +440,7 @@ void main() {
         await checkUpdateMessage(connection,
           messageId: eg.streamMessage().id,
           topic: eg.t('new topic'),
-          propagateMode: PropagateMode.changeAll,
+          propagateMode: .changeAll,
           sendNotificationToOldThread: true,
           sendNotificationToNewThread: true,
           content: 'asdf',
@@ -672,7 +687,7 @@ void main() {
           UpdateMessageFlagsResult(messages: [1, 2]).toJson());
         await checkUpdateMessageFlags(connection,
           messages: [1, 2, 3],
-          op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
+          op: .add, flag: .read,
           expected: {
             'messages': jsonEncode([1, 2, 3]),
             'op': 'add',
@@ -716,7 +731,7 @@ void main() {
           anchor: AnchorCode.oldest,
           numBefore: 0, numAfter: 20,
           narrow: const CombinedFeedNarrow().apiEncode(),
-          op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
+          op: .add, flag: .read,
           expected: {
             'anchor': 'oldest',
             'num_before': '0',
@@ -735,7 +750,7 @@ void main() {
           anchor: AnchorCode.oldest,
           numBefore: 0, numAfter: 20,
           narrow: [ApiNarrowDm([123, 234])],
-          op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
+          op: .add, flag: .read,
           expected: {
             'anchor': 'oldest',
             'num_before': '0',
@@ -756,7 +771,7 @@ void main() {
           anchor: const NumericAnchor(42),
           numBefore: 0, numAfter: 20,
           narrow: const CombinedFeedNarrow().apiEncode(),
-          op: UpdateMessageFlagsOp.add, flag: MessageFlag.read,
+          op: .add, flag: .read,
           expected: {
             'anchor': '42',
             'num_before': '0',

@@ -47,21 +47,21 @@ void main() {
       expected: (OptionSome('Busy'), OptionSome(StatusEmoji(
                                        emojiName: 'working_on_it',
                                        emojiCode: '1f6e0',
-                                       reactionType: ReactionType.unicodeEmoji))));
+                                       reactionType: .unicodeEmoji))));
 
     doCheck(
       incoming: ('', 'working_on_it', '1f6e0', 'unicode_emoji'),
       expected: (OptionSome(null), OptionSome(StatusEmoji(
                                      emojiName: 'working_on_it',
                                      emojiCode: '1f6e0',
-                                     reactionType: ReactionType.unicodeEmoji))));
+                                     reactionType: .unicodeEmoji))));
 
     doCheck(
       incoming: (null, 'working_on_it', '1f6e0', 'unicode_emoji'),
       expected: (OptionNone(), OptionSome(StatusEmoji(
                                  emojiName: 'working_on_it',
                                  emojiCode: '1f6e0',
-                                 reactionType: ReactionType.unicodeEmoji))));
+                                 reactionType: .unicodeEmoji))));
 
     doCheck(
       incoming: ('Busy', '', '', ''),
@@ -89,6 +89,16 @@ void main() {
     doCheck(
       incoming: (null, null, null, 'unicode_emoji'),
       expected: (OptionNone(), OptionNone()));
+  });
+
+  test('UserSettingName.fromRawString handles unknown values', () {
+    check(UserSettingName.fromRawString('twenty_four_hour_time'))
+      .equals(.twentyFourHourTime);
+
+    for (final unknown in ['unknown_user_setting_name', '']) {
+      check(UserSettingName.fromRawString(unknown))
+        .equals(.unknown);
+    }
   });
 
   group('User', () {
@@ -131,6 +141,53 @@ void main() {
     });
   });
 
+  group('ZulipStream', () {
+    final baseJson = Map<String, dynamic>.unmodifiable({
+      'stream_id': 123,
+      'name': 'A Channel',
+      'is_archived': false,
+      'description': 'Description of A Channel',
+      'rendered_description': '<p>Description of A Channel</p>',
+      'date_created': 1781164720,
+      'first_message_id': null,
+      'folder_id': null,
+      'invite_only': false,
+      'is_web_public': false,
+      'history_public_to_subscribers': true,
+      'message_retention_days': -1,
+      'stream_post_policy': 1,
+      'can_add_subscribers_group': 100,
+      'can_delete_any_message_group': 100,
+      'can_delete_own_message_group': 100,
+      'can_send_message_group': 100,
+      'can_subscribe_group': 100,
+      'is_recently_active': false,
+      'stream_weekly_traffic': null,
+    });
+
+    ZulipStream mkChannel([Map<String, dynamic>? specialJson]) {
+      return ZulipStream.fromJson({...baseJson, ...?specialJson});
+    }
+
+    test('stream_post_policy: unknown', () {
+      check(mkChannel()).channelPostPolicy.equals(.any);
+      check(mkChannel({'stream_post_policy': -100})).channelPostPolicy.equals(.unknown);
+    });
+  });
+
+  test('ChannelProperty.fromRawString handles unknown values', () {
+    check(ChannelProperty.fromRawString('is_recently_active')).equals(.isRecentlyActive);
+
+    for (final unknown in ['unknown_channel_property', '']) {
+      check(ChannelProperty.fromRawString(unknown)).equals(.unknown);
+    }
+  });
+
+  test('ChannelPostPolicy.fromApiValue handles unknown values', () {
+    check(ChannelPostPolicy.fromApiValue(1)).equals(.any);
+    check(ChannelPostPolicy.fromApiValue(-100)).equals(.unknown);
+  });
+
   group('Subscription', () {
     test('converts color to int', () {
       Subscription subWithColor(String color) {
@@ -148,6 +205,33 @@ void main() {
   group('Message', () {
     Map<String, dynamic> baseStreamJson() =>
       deepToJson(eg.streamMessage()) as Map<String, dynamic>;
+
+    Map<String, dynamic> baseDmJson() =>
+      deepToJson(eg.dmMessage(from: eg.selfUser, to: [])) as Map<String, dynamic>;
+
+    test('type: stream -> channel', () {
+      check(baseStreamJson()['type']).equals('channel');
+      check(Message.fromJson(baseStreamJson()))
+        .isA<StreamMessage>()
+        .type.equals(.channel);
+
+      check(Message.fromJson(baseStreamJson()
+        ..['type'] = 'stream'
+      )).isA<StreamMessage>()
+        .type.equals(.channel);
+    });
+
+    test('type: private -> direct', () {
+      check(baseDmJson()['type']).equals('direct');
+      check(Message.fromJson(baseDmJson()))
+        .isA<DmMessage>()
+        .type.equals(.direct);
+
+      check(Message.fromJson(baseDmJson()
+        ..['type'] = 'private'
+      )).isA<DmMessage>()
+        .type.equals(.direct);
+    });
 
     test('subject -> topic', () {
       check(baseStreamJson()).not((it) => it.containsKey('topic'));
@@ -169,13 +253,13 @@ void main() {
         (deepToJson(eg.streamMessage()) as Map<String, dynamic>)
           ..['flags'] = ['read', 'something_unknown'],
       );
-      check(m1).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
+      check(m1).flags.deepEquals(<MessageFlag>[.read, .unknown]);
 
       final m2 = Message.fromJson(
         (deepToJson(eg.dmMessage(from: eg.selfUser, to: [eg.otherUser])) as Map<String, dynamic>)
           ..['flags'] = ['read', 'something_unknown'],
       );
-      check(m2).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
+      check(m2).flags.deepEquals(<MessageFlag>[.read, .unknown]);
     });
 
     test('require displayRecipient on parse', () {
@@ -279,14 +363,14 @@ void main() {
     group('Edit history is absent', () {
       test('Message with no evidence of an edit history -> none', () {
         check(Message.fromJson(baseJson()..['edit_history'] = null))
-          .editState.equals(MessageEditState.none);
+          .editState.equals(.none);
       });
 
       test('Message without edit history has last edit timestamp -> edited', () {
         check(Message.fromJson(baseJson()
             ..['edit_history'] = null
             ..['last_edit_timestamp'] = 1678139636))
-          .editState.equals(MessageEditState.edited);
+          .editState.equals(.edited);
       });
     });
 
@@ -300,63 +384,63 @@ void main() {
         check(Message.fromJson(baseJson()
             ..['edit_history'] = [{'prev_stream': 5, 'stream': 7}]
             ..['last_edit_timestamp'] = 1678139636))
-          .editState.equals(MessageEditState.moved);
+          .editState.equals(.moved);
       });
 
       test('Channel change only -> moved', () {
-        checkEditState(MessageEditState.moved,
+        checkEditState(.moved,
           [{'prev_stream': 5, 'stream': 7}]);
       });
 
       test('Topic name change only -> moved', () {
-        checkEditState(MessageEditState.moved,
+        checkEditState(.moved,
           [{'prev_topic': 'old_topic', 'topic': 'new_topic'}]);
       });
 
       test('Both topic and content changed -> edited', () {
-        checkEditState(MessageEditState.edited, [
+        checkEditState(.edited, [
           {'prev_topic': 'old_topic', 'topic': 'new_topic'},
           {'prev_content': 'old_content'},
         ]);
-        checkEditState(MessageEditState.edited, [
+        checkEditState(.edited, [
           {'prev_content': 'old_content'},
           {'prev_topic': 'old_topic', 'topic': 'new_topic'},
         ]);
       });
 
       test('Both topic and content changed in a single edit -> edited', () {
-        checkEditState(MessageEditState.edited,
+        checkEditState(.edited,
           [{'prev_topic': 'old_topic', 'topic': 'new_topic', 'prev_content': 'old_content'}]);
       });
 
       test('Content change only -> edited', () {
-        checkEditState(MessageEditState.edited,
+        checkEditState(.edited,
           [{'prev_content': 'old_content'}]);
       });
     });
 
     group('topic resolved in edit history', () {
       test('Topic was only resolved -> none', () {
-        checkEditState(MessageEditState.none,
+        checkEditState(.none,
           [{'prev_topic': 'old_topic', 'topic': '✔ old_topic'}]);
       });
 
       test('Topic was resolved but the content changed in the history -> edited', () {
-        checkEditState(MessageEditState.edited, [
+        checkEditState(.edited, [
           {'prev_topic': 'old_topic', 'topic': '✔ old_topic'},
           {'prev_content': 'old_content'},
         ]);
       });
 
       test('Topic was resolved but it also moved in the history -> moved', () {
-        checkEditState(MessageEditState.moved, [
+        checkEditState(.moved, [
           {'prev_topic': 'old_topic', 'topic': 'new_topic'},
           {'prev_topic': '✔ old_topic', 'topic': 'old_topic'},
         ]);
       });
 
       test('Topic was moved but it also was resolved in the history -> moved', () {
-        checkEditState(MessageEditState.moved, [
+        checkEditState(.moved, [
           {'prev_topic': '✔ old_topic', 'topic': 'old_topic'},
           {'prev_topic': 'old_topic', 'topic': 'new_topic'},
         ]);
@@ -369,7 +453,7 @@ void main() {
       // See comment on the implementation, and discussion:
       //   https://github.com/zulip/zulip-flutter/pull/1242#discussion_r1917592157
       test('Unresolving topic with a weird prefix -> moved', () {
-          checkEditState(MessageEditState.moved,
+          checkEditState(.moved,
             [{'prev_topic': '✔ ✔old_topic', 'topic': 'old_topic'}]);
       });
 
@@ -379,7 +463,7 @@ void main() {
       // edit/move-topic UI. A "moved" marker seems like a fine response
       // in that circumstance.
       test('Resolving topic with a weird prefix -> moved', () {
-          checkEditState(MessageEditState.moved,
+          checkEditState(.moved,
             [{'prev_topic': 'old_topic', 'topic': '✔ ✔old_topic'}]);
       });
 
@@ -388,9 +472,17 @@ void main() {
       // Here the computation burden would have come from calling
       // [TopicName.canonicalize].
       test('Topic was resolved but with changed case -> moved', () {
-        checkEditState(MessageEditState.moved,
+        checkEditState(.moved,
           [{'prev_topic': 'old ToPiC', 'topic': '✔ OLD tOpIc'}]);
       });
     });
+  });
+
+  test('PropagateMode.fromRawString handles unknown values', () {
+    check(PropagateMode.fromRawString('change_one')).equals(.changeOne);
+
+    for (final unknown in ['unknown_propagate_mode', '']) {
+      check(PropagateMode.fromRawString(unknown)).equals(.unknown);
+    }
   });
 }

@@ -85,10 +85,10 @@ UserSettingsUpdateEvent _$UserSettingsUpdateEventFromJson(
   Map<String, dynamic> json,
 ) => UserSettingsUpdateEvent(
   id: (json['id'] as num).toInt(),
-  property: $enumDecodeNullable(
+  property: $enumDecode(
     _$UserSettingNameEnumMap,
     json['property'],
-    unknownValue: JsonKey.nullForUndefinedEnumValue,
+    unknownValue: UserSettingName.unknown,
   ),
   value: UserSettingsUpdateEvent._readValue(json, 'value'),
 );
@@ -110,6 +110,7 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.emojiset: 'emojiset',
   UserSettingName.webInboxShowChannelFolders: 'web_inbox_show_channel_folders',
   UserSettingName.presenceEnabled: 'presence_enabled',
+  UserSettingName.unknown: 'unknown',
 };
 
 DeviceAddEvent _$DeviceAddEventFromJson(Map<String, dynamic> json) =>
@@ -564,10 +565,10 @@ ChannelUpdateEvent _$ChannelUpdateEventFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       streamId: (json['stream_id'] as num).toInt(),
       name: json['name'] as String,
-      property: $enumDecodeNullable(
-        _$ChannelPropertyNameEnumMap,
+      property: $enumDecode(
+        _$ChannelPropertyEnumMap,
         json['property'],
-        unknownValue: JsonKey.nullForUndefinedEnumValue,
+        unknownValue: ChannelProperty.unknown,
       ),
       value: ChannelUpdateEvent._readValue(json, 'value'),
       renderedDescription: json['rendered_description'] as String?,
@@ -583,30 +584,31 @@ Map<String, dynamic> _$ChannelUpdateEventToJson(ChannelUpdateEvent instance) =>
       'op': instance.op,
       'stream_id': instance.streamId,
       'name': instance.name,
-      'property': _$ChannelPropertyNameEnumMap[instance.property],
+      'property': _$ChannelPropertyEnumMap[instance.property]!,
       'value': instance.value,
       'rendered_description': instance.renderedDescription,
       'history_public_to_subscribers': instance.historyPublicToSubscribers,
       'is_web_public': instance.isWebPublic,
     };
 
-const _$ChannelPropertyNameEnumMap = {
-  ChannelPropertyName.name: 'name',
-  ChannelPropertyName.isArchived: 'is_archived',
-  ChannelPropertyName.description: 'description',
-  ChannelPropertyName.firstMessageId: 'first_message_id',
-  ChannelPropertyName.inviteOnly: 'invite_only',
-  ChannelPropertyName.messageRetentionDays: 'message_retention_days',
-  ChannelPropertyName.topicsPolicy: 'topics_policy',
-  ChannelPropertyName.channelPostPolicy: 'stream_post_policy',
-  ChannelPropertyName.folderId: 'folder_id',
-  ChannelPropertyName.canAddSubscribersGroup: 'can_add_subscribers_group',
-  ChannelPropertyName.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
-  ChannelPropertyName.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
-  ChannelPropertyName.canSendMessageGroup: 'can_send_message_group',
-  ChannelPropertyName.canSubscribeGroup: 'can_subscribe_group',
-  ChannelPropertyName.isRecentlyActive: 'is_recently_active',
-  ChannelPropertyName.streamWeeklyTraffic: 'stream_weekly_traffic',
+const _$ChannelPropertyEnumMap = {
+  ChannelProperty.name: 'name',
+  ChannelProperty.isArchived: 'is_archived',
+  ChannelProperty.description: 'description',
+  ChannelProperty.firstMessageId: 'first_message_id',
+  ChannelProperty.inviteOnly: 'invite_only',
+  ChannelProperty.messageRetentionDays: 'message_retention_days',
+  ChannelProperty.topicsPolicy: 'topics_policy',
+  ChannelProperty.channelPostPolicy: 'stream_post_policy',
+  ChannelProperty.folderId: 'folder_id',
+  ChannelProperty.canAddSubscribersGroup: 'can_add_subscribers_group',
+  ChannelProperty.canDeleteAnyMessageGroup: 'can_delete_any_message_group',
+  ChannelProperty.canDeleteOwnMessageGroup: 'can_delete_own_message_group',
+  ChannelProperty.canSendMessageGroup: 'can_send_message_group',
+  ChannelProperty.canSubscribeGroup: 'can_subscribe_group',
+  ChannelProperty.isRecentlyActive: 'is_recently_active',
+  ChannelProperty.streamWeeklyTraffic: 'stream_weekly_traffic',
+  ChannelProperty.unknown: 'unknown',
 };
 
 SubscriptionAddEvent _$SubscriptionAddEventFromJson(
@@ -816,6 +818,7 @@ UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
       visibilityPolicy: $enumDecode(
         _$UserTopicVisibilityPolicyEnumMap,
         json['visibility_policy'],
+        unknownValue: UserTopicVisibilityPolicy.unknown,
       ),
     );
 
@@ -876,9 +879,7 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
       messageIds: (json['message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
-      flags: (json['flags'] as List<dynamic>)
-          .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
-          .toList(),
+      flags: flagsFromJson(json['flags']),
       editTimestamp: (json['edit_timestamp'] as num).toInt(),
       moveData: UpdateMessageMoveData.tryParseFromJson(
         UpdateMessageEvent._readMoveData(json, 'move_data')
@@ -907,19 +908,6 @@ Map<String, dynamic> _$UpdateMessageEventToJson(UpdateMessageEvent instance) =>
       'rendered_content': instance.renderedContent,
       'is_me_message': instance.isMeMessage,
     };
-
-const _$MessageFlagEnumMap = {
-  MessageFlag.read: 'read',
-  MessageFlag.starred: 'starred',
-  MessageFlag.collapsed: 'collapsed',
-  MessageFlag.mentioned: 'mentioned',
-  MessageFlag.topicWildcardMentioned: 'topic_wildcard_mentioned',
-  MessageFlag.streamWildcardMentioned: 'stream_wildcard_mentioned',
-  MessageFlag.wildcardMentioned: 'wildcard_mentioned',
-  MessageFlag.hasAlertWord: 'has_alert_word',
-  MessageFlag.historical: 'historical',
-  MessageFlag.unknown: 'unknown',
-};
 
 DeleteMessageEvent _$DeleteMessageEventFromJson(Map<String, dynamic> json) =>
     DeleteMessageEvent(
@@ -970,6 +958,19 @@ Map<String, dynamic> _$UpdateMessageFlagsAddEventToJson(
   'messages': instance.messages,
   'op': instance.op,
   'all': instance.all,
+};
+
+const _$MessageFlagEnumMap = {
+  MessageFlag.read: 'read',
+  MessageFlag.starred: 'starred',
+  MessageFlag.collapsed: 'collapsed',
+  MessageFlag.mentioned: 'mentioned',
+  MessageFlag.topicWildcardMentioned: 'topic_wildcard_mentioned',
+  MessageFlag.streamWildcardMentioned: 'stream_wildcard_mentioned',
+  MessageFlag.wildcardMentioned: 'wildcard_mentioned',
+  MessageFlag.hasAlertWord: 'has_alert_word',
+  MessageFlag.historical: 'historical',
+  MessageFlag.unknown: 'unknown',
 };
 
 UpdateMessageFlagsRemoveEvent _$UpdateMessageFlagsRemoveEventFromJson(
@@ -1061,7 +1062,11 @@ const _$SubmessageTypeEnumMap = {
 
 TypingEvent _$TypingEventFromJson(Map<String, dynamic> json) => TypingEvent(
   id: (json['id'] as num).toInt(),
-  op: $enumDecode(_$TypingOpEnumMap, json['op']),
+  op: $enumDecode(
+    _$TypingOpEnumMap,
+    json['op'],
+    unknownValue: TypingOp.unknown,
+  ),
   messageType: const MessageTypeConverter().fromJson(
     json['message_type'] as String,
   ),
@@ -1085,7 +1090,11 @@ Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
       'topic': instance.topic,
     };
 
-const _$TypingOpEnumMap = {TypingOp.start: 'start', TypingOp.stop: 'stop'};
+const _$TypingOpEnumMap = {
+  TypingOp.start: 'start',
+  TypingOp.stop: 'stop',
+  TypingOp.unknown: 'unknown',
+};
 
 PresenceEvent _$PresenceEventFromJson(Map<String, dynamic> json) =>
     PresenceEvent(
@@ -1131,10 +1140,18 @@ const _$PresenceStatusEnumMap = {
 ReactionEvent _$ReactionEventFromJson(Map<String, dynamic> json) =>
     ReactionEvent(
       id: (json['id'] as num).toInt(),
-      op: $enumDecode(_$ReactionOpEnumMap, json['op']),
+      op: $enumDecode(
+        _$ReactionOpEnumMap,
+        json['op'],
+        unknownValue: ReactionOp.unknown,
+      ),
       emojiName: json['emoji_name'] as String,
       emojiCode: json['emoji_code'] as String,
-      reactionType: $enumDecode(_$ReactionTypeEnumMap, json['reaction_type']),
+      reactionType: $enumDecode(
+        _$ReactionTypeEnumMap,
+        json['reaction_type'],
+        unknownValue: ReactionType.unknown,
+      ),
       userId: (json['user_id'] as num).toInt(),
       messageId: (json['message_id'] as num).toInt(),
     );
@@ -1154,12 +1171,14 @@ Map<String, dynamic> _$ReactionEventToJson(ReactionEvent instance) =>
 const _$ReactionOpEnumMap = {
   ReactionOp.add: 'add',
   ReactionOp.remove: 'remove',
+  ReactionOp.unknown: 'unknown',
 };
 
 const _$ReactionTypeEnumMap = {
   ReactionType.unicodeEmoji: 'unicode_emoji',
   ReactionType.realmEmoji: 'realm_emoji',
   ReactionType.zulipExtraEmoji: 'zulip_extra_emoji',
+  ReactionType.unknown: 'unknown',
 };
 
 HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
@@ -1167,8 +1186,3 @@ HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$HeartbeatEventToJson(HeartbeatEvent instance) =>
     <String, dynamic>{'id': instance.id, 'type': instance.type};
-
-const _$MessageTypeEnumMap = {
-  MessageType.stream: 'stream',
-  MessageType.direct: 'direct',
-};

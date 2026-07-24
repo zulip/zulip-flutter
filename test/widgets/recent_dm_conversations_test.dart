@@ -199,7 +199,7 @@ void main() {
         final store = await testBinding.globalStore.perAccount(
           testBinding.globalStore.accounts.single.id);
         await store.handleEvent(UpdateMessageFlagsAddEvent(
-          id: 1, flag: MessageFlag.read, all: false, messages: [message.id]));
+          id: 1, flag: .read, all: false, messages: [message.id]));
         await tester.pump();
       }
 
@@ -248,7 +248,7 @@ void main() {
             await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
               text: OptionSome('Busy'),
               emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-                emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+                emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
             await tester.pump();
 
             checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
@@ -334,7 +334,7 @@ void main() {
             await store.changeUserStatus(user.userId, UserStatusChange(
               text: OptionSome('Busy'),
               emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-                emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+                emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
             await tester.pump();
 
             checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
@@ -448,7 +448,7 @@ void main() {
           await store.changeUserStatus(users.first.userId, UserStatusChange(
             text: OptionSome('Busy'),
             emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-              emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+              emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
           await tester.pump();
 
           check(find.text('\u{1f6e0}')).findsNothing();

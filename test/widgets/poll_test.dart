@@ -52,7 +52,7 @@ void main() {
       await store.handleEvent(eg.submessageEvent(message.id, voter.userId,
         content: PollVoteEventSubmessage(
           key: PollEventSubmessage.optionKey(senderId: null, idx: idx),
-          op: PollVoteOp.add)));
+          op: .add)));
     }
     await tester.pump();
   }
@@ -150,13 +150,13 @@ void main() {
     connection.prepare(json: {});
     await tester.tap(findTextAtRow('1', index: 0));
     await tester.pump(Duration.zero);
-    checkVoteRequest(optionKey, PollVoteOp.add);
+    checkVoteRequest(optionKey, .add);
 
     // We don't local echo right now,
     // so wait to hear from the server to get the poll updated.
     await store.handleEvent(
       eg.submessageEvent(message.id, eg.selfUser.userId,
-        content: PollVoteEventSubmessage(key: optionKey, op: PollVoteOp.add)));
+        content: PollVoteEventSubmessage(key: optionKey, op: .add)));
     // Wait for the poll widget rebuild
     await tester.pump(Duration.zero);
 
@@ -164,6 +164,6 @@ void main() {
     connection.prepare(json: {});
     await tester.tap(findTextAtRow('2', index: 0));
     await tester.pump(Duration.zero);
-    checkVoteRequest(optionKey, PollVoteOp.remove);
+    checkVoteRequest(optionKey, .remove);
   });
 }

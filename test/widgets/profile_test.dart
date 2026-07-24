@@ -219,16 +219,16 @@ void main() {
         ],
         pageUserId: 1,
         customProfileFields: [
-          eg.customProfileField(0, CustomProfileFieldType.shortText),
-          eg.customProfileField(1, CustomProfileFieldType.longText),
-          eg.customProfileField(2, CustomProfileFieldType.choice,
+          eg.customProfileField(0, .shortText),
+          eg.customProfileField(1, .longText),
+          eg.customProfileField(2, .choice,
             fieldData: '{"x": {"text": "choiceValue", "order": "1"}}'),
-          eg.customProfileField(3, CustomProfileFieldType.date),
-          eg.customProfileField(4, CustomProfileFieldType.link),
-          eg.customProfileField(5, CustomProfileFieldType.user),
-          eg.customProfileField(6, CustomProfileFieldType.externalAccount,
+          eg.customProfileField(3, .date),
+          eg.customProfileField(4, .link),
+          eg.customProfileField(5, .user),
+          eg.customProfileField(6, .externalAccount,
             fieldData: '{"subtype": "external1"}'),
-          eg.customProfileField(7, CustomProfileFieldType.pronouns),
+          eg.customProfileField(7, .pronouns),
         ], realmDefaultExternalAccounts: {
           'external1': RealmDefaultExternalAccount(
             name: 'external1',
@@ -236,15 +236,15 @@ void main() {
             hint: '',
             urlPattern: 'https://example/%(username)s')});
 
-      final testCases = [
-        (find.text('field0'), find.text('shortTextValue'), CustomProfileFieldType.shortText),
-        (find.text('field1'), find.text('longTextValue'), CustomProfileFieldType.longText),
-        (find.text('field2'), find.text('choiceValue'), CustomProfileFieldType.choice),
-        (find.text('field3'), find.text('dateValue'), CustomProfileFieldType.date),
-        (find.text('field4'), find.text('http://example/linkValue'), CustomProfileFieldType.link),
-        (find.text('field5'), find.text('userValue'), CustomProfileFieldType.user),
-        (find.text('field6'), find.text('externalValue'), CustomProfileFieldType.externalAccount),
-        (find.text('field7'), find.text('pronounsValue'), CustomProfileFieldType.pronouns),
+      final testCases = <(Finder, Finder, CustomProfileFieldType)>[
+        (find.text('field0'), find.text('shortTextValue'), .shortText),
+        (find.text('field1'), find.text('longTextValue'), .longText),
+        (find.text('field2'), find.text('choiceValue'), .choice),
+        (find.text('field3'), find.text('dateValue'), .date),
+        (find.text('field4'), find.text('http://example/linkValue'), .link),
+        (find.text('field5'), find.text('userValue'), .user),
+        (find.text('field6'), find.text('externalValue'), .externalAccount),
+        (find.text('field7'), find.text('pronounsValue'), .pronouns),
       ];
       for (final testCase in testCases) {
         Finder labelFinder = testCase.$1;
@@ -273,7 +273,7 @@ void main() {
       await setupPage(tester,
         users: [user],
         pageUserId: user.userId,
-        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.link)],
+        customProfileFields: [eg.customProfileField(0, .link)],
       );
 
       await tester.tap(find.text(testUrl));
@@ -292,7 +292,7 @@ void main() {
         users: [user],
         pageUserId: user.userId,
         customProfileFields: [
-          eg.customProfileField(0, CustomProfileFieldType.externalAccount,
+          eg.customProfileField(0, .externalAccount,
             fieldData: '{"subtype": "external1"}')
         ],
         realmDefaultExternalAccounts: {
@@ -324,7 +324,7 @@ void main() {
       await setupPage(tester,
         users: users,
         pageUserId: 1,
-        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)],
+        customProfileFields: [eg.customProfileField(0, .user)],
         navigatorObserver: testNavObserver,
       );
 
@@ -345,7 +345,7 @@ void main() {
       await setupPage(tester,
         users: users,
         pageUserId: 1,
-        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)],
+        customProfileFields: [eg.customProfileField(0, .user)],
       );
 
       final textFinder = find.text('(unknown user)');
@@ -376,7 +376,7 @@ void main() {
         users: users,
         mutedUserIds: [2],
         pageUserId: 1,
-        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)]);
+        customProfileFields: [eg.customProfileField(0, .user)]);
 
       check(find.text('Muted user')).findsOne();
       check(mutedAvatarFinder(2)).findsOne();
@@ -401,7 +401,7 @@ void main() {
       await setupPage(tester,
         users: users,
         pageUserId: 1,
-        customProfileFields: [eg.customProfileField(0, CustomProfileFieldType.user)],
+        customProfileFields: [eg.customProfileField(0, .user)],
       );
 
       final avatars = tester.widgetList<Avatar>(find.byType(Avatar));
@@ -424,16 +424,16 @@ void main() {
 
       await setupPage(tester, users: [user, user2], pageUserId: user.userId,
         customProfileFields: [
-          eg.customProfileField(0, CustomProfileFieldType.shortText),
-          eg.customProfileField(1, CustomProfileFieldType.longText),
-          eg.customProfileField(2, CustomProfileFieldType.choice,
+          eg.customProfileField(0, .shortText),
+          eg.customProfileField(1, .longText),
+          eg.customProfileField(2, .choice,
             fieldData: '{"x": {"text": "$longString", "order": "1"}}'),
           // no [CustomProfileFieldType.date] because those can't be made long
-          eg.customProfileField(3, CustomProfileFieldType.link),
-          eg.customProfileField(4, CustomProfileFieldType.user),
-          eg.customProfileField(5, CustomProfileFieldType.externalAccount,
+          eg.customProfileField(3, .link),
+          eg.customProfileField(4, .user),
+          eg.customProfileField(5, .externalAccount,
             fieldData: '{"subtype": "external1"}'),
-          eg.customProfileField(6, CustomProfileFieldType.pronouns),
+          eg.customProfileField(6, .pronouns),
         ], realmDefaultExternalAccounts: {
           'external1': RealmDefaultExternalAccount(
             name: 'external1',
@@ -460,7 +460,7 @@ void main() {
       await store.changeUserStatus(eg.otherUser.userId, UserStatusChange(
         text: OptionSome('Busy'),
         emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-          emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+          emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
       await tester.pump();
 
       check(findStatusButton(statusSet: true)).findsNothing();
@@ -484,7 +484,7 @@ void main() {
         await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
           text: OptionSome('Busy'),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         final statusButtonFinder = findStatusButton(statusSet: true);
@@ -509,7 +509,7 @@ void main() {
         await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
           text: OptionNone(),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         final statusButtonFinder = findStatusButton(statusSet: true);
@@ -565,7 +565,7 @@ void main() {
     void scheduleEventAfter(Duration duration, bool newInvisibleModeValue) async {
       await Future<void>.delayed(duration);
       await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-        property: UserSettingName.presenceEnabled, value: !newInvisibleModeValue));
+        property: .presenceEnabled, value: !newInvisibleModeValue));
     }
 
     void checkRequest(bool requestedInvisibleModeValue) {
@@ -619,7 +619,7 @@ void main() {
       checkAppearsActive(tester, false);
 
       await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-        property: UserSettingName.presenceEnabled, value: false));
+        property: .presenceEnabled, value: false));
       await tester.pump();
       checkAppearsActive(tester, true);
 
@@ -654,7 +654,7 @@ void main() {
 
       await setupPage(tester, pageUserId: eg.selfUser.userId);
       await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-        property: UserSettingName.presenceEnabled, value: false));
+        property: .presenceEnabled, value: false));
       await tester.pump();
       checkAppearsActive(tester, true);
 

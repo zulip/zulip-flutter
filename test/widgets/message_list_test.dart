@@ -346,7 +346,7 @@ void main() {
         streams: [channel], subscriptions: [eg.subscription(channel)],
         messages: [eg.streamMessage(stream: channel, topic: topic)]);
       await store.handleEvent(eg.userTopicEvent(
-        channel.streamId, topic, UserTopicVisibilityPolicy.muted));
+        channel.streamId, topic, .muted));
       await tester.pump();
 
       check(find.descendant(
@@ -1176,19 +1176,19 @@ void main() {
         await tester.pump();
         check(finder.evaluate()).isEmpty();
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.start, eg.otherUser.userId),
+          eg.typingEvent(narrow, .start, eg.otherUser.userId),
           expected: 'Other User is typing…');
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.start, eg.selfUser.userId),
+          eg.typingEvent(narrow, .start, eg.selfUser.userId),
           expected: 'Other User is typing…');
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.start, eg.thirdUser.userId),
+          eg.typingEvent(narrow, .start, eg.thirdUser.userId),
           expected: 'Other User and Third User are typing…');
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.start, eg.fourthUser.userId),
+          eg.typingEvent(narrow, .start, eg.fourthUser.userId),
           expected: 'Several people are typing…');
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.stop, eg.otherUser.userId),
+          eg.typingEvent(narrow, .stop, eg.otherUser.userId),
           expected: 'Third User and Fourth User are typing…');
         // Verify that typing indicators expire after a set duration.
         await tester.pump(const Duration(seconds: 15));
@@ -1202,7 +1202,7 @@ void main() {
       await setupMessageListPage(tester,
         narrow: narrow, users: [], messages: [streamMessage]);
       await checkTyping(tester,
-        eg.typingEvent(narrow, TypingOp.start, 1000),
+        eg.typingEvent(narrow, .start, 1000),
         expected: '(unknown user) is typing…',
       );
       // Wait for the pending timers to end.
@@ -1214,18 +1214,18 @@ void main() {
         narrow: topicNarrow, users: users, messages: [streamMessage]);
 
       await checkTyping(tester,
-        eg.typingEvent(topicNarrow, TypingOp.start, eg.otherUser.userId),
+        eg.typingEvent(topicNarrow, .start, eg.otherUser.userId),
         expected: 'Other User is typing…');
 
       await checkTyping(tester,
-        eg.typingEvent(topicNarrow, TypingOp.start, eg.thirdUser.userId),
+        eg.typingEvent(topicNarrow, .start, eg.thirdUser.userId),
         expected: 'Other User and Third User are typing…');
 
       await store.setMutedUsers([eg.otherUser.userId]);
       await tester.pump();
 
       await checkTyping(tester,
-        eg.typingEvent(topicNarrow, TypingOp.start, eg.thirdUser.userId),
+        eg.typingEvent(topicNarrow, .start, eg.thirdUser.userId),
         expected: 'Third User is typing…', // no "Other User"
       );
 
@@ -1284,7 +1284,7 @@ void main() {
 
         checkNoDialog(tester);
         await tester.pump(Duration.zero);
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(.unread));
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -1313,7 +1313,7 @@ void main() {
       });
 
       testWidgets('MentionsNarrow: show dialog', (tester) async {
-        final message = eg.streamMessage(flags: [MessageFlag.mentioned]);
+        final message = eg.streamMessage(flags: [.mentioned]);
         await showsConfirmDialog(tester,
           narrow: MentionsNarrow(),
           messages: [message],
@@ -1370,12 +1370,12 @@ void main() {
     });
 
     testWidgets('from read to unread', (tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      final message = eg.streamMessage(flags: [.read]);
       await setupMessageListPage(tester, messages: [message]);
       check(isMarkAsReadButtonVisible(tester)).isFalse();
 
       await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
-        MessageFlag.read, [message]));
+        .read, [message]));
       await tester.pumpAndSettle();
       check(isMarkAsReadButtonVisible(tester)).isTrue();
     });
@@ -1390,7 +1390,7 @@ void main() {
 
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [message.id],
         all: false,
       ));
@@ -1411,7 +1411,7 @@ void main() {
       // to notify listeners.
       // And we check that the button responds by disappearing.
 
-      final message = eg.streamMessage(id: 100, flags: [MessageFlag.mentioned]);
+      final message = eg.streamMessage(id: 100, flags: [.mentioned]);
       final unreadMsgs = eg.unreadMsgs(
         channels: [
           UnreadChannelSnapshot(
@@ -1428,7 +1428,7 @@ void main() {
         // omit `message`; if present, MessageListView would notify listeners
         messages: List.generate(300, (i) =>
           eg.streamMessage(id: 950 + i, sender: eg.selfUser,
-            flags: [MessageFlag.read, MessageFlag.mentioned])),
+            flags: [.read, .mentioned])),
         foundOldest: false);
       check(isMarkAsReadButtonVisible(tester)).isTrue();
 
@@ -1454,7 +1454,7 @@ void main() {
 
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [message.id],
         all: false,
       ));
@@ -1541,7 +1541,7 @@ void main() {
           firstProcessedId: null, lastProcessedId: null,
           foundOldest: true, foundNewest: true).toJson());
         await tester.tap(find.byType(MarkAsReadWidget));
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(.unread));
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -1647,7 +1647,7 @@ void main() {
         origMessages: messages,
         newTopicStr: newTopic,
         newStreamId: newChannelId,
-        propagateMode: PropagateMode.changeAll));
+        propagateMode: .changeAll));
     }
 
     testWidgets('compose box send message after move', (tester) async {
@@ -1681,7 +1681,7 @@ void main() {
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
-          'type': 'stream',
+          'type': 'channel',
           'to': '${otherChannel.streamId}',
           'topic': 'new topic',
           'content': 'Some text',
@@ -1842,7 +1842,7 @@ void main() {
           narrow: const CombinedFeedNarrow(),
           messages: [message], subscriptions: [eg.subscription(stream)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, topic, UserTopicVisibilityPolicy.followed));
+          stream.streamId, topic, .followed));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
@@ -1854,7 +1854,7 @@ void main() {
           narrow: TopicNarrow.ofMessage(message),
           messages: [message], subscriptions: [eg.subscription(stream, isMuted: true)]);
         await store.handleEvent(eg.userTopicEvent(
-          stream.streamId, topic, UserTopicVisibilityPolicy.unmuted));
+          stream.streamId, topic, .unmuted));
         await tester.pump();
         check(find.descendant(
           of: find.byType(MessageList),
@@ -2167,12 +2167,12 @@ void main() {
       for (final (timestampStr, expectedTwelveHour, expectedTwentyFourHour) in cases) {
         for (final mode in TwentyFourHourTimeMode.values) {
           final expected = switch (mode) {
-            TwentyFourHourTimeMode.twelveHour => expectedTwelveHour,
-            TwentyFourHourTimeMode.twentyFourHour => expectedTwentyFourHour,
+            .twelveHour => expectedTwelveHour,
+            .twentyFourHour => expectedTwentyFourHour,
             // This expectation will hold as long as we're always using the
             // default locale, en_US, which uses the twelve-hour format.
             // TODO(#1727) test with other locales
-            TwentyFourHourTimeMode.localeDefault => expectedTwelveHour,
+            .localeDefault => expectedTwelveHour,
           };
 
           test('${style.name} in ${mode.name}: $timestampStr returns $expected', () {
@@ -2357,7 +2357,7 @@ void main() {
         await store.changeUserStatus(user.userId, UserStatusChange(
           text: OptionSome('Busy'),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
@@ -2373,7 +2373,7 @@ void main() {
         await store.changeUserStatus(user.userId, UserStatusChange(
           text: OptionSome('Coding'),
           emoji: OptionSome(StatusEmoji(emojiName: 'zulip',
-            emojiCode: 'zulip', reactionType: ReactionType.zulipExtraEmoji))));
+            emojiCode: 'zulip', reactionType: .zulipExtraEmoji))));
         await tester.pump();
 
         checkFindsStatusEmoji(tester, find.byType(Image));
@@ -2389,7 +2389,7 @@ void main() {
         await store.changeUserStatus(user.userId, UserStatusChange(
           text: OptionNone(),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
@@ -2548,9 +2548,9 @@ void main() {
       doTest(expected: false, DmNarrow.withUsers([], selfUserId: eg.selfUser.userId),
         mkMessage: () => eg.dmMessage(from: eg.selfUser, to: []));
       doTest(expected: true, StarredMessagesNarrow(),
-        mkMessage: () => eg.streamMessage(flags: [MessageFlag.starred]));
+        mkMessage: () => eg.streamMessage(flags: [.starred]));
       doTest(expected: true, MentionsNarrow(),
-        mkMessage: () => eg.streamMessage(flags: [MessageFlag.mentioned]));
+        mkMessage: () => eg.streamMessage(flags: [.mentioned]));
     });
   });
 
@@ -2721,7 +2721,7 @@ void main() {
     });
 
     testWidgets('starred message', (tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      final message = eg.streamMessage(flags: [.starred]);
       await setupMessageListPage(tester,
         messages: [message], starredMessages: [message.id]);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).length.equals(1);
@@ -2850,14 +2850,14 @@ void main() {
     }
 
     testWidgets('from read to unread', (tester) async {
-      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      final message = eg.streamMessage(flags: [.read]);
       await setupMessageListPage(tester, messages: [message]);
       check(getAnimation(tester, message.id))
         ..value.equals(0.0)
         ..status.equals(AnimationStatus.dismissed);
 
       await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
-        MessageFlag.read, [message]));
+        .read, [message]));
       await tester.pump(); // process handleEvent
       check(getAnimation(tester, message.id))
         ..value.equals(0.0)
@@ -2878,7 +2878,7 @@ void main() {
 
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [message.id],
         all: false,
       ));
@@ -2906,7 +2906,7 @@ void main() {
 
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 0,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [message.id],
         all: false,
       ));
@@ -2923,7 +2923,7 @@ void main() {
         ..status.equals(AnimationStatus.forward);
 
       // introduce new message
-      final newMessage = eg.streamMessage(flags:[MessageFlag.read]);
+      final newMessage = eg.streamMessage(flags:[.read]);
       await store.addMessage(newMessage);
       await tester.pump(); // process handleEvent
       check(find.byType(MessageItem)).findsExactly(2);

@@ -163,24 +163,24 @@ void main() {
         eg.streamMessage(id: 3, stream: stream1, topic: 'b', flags: []),
         eg.streamMessage(id: 4, stream: stream1, topic: 'b', flags: []),
         eg.streamMessage(id: 5, stream: stream2, topic: 'b', flags: []),
-        eg.streamMessage(id: 6, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned]),
+        eg.streamMessage(id: 6, stream: stream2, topic: 'b', flags: [.mentioned]),
         eg.streamMessage(id: 7, stream: stream2, topic: 'c', flags: []),
         eg.streamMessage(id: 8, stream: stream2, topic: 'c', flags: []),
-        eg.streamMessage(id: 9, stream: stream2, topic: 'c', flags: [MessageFlag.topicWildcardMentioned]),
-        eg.streamMessage(id: 10, stream: stream2, topic: 'c', flags: [MessageFlag.streamWildcardMentioned]),
+        eg.streamMessage(id: 9, stream: stream2, topic: 'c', flags: [.topicWildcardMentioned]),
+        eg.streamMessage(id: 10, stream: stream2, topic: 'c', flags: [.streamWildcardMentioned]),
         eg.streamMessage(id: 11, stream: stream2, topic: 'C', flags: []),
         eg.streamMessage(id: 12, stream: stream2, topic: 'C', flags: []),
         eg.dmMessage(id: 13,  from: user1, to: [eg.selfUser], flags: []),
         eg.dmMessage(id: 14, from: user1, to: [eg.selfUser], flags: []),
         eg.dmMessage(id: 15, from: user2, to: [eg.selfUser], flags: []),
-        eg.dmMessage(id: 16, from: user2, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+        eg.dmMessage(id: 16, from: user2, to: [eg.selfUser], flags: [.mentioned]),
         eg.dmMessage(id: 17, from: user1, to: [user2, eg.selfUser], flags: []),
         eg.dmMessage(id: 18, from: user1, to: [user2, eg.selfUser], flags: []),
         eg.dmMessage(id: 19, from: user2, to: [user3, eg.selfUser], flags: []),
         // Writing @all or @everyone in DM counts as stream wildcard mention.
         // The server does not check whether the message is sent in a channel(stream) or a DM.
-        eg.dmMessage(id: 20, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
-        eg.dmMessage(id: 21, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
+        eg.dmMessage(id: 20, from: user2, to: [user3, eg.selfUser], flags: [.streamWildcardMentioned]),
+        eg.dmMessage(id: 21, from: user2, to: [user3, eg.selfUser], flags: [.wildcardMentioned]),
       ]);
     });
   });
@@ -195,7 +195,7 @@ void main() {
       await store.addSubscription(eg.subscription(stream1));
       await store.addSubscription(eg.subscription(stream2));
       await store.addSubscription(eg.subscription(stream3, isMuted: true));
-      await store.setUserTopic(stream1, 'a', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream1, 'a', .muted);
       await store.setMutedUsers([eg.thirdUser.userId]);
       fillWithMessages([
         eg.streamMessage(stream: stream1, topic: 'a', flags: []),
@@ -214,8 +214,8 @@ void main() {
       prepare();
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream));
-      await store.setUserTopic(stream, 'a', UserTopicVisibilityPolicy.unmuted);
-      await store.setUserTopic(stream, 'c', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'a', .unmuted);
+      await store.setUserTopic(stream, 'c', .muted);
       fillWithMessages([
         eg.streamMessage(stream: stream, topic: 'a', flags: []),
         eg.streamMessage(stream: stream, topic: 'A', flags: []),
@@ -229,7 +229,7 @@ void main() {
 
       await store.handleEvent(SubscriptionUpdateEvent(id: 1,
         channelId: stream.streamId,
-        property: SubscriptionProperty.isMuted, value: true));
+        property: .isMuted, value: true));
       check(model.countInChannel      (stream.streamId)).equals(2);
       check(model.countInChannelNarrow(stream.streamId)).equals(5);
     });
@@ -263,13 +263,13 @@ void main() {
         await store.addStream(stream);
         fillWithMessages([
           eg.streamMessage(stream: stream, flags: []),
-          eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
-          eg.streamMessage(stream: stream, flags: [MessageFlag.topicWildcardMentioned]),
-          eg.streamMessage(stream: stream, flags: [MessageFlag.streamWildcardMentioned]),
-          eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
+          eg.streamMessage(stream: stream, flags: [.mentioned]),
+          eg.streamMessage(stream: stream, flags: [.topicWildcardMentioned]),
+          eg.streamMessage(stream: stream, flags: [.streamWildcardMentioned]),
+          eg.streamMessage(stream: stream, flags: [.wildcardMentioned]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [.mentioned]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [.streamWildcardMentioned]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [.wildcardMentioned]),
         ]);
         check(model.countInMentionsNarrow()).equals(7);
       });
@@ -281,7 +281,7 @@ void main() {
         await store.setMutedUsers([eg.otherUser.userId]);
 
         fillWithMessages([
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [.mentioned]),
         ]);
         check(model.countInMentionsNarrow()).equals(0);
       });
@@ -292,7 +292,7 @@ void main() {
         check(store.getUser(unknownUser.userId)).isNull();
 
         fillWithMessages([
-          eg.dmMessage(from: unknownUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+          eg.dmMessage(from: unknownUser, to: [eg.selfUser], flags: [.mentioned]),
         ]);
         check(model.countInMentionsNarrow()).equals(1);
       });
@@ -313,13 +313,13 @@ void main() {
         final channel4 = eg.stream(); // unmuted, containing muted topic
         await store.addStream(channel4);
         await store.addSubscription(eg.subscription(channel4, isMuted: false));
-        await store.setUserTopic(channel4, 'a', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(channel4, 'a', .muted);
 
         fillWithMessages([
-          eg.streamMessage(stream: channel1,             flags: [MessageFlag.mentioned]),
-          eg.streamMessage(stream: channel2,             flags: [MessageFlag.mentioned]),
-          eg.streamMessage(stream: channel3,             flags: [MessageFlag.mentioned]),
-          eg.streamMessage(stream: channel4, topic: 'a', flags: [MessageFlag.mentioned]),
+          eg.streamMessage(stream: channel1,             flags: [.mentioned]),
+          eg.streamMessage(stream: channel2,             flags: [.mentioned]),
+          eg.streamMessage(stream: channel3,             flags: [.mentioned]),
+          eg.streamMessage(stream: channel4, topic: 'a', flags: [.mentioned]),
         ]);
         check(model.countInMentionsNarrow()).equals(4);
       });
@@ -331,7 +331,7 @@ void main() {
       await store.addStream(stream);
       fillWithMessages([
         eg.streamMessage(stream: stream, flags: []),
-        eg.streamMessage(stream: stream, flags: [MessageFlag.starred]),
+        eg.streamMessage(stream: stream, flags: [.starred]),
       ]);
       check(model.countInStarredMessagesNarrow()).equals(0);
     });
@@ -356,8 +356,8 @@ void main() {
       from: eg.otherUser, to: [eg.selfUser], flags: []);
     final unreadChannelMessage = eg.streamMessage(flags: []);
     final readDmMessage = eg.dmMessage(
-      from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]);
-    final readChannelMessage = eg.streamMessage(flags: [MessageFlag.read]);
+      from: eg.otherUser, to: [eg.selfUser], flags: [.read]);
+    final readChannelMessage = eg.streamMessage(flags: [.read]);
 
     final allMessages = <Message>[
       unreadDmMessage, unreadChannelMessage,
@@ -413,12 +413,12 @@ void main() {
       ].join(' / ');
       test(description, () {
         prepare();
-        final flags = [
-          if (!isUnread)                 MessageFlag.read,
-          if (isDirectMentioned)         MessageFlag.mentioned,
-          if (isTopicWildcardMentioned)  MessageFlag.topicWildcardMentioned,
-          if (isStreamWildcardMentioned) MessageFlag.streamWildcardMentioned,
-          if (isWildcardMentioned)       MessageFlag.wildcardMentioned,
+        final flags = <MessageFlag>[
+          if (!isUnread)                 .read,
+          if (isDirectMentioned)         .mentioned,
+          if (isTopicWildcardMentioned)  .topicWildcardMentioned,
+          if (isStreamWildcardMentioned) .streamWildcardMentioned,
+          if (isWildcardMentioned)       .wildcardMentioned,
         ];
         final Message message = isStream
           ? eg.streamMessage(flags: flags)
@@ -544,7 +544,7 @@ void main() {
     group('mentions', () {
       for (final isKnownToModel in [true, false]) {
         for (final isRead in [false, true]) {
-          final baseFlags = [if (isRead) MessageFlag.read];
+          final baseFlags = <MessageFlag>[if (isRead) .read];
           for (final (messageDesc, message) in <(String, Message)>[
             ('stream', eg.streamMessage(flags: baseFlags)),
             ('1:1 dm', eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: baseFlags)),
@@ -556,14 +556,14 @@ void main() {
               ]);
 
               for (final List<MessageFlag> newFlags in [
-                [...baseFlags, MessageFlag.mentioned],
-                [...baseFlags, MessageFlag.mentioned, MessageFlag.wildcardMentioned],
-                [...baseFlags, MessageFlag.topicWildcardMentioned],
-                [...baseFlags, MessageFlag.streamWildcardMentioned],
-                [...baseFlags, MessageFlag.wildcardMentioned],
-                [...baseFlags, MessageFlag.topicWildcardMentioned, MessageFlag.streamWildcardMentioned],
+                [...baseFlags, .mentioned],
+                [...baseFlags, .mentioned, .wildcardMentioned],
+                [...baseFlags, .topicWildcardMentioned],
+                [...baseFlags, .streamWildcardMentioned],
+                [...baseFlags, .wildcardMentioned],
+                [...baseFlags, .topicWildcardMentioned, .streamWildcardMentioned],
                 [...baseFlags, ],
-                [...baseFlags, MessageFlag.wildcardMentioned],
+                [...baseFlags, .wildcardMentioned],
               ]) {
                 assert(newFlags.contains(MessageFlag.read) == isRead);
                 if (!isKnownToModel) {
@@ -631,7 +631,7 @@ void main() {
           (_) => eg.streamMessage(stream: origChannel, topic: origTopic));
         readMessages  = List<StreamMessage>.generate(10,
           (_) => eg.streamMessage(stream: origChannel, topic: origTopic,
-                   flags: [MessageFlag.read]));
+                   flags: [.read]));
       }
 
       List<StreamMessage> copyMessagesWith(Iterable<StreamMessage> messages, {
@@ -828,16 +828,16 @@ void main() {
     final message4 = eg.dmMessage(id: 4, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: []);
     final message5 = eg.dmMessage(id: 5, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: []);
 
-    final message6 = eg.dmMessage(id: 6, from: eg.selfUser, to: [], flags: [MessageFlag.mentioned]);
-    final message7 = eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]);
-    final message8 = eg.dmMessage(id: 8, from: eg.thirdUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]);
-    final message9 = eg.dmMessage(id: 9, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: [MessageFlag.mentioned]);
-    final message10 = eg.dmMessage(id: 10, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: [MessageFlag.mentioned]);
+    final message6 = eg.dmMessage(id: 6, from: eg.selfUser, to: [], flags: [.mentioned]);
+    final message7 = eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [.mentioned]);
+    final message8 = eg.dmMessage(id: 8, from: eg.thirdUser, to: [eg.selfUser], flags: [.mentioned]);
+    final message9 = eg.dmMessage(id: 9, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: [.mentioned]);
+    final message10 = eg.dmMessage(id: 10, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: [.mentioned]);
 
     final message11 = eg.streamMessage(id: 11, stream: stream1, topic: 'a', flags: []);
-    final message12 = eg.streamMessage(id: 12, stream: stream1, topic: 'a', flags: [MessageFlag.mentioned]);
+    final message12 = eg.streamMessage(id: 12, stream: stream1, topic: 'a', flags: [.mentioned]);
     final message13 = eg.streamMessage(id: 13, stream: stream2, topic: 'b', flags: []);
-    final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned]);
+    final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [.mentioned]);
 
     final messages = <Message>[
       message1, message2, message3, message4, message5,
@@ -855,7 +855,7 @@ void main() {
         final event = switch (message) {
           StreamMessage() => DeleteMessageEvent(
             id: 0,
-            messageType: MessageType.stream,
+            messageType: .channel,
             messageIds: [message.id],
             streamId: message.streamId,
             topic: () {
@@ -867,7 +867,7 @@ void main() {
           ),
           DmMessage() => DeleteMessageEvent(
             id: 0,
-            messageType: MessageType.direct,
+            messageType: .direct,
             messageIds: [message.id],
             streamId: null,
             topic: null,
@@ -888,7 +888,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [11, 12],
-        messageType: MessageType.stream,
+        messageType: .channel,
         streamId: stream1.streamId,
         topic: eg.t('a'),
       ));
@@ -897,7 +897,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [13, 14],
-        messageType: MessageType.stream,
+        messageType: .channel,
         streamId: stream2.streamId,
         topic: eg.t('b'),
       ));
@@ -906,7 +906,7 @@ void main() {
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        messageType: MessageType.direct,
+        messageType: .direct,
         streamId: null,
         topic: null,
       ));
@@ -915,14 +915,14 @@ void main() {
     });
 
     test('delete read (or unknown) stream message', () {
-      final message = eg.streamMessage(flags: [MessageFlag.read]);
+      final message = eg.streamMessage(flags: [.read]);
 
       prepare();
       // Equivalently, could do: fillWithMessages([message]);
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [message.id],
-        messageType: MessageType.stream,
+        messageType: .channel,
         streamId: message.streamId,
         topic: message.topic,
       ));
@@ -934,14 +934,14 @@ void main() {
     });
 
     test('delete read (or unknown) DM message', () {
-      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]);
+      final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [.read]);
 
       prepare();
       // Equivalently, could do: fillWithMessages([message]);
       model.handleDeleteMessageEvent(DeleteMessageEvent(
         id: 0,
         messageIds: [message.id],
-        messageType: MessageType.direct,
+        messageType: .direct,
         streamId: null,
         topic: null,
       ));
@@ -956,16 +956,16 @@ void main() {
   group('handleUpdateMessageFlagsEvent', () {
     final irrelevantFlags = MessageFlag.values.where((flag) =>
       switch (flag) {
-        MessageFlag.starred => true,
-        MessageFlag.collapsed => true,
-        MessageFlag.hasAlertWord => true,
-        MessageFlag.historical => true,
-        MessageFlag.unknown => true,
-        MessageFlag.mentioned => false,
-        MessageFlag.topicWildcardMentioned => false,
-        MessageFlag.streamWildcardMentioned => false,
-        MessageFlag.wildcardMentioned => false,
-        MessageFlag.read => false,
+        .starred => true,
+        .collapsed => true,
+        .hasAlertWord => true,
+        .historical => true,
+        .unknown => true,
+        .mentioned => false,
+        .topicWildcardMentioned => false,
+        .streamWildcardMentioned => false,
+        .wildcardMentioned => false,
+        .read => false,
       });
 
     for (final (isRead, isMentioned) in [
@@ -980,8 +980,8 @@ void main() {
       test('remove irrelevant flags; ${isRead ? 'read' : 'unread'} / ${isMentioned ? 'mentioned' : 'not mentioned'}', () {
         final message = eg.streamMessage(flags: [
           ...irrelevantFlags,
-          if (isRead) MessageFlag.read,
-          if (isMentioned) MessageFlag.mentioned,
+          if (isRead) .read,
+          if (isMentioned) .mentioned,
         ]);
         prepare();
         fillWithMessages([message]);
@@ -1010,8 +1010,8 @@ void main() {
       // the model, so we get coverage for that case too.
       test('add irrelevant flags; ${isRead ? 'read' : 'unread'} / ${isMentioned ? 'mentioned' : 'not mentioned'}', () {
         final message = eg.streamMessage(flags: [
-          if (isRead) MessageFlag.read,
-          if (isMentioned) MessageFlag.mentioned,
+          if (isRead) .read,
+          if (isMentioned) .mentioned,
         ]);
         prepare();
         fillWithMessages([message]);
@@ -1029,11 +1029,11 @@ void main() {
       });
     }
 
-    for (final mentionFlag in [
-      MessageFlag.mentioned,
-      MessageFlag.topicWildcardMentioned,
-      MessageFlag.streamWildcardMentioned,
-      MessageFlag.wildcardMentioned
+    for (final mentionFlag in <MessageFlag>[
+      .mentioned,
+      .topicWildcardMentioned,
+      .streamWildcardMentioned,
+      .wildcardMentioned
     ]) {
       // For a read message in this test, the message won't appear in the model.
       // That case is indistinguishable from an unread that's unknown to
@@ -1041,9 +1041,9 @@ void main() {
       test('add flag: ${mentionFlag.name}', () {
         final messages = <Message>[
           eg.streamMessage(flags: []),
-          eg.streamMessage(flags: [MessageFlag.read]),
+          eg.streamMessage(flags: [.read]),
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: []),
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [.read]),
         ];
 
         prepare();
@@ -1078,9 +1078,9 @@ void main() {
       test('remove flag: ${mentionFlag.name}', () {
         final messages = <Message>[
           eg.streamMessage(flags: [mentionFlag]),
-          eg.streamMessage(flags: [mentionFlag, MessageFlag.read]),
+          eg.streamMessage(flags: [mentionFlag, .read]),
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag]),
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag, MessageFlag.read]),
+          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [mentionFlag, .read]),
         ];
 
         prepare();
@@ -1113,12 +1113,12 @@ void main() {
     test('mark all as read', () {
       final List<Message> messages = [
         eg.streamMessage(id: 1, flags: []),
-        eg.streamMessage(id: 2, flags: [MessageFlag.mentioned]),
-        eg.streamMessage(id: 3, flags: [MessageFlag.topicWildcardMentioned]),
-        eg.streamMessage(id: 4, flags: [MessageFlag.streamWildcardMentioned]),
+        eg.streamMessage(id: 2, flags: [.mentioned]),
+        eg.streamMessage(id: 3, flags: [.topicWildcardMentioned]),
+        eg.streamMessage(id: 4, flags: [.streamWildcardMentioned]),
         eg.dmMessage(id: 5, from: eg.otherUser, to: [eg.selfUser], flags: []),
-        eg.dmMessage(id: 6, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
-        eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
+        eg.dmMessage(id: 6, from: eg.otherUser, to: [eg.selfUser], flags: [.streamWildcardMentioned]),
+        eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [.wildcardMentioned]),
       ];
 
       prepare();
@@ -1134,13 +1134,13 @@ void main() {
 
       model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsAddEvent(
         id: 0,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: [],
         all: true,
       ));
       checkNotifiedOnce();
       for (final message in messages) {
-        message.flags.add(MessageFlag.read);
+        message.flags.add(.read);
       }
       checkMatchesMessages(messages);
       check(model).oldUnreadsMissing.isFalse();
@@ -1157,16 +1157,16 @@ void main() {
         final message4 = eg.dmMessage(id: 4, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: []);
         final message5 = eg.dmMessage(id: 5, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: []);
 
-        final message6 = eg.dmMessage(id: 6, from: eg.selfUser, to: [], flags: [MessageFlag.mentioned]);
-        final message7 = eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]);
-        final message8 = eg.dmMessage(id: 8, from: eg.thirdUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]);
-        final message9 = eg.dmMessage(id: 9, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: [MessageFlag.mentioned]);
-        final message10 = eg.dmMessage(id: 10, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: [MessageFlag.mentioned]);
+        final message6 = eg.dmMessage(id: 6, from: eg.selfUser, to: [], flags: [.mentioned]);
+        final message7 = eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [.mentioned]);
+        final message8 = eg.dmMessage(id: 8, from: eg.thirdUser, to: [eg.selfUser], flags: [.mentioned]);
+        final message9 = eg.dmMessage(id: 9, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: [.mentioned]);
+        final message10 = eg.dmMessage(id: 10, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: [.mentioned]);
 
         final message11 = eg.streamMessage(id: 11, stream: stream1, topic: 'a', flags: []);
-        final message12 = eg.streamMessage(id: 12, stream: stream1, topic: 'a', flags: [MessageFlag.mentioned]);
+        final message12 = eg.streamMessage(id: 12, stream: stream1, topic: 'a', flags: [.mentioned]);
         final message13 = eg.streamMessage(id: 13, stream: stream2, topic: 'b', flags: []);
-        final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned]);
+        final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [.mentioned]);
 
         final messages = <Message>[
           message1, message2, message3, message4, message5,
@@ -1179,38 +1179,38 @@ void main() {
 
         model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsAddEvent(
           id: 0,
-          flag: MessageFlag.read,
+          flag: .read,
           messages: [message1.id],
           all: false,
         ));
         checkNotifiedOnce();
-        message1.flags.add(MessageFlag.read);
+        message1.flags.add(.read);
         checkMatchesMessages(messages);
 
         model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsAddEvent(
           id: 0,
-          flag: MessageFlag.read,
+          flag: .read,
           messages: [message14.id],
           all: false,
         ));
         checkNotifiedOnce();
-        message14.flags.add(MessageFlag.read);
+        message14.flags.add(.read);
         checkMatchesMessages(messages);
 
         model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsAddEvent(
           id: 0,
-          flag: MessageFlag.read,
+          flag: .read,
           messages: [message5.id, message6.id],
           all: false,
         ));
         checkNotifiedOnce();
-        message5.flags.add(MessageFlag.read);
-        message6.flags.add(MessageFlag.read);
+        message5.flags.add(.read);
+        message6.flags.add(.read);
         checkMatchesMessages(messages);
 
         model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsAddEvent(
           id: 0,
-          flag: MessageFlag.read,
+          flag: .read,
           messages: [
             message2.id, message3.id, message3.id, message4.id,
             message7.id, message8.id, message9.id, message10.id,
@@ -1219,16 +1219,16 @@ void main() {
           all: false,
         ));
         checkNotifiedOnce();
-        message2.flags.add(MessageFlag.read);
-        message3.flags.add(MessageFlag.read);
-        message4.flags.add(MessageFlag.read);
-        message7.flags.add(MessageFlag.read);
-        message8.flags.add(MessageFlag.read);
-        message9.flags.add(MessageFlag.read);
-        message10.flags.add(MessageFlag.read);
-        message11.flags.add(MessageFlag.read);
-        message12.flags.add(MessageFlag.read);
-        message13.flags.add(MessageFlag.read);
+        message2.flags.add(.read);
+        message3.flags.add(.read);
+        message4.flags.add(.read);
+        message7.flags.add(.read);
+        message8.flags.add(.read);
+        message9.flags.add(.read);
+        message10.flags.add(.read);
+        message11.flags.add(.read);
+        message12.flags.add(.read);
+        message13.flags.add(.read);
         checkMatchesMessages(messages);
       });
 
@@ -1244,41 +1244,41 @@ void main() {
 
         check(() => model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsAddEvent(
           id: 0,
-          flag: MessageFlag.read,
+          flag: .read,
           messages: [message1.id, message2.id, message3.id, message4.id],
           all: false,
         ))).returnsNormally();
         checkNotifiedOnce();
-        message3.flags.add(MessageFlag.read);
-        message4.flags.add(MessageFlag.read);
+        message3.flags.add(.read);
+        message4.flags.add(.read);
         checkMatchesMessages([message3, message4]);
       });
     });
 
     group('mark as unread', () {
       UpdateMessageFlagsEvent mkEvent(Iterable<Message> messages) =>
-        eg.updateMessageFlagsRemoveEvent(MessageFlag.read, messages);
+        eg.updateMessageFlagsRemoveEvent(.read, messages);
 
       test('usual cases', () {
         final stream1 = eg.stream(streamId: 1);
         final stream2 = eg.stream(streamId: 2);
 
-        final message1 = eg.dmMessage(id: 1, from: eg.selfUser, to: [], flags: [MessageFlag.read]);
-        final message2 = eg.dmMessage(id: 2, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.read]);
-        final message3 = eg.dmMessage(id: 3, from: eg.thirdUser, to: [eg.selfUser], flags: [MessageFlag.read]);
-        final message4 = eg.dmMessage(id: 4, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: [MessageFlag.read]);
-        final message5 = eg.dmMessage(id: 5, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: [MessageFlag.read]);
+        final message1 = eg.dmMessage(id: 1, from: eg.selfUser, to: [], flags: [.read]);
+        final message2 = eg.dmMessage(id: 2, from: eg.otherUser, to: [eg.selfUser], flags: [.read]);
+        final message3 = eg.dmMessage(id: 3, from: eg.thirdUser, to: [eg.selfUser], flags: [.read]);
+        final message4 = eg.dmMessage(id: 4, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: [.read]);
+        final message5 = eg.dmMessage(id: 5, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: [.read]);
 
-        final message6 = eg.dmMessage(id: 6, from: eg.selfUser, to: [], flags: [MessageFlag.mentioned, MessageFlag.read]);
-        final message7 = eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned, MessageFlag.read]);
-        final message8 = eg.dmMessage(id: 8, from: eg.thirdUser, to: [eg.selfUser], flags: [MessageFlag.mentioned, MessageFlag.read]);
-        final message9 = eg.dmMessage(id: 9, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: [MessageFlag.mentioned, MessageFlag.read]);
-        final message10 = eg.dmMessage(id: 10, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: [MessageFlag.mentioned, MessageFlag.read]);
+        final message6 = eg.dmMessage(id: 6, from: eg.selfUser, to: [], flags: [.mentioned, .read]);
+        final message7 = eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [.mentioned, .read]);
+        final message8 = eg.dmMessage(id: 8, from: eg.thirdUser, to: [eg.selfUser], flags: [.mentioned, .read]);
+        final message9 = eg.dmMessage(id: 9, from: eg.otherUser, to: [eg.selfUser, eg.thirdUser], flags: [.mentioned, .read]);
+        final message10 = eg.dmMessage(id: 10, from: eg.otherUser, to: [eg.selfUser, eg.user(userId: 456)], flags: [.mentioned, .read]);
 
-        final message11 = eg.streamMessage(id: 11, stream: stream1, topic: 'a', flags: [MessageFlag.read]);
-        final message12 = eg.streamMessage(id: 12, stream: stream1, topic: 'a', flags: [MessageFlag.mentioned, MessageFlag.read]);
-        final message13 = eg.streamMessage(id: 13, stream: stream2, topic: 'b', flags: [MessageFlag.read]);
-        final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [MessageFlag.mentioned, MessageFlag.read]);
+        final message11 = eg.streamMessage(id: 11, stream: stream1, topic: 'a', flags: [.read]);
+        final message12 = eg.streamMessage(id: 12, stream: stream1, topic: 'a', flags: [.mentioned, .read]);
+        final message13 = eg.streamMessage(id: 13, stream: stream2, topic: 'b', flags: [.read]);
+        final message14 = eg.streamMessage(id: 14, stream: stream2, topic: 'b', flags: [.mentioned, .read]);
 
         final messages = <Message>[
           message1, message2, message3, message4, message5,
@@ -1326,8 +1326,8 @@ void main() {
 
       test('tolerates unsorted event.messages: stream messages', () {
         final stream = eg.stream();
-        final message1 = eg.streamMessage(id: 1, flags: [MessageFlag.read], stream: stream, topic: 'a');
-        final message2 = eg.streamMessage(id: 2, flags: [MessageFlag.read], stream: stream, topic: 'a');
+        final message1 = eg.streamMessage(id: 1, flags: [.read], stream: stream, topic: 'a');
+        final message2 = eg.streamMessage(id: 2, flags: [.read], stream: stream, topic: 'a');
 
         prepare();
         fillWithMessages([message1, message2]);
@@ -1341,8 +1341,8 @@ void main() {
       });
 
       test('tolerates unsorted event.messages: DM messages', () {
-        final message1 = eg.dmMessage(id: 1, flags: [MessageFlag.read], from: eg.otherUser, to: [eg.selfUser]);
-        final message2 = eg.dmMessage(id: 2, flags: [MessageFlag.read], from: eg.otherUser, to: [eg.selfUser]);
+        final message1 = eg.dmMessage(id: 1, flags: [.read], from: eg.otherUser, to: [eg.selfUser]);
+        final message2 = eg.dmMessage(id: 2, flags: [.read], from: eg.otherUser, to: [eg.selfUser]);
 
         prepare();
         fillWithMessages([message1, message2]);
@@ -1358,10 +1358,10 @@ void main() {
       test('tolerates "message details" missing', () {
         final stream = eg.stream();
         const topic = 'a';
-        final message1 = eg.streamMessage(id: 1, flags: [MessageFlag.read], stream: stream, topic: topic);
-        final message2 = eg.streamMessage(id: 2, flags: [MessageFlag.read], stream: stream, topic: topic);
-        final message3 = eg.dmMessage(id: 3, flags: [MessageFlag.read], from: eg.otherUser, to: [eg.selfUser]);
-        final message4 = eg.dmMessage(id: 4, flags: [MessageFlag.read], from: eg.otherUser, to: [eg.selfUser]);
+        final message1 = eg.streamMessage(id: 1, flags: [.read], stream: stream, topic: topic);
+        final message2 = eg.streamMessage(id: 2, flags: [.read], stream: stream, topic: topic);
+        final message3 = eg.dmMessage(id: 3, flags: [.read], from: eg.otherUser, to: [eg.selfUser]);
+        final message4 = eg.dmMessage(id: 4, flags: [.read], from: eg.otherUser, to: [eg.selfUser]);
 
         prepare();
         fillWithMessages([message1, message2, message3, message4]);
@@ -1369,11 +1369,11 @@ void main() {
         check(() {
           model.handleUpdateMessageFlagsEvent(UpdateMessageFlagsRemoveEvent(
             id: 0,
-            flag: MessageFlag.read,
+            flag: .read,
             messages: [message1.id, message2.id, message3.id, message4.id],
             messageDetails: {
               message1.id: UpdateMessageFlagsMessageDetail(
-                type: MessageType.stream,
+                type: .channel,
                 mentioned: false,
                 streamId: stream.streamId,
                 topic: eg.t(topic),
@@ -1381,7 +1381,7 @@ void main() {
               ),
               // message 2 and 3 have their details missing
               message4.id: UpdateMessageFlagsMessageDetail(
-                type: MessageType.direct,
+                type: .direct,
                 mentioned: false,
                 streamId: null,
                 topic: null,

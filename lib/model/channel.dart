@@ -111,14 +111,14 @@ mixin ChannelStore on UserStore {
 
   static bool _isTopicVisibleInStream(UserTopicVisibilityPolicy policy) {
     switch (policy) {
-      case UserTopicVisibilityPolicy.none:
+      case .none:
         return true;
-      case UserTopicVisibilityPolicy.muted:
+      case .muted:
         return false;
-      case UserTopicVisibilityPolicy.unmuted:
-      case UserTopicVisibilityPolicy.followed:
+      case .unmuted:
+      case .followed:
         return true;
-      case UserTopicVisibilityPolicy.unknown:
+      case .unknown:
         assert(false);
         return true;
     }
@@ -148,18 +148,18 @@ mixin ChannelStore on UserStore {
 
   bool _isTopicVisible(int streamId, UserTopicVisibilityPolicy policy) {
     switch (policy) {
-      case UserTopicVisibilityPolicy.none:
+      case .none:
         switch (subscriptions[streamId]?.isMuted) {
           case false: return true;
           case true:  return false;
           case null:  return false; // not subscribed; treat like muted
         }
-      case UserTopicVisibilityPolicy.muted:
+      case .muted:
         return false;
-      case UserTopicVisibilityPolicy.unmuted:
-      case UserTopicVisibilityPolicy.followed:
+      case .unmuted:
+      case .followed:
         return true;
-      case UserTopicVisibilityPolicy.unknown:
+      case .unknown:
         assert(false);
         return true;
     }
@@ -236,7 +236,7 @@ mixin ChannelStore on UserStore {
     if (channel is Subscription) return true;
     // Here web calls has_metadata_access... but that always returns true,
     // as its comment says.
-    if (selfUser.role == UserRole.guest) return false;
+    if (selfUser.role == .guest) return false;
     if (!channel.inviteOnly) return true;
     return _selfHasContentAccessViaGroupPermissions(channel);
   }
@@ -286,17 +286,17 @@ mixin ChannelStore on UserStore {
     // but pre-333 servers shouldn't be giving us an unknown role.)
 
     switch (inChannel.channelPostPolicy!) {
-      case ChannelPostPolicy.any:             return true;
-      case ChannelPostPolicy.fullMembers:     {
-        if (!role.isAtLeast(UserRole.member)) return false;
-        if (role == UserRole.member) {
+      case .any:            return true;
+      case .fullMembers:    {
+        if (!role.isAtLeast(.member)) return false;
+        if (role == .member) {
           return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }
-      case ChannelPostPolicy.moderators:      return role.isAtLeast(UserRole.moderator);
-      case ChannelPostPolicy.administrators:  return role.isAtLeast(UserRole.administrator);
-      case ChannelPostPolicy.unknown:         return true;
+      case .moderators:     return role.isAtLeast(.moderator);
+      case .administrators: return role.isAtLeast(.administrator);
+      case .unknown:        return true;
     }
   }
 }
@@ -493,11 +493,11 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
 
   @override
   UserTopicVisibilityPolicy topicVisibilityPolicy(int streamId, TopicName topic) {
-    return topicVisibility[streamId]?[topic] ?? UserTopicVisibilityPolicy.none;
+    return topicVisibility[streamId]?[topic] ?? .none;
   }
 
   static bool _warnInvalidVisibilityPolicy(UserTopicVisibilityPolicy visibilityPolicy) {
-    if (visibilityPolicy == UserTopicVisibilityPolicy.unknown) {
+    if (visibilityPolicy == .unknown) {
       // Not a value we expect. Keep it out of our data structures. // TODO(log)
       return true;
     }
@@ -542,48 +542,51 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
           stream.isWebPublic = event.isWebPublic!;
         }
 
-        if (event.property == null) {
+        if (event.property == .unknown) {
           // unrecognized property; do nothing
           return;
         }
-        switch (event.property!) {
-          case ChannelPropertyName.name:
+        switch (event.property) {
+          case .name:
             final streamName = stream.name;
             assert(streamName == event.name);
             assert(identical(streams[stream.streamId], streamsByName[streamName]));
             stream.name = event.value as String;
             streamsByName.remove(streamName);
             streamsByName[stream.name] = stream;
-          case ChannelPropertyName.isArchived:
+          case .isArchived:
             stream.isArchived = event.value as bool;
-          case ChannelPropertyName.description:
+          case .description:
             stream.description = event.value as String;
-          case ChannelPropertyName.firstMessageId:
+          case .firstMessageId:
             stream.firstMessageId = event.value as int?;
-          case ChannelPropertyName.inviteOnly:
+          case .inviteOnly:
             stream.inviteOnly = event.value as bool;
-          case ChannelPropertyName.messageRetentionDays:
+          case .messageRetentionDays:
             stream.messageRetentionDays = event.value as int?;
-          case ChannelPropertyName.topicsPolicy:
+          case .topicsPolicy:
             stream.topicsPolicy = event.value as ChannelTopicsPolicy;
-          case ChannelPropertyName.channelPostPolicy:
+          case .channelPostPolicy:
             stream.channelPostPolicy = event.value as ChannelPostPolicy;
-          case ChannelPropertyName.folderId:
+          case .folderId:
             stream.folderId = event.value as int?;
-          case ChannelPropertyName.canAddSubscribersGroup:
+          case .canAddSubscribersGroup:
             stream.canAddSubscribersGroup = event.value as GroupSettingValue;
-          case ChannelPropertyName.canDeleteAnyMessageGroup:
+          case .canDeleteAnyMessageGroup:
             stream.canDeleteAnyMessageGroup = event.value as GroupSettingValue;
-          case ChannelPropertyName.canDeleteOwnMessageGroup:
+          case .canDeleteOwnMessageGroup:
             stream.canDeleteOwnMessageGroup = event.value as GroupSettingValue;
-          case ChannelPropertyName.canSendMessageGroup:
+          case .canSendMessageGroup:
             stream.canSendMessageGroup = event.value as GroupSettingValue;
-          case ChannelPropertyName.canSubscribeGroup:
+          case .canSubscribeGroup:
             stream.canSubscribeGroup = event.value as GroupSettingValue;
-          case ChannelPropertyName.isRecentlyActive:
+          case .isRecentlyActive:
             stream.isRecentlyActive = event.value as bool;
-          case ChannelPropertyName.streamWeeklyTraffic:
+          case .streamWeeklyTraffic:
             stream.streamWeeklyTraffic = event.value as int?;
+          case .unknown:
+            // Shouldn't reach here because of the early return.
+            assert(false);
         }
     }
   }
@@ -622,24 +625,24 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
         assert(identical(streams[event.channelId], subscription));
         assert(identical(streamsByName[subscription.name], subscription));
         switch (event.property) {
-          case SubscriptionProperty.color:
+          case .color:
             subscription.color                  = event.value as int;
-          case SubscriptionProperty.isMuted:
+          case .isMuted:
             // TODO(#1255) update [MessageListView] if affected
             subscription.isMuted                = event.value as bool;
-          case SubscriptionProperty.pinToTop:
+          case .pinToTop:
             subscription.pinToTop               = event.value as bool;
-          case SubscriptionProperty.desktopNotifications:
+          case .desktopNotifications:
             subscription.desktopNotifications   = event.value as bool;
-          case SubscriptionProperty.audibleNotifications:
+          case .audibleNotifications:
             subscription.audibleNotifications   = event.value as bool;
-          case SubscriptionProperty.pushNotifications:
+          case .pushNotifications:
             subscription.pushNotifications      = event.value as bool;
-          case SubscriptionProperty.emailNotifications:
+          case .emailNotifications:
             subscription.emailNotifications     = event.value as bool;
-          case SubscriptionProperty.wildcardMentionsNotify:
+          case .wildcardMentionsNotify:
             subscription.wildcardMentionsNotify = event.value as bool;
-          case SubscriptionProperty.unknown:
+          case .unknown:
             // unrecognized property; do nothing
             return;
         }
@@ -680,9 +683,9 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
   void handleUserTopicEvent(UserTopicEvent event) {
     UserTopicVisibilityPolicy visibilityPolicy = event.visibilityPolicy;
     if (_warnInvalidVisibilityPolicy(visibilityPolicy)) {
-      visibilityPolicy = UserTopicVisibilityPolicy.none;
+      visibilityPolicy = .none;
     }
-    if (visibilityPolicy == UserTopicVisibilityPolicy.none) {
+    if (visibilityPolicy == .none) {
       // This is the "zero value" for this type, which our data structure
       // represents by leaving the topic out entirely.
       final forStream = topicVisibility[event.streamId];

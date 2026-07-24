@@ -228,7 +228,7 @@ void main() {
         await store.changeUserStatus(user.userId, UserStatusChange(
           text: OptionSome('Busy'),
           emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-            emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
         await tester.pump();
 
         // // TODO(#226): Remove this extra edit when this bug is fixed.
@@ -442,13 +442,13 @@ void main() {
       }));
 
       final zulipOption = ('zulip', store.emojiDisplayFor(
-        emojiType: ReactionType.zulipExtraEmoji,
+        emojiType: .zulipExtraEmoji,
         emojiCode: 'zulip', emojiName: 'zulip'));
       final buzzingOption = ('buzzing', store.emojiDisplayFor(
-        emojiType: ReactionType.realmEmoji,
+        emojiType: .realmEmoji,
         emojiCode: '1', emojiName: 'buzzing'));
       final zzzOption = ('zzz, sleepy', store.emojiDisplayFor(
-        emojiType: ReactionType.unicodeEmoji,
+        emojiType: .unicodeEmoji,
         emojiCode: '1f4a4', emojiName: 'zzz'));
 
       // Enter a query; options appear, of all three emoji types.
@@ -486,7 +486,7 @@ void main() {
       final composeInputFinder = await setupToComposeInput(tester);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-        property: UserSettingName.emojiset, value: Emojiset.text));
+        property: .emojiset, value: Emojiset.text));
 
       // TODO(#226): Remove this extra edit when this bug is fixed.
       await tester.enterText(composeInputFinder, 'hi :');

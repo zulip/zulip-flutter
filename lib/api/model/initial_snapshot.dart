@@ -94,7 +94,7 @@ class InitialSnapshot {
   /// The policy for who can use wildcard mentions in large channels.
   ///
   /// Search for "realm_wildcard_mention_policy" in https://zulip.com/api/register-queue.
-  final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
+  final RealmWildcardMentionPolicy? realmWildcardMentionPolicy; // TODO(server-10) remove
 
   @JsonKey(unknownEnumValue: RealmTopicsPolicy.unknown)
   final RealmTopicsPolicy? realmTopicsPolicy; // TODO(server-11)
@@ -237,7 +237,12 @@ enum RealmWildcardMentionPolicy {
   fullMembers(apiValue: 3),
   admins(apiValue: 5),
   nobody(apiValue: 6),
-  moderators(apiValue: 7);
+  moderators(apiValue: 7),
+
+  // We don't accept an unknown value. `realm_wildcard_mention_policy` is
+  // deprecated in server-10, making future additions to this enum unlikely.
+  // unknown(apiValue: null),
+  ;
 
   const RealmWildcardMentionPolicy({required this.apiValue});
 
@@ -252,7 +257,12 @@ enum RealmDeleteOwnMessagePolicy {
   admins(apiValue: 2),
   fullMembers(apiValue: 3),
   moderators(apiValue: 4),
-  everyone(apiValue: 5);
+  everyone(apiValue: 5),
+
+  // We don't accept an unknown value. `realm_delete_own_message_policy` is
+  // removed in server-10, making future additions to this enum impossible.
+  // unknown(apiValue: -100),
+  ;
 
   const RealmDeleteOwnMessagePolicy({required this.apiValue});
 

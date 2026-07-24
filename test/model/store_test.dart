@@ -12,7 +12,6 @@ import 'package:zulip/api/core.dart';
 import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
-import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
@@ -815,15 +814,14 @@ void main() {
 
       // Pick some arbitrary event and check it gets processed on the store.
       check(store.userSettings.twentyFourHourTime)
-        .equals(TwentyFourHourTimeMode.twelveHour);
+        .equals(.twelveHour);
       connection.prepare(json: GetEventsResult(events: [
-        UserSettingsUpdateEvent(id: 2,
-          property: UserSettingName.twentyFourHourTime, value: true),
+        UserSettingsUpdateEvent(id: 2, property: .twentyFourHourTime, value: true),
       ], queueId: null).toJson());
       updateMachine.debugAdvanceLoop();
       async.elapse(Duration.zero);
       check(store.userSettings.twentyFourHourTime)
-        .equals(TwentyFourHourTimeMode.twentyFourHour);
+        .equals(.twentyFourHour);
     }));
 
     void checkReload(FutureOr<void> Function() prepareError, {
@@ -854,15 +852,14 @@ void main() {
         updateMachine.debugPauseLoop();
         updateMachine.poll();
         check(store.userSettings.twentyFourHourTime)
-          .equals(TwentyFourHourTimeMode.twelveHour);
+          .equals(.twelveHour);
         connection.prepare(json: GetEventsResult(events: [
-          UserSettingsUpdateEvent(id: 2,
-            property: UserSettingName.twentyFourHourTime, value: true),
+          UserSettingsUpdateEvent(id: 2, property: .twentyFourHourTime, value: true),
         ], queueId: null).toJson());
         updateMachine.debugAdvanceLoop();
         async.elapse(Duration.zero);
         check(store.userSettings.twentyFourHourTime)
-          .equals(TwentyFourHourTimeMode.twentyFourHour);
+          .equals(.twentyFourHour);
       });
     }
 

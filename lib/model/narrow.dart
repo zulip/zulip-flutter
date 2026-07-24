@@ -241,7 +241,7 @@ class DmNarrow extends Narrow implements SendableNarrow {
     UpdateMessageFlagsMessageDetail detail, {
     required int selfUserId,
   }) {
-    assert(detail.type == MessageType.direct);
+    assert(detail.type == .direct);
     return DmNarrow.withOtherUsers(detail.userIds!, selfUserId: selfUserId);
   }
 
@@ -335,7 +335,7 @@ class MentionsNarrow extends Narrow {
   }
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowIs(IsOperand.mentioned)];
+  ApiNarrow apiEncode() => [ApiNarrowIs(.mentioned)];
 
   @override
   bool operator ==(Object other) {
@@ -352,7 +352,7 @@ class StarredMessagesNarrow extends Narrow {
   const StarredMessagesNarrow();
 
   @override
-  ApiNarrow apiEncode() => [ApiNarrowIs(IsOperand.starred)];
+  ApiNarrow apiEncode() => [ApiNarrowIs(.starred)];
 
   @override
   bool containsMessage(MessageBase message) {

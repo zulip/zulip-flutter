@@ -845,7 +845,7 @@ void main() {
     Future<void> checkStartTyping(WidgetTester tester, SendableNarrow narrow) async {
       connection.prepare(json: {});
       await enterContent(tester, 'hello world');
-      checkTypingRequest(TypingOp.start, narrow);
+      checkTypingRequest(.start, narrow);
     }
 
     testWidgets('smoke TopicNarrow', (tester) async {
@@ -856,7 +856,7 @@ void main() {
 
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('smoke DmNarrow', (tester) async {
@@ -868,7 +868,7 @@ void main() {
 
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('smoke ChannelNarrow', (tester) async {
@@ -882,7 +882,7 @@ void main() {
 
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, destinationNarrow);
+      checkTypingRequest(.stop, destinationNarrow);
     });
 
     testWidgets('clearing text sends a "typing stopped" notice', (tester) async {
@@ -893,7 +893,7 @@ void main() {
 
       connection.prepare(json: {});
       await enterContent(tester, '');
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('hitting send button sends a "typing stopped" notice', (tester) async {
@@ -909,7 +909,7 @@ void main() {
       await tester.tap(sendButtonFinder);
       await tester.pump(Duration.zero);
       final requests = connection.takeRequests();
-      checkSetTypingStatusRequests([requests.first], [(TypingOp.stop, narrow)]);
+      checkSetTypingStatusRequests([requests.first], [(.stop, narrow)]);
       check(requests).length.equals(2);
     });
 
@@ -940,7 +940,7 @@ void main() {
       connection.prepare(json: {});
       (await ZulipApp.navigator).pop();
       await tester.pump(Duration.zero);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
@@ -955,7 +955,7 @@ void main() {
       connection.prepare(json: {});
       FocusManager.instance.primaryFocus!.unfocus();
       await tester.pump(Duration.zero);
-      checkTypingRequest(TypingOp.stop, destinationNarrow);
+      checkTypingRequest(.stop, destinationNarrow);
     });
 
     testWidgets('selection change sends a "typing started" notice', (tester) async {
@@ -966,17 +966,17 @@ void main() {
 
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
 
       connection.prepare(json: {});
       controller!.content.selection =
         const TextSelection(baseOffset: 0, extentOffset: 2);
-      checkTypingRequest(TypingOp.start, narrow);
+      checkTypingRequest(.start, narrow);
 
       // Ensures that a "typing stopped" notice is sent when the test ends.
       connection.prepare(json: {});
       await tester.pump(store.serverTypingStoppedWaitPeriod);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
     });
 
     testWidgets('unfocusing app sends a "typing stopped" notice', (tester) async {
@@ -994,7 +994,7 @@ void main() {
       WidgetsBinding.instance.handleAppLifecycleStateChanged(
         AppLifecycleState.hidden);
       await tester.pump(Duration.zero);
-      checkTypingRequest(TypingOp.stop, narrow);
+      checkTypingRequest(.stop, narrow);
 
       WidgetsBinding.instance.handleAppLifecycleStateChanged(
         AppLifecycleState.paused);
@@ -1027,7 +1027,7 @@ void main() {
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
-            'type': 'stream',
+            'type': 'channel',
             'to': '123',
             'topic': 'some topic',
             'content': 'hello world',
@@ -1730,11 +1730,11 @@ void main() {
         ].join(', ');
         testWidgets(description, (tester) async {
           final channel = eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.moderators);
+            channelPostPolicy: .moderators);
           await prepareComposeBox(tester,
             narrow: narrow,
             selfUser: eg.user(
-              role: canSend ? UserRole.administrator : UserRole.member),
+              role: canSend ? .administrator : .member),
             streams: [channel],
             subscriptions: isChannelSubscribed ? [eg.subscription(channel)] : []);
           checkComposeBoxIsShown(expected,
@@ -1840,39 +1840,39 @@ void main() {
       testRefreshSubscribeButtons(narrow: topicNarrow, canSendMessages: true);
 
       testWidgets('user loses privilege -> compose box is replaced with the banner', (tester) async {
-        final selfUser = eg.user(role: UserRole.administrator);
+        final selfUser = eg.user(role: .administrator);
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
           subscriptions: [eg.subscription(eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.administrators))]);
+            channelPostPolicy: .administrators))]);
         checkComposeBox(isShown: true);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
-          userId: selfUser.userId, role: UserRole.moderator));
+          userId: selfUser.userId, role: .moderator));
         await tester.pump();
         checkComposeBox(isShown: false);
       });
 
       testWidgets('user gains privilege -> banner is replaced with the compose box', (tester) async {
-        final selfUser = eg.user(role: UserRole.guest);
+        final selfUser = eg.user(role: .guest);
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
           selfUser: selfUser,
           subscriptions: [eg.subscription(eg.stream(streamId: 1,
-            channelPostPolicy: ChannelPostPolicy.moderators))]);
+            channelPostPolicy: .moderators))]);
         checkComposeBox(isShown: false);
 
         await store.handleEvent(RealmUserUpdateEvent(id: 1,
-          userId: selfUser.userId, role: UserRole.administrator));
+          userId: selfUser.userId, role: .administrator));
         await tester.pump();
         checkComposeBox(isShown: true);
       });
 
       testWidgets('channel policy becomes stricter -> compose box is replaced with the banner', (tester) async {
-        final selfUser = eg.user(role: UserRole.guest);
+        final selfUser = eg.user(role: .guest);
         final channel = eg.stream(streamId: 1,
-          channelPostPolicy: ChannelPostPolicy.any);
+          channelPostPolicy: .any);
 
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
@@ -1881,16 +1881,16 @@ void main() {
         checkComposeBox(isShown: true);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
-          property: ChannelPropertyName.channelPostPolicy,
+          property: .channelPostPolicy,
           value: ChannelPostPolicy.fullMembers));
         await tester.pump();
         checkComposeBox(isShown: false);
       });
 
       testWidgets('channel policy becomes less strict -> banner is replaced with the compose box', (tester) async {
-        final selfUser = eg.user(role: UserRole.moderator);
+        final selfUser = eg.user(role: .moderator);
         final channel = eg.stream(streamId: 1,
-          channelPostPolicy: ChannelPostPolicy.administrators);
+          channelPostPolicy: .administrators);
 
         await prepareComposeBox(tester,
           narrow: const ChannelNarrow(1),
@@ -1899,7 +1899,7 @@ void main() {
         checkComposeBox(isShown: false);
 
         await store.handleEvent(eg.channelUpdateEvent(channel,
-          property: ChannelPropertyName.channelPostPolicy,
+          property: .channelPostPolicy,
           value: ChannelPostPolicy.moderators));
         await tester.pump();
         checkComposeBox(isShown: true);

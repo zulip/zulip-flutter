@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 
 import '../api/exception.dart';
 import '../api/model/events.dart';
-import '../api/model/initial_snapshot.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../log.dart';
@@ -185,21 +184,21 @@ mixin MessageStore on ChannelStore {
     // but pre-291 servers shouldn't be giving us an unknown role.)
 
     switch (realmDeleteOwnMessagePolicy!) {
-      case RealmDeleteOwnMessagePolicy.everyone:
+      case .everyone:
         return true;
-      case RealmDeleteOwnMessagePolicy.members:
-        return role.isAtLeast(UserRole.member);
-      case RealmDeleteOwnMessagePolicy.fullMembers: {
-        if (!role.isAtLeast(UserRole.member)) return false;
-        if (role == UserRole.member) {
+      case .members:
+        return role.isAtLeast(.member);
+      case .fullMembers: {
+        if (!role.isAtLeast(.member)) return false;
+        if (role == .member) {
           return selfHasPassedWaitingPeriod(byDate: atDate);
         }
         return true;
       }
-      case RealmDeleteOwnMessagePolicy.moderators:
-        return role.isAtLeast(UserRole.moderator);
-      case RealmDeleteOwnMessagePolicy.admins:
-        return role.isAtLeast(UserRole.administrator);
+      case .moderators:
+        return role.isAtLeast(.moderator);
+      case .admins:
+        return role.isAtLeast(.administrator);
     }
   }
 }
@@ -357,8 +356,8 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     try {
       await updateMessageFlags(connection,
         messages: toSend,
-        op: UpdateMessageFlagsOp.add,
-        flag: MessageFlag.read);
+        op: .add,
+        flag: .read);
     } on ApiRequestException {
       // TODO(#1581) un-mark as read locally?
       return false;
@@ -684,7 +683,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     if (event.origContent != null) {
       // The message is guaranteed to be edited.
       // See also: https://zulip.com/api/get-events#update_message
-      message.editState = MessageEditState.edited;
+      message.editState = .edited;
 
       // Clear the edit-message progress feedback.
       // This makes a rare bug where we might clear the feedback too early,
@@ -745,9 +744,8 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         message.conversation.topic = newTopic;
       }
 
-      if (!wasResolveOrUnresolve
-          && message.editState == MessageEditState.none) {
-        message.editState = MessageEditState.moved;
+      if (!wasResolveOrUnresolve && message.editState == .none) {
+        message.editState = .moved;
       }
     }
 
@@ -821,7 +819,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
       }
     }
 
-    if (event.flag == MessageFlag.starred) {
+    if (event.flag == .starred) {
       isAdd
         ? starredMessages.addAll(event.messages)
         : starredMessages.removeAll(event.messages);
@@ -832,18 +830,20 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   }
 
   void handleReactionEvent(ReactionEvent event) {
+    if (event.op == .unknown) return;
+
     final message = messages[event.messageId];
     if (message == null) return;
 
     switch (event.op) {
-      case ReactionOp.add:
+      case .add:
         (message.reactions ??= Reactions([])).add(Reaction(
           emojiName: event.emojiName,
           emojiCode: event.emojiCode,
           reactionType: event.reactionType,
           userId: event.userId,
         ));
-      case ReactionOp.remove:
+      case .remove:
         if (message.reactions == null) { // TODO(log)
           return;
         }
@@ -852,6 +852,8 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
           emojiCode: event.emojiCode,
           userId: event.userId,
         );
+      case .unknown:
+        // Shouldn't reach here because of the early return.
     }
     _notifyMessageListViewsForOneMessage(event.messageId);
   }

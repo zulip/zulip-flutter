@@ -1215,11 +1215,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   void _handlePropagateMode(PropagateMode propagateMode, Narrow newNarrow) {
     switch (propagateMode) {
-      case PropagateMode.changeAll:
-      case PropagateMode.changeLater:
+      case .changeAll:
+      case .changeLater:
         // TODO(#1009) anchor to some visible message, if any
         renarrowAndFetch(newNarrow, anchor);
-      case PropagateMode.changeOne:
+      case .changeOne:
+      case .unknown:
     }
   }
 

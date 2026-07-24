@@ -302,17 +302,17 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
     }
     if (isElementOperands.length > 1) return null;
     switch (isElementOperands.single) {
-      case IsOperand.mentioned:
+      case .mentioned:
         narrow = const MentionsNarrow();
-      case IsOperand.starred:
+      case .starred:
         narrow = const StarredMessagesNarrow();
-      case IsOperand.dm:
-      case IsOperand.private:
-      case IsOperand.alerted:
-      case IsOperand.followed:
-      case IsOperand.resolved:
-      case IsOperand.unread:
-      case IsOperand.unknown:
+      case .dm:
+      case .private:
+      case .alerted:
+      case .followed:
+      case .resolved:
+      case .unread:
+      case .unknown:
         return null;
     }
   } else if (dmElement != null) {

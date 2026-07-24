@@ -73,7 +73,7 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   // Realm settings previously found in realm/update_dict events,
   // but now deprecated.
 
-  RealmWildcardMentionPolicy get realmWildcardMentionPolicy; // TODO(server-10) remove
+  RealmWildcardMentionPolicy? get realmWildcardMentionPolicy; // TODO(server-10) remove
   RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy; // TODO(server-10) remove
 
   //|//////////////////////////////
@@ -212,7 +212,7 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get realmWaitingPeriodThreshold => realmStore.realmWaitingPeriodThreshold;
   @override
-  RealmWildcardMentionPolicy get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
+  RealmWildcardMentionPolicy? get realmWildcardMentionPolicy => realmStore.realmWildcardMentionPolicy;
   @override
   RealmDeleteOwnMessagePolicy? get realmDeleteOwnMessagePolicy => realmStore.realmDeleteOwnMessagePolicy;
   @override
@@ -317,7 +317,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
 
     final config = _groupSettingConfig(type, name);
 
-    if (_selfUserRole == UserRole.guest && !config.allowEveryoneGroup) {
+    if (_selfUserRole == .guest && !config.allowEveryoneGroup) {
       return false;
     }
 
@@ -348,7 +348,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
       case SystemGroupName.everyone:
         return true;
       case SystemGroupName.members:
-        return _selfUserRole.isAtLeast(UserRole.member);
+        return _selfUserRole.isAtLeast(.member);
       case SystemGroupName.fullMembers:
         // There aren't any permissions where this is the default, and we
         // probably won't add any. So for now we skip the complication of
@@ -356,13 +356,13 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
         assert(() {
           throw UnimplementedError();
         }());
-        return _selfUserRole.isAtLeast(UserRole.member);
+        return _selfUserRole.isAtLeast(.member);
       case SystemGroupName.moderators:
-        return _selfUserRole.isAtLeast(UserRole.moderator);
+        return _selfUserRole.isAtLeast(.moderator);
       case SystemGroupName.administrators:
-        return _selfUserRole.isAtLeast(UserRole.administrator);
+        return _selfUserRole.isAtLeast(.administrator);
       case SystemGroupName.owners:
-        return _selfUserRole.isAtLeast(UserRole.owner);
+        return _selfUserRole.isAtLeast(.owner);
       case SystemGroupName.nobody:
         return false;
     }
@@ -449,7 +449,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int realmWaitingPeriodThreshold;
 
   @override
-  final RealmWildcardMentionPolicy realmWildcardMentionPolicy;
+  final RealmWildcardMentionPolicy? realmWildcardMentionPolicy;
   @override
   final RealmDeleteOwnMessagePolicy? realmDeleteOwnMessagePolicy;
 

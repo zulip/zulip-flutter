@@ -134,12 +134,13 @@ Future<SendMessageResult> sendMessage(
   String? localId,
   bool? readBySender,
 }) {
+  final supportsTypeChannel = connection.zulipFeatureLevel! >= 248; // TODO(server-9)
   final supportsTypeDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
   final supportsReadBySender = connection.zulipFeatureLevel! >= 236; // TODO(server-8)
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
     ...(switch (destination) {
       StreamDestination() => {
-        'type': RawParameter('stream'),
+        'type': supportsTypeChannel ? RawParameter('channel') : RawParameter('stream'),
         'to': destination.streamId,
         'topic': RawParameter(destination.topic.apiName),
       },
@@ -351,7 +352,11 @@ Future<void> addReaction(ApiConnection connection, {
   required ReactionType reactionType,
   required String emojiCode,
   required String emojiName,
-}) {
+}) async {
+  if (reactionType == .unknown) {
+    assert(false, 'ReactionType.unknown is not supported when adding a reaction.');
+    return;
+  }
   return connection.post('addReaction', (_) {}, 'messages/$messageId/reactions', {
     'emoji_name': RawParameter(emojiName),
     'emoji_code': RawParameter(emojiCode),
@@ -365,7 +370,11 @@ Future<void> removeReaction(ApiConnection connection, {
   required ReactionType reactionType,
   required String emojiCode,
   required String emojiName,
-}) {
+}) async {
+  if (reactionType == .unknown) {
+    assert(false, 'ReactionType.unknown is not supported when removing a reaction.');
+    return;
+  }
   return connection.delete('removeReaction', (_) {}, 'messages/$messageId/reactions', {
     'emoji_name': RawParameter(emojiName),
     'emoji_code': RawParameter(emojiCode),
