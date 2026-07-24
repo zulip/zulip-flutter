@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../api/model/model.dart';
+import '../model/channel.dart';
 import '../model/settings.dart';
 import 'compose_box.dart';
 import 'content.dart';
@@ -913,15 +913,21 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 //   https://github.com/zulip/zulip/blob/b248e2d93/web/src/stream_data.ts#L40
 const kDefaultChannelColorSwatchBaseColor = 0xffc2c2c2;
 
-/// The theme-appropriate [ChannelColorSwatch] based on [subscription.color].
+/// The theme-appropriate [ChannelColorSwatch] for the given channel ID.
 ///
-/// If [subscription] is null, [ChannelColorSwatch] will be based on
-/// [kDefaultChannelColorSwatchBaseColor].
+/// This is based on the channel's base color from the store;
+/// see [ChannelStore.channelColor].
+/// If [channelId] is null or the channel isn't in the store,
+/// it's based on [kDefaultChannelColorSwatchBaseColor].
 ///
 /// For how this value is cached, see [ChannelColorSwatches.forBaseColor].
-// TODO(#188) pick different colors for unsubscribed channels
-ChannelColorSwatch colorSwatchFor(BuildContext context, Subscription? subscription) {
-  return DesignVariables.of(context)
-    .channelColorSwatches.forBaseColor(
-      subscription?.color ?? kDefaultChannelColorSwatchBaseColor);
+ChannelColorSwatch colorSwatchFor(BuildContext context, int? channelId) {
+  final swatches = DesignVariables.of(context).channelColorSwatches;
+  final channelBaseColor = channelId == null
+    ? null : PerAccountStoreWidget.of(context).channelColor(channelId);
+  if (channelBaseColor == null) {
+    // No channel, or a channel not known to the store.
+    return swatches.forBaseColor(kDefaultChannelColorSwatchBaseColor);
+  }
+  return swatches.forBaseColor(channelBaseColor);
 }
