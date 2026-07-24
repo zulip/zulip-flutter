@@ -1240,31 +1240,27 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     required int channelId,
     required TopicAutocompleteQuery query,
   }) {
-    return TopicAutocompleteView._(store: store, channelId: channelId, query: query)
-      .._fetch();
+    return TopicAutocompleteView._(store: store, channelId: channelId, query: query);
   }
 
   /// The channel/stream the eventual message will be sent to.
   final int channelId;
 
-  Iterable<GetChannelTopicsEntry> _topics = [];
-
-  /// Fetches topics of the current stream narrow, if needed.
-  ///
-  /// Starts fetching once the stream narrow is active, then when results
-  /// are fetched it restarts search to refresh UI showing the newly
-  /// fetched topics.
-  Future<void> _fetch() async {
-    // TODO: handle fetch failure
-    _topics = await store.topics.getChannelTopics(channelId);
-    return _startSearch();
-  }
-
   @override
   Future<List<TopicAutocompleteResult>?> computeResults() async {
+    final List<GetChannelTopicsEntry> topics;
+    try {
+      topics = await store.topics.getChannelTopics(channelId);
+    } catch (_) {
+      // Return null to not notify;
+      // the fetch can be re-triggered by changing the query.
+      // TODO: keep track of the failed state
+      return null;
+    }
+
     final results = <TopicAutocompleteResult>[];
     if (await filterCandidates(filter: _testTopic,
-          candidates: _topics, results: results)) {
+          candidates: topics, results: results)) {
       return null;
     }
     return results;

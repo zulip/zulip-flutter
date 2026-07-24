@@ -1383,6 +1383,7 @@ void main() {
 
     check(done).isFalse();
     await Future(() {});
+    await Future(() {});
     check(done).isTrue();
   });
 
@@ -1412,6 +1413,7 @@ void main() {
     view1.query = TopicAutocompleteQuery('server');
     check(connection.takeRequests()).isEmpty();
     await Future(() {});
+    await Future(() {});
     check(view1.results).single.which(isTopic(topic1.name));
     view1.dispose();
 
@@ -1427,6 +1429,32 @@ void main() {
     await Future(() {});
     check(done).isTrue();
     check(view2.results).single.which(isTopic(topic2.name));
+  });
+
+  test('TopicAutocompleteView fetch can be re-triggered on query change, if failed', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+
+    connection.prepare(httpException: Exception('failed'));
+    final view = TopicAutocompleteView.init(store: store, channelId: 1000,
+      query: TopicAutocompleteQuery(''));
+    bool done = false;
+    view.addListener(() { done = true; });
+
+    await Future(() {});
+    await Future(() {});
+    check(done).isFalse();
+
+    final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'server releases');
+    final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'mobile releases');
+    connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+    view.query = TopicAutocompleteQuery('release');
+
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view.results).deepEquals([isTopic(topic1.name), isTopic(topic2.name)]);
+    view.dispose();
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
