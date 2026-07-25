@@ -9,6 +9,9 @@ import 'button.dart';
 import 'icons.dart';
 import 'page.dart';
 
+Uri _releaseNotesUrl(String version) =>
+  Uri.parse('https://github.com/zulip/zulip-flutter/releases/tag/v$version');
+
 class AboutZulipPage extends StatelessWidget {
   const AboutZulipPage({super.key});
 
@@ -48,6 +51,12 @@ class AboutZulipPage extends StatelessWidget {
                         onPressed: () => PlatformActions.copyWithPopup(context: context,
                           data: ClipboardData(text: version),
                           successContent: Text(zulipLocalizations.successAppVersionCopied))),
+                      ZulipMenuItemButton(
+                        style: .list,
+                        label: zulipLocalizations.aboutPageReleaseNotes,
+                        icon: ZulipIcons.external_link,
+                        onPressed: () =>
+                          PlatformActions.launchUrl(context, _releaseNotesUrl(version))),
                     ]),
                   MenuButtonsShape(buttons: [
                     ZulipMenuItemButton(

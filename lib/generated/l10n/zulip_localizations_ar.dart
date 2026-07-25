@@ -20,6 +20,9 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
       'The app’s version information was not found.';
 
   @override
+  String get aboutPageReleaseNotes => 'Release notes';
+
+  @override
   String get aboutPageOpenSourceLicenses => '10.0.151.1';
 
   @override

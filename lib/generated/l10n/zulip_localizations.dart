@@ -172,6 +172,12 @@ abstract class ZulipLocalizations {
   /// **'The app’s version information was not found.'**
   String get aboutPageAppVersionUnknown;
 
+  /// Item title in About Zulip page to open the current version's release notes on GitHub
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get aboutPageReleaseNotes;
+
   /// Item title in About Zulip page to navigate to Licenses page
   ///
   /// In en, this message translates to:

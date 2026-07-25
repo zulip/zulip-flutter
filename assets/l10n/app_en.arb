@@ -11,6 +11,10 @@
   "@aboutPageAppVersionUnknown": {
     "description": "Banner text in About Zulip page, shown in place of the app-version item when the version is unknown."
   },
+  "aboutPageReleaseNotes": "Release notes",
+  "@aboutPageReleaseNotes": {
+    "description": "Item title in About Zulip page to open the current version's release notes on GitHub"
+  },
   "aboutPageOpenSourceLicenses": "Open-source licenses",
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
