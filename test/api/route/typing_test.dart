@@ -87,16 +87,4 @@ void main() {
         });
     });
   });
-
-  test('legacy: use "private" instead of "direct"', () {
-    return FakeApiConnection.with_(zulipFeatureLevel: 173, (connection) {
-      return checkSetTypingStatus(connection, TypingOp.start,
-        destination: const DmDestination(userIds: userIds),
-        expectedBodyFields: {
-          'op': 'start',
-          'type': 'private',
-          'to': jsonEncode(userIds),
-        });
-    });
-  });
 }

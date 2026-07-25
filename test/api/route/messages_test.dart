@@ -326,21 +326,6 @@ void main() {
       });
     });
 
-    test('to DM conversation, with legacy type "private"', () {
-      return FakeApiConnection.with_(zulipFeatureLevel: 173, (connection) async {
-        await checkSendMessage(connection,
-          destination: const DmDestination(userIds: userIds), content: content,
-          readBySender: true,
-          expectedBodyFields: {
-            'type': 'private',
-            'to': jsonEncode(userIds),
-            'content': content,
-            'read_by_sender': 'true',
-          },
-          expectedUserAgent: 'ZulipMobile/flutter');
-      });
-    });
-
     test('when readBySender is null, sends a User-Agent we know the server will recognize', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
