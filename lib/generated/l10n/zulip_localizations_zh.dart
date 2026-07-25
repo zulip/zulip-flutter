@@ -16,6 +16,10 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get aboutPageAppVersion => 'App version';
 
   @override
+  String get aboutPageAppVersionUnknown =>
+      'The app’s version information was not found.';
+
+  @override
   String get aboutPageOpenSourceLicenses => 'Open-source licenses';
 
   @override
@@ -1421,9 +1425,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get scrollToBottomTooltip => 'Scroll to bottom';
 
   @override
-  String get appVersionUnknownPlaceholder => '(…)';
-
-  @override
   String get zulipAppTitle => 'Zulip';
 
   @override
@@ -2558,9 +2559,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get scrollToBottomTooltip => '拖动到最底';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(…)';
 
   @override
   String get zulipAppTitle => 'Zulip';
@@ -3800,9 +3798,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get scrollToBottomTooltip => '捲動至底部';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(…)';
 
   @override
   String get zulipAppTitle => 'Zulip';

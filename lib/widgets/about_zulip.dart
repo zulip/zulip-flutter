@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import 'banner.dart';
 import 'page.dart';
 
 class AboutZulipPage extends StatelessWidget {
@@ -14,7 +15,7 @@ class AboutZulipPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
-    final packageInfo = ZulipBinding.instance.syncPackageInfo;
+    final version = ZulipBinding.instance.syncPackageInfo?.version;
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.aboutPageTitle)),
       body: SingleChildScrollView(
@@ -24,10 +25,15 @@ class AboutZulipPage extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                ListTile(
-                  title: Text(zulipLocalizations.aboutPageAppVersion),
-                  subtitle: Text(packageInfo?.version
-                    ?? zulipLocalizations.appVersionUnknownPlaceholder)),
+                // The version is null if the prefetch at startup failed.
+                if (version == null)
+                  FloatingBanner(
+                    intent: .warning,
+                    label: zulipLocalizations.aboutPageAppVersionUnknown)
+                else
+                  ListTile(
+                    title: Text(zulipLocalizations.aboutPageAppVersion),
+                    subtitle: Text(version)),
                 ListTile(
                   title: Text(zulipLocalizations.aboutPageOpenSourceLicenses),
                   subtitle: Text(zulipLocalizations.aboutPageTapToView),

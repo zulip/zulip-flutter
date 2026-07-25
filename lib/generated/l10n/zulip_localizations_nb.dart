@@ -16,6 +16,10 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
   String get aboutPageAppVersion => 'App versjon';
 
   @override
+  String get aboutPageAppVersionUnknown =>
+      'The app’s version information was not found.';
+
+  @override
   String get aboutPageOpenSourceLicenses => 'Lisenser for åpen kildekode';
 
   @override
@@ -1419,9 +1423,6 @@ class ZulipLocalizationsNb extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Scroll to bottom';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(…)';
 
   @override
   String get zulipAppTitle => 'Zulip';

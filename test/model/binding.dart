@@ -271,7 +271,9 @@ class TestZulipBinding extends ZulipBinding {
   BaseDeviceInfo? get syncDeviceInfo => deviceInfoResult;
 
   /// The value that `ZulipBinding.instance.packageInfo` should return.
-  PackageInfo packageInfoResult = _defaultPackageInfo;
+  ///
+  /// Null simulates the prefetch at startup having failed.
+  PackageInfo? packageInfoResult = _defaultPackageInfo;
   static final _defaultPackageInfo = eg.packageInfo();
 
   void _resetPackageInfo() {

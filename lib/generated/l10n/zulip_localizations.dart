@@ -166,6 +166,12 @@ abstract class ZulipLocalizations {
   /// **'App version'**
   String get aboutPageAppVersion;
 
+  /// Banner text in About Zulip page, shown in place of the app-version item when the version is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'The app’s version information was not found.'**
+  String get aboutPageAppVersionUnknown;
+
   /// Item title in About Zulip page to navigate to Licenses page
   ///
   /// In en, this message translates to:
@@ -2471,12 +2477,6 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Scroll to bottom'**
   String get scrollToBottomTooltip;
-
-  /// Placeholder to show in place of the app version when it is unknown.
-  ///
-  /// In en, this message translates to:
-  /// **'(…)'**
-  String get appVersionUnknownPlaceholder;
 
   /// The name of Zulip. This should be either 'Zulip' or a transliteration.
   ///
