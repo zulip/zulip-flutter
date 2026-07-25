@@ -4,7 +4,7 @@ import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
 import 'page.dart';
 
-class AboutZulipPage extends StatefulWidget {
+class AboutZulipPage extends StatelessWidget {
   const AboutZulipPage({super.key});
 
   static Route<void> buildRoute(BuildContext context) {
@@ -12,26 +12,9 @@ class AboutZulipPage extends StatefulWidget {
   }
 
   @override
-  State<AboutZulipPage> createState() => _AboutZulipPageState();
-}
-
-class _AboutZulipPageState extends State<AboutZulipPage> {
-  PackageInfo? _packageInfo;
-
-  @override
-  void initState() {
-    super.initState();
-    (() async {
-      final result = await ZulipBinding.instance.packageInfo;
-      setState(() {
-        _packageInfo = result;
-      });
-    })();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final packageInfo = ZulipBinding.instance.syncPackageInfo;
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.aboutPageTitle)),
       body: SingleChildScrollView(
@@ -43,7 +26,7 @@ class _AboutZulipPageState extends State<AboutZulipPage> {
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 ListTile(
                   title: Text(zulipLocalizations.aboutPageAppVersion),
-                  subtitle: Text(_packageInfo?.version
+                  subtitle: Text(packageInfo?.version
                     ?? zulipLocalizations.appVersionUnknownPlaceholder)),
                 ListTile(
                   title: Text(zulipLocalizations.aboutPageOpenSourceLicenses),
