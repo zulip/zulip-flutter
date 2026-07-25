@@ -50,19 +50,11 @@ class ZulipBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final (labelColor, backgroundColor, semanticsRole) = switch (intent) {
-      ZulipBannerIntent.info => (
-        designVariables.bannerTextIntInfo,
-        designVariables.bannerBgIntInfo,
-        SemanticsRole.status),
-      ZulipBannerIntent.warning => (
-        designVariables.btnLabelAttMediumIntWarning,
-        designVariables.bannerBgIntWarning,
-        SemanticsRole.alert),
-      ZulipBannerIntent.danger => (
-        designVariables.btnLabelAttMediumIntDanger,
-        designVariables.bannerBgIntDanger,
-        SemanticsRole.alert),
+    final (labelColor, backgroundColor) = _intentColors(designVariables, intent);
+
+    final semanticsRole = switch (intent) {
+      .info => SemanticsRole.status,
+      .warning || .danger => SemanticsRole.alert,
     };
 
     Widget result = DecoratedBox(
@@ -105,4 +97,22 @@ enum ZulipBannerIntent {
   info,
   warning,
   danger,
+}
+
+/// The label color and background color for [intent].
+(Color, Color) _intentColors(
+  DesignVariables designVariables,
+  ZulipBannerIntent intent,
+) {
+  return switch (intent) {
+    .info => (
+      designVariables.bannerTextIntInfo,
+      designVariables.bannerBgIntInfo),
+    .warning => (
+      designVariables.btnLabelAttMediumIntWarning,
+      designVariables.bannerBgIntWarning),
+    .danger => (
+      designVariables.btnLabelAttMediumIntDanger,
+      designVariables.bannerBgIntDanger),
+  };
 }
