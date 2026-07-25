@@ -95,47 +95,13 @@ class GetChannelTopicsEntry {
   Map<String, dynamic> toJson() => _$GetChannelTopicsEntryToJson(this);
 }
 
-/// Update a topic's visibility policy.
-///
-/// This encapsulates a server-feature check.
-// TODO(server-7): remove this and just use updateUserTopic
-Future<void> updateUserTopicCompat(ApiConnection connection, {
-  required int channelId,
-  required TopicName topic,
-  required UserTopicVisibilityPolicy visibilityPolicy,
-}) {
-  final useLegacyApi = connection.zulipFeatureLevel! < 170;
-  if (useLegacyApi) {
-    final op = switch (visibilityPolicy) {
-      UserTopicVisibilityPolicy.none => 'remove',
-      UserTopicVisibilityPolicy.muted => 'add',
-      _ => throw UnsupportedError('$visibilityPolicy on old server'),
-    };
-    // https://zulip.com/api/mute-topic
-    return connection.patch('muteTopic', (_) {}, 'users/me/subscriptions/muted_topics', {
-      'stream_id': channelId,
-      'topic': RawParameter(topic.apiName),
-      'op': RawParameter(op),
-    });
-  } else {
-    return updateUserTopic(connection,
-      channelId: channelId,
-      topic: topic,
-      visibilityPolicy: visibilityPolicy);
-  }
-}
-
 /// https://zulip.com/api/update-user-topic
-///
-/// This binding only supports feature levels 170+.
-// TODO(server-7) remove FL 170+ mention in doc, and the related `assert`
 Future<void> updateUserTopic(ApiConnection connection, {
   required int channelId,
   required TopicName topic,
   required UserTopicVisibilityPolicy visibilityPolicy,
 }) {
   assert(visibilityPolicy != UserTopicVisibilityPolicy.unknown);
-  assert(connection.zulipFeatureLevel! >= 170);
   return connection.post('updateUserTopic', (_) {}, 'user_topics', {
     'stream_id': channelId,
     'topic': RawParameter(topic.apiName),
