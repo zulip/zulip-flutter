@@ -1086,8 +1086,6 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       return; // Nothing to do (getFiles handles user feedback)
     }
 
-    // https://github.com/dart-lang/linter/issues/4007
-    // ignore: use_build_context_synchronously
     if (!context.mounted) {
       return;
     }
