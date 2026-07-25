@@ -584,8 +584,6 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       // TODO(server-7): Rely on user_id from fetchApiKey.
       final int userId = result.userId
         ?? await widget.loginPageState._getUserId(result.email, result.apiKey);
-      // https://github.com/dart-lang/linter/issues/4007
-      // ignore: use_build_context_synchronously
       if (!context.mounted) {
         return;
       }
