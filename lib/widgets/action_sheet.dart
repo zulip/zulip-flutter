@@ -971,7 +971,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
 
   @override void onPressed() async {
     try {
-      await updateUserTopicCompat(
+      await updateUserTopic(
         PerAccountStoreWidget.of(pageContext).connection,
         channelId: narrow.channelId,
         topic: narrow.topic,
