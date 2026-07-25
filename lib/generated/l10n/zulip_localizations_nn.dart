@@ -23,9 +23,6 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'Lisensar for open kjeldekode';
 
   @override
-  String get aboutPageTapToView => 'Tæpp for å sjå';
-
-  @override
   String get upgradeWelcomeDialogTitle => 'Velkomen til den nye Zulip-appen!';
 
   @override

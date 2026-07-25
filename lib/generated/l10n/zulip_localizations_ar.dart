@@ -23,9 +23,6 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => '10.0.151.1';
 
   @override
-  String get aboutPageTapToView => 'اضغط للعرض';
-
-  @override
   String get upgradeWelcomeDialogTitle => 'أهلا بك في تطبيق زوليب الجديد !';
 
   @override

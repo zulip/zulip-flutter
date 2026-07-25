@@ -23,9 +23,6 @@ class ZulipLocalizationsHu extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'Open-source licenses';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
-
-  @override
   String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
 
   @override

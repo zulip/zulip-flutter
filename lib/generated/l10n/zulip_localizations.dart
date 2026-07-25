@@ -178,12 +178,6 @@ abstract class ZulipLocalizations {
   /// **'Open-source licenses'**
   String get aboutPageOpenSourceLicenses;
 
-  /// Item subtitle in About Zulip page to navigate to Licenses page
-  ///
-  /// In en, this message translates to:
-  /// **'Tap to view'**
-  String get aboutPageTapToView;
-
   /// Title for dialog shown on first upgrade from the legacy Zulip app.
   ///
   /// In en, this message translates to:

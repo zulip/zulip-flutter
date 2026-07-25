@@ -23,9 +23,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'Open-source licenses';
 
   @override
-  String get aboutPageTapToView => 'Tap to view';
-
-  @override
   String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
 
   @override
@@ -1448,9 +1445,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get aboutPageOpenSourceLicenses => '开源许可';
 
   @override
-  String get aboutPageTapToView => '查看更多';
-
-  @override
   String get upgradeWelcomeDialogTitle => '欢迎来到新的 Zulip 应用程序！';
 
   @override
@@ -2579,9 +2573,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get aboutPageOpenSourceLicenses => '開源授權條款';
-
-  @override
-  String get aboutPageTapToView => '點選查看';
 
   @override
   String get upgradeWelcomeDialogTitle => '歡迎使用新的 Zulip 應用程式！';

@@ -23,9 +23,6 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'Odprtokodne licence';
 
   @override
-  String get aboutPageTapToView => 'Dotaknite se za ogled';
-
-  @override
   String get upgradeWelcomeDialogTitle => 'Dobrodošli v novi aplikaciji Zulip!';
 
   @override
