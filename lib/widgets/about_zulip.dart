@@ -63,13 +63,7 @@ class AboutZulipPage extends StatelessWidget {
                       style: .list,
                       label: zulipLocalizations.aboutPageOpenSourceLicenses,
                       icon: ZulipIcons.chevron_right,
-                      onPressed: () {
-                        // TODO(upstream?): This route and its child routes (pushed
-                        //   when you tap a package to view its licenses) can't be
-                        //   popped on iOS with the swipe-away gesture; you have to
-                        //   tap the "Back" button. Debug/fix.
-                        showLicensePage(context: context);
-                      }),
+                      onPressed: () => showLicensePage(context: context)),
                   ]),
                 ])))),
       ));
