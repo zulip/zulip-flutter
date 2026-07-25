@@ -493,6 +493,9 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Kunne ikkje redigera meldinga';
 
   @override
+  String get successAppVersionCopied => 'App version copied';
+
+  @override
   String get successLinkCopied => 'Kopierte lenka';
 
   @override

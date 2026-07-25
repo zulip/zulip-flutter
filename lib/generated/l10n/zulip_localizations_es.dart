@@ -503,6 +503,9 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'No se ha podido editar el mensaje';
 
   @override
+  String get successAppVersionCopied => 'App version copied';
+
+  @override
   String get successLinkCopied => 'Enlace copiado';
 
   @override

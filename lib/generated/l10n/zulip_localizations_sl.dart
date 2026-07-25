@@ -514,6 +514,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Sporočila ni mogoče urediti';
 
   @override
+  String get successAppVersionCopied => 'App version copied';
+
+  @override
   String get successLinkCopied => 'Povezava je bila kopirana';
 
   @override

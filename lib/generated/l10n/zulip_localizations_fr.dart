@@ -516,6 +516,9 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Le message n\'a pas pu être modifié';
 
   @override
+  String get successAppVersionCopied => 'App version copied';
+
+  @override
   String get successLinkCopied => 'Lien copié';
 
   @override

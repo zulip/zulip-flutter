@@ -948,6 +948,12 @@ abstract class ZulipLocalizations {
   /// **'Could not edit message'**
   String get errorCouldNotEditMessageTitle;
 
+  /// Success message after the app version was copied to the user's system clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'App version copied'**
+  String get successAppVersionCopied;
+
   /// Success message after copy link action completed.
   ///
   /// In en, this message translates to:

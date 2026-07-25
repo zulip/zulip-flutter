@@ -504,6 +504,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Не вдалося редагувати повідомлення';
 
   @override
+  String get successAppVersionCopied => 'App version copied';
+
+  @override
   String get successLinkCopied => 'Посилання скопійовано';
 
   @override

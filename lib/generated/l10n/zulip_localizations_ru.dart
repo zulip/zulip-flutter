@@ -505,6 +505,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Сбой редактирования';
 
   @override
+  String get successAppVersionCopied => 'App version copied';
+
+  @override
   String get successLinkCopied => 'Ссылка скопирована';
 
   @override

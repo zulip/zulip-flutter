@@ -584,6 +584,10 @@
   "@errorCouldNotEditMessageTitle": {
     "description": "Error title when an exception prevented us from opening the compose box for editing a message."
   },
+  "successAppVersionCopied": "App version copied",
+  "@successAppVersionCopied": {
+    "description": "Success message after the app version was copied to the user's system clipboard."
+  },
   "successLinkCopied": "Link copied",
   "@successLinkCopied": {
     "description": "Success message after copy link action completed."

@@ -491,6 +491,9 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Could not edit message';
 
   @override
+  String get successAppVersionCopied => 'App version copied';
+
+  @override
   String get successLinkCopied => 'Link copied';
 
   @override

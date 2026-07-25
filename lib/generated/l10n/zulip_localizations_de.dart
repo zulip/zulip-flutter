@@ -513,6 +513,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Konnte Nachricht nicht bearbeiten';
 
   @override
+  String get successAppVersionCopied => 'App version copied';
+
+  @override
   String get successLinkCopied => 'Link kopiert';
 
   @override

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import 'actions.dart';
 import 'banner.dart';
 import 'page.dart';
 
@@ -33,7 +35,10 @@ class AboutZulipPage extends StatelessWidget {
                 else
                   ListTile(
                     title: Text(zulipLocalizations.aboutPageAppVersion),
-                    subtitle: Text(version)),
+                    subtitle: Text(version),
+                    onTap: () => PlatformActions.copyWithPopup(context: context,
+                      data: ClipboardData(text: version),
+                      successContent: Text(zulipLocalizations.successAppVersionCopied))),
                 ListTile(
                   title: Text(zulipLocalizations.aboutPageOpenSourceLicenses),
                   subtitle: Text(zulipLocalizations.aboutPageTapToView),
