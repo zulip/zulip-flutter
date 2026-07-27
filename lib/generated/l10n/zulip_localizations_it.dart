@@ -335,10 +335,10 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   }
 
   @override
-  String get actionSheetTitleSelfDm => 'DMs with yourself';
+  String get actionSheetTitleSelfDm => 'DM con te stesso';
 
   @override
-  String get actionSheetTitleGroupDm => 'Group DM';
+  String get actionSheetTitleGroupDm => 'Gruppo DM';
 
   @override
   String get actionSheetOptionViewProfile => 'Vedi profilo';
@@ -821,7 +821,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'This is the address you would use to open Zulip in a browser.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Aiuto';
 
   @override
   String get loginHidePassword => 'Nascondi password';
@@ -923,7 +923,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get errorVideoPlayerFailedTryBrowser =>
-      'Try opening it in your browser instead.';
+      'Prova invece ad aprirlo nel tuo browser.';
 
   @override
   String get dialogOpenInBrowser => 'Apri nel browser';

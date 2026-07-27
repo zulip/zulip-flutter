@@ -409,7 +409,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'Не удалось прочитать файл: $filename';
   }
 
   @override
@@ -812,10 +812,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'Адрес для использования Zulip в браузере.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Помощь';
 
   @override
   String get loginHidePassword => 'Скрыть пароль';
