@@ -453,7 +453,6 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
 //   to customize by composition in a reasonable way.
 abstract class _MessageListAppBar {
   static AppBar build(BuildContext context, {required Narrow narrow}) {
-    final store = PerAccountStoreWidget.of(context);
     final messageListTheme = MessageListTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
@@ -468,9 +467,8 @@ abstract class _MessageListAppBar {
 
       case ChannelNarrow(:final channelId):
       case TopicNarrow(:final channelId):
-        final subscription = store.subscriptions[channelId];
         appBarBackgroundColor =
-          colorSwatchFor(context, subscription).barBackground;
+          colorSwatchFor(context, channelId).barBackground;
         // All recipient headers will match this color; remove distracting line
         // (but are recipient headers even needed for topic narrows?)
         removeAppBarBottomBorder = true;
@@ -584,7 +582,6 @@ class MessageListAppBarTitle extends StatelessWidget {
   Widget _buildStreamRow(BuildContext context, {
     ZulipStream? stream,
   }) {
-    final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     // A null [Icon.icon] makes a blank space.
@@ -592,7 +589,7 @@ class MessageListAppBarTitle extends StatelessWidget {
     Color? iconColor;
     if (stream != null) {
       icon = iconDataForStream(stream);
-      iconColor = colorSwatchFor(context, store.subscriptions[stream.streamId])
+      iconColor = colorSwatchFor(context, stream.streamId)
         .iconOnBarBackground;
     }
 
@@ -1870,7 +1867,7 @@ class StreamMessageRecipientHeader extends StatelessWidget {
     final streamId = message.conversation.streamId;
     final topic = message.conversation.topic;
 
-    final swatch = colorSwatchFor(context, store.subscriptions[streamId]);
+    final swatch = colorSwatchFor(context, streamId);
     final backgroundColor = swatch.barBackground;
     final iconColor = swatch.iconOnBarBackground;
 

@@ -886,8 +886,7 @@ InlineSpan channelTopicLabelSpan({
   final zulipLocalizations = ZulipLocalizations.of(context);
   final store = PerAccountStoreWidget.of(context);
   final channel = store.streams[channelId];
-  final subscription = store.subscriptions[channelId];
-  final swatch = colorSwatchFor(context, subscription);
+  final swatch = colorSwatchFor(context, channelId);
   final channelIcon = channel != null ? iconDataForStream(channel) : null;
   final baselineType = localizedTextBaseline(context);
 
