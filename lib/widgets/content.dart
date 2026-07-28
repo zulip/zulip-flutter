@@ -631,6 +631,8 @@ class MessageImagePreviewList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
+      spacing: 5,
+      runSpacing: 5,
       children: node.imagePreviews.map((node) => MessageImagePreview(node: node)).toList());
   }
 }
