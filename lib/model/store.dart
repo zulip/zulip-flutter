@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_foundation/path_provider_foundation.dart';
@@ -22,6 +23,7 @@ import '../log.dart';
 import '../notifications/ios_service.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
+import 'binding.dart';
 import 'database.dart';
 import 'emoji.dart';
 import 'localizations.dart';
@@ -1622,6 +1624,9 @@ class UpdateMachine {
 
   void poll() async {
     assert(!_disposed);
+    assert(_appLifecycleSubscription == null);
+    _appLifecycleSubscription = ZulipBinding.instance.appLifecycleStateChanges
+      .listen(_handleAppLifecycleStateChange);
     try {
       while (true) {
         if (_debugLoopSignal != null) {
@@ -1688,6 +1693,32 @@ class UpdateMachine {
 
   BackoffMachine? _pollBackoffMachine;
 
+  @visibleForTesting
+  BackoffMachine? get debugPollBackoffMachine => _pollBackoffMachine;
+
+  StreamSubscription<AppLifecycleState>? _appLifecycleSubscription;
+
+  /// Non-null just when the most recent poll failure suggests
+  /// the device was asleep or the app was in the background,
+  /// so that waking should discard the accumulated backoff state.
+  ///
+  /// Completing it aborts the backoff wait in progress, if any.
+  /// See [_handleAppLifecycleStateChange].
+  Completer<void>? _pollBackoffAbortTrigger;
+
+  void _handleAppLifecycleStateChange(AppLifecycleState state) {
+    assert(!_disposed); // The subscription is canceled in [dispose].
+    if (state != .resumed) return;
+    if (_pollBackoffAbortTrigger case final trigger?) {
+      // Retry immediately, and if the network still isn't back
+      // (it can take a moment after waking), let backoff start over small.
+      assert(debugLog('App returned to foreground; aborting poll backoff.'));
+      _pollBackoffMachine = null;
+      _pollBackoffAbortTrigger = null;
+      trigger.complete();
+    }
+  }
+
   /// This controls when we start to report transient errors to the user when
   /// polling.
   ///
@@ -1714,6 +1745,7 @@ class UpdateMachine {
     // (See comments on that code for why this behavior is helpful.)
     // If server logs show pressure from too many requests, we can investigate.
     _pollBackoffMachine = null;
+    _pollBackoffAbortTrigger = null;
 
     store.isRecoveringEventStream = false;
     _accumulatedTransientFailureCount = 0;
@@ -1743,10 +1775,14 @@ class UpdateMachine {
     }
 
     bool shouldReportToUser;
+    bool abortBackoffOnWake = false;
     switch (error) {
       case NetworkException(kind: .connectionFailed):
         // A failed connection is common when the app returns from sleep.
         shouldReportToUser = false;
+        // Probably the OS cut off network access while the app was in
+        // the background; see #1884.
+        abortBackoffOnWake = true;
 
       case NetworkException():
       case Server5xxException():
@@ -1774,7 +1810,9 @@ class UpdateMachine {
     if (shouldReportToUser) {
       _maybeReportToUserTransientError(error);
     }
-    await (_pollBackoffMachine ??= BackoffMachine()).wait();
+    _pollBackoffAbortTrigger = abortBackoffOnWake ? Completer() : null;
+    await (_pollBackoffMachine ??= BackoffMachine())
+      .wait(abortTrigger: _pollBackoffAbortTrigger?.future);
     if (_disposed) return;
     assert(debugLog('… Backoff wait complete, retrying poll.'));
   }
@@ -1892,6 +1930,7 @@ class UpdateMachine {
   /// requests to error. [PerAccountStore.dispose] does that.
   void dispose() {
     assert(!_disposed);
+    _appLifecycleSubscription?.cancel();
     _disposed = true;
   }
 

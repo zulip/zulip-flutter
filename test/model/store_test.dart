@@ -806,6 +806,8 @@ void main() {
       int? lastEventId,
       int? eventQueueLongpollTimeoutSeconds,
     }) async {
+      // The poll loop subscribes to testBinding.appLifecycleStateChanges.
+      addTearDown(testBinding.reset);
       globalStore = eg.globalStore();
       await globalStore.add(eg.selfAccount, eg.initialSnapshot(
         lastEventId: lastEventId,
@@ -1074,6 +1076,109 @@ void main() {
 
     test('reloads on handleEvent error', () {
       checkReload(prepareHandleEventError);
+    });
+
+    group('abort backoff on app wake', () {
+      test('abort wait in progress', () => awaitFakeAsync((async) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/1884
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Make the request, inducing a network failure in it.
+        prepareNetworkExceptionConnectionFailed();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(store).isRecoveringEventStream.isTrue();
+        check(async.pendingTimers).length.equals(1);
+
+        // On coming to the foreground, polling resumes immediately,
+        // well before the backoff duration has elapsed.
+        // (The second, redundant resume event checks that
+        // a duplicate doesn't complete the abort trigger twice.)
+        connection.prepare(json: GetEventsResult(events: [
+          HeartbeatEvent(id: 2),
+        ], queueId: null).toJson());
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        // The wake also discarded the accumulated backoff state.
+        check(updateMachine.debugPollBackoffMachine).isNull();
+        async.elapse(Duration.zero);
+        check(updateMachine.lastEventId).equals(2);
+        check(store).isRecoveringEventStream.isFalse();
+      }));
+
+      test('reset backoff state on resume with no wait in progress', () => awaitFakeAsync((async) async {
+        // A resume means the preceding connection failures were probably
+        // sleep-induced, so the grown backoff state is discarded even when
+        // there's no wait in progress to abort: if polling fails again
+        // after the wake (the network can take a moment to come back),
+        // backoff should start over small.
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail, and wait out the backoff normally.
+        prepareNetworkExceptionConnectionFailed();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        async.flushTimers();
+        check(updateMachine.debugPollBackoffMachine).isNotNull();
+
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(updateMachine.debugPollBackoffMachine).isNull();
+      }));
+
+      test('no abort when backoff is from non-network error', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        prepareServer5xxException();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(async.pendingTimers).length.equals(1);
+
+        // Coming to the foreground doesn't cut the backoff short,
+        // and doesn't discard the accumulated backoff state either.
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+        check(async.pendingTimers).length.equals(1);
+        check(updateMachine.debugPollBackoffMachine).isNotNull();
+
+        // Polling continues after the backoff.
+        connection.prepare(json: GetEventsResult(events: [
+          HeartbeatEvent(id: 2),
+        ], queueId: null).toJson());
+        async.flushTimers();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      test('no effect when no backoff in progress', () => awaitFakeAsync((async) async {
+        await preparePoll(lastEventId: 1);
+
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+        check(async.pendingTimers).isEmpty();
+      }));
+
+      test('no effect after dispose', () => awaitFakeAsync((async) async {
+        await preparePoll(lastEventId: 1);
+
+        updateMachine.dispose();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+      }));
     });
 
     group('report error', () {
