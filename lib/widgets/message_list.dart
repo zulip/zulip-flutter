@@ -248,7 +248,7 @@ class MessageListPage extends StatefulWidget {
     return state.narrow;
   }
 
-  /// The "revealed" state of a message from a muted sender,
+  /// The UI state about messages in a [MessageListPage] instance,
   /// if there is a [MessageListPage] ancestor, else null.
   ///
   /// This is updated via [MessageListPageState.revealMutedMessage]
@@ -256,9 +256,9 @@ class MessageListPage extends StatefulWidget {
   ///
   /// Uses the efficient [BuildContext.dependOnInheritedWidgetOfExactType],
   /// so this is safe to call in a build method.
-  static RevealedMutedMessagesState? maybeRevealedMutedMessagesOf(BuildContext context) {
+  static LocalMessagesState? maybeLocalMessagesOf(BuildContext context) {
     final state =
-      context.dependOnInheritedWidgetOfExactType<_RevealedMutedMessagesProvider>()
+      context.dependOnInheritedWidgetOfExactType<_LocalMessagesProvider>()
       ?.state;
     return state;
   }
@@ -354,16 +354,16 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     });
   }
 
-  final _revealedMutedMessages = RevealedMutedMessagesState();
+  final _localMessages = LocalMessagesState();
 
   @override
   void revealMutedMessage(int messageId) {
-    _revealedMutedMessages._add(messageId);
+    _localMessages._addRevealedMessage(messageId);
   }
 
   @override
   void unrevealMutedMessage(int messageId) {
-    _revealedMutedMessages._remove(messageId);
+    _localMessages._removeRevealedMessage(messageId);
   }
 
   @override
@@ -434,8 +434,7 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     // to provide a context that can be used for MessageListPage.ancestorOf.
     result = PageRoot(child: result);
 
-    result = _RevealedMutedMessagesProvider(state: _revealedMutedMessages,
-      child: result);
+    result = _LocalMessagesProvider(state: _localMessages, child: result);
 
     return result;
   }
@@ -528,30 +527,33 @@ abstract class _MessageListAppBar {
   }
 }
 
-class RevealedMutedMessagesState extends ChangeNotifier {
+/// UI state about messages in this [MessageListPage] instance.
+///
+/// Tracks "revealed messages" (see [MessageListPageState.revealMutedMessage]).
+class LocalMessagesState extends ChangeNotifier {
   final Set<int> _revealedMessages = {};
 
   bool isMutedMessageRevealed(int messageId) =>
     _revealedMessages.contains(messageId);
 
-  void _add(int messageId) {
+  void _addRevealedMessage(int messageId) {
     _revealedMessages.add(messageId);
     notifyListeners();
   }
 
-  void _remove(int messageId) {
+  void _removeRevealedMessage(int messageId) {
     _revealedMessages.remove(messageId);
     notifyListeners();
   }
 }
 
-class _RevealedMutedMessagesProvider extends InheritedNotifier<RevealedMutedMessagesState> {
-  const _RevealedMutedMessagesProvider({
-    required RevealedMutedMessagesState state,
+class _LocalMessagesProvider extends InheritedNotifier<LocalMessagesState> {
+  const _LocalMessagesProvider({
+    required LocalMessagesState state,
     required super.child,
   }) : super(notifier: state);
 
-  RevealedMutedMessagesState get state => notifier!;
+  LocalMessagesState get state => notifier!;
 }
 
 class _TopicListButton extends StatelessWidget {
@@ -2129,13 +2131,12 @@ class SenderRow extends StatelessWidget {
     final message = this.message;
     if (!store.isUserMuted(message.senderId)) return false;
     if (message is! Message) return false; // i.e., if an outbox message
-    final revealedMutedMessagesState =
-      MessageListPage.maybeRevealedMutedMessagesOf(context);
-    // The "unrevealed" state only exists in the message list,
+    final localMessagesState = MessageListPage.maybeLocalMessagesOf(context);
+    // The messages state only exists in the message list,
     // and we show a sender row in at least one place outside the message list
     // (the message action sheet).
-    if (revealedMutedMessagesState == null) return false;
-    return !revealedMutedMessagesState.isMutedMessageRevealed(message.id);
+    if (localMessagesState == null) return false;
+    return !localMessagesState.isMutedMessageRevealed(message.id);
   }
 
   @override
@@ -2395,7 +2396,7 @@ class MessageWithPossibleSender extends StatelessWidget {
     };
 
     final showAsMuted = store.isUserMuted(message.senderId)
-      && !MessageListPage.maybeRevealedMutedMessagesOf(context)!
+      && !MessageListPage.maybeLocalMessagesOf(context)!
                          .isMutedMessageRevealed(message.id);
 
     return GestureDetector(
