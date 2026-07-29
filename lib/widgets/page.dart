@@ -252,22 +252,26 @@ class LoadingPlaceholderPage extends StatelessWidget {
 class PageBodyEmptyContentPlaceholder extends StatelessWidget {
   const PageBodyEmptyContentPlaceholder({
     super.key,
+    this.illustration,
     this.header,
     this.headerWithLinkMarkup,
     this.onTapHeaderLink,
     this.message,
     this.messageWithLinkMarkup,
     this.onTapMessageLink,
+    this.trailing,
   }) : assert(
          (header != null)
          ^ (headerWithLinkMarkup != null && onTapHeaderLink != null));
 
+  final Widget? illustration;
   final String? header;
   final String? headerWithLinkMarkup;
   final VoidCallback? onTapHeaderLink;
   final String? message;
   final String? messageWithLinkMarkup;
   final VoidCallback? onTapMessageLink;
+  final Widget? trailing;
 
   TextStyle _headerStyle(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -335,10 +339,13 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
             spacing: 16,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // TODO leading and trailing elements, like in Figma (given as SVGs):
-              //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=5957-167736&m=dev
+              ?illustration,
               header,
               ?message,
+              ...[
+                const SizedBox(height: 8),
+                ?trailing,
+              ],
             ]))));
   }
 }
