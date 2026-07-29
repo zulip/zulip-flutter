@@ -175,6 +175,11 @@ abstract class MessageListPageState extends State<MessageListPage> {
   /// For a message from a muted sender, hide the sender and content again
   /// with the "Muted user" placeholder.
   void unrevealMutedMessage(int messageId);
+
+  /// Take the conversation of [messageId] as the default destination
+  /// for messages composed on this page,
+  /// or forget any such destination if [messageId] is null.
+  void updateReplyDestination(int? messageId);
 }
 
 class MessageListPage extends StatefulWidget {
@@ -367,6 +372,11 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
   }
 
   @override
+  void updateReplyDestination(int? messageId) {
+    _localMessages.messageForReplyDestination = messageId;
+  }
+
+  @override
   void initState() {
     super.initState();
     narrow = widget.initNarrow;
@@ -529,7 +539,9 @@ abstract class _MessageListAppBar {
 
 /// UI state about messages in this [MessageListPage] instance.
 ///
-/// Tracks "revealed messages" (see [MessageListPageState.revealMutedMessage]).
+/// Tracks "revealed messages" (see [MessageListPageState.revealMutedMessage])
+/// and the message that determines the default destination when composing
+/// (see [MessageListPageState.updateReplyDestination]).
 class LocalMessagesState extends ChangeNotifier {
   final Set<int> _revealedMessages = {};
 
@@ -543,6 +555,24 @@ class LocalMessagesState extends ChangeNotifier {
 
   void _removeRevealedMessage(int messageId) {
     _revealedMessages.remove(messageId);
+    notifyListeners();
+  }
+
+  /// The message that determines the default destination when composing,
+  /// as a message ID, or null if there is none.
+  ///
+  /// This is the newest message with any part of it in the viewport:
+  /// the message nearest the compose box,
+  /// and so the likeliest one the user means to reply to.
+  ///
+  /// This is null when no message is in the viewport,
+  /// whether because the message list is empty or still loading,
+  /// or because an overscroll drag has pushed the messages out of view.
+  int? get messageForReplyDestination => _messageForReplyDestination;
+  int? _messageForReplyDestination;
+  set messageForReplyDestination(int? value) {
+    if (value == _messageForReplyDestination) return;
+    _messageForReplyDestination = value;
     notifyListeners();
   }
 }
@@ -925,6 +955,11 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     });
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      MessageListPage.ancestorOf(context)
+        .updateReplyDestination(_findMessagesInViewport().messageForReplyDestination);
+
       if (!model.fetched || !scrollController.hasClients) {
         return;
       }
@@ -959,18 +994,32 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     }
   }
 
-  /// Find the range of message IDs on screen, as a (first, last) tuple,
-  /// or null if no messages are onscreen.
+  /// Find the messages onscreen, by two different criteria.
   ///
-  /// A message is considered onscreen if its bottom edge is in the viewport.
+  /// The `rangeToMarkRead` field gives the range of message IDs whose
+  /// bottom edge is in the viewport, as a (first, last) tuple,
+  /// or null if there are none.
+  /// Requiring the bottom edge means the user has seen the message
+  /// through its end.
+  ///
+  /// The `messageForReplyDestination` field gives the newest message ID
+  /// with any part of it in the viewport, or null if there are none.
+  /// That looser criterion picks the message nearest the compose box,
+  /// the most suitable one for a reply destination.
   ///
   /// Ignores outbox messages.
-  (int, int)? _findMessagesInViewport() {
-    final scrollViewElement = _scrollViewKey.currentContext as Element;
-    final scrollViewRenderObject = scrollViewElement.renderObject as RenderBox;
+  ({(int, int)? rangeToMarkRead, int? messageForReplyDestination}) _findMessagesInViewport() {
+    final scrollViewElement = _scrollViewKey.currentContext as Element?;
+    if (scrollViewElement == null) {
+      return (rangeToMarkRead: null, messageForReplyDestination: null);
+    }
 
-    int? first;
-    int? last;
+    final scrollViewRenderObject = scrollViewElement.renderObject as RenderBox;
+    final viewportHeight = scrollViewRenderObject.size.height;
+
+    int? firstWithBottomInViewport;
+    int? lastWithBottomInViewport;
+    int? lastInViewport;
     void visit(Element element) {
       final widget = element.widget;
       switch (widget) {
@@ -984,20 +1033,29 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
           return; // ignore outbox
 
         case MessageItem(item: MessageListMessageItem(:final message)):
-          final isInViewport = _isMessageItemInViewport(
+          final (top, bottom) = _messageBoundsInViewport(
             element, scrollViewRenderObject: scrollViewRenderObject);
+
+          final isBottomInViewport = 0 < bottom && bottom <= viewportHeight;
+          if (isBottomInViewport) {
+            if (firstWithBottomInViewport == null) {
+              assert(lastWithBottomInViewport == null);
+              firstWithBottomInViewport = message.id;
+              lastWithBottomInViewport = message.id;
+            } else {
+              if (message.id < firstWithBottomInViewport!) {
+                firstWithBottomInViewport = message.id;
+              }
+              if (lastWithBottomInViewport! < message.id) {
+                lastWithBottomInViewport = message.id;
+              }
+            }
+          }
+
+          final isInViewport = bottom > 0 && top < viewportHeight;
           if (isInViewport) {
-            if (first == null) {
-              assert(last == null);
-              first = message.id;
-              last = message.id;
-              return;
-            }
-            if (message.id < first!) {
-              first = message.id;
-            }
-            if (last! < message.id) {
-              last = message.id;
+            if (lastInViewport == null || message.id > lastInViewport!) {
+              lastInViewport = message.id;
             }
           }
           return; // no need to look for more MessageItems inside this one
@@ -1008,36 +1066,37 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     }
     scrollViewElement.visitChildElements(visit);
 
-    if (first == null) {
-      assert(last == null);
-      return null;
-    }
-    return (first!, last!);
+    assert((firstWithBottomInViewport == null) == (lastWithBottomInViewport == null));
+    return (
+      rangeToMarkRead: firstWithBottomInViewport == null
+        ? null
+        : (firstWithBottomInViewport!, lastWithBottomInViewport!),
+      messageForReplyDestination: lastInViewport,
+    );
   }
 
-  bool _isMessageItemInViewport(
+  /// The top and bottom edges of the message, in the scroll view's coordinates.
+  (double, double) _messageBoundsInViewport(
     Element element, {
     required RenderBox scrollViewRenderObject,
   }) {
     assert(element.widget is MessageItem
       && (element.widget as MessageItem).item is MessageListMessageItem);
-    final viewportHeight = scrollViewRenderObject.size.height;
 
     final messageRenderObject = element.renderObject as RenderBox;
 
-    final messageBottom = messageRenderObject.localToGlobal(
-      Offset(0, messageRenderObject.size.height),
-      ancestor: scrollViewRenderObject).dy;
-
-    return 0 < messageBottom && messageBottom <= viewportHeight;
+    return (
+      messageRenderObject.localToGlobal(Offset.zero,
+        ancestor: scrollViewRenderObject).dy,
+      messageRenderObject.localToGlobal(
+        Offset(0, messageRenderObject.size.height),
+        ancestor: scrollViewRenderObject).dy,
+    );
   }
 
   (int, int)? _messagesRecentlyInViewport;
 
-  void _markReadFromScroll() {
-    final currentRange = _findMessagesInViewport();
-    if (currentRange == null) return;
-
+  void _markReadFromScroll((int, int) currentRange) {
     final (currentFirst, currentLast) = currentRange;
     final (prevFirst, prevLast) = _messagesRecentlyInViewport ?? (null, null);
 
@@ -1078,9 +1137,12 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
   }
 
   void _handleScrollMetrics(ScrollMetrics scrollMetrics) {
-    if (_effectiveMarkReadOnScroll()) {
-      _markReadFromScroll();
+    final (:rangeToMarkRead, :messageForReplyDestination) = _findMessagesInViewport();
+    if (rangeToMarkRead != null && _effectiveMarkReadOnScroll()) {
+      _markReadFromScroll(rangeToMarkRead);
     }
+    MessageListPage.ancestorOf(context)
+      .updateReplyDestination(messageForReplyDestination);
 
     if (scrollMetrics.extentAfter == 0) {
       _scrollToBottomVisible.value = false;
