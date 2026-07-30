@@ -241,14 +241,18 @@ class ApiNarrowIs extends ApiNarrowElement {
 
 /// An operand value of "is" operator.
 ///
+/// This is used in parsing narrow links in message contents.
+/// It therefore includes legacy forms, like [private],
+/// so that links in old messages keep working.
+///
 /// See also:
 ///   - https://zulip.com/api/construct-narrow
 ///   - https://zulip.com/help/search-for-messages#search-your-important-messages
 ///   - https://zulip.com/help/search-for-messages#search-by-message-status
 @JsonEnum(alwaysCreate: true)
 enum IsOperand {
-  dm,        // TODO(server-7) new in FL 177
-  private,   // TODO(server-7) deprecated in FL 177, equivalent to [dm].
+  dm,
+  private, // legacy alias for [dm]
   alerted,
   mentioned,
   starred,
