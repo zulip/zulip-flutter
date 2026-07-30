@@ -41,9 +41,14 @@ enum NetworkExceptionKind {
   /// The connection couldn't be established, or was lost,
   /// below the level of any HTTP response.
   ///
+  /// This includes a request timing out,
+  /// which we treat as the connection having died
+  /// even if it still looks open.
+  ///
   /// This is routine rather than a sign of a bug:
   /// it's what happens when the device is offline,
-  /// and commonly when the app returns from sleep.
+  /// and commonly when the app returns from sleep
+  /// or the device switches networks.
   connectionFailed,
 
   /// Any other network-level failure.

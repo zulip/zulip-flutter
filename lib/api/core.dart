@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -189,6 +190,9 @@ class ApiConnection {
       // while the response is still being downloaded, improving latency.
       final jsonStream = jsonUtf8Decoder.bind(response.stream);
       json = await jsonStream.single as Map<String, dynamic>?;
+    } on http.RequestAbortedException catch (e) {
+      // The timeout in [_withTimeout] fired while we were reading the response.
+      _throwNetworkException(routeName, e);
     } catch (e) {
       // We'll throw something below, seeing `json` is null.
     }
@@ -214,12 +218,22 @@ class ApiConnection {
     _isOpen = false;
   }
 
+  /// Make a GET request to the given path with the given params.
+  ///
+  /// If [timeout] is non-null and the request hasn't completed within it,
+  /// including reading the response body,
+  /// then the request is aborted, tearing down the connection,
+  /// and this throws a [NetworkException]
+  /// with kind [NetworkExceptionKind.connectionFailed].
   Future<T> get<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      String path, Map<String, dynamic>? params) async {
+      String path, Map<String, dynamic>? params, {Duration? timeout}) async {
     final url = realmUrl.replace(
       path: "/api/v1/$path", queryParameters: encodeParameters(params));
-    final request = http.Request('GET', url);
-    return send(routeName, fromJson, request);
+    if (timeout == null) {
+      return send(routeName, fromJson, http.Request('GET', url));
+    }
+    return _withTimeout(timeout, (abortTrigger) => send(routeName, fromJson,
+      http.AbortableRequest('GET', url, abortTrigger: abortTrigger)));
   }
 
   Future<T> post<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
@@ -269,6 +283,22 @@ class ApiConnection {
     }
     return send(routeName, fromJson, request);
   }
+
+  /// Run [body] with a trigger that fires after [timeout],
+  /// for constructing an [http.Abortable] request.
+  ///
+  /// The timer is canceled when the returned future completes,
+  /// so a request that finishes in time leaves no timer behind.
+  Future<T> _withTimeout<T>(Duration timeout,
+      Future<T> Function(Future<void> abortTrigger) body) async {
+    final abortCompleter = Completer<void>();
+    final abortTimer = Timer(timeout, abortCompleter.complete);
+    try {
+      return await body(abortCompleter.future);
+    } finally {
+      abortTimer.cancel();
+    }
+  }
 }
 
 /// Throw a [NetworkException] wrapping the given exception
@@ -276,6 +306,11 @@ class ApiConnection {
 Never _throwNetworkException(String routeName, Object cause) {
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
   final (NetworkExceptionKind kind, String message) = switch (cause) {
+    // Our own timeout, from [ApiConnection._withTimeout].  Skip the
+    // exception's message: it names a package-internal mechanism
+    // ("Request aborted by `abortTrigger`"), which wouldn't mean much to a user.
+    http.RequestAbortedException() =>
+      (.connectionFailed, zulipLocalizations.errorNetworkRequestFailed),
     // A wrapped SocketException, like package:http's IOClient throws
     // for a connection failure.
     SocketException() && http.ClientException(:final message) =>

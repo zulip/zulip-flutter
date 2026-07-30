@@ -10,6 +10,7 @@ import 'package:zulip/api/exception.dart';
 import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/localizations.dart';
 
+import '../fake_async.dart';
 import '../model/binding.dart';
 import '../stdlib_checks.dart';
 import '../test_async.dart';
@@ -306,6 +307,41 @@ void main() {
       ..message.equals(zulipLocalizations.errorNetworkRequestFailed)
       ..asString.equals('NetworkException: Network request failed ((foo: bar))'));
   });
+
+  test('API request timeout', () => awaitFakeAsync((async) async {
+    await FakeApiConnection.with_((connection) async {
+      connection.prepare(delay: const Duration(seconds: 300), json: {});
+      await check(connection.get(kExampleRouteName, (json) => json,
+          'example/route', {}, timeout: const Duration(seconds: 90)))
+        .throws<NetworkException>((it) => it
+          ..routeName.equals(kExampleRouteName)
+          ..kind.equals(.connectionFailed)
+          ..cause.isA<http.RequestAbortedException>());
+    });
+  }));
+
+  test('API request timeout while reading response body', () => awaitFakeAsync((async) async {
+    await FakeApiConnection.with_((connection) async {
+      connection.prepare(bodyDelay: const Duration(seconds: 300), json: {});
+      await check(connection.get(kExampleRouteName, (json) => json,
+          'example/route', {}, timeout: const Duration(seconds: 90)))
+        .throws<NetworkException>((it) => it
+          ..routeName.equals(kExampleRouteName)
+          ..kind.equals(.connectionFailed)
+          ..cause.isA<http.RequestAbortedException>());
+    });
+  }));
+
+  test('no API request timeout when response is in time', () => awaitFakeAsync((async) async {
+    await FakeApiConnection.with_((connection) async {
+      connection.prepare(delay: const Duration(seconds: 30), json: {'x': 3});
+      final result = await connection.get(kExampleRouteName, (json) => json['x'],
+        'example/route', {}, timeout: const Duration(seconds: 90));
+      check(result).equals(3);
+      // The timeout's timer was canceled, not left to linger.
+      check(async.pendingTimers).isEmpty();
+    });
+  }));
 
   test('API 4xx errors, well formed', () async {
     Future<void> checkRequest({
