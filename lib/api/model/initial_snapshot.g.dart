@@ -142,6 +142,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
           .toList() ??
       [],
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
+  eventQueueLongpollTimeoutSeconds:
+      (json['event_queue_longpoll_timeout_seconds'] as num).toInt(),
   realmModerationRequestChannelId:
       (json['realm_moderation_request_channel_id'] as num?)?.toInt(),
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
@@ -226,6 +228,8 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
   'server_thumbnail_formats': instance.serverThumbnailFormats,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
+  'event_queue_longpoll_timeout_seconds':
+      instance.eventQueueLongpollTimeoutSeconds,
   'realm_moderation_request_channel_id':
       instance.realmModerationRequestChannelId,
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,

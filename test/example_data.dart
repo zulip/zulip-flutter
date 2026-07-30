@@ -1451,6 +1451,7 @@ InitialSnapshot initialSnapshot({
   int? maxFileUploadSizeMib,
   List<ThumbnailFormat>? serverThumbnailFormats,
   Uri? serverEmojiDataUrl,
+  int? eventQueueLongpollTimeoutSeconds,
   int? realmModerationRequestChannelId = -1,
   String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
@@ -1519,6 +1520,7 @@ InitialSnapshot initialSnapshot({
     serverThumbnailFormats: serverThumbnailFormats ?? [],
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
+    eventQueueLongpollTimeoutSeconds: eventQueueLongpollTimeoutSeconds ?? 90,
     realmModerationRequestChannelId: realmModerationRequestChannelId,
     realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
     realmUsers: realmUsers ?? [selfUser],

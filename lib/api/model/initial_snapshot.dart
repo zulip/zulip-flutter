@@ -131,6 +131,8 @@ class InitialSnapshot {
 
   final Uri serverEmojiDataUrl;
 
+  final int eventQueueLongpollTimeoutSeconds;
+
   final int? realmModerationRequestChannelId; // TODO(server-10)
 
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
@@ -216,6 +218,7 @@ class InitialSnapshot {
     required this.maxFileUploadSizeMib,
     required this.serverThumbnailFormats,
     required this.serverEmojiDataUrl,
+    required this.eventQueueLongpollTimeoutSeconds,
     required this.realmModerationRequestChannelId,
     required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
