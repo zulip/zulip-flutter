@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 /// A machine that can sleep for increasing durations, for network backoff.
@@ -90,7 +91,14 @@ class BackoffMachine {
   /// the smallest durations up to one microsecond instead of down to zero.
   /// Because in the real world any delay takes nonzero time, this mainly
   /// affects tests that use fake time, and keeps their behavior more realistic.
-  Future<void> wait() async {
+  ///
+  /// If [abortTrigger] completes before the wait duration has elapsed,
+  /// the wait ends early at that point.
+  /// The wait still counts in [waitsCompleted],
+  /// and the next wait's duration grows as usual.
+  /// The [abortTrigger] future must not complete with an error.
+  /// (This matches the contract of `Abortable.abortTrigger` in package:http.)
+  Future<void> wait({Future<void>? abortTrigger}) async {
     assert(!_debugWaitInProgress, 'Previous wait still in progress.');
     assert(() {
       _debugWaitInProgress = true;
@@ -100,7 +108,14 @@ class BackoffMachine {
     final duration = debugDuration ?? _maxDuration(const Duration(microseconds: 1),
                                                    _bound * Random().nextDouble());
     _bound = _minDuration(maxBound, _bound * base);
-    await Future<void>.delayed(duration);
+    final completer = Completer<void>();
+    final timer = Timer(duration, completer.complete);
+    unawaited(abortTrigger?.then((_) {
+      if (completer.isCompleted) return;
+      timer.cancel();
+      completer.complete();
+    }));
+    await completer.future;
     _waitsCompleted++;
     assert(() {
       _debugWaitInProgress = false;
