@@ -20,6 +20,9 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   //|//////////////////////////////////////////////////////////////
   // Server settings, explicitly so named.
 
+  Duration get eventQueueLongpollTimeout => Duration(seconds: eventQueueLongpollTimeoutSeconds);
+  int get eventQueueLongpollTimeoutSeconds;
+
   Duration get serverPresencePingInterval => Duration(seconds: serverPresencePingIntervalSeconds);
   int get serverPresencePingIntervalSeconds;
   Duration get serverPresenceOfflineThreshold => Duration(seconds: serverPresenceOfflineThresholdSeconds);
@@ -172,6 +175,8 @@ mixin ProxyRealmStore on RealmStore {
   RealmStore get realmStore;
 
   @override
+  int get eventQueueLongpollTimeoutSeconds => realmStore.eventQueueLongpollTimeoutSeconds;
+  @override
   int get serverPresencePingIntervalSeconds => realmStore.serverPresencePingIntervalSeconds;
   @override
   int get serverPresenceOfflineThresholdSeconds => realmStore.serverPresenceOfflineThresholdSeconds;
@@ -255,6 +260,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   }) :
     _selfUserRole = selfUser.role,
     _selfUserDateJoined = selfUser.dateJoined,
+    eventQueueLongpollTimeoutSeconds = initialSnapshot.eventQueueLongpollTimeoutSeconds,
     serverPresencePingIntervalSeconds = initialSnapshot.serverPresencePingIntervalSeconds,
     serverPresenceOfflineThresholdSeconds = initialSnapshot.serverPresenceOfflineThresholdSeconds,
     serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
@@ -400,6 +406,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   ///
   /// See also [_selfUserRole].
   final String _selfUserDateJoined;
+
+  @override
+  final int eventQueueLongpollTimeoutSeconds;
 
   @override
   final int serverPresencePingIntervalSeconds;
