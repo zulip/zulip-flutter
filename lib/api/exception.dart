@@ -28,19 +28,53 @@ sealed class ApiRequestException implements Exception {
   String toString() => message;
 }
 
+/// What sort of underlying problem caused a [NetworkException].
+///
+/// The classification is made in [ApiConnection.send],
+/// which is the one place that sees the raw exception
+/// from the underlying HTTP client.
+/// Consumers should switch on this
+/// rather than inspecting [NetworkException.cause],
+/// because the cause's concrete type depends on
+/// which HTTP client implementation is in use.
+enum NetworkExceptionKind {
+  /// The connection couldn't be established, or was lost,
+  /// below the level of any HTTP response.
+  ///
+  /// This is routine rather than a sign of a bug:
+  /// it's what happens when the device is offline,
+  /// and commonly when the app returns from sleep.
+  connectionFailed,
+
+  /// Any other network-level failure.
+  other,
+}
+
 /// A network-level error that prevented even getting an HTTP response
 /// to some Zulip API network request.
 ///
 /// This is the antonym of [HttpException].
 class NetworkException extends ApiRequestException {
+  /// What sort of problem this is.
+  final NetworkExceptionKind kind;
+
   /// The exception describing the underlying error.
   ///
   /// This can be any exception value that [http.Client.send] throws.
   /// Ideally that would always be an [http.ClientException],
   /// but empirically it can be [TlsException] and possibly others.
+  ///
+  /// The concrete type depends on which HTTP client implementation
+  /// the app is using, so prefer [kind] for making decisions;
+  /// this is most useful for logging.
   final Object cause;
 
-  NetworkException({required super.routeName, required super.message, required this.cause});
+  NetworkException({
+    required super.routeName,
+    required super.message,
+    required this.kind,
+    required this.cause,
+  });
 
   @override
   String toString() {

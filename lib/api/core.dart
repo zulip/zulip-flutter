@@ -274,15 +274,19 @@ class ApiConnection {
 /// Throw a [NetworkException] wrapping the given exception
 /// from the underlying HTTP client.
 Never _throwNetworkException(String routeName, Object cause) {
-  final String message;
-  if (cause is http.ClientException) {
-    message = cause.message;
-  } else if (cause is TlsException) {
-    message = cause.message;
-  } else {
-    message = GlobalLocalizations.zulipLocalizations.errorNetworkRequestFailed;
-  }
-  throw NetworkException(routeName: routeName, cause: cause, message: message);
+  final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+  final (NetworkExceptionKind kind, String message) = switch (cause) {
+    // A wrapped SocketException, like package:http's IOClient throws
+    // for a connection failure.
+    SocketException() && http.ClientException(:final message) =>
+      (.connectionFailed, message),
+    SocketException() => (.connectionFailed, zulipLocalizations.errorNetworkRequestFailed),
+    http.ClientException(:final message) => (.other, message),
+    TlsException(:final message) => (.other, message),
+    _ => (.other, zulipLocalizations.errorNetworkRequestFailed),
+  };
+  throw NetworkException(routeName: routeName,
+    kind: kind, cause: cause, message: message);
 }
 
 ApiRequestException _makeApiException(String routeName, int httpStatus, Map<String, dynamic>? json) {

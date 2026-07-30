@@ -940,7 +940,9 @@ void main() {
       updateMachine.debugPrepareLoopError(eg.nullCheckError());
     }
 
-    void prepareNetworkExceptionSocketException() {
+    // [ApiConnection] classifies a [SocketException]
+    // as [NetworkExceptionKind.connectionFailed].
+    void prepareNetworkExceptionConnectionFailed() {
       connection.prepare(httpException: const SocketException('failed'));
     }
 
@@ -1007,9 +1009,9 @@ void main() {
       checkReload(prepareUnexpectedLoopError);
     });
 
-    test('retries on NetworkException from SocketException', () {
+    test('retries on NetworkException from failed connection', () {
       // We skip reporting errors on these; check we retry them all the same.
-      checkRetry(prepareNetworkExceptionSocketException);
+      checkRetry(prepareNetworkExceptionConnectionFailed);
     });
 
     test('retries on generic NetworkException', () {
@@ -1149,8 +1151,8 @@ void main() {
         checkReported(prepareUnexpectedLoopError);
       });
 
-      test('ignore NetworkException from SocketException', () {
-        checkNotReported(prepareNetworkExceptionSocketException);
+      test('ignore NetworkException from failed connection', () {
+        checkNotReported(prepareNetworkExceptionConnectionFailed);
       });
 
       test('eventually report generic NetworkException', () {

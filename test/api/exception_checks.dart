@@ -14,6 +14,7 @@ extension ZulipApiExceptionChecks on Subject<ZulipApiException> {
 }
 
 extension NetworkExceptionChecks on Subject<NetworkException> {
+  Subject<NetworkExceptionKind> get kind => has((e) => e.kind, 'kind');
   Subject<Object> get cause => has((e) => e.cause, 'cause');
 }
 

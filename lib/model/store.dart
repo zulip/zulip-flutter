@@ -1504,8 +1504,8 @@ class UpdateMachine {
             // Print stack trace in its own log entry; log entries are truncated
             // at 1 kiB (at least on Android), and stack can be longer than that.
             assert(debugLog('Stack:\n$stackTrace'));
-            if (e case NetworkException(cause: SocketException())) {
-              // A [SocketException] is common when the device is asleep.
+            if (e case NetworkException(kind: .connectionFailed)) {
+              // A failed connection is common when the device is asleep.
             } else {
               // TODO: When the error seems transient, do keep retrying but
               //   don't spam this feedback.
@@ -1741,8 +1741,8 @@ class UpdateMachine {
 
     bool shouldReportToUser;
     switch (error) {
-      case NetworkException(cause: SocketException()):
-        // A [SocketException] is common when the app returns from sleep.
+      case NetworkException(kind: .connectionFailed):
+        // A failed connection is common when the app returns from sleep.
         shouldReportToUser = false;
 
       case NetworkException():
