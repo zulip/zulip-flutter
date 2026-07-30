@@ -143,6 +143,9 @@ UserGroup _$UserGroupFromJson(Map<String, dynamic> json) => UserGroup(
   description: json['description'] as String,
   isSystemGroup: json['is_system_group'] as bool,
   deactivated: json['deactivated'] as bool? ?? false,
+  canMentionGroup: json['can_mention_group'] == null
+      ? null
+      : GroupSettingValue.fromJson(json['can_mention_group']),
 );
 
 Map<String, dynamic> _$UserGroupToJson(UserGroup instance) => <String, dynamic>{
@@ -153,6 +156,7 @@ Map<String, dynamic> _$UserGroupToJson(UserGroup instance) => <String, dynamic>{
   'description': instance.description,
   'is_system_group': instance.isSystemGroup,
   'deactivated': instance.deactivated,
+  'can_mention_group': instance.canMentionGroup,
 };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
