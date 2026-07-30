@@ -24,6 +24,8 @@ class Presence extends HasRealmStore with ChangeNotifier {
 
   Map<int, PerUserPresence> _map;
 
+  // TODO: Observe ZulipBinding.appLifecycleStateChanges instead, so that
+  //   this logic can run (and be tested) without a widgets binding.
   AppLifecycleListener? _appLifecycleListener;
 
   void _handleLifecycleStateChange(AppLifecycleState newState) {

@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:sodium/sodium.dart' as sodium;
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -77,6 +78,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetCanLaunchUrl();
     _resetLaunchUrl();
     _resetCloseInAppWebView();
+    _resetAppLifecycleStateChanges();
     _resetDeviceInfo();
     _resetPackageInfo();
     _resetFirebase();
@@ -255,6 +257,24 @@ class TestZulipBinding extends ZulipBinding {
 
   @override
   Stopwatch stopwatch() => clock.stopwatch();
+
+  void _resetAppLifecycleStateChanges() {
+    _appLifecycleStateChanges = null;
+  }
+
+  /// Simulate an app-lifecycle-state change,
+  /// causing [appLifecycleStateChanges] to fire.
+  void notifyAppLifecycleStateChanged(AppLifecycleState state) {
+    _appLifecycleStateChangesController.add(state);
+  }
+
+  StreamController<AppLifecycleState> get _appLifecycleStateChangesController =>
+    _appLifecycleStateChanges ??= StreamController.broadcast();
+  StreamController<AppLifecycleState>? _appLifecycleStateChanges;
+
+  @override
+  Stream<AppLifecycleState> get appLifecycleStateChanges =>
+    _appLifecycleStateChangesController.stream;
 
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;

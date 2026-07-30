@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
 import 'package:image_picker_android/image_picker_android.dart' as image_picker_android;
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart' as image_picker_platform;
@@ -137,6 +138,10 @@ abstract class ZulipBinding {
   ///
   /// Outside tests, this just calls the [Stopwatch] constructor.
   Stopwatch stopwatch();
+
+  /// A broadcast stream of the app's lifecycle-state changes,
+  /// via [AppLifecycleListener.onStateChange].
+  Stream<AppLifecycleState> get appLifecycleStateChanges;
 
   /// Provides device and operating system information,
   /// via package:device_info_plus.
@@ -466,6 +471,24 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Stopwatch stopwatch() => Stopwatch();
+
+  @override
+  Stream<AppLifecycleState> get appLifecycleStateChanges {
+    // Created lazily, because [AppLifecycleListener] requires
+    // [WidgetsBinding], and this binding is also initialized in a context
+    // that lacks one: the FCM background isolate
+    // (see _initBackgroundIsolate in lib/notifications/receive.dart).
+    return _appLifecycleStateChanges ??= _createAppLifecycleStateChanges();
+  }
+  Stream<AppLifecycleState>? _appLifecycleStateChanges;
+
+  Stream<AppLifecycleState> _createAppLifecycleStateChanges() {
+    final controller = StreamController<AppLifecycleState>.broadcast();
+    // The listener registers itself with [WidgetsBinding];
+    // it's never disposed, because the stream is for the life of the app.
+    AppLifecycleListener(onStateChange: controller.add);
+    return controller.stream;
+  }
 
   @override
   Future<BaseDeviceInfo?> get deviceInfo => _deviceInfo;
