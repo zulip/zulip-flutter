@@ -288,6 +288,11 @@ void main() {
       ..message.equals(zulipLocalizations.errorNetworkRequestFailed)
       ..asString.equals(
         'NetworkException: Network request failed (SocketException: Oops)'));
+    // What `IOClient` actually throws when the connection fails:
+    // a ClientException that also implements SocketException.
+    checkRequest(ClientSocketException('Oops'), (it) => it
+      ..kind.equals(.connectionFailed)
+      ..message.equals('Oops'));
     checkRequest(http.ClientException('Oops'), (it) => it
       ..kind.equals(.other)
       ..message.equals('Oops')
@@ -497,6 +502,24 @@ class DistinctiveError extends Error {
 
   @override
   String toString() => message;
+}
+
+/// Like the private `_ClientSocketException`
+/// that `package:http`'s `IOClient` actually throws
+/// when the underlying `HttpClient` throws a [SocketException]:
+/// an [http.ClientException] that also implements [SocketException].
+class ClientSocketException extends http.ClientException
+    implements SocketException {
+  ClientSocketException(super.message, [super.uri]);
+
+  @override
+  InternetAddress? get address => null;
+
+  @override
+  OSError? get osError => null;
+
+  @override
+  int? get port => null;
 }
 
 Future<T> tryRequest<T extends Object?>({
