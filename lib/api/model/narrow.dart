@@ -247,8 +247,8 @@ class ApiNarrowIs extends ApiNarrowElement {
 ///   - https://zulip.com/help/search-for-messages#search-by-message-status
 @JsonEnum(alwaysCreate: true)
 enum IsOperand {
-  dm,        // TODO(server-7) new in FL 177
-  private,   // TODO(server-7) deprecated in FL 177, equivalent to [dm].
+  dm,
+  private,   // Legacy alias for [dm]; still accepted when parsing narrow links.
   alerted,
   mentioned,
   starred,
