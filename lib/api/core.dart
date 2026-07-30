@@ -179,16 +179,7 @@ class ApiConnection {
     try {
       response = await _client.send(request);
     } catch (e) {
-      final String message;
-      if (e is http.ClientException) {
-        message = e.message;
-      } else if (e is TlsException) {
-        message = e.message;
-      } else {
-        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-        message = zulipLocalizations.errorNetworkRequestFailed;
-      }
-      throw NetworkException(routeName: routeName, cause: e, message: message);
+      _throwNetworkException(routeName, e);
     }
 
     final int httpStatus = response.statusCode;
@@ -278,6 +269,20 @@ class ApiConnection {
     }
     return send(routeName, fromJson, request);
   }
+}
+
+/// Throw a [NetworkException] wrapping the given exception
+/// from the underlying HTTP client.
+Never _throwNetworkException(String routeName, Object cause) {
+  final String message;
+  if (cause is http.ClientException) {
+    message = cause.message;
+  } else if (cause is TlsException) {
+    message = cause.message;
+  } else {
+    message = GlobalLocalizations.zulipLocalizations.errorNetworkRequestFailed;
+  }
+  throw NetworkException(routeName: routeName, cause: cause, message: message);
 }
 
 ApiRequestException _makeApiException(String routeName, int httpStatus, Map<String, dynamic>? json) {
