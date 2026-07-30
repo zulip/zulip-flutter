@@ -1638,7 +1638,10 @@ class UpdateMachine {
             // ask the server to tell us immediately that it's working again,
             // rather than waiting for an event, which could take up to a minute
             // in the case of a heartbeat event. See #979.
-            dontBlock: store.isRecoveringEventStream ? true : null);
+            dontBlock: store.isRecoveringEventStream ? true : null,
+            // If the request outlives this, assume the connection is dead
+            // even if it still looks open; give up on it and retry.  See #514.
+            timeout: store.eventQueueLongpollTimeout);
           if (_disposed) return;
         } catch (e, stackTrace) {
           if (_disposed) return;

@@ -70,14 +70,20 @@ enum _IdleQueueTimeout {
 }
 
 /// https://zulip.com/api/get-events
+///
+/// Long-lived clients should pass [timeout],
+/// using the value the server recommends
+/// in [InitialSnapshot.eventQueueLongpollTimeoutSeconds];
+/// see the discussion in the API docs for this endpoint.
 Future<GetEventsResult> getEvents(ApiConnection connection, {
   required String queueId, int? lastEventId, bool? dontBlock,
+  Duration? timeout,
 }) {
   return connection.get('getEvents', GetEventsResult.fromJson, 'events', {
     'queue_id': RawParameter(queueId),
     'last_event_id': ?lastEventId,
     'dont_block': ?dontBlock,
-  });
+  }, timeout: timeout);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

@@ -802,10 +802,14 @@ void main() {
       connection = store.connection as FakeApiConnection;
     }
 
-    Future<void> preparePoll({int? lastEventId}) async {
+    Future<void> preparePoll({
+      int? lastEventId,
+      int? eventQueueLongpollTimeoutSeconds,
+    }) async {
       globalStore = eg.globalStore();
       await globalStore.add(eg.selfAccount, eg.initialSnapshot(
-        lastEventId: lastEventId));
+        lastEventId: lastEventId,
+        eventQueueLongpollTimeoutSeconds: eventQueueLongpollTimeoutSeconds));
       await globalStore.perAccount(eg.selfAccount.id);
       updateFromGlobalStore();
       updateMachine.debugPauseLoop();
@@ -904,24 +908,37 @@ void main() {
       });
     }
 
-    void checkRetry(void Function() prepareError) {
+    /// Check the poll loop quietly retries when [prepareError]
+    /// causes the request to fail.
+    ///
+    /// [elapse] is how long the request takes to fail:
+    /// zero for an immediate error,
+    /// or the poll timeout for a request that times out.
+    void checkRetry(void Function() prepareError, {
+      Duration elapse = Duration.zero,
+      int? eventQueueLongpollTimeoutSeconds,
+    }) {
       awaitFakeAsync((async) async {
-        await preparePoll(lastEventId: 1);
+        await preparePoll(lastEventId: 1,
+          eventQueueLongpollTimeoutSeconds: eventQueueLongpollTimeoutSeconds);
         check(async.pendingTimers).length.equals(0);
 
         // Make the request, inducing an error in it.
         prepareError();
         updateMachine.debugAdvanceLoop();
-        async.elapse(Duration.zero);
+        async.elapse(elapse);
         checkLastRequest(lastEventId: 1, expectDontBlock: false);
         check(store).isRecoveringEventStream.isTrue();
 
         // Polling doesn't resume immediately; there's a timer.
-        check(async.pendingTimers).length.equals(1);
+        // (On a timed-out request, the fake's timer for the response
+        // that never arrived is also still pending.)
+        final pendingTimers = elapse == Duration.zero ? 1 : 2;
+        check(async.pendingTimers).length.equals(pendingTimers);
         updateMachine.debugAdvanceLoop();
         async.flushMicrotasks();
         check(connection.lastRequest).isNull();
-        check(async.pendingTimers).length.equals(1);
+        check(async.pendingTimers).length.equals(pendingTimers);
 
         // Polling continues after a timer.
         connection.prepare(json: GetEventsResult(events: [
@@ -1012,6 +1029,15 @@ void main() {
     test('retries on NetworkException from failed connection', () {
       // We skip reporting errors on these; check we retry them all the same.
       checkRetry(prepareNetworkExceptionConnectionFailed);
+    });
+
+    test('retries when request outlives the server-recommended timeout', () {
+      // In the wild, this is a connection that died without erroring; see #514.
+      checkRetry(
+        eventQueueLongpollTimeoutSeconds: 85,
+        elapse: const Duration(seconds: 85),
+        () => connection.prepare(delay: const Duration(seconds: 300),
+          json: GetEventsResult(events: [], queueId: null).toJson()));
     });
 
     test('retries on generic NetworkException', () {
