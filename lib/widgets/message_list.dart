@@ -1397,10 +1397,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           headerWithLinkMarkup: zulipLocalizations.emptyMessageListMentionsHeader,
           onTapHeaderLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/mention-a-user-or-group')!),
-          message: store.zulipFeatureLevel >= 224
-            // This string mentions @topic, which is new in Server 8.
-            ? zulipLocalizations.emptyMessageListMentionsMessage
-            : null); // TODO(server-8)
+          message: zulipLocalizations.emptyMessageListMentionsMessage);
 
       case StarredMessagesNarrow():
         return PageBodyEmptyContentPlaceholder(
