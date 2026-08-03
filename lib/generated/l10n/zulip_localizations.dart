@@ -292,6 +292,12 @@ abstract class ZulipLocalizations {
   /// **'Send direct message'**
   String get profileButtonSendDirectMessage;
 
+  /// Label for button in profile screen to navigate to the messages sent by the shown user that the self-user can access.
+  ///
+  /// In en, this message translates to:
+  /// **'View messages sent'**
+  String get profileButtonViewMessagesSent;
+
   /// Message that appears on the user profile page when the profile cannot be shown.
   ///
   /// In en, this message translates to:

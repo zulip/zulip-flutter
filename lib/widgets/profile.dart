@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../api/model/model.dart';
+import '../api/model/narrow.dart';
 import '../api/route/settings.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
@@ -130,6 +131,13 @@ class ProfilePage extends StatelessWidget {
             narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
         icon: const Icon(Icons.email),
         label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
+      const SizedBox(height: 16),
+      FilledButton.icon(
+        onPressed: () => Navigator.push(context,
+          MessageListPage.buildRoute(context: context,
+            narrow: SearchNarrow(filters: [ApiNarrowSender(userId)]))),
+        icon: const Icon(ZulipIcons.message_square),
+        label: Text(zulipLocalizations.profileButtonViewMessagesSent)),
     ];
 
     return Scaffold(
