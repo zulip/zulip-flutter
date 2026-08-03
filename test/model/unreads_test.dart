@@ -180,7 +180,7 @@ void main() {
         // Writing @all or @everyone in DM counts as stream wildcard mention.
         // The server does not check whether the message is sent in a channel(stream) or a DM.
         eg.dmMessage(id: 20, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
-        eg.dmMessage(id: 21, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
+        eg.dmMessage(id: 21, from: user2, to: [user3, eg.selfUser], flags: [MessageFlag.mentioned]),
       ]);
     });
   });
@@ -266,12 +266,10 @@ void main() {
           eg.streamMessage(stream: stream, flags: [MessageFlag.mentioned]),
           eg.streamMessage(stream: stream, flags: [MessageFlag.topicWildcardMentioned]),
           eg.streamMessage(stream: stream, flags: [MessageFlag.streamWildcardMentioned]),
-          eg.streamMessage(stream: stream, flags: [MessageFlag.wildcardMentioned]),
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
           eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
-          eg.dmMessage(from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
         ]);
-        check(model.countInMentionsNarrow()).equals(7);
+        check(model.countInMentionsNarrow()).equals(5);
       });
 
       test('excludes unreads in muted DM conversations', () async {
@@ -403,7 +401,6 @@ void main() {
       bool isDirectMentioned,
       bool isTopicWildcardMentioned,
       bool isStreamWildcardMentioned,
-      bool isWildcardMentioned, // TODO(server-8) Remove boolean of deprecated flag.
     ) {
       final description = [
         isUnread ? 'unread' : 'read',
@@ -411,7 +408,6 @@ void main() {
         isDirectMentioned ? 'direct mentioned' : 'not direct mentioned',
         isTopicWildcardMentioned ? 'topic wildcard mentioned' : 'not topic wildcard mentioned',
         isStreamWildcardMentioned ? 'stream wildcard mentioned' : 'not stream wildcard mentioned',
-        isWildcardMentioned ? 'wildcard mentioned' : 'not wildcard mentioned',
       ].join(' / ');
       test(description, () {
         prepare();
@@ -420,7 +416,6 @@ void main() {
           if (isDirectMentioned)         MessageFlag.mentioned,
           if (isTopicWildcardMentioned)  MessageFlag.topicWildcardMentioned,
           if (isStreamWildcardMentioned) MessageFlag.streamWildcardMentioned,
-          if (isWildcardMentioned)       MessageFlag.wildcardMentioned,
         ];
         final Message message = isStream
           ? eg.streamMessage(flags: flags)
@@ -438,15 +433,12 @@ void main() {
         for (final isDirectMentioned in [true, false]) {
           for (final isTopicWildcardMentioned in [true, false]) {
             for (final isStreamWildcardMentioned in [true, false]) {
-              for (final isWildcardMentioned in [true, false]) {
-                testFlagCombination(
-                  isUnread,
-                  isStream,
-                  isDirectMentioned,
-                  isTopicWildcardMentioned,
-                  isStreamWildcardMentioned,
-                  isWildcardMentioned);
-              }
+              testFlagCombination(
+                isUnread,
+                isStream,
+                isDirectMentioned,
+                isTopicWildcardMentioned,
+                isStreamWildcardMentioned);
             }
           }
         }
@@ -562,13 +554,10 @@ void main() {
               // whether a message has any mention flag at all.
               for (final List<MessageFlag> newFlags in [
                 [...baseFlags, MessageFlag.mentioned],
-                [...baseFlags, MessageFlag.mentioned, MessageFlag.wildcardMentioned],
                 [...baseFlags, MessageFlag.topicWildcardMentioned],
                 [...baseFlags, MessageFlag.streamWildcardMentioned],
-                [...baseFlags, MessageFlag.wildcardMentioned],
                 [...baseFlags, MessageFlag.topicWildcardMentioned, MessageFlag.streamWildcardMentioned],
                 [...baseFlags, ],
-                [...baseFlags, MessageFlag.wildcardMentioned],
               ]) {
                 assert(newFlags.contains(MessageFlag.read) == isRead);
                 if (!isKnownToModel) {
@@ -969,7 +958,6 @@ void main() {
         MessageFlag.mentioned => false,
         MessageFlag.topicWildcardMentioned => false,
         MessageFlag.streamWildcardMentioned => false,
-        MessageFlag.wildcardMentioned => false,
         MessageFlag.read => false,
       });
 
@@ -1040,7 +1028,6 @@ void main() {
       MessageFlag.mentioned,
       MessageFlag.topicWildcardMentioned,
       MessageFlag.streamWildcardMentioned,
-      MessageFlag.wildcardMentioned
     ]) {
       // For a read message in this test, the message won't appear in the model.
       // That case is indistinguishable from an unread that's unknown to
@@ -1125,7 +1112,6 @@ void main() {
         eg.streamMessage(id: 4, flags: [MessageFlag.streamWildcardMentioned]),
         eg.dmMessage(id: 5, from: eg.otherUser, to: [eg.selfUser], flags: []),
         eg.dmMessage(id: 6, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.streamWildcardMentioned]),
-        eg.dmMessage(id: 7, from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.wildcardMentioned]),
       ];
 
       prepare();
