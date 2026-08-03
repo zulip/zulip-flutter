@@ -417,6 +417,7 @@ class SearchNarrow extends Narrow {
       ApiNarrowDm(:final operand)        => '${negated}dm:'
         '${(canonical ? (operand.toList()..sort()) : operand).join(',')}',
       ApiNarrowSearch(:final operand)    => '${negated}search:$operand',
+      ApiNarrowSender(:final operand)    => '${negated}sender:$operand',
       ApiNarrowIs(:final operand)        => '${negated}is:$operand',
       ApiNarrowWith(:final operand)      => '${negated}with:$operand',
       ApiNarrowMessageId(:final operand) => '${negated}id:$operand',

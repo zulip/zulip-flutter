@@ -300,6 +300,7 @@ void main() {
         checkNotEqual(mkNarrow([]), mkNarrow([ApiNarrowSearch('foo')]));
         checkNotEqual(mkNarrow([ApiNarrowSearch('foo', negated: true)]),
                       mkNarrow([ApiNarrowSearch('foo')]));
+        checkNotEqual(mkNarrow([ApiNarrowSender(1)]), mkNarrow([ApiNarrowSender(2)]));
       });
 
       test('dm recipients in a different order', () {
