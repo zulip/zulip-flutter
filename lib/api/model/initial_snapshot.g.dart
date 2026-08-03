@@ -29,17 +29,11 @@ InitialSnapshot _$InitialSnapshotFromJson(
   serverPresenceOfflineThresholdSeconds:
       (json['server_presence_offline_threshold_seconds'] as num).toInt(),
   serverTypingStartedExpiryPeriodMilliseconds:
-      (json['server_typing_started_expiry_period_milliseconds'] as num?)
-          ?.toInt() ??
-      15000,
+      (json['server_typing_started_expiry_period_milliseconds'] as num).toInt(),
   serverTypingStoppedWaitPeriodMilliseconds:
-      (json['server_typing_stopped_wait_period_milliseconds'] as num?)
-          ?.toInt() ??
-      5000,
+      (json['server_typing_stopped_wait_period_milliseconds'] as num).toInt(),
   serverTypingStartedWaitPeriodMilliseconds:
-      (json['server_typing_started_wait_period_milliseconds'] as num?)
-          ?.toInt() ??
-      10000,
+      (json['server_typing_started_wait_period_milliseconds'] as num).toInt(),
   mutedUsers: (json['muted_users'] as List<dynamic>)
       .map((e) => MutedUserItem.fromJson(e as Map<String, dynamic>))
       .toList(),
