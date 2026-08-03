@@ -86,6 +86,9 @@ class ZulipLocalizationsPt extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Send direct message';
 
   @override
+  String get profileButtonViewMessagesSent => 'View messages sent';
+
+  @override
   String get errorCouldNotShowUserProfile => 'Could not show user profile.';
 
   @override

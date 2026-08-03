@@ -87,6 +87,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Надіслати особисте повідомлення';
 
   @override
+  String get profileButtonViewMessagesSent => 'View messages sent';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'Не вдалося показати профіль користувача.';
 
