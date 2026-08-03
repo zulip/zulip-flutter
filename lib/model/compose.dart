@@ -19,7 +19,7 @@ enum WildcardMentionOption {
   // TODO(server-9): Deprecated in FL 247. Empirically, current servers (FL 339)
   // still parse "@**stream**" in messages though.
   stream(canonicalString: 'stream'),
-  topic(canonicalString: 'topic'); // TODO(server-8): New in FL 224.
+  topic(canonicalString: 'topic');
 
   const WildcardMentionOption({required this.canonicalString});
 
@@ -162,7 +162,6 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
   required PerAccountStore store,
 }) {
   final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
-  final isTopicWildcardAvailable = store.zulipFeatureLevel >= 224; // TODO(server-8)
 
   String name = wildcardOption.canonicalString;
   switch (wildcardOption) {
@@ -176,7 +175,7 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
         name = WildcardMentionOption.channel.canonicalString;
       }
     case WildcardMentionOption.topic:
-      assert(isTopicWildcardAvailable);
+      break;
   }
   return '@**$name**';
 }
