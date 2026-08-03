@@ -773,9 +773,6 @@ void showTopicActionSheet(BuildContext context, {
 
   final optionButtons = <ActionSheetMenuItemButton>[];
 
-  // TODO(server-8): simplify this condition away
-  final supportsFollowingTopics = store.zulipFeatureLevel >= 219;
-
   final visibilityOptions = <UserTopicVisibilityPolicy>[];
   final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
   if (subscription == null) {
@@ -785,20 +782,14 @@ void showTopicActionSheet(BuildContext context, {
     switch (visibilityPolicy) {
       case UserTopicVisibilityPolicy.muted:
         visibilityOptions.add(UserTopicVisibilityPolicy.none);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.followed);
       case UserTopicVisibilityPolicy.none:
       case UserTopicVisibilityPolicy.unmuted:
         visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.followed);
       case UserTopicVisibilityPolicy.followed:
         visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.none);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.none);
       case UserTopicVisibilityPolicy.unknown:
         // TODO(#1074): This should be unreachable as we keep `unknown` out of
         //   our data structures.
@@ -810,19 +801,13 @@ void showTopicActionSheet(BuildContext context, {
       case UserTopicVisibilityPolicy.none:
       case UserTopicVisibilityPolicy.muted:
         visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.followed);
       case UserTopicVisibilityPolicy.unmuted:
         visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.followed);
       case UserTopicVisibilityPolicy.followed:
         visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.none);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.none);
       case UserTopicVisibilityPolicy.unknown:
         // TODO(#1074): This should be unreachable as we keep `unknown` out of
         //   our data structures.
