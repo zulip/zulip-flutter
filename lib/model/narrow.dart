@@ -413,6 +413,7 @@ class SearchNarrow extends Narrow {
       ApiNarrowTopic(:final operand)     => '${negated}topic:${operand.apiName}',
       ApiNarrowDm(:final operand)        => '${negated}dm:$operand',
       ApiNarrowSearch(:final operand)    => '${negated}search:$operand',
+      ApiNarrowSender(:final operand)    => '${negated}sender:$operand',
       ApiNarrowIs(:final operand)        => '${negated}is:$operand',
       ApiNarrowWith(:final operand)      => '${negated}with:$operand',
       ApiNarrowMessageId(:final operand) => '${negated}id:$operand',

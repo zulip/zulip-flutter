@@ -411,10 +411,12 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
               SafeArea(
                 top: false, bottom: false,
                 minimum: const .symmetric(horizontal: 8, vertical: 6),
-                child: _SearchBar(onSubmitted: (narrow) {
-                  MessageListPage.ancestorOf(context).model!
-                    .renarrowAndFetch(narrow, AnchorCode.newest);
-                })),
+                child: _SearchBar(
+                  narrow: narrow as SearchNarrow,
+                  onSubmitted: (narrow) {
+                    MessageListPage.ancestorOf(context).model!
+                      .renarrowAndFetch(narrow, AnchorCode.newest);
+                  })),
             MediaQuery.removePadding(
               // Scaffold knows about the app bar, and so has run this
               // BuildContext, which is under `body`, through
@@ -738,8 +740,12 @@ class MessageListAppBarTitle extends StatelessWidget {
 }
 
 class _SearchBar extends StatefulWidget {
-  const _SearchBar({required this.onSubmitted});
+  const _SearchBar({
+    required this.narrow,
+    required this.onSubmitted,
+  });
 
+  final SearchNarrow narrow;
   final void Function(SearchNarrow) onSubmitted;
 
   @override
@@ -748,26 +754,60 @@ class _SearchBar extends StatefulWidget {
 
 class _SearchBarState extends State<_SearchBar> {
   late TextEditingController _controller;
+  late final FocusNode _focusNode;
 
-  static SearchNarrow _valueToNarrow(String value) {
-    // The server rejects an empty keyword search.
-    if (value.trim().isEmpty) return SearchNarrow.empty();
-    return SearchNarrow(filters: [ApiNarrowSearch(value)]);
-  }
+  SearchNarrow get _narrow => widget.narrow;
+  late final List<ApiNarrowElement> _searchFilters;
 
   @override
   void initState() {
     _controller = TextEditingController();
+    _focusNode = FocusNode();
+    _searchFilters = [..._narrow.filters];
     super.initState();
   }
 
+  void _updateSearch() {
+    widget.onSubmitted(_searchFilters.isEmpty
+      ? SearchNarrow.empty()
+      : SearchNarrow(filters: _searchFilters));
+  }
+
   void _handleSubmitted(String value) {
-    widget.onSubmitted(_valueToNarrow(value));
+    _searchFilters.removeWhere((e) => e is ApiNarrowSearch);
+    // The server rejects an empty keyword search.
+    if (value.trim().isNotEmpty) _searchFilters.add(ApiNarrowSearch(value));
+    _updateSearch();
+  }
+
+  void _onSenderPillTapped(ApiNarrowSender senderFilter) {
+    setState(() {
+      _searchFilters.remove(senderFilter);
+    });
+    _focusNode.requestFocus();
   }
 
   void _clearInput() {
     _controller.clear();
-    _handleSubmitted('');
+    _searchFilters.clear();
+    _updateSearch();
+    _focusNode.requestFocus();
+  }
+
+  Iterable<Widget> _buildPills() {
+    return _searchFilters.map((e) {
+      return switch (e) {
+        // The keyword filter appears in the text field itself, not as a pill.
+        ApiNarrowSearch() => null,
+        ApiNarrowSender() => SearchPillSender(
+                               senderId: e.operand,
+                               onTap: () => _onSenderPillTapped(e)),
+
+        // TODO(#1660): show pills for these too
+        ApiNarrowChannel() || ApiNarrowTopic() || ApiNarrowDm()
+          || ApiNarrowIs() || ApiNarrowWith() || ApiNarrowMessageId() => null,
+      };
+    }).nonNulls;
   }
 
   Widget _buildSearchField(BuildContext context) {
@@ -776,13 +816,14 @@ class _SearchBarState extends State<_SearchBar> {
 
     return TextField(
       controller: _controller,
+      focusNode: _focusNode,
       autocorrect: false,
 
       // Servers as of 2025-07 seem to require straight quotes for the
       // "exact match"- style query. (N.B. the doc says this param is iOS-only.)
       smartQuotesType: .disabled,
 
-      autofocus: true,
+      autofocus: _narrow is EmptySearchNarrow,
       onSubmitted: _handleSubmitted,
       style: filledInputTextStyle(designVariables),
       textInputAction: .search,
@@ -797,6 +838,7 @@ class _SearchBarState extends State<_SearchBar> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -806,17 +848,38 @@ class _SearchBarState extends State<_SearchBar> {
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     return Container(
+      // Same max height as the search field in [_NewDmSearchBar].
+      constraints: const BoxConstraints(maxHeight: 124),
       decoration: BoxDecoration(
         color: designVariables.bgSearchInput,
         borderRadius: .circular(10)),
-      child: Row(children: [
+      child: Row(crossAxisAlignment: .start, children: [
         Padding(
           padding: const .fromSTEB(8, 9, 6, 9),
           child: Icon(ZulipIcons.search,
             size: 24, color: designVariables.labelSearchPrompt)),
-        Expanded(child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 7),
-          child: _buildSearchField(context))),
+        Expanded(child: GestureDetector(
+          // Because the search field is wrapped in IntrinsicWidth,
+          // tap-to-focus works only on its (hint) text.
+          // This handler gives the search field a wider tap target
+          // for requesting focus.
+          onTap: _focusNode.requestFocus,
+          child: SingleChildScrollView(
+            reverse: true,
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              crossAxisAlignment: .center,
+              children: [
+                ..._buildPills(),
+                // The IntrinsicWidth lets the text field participate in the
+                // Wrap when its content fits on the same line with a user
+                // pill, by preventing it from expanding to fill the
+                // available width. See:
+                //   https://github.com/zulip/zulip-flutter/pull/1322#discussion_r2094112488
+                IntrinsicWidth(child: _buildSearchField(context)),
+              ])))),
         ConstrainedBox(
           constraints: BoxConstraints.tight(ZulipIconButtonSize.medium.surface),
           child: ZulipIconButton(
@@ -1461,8 +1524,26 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
 
       case SearchNarrow():
         return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.emptyMessageListSearchDefault);
+          header: _emptyMessageListSearchHeader(context, narrow as SearchNarrow));
     }
+  }
+
+  // Borrows the logic from pick_empty_narrow_banner in Zulip web:
+  //   https://github.com/zulip/zulip/blob/19ed17c38/web/src/narrow_banner.ts#L181
+  String _emptyMessageListSearchHeader(BuildContext context, SearchNarrow narrow) {
+    final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    if (narrow.filters.length == 1) {
+      final element = narrow.filters.single;
+      if (element case ApiNarrowSender(operand: final senderId)) {
+        final sender = store.getUser(senderId);
+        return sender != null
+          ? zulipLocalizations.emptyMessageListSearchFromSender(sender.fullName)
+          : zulipLocalizations.emptyMessageListSearchFromUnknownSender;
+      }
+    }
+    return zulipLocalizations.emptyMessageListSearchDefault;
   }
 }
 
