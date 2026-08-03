@@ -698,7 +698,6 @@ class ZulipStream {
   GroupSettingValue? canSubscribeGroup; // TODO(server-10)
 
   bool? isRecentlyActive; // TODO(server-10)
-  // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
   int? streamWeeklyTraffic;
 
   ZulipStream({
