@@ -1299,7 +1299,6 @@ enum MessageFlag {
   mentioned,
   topicWildcardMentioned,
   streamWildcardMentioned,
-  wildcardMentioned, // TODO(server-8) Remove deprecated flag.
   hasAlertWord,
   historical,
   unknown;
@@ -1322,7 +1321,6 @@ enum MessageFlag {
       case MessageFlag.mentioned:
       case MessageFlag.topicWildcardMentioned:
       case MessageFlag.streamWildcardMentioned:
-      case MessageFlag.wildcardMentioned:
         return true;
 
       case MessageFlag.read:
