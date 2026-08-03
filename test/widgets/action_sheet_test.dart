@@ -1030,7 +1030,6 @@ void main() {
       Future<void> setupToTopicActionSheet(WidgetTester tester, {
         required bool? isChannelMuted,
         required UserTopicVisibilityPolicy visibilityPolicy,
-        int? zulipFeatureLevel,
       }) async {
         addTearDown(testBinding.reset);
 
@@ -1041,7 +1040,6 @@ void main() {
           isChannelSubscribed: isChannelMuted != null, // shorthand; see dartdoc
           isChannelMuted: isChannelMuted,
           visibilityPolicy: visibilityPolicy,
-          zulipFeatureLevel: zulipFeatureLevel,
         );
 
         final message = eg.streamMessage(
@@ -1148,33 +1146,6 @@ void main() {
             await setupToTopicActionSheet(tester,
               isChannelMuted: isChannelMuted,
               visibilityPolicy: visibilityPolicy);
-            checkButtons(buttons);
-          });
-        }
-      });
-
-      group('legacy: follow is unsupported when FL < 219', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
-
-          (true,  UserTopicVisibilityPolicy.muted,    [unmute]),
-          (true,  UserTopicVisibilityPolicy.none,     [unmute]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (true,  UserTopicVisibilityPolicy.followed, [mute]),
-
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-        ];
-
-        for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
-          final description = 'isChannelMuted: ${isChannelMuted ?? "(not subscribed)"}, $visibilityPolicy';
-          testWidgets(description, (tester) async {
-            await setupToTopicActionSheet(tester,
-              isChannelMuted: isChannelMuted,
-              visibilityPolicy: visibilityPolicy,
-              zulipFeatureLevel: 218);
             checkButtons(buttons);
           });
         }
