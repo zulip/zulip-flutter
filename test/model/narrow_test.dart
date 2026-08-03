@@ -226,8 +226,6 @@ void main() {
         eg.streamMessage(flags: [MessageFlag.topicWildcardMentioned]))).isTrue();
       check(narrow.containsMessage(
         eg.streamMessage(flags: [MessageFlag.streamWildcardMentioned]))).isTrue();
-      check(narrow.containsMessage(
-        eg.streamMessage(flags: [MessageFlag.wildcardMentioned]))).isTrue();
 
       check(narrow.containsMessage(
         eg.streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
