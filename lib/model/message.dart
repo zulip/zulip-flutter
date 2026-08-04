@@ -1223,9 +1223,7 @@ mixin _OutboxMessageStore on HasChannelStore {
       // We simultaneously reload the affected message lists from scratch, so
       // the user won't see a state where the message appears to have vanished.
       // (See _SendButtonState._send in lib/widgets/compose_box.dart.)
-      _outboxMessages.remove(localMessageId);
-      _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
-      _outboxMessageWaitPeriodTimers.remove(localMessageId)?.cancel();
+      _removeOutboxMessage(localMessageId);
       for (final view in _messageListViews) {
         view.notifyListenersIfOutboxMessagePresent(localMessageId);
       }
@@ -1282,11 +1280,20 @@ mixin _OutboxMessageStore on HasChannelStore {
     _updateOutboxMessage(localMessageId, newState: OutboxMessageState.waitPeriodExpired);
   }
 
-  OutboxMessage takeOutboxMessage(int localMessageId) {
-    assert(!_disposed);
+  /// Remove the outbox message with [localMessageId] from the store,
+  /// canceling its timers, and return it, or null if it isn't found.
+  ///
+  /// The caller is responsible for updating [MessageListView]s as appropriate.
+  OutboxMessage? _removeOutboxMessage(int localMessageId) {
     final removed = _outboxMessages.remove(localMessageId);
     _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
     _outboxMessageWaitPeriodTimers.remove(localMessageId)?.cancel();
+    return removed;
+  }
+
+  OutboxMessage takeOutboxMessage(int localMessageId) {
+    assert(!_disposed);
+    final removed = _removeOutboxMessage(localMessageId);
     if (removed == null) {
       throw StateError(
         'Removing unknown outbox message with localMessageId: $localMessageId');
@@ -1307,9 +1314,7 @@ mixin _OutboxMessageStore on HasChannelStore {
       final localMessageId = int.parse(event.localMessageId!, radix: 10);
       // The outbox message can be missing if the user removes it before the
       // event arrives.  Nothing to do in that case.
-      _outboxMessages.remove(localMessageId);
-      _outboxMessageDebounceTimers.remove(localMessageId)?.cancel();
-      _outboxMessageWaitPeriodTimers.remove(localMessageId)?.cancel();
+      _removeOutboxMessage(localMessageId);
     }
   }
 
