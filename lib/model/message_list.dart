@@ -387,6 +387,21 @@ mixin _MessageSequence {
     return true;
   }
 
+  /// Remove from [outboxMessages] the outbox message the event's message
+  /// was sent as, if any.
+  ///
+  /// The caller is responsible for updating the corresponding items,
+  /// for example by calling [_reprocessOutboxMessages].
+  ///
+  /// [outboxMessages] is expected to be short, so removing the corresponding
+  /// outbox message in linear time is efficient.
+  void _removeOutboxMessageOfEvent(MessageEvent event) {
+    if (event.localMessageId == null) return;
+    final localMessageId = int.parse(event.localMessageId!, radix: 10);
+    outboxMessages.removeWhere(
+      (message) => message.localMessageId == localMessageId);
+  }
+
   /// Remove all outbox messages that satisfy [test] from [outboxMessages].
   ///
   /// Returns true if any outbox messages were removed, false otherwise.
@@ -1165,13 +1180,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     _removeOutboxMessageItems();
     // TODO insert in middle of [messages] instead, when appropriate
     _addMessage(message);
-    if (event.localMessageId != null) {
-      final localMessageId = int.parse(event.localMessageId!, radix: 10);
-      // [outboxMessages] is expected to be short, so removing the corresponding
-      // outbox message and reprocessing them all in linear time is efficient.
-      outboxMessages.removeWhere(
-        (message) => message.localMessageId == localMessageId);
-    }
+    _removeOutboxMessageOfEvent(event);
     _reprocessOutboxMessages();
     notifyListeners();
   }
