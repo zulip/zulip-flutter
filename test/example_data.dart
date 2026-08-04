@@ -33,10 +33,11 @@ void _checkPositive(int? value, String description) {
 
 Object nullCheckError() {
   try {
+    //ignore: null_check_always_fails
     null!;
   } catch (e) {
     return e;
-  } // ignore: null_check_always_fails
+  }
 }
 
 /// A Zulip API error with the generic "BAD_REQUEST" error code.

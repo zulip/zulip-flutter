@@ -781,7 +781,7 @@ class MentionAutocompleteView
         .where(
           (userGroup) =>
               userGroup.canMentionGroup == null ||
-              store.selfInGroupSetting(userGroup.canMentionGroup!)
+              store.selfInGroupSetting(userGroup.canMentionGroup!),
         )
         .toList()
       ..sort(_userGroupComparator(store: store));
@@ -837,8 +837,9 @@ class MentionAutocompleteView
         final isChannelWildcardAvailable =
             store.zulipFeatureLevel >= 247; // TODO(server-9)
         if (isChannelWildcardAvailable &&
-            tryOption(WildcardMentionOption.channel))
+            tryOption(WildcardMentionOption.channel)) {
           break all;
+        }
         if (tryOption(WildcardMentionOption.stream)) break all;
       }
     }
