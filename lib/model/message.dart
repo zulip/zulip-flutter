@@ -954,8 +954,9 @@ const kSendMessageOfferRestoreWaitPeriod = Duration(seconds: 10);  // TODO(#1441
 ///         timed out.   not finished when
 ///                      wait period timed out.
 ///
-///              Event received.  Or message found in a
-///              fetch after [sendMessage] request succeeds.
+///              Event received.
+///              Or message found in a fetch
+///              and [sendMessage] succeeded, in either order.
 ///              Or [sendMessage] request succeeds and
 ///              we're sending to an unsubscribed channel.
 /// (any state) ───────────────────────────────────────► (delete)
@@ -967,6 +968,9 @@ const kSendMessageOfferRestoreWaitPeriod = Duration(seconds: 10);  // TODO(#1441
 /// Once the [sendMessage] request has succeeded, the outbox message is also
 /// deleted as soon as a message with a matching [OutboxMessage.messageId]
 /// is found in a fetch; see [MessageStoreImpl.reconcileMessages].
+/// If the message was found in a fetch while the send request was in flight,
+/// the deletion happens when the send request succeeds,
+/// which is when [OutboxMessage.messageId] becomes known.
 /// If we're sending to an unsubscribed channel, we don't expect an event
 /// (see "third buggy behavior" in #1798) so in that case
 /// the outbox message is deleted when the [sendMessage] request succeeds.
@@ -1246,6 +1250,13 @@ mixin _OutboxMessageStore on HasChannelStore {
       for (final view in _messageListViews) {
         view.notifyListenersIfOutboxMessagePresent(localMessageId);
       }
+      return;
+    }
+
+    if (messages.containsKey(result.id)) {
+      // The message already appeared in a fetch, while the send request was
+      // in flight.  Now that we know its ID, drop the outbox message.
+      _removeDeliveredOutboxMessage(outboxMessage);
       return;
     }
 

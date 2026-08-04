@@ -470,6 +470,31 @@ void main() {
         checkNotifiedOnce();
       }));
 
+      test('hidden -> (delete) when message found in fetch before send request succeeds', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessageToSucceedAfterDelay(
+          const Duration(milliseconds: 100));
+        checkState().equals(OutboxMessageState.hidden);
+        checkNotNotified();
+
+        // The message arrives in a fetch while the send request is in flight
+        // and the outbox message is still hidden.
+        store.reconcileMessages([message]);
+        checkState().equals(OutboxMessageState.hidden);
+        checkNotNotified();
+
+        // The send response arrives; the outbox message is deleted
+        // without ever being shown.
+        async.elapse(const Duration(milliseconds: 100));
+        await check(outboxMessageSucceedFuture).completes();
+        check(store.outboxMessages).isEmpty();
+        checkNotNotified();
+
+        // The debounce timer was canceled when the outbox message
+        // was deleted.
+        async.elapse(kLocalEchoDebounceDuration);
+        checkNotNotified();
+      }));
+
       test('waiting -> (delete) because message found in fetch', () => awaitFakeAsync((async) async {
         // Regression test for: https://github.com/zulip/zulip-flutter/issues/2397
         await prepareOutboxMessage();
@@ -478,6 +503,54 @@ void main() {
         checkNotifiedOnce();
 
         store.reconcileMessages([message]);
+        check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
+      }));
+
+      test('waiting -> (delete) when message found in fetch before send request succeeds', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessageToSucceedAfterDelay(
+          kLocalEchoDebounceDuration + Duration(seconds: 1));
+        async.elapse(kLocalEchoDebounceDuration);
+        checkState().equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
+
+        // The message arrives in a fetch while the send request is in flight.
+        // It can't be recognized as this outbox message's message yet;
+        // that needs the ID from the send response.
+        store.reconcileMessages([message]);
+        checkState().equals(OutboxMessageState.waiting);
+        check(store.outboxMessages).values.single.messageId.isNull();
+        checkNotNotified();
+
+        // The send response arrives; the message in the store is recognized
+        // as this outbox message's, and the outbox message is deleted.
+        async.elapse(const Duration(seconds: 1));
+        await check(outboxMessageSucceedFuture).completes();
+        check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
+
+        // The wait-period timer was canceled when the outbox message
+        // was deleted.
+        async.elapse(kSendMessageOfferRestoreWaitPeriod);
+        checkNotNotified();
+      }));
+
+      test('waitPeriodExpired -> (delete) when message found in fetch before send request succeeds', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessageToSucceedAfterDelay(
+          kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
+        async.elapse(kSendMessageOfferRestoreWaitPeriod);
+        checkState().equals(OutboxMessageState.waitPeriodExpired);
+        checkNotified(count: 2);
+
+        // The message arrives in a fetch while the send request is in flight.
+        store.reconcileMessages([message]);
+        checkState().equals(OutboxMessageState.waitPeriodExpired);
+        checkNotNotified();
+
+        // The send response arrives; the outbox message is deleted,
+        // without flickering back to the waiting state first.
+        async.elapse(const Duration(seconds: 1));
+        await check(outboxMessageSucceedFuture).completes();
         check(store.outboxMessages).isEmpty();
         checkNotifiedOnce();
       }));
