@@ -880,6 +880,116 @@ void main() {
       async.elapse(kLocalEchoDebounceDuration);
       checkNotNotified();
     }));
+
+    group('message already in list from fetch/event race', () {
+      // Regression tests for: https://github.com/zulip/zulip-flutter/issues/929
+
+      test('no duplicate; adopt event copy of message', () async {
+        final stream = eg.stream();
+        await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
+        final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
+        final message = eg.streamMessage(stream: stream);
+        await prepareMessages(foundOldest: true, messages: [...messages, message]);
+
+        check(model).messages.length.equals(31);
+        await store.handleEvent(eg.messageEvent(message));
+        checkNotifiedOnce();
+        check(model).messages.length.equals(31);
+        check(model.messages.last).identicalTo(message);
+      });
+
+      test('event copy of message has different content', () async {
+        // The fetched copy can be newer than the event's copy,
+        // as when the message was edited just after being sent;
+        // the event queue will separately deliver an update event.
+        final stream = eg.stream();
+        await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
+        final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
+        final message = eg.streamMessage(stream: stream, content: '<p>edited</p>');
+        await prepareMessages(foundOldest: true, messages: [...messages, message]);
+
+        final eventMessage = Message.fromJson(
+          message.toJson()..['content'] = '<p>original</p>');
+        await store.handleEvent(eg.messageEvent(eventMessage));
+        checkNotifiedOnce();
+        check(model).messages.length.equals(31);
+        check(model.messages.last).identicalTo(eventMessage);
+        check(model.contents.last).isA<ZulipContent>()
+          .equalsNode(parseContent('<p>original</p>'));
+      });
+
+      test('with corresponding outbox message', () => awaitFakeAsync((async) async {
+        final stream = eg.stream();
+        await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
+        await prepareOutboxMessages(count: 1, stream: stream);
+        final localMessageId = store.outboxMessages.keys.single;
+        async.elapse(kLocalEchoDebounceDuration);
+        checkNotNotified();
+
+        final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
+        final message = eg.streamMessage(stream: stream);
+        await prepareMessages(foundOldest: true, messages: [...messages, message]);
+        check(model)
+          ..messages.length.equals(31)
+          ..outboxMessages.single.localMessageId.equals(localMessageId);
+
+        await store.handleEvent(eg.messageEvent(message,
+          localMessageId: localMessageId));
+        checkNotifiedOnce();
+        check(model)
+          ..messages.length.equals(31)
+          ..outboxMessages.isEmpty();
+      }));
+
+      test('adopt even when narrow.containsMessage is null (e.g. search)', () async {
+        // A narrow like [KeywordSearchNarrow] can't say whether a message
+        // belongs (containsMessage returns null), but a message the view
+        // already has must still adopt the event's copy.
+        final stream = eg.stream();
+        await prepare(narrow: KeywordSearchNarrow('hello'), stream: stream);
+        final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
+        final message = eg.streamMessage(stream: stream, content: '<p>edited</p>');
+        await prepareMessages(foundOldest: true,
+          messages: [...messages, message]);
+        check(model).haveNewest.isTrue();
+
+        final eventMessage = Message.fromJson(
+          message.toJson()..['content'] = '<p>original</p>');
+        await store.handleEvent(eg.messageEvent(eventMessage));
+        checkNotifiedOnce();
+        check(model).messages.length.equals(31);
+        check(model.messages.last).identicalTo(eventMessage);
+        check(model.contents.last).isA<ZulipContent>()
+          .equalsNode(parseContent('<p>original</p>'));
+      });
+
+      test('adopt even when mid-history (!haveNewest)', () async {
+        // The store clobbers its own copy on every message event, so a view must
+        // adopt any message it already holds -- even when it isn't caught up to
+        // the newest message.
+        final stream = eg.stream();
+        await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream,
+          anchor: NumericAnchor(1000));
+        final message = eg.streamMessage(id: 1029, stream: stream,
+          content: '<p>edited</p>');
+        final messages = [
+          for (int i = 0; i < 29; i++) eg.streamMessage(id: 1000 + i, stream: stream),
+          message,
+        ];
+        await prepareMessages(foundOldest: true, foundNewest: false,
+          messages: messages);
+        check(model).haveNewest.isFalse();
+
+        final eventMessage = Message.fromJson(
+          message.toJson()..['content'] = '<p>original</p>');
+        await store.handleEvent(eg.messageEvent(eventMessage));
+        checkNotifiedOnce();
+        check(model).messages.length.equals(30);
+        check(model.messages.last).identicalTo(eventMessage);
+        check(model.contents.last).isA<ZulipContent>()
+          .equalsNode(parseContent('<p>original</p>'));
+      });
+    });
   });
 
   group('addOutboxMessage', () {

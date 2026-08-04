@@ -282,6 +282,18 @@ mixin _MessageSequence {
     _processMessage(messages.length - 1);
   }
 
+  /// Replace the message at [index] with [message],
+  /// which must have the same message ID,
+  /// and update [contents] accordingly.
+  ///
+  /// The caller is responsible for updating [items],
+  /// for example by calling [_reprocessAll].
+  void _replaceMessage(int index, Message message) {
+    assert(messages[index].id == message.id);
+    messages[index] = message;
+    contents[index] = parseMessageContent(message);
+  }
+
   /// Removes all messages from the list that satisfy [test].
   ///
   /// Returns true if any messages were removed, false otherwise.
@@ -1154,9 +1166,37 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  /// Add [MessageEvent.message] to this view, if it belongs here.
+  /// Add [MessageEvent.message] to this view if it belongs here,
+  /// or adopt the event's copy if we already have the message.
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
+
+    final index = _findMessageWithId(message.id);
+    if (index != -1) {
+      // We already have the message, from a fetch whose response was
+      // computed after the message was sent:
+      //   https://github.com/zulip/zulip-flutter/issues/929
+      // Instead of adding a duplicate, adopt the event's copy of the message,
+      // like the message store has (see [MessageStoreImpl.handleMessageEvent]),
+      // so that this view continues to see updates
+      // that are applied to the store's copy.
+      //
+      // This runs regardless of [narrow] and [haveNewest]:
+      // those decide whether a *new* message belongs in this view,
+      // but this message is already here and must stay in sync with the store.
+      _replaceMessage(index, message);
+      // If we sent this message, drop its outbox counterpart.
+      // (When [haveNewest] is false there are no [outboxMessages], so this
+      // is a no-op; see [_syncOutboxMessagesFromStore].)
+      _removeOutboxMessageOfEvent(event);
+      // This is a rare race, so the cost of rebuilding [items] is fine.
+      // [_reprocessAll] also rebuilds the outbox items, so there's no need
+      // to reprocess them separately.
+      _reprocessAll();
+      notifyListeners();
+      return;
+    }
+
     if (narrow.containsMessage(message) != true || !_messageVisible(message)) {
       assert(event.localMessageId == null || outboxMessages.none((message) =>
         message.localMessageId == int.parse(event.localMessageId!, radix: 10)));
