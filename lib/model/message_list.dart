@@ -1100,6 +1100,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Remove the [outboxMessage] from the view, its anticipated message
+  /// (see [OutboxMessage.messageId]) having been received in a fetch.
+  ///
+  /// This is a no-op if the message is not found.
+  void handleOutboxMessageDelivered(OutboxMessage outboxMessage) {
+    if (_removeOutboxMessage(outboxMessage)) {
+      notifyListeners();
+    }
+  }
+
   void handleUserTopicEvent(UserTopicEvent event) {
     switch (_canAffectVisibility(event)) {
       case UserTopicVisibilityEffect.none:

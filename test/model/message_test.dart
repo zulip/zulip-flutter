@@ -463,6 +463,29 @@ void main() {
         checkNotifiedOnce();
       }));
 
+      test('waiting -> (delete) because message found in fetch', () => awaitFakeAsync((async) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/2397
+        await prepareOutboxMessage();
+        async.elapse(kLocalEchoDebounceDuration);
+        checkState().equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
+
+        store.reconcileMessages([message]);
+        check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
+      }));
+
+      test('no delete when unrelated message found in fetch', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessage();
+        async.elapse(kLocalEchoDebounceDuration);
+        checkState().equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
+
+        store.reconcileMessages([eg.streamMessage(stream: stream)]);
+        checkState().equals(OutboxMessageState.waiting);
+        checkNotNotified();
+      }));
+
       test('waitPeriodExpired -> (delete) when event arrives before send request fails', () => awaitFakeAsync((async) async {
         // Set up an error to fail `sendMessage` with a delay, leaving time for
         // the message event to arrive.

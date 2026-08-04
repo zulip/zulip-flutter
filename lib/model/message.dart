@@ -435,6 +435,8 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
         ifAbsent: () => _reconcileUnrecognizedMessage(message),
         (current) => _reconcileRecognizedMessage(current, message));
     }
+
+    _removeDeliveredOutboxMessages();
   }
 
   Message _reconcileUnrecognizedMessage(Message incoming) {
@@ -952,15 +954,19 @@ const kSendMessageOfferRestoreWaitPeriod = Duration(seconds: 10);  // TODO(#1441
 ///         timed out.   not finished when
 ///                      wait period timed out.
 ///
-///              Event received.  Or [sendMessage]
-///              request succeeds and we're sending to
-///              an unsubscribed channel.
+///              Event received.  Or message found in a
+///              fetch after [sendMessage] request succeeds.
+///              Or [sendMessage] request succeeds and
+///              we're sending to an unsubscribed channel.
 /// (any state) ───────────────────────────────────────► (delete)
 /// ```
 ///
 /// During its lifecycle, it is guaranteed that the outbox message is deleted
 /// as soon a message event with a matching [MessageEvent.localMessageId]
 /// arrives.
+/// Once the [sendMessage] request has succeeded, the outbox message is also
+/// deleted as soon as a message with a matching [OutboxMessage.messageId]
+/// is found in a fetch; see [MessageStoreImpl.reconcileMessages].
 /// If we're sending to an unsubscribed channel, we don't expect an event
 /// (see "third buggy behavior" in #1798) so in that case
 /// the outbox message is deleted when the [sendMessage] request succeeds.
@@ -1001,8 +1007,9 @@ enum OutboxMessageState {
 ///
 /// A request remains "outstanding" even after the [sendMessage] HTTP request
 /// completes, whether with success or failure.
-/// The outbox-message persists until either the corresponding [MessageEvent]
-/// arrives to replace it, or the user discards it (perhaps to try again).
+/// The outbox-message persists until either the corresponding message
+/// arrives to replace it (in a [MessageEvent] or, once the request has
+/// succeeded, in a fetch), or the user discards it (perhaps to try again).
 /// For details, see the state diagram at [OutboxMessageState],
 /// and [MessageStore.takeOutboxMessage].
 sealed class OutboxMessage<T extends Conversation> extends MessageBase<T> {
@@ -1116,6 +1123,9 @@ mixin _OutboxMessageStore on HasChannelStore {
   /// A fresh ID to use for [OutboxMessage.localMessageId],
   /// unique within this instance.
   int _nextLocalMessageId = 1;
+
+  /// As in [MessageStoreImpl.messages].
+  Map<int, Message> get messages;
 
   /// As in [MessageStoreImpl._messageListViews].
   Set<MessageListView> get _messageListViews;
@@ -1315,6 +1325,40 @@ mixin _OutboxMessageStore on HasChannelStore {
       view.removeOutboxMessage(removed);
     }
     return removed;
+  }
+
+  /// Remove any outbox messages whose anticipated [Message],
+  /// as identified by [OutboxMessage.messageId], is in [messages],
+  /// updating message-list views accordingly.
+  ///
+  /// This is how outbox messages get removed when their messages
+  /// are received through a fetch instead of a [MessageEvent];
+  /// see [MessageStoreImpl.reconcileMessages].
+  void _removeDeliveredOutboxMessages() {
+    assert(!_disposed);
+    // This runs on every fetch (see [MessageStoreImpl.reconcileMessages]);
+    // return cheaply in the common case of an empty outbox.
+    if (_outboxMessages.isEmpty) return;
+    final delivered = _outboxMessages.values
+      .where((outboxMessage) {
+        final messageId = outboxMessage._messageId;
+        return messageId != null && messages.containsKey(messageId);
+      })
+      .toList();
+    for (final outboxMessage in delivered) {
+      _removeDeliveredOutboxMessage(outboxMessage);
+    }
+  }
+
+  /// Remove [outboxMessage], whose anticipated [Message]
+  /// (see [OutboxMessage.messageId]) must be in [messages],
+  /// updating message-list views accordingly.
+  void _removeDeliveredOutboxMessage(OutboxMessage outboxMessage) {
+    assert(messages.containsKey(outboxMessage._messageId));
+    _removeOutboxMessage(outboxMessage.localMessageId);
+    for (final view in _messageListViews) {
+      view.handleOutboxMessageDelivered(outboxMessage);
+    }
   }
 
   void _handleMessageEventOutbox(MessageEvent event) {
