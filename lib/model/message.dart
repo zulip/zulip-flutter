@@ -1047,6 +1047,12 @@ sealed class OutboxMessage<T extends Conversation> extends MessageBase<T> {
   ///  * [MessageStoreImpl.sendMessage], where this ID is assigned.
   final int localMessageId;
 
+  /// The ID of the [Message] this request is anticipated to produce,
+  /// from the [sendMessage] response ([SendMessageResult.id]),
+  /// or null if a successful response hasn't arrived.
+  int? get messageId => _messageId;
+  int? _messageId;
+
   @override
   int? get id => null;
 
@@ -1191,8 +1197,9 @@ mixin _OutboxMessageStore on HasChannelStore {
       kSendMessageOfferRestoreWaitPeriod,
       () => _handleOutboxWaitPeriodExpired(localMessageId));
 
+    final SendMessageResult result;
     try {
-      await _apiSendMessage(connection,
+      result = await _apiSendMessage(connection,
         destination: destination,
         content: content,
         readBySender: true,
@@ -1212,10 +1219,12 @@ mixin _OutboxMessageStore on HasChannelStore {
       rethrow;
     }
     if (_disposed) return;
-    if (!_outboxMessages.containsKey(localMessageId)) {
+    final outboxMessage = _outboxMessages[localMessageId];
+    if (outboxMessage == null) {
       // The message event already arrived; nothing to do.
       return;
     }
+    outboxMessage._messageId = result.id;
 
     if (destination is StreamDestination && subscriptions[destination.streamId] == null) {
       // We don't expect an event (we're sending to an unsubscribed channel);
@@ -1234,8 +1243,7 @@ mixin _OutboxMessageStore on HasChannelStore {
     // Cancel the timer that would have had us start presuming that the
     // send might have failed.
     _outboxMessageWaitPeriodTimers.remove(localMessageId)?.cancel();
-    if (_outboxMessages[localMessageId]!.state
-          == OutboxMessageState.waitPeriodExpired) {
+    if (outboxMessage.state == OutboxMessageState.waitPeriodExpired) {
       // The user was offered to restore the message since the request did not
       // complete for a while.  Since the request was successful, we expect the
       // message event to arrive eventually.  Stop inviting the the user to

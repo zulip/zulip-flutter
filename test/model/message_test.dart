@@ -195,14 +195,16 @@ void main() {
       bool isChannelSubscribed = true,
       int? zulipFeatureLevel,
     }) async {
-      message = eg.streamMessage(stream: stream);
       await prepare(
         narrow: narrow,
         stream: stream,
         isChannelSubscribed: isChannelSubscribed,
         zulipFeatureLevel: zulipFeatureLevel);
       await prepareMessages([eg.streamMessage(stream: stream)]);
-      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      // Create this after the fixture message above,
+      // so its ID is newer, as a just-sent message's would be.
+      message = eg.streamMessage(stream: stream);
+      connection.prepare(json: SendMessageResult(id: message.id).toJson());
       await store.sendMessage(
         destination: destination ?? streamDestination, content: 'content');
     }
@@ -250,6 +252,11 @@ void main() {
       await receiveMessage(eg.streamMessage(stream: stream, topic: 'foo'));
       check(store.outboxMessages).isEmpty();
       checkNotifiedOnce();
+    }));
+
+    test('record message ID from send response', () => awaitFakeAsync((async) async {
+      await prepareOutboxMessage();
+      check(store.outboxMessages).values.single.messageId.equals(message.id);
     }));
 
     test('hidden -> waiting and never transition to waitPeriodExpired', () => awaitFakeAsync((async) async {

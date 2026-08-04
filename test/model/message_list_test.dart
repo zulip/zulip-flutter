@@ -132,7 +132,8 @@ void main() {
     String topic = 'some topic',
   }) async {
     for (int i = 0; i < count; i++) {
-      connection.prepare(json: SendMessageResult(id: 123).toJson());
+      // Distinct IDs, as distinct sent messages would have.
+      connection.prepare(json: SendMessageResult(id: 123 + i).toJson());
       await store.sendMessage(
         destination: StreamDestination(stream.streamId, eg.t(topic)),
         content: 'content');
@@ -140,8 +141,9 @@ void main() {
   }
 
   Future<void> prepareOutboxMessagesTo(List<MessageDestination> destinations) async {
-    for (final destination in destinations) {
-      connection.prepare(json: SendMessageResult(id: 123).toJson());
+    for (final (i, destination) in destinations.indexed) {
+      // Distinct IDs, as distinct sent messages would have.
+      connection.prepare(json: SendMessageResult(id: 123 + i).toJson());
       await store.sendMessage(destination: destination, content: 'content');
     }
   }
