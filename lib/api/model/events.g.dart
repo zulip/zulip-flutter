@@ -268,6 +268,9 @@ UserGroupUpdateData _$UserGroupUpdateDataFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String?,
       description: json['description'] as String?,
       deactivated: json['deactivated'] as bool?,
+      canMentionGroup: json['can_mention_group'] == null
+          ? null
+          : GroupSettingValue.fromJson(json['can_mention_group']),
     );
 
 Map<String, dynamic> _$UserGroupUpdateDataToJson(
@@ -276,6 +279,7 @@ Map<String, dynamic> _$UserGroupUpdateDataToJson(
   'name': instance.name,
   'description': instance.description,
   'deactivated': instance.deactivated,
+  'can_mention_group': instance.canMentionGroup,
 };
 
 UserGroupAddMembersEvent _$UserGroupAddMembersEventFromJson(

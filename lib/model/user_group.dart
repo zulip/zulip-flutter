@@ -35,13 +35,15 @@ mixin ProxyUserGroupStore on UserGroupStore {
   @override
   Iterable<UserGroup> get allGroups => userGroupStore.allGroups;
   @override
-  bool selfInGroupSetting(GroupSettingValue value)
-    => userGroupStore.selfInGroupSetting(value);
+  bool selfInGroupSetting(GroupSettingValue value) =>
+      userGroupStore.selfInGroupSetting(value);
 }
 
-abstract class HasUserGroupStore extends PerAccountStoreBase with UserGroupStore, ProxyUserGroupStore {
+abstract class HasUserGroupStore extends PerAccountStoreBase
+    with UserGroupStore, ProxyUserGroupStore {
   HasUserGroupStore({required UserGroupStore groups})
-    : userGroupStore = groups, super(core: groups.core);
+    : userGroupStore = groups,
+      super(core: groups.core);
 
   @protected
   @override
@@ -51,10 +53,7 @@ abstract class HasUserGroupStore extends PerAccountStoreBase with UserGroupStore
 /// The implementation of [UserGroupStore] that does the work.
 class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
   UserGroupStoreImpl({required super.core, required List<UserGroup> groups})
-    : _groups = {
-        for (final group in groups)
-          group.id: group,
-      };
+    : _groups = {for (final group in groups) group.id: group};
 
   @override
   UserGroup? getGroup(int userGroupId) {
@@ -74,11 +73,10 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
   @override
   bool selfInGroupSetting(GroupSettingValue value) {
     return switch (value) {
-      GroupSettingValueNamed() =>
-        _selfInGroup(value.groupId),
+      GroupSettingValueNamed() => _selfInGroup(value.groupId),
       GroupSettingValueNameless() =>
-        value.directMembers.contains(selfUserId)
-          || value.directSubgroups.any(_selfInGroup),
+        value.directMembers.contains(selfUserId) ||
+            value.directSubgroups.any(_selfInGroup),
     };
   }
 
@@ -87,8 +85,8 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
     if (group == null) return false; // TODO(log); should know all groups
     // TODO(perf), TODO(#814): memoize which groups the self-user is in,
     //   to save doing this depth-first search on each permission check
-    return group.members.contains(selfUserId)
-      || group.directSubgroupIds.any(_selfInGroup);
+    return group.members.contains(selfUserId) ||
+        group.directSubgroupIds.any(_selfInGroup);
   }
 
   final Map<int, UserGroup> _groups;
@@ -111,10 +109,12 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
         final group = _expectGroup(event.groupId);
         if (group == null) return;
         final data = event.data;
-        if (data.name != null)        group.name        = data.name!;
+        if (data.name != null) group.name = data.name!;
         if (data.description != null) group.description = data.description!;
         if (data.deactivated != null) group.deactivated = data.deactivated!;
-
+        if (data.canMentionGroup != null) {
+          group.canMentionGroup = data.canMentionGroup;
+        }
       case UserGroupAddMembersEvent():
         final group = _expectGroup(event.groupId);
         if (group == null) return;

@@ -32,7 +32,8 @@ class GroupSettingValueNamed extends GroupSettingValue {
 
   const GroupSettingValueNamed(this.groupId);
 
-  factory GroupSettingValueNamed.fromJson(int json) => GroupSettingValueNamed(json);
+  factory GroupSettingValueNamed.fromJson(int json) =>
+      GroupSettingValueNamed(json);
 
   @override
   int toJson() => groupId;
@@ -47,10 +48,13 @@ class GroupSettingValueNameless extends GroupSettingValue {
   final List<int> directMembers;
   final List<int> directSubgroups;
 
-  GroupSettingValueNameless({required this.directMembers, required this.directSubgroups});
+  GroupSettingValueNameless({
+    required this.directMembers,
+    required this.directSubgroups,
+  });
 
   factory GroupSettingValueNameless.fromJson(Map<String, dynamic> json) =>
-    _$GroupSettingValueNamelessFromJson(json);
+      _$GroupSettingValueNamelessFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$GroupSettingValueNamelessToJson(this);
@@ -82,7 +86,7 @@ class CustomProfileField {
   });
 
   factory CustomProfileField.fromJson(Map<String, dynamic> json) =>
-    _$CustomProfileFieldFromJson(json);
+      _$CustomProfileFieldFromJson(json);
 
   Map<String, dynamic> toJson() => _$CustomProfileFieldToJson(this);
 }
@@ -100,9 +104,7 @@ enum CustomProfileFieldType {
   pronouns(apiValue: 8),
   unknown(apiValue: null);
 
-  const CustomProfileFieldType({
-    required this.apiValue
-  });
+  const CustomProfileFieldType({required this.apiValue});
 
   final int? apiValue;
 
@@ -123,13 +125,21 @@ class CustomProfileFieldChoiceDataItem {
 
   const CustomProfileFieldChoiceDataItem({required this.text});
 
-  factory CustomProfileFieldChoiceDataItem.fromJson(Map<String, dynamic> json) =>
-    _$CustomProfileFieldChoiceDataItemFromJson(json);
+  factory CustomProfileFieldChoiceDataItem.fromJson(
+    Map<String, dynamic> json,
+  ) => _$CustomProfileFieldChoiceDataItemFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CustomProfileFieldChoiceDataItemToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$CustomProfileFieldChoiceDataItemToJson(this);
 
-  static Map<String, CustomProfileFieldChoiceDataItem> parseFieldDataChoices(Map<String, dynamic> json) =>
-    json.map((k, v) => MapEntry(k, CustomProfileFieldChoiceDataItem.fromJson(v as Map<String, dynamic>)));
+  static Map<String, CustomProfileFieldChoiceDataItem> parseFieldDataChoices(
+    Map<String, dynamic> json,
+  ) => json.map(
+    (k, v) => MapEntry(
+      k,
+      CustomProfileFieldChoiceDataItem.fromJson(v as Map<String, dynamic>),
+    ),
+  );
 }
 
 /// The realm-level field data for an "external account" custom profile field.
@@ -149,10 +159,12 @@ class CustomProfileFieldExternalAccountData {
     required this.urlPattern,
   });
 
-  factory CustomProfileFieldExternalAccountData.fromJson(Map<String, dynamic> json) =>
-    _$CustomProfileFieldExternalAccountDataFromJson(json);
+  factory CustomProfileFieldExternalAccountData.fromJson(
+    Map<String, dynamic> json,
+  ) => _$CustomProfileFieldExternalAccountDataFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CustomProfileFieldExternalAccountDataToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$CustomProfileFieldExternalAccountDataToJson(this);
 }
 
 /// An item in the [InitialSnapshot.mutedUsers] or [MutedUsersEvent].
@@ -169,7 +181,7 @@ class MutedUserItem {
   const MutedUserItem({required this.id});
 
   factory MutedUserItem.fromJson(Map<String, dynamic> json) =>
-    _$MutedUserItemFromJson(json);
+      _$MutedUserItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$MutedUserItemToJson(this);
 }
@@ -207,7 +219,7 @@ class RealmEmojiItem {
   });
 
   factory RealmEmojiItem.fromJson(Map<String, dynamic> json) =>
-    _$RealmEmojiItemFromJson(json);
+      _$RealmEmojiItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$RealmEmojiItemToJson(this);
 }
@@ -225,7 +237,8 @@ class UserStatus {
   /// The emoji part, or null if unset.
   final StatusEmoji? emoji;
 
-  const UserStatus({required this.text, required this.emoji}) : assert(text != '');
+  const UserStatus({required this.text, required this.emoji})
+    : assert(text != '');
 
   static const UserStatus zero = UserStatus(text: null, emoji: null);
 
@@ -249,13 +262,14 @@ class StatusEmoji {
     required this.emojiName,
     required this.emojiCode,
     required this.reactionType,
-  }) : assert(emojiName != ''), assert(emojiCode != '');
+  }) : assert(emojiName != ''),
+       assert(emojiCode != '');
 
   @override
   bool operator ==(Object other) {
     if (other is! StatusEmoji) return false;
     return (emojiName, emojiCode, reactionType) ==
-      (other.emojiName, other.emojiCode, other.reactionType);
+        (other.emojiName, other.emojiCode, other.reactionType);
   }
 
   @override
@@ -275,13 +289,21 @@ class UserStatusChange {
     return UserStatus(text: text.or(old.text), emoji: emoji.or(old.emoji));
   }
 
-  UserStatusChange copyWith({Option<String?>? text, Option<StatusEmoji?>? emoji}) {
-    return UserStatusChange(text: text ?? this.text, emoji: emoji ?? this.emoji);
+  UserStatusChange copyWith({
+    Option<String?>? text,
+    Option<StatusEmoji?>? emoji,
+  }) {
+    return UserStatusChange(
+      text: text ?? this.text,
+      emoji: emoji ?? this.emoji,
+    );
   }
 
   factory UserStatusChange.fromJson(Map<String, dynamic> json) {
     return UserStatusChange(
-      text: _textFromJson(json), emoji: _emojiFromJson(json));
+      text: _textFromJson(json),
+      emoji: _emojiFromJson(json),
+    );
   }
 
   static Option<String?> _textFromJson(Map<String, dynamic> json) {
@@ -305,25 +327,27 @@ class UserStatusChange {
       //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/user.20status/near/2203132
       return OptionSome(null);
     } else {
-      return OptionSome(StatusEmoji(
-        emojiName: emojiName,
-        emojiCode: emojiCode,
-        reactionType: ReactionType.fromApiValue(reactionType)));
+      return OptionSome(
+        StatusEmoji(
+          emojiName: emojiName,
+          emojiCode: emojiCode,
+          reactionType: ReactionType.fromApiValue(reactionType),
+        ),
+      );
     }
   }
 
   Map<String, dynamic> toJson() {
     return {
-      if (text case OptionSome<String?>(:var value))
-        'status_text': value ?? '',
+      if (text case OptionSome<String?>(:var value)) 'status_text': value ?? '',
       if (emoji case OptionSome<StatusEmoji?>(:var value))
         ...value == null
-          ? {'emoji_name': '', 'emoji_code': '', 'reaction_type': ''}
-          : {
-              'emoji_name': value.emojiName,
-              'emoji_code': value.emojiCode,
-              'reaction_type': value.reactionType,
-            },
+            ? {'emoji_name': '', 'emoji_code': '', 'reaction_type': ''}
+            : {
+                'emoji_name': value.emojiName,
+                'emoji_code': value.emojiCode,
+                'reaction_type': value.reactionType,
+              },
     };
   }
 }
@@ -340,8 +364,7 @@ enum UserSettingName {
   displayEmojiReactionUsers,
   emojiset,
   webInboxShowChannelFolders,
-  presenceEnabled,
-  ;
+  presenceEnabled;
 
   /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.
   ///
@@ -350,8 +373,9 @@ enum UserSettingName {
   static UserSettingName? fromRawString(String raw) => _byRawString[raw];
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
-  static final _byRawString = _$UserSettingNameEnumMap
-    .map((key, value) => MapEntry(value, key));
+  static final _byRawString = _$UserSettingNameEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
 
   String toJson() => _$UserSettingNameEnumMap[this]!;
 }
@@ -367,14 +391,14 @@ enum TwentyFourHourTimeMode {
   //   https://chat.zulip.org/#narrow/channel/378-api-design/topic/.60user_settings.2Etwenty_four_hour_time.60/near/2220696
   // TODO(server-future) Write down what server N starts sending null;
   //   adjust the comment; leave a TODO(server-N) to delete the comment
-  localeDefault(apiValue: null),
-  ;
+  localeDefault(apiValue: null);
 
   const TwentyFourHourTimeMode({required this.apiValue});
 
   final bool? apiValue;
 
-  static bool? staticToJson(TwentyFourHourTimeMode instance) => instance.apiValue;
+  static bool? staticToJson(TwentyFourHourTimeMode instance) =>
+      instance.apiValue;
 
   bool? toJson() => TwentyFourHourTimeMode.staticToJson(this);
 
@@ -401,8 +425,9 @@ enum Emojiset {
   static Emojiset fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.kebab`
-  static final _byRawString = _$EmojisetEnumMap
-    .map((key, value) => MapEntry(value, key));
+  static final _byRawString = _$EmojisetEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
 
   String toJson() => _$EmojisetEnumMap[this]!;
 }
@@ -424,7 +449,7 @@ class ClientDevice {
   });
 
   factory ClientDevice.fromJson(Map<String, dynamic> json) =>
-    _$ClientDeviceFromJson(json);
+      _$ClientDeviceFromJson(json);
 
   Map<String, dynamic> toJson() => _$ClientDeviceToJson(this);
 }
@@ -448,6 +473,7 @@ class UserGroup {
   // TODO(server-10): [deactivated] new in FL 290; previously no groups were deactivated
   @JsonKey(defaultValue: false)
   bool deactivated;
+  GroupSettingValue? canMentionGroup;
 
   // TODO(#814): GroupSettingValue canAddMembersGroup, etc.; add to update event too
 
@@ -459,9 +485,11 @@ class UserGroup {
     required this.description,
     required this.isSystemGroup,
     required this.deactivated,
+    required this.canMentionGroup,
   });
 
-  factory UserGroup.fromJson(Map<String, dynamic> json) => _$UserGroupFromJson(json);
+  factory UserGroup.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserGroupToJson(this);
 }
@@ -512,7 +540,10 @@ class User {
   @JsonKey(defaultValue: false)
   final bool isSystemBot;
 
-  static Map<String, dynamic>? _readProfileData(Map<dynamic, dynamic> json, String key) {
+  static Map<String, dynamic>? _readProfileData(
+    Map<dynamic, dynamic> json,
+    String key,
+  ) {
     final value = (json[key] as Map<String, dynamic>?);
     // Represent `{}` as `null`, to avoid allocating a huge number
     // of LinkedHashMap data structures that we can do without.
@@ -560,14 +591,14 @@ class ProfileFieldUserData {
   });
 
   factory ProfileFieldUserData.fromJson(Map<String, dynamic> json) =>
-    _$ProfileFieldUserDataFromJson(json);
+      _$ProfileFieldUserDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$ProfileFieldUserDataToJson(this);
 }
 
 /// As in [User.role].
 @JsonEnum(valueField: "apiValue")
-enum UserRole{
+enum UserRole {
   owner(apiValue: 100),
   administrator(apiValue: 200),
   moderator(apiValue: 300),
@@ -575,9 +606,7 @@ enum UserRole{
   guest(apiValue: 600),
   unknown(apiValue: null);
 
-  const UserRole({
-    required this.apiValue,
-  });
+  const UserRole({required this.apiValue});
 
   final int? apiValue;
 
@@ -598,13 +627,10 @@ class PerUserPresence {
   final int activeTimestamp;
   final int idleTimestamp;
 
-  PerUserPresence({
-    required this.activeTimestamp,
-    required this.idleTimestamp,
-  });
+  PerUserPresence({required this.activeTimestamp, required this.idleTimestamp});
 
   factory PerUserPresence.fromJson(Map<String, dynamic> json) =>
-    _$PerUserPresenceFromJson(json);
+      _$PerUserPresenceFromJson(json);
 
   Map<String, dynamic> toJson() => _$PerUserPresenceToJson(this);
 }
@@ -637,7 +663,7 @@ class SavedSnippet {
   final int dateCreated;
 
   factory SavedSnippet.fromJson(Map<String, Object?> json) =>
-    _$SavedSnippetFromJson(json);
+      _$SavedSnippetFromJson(json);
 
   Map<String, dynamic> toJson() => _$SavedSnippetToJson(this);
 }
@@ -684,8 +710,10 @@ class ZulipStream {
   bool historyPublicToSubscribers;
   int? messageRetentionDays;
   // TODO(server-11) remove default value
-  @JsonKey(defaultValue: ChannelTopicsPolicy.inherit,
-    unknownEnumValue: ChannelTopicsPolicy.unknown)
+  @JsonKey(
+    defaultValue: ChannelTopicsPolicy.inherit,
+    unknownEnumValue: ChannelTopicsPolicy.unknown,
+  )
   ChannelTopicsPolicy topicsPolicy;
   @JsonKey(name: 'stream_post_policy')
   ChannelPostPolicy? channelPostPolicy; // TODO(server-10) remove
@@ -753,7 +781,7 @@ class ZulipStream {
   }
 
   factory ZulipStream.fromJson(Map<String, dynamic> json) =>
-    _$ZulipStreamFromJson(json);
+      _$ZulipStreamFromJson(json);
 
   Map<String, dynamic> toJson() => _$ZulipStreamToJson(this);
 }
@@ -796,8 +824,9 @@ enum ChannelPropertyName {
   static ChannelPropertyName? fromRawString(String raw) => _byRawString[raw];
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
-  static final _byRawString = _$ChannelPropertyNameEnumMap
-    .map((key, value) => MapEntry(value, key));
+  static final _byRawString = _$ChannelPropertyNameEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
 }
 
 /// A value of [ZulipStream.topicsPolicy].
@@ -814,16 +843,18 @@ enum ChannelTopicsPolicy {
 
   /// The [ChannelTopicsPolicy] corresponding to the given [RealmTopicsPolicy].
   static ChannelTopicsPolicy forRealmPolicy(RealmTopicsPolicy realmPolicy) =>
-    switch (realmPolicy) {
-      .allowEmptyTopic   => .allowEmptyTopic,
-      .disableEmptyTopic => .disableEmptyTopic,
-      .unknown           => .unknown,
-    };
+      switch (realmPolicy) {
+        .allowEmptyTopic => .allowEmptyTopic,
+        .disableEmptyTopic => .disableEmptyTopic,
+        .unknown => .unknown,
+      };
 
-  static ChannelTopicsPolicy fromApiValue(String value) => _byApiValue[value] ?? unknown;
+  static ChannelTopicsPolicy fromApiValue(String value) =>
+      _byApiValue[value] ?? unknown;
 
-  static final _byApiValue = _$ChannelTopicsPolicyEnumMap
-    .map((key, value) => MapEntry(value, key));
+  static final _byApiValue = _$ChannelTopicsPolicyEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
 }
 
 /// Policy for which users can post to the stream.
@@ -838,9 +869,7 @@ enum ChannelPostPolicy {
   moderators(apiValue: 4),
   unknown(apiValue: null);
 
-  const ChannelPostPolicy({
-    required this.apiValue,
-  });
+  const ChannelPostPolicy({required this.apiValue});
 
   final int? apiValue;
 
@@ -848,8 +877,9 @@ enum ChannelPostPolicy {
 
   static ChannelPostPolicy fromApiValue(int value) => _byApiValue[value]!;
 
-  static final _byApiValue = _$ChannelPostPolicyEnumMap
-    .map((key, value) => MapEntry(value, key));
+  static final _byApiValue = _$ChannelPostPolicyEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
 }
 
 /// As in `subscriptions` in the initial snapshot.
@@ -912,7 +942,7 @@ class Subscription extends ZulipStream {
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) =>
-    _$SubscriptionFromJson(json);
+      _$SubscriptionFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionToJson(this);
@@ -944,10 +974,12 @@ enum SubscriptionProperty {
 
   String toJson() => _$SubscriptionPropertyEnumMap[this]!;
 
-  static SubscriptionProperty fromRawString(String raw) => _byRawString[raw] ?? unknown;
+  static SubscriptionProperty fromRawString(String raw) =>
+      _byRawString[raw] ?? unknown;
 
-  static final _byRawString = _$SubscriptionPropertyEnumMap
-    .map((key, value) => MapEntry(value, key));
+  static final _byRawString = _$SubscriptionPropertyEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
 }
 
 /// As in `channel_folders` in the initial snapshot.
@@ -977,7 +1009,7 @@ class ChannelFolder {
   });
 
   factory ChannelFolder.fromJson(Map<String, dynamic> json) =>
-    _$ChannelFolderFromJson(json);
+      _$ChannelFolderFromJson(json);
 
   Map<String, dynamic> toJson() => _$ChannelFolderToJson(this);
 }
@@ -1017,11 +1049,14 @@ String? tryParseEmojiCodeToUnicode(String emojiCode) {
   // >   https://raw.githubusercontent.com/iamcal/emoji-data/a8174c74675355c8c6a9564516b2e961fe7257ef/emoji_pretty.json
   // > [link fixed to permalink; original comment says "master" for the commit]
   try {
-    return String.fromCharCodes(emojiCode.split('-')
-      .map((hex) => int.parse(hex, radix: 16)));
-  } on FormatException { // thrown by `int.parse`
+    return String.fromCharCodes(
+      emojiCode.split('-').map((hex) => int.parse(hex, radix: 16)),
+    );
+  } on FormatException {
+    // thrown by `int.parse`
     return null;
-  } on ArgumentError { // thrown by `String.fromCharCodes`
+  } on ArgumentError {
+    // thrown by `String.fromCharCodes`
     return null;
   }
 }
@@ -1079,7 +1114,7 @@ extension type const TopicName(String _value) {
 
   /// A [TopicName] with [resolvedTopicPrefixRegexp] stripped if present.
   TopicName unresolve() =>
-    TopicName(_value.replaceFirst(resolvedTopicPrefixRegexp, ''));
+      TopicName(_value.replaceFirst(resolvedTopicPrefixRegexp, ''));
 
   /// Whether [this] and [other] have the same canonical form,
   /// using [canonicalize].
@@ -1120,16 +1155,20 @@ class StreamConversation extends Conversation {
   @JsonKey(required: true, disallowNullValue: true)
   String? displayRecipient;
 
-  StreamConversation(this.streamId, this.topic, {required this.displayRecipient});
+  StreamConversation(
+    this.streamId,
+    this.topic, {
+    required this.displayRecipient,
+  });
 
   factory StreamConversation.fromJson(Map<String, dynamic> json) =>
-    _$StreamConversationFromJson(json);
+      _$StreamConversationFromJson(json);
 
   @override
   bool isSameAs(Conversation other) {
-    return other is StreamConversation
-      && streamId == other.streamId
-      && topic.isSameAs(other.topic);
+    return other is StreamConversation &&
+        streamId == other.streamId &&
+        topic.isSameAs(other.topic);
   }
 }
 
@@ -1147,7 +1186,8 @@ class DmConversation extends Conversation {
 
   bool _equalIdSequences(Iterable<int> xs, Iterable<int> ys) {
     if (xs.length != ys.length) return false;
-    final xs_ = xs.iterator; final ys_ = ys.iterator;
+    final xs_ = xs.iterator;
+    final ys_ = ys.iterator;
     while (xs_.moveNext() && ys_.moveNext()) {
       if (xs_.current != ys_.current) return false;
     }
@@ -1196,7 +1236,10 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   final String contentType;
 
   // final List<MessageEditHistory> editHistory; // TODO handle
-  @JsonKey(readValue: MessageEditState._readFromMessage, fromJson: Message._messageEditStateFromJson)
+  @JsonKey(
+    readValue: MessageEditState._readFromMessage,
+    fromJson: Message._messageEditStateFromJson,
+  )
   MessageEditState editState;
 
   @override
@@ -1218,7 +1261,12 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   final String senderRealmStr;
 
   /// Poll data if "submessages" describe a poll, `null` otherwise.
-  @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
+  @JsonKey(
+    name: 'submessages',
+    readValue: _readPoll,
+    fromJson: Poll.fromJson,
+    toJson: Poll.toJson,
+  )
   Poll? poll;
 
   String get type;
@@ -1312,7 +1360,9 @@ enum MessageFlag {
   static MessageFlag fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
-  static final _byRawString = _$MessageFlagEnumMap.map((key, value) => MapEntry(value, key));
+  static final _byRawString = _$MessageFlagEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
 
   String toJson() => _$MessageFlagEnumMap[this]!;
 
@@ -1358,7 +1408,10 @@ class StreamMessage extends Message<StreamConversation> {
   @JsonKey(readValue: _readConversation, includeToJson: false)
   StreamConversation conversation;
 
-  static Map<String, dynamic> _readConversation(Map<dynamic, dynamic> json, String key) {
+  static Map<String, dynamic> _readConversation(
+    Map<dynamic, dynamic> json,
+    String key,
+  ) {
     return json as Map<String, dynamic>;
   }
 
@@ -1383,7 +1436,7 @@ class StreamMessage extends Message<StreamConversation> {
   });
 
   factory StreamMessage.fromJson(Map<String, dynamic> json) =>
-    _$StreamMessageFromJson(json);
+      _$StreamMessageFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$StreamMessageToJson(this);
@@ -1405,22 +1458,38 @@ class DmMessage extends Message<DmConversation> {
   /// included.
   // TODO(server): Document that it's all users.  That statement is based on
   //   reverse-engineering notes in zulip-mobile:src/api/modelTypes.js at PmMessage.
-  @JsonKey(name: 'display_recipient', toJson: _allRecipientIdsToJson, includeToJson: true)
+  @JsonKey(
+    name: 'display_recipient',
+    toJson: _allRecipientIdsToJson,
+    includeToJson: true,
+  )
   List<int> get allRecipientIds => conversation.allRecipientIds;
 
   @override
-  @JsonKey(name: 'display_recipient', fromJson: _conversationFromJson, includeToJson: false)
+  @JsonKey(
+    name: 'display_recipient',
+    fromJson: _conversationFromJson,
+    includeToJson: false,
+  )
   final DmConversation conversation;
 
-  static List<Map<String, dynamic>> _allRecipientIdsToJson(List<int> allRecipientIds) {
+  static List<Map<String, dynamic>> _allRecipientIdsToJson(
+    List<int> allRecipientIds,
+  ) {
     return allRecipientIds.map((element) => {'id': element}).toList();
   }
 
   static DmConversation _conversationFromJson(List<dynamic> json) {
-    return DmConversation(allRecipientIds: json.map(
-      (element) => ((element as Map<String, dynamic>)['id'] as num).toInt()
-    ).toList(growable: false)
-     ..sort());
+    return DmConversation(
+      allRecipientIds:
+          json
+              .map(
+                (element) =>
+                    ((element as Map<String, dynamic>)['id'] as num).toInt(),
+              )
+              .toList(growable: false)
+            ..sort(),
+    );
   }
 
   DmMessage({
@@ -1444,7 +1513,7 @@ class DmMessage extends Message<DmConversation> {
   });
 
   factory DmMessage.fromJson(Map<String, dynamic> json) =>
-    _$DmMessageFromJson(json);
+      _$DmMessageFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$DmMessageToJson(this);
@@ -1461,7 +1530,10 @@ enum MessageEditState {
   /// The Zulip "resolved topics" feature is implemented by renaming the topic;
   /// but for purposes of [Message.editState], we want to ignore such renames.
   /// This method identifies topic moves that should be ignored in that context.
-  static bool topicMoveWasResolveOrUnresolve(TopicName topic, TopicName prevTopic) {
+  static bool topicMoveWasResolveOrUnresolve(
+    TopicName topic,
+    TopicName prevTopic,
+  ) {
     // Implemented to match web; see analyze_edit_history in zulip/zulip's
     // web/src/message_list_view.ts.
     //
@@ -1470,28 +1542,33 @@ enum MessageEditState {
     // using [TopicName.resolvedTopicPrefixRegexp], to be performance-sensitive.
     // Discussion:
     //   https://github.com/zulip/zulip-flutter/pull/1242#discussion_r1917592157
-    if (topic.apiName.startsWith(TopicName.resolvedTopicPrefix)
-        && topic.apiName.substring(TopicName.resolvedTopicPrefix.length) == prevTopic.apiName) {
+    if (topic.apiName.startsWith(TopicName.resolvedTopicPrefix) &&
+        topic.apiName.substring(TopicName.resolvedTopicPrefix.length) ==
+            prevTopic.apiName) {
       return true;
     }
 
-    if (prevTopic.apiName.startsWith(TopicName.resolvedTopicPrefix)
-        && prevTopic.apiName.substring(TopicName.resolvedTopicPrefix.length) == topic.apiName) {
+    if (prevTopic.apiName.startsWith(TopicName.resolvedTopicPrefix) &&
+        prevTopic.apiName.substring(TopicName.resolvedTopicPrefix.length) ==
+            topic.apiName) {
       return true;
     }
 
     return false;
   }
 
-  static MessageEditState _readFromMessage(Map<dynamic, dynamic> json, String key) {
+  static MessageEditState _readFromMessage(
+    Map<dynamic, dynamic> json,
+    String key,
+  ) {
     // Adapted from `analyze_edit_history` in the web app:
     //   https://github.com/zulip/zulip/blob/c31cebbf68a93927d41e9947427c2dd4d46503e3/web/src/message_list_view.js#L68-L118
     final editHistory = json['edit_history'] as List<dynamic>?;
     final lastEditTimestamp = json['last_edit_timestamp'] as int?;
     if (editHistory == null) {
       return (lastEditTimestamp != null)
-        ? MessageEditState.edited
-        : MessageEditState.none;
+          ? MessageEditState.edited
+          : MessageEditState.none;
     }
 
     // Edit history should never be empty whenever it is present
@@ -1540,8 +1617,9 @@ enum PropagateMode {
   static PropagateMode fromRawString(String raw) => _byRawString[raw]!;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
-  static final _byRawString = _$PropagateModeEnumMap
-    .map((key, value) => MapEntry(value, key));
+  static final _byRawString = _$PropagateModeEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
 }
 
 /// The [DateTime] corresponding to a UNIX timestamp, in UTC seconds.

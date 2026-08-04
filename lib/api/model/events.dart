@@ -20,92 +20,149 @@ sealed class Event {
     switch (json['type'] as String) {
       case 'realm_emoji':
         switch (json['op'] as String) {
-          case 'add': return RealmEmojiAddEvent.fromJson(json);
-          case 'update_one': return RealmEmojiUpdateOneEvent.fromJson(json);
-          case 'update': return RealmEmojiUpdateEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'add':
+            return RealmEmojiAddEvent.fromJson(json);
+          case 'update_one':
+            return RealmEmojiUpdateOneEvent.fromJson(json);
+          case 'update':
+            return RealmEmojiUpdateEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
-      case 'alert_words': return AlertWordsEvent.fromJson(json);
+      case 'alert_words':
+        return AlertWordsEvent.fromJson(json);
       case 'user_settings':
         switch (json['op'] as String) {
-          case 'update': return UserSettingsUpdateEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'update':
+            return UserSettingsUpdateEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
       case 'device':
         switch (json['op'] as String) {
-          case 'add': return DeviceAddEvent.fromJson(json);
-          case 'remove': return DeviceRemoveEvent.fromJson(json);
-          case 'update': return DeviceUpdateEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'add':
+            return DeviceAddEvent.fromJson(json);
+          case 'remove':
+            return DeviceRemoveEvent.fromJson(json);
+          case 'update':
+            return DeviceUpdateEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
-      case 'custom_profile_fields': return CustomProfileFieldsEvent.fromJson(json);
+      case 'custom_profile_fields':
+        return CustomProfileFieldsEvent.fromJson(json);
       case 'user_group':
         switch (json['op'] as String) {
-          case 'add': return UserGroupAddEvent.fromJson(json);
-          case 'update': return UserGroupUpdateEvent.fromJson(json);
-          case 'add_members': return UserGroupAddMembersEvent.fromJson(json);
-          case 'remove_members': return UserGroupRemoveMembersEvent.fromJson(json);
-          case 'add_subgroups': return UserGroupAddSubgroupsEvent.fromJson(json);
-          case 'remove_subgroups': return UserGroupRemoveSubgroupsEvent.fromJson(json);
-          case 'remove': return UserGroupRemoveEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'add':
+            return UserGroupAddEvent.fromJson(json);
+          case 'update':
+            return UserGroupUpdateEvent.fromJson(json);
+          case 'add_members':
+            return UserGroupAddMembersEvent.fromJson(json);
+          case 'remove_members':
+            return UserGroupRemoveMembersEvent.fromJson(json);
+          case 'add_subgroups':
+            return UserGroupAddSubgroupsEvent.fromJson(json);
+          case 'remove_subgroups':
+            return UserGroupRemoveSubgroupsEvent.fromJson(json);
+          case 'remove':
+            return UserGroupRemoveEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
       case 'realm_user':
         switch (json['op'] as String) {
-          case 'add': return RealmUserAddEvent.fromJson(json);
-          case 'remove': return RealmUserRemoveEvent.fromJson(json);
-          case 'update': return RealmUserUpdateEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'add':
+            return RealmUserAddEvent.fromJson(json);
+          case 'remove':
+            return RealmUserRemoveEvent.fromJson(json);
+          case 'update':
+            return RealmUserUpdateEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
       case 'saved_snippets':
         switch (json['op'] as String) {
-          case 'add': return SavedSnippetsAddEvent.fromJson(json);
-          case 'update': return SavedSnippetsUpdateEvent.fromJson(json);
-          case 'remove': return SavedSnippetsRemoveEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'add':
+            return SavedSnippetsAddEvent.fromJson(json);
+          case 'update':
+            return SavedSnippetsUpdateEvent.fromJson(json);
+          case 'remove':
+            return SavedSnippetsRemoveEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
       case 'stream':
         switch (json['op'] as String) {
-          case 'create': return ChannelCreateEvent.fromJson(json);
-          case 'delete': return ChannelDeleteEvent.fromJson(json);
-          case 'update': return ChannelUpdateEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'create':
+            return ChannelCreateEvent.fromJson(json);
+          case 'delete':
+            return ChannelDeleteEvent.fromJson(json);
+          case 'update':
+            return ChannelUpdateEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
       case 'subscription':
         switch (json['op'] as String) {
-          case 'add': return SubscriptionAddEvent.fromJson(json);
-          case 'remove': return SubscriptionRemoveEvent.fromJson(json);
-          case 'update': return SubscriptionUpdateEvent.fromJson(json);
-          case 'peer_add': return SubscriptionPeerAddEvent.fromJson(json);
-          case 'peer_remove': return SubscriptionPeerRemoveEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'add':
+            return SubscriptionAddEvent.fromJson(json);
+          case 'remove':
+            return SubscriptionRemoveEvent.fromJson(json);
+          case 'update':
+            return SubscriptionUpdateEvent.fromJson(json);
+          case 'peer_add':
+            return SubscriptionPeerAddEvent.fromJson(json);
+          case 'peer_remove':
+            return SubscriptionPeerRemoveEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
       case 'channel_folder':
         switch (json['op'] as String) {
-          case 'add': return ChannelFolderAddEvent.fromJson(json);
-          case 'reorder': return ChannelFolderReorderEvent.fromJson(json);
-          case 'update': return ChannelFolderUpdateEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'add':
+            return ChannelFolderAddEvent.fromJson(json);
+          case 'reorder':
+            return ChannelFolderReorderEvent.fromJson(json);
+          case 'update':
+            return ChannelFolderUpdateEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
-      case 'user_status': return UserStatusEvent.fromJson(json);
-      case 'user_topic': return UserTopicEvent.fromJson(json);
-      case 'muted_users': return MutedUsersEvent.fromJson(json);
-      case 'message': return MessageEvent.fromJson(json);
-      case 'update_message': return UpdateMessageEvent.fromJson(json);
-      case 'delete_message': return DeleteMessageEvent.fromJson(json);
+      case 'user_status':
+        return UserStatusEvent.fromJson(json);
+      case 'user_topic':
+        return UserTopicEvent.fromJson(json);
+      case 'muted_users':
+        return MutedUsersEvent.fromJson(json);
+      case 'message':
+        return MessageEvent.fromJson(json);
+      case 'update_message':
+        return UpdateMessageEvent.fromJson(json);
+      case 'delete_message':
+        return DeleteMessageEvent.fromJson(json);
       case 'update_message_flags':
         switch (json['op'] as String) {
-          case 'add': return UpdateMessageFlagsAddEvent.fromJson(json);
-          case 'remove': return UpdateMessageFlagsRemoveEvent.fromJson(json);
-          default: return UnexpectedEvent.fromJson(json);
+          case 'add':
+            return UpdateMessageFlagsAddEvent.fromJson(json);
+          case 'remove':
+            return UpdateMessageFlagsRemoveEvent.fromJson(json);
+          default:
+            return UnexpectedEvent.fromJson(json);
         }
-      case 'submessage': return SubmessageEvent.fromJson(json);
-      case 'typing': return TypingEvent.fromJson(json);
-      case 'presence': return PresenceEvent.fromJson(json);
-      case 'reaction': return ReactionEvent.fromJson(json);
-      case 'heartbeat': return HeartbeatEvent.fromJson(json);
+      case 'submessage':
+        return SubmessageEvent.fromJson(json);
+      case 'typing':
+        return TypingEvent.fromJson(json);
+      case 'presence':
+        return PresenceEvent.fromJson(json);
+      case 'reaction':
+        return ReactionEvent.fromJson(json);
+      case 'heartbeat':
+        return HeartbeatEvent.fromJson(json);
       // TODO add many more event types
-      default: return UnexpectedEvent.fromJson(json);
+      default:
+        return UnexpectedEvent.fromJson(json);
     }
   }
 
@@ -152,7 +209,7 @@ class RealmEmojiAddEvent extends RealmEmojiEvent {
   RealmEmojiAddEvent({required super.id, required this.emoji});
 
   factory RealmEmojiAddEvent.fromJson(Map<String, dynamic> json) =>
-    _$RealmEmojiAddEventFromJson(json);
+      _$RealmEmojiAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$RealmEmojiAddEventToJson(this);
@@ -178,7 +235,7 @@ class RealmEmojiUpdateOneEvent extends RealmEmojiEvent {
   });
 
   factory RealmEmojiUpdateOneEvent.fromJson(Map<String, dynamic> json) =>
-    _$RealmEmojiUpdateOneEventFromJson(json);
+      _$RealmEmojiUpdateOneEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$RealmEmojiUpdateOneEventToJson(this);
@@ -191,7 +248,7 @@ class RealmEmojiUpdateData {
   RealmEmojiUpdateData({required this.deactivated});
 
   factory RealmEmojiUpdateData.fromJson(Map<String, dynamic> json) =>
-    _$RealmEmojiUpdateDataFromJson(json);
+      _$RealmEmojiUpdateDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$RealmEmojiUpdateDataToJson(this);
 }
@@ -210,7 +267,7 @@ class RealmEmojiUpdateEvent extends RealmEmojiEvent {
   RealmEmojiUpdateEvent({required super.id, required this.realmEmoji});
 
   factory RealmEmojiUpdateEvent.fromJson(Map<String, dynamic> json) =>
-    _$RealmEmojiUpdateEventFromJson(json);
+      _$RealmEmojiUpdateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$RealmEmojiUpdateEventToJson(this);
@@ -228,7 +285,7 @@ class AlertWordsEvent extends Event {
   AlertWordsEvent({required super.id, required this.alertWords});
 
   factory AlertWordsEvent.fromJson(Map<String, dynamic> json) =>
-    _$AlertWordsEventFromJson(json);
+      _$AlertWordsEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$AlertWordsEventToJson(this);
@@ -283,7 +340,7 @@ class UserSettingsUpdateEvent extends Event {
   });
 
   factory UserSettingsUpdateEvent.fromJson(Map<String, dynamic> json) =>
-    _$UserSettingsUpdateEventFromJson(json);
+      _$UserSettingsUpdateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserSettingsUpdateEventToJson(this);
@@ -315,7 +372,7 @@ class DeviceAddEvent extends DeviceEvent {
   DeviceAddEvent({required super.id, required super.deviceId});
 
   factory DeviceAddEvent.fromJson(Map<String, dynamic> json) =>
-    _$DeviceAddEventFromJson(json);
+      _$DeviceAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$DeviceAddEventToJson(this);
@@ -331,7 +388,7 @@ class DeviceRemoveEvent extends DeviceEvent {
   DeviceRemoveEvent({required super.id, required super.deviceId});
 
   factory DeviceRemoveEvent.fromJson(Map<String, dynamic> json) =>
-    _$DeviceRemoveEventFromJson(json);
+      _$DeviceRemoveEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$DeviceRemoveEventToJson(this);
@@ -372,7 +429,7 @@ class DeviceUpdateEvent extends DeviceEvent {
   });
 
   factory DeviceUpdateEvent.fromJson(Map<String, dynamic> json) =>
-    _$DeviceUpdateEventFromJson(json);
+      _$DeviceUpdateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$DeviceUpdateEventToJson(this);
@@ -390,7 +447,7 @@ class CustomProfileFieldsEvent extends Event {
   CustomProfileFieldsEvent({required super.id, required this.fields});
 
   factory CustomProfileFieldsEvent.fromJson(Map<String, dynamic> json) =>
-    _$CustomProfileFieldsEventFromJson(json);
+      _$CustomProfileFieldsEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$CustomProfileFieldsEventToJson(this);
@@ -421,7 +478,8 @@ class UserGroupAddEvent extends UserGroupEvent {
 
   UserGroupAddEvent({required super.id, required this.group});
 
-  factory UserGroupAddEvent.fromJson(Map<String, dynamic> json) => _$UserGroupAddEventFromJson(json);
+  factory UserGroupAddEvent.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserGroupAddEventToJson(this);
@@ -437,9 +495,14 @@ class UserGroupUpdateEvent extends UserGroupEvent {
   final int groupId;
   final UserGroupUpdateData data;
 
-  UserGroupUpdateEvent({required super.id, required this.groupId, required this.data});
+  UserGroupUpdateEvent({
+    required super.id,
+    required this.groupId,
+    required this.data,
+  });
 
-  factory UserGroupUpdateEvent.fromJson(Map<String, dynamic> json) => _$UserGroupUpdateEventFromJson(json);
+  factory UserGroupUpdateEvent.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupUpdateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserGroupUpdateEventToJson(this);
@@ -450,10 +513,16 @@ class UserGroupUpdateData {
   final String? name;
   final String? description;
   final bool? deactivated;
+  final GroupSettingValue? canMentionGroup;
+  UserGroupUpdateData({
+    required this.name,
+    required this.description,
+    required this.deactivated,
+    required this.canMentionGroup,
+  });
 
-  UserGroupUpdateData({required this.name, required this.description, required this.deactivated});
-
-  factory UserGroupUpdateData.fromJson(Map<String, dynamic> json) => _$UserGroupUpdateDataFromJson(json);
+  factory UserGroupUpdateData.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupUpdateDataFromJson(json);
 
   Map<String, dynamic> toJson() => _$UserGroupUpdateDataToJson(this);
 }
@@ -468,9 +537,14 @@ class UserGroupAddMembersEvent extends UserGroupEvent {
   final int groupId;
   final List<int> userIds;
 
-  UserGroupAddMembersEvent({required super.id, required this.groupId, required this.userIds});
+  UserGroupAddMembersEvent({
+    required super.id,
+    required this.groupId,
+    required this.userIds,
+  });
 
-  factory UserGroupAddMembersEvent.fromJson(Map<String, dynamic> json) => _$UserGroupAddMembersEventFromJson(json);
+  factory UserGroupAddMembersEvent.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupAddMembersEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserGroupAddMembersEventToJson(this);
@@ -486,9 +560,14 @@ class UserGroupRemoveMembersEvent extends UserGroupEvent {
   final int groupId;
   final List<int> userIds;
 
-  UserGroupRemoveMembersEvent({required super.id, required this.groupId, required this.userIds});
+  UserGroupRemoveMembersEvent({
+    required super.id,
+    required this.groupId,
+    required this.userIds,
+  });
 
-  factory UserGroupRemoveMembersEvent.fromJson(Map<String, dynamic> json) => _$UserGroupRemoveMembersEventFromJson(json);
+  factory UserGroupRemoveMembersEvent.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupRemoveMembersEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserGroupRemoveMembersEventToJson(this);
@@ -504,9 +583,14 @@ class UserGroupAddSubgroupsEvent extends UserGroupEvent {
   final int groupId;
   final List<int> directSubgroupIds;
 
-  UserGroupAddSubgroupsEvent({required super.id, required this.groupId, required this.directSubgroupIds});
+  UserGroupAddSubgroupsEvent({
+    required super.id,
+    required this.groupId,
+    required this.directSubgroupIds,
+  });
 
-  factory UserGroupAddSubgroupsEvent.fromJson(Map<String, dynamic> json) => _$UserGroupAddSubgroupsEventFromJson(json);
+  factory UserGroupAddSubgroupsEvent.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupAddSubgroupsEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserGroupAddSubgroupsEventToJson(this);
@@ -522,9 +606,14 @@ class UserGroupRemoveSubgroupsEvent extends UserGroupEvent {
   final int groupId;
   final List<int> directSubgroupIds;
 
-  UserGroupRemoveSubgroupsEvent({required super.id, required this.groupId, required this.directSubgroupIds});
+  UserGroupRemoveSubgroupsEvent({
+    required super.id,
+    required this.groupId,
+    required this.directSubgroupIds,
+  });
 
-  factory UserGroupRemoveSubgroupsEvent.fromJson(Map<String, dynamic> json) => _$UserGroupRemoveSubgroupsEventFromJson(json);
+  factory UserGroupRemoveSubgroupsEvent.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupRemoveSubgroupsEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserGroupRemoveSubgroupsEventToJson(this);
@@ -541,7 +630,8 @@ class UserGroupRemoveEvent extends UserGroupEvent {
 
   UserGroupRemoveEvent({required super.id, required this.groupId});
 
-  factory UserGroupRemoveEvent.fromJson(Map<String, dynamic> json) => _$UserGroupRemoveEventFromJson(json);
+  factory UserGroupRemoveEvent.fromJson(Map<String, dynamic> json) =>
+      _$UserGroupRemoveEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserGroupRemoveEventToJson(this);
@@ -573,7 +663,7 @@ class RealmUserAddEvent extends RealmUserEvent {
   RealmUserAddEvent({required super.id, required this.person});
 
   factory RealmUserAddEvent.fromJson(Map<String, dynamic> json) =>
-    _$RealmUserAddEventFromJson(json);
+      _$RealmUserAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$RealmUserAddEventToJson(this);
@@ -592,12 +682,18 @@ class RealmUserRemoveEvent extends RealmUserEvent {
   factory RealmUserRemoveEvent.fromJson(Map<String, dynamic> json) {
     return RealmUserRemoveEvent(
       id: json['id'] as int,
-      userId: (json['person'] as Map<String, dynamic>)['user_id'] as int);
+      userId: (json['person'] as Map<String, dynamic>)['user_id'] as int,
+    );
   }
 
   @override
   Map<String, dynamic> toJson() {
-    return {'id': id, 'type': type, 'op': op, 'person': {'user_id': userId}};
+    return {
+      'id': id,
+      'type': type,
+      'op': op,
+      'person': {'user_id': userId},
+    };
   }
 }
 
@@ -608,12 +704,18 @@ class RealmUserUpdateCustomProfileField {
   final String? value;
   final String? renderedValue;
 
-  RealmUserUpdateCustomProfileField({required this.id, required this.value, required this.renderedValue});
+  RealmUserUpdateCustomProfileField({
+    required this.id,
+    required this.value,
+    required this.renderedValue,
+  });
 
-  factory RealmUserUpdateCustomProfileField.fromJson(Map<String, dynamic> json) =>
-    _$RealmUserUpdateCustomProfileFieldFromJson(json);
+  factory RealmUserUpdateCustomProfileField.fromJson(
+    Map<String, dynamic> json,
+  ) => _$RealmUserUpdateCustomProfileFieldFromJson(json);
 
-  Map<String, dynamic> toJson() => _$RealmUserUpdateCustomProfileFieldToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$RealmUserUpdateCustomProfileFieldToJson(this);
 }
 
 /// A [RealmUserEvent] with op `update`: https://zulip.com/api/get-events#realm_user-update
@@ -623,39 +725,56 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   @JsonKey(includeToJson: true)
   String get op => 'update';
 
-  @JsonKey(readValue: _readFromPerson) final int userId;
+  @JsonKey(readValue: _readFromPerson)
+  final int userId;
 
-  @JsonKey(readValue: _readFromPerson) final String? fullName;
-  @JsonKey(readValue: _readFromPerson) final String? avatarUrl;
+  @JsonKey(readValue: _readFromPerson)
+  final String? fullName;
+  @JsonKey(readValue: _readFromPerson)
+  final String? avatarUrl;
   // @JsonKey(readValue: _readFromPerson) final String? avatarSource; // TODO obsolete?
   // @JsonKey(readValue: _readFromPerson) final String? avatarUrlMedium; // TODO obsolete?
-  @JsonKey(readValue: _readFromPerson) final int? avatarVersion;
-  @JsonKey(readValue: _readFromPerson) final String? timezone;
-  @JsonKey(readValue: _readFromPerson) final int? botOwnerId;
-  @JsonKey(readValue: _readFromPerson, unknownEnumValue: UserRole.unknown) final UserRole? role;
+  @JsonKey(readValue: _readFromPerson)
+  final int? avatarVersion;
+  @JsonKey(readValue: _readFromPerson)
+  final String? timezone;
+  @JsonKey(readValue: _readFromPerson)
+  final int? botOwnerId;
+  @JsonKey(readValue: _readFromPerson, unknownEnumValue: UserRole.unknown)
+  final UserRole? role;
 
   @JsonKey(readValue: _readNullableStringFromPerson)
   @NullableStringJsonConverter()
   final JsonNullable<String>? deliveryEmail;
 
-  @JsonKey(readValue: _readFromPerson) final RealmUserUpdateCustomProfileField? customProfileField;
-  @JsonKey(readValue: _readFromPerson) final String? newEmail;
-  @JsonKey(readValue: _readFromPerson) final bool? isActive;
+  @JsonKey(readValue: _readFromPerson)
+  final RealmUserUpdateCustomProfileField? customProfileField;
+  @JsonKey(readValue: _readFromPerson)
+  final String? newEmail;
+  @JsonKey(readValue: _readFromPerson)
+  final bool? isActive;
 
   static Object? _readFromPerson(Map<dynamic, dynamic> json, String key) {
     return (json['person'] as Map<String, dynamic>)[key];
   }
 
   static JsonNullable<String>? _readNullableStringFromPerson(
-      Map<dynamic, dynamic> json, String key) {
+    Map<dynamic, dynamic> json,
+    String key,
+  ) {
     // We can't just say `readValue: _readNullableFromPerson<String>`,
     // because json_serializable drops the type argument in the generated code.
     return _readNullableFromPerson<String>(json, key);
   }
 
   static JsonNullable<T>? _readNullableFromPerson<T extends Object>(
-      Map<dynamic, dynamic> json, String key) {
-    return JsonNullable.readFromJson(json['person'] as Map<String, dynamic>, key);
+    Map<dynamic, dynamic> json,
+    String key,
+  ) {
+    return JsonNullable.readFromJson(
+      json['person'] as Map<String, dynamic>,
+      key,
+    );
   }
 
   RealmUserUpdateEvent({
@@ -677,7 +796,7 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   });
 
   factory RealmUserUpdateEvent.fromJson(Map<String, dynamic> json) =>
-    _$RealmUserUpdateEventFromJson(json);
+      _$RealmUserUpdateEventFromJson(json);
 
   // TODO make round-trip (see _readFromPerson)
   @override
@@ -706,7 +825,7 @@ class SavedSnippetsAddEvent extends SavedSnippetsEvent {
   SavedSnippetsAddEvent({required super.id, required this.savedSnippet});
 
   factory SavedSnippetsAddEvent.fromJson(Map<String, dynamic> json) =>
-    _$SavedSnippetsAddEventFromJson(json);
+      _$SavedSnippetsAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SavedSnippetsAddEventToJson(this);
@@ -723,7 +842,7 @@ class SavedSnippetsUpdateEvent extends SavedSnippetsEvent {
   SavedSnippetsUpdateEvent({required super.id, required this.savedSnippet});
 
   factory SavedSnippetsUpdateEvent.fromJson(Map<String, dynamic> json) =>
-    _$SavedSnippetsUpdateEventFromJson(json);
+      _$SavedSnippetsUpdateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SavedSnippetsUpdateEventToJson(this);
@@ -740,7 +859,7 @@ class SavedSnippetsRemoveEvent extends SavedSnippetsEvent {
   SavedSnippetsRemoveEvent({required super.id, required this.savedSnippetId});
 
   factory SavedSnippetsRemoveEvent.fromJson(Map<String, dynamic> json) =>
-    _$SavedSnippetsRemoveEventFromJson(json);
+      _$SavedSnippetsRemoveEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SavedSnippetsRemoveEventToJson(this);
@@ -772,7 +891,7 @@ class ChannelCreateEvent extends ChannelEvent {
   ChannelCreateEvent({required super.id, required this.streams});
 
   factory ChannelCreateEvent.fromJson(Map<String, dynamic> json) =>
-    _$ChannelCreateEventFromJson(json);
+      _$ChannelCreateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ChannelCreateEventToJson(this);
@@ -795,14 +914,14 @@ class ChannelDeleteEvent extends ChannelEvent {
 
     final channels = json['streams'] as List<dynamic>;
     return channels
-      .map((c) => (c as Map<String, dynamic>)['stream_id'] as int)
-      .toList();
+        .map((c) => (c as Map<String, dynamic>)['stream_id'] as int)
+        .toList();
   }
 
   ChannelDeleteEvent({required super.id, required this.channelIds});
 
   factory ChannelDeleteEvent.fromJson(Map<String, dynamic> json) =>
-    _$ChannelDeleteEventFromJson(json);
+      _$ChannelDeleteEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ChannelDeleteEventToJson(this);
@@ -884,7 +1003,7 @@ class ChannelUpdateEvent extends ChannelEvent {
   }
 
   factory ChannelUpdateEvent.fromJson(Map<String, dynamic> json) =>
-    _$ChannelUpdateEventFromJson(json);
+      _$ChannelUpdateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ChannelUpdateEventToJson(this);
@@ -916,7 +1035,7 @@ class SubscriptionAddEvent extends SubscriptionEvent {
   SubscriptionAddEvent({required super.id, required this.subscriptions});
 
   factory SubscriptionAddEvent.fromJson(Map<String, dynamic> json) =>
-    _$SubscriptionAddEventFromJson(json);
+      _$SubscriptionAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionAddEventToJson(this);
@@ -934,14 +1053,14 @@ class SubscriptionRemoveEvent extends SubscriptionEvent {
 
   static List<int> _readChannelIds(Map<dynamic, dynamic> json, String key) {
     return (json['subscriptions'] as List<dynamic>)
-      .map((e) => (e as Map<String, dynamic>)['stream_id'] as int)
-      .toList();
+        .map((e) => (e as Map<String, dynamic>)['stream_id'] as int)
+        .toList();
   }
 
   SubscriptionRemoveEvent({required super.id, required this.channelIds});
 
   factory SubscriptionRemoveEvent.fromJson(Map<String, dynamic> json) =>
-    _$SubscriptionRemoveEventFromJson(json);
+      _$SubscriptionRemoveEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionRemoveEventToJson(this);
@@ -998,7 +1117,7 @@ class SubscriptionUpdateEvent extends SubscriptionEvent {
   });
 
   factory SubscriptionUpdateEvent.fromJson(Map<String, dynamic> json) =>
-    _$SubscriptionUpdateEventFromJson(json);
+      _$SubscriptionUpdateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionUpdateEventToJson(this);
@@ -1022,7 +1141,7 @@ class SubscriptionPeerAddEvent extends SubscriptionEvent {
   });
 
   factory SubscriptionPeerAddEvent.fromJson(Map<String, dynamic> json) =>
-    _$SubscriptionPeerAddEventFromJson(json);
+      _$SubscriptionPeerAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionPeerAddEventToJson(this);
@@ -1046,7 +1165,7 @@ class SubscriptionPeerRemoveEvent extends SubscriptionEvent {
   });
 
   factory SubscriptionPeerRemoveEvent.fromJson(Map<String, dynamic> json) =>
-    _$SubscriptionPeerRemoveEventFromJson(json);
+      _$SubscriptionPeerRemoveEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SubscriptionPeerRemoveEventToJson(this);
@@ -1079,7 +1198,7 @@ class ChannelFolderAddEvent extends ChannelFolderEvent {
   ChannelFolderAddEvent({required super.id, required this.channelFolder});
 
   factory ChannelFolderAddEvent.fromJson(Map<String, dynamic> json) =>
-    _$ChannelFolderAddEventFromJson(json);
+      _$ChannelFolderAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ChannelFolderAddEventToJson(this);
@@ -1103,7 +1222,7 @@ class ChannelFolderUpdateEvent extends ChannelFolderEvent {
   });
 
   factory ChannelFolderUpdateEvent.fromJson(Map<String, dynamic> json) =>
-    _$ChannelFolderUpdateEventFromJson(json);
+      _$ChannelFolderUpdateEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ChannelFolderUpdateEventToJson(this);
@@ -1125,7 +1244,7 @@ class ChannelFolderChange {
   });
 
   factory ChannelFolderChange.fromJson(Map<String, dynamic> json) =>
-    _$ChannelFolderChangeFromJson(json);
+      _$ChannelFolderChangeFromJson(json);
 
   Map<String, dynamic> toJson() => _$ChannelFolderChangeToJson(this);
 }
@@ -1143,7 +1262,7 @@ class ChannelFolderReorderEvent extends ChannelFolderEvent {
   ChannelFolderReorderEvent({required super.id, required this.order});
 
   factory ChannelFolderReorderEvent.fromJson(Map<String, dynamic> json) =>
-    _$ChannelFolderReorderEventFromJson(json);
+      _$ChannelFolderReorderEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ChannelFolderReorderEventToJson(this);
@@ -1162,7 +1281,9 @@ class UserStatusEvent extends Event {
   final UserStatusChange change;
 
   static Object? _readChange(Map<dynamic, dynamic> json, String key) {
-    assert(json is Map<String, dynamic>); // value came through `fromJson` with this type
+    assert(
+      json is Map<String, dynamic>,
+    ); // value came through `fromJson` with this type
     return json;
   }
 
@@ -1173,7 +1294,7 @@ class UserStatusEvent extends Event {
   });
 
   factory UserStatusEvent.fromJson(Map<String, dynamic> json) =>
-    _$UserStatusEventFromJson(json);
+      _$UserStatusEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => {
@@ -1205,7 +1326,7 @@ class UserTopicEvent extends Event {
   });
 
   factory UserTopicEvent.fromJson(Map<String, dynamic> json) =>
-    _$UserTopicEventFromJson(json);
+      _$UserTopicEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UserTopicEventToJson(this);
@@ -1223,7 +1344,7 @@ class MutedUsersEvent extends Event {
   MutedUsersEvent({required super.id, required this.mutedUsers});
 
   factory MutedUsersEvent.fromJson(Map<String, dynamic> json) =>
-    _$MutedUsersEventFromJson(json);
+      _$MutedUsersEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$MutedUsersEventToJson(this);
@@ -1244,7 +1365,11 @@ class MessageEvent extends Event {
   // events and in the get-messages results is that `matchContent` and
   // `matchTopic` are absent here.  Already [Message.matchContent] and
   // [Message.matchTopic] are optional, so no action is needed on that.
-  @JsonKey(readValue: _readMessageValue, fromJson: Message.fromJson, includeToJson: false)
+  @JsonKey(
+    readValue: _readMessageValue,
+    fromJson: Message.fromJson,
+    includeToJson: false,
+  )
   final Message message;
 
   // When present, this equals the "local_id" parameter
@@ -1254,20 +1379,30 @@ class MessageEvent extends Event {
   //   https://chat.zulip.org/#narrow/channel/412-api-documentation/topic/local_id.2C.20queue_id.2Fsender_queue_id/near/2135340
   final String? localMessageId;
 
-  MessageEvent({required super.id, required this.message, required this.localMessageId});
+  MessageEvent({
+    required super.id,
+    required this.message,
+    required this.localMessageId,
+  });
 
-  static Map<String, dynamic> _readMessageValue(Map<dynamic, dynamic> json, String key) =>
-    {...json['message'] as Map<String, dynamic>, 'flags': json['flags']};
+  static Map<String, dynamic> _readMessageValue(
+    Map<dynamic, dynamic> json,
+    String key,
+  ) => {...json['message'] as Map<String, dynamic>, 'flags': json['flags']};
 
   factory MessageEvent.fromJson(Map<String, dynamic> json) =>
-    _$MessageEventFromJson(json);
+      _$MessageEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() {
     final messageJson = message.toJson();
     final flags = messageJson['flags'];
     messageJson.remove('flags');
-    return {..._$MessageEventToJson(this), 'message': messageJson, 'flags': flags};
+    return {
+      ..._$MessageEventToJson(this),
+      'message': messageJson,
+      'flags': flags,
+    };
   }
 }
 
@@ -1288,7 +1423,11 @@ class UpdateMessageEvent extends Event {
 
   // final String? streamName; // ignore
 
-  @JsonKey(readValue: _readMoveData, fromJson: UpdateMessageMoveData.tryParseFromJson, includeToJson: false)
+  @JsonKey(
+    readValue: _readMoveData,
+    fromJson: UpdateMessageMoveData.tryParseFromJson,
+    includeToJson: false,
+  )
   final UpdateMessageMoveData? moveData;
 
   // final List<TopicLink> topicLinks; // TODO handle
@@ -1317,14 +1456,19 @@ class UpdateMessageEvent extends Event {
     required this.isMeMessage,
   });
 
-  static Map<String, dynamic> _readMoveData(Map<dynamic, dynamic> json, String key) {
+  static Map<String, dynamic> _readMoveData(
+    Map<dynamic, dynamic> json,
+    String key,
+  ) {
     // Parsing [UpdateMessageMoveData] requires `json`, not the default `json[key]`.
-    assert(json is Map<String, dynamic>); // value came through `fromJson` with this type
+    assert(
+      json is Map<String, dynamic>,
+    ); // value came through `fromJson` with this type
     return json as Map<String, dynamic>;
   }
 
   factory UpdateMessageEvent.fromJson(Map<String, dynamic> json) =>
-    _$UpdateMessageEventFromJson(json);
+      _$UpdateMessageEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UpdateMessageEventToJson(this);
@@ -1360,21 +1504,25 @@ class UpdateMessageMoveData {
     final newStreamIdRaw = (json['new_stream_id'] as num?)?.toInt();
     final newStreamId = newStreamIdRaw ?? origStreamId;
 
-    final origTopic = json['orig_subject'] == null ? null
-      : TopicName.fromJson(json['orig_subject'] as String);
-    final newTopicRaw = json['subject'] == null ? null
-      : TopicName.fromJson(json['subject'] as String);
+    final origTopic = json['orig_subject'] == null
+        ? null
+        : TopicName.fromJson(json['orig_subject'] as String);
+    final newTopicRaw = json['subject'] == null
+        ? null
+        : TopicName.fromJson(json['subject'] as String);
     final newTopic = newTopicRaw ?? origTopic;
 
     final propagateModeString = json['propagate_mode'] as String?;
-    final propagateMode = propagateModeString == null ? null
-      : PropagateMode.fromRawString(propagateModeString);
+    final propagateMode = propagateModeString == null
+        ? null
+        : PropagateMode.fromRawString(propagateModeString);
 
     if (newStreamId == origStreamId && newTopic == origTopic) {
       if (propagateMode != null) {
         throw FormatException(
           'Malformed UpdateMessageEvent: incoherent message-move fields; '
-          'propagate_mode present but no new channel or topic');
+          'propagate_mode present but no new channel or topic',
+        );
       }
       return null;
     }
@@ -1438,10 +1586,7 @@ class DeleteMessageEvent extends Event {
 /// [UpdateMessageFlagsMessageDetail.type],
 /// or [TypingEvent.messageType].
 @JsonEnum(alwaysCreate: true)
-enum MessageType {
-  stream,
-  direct;
-}
+enum MessageType { stream, direct }
 
 class MessageTypeConverter extends JsonConverter<MessageType, String> {
   const MessageTypeConverter();
@@ -1496,7 +1641,7 @@ class UpdateMessageFlagsAddEvent extends UpdateMessageFlagsEvent {
   });
 
   factory UpdateMessageFlagsAddEvent.fromJson(Map<String, dynamic> json) =>
-    _$UpdateMessageFlagsAddEventFromJson(json);
+      _$UpdateMessageFlagsAddEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$UpdateMessageFlagsAddEventToJson(this);
@@ -1566,7 +1711,8 @@ class UpdateMessageFlagsMessageDetail {
     return result;
   }
 
-  Map<String, dynamic> toJson() => _$UpdateMessageFlagsMessageDetailToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$UpdateMessageFlagsMessageDetailToJson(this);
 }
 
 /// A Zulip event of type `submessage`: https://zulip.com/api/get-events#submessage
@@ -1578,6 +1724,7 @@ class SubmessageEvent extends Event {
 
   @JsonKey(unknownEnumValue: SubmessageType.unknown)
   final SubmessageType msgType;
+
   /// [SubmessageData] encoded in JSON.
   // We cannot parse the String into one of the [SubmessageData] classes because
   // information from other submessages are required. Specifically, we need
@@ -1598,7 +1745,7 @@ class SubmessageEvent extends Event {
   });
 
   factory SubmessageEvent.fromJson(Map<String, dynamic> json) =>
-    _$SubmessageEventFromJson(json);
+      _$SubmessageEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$SubmessageEventToJson(this);
@@ -1639,8 +1786,10 @@ class TypingEvent extends Event {
 
   static List<int>? _recipientIdsFromJson(Object? json) {
     if (json == null) return null;
-    return (json as List<Object?>).map(
-      (item) => (item as Map<String, Object?>)['user_id'] as int).toList()..sort();
+    return (json as List<Object?>)
+        .map((item) => (item as Map<String, Object?>)['user_id'] as int)
+        .toList()
+      ..sort();
   }
 
   factory TypingEvent.fromJson(Map<String, dynamic> json) {
@@ -1692,7 +1841,7 @@ class PresenceEvent extends Event {
   });
 
   factory PresenceEvent.fromJson(Map<String, dynamic> json) =>
-    _$PresenceEventFromJson(json);
+      _$PresenceEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$PresenceEventToJson(this);
@@ -1714,7 +1863,8 @@ class PresenceEvent extends Event {
 // TODO(#1611) update comment about #1611
 @JsonSerializable(fieldRename: FieldRename.snake)
 class PerClientPresence {
-  final String client; // always "website" (on 7.0+, so on all supported servers)
+  final String
+  client; // always "website" (on 7.0+, so on all supported servers)
   final PresenceStatus status;
   final int timestamp;
   final bool pushable; // always false (on 7.0+, so on all supported servers)
@@ -1727,7 +1877,7 @@ class PerClientPresence {
   });
 
   factory PerClientPresence.fromJson(Map<String, dynamic> json) =>
-    _$PerClientPresenceFromJson(json);
+      _$PerClientPresenceFromJson(json);
 
   Map<String, dynamic> toJson() => _$PerClientPresenceToJson(this);
 }
@@ -1763,7 +1913,7 @@ class ReactionEvent extends Event {
   });
 
   factory ReactionEvent.fromJson(Map<String, dynamic> json) =>
-    _$ReactionEventFromJson(json);
+      _$ReactionEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$ReactionEventToJson(this);
@@ -1771,10 +1921,7 @@ class ReactionEvent extends Event {
 
 /// The type of [ReactionEvent.op].
 @JsonEnum(fieldRename: FieldRename.snake)
-enum ReactionOp {
-  add,
-  remove,
-}
+enum ReactionOp { add, remove }
 
 /// A Zulip event of type `heartbeat`: https://zulip.com/api/get-events#heartbeat
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -1786,7 +1933,7 @@ class HeartbeatEvent extends Event {
   HeartbeatEvent({required super.id});
 
   factory HeartbeatEvent.fromJson(Map<String, dynamic> json) =>
-    _$HeartbeatEventFromJson(json);
+      _$HeartbeatEventFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$HeartbeatEventToJson(this);
