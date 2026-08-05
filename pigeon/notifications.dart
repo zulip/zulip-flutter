@@ -32,6 +32,8 @@ class IosNotificationTapEvent extends NotificationTapEvent {
   /// The iOS APNs payload of the notification.
   ///
   /// See [notificationTapEvents].
+  /// For a reply action, this map additionally contains the entered text
+  /// under the `reply_text` key.
   final Map<Object?, Object?> payload;
 }
 

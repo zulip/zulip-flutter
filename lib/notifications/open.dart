@@ -185,10 +185,42 @@ class NotificationOpenService {
   static Future<void> _navigateForNotification(NotificationTapEvent event) async {
     switch (event) {
       case IosNotificationTapEvent():
+        if (event.payload[kIosNotificationReplyTextKey] is String) {
+          return _sendNotificationReply(event);
+        }
         return _navigateForNotificationIos(event);
       case AndroidNotificationTapEvent():
         return _navigateForNotificationAndroid(event);
     }
+  }
+
+  static const kIosNotificationReplyTextKey = 'reply_text';
+
+  /// Sends a reply entered from an iOS notification action.
+  static Future<void> _sendNotificationReply(IosNotificationTapEvent event) async {
+    assert(defaultTargetPlatform == TargetPlatform.iOS);
+    final replyText = event.payload[kIosNotificationReplyTextKey] as String;
+    assert(debugLog('replying to notif: ${jsonEncode(event.payload)}'));
+
+    final notificationData = tryParseIosApnsPayload(event.payload);
+    if (notificationData == null) return;
+
+    final globalStore = await ZulipBinding.instance.getGlobalStore();
+    final account = globalStore.accounts.firstWhereOrNull(
+      (account) => account.realmUrl.origin == notificationData.realmUrl.origin
+                && account.userId == notificationData.userId);
+    if (account == null) return; // TODO(log)
+
+    final narrow = notificationData.narrow;
+    if (narrow is! SendableNarrow) return;
+
+    final store = await globalStore.perAccount(account.id);
+    await store.sendMessage(destination: narrow.destination, content: replyText);
+  }
+
+  @visibleForTesting
+  static Future<void> debugSendNotificationReply(IosNotificationTapEvent event) {
+    return _sendNotificationReply(event);
   }
 
   static Future<void> _navigateForNotificationIos(IosNotificationTapEvent event) async {
@@ -243,6 +275,20 @@ class NotificationOpenService {
       showErrorDialog(context: context,
         title: zulipLocalizations.errorNotificationOpenTitle);
       return null;
+    }
+  }
+
+  static NotificationOpenPayload? tryParseIosApnsPayload(
+    Map<Object?, Object?> payload,
+  ) {
+    try {
+      return NotificationOpenPayload.parseIosApnsPayload(payload);
+    } catch (_) {
+      try {
+        return NotificationOpenPayload.parseLegacyIosApnsPayload(payload);
+      } on FormatException {
+        return null;
+      }
     }
   }
 
