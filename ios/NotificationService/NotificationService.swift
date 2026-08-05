@@ -1,5 +1,5 @@
-import Foundation
 import Flutter
+import Foundation
 import Intents
 import UIKit
 import UserNotifications
@@ -198,7 +198,8 @@ class NotificationService: UNNotificationServiceExtension {
     )
 
     let conversationIdentifier = userInfo[Self.notificationUrlKey] as? String
-    let speakableGroupName = content.title.isEmpty
+    let speakableGroupName =
+      content.title.isEmpty
       ? nil
       : INSpeakableString(spokenPhrase: content.title)
     let intent = INSendMessageIntent(
