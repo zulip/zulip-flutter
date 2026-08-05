@@ -82,7 +82,8 @@ private let replyTextUserInfoKey = "reply_text"
   ) async {
     var userInfo = response.notification.request.content.userInfo
     if response.actionIdentifier == replyNotificationAction,
-      let textResponse = response as? UNTextInputNotificationResponse {
+      let textResponse = response as? UNTextInputNotificationResponse
+    {
       userInfo[replyTextUserInfoKey] = textResponse.userText
       notificationTapEventListener?.onNotificationTapEvent(payload: userInfo)
     } else if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
