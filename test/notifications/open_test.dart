@@ -264,10 +264,11 @@ void main() {
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
-    testWidgets('iOS notification reply sends a message', (tester) async {
+    test('iOS notification reply sends a message', () async {
       addTearDown(testBinding.reset);
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      await prepare(tester);
 
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       final connection = store.connection as FakeApiConnection;
@@ -285,7 +286,7 @@ void main() {
         ..bodyFields['content'].equals('A reply')
         ..bodyFields['type'].equals('stream')
         ..bodyFields['topic'].equals(message.topic.apiName);
-    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+    });
 
    testWidgets('stream message: iOS legacy plaintext', (tester) async {
       addTearDown(testBinding.reset);
