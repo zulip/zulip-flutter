@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -142,9 +139,6 @@
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
-  },
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
@@ -1486,7 +1480,6 @@
   },
   "aboutPageAppVersion": "アプリのバージョン",
   "aboutPageOpenSourceLicenses": "オープンソースライセンス",
-  "aboutPageTapToView": "タップして表示",
   "aboutPageTitle": "Zulipについて",
   "actionSheetOptionChannelFeed": "チャンネル一覧",
   "actionSheetOptionCopyChannelLink": "チャンネルのリンクをコピー",
@@ -1528,7 +1521,6 @@
   "actionSheetTitleSelfDm": "自分とのDM",
   "allChannelsEmptyPlaceholderHeader": "この組織には、あなたが閲覧できるチャンネルはありません。",
   "allChannelsPageTitle": "全てのチャンネル",
-  "appVersionUnknownPlaceholder": "（…）",
   "channelFeedButtonTooltip": "チャンネルフィード",
   "channelsEmptyPlaceholderHeader": "まだどのチャンネルも購読していません。",
   "channelsEmptyPlaceholderMessage": "<z-link>{allChannelsPageTitle}</z-link> に移動して、いくつか参加してみましょう。",

@@ -1445,6 +1445,12 @@ class ZulipLocalizationsEnGb extends ZulipLocalizationsEn {
   String get aboutPageAppVersion => 'App Version';
 
   @override
+  String get aboutPageOpenSourceLicenses => 'Open-source licences';
+
+  @override
+  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
+
+  @override
   String get topicValidationErrorMandatoryButEmpty =>
       'Topics are required in this organisation.';
 }
