@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@actionSheetOptionDeleteMessage": {
     "description": "Label for the 'Delete message' button in the message action sheet."
   },
@@ -155,7 +152,6 @@
   },
   "aboutPageAppVersion": "גרסת ישום",
   "aboutPageOpenSourceLicenses": "רישיונות קוד פתוח",
-  "aboutPageTapToView": "הקש כדי להציג",
   "actionSheetOptionDeleteMessage": "מחק הודעה",
   "actionSheetOptionEditMessage": "ערוך הודעה",
   "actionSheetOptionFollowTopic": "עקוב אחר הנושא",

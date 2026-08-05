@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -142,9 +139,6 @@
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
-  },
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
@@ -1519,7 +1513,6 @@
   },
   "aboutPageAppVersion": "Appversjon",
   "aboutPageOpenSourceLicenses": "Lisensar for open kjeldekode",
-  "aboutPageTapToView": "Tæpp for å sjå",
   "aboutPageTitle": "Om Zulip",
   "actionSheetOptionChannelFeed": "Kanalstraumen",
   "actionSheetOptionCopyChannelLink": "Kopier lenke til kanal",
@@ -1561,7 +1554,6 @@
   "actionSheetTitleSelfDm": "DM-ar med deg sjølv",
   "allChannelsEmptyPlaceholderHeader": "Det finst ingen kanalar du kan sjå i denne organisasjonen.",
   "allChannelsPageTitle": "Alle kanalar",
-  "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Kanalstraum",
   "channelsEmptyPlaceholderHeader": "Du tingar ikkje på nokre kanalar enno.",
   "channelsEmptyPlaceholderMessage": "Prøv å gå til <z-link>{allChannelsPageTitle}</z-link> og bli med i nokre.",

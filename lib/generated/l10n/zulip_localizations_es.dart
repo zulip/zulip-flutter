@@ -17,10 +17,11 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+      'Texto del banner de la página «Acerca de Zulip», que aparece en lugar del elemento de la versión de la aplicación cuando se desconoce la versión.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes =>
+      'Título del elemento en la página «Acerca de Zulip» para abrir las notas de la versión actual en GitHub';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Licencias de Código Abierto';
@@ -411,7 +412,7 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'No se ha podido leer el archivo: $filename';
   }
 
   @override
@@ -503,7 +504,8 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'No se ha podido editar el mensaje';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied =>
+      'Mensaje de éxito tras copiar la versión de la aplicación al portapapeles del sistema del usuario.';
 
   @override
   String get successLinkCopied => 'Enlace copiado';
@@ -818,10 +820,10 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'Esta es la dirección que debes utilizar para abrir Zulip en un navegador.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Ayuda';
 
   @override
   String get loginHidePassword => 'Ocultar contraseña';

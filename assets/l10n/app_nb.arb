@@ -1,14 +1,62 @@
 {
-  "aboutPageAppVersion": "App versjon",
   "@aboutPageAppVersion": {
     "description": "Label for Zulip app version in About Zulip page"
   },
-  "aboutPageTitle": "Om Zulip",
+  "@aboutPageOpenSourceLicenses": {
+    "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
+  "@allChannelsEmptyPlaceholderHeader": {
+    "description": "Centered text on the 'All channels' page saying that there is no content to show."
+  },
+  "@allChannelsPageTitle": {
+    "description": "Title for the 'All channels' page."
+  },
+  "@chooseAccountButtonAddAnAccount": {
+    "description": "Label for ChooseAccountPage button to add an account"
+  },
+  "@chooseAccountPageLogOutButton": {
+    "description": "Label for the 'Log out' button for an account on the choose-account page"
+  },
+  "@chooseAccountPageTitle": {
+    "description": "Title for the page to choose between Zulip accounts."
+  },
+  "@logOutConfirmationDialogConfirmButton": {
+    "description": "Label for the 'Log out' button on a confirmation dialog for logging out."
+  },
+  "@logOutConfirmationDialogTitle": {
+    "description": "Title for a confirmation dialog for logging out."
+  },
+  "@navButtonAllChannels": {
+    "description": "Title for a nav button that opens the 'All channels' page."
+  },
+  "@profileButtonSendDirectMessage": {
+    "description": "Label for button in profile screen to navigate to DMs with the shown user."
+  },
+  "@settingsPageTitle": {
+    "description": "Title for the settings page."
+  },
+  "@upgradeWelcomeDialogDismiss": {
+    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "@upgradeWelcomeDialogTitle": {
+    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
+  },
+  "aboutPageAppVersion": "App versjon",
   "aboutPageOpenSourceLicenses": "Lisenser for åpen kildekode",
-  "@aboutPageOpenSourceLicenses": {
-    "description": "Item title in About Zulip page to navigate to Licenses page"
-  }
+  "aboutPageTitle": "Om Zulip",
+  "allChannelsEmptyPlaceholderHeader": "Det er ingen kanaler du kan se i denne organisasjonen.",
+  "allChannelsPageTitle": "Alle kanaler",
+  "chooseAccountButtonAddAnAccount": "Legg til en konto",
+  "chooseAccountPageLogOutButton": "Logg ut",
+  "chooseAccountPageTitle": "Velg konto",
+  "logOutConfirmationDialogConfirmButton": "Logg ut",
+  "logOutConfirmationDialogTitle": "Logg ut?",
+  "navButtonAllChannels": "Alle kanaler",
+  "profileButtonSendDirectMessage": "Send direktemelding",
+  "settingsPageTitle": "Innstillinger",
+  "upgradeWelcomeDialogDismiss": "La oss gå",
+  "upgradeWelcomeDialogTitle": "Velkommen til den nye Zulip-appen!"
 }
