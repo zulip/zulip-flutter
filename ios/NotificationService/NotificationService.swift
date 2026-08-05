@@ -214,7 +214,7 @@ class NotificationService: UNNotificationServiceExtension {
     )
 
     do {
-      let updated = try await content.updating(from: intent)
+      let updated = try content.updating(from: intent)
       guard let mutable = updated.mutableCopy() as? UNMutableNotificationContent else {
         return content
       }
