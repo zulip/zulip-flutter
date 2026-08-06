@@ -213,17 +213,12 @@ class NotificationService: UNNotificationServiceExtension {
       attachments: nil
     )
 
-    do {
-      let updated = try content.updating(from: intent)
-      guard let mutable = updated.mutableCopy() as? UNMutableNotificationContent else {
-        return content
-      }
+    let interaction = INInteraction(intent: intent, response: nil)
+    interaction.direction = .incoming
 
-      // Keep the navigation payload and the notification sound after iOS
-      // applies the Communication Notification metadata.
-      mutable.userInfo = content.userInfo
-      mutable.sound = content.sound
-      return mutable
+    do {
+      try await interaction.donate()
+      return try content.updating(from: intent)
     } catch {
       logger.debug("Unable to create Communication Notification: \(error.localizedDescription)")
       return content
