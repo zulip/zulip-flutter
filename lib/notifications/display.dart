@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -234,8 +235,32 @@ class NotificationDisplayManager {
     final groupKey = _groupKey(data.realmUrl, data.userId);
     final conversationKey = _conversationKey(data, groupKey);
 
-    final oldMessagingStyle = await _androidHost
-      .getActiveNotificationMessagingStyleByTag(conversationKey);
+    final activeNotifications = await _androidHost.getActiveNotifications(
+      desiredNotificationExtras: const [],
+      desiredMessageExtras: const [kExtraZulipMessageId],
+      includeMessagingStyle: true);
+    final oldNotification =
+      activeNotifications.firstWhereOrNull((notif) => notif.tag == conversationKey);
+    final oldMessagingStyle = oldNotification?.notification.messagingStyle;
+
+    // Choose the anchor for the notification's intent URL;
+    // see [NotificationOpenPayload.messageId].
+    // Each MessagingStyle message carries its Zulip message ID, so we take
+    // the earliest one we have.  Android keeps only the latest
+    // MessagingStyle.MAXIMUM_RETAINED_MESSAGES of the group, so this can be
+    // later than the group's true first, and may not even be shown in the
+    // drawer; that's fine.  See:
+    //   https://developer.android.com/reference/android/app/Notification.MessagingStyle#MAXIMUM_RETAINED_MESSAGES
+    final int firstMessageId;
+    if (oldMessagingStyle == null) {
+      firstMessageId = data.messageId;
+    } else {
+      final firstMessageIdStr =
+        oldMessagingStyle.messages.firstOrNull?.extras[kExtraZulipMessageId];
+      firstMessageId = firstMessageIdStr == null
+        ? data.messageId // TODO(log)
+        : int.parse(firstMessageIdStr, radix: 10);
+    }
 
     final MessagingStyle messagingStyle;
     if (oldMessagingStyle != null) {
@@ -265,12 +290,13 @@ class NotificationDisplayManager {
     messagingStyle.messages.add(MessagingStyleMessage(
       text: data.content,
       timestampMs: data.time * 1000,
+      extras: {kExtraZulipMessageId: data.messageId.toString()},
       person: Person(
         key: _personKey(data.realmUrl, data.senderId),
         name: data.senderFullName,
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl))));
 
-    final intentDataUrl = notificationUrlForNotifPayload(data);
+    final intentDataUrl = notificationUrlForNotifPayload(data, messageId: firstMessageId);
 
     await _androidHost.notify(
       id: kNotificationId,
@@ -357,7 +383,9 @@ class NotificationDisplayManager {
     //   https://github.com/zulip/zulip-mobile/pull/4842#pullrequestreview-725817909
     var haveRemaining = false;
     final activeNotifications = await _androidHost.getActiveNotifications(
-      desiredExtras: [kExtraLastMessageId]);
+      desiredNotificationExtras: [kExtraLastMessageId],
+      desiredMessageExtras: const [],
+      includeMessagingStyle: false);
     for (final statusBarNotification in activeNotifications) {
       // The StatusBarNotification object describes an active notification in the UI.
       // Its `.tag`, `.id`, and `.notification` are the same values as we passed to
@@ -430,10 +458,13 @@ class NotificationDisplayManager {
     };
   }
 
-  static Uri notificationUrlForNotifPayload(NotifPayloadNewMessage data) {
+  static Uri notificationUrlForNotifPayload(NotifPayloadNewMessage data, {
+    required int? messageId,
+  }) {
     return NotificationOpenPayload(
       realmUrl: data.realmUrl,
       userId: data.userId,
+      messageId: messageId,
       narrow: switch (data.recipient) {
         NotifPayloadChannelRecipient(:var channelId, :var topic) =>
           TopicNarrow(channelId, topic),
@@ -447,7 +478,9 @@ class NotificationDisplayManager {
 
     final groupKey = _groupKey(realmUrl, userId);
     final activeNotifications = await _androidHost.getActiveNotifications(
-      desiredExtras: []);
+      desiredNotificationExtras: const [],
+      desiredMessageExtras: const [],
+      includeMessagingStyle: false);
     for (final statusBarNotification in activeNotifications) {
       if (statusBarNotification.notification.group == groupKey) {
         await _androidHost.cancel(
@@ -471,6 +504,13 @@ class NotificationDisplayManager {
   /// clear that specific notification.
   @visibleForTesting
   static const kExtraLastMessageId = 'lastZulipMessageId';
+
+  /// A key we use in [MessagingStyleMessage.extras] for the [Message.id] of
+  /// the Zulip message that message represents.
+  ///
+  /// We use this to open the notification at a specific message (#1565).
+  @visibleForTesting
+  static const kExtraZulipMessageId = 'zulipMessageId';
 
   static String _conversationKey(NotifPayloadNewMessage data, String groupKey) {
     final conversation = switch (data.recipient) {
