@@ -1290,7 +1290,7 @@ class _MessageActionSheetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
+    final content = parseMessageContent(message);
 
     // TODO this seems to lose the hero animation when opening an image;
     //   investigate.
@@ -1298,9 +1298,8 @@ class _MessageActionSheetHeader extends StatelessWidget {
     //   On popping the pushed narrow route, the sheet is still open.
 
     return Container(
-      // TODO(#647) use different color for highlighted messages
       // TODO(#681) use different color for DM messages
-      color: designVariables.bgMessageRegular,
+      color: messageBackgroundColor(context, message, content),
       padding: EdgeInsets.symmetric(vertical: 4),
       child: Column(
         spacing: 4,
@@ -1311,7 +1310,7 @@ class _MessageActionSheetHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             // TODO(#10) offer text selection; the Figma asks for it here:
             //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3483-30210&m=dev
-            child: MessageContent(message: message, content: parseMessageContent(message))),
+            child: MessageContent(message: message, content: content)),
         ]));
   }
 }

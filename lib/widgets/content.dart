@@ -26,7 +26,6 @@ import 'profile.dart';
 import 'scrolling.dart';
 import 'store.dart';
 import 'text.dart';
-import 'theme.dart';
 
 /// A central place for styles for Zulip content (rendered Zulip Markdown).
 ///
@@ -44,9 +43,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 0).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.2, 240, 0.7, 0.7).toColor(),
-      colorGroupMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.6, 0.45).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
+      colorGroupMentionBackground: const HSLColor.fromAHSL(0.18, 183, 0.6, 0.45).toColor(),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
       colorMathBlockBorder: const HSLColor.fromAHSL(0.15, 240, 0.8, 0.5).toColor(),
       colorMessageMediaContainerBackground: const Color.fromRGBO(0, 0, 0, 0.03),
@@ -56,6 +55,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorPollVoteCountText: const HSLColor.fromAHSL(1, 156, 0.41, 0.4).toColor(),
       colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.80).toColor(),
       colorTableHeaderBackground: const HSLColor.fromAHSL(1, 0, 0, 0.93).toColor(),
+      colorTextDirectMention: const HSLColor.fromAHSL(1, 240, 0.52, 0.45).toColor(),
+      colorTextGroupOrWildcardMention: const HSLColor.fromAHSL(1, 183, 0.52, 0.26).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor(),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.15).toColor(),
@@ -79,9 +80,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: const HSLColor.fromAHSL(0.04, 0, 0, 1).toColor(),
       colorDirectMentionBackground: const HSLColor.fromAHSL(0.25, 240, 0.52, 0.6).toColor(),
-      colorGroupMentionBackground: const HSLColor.fromAHSL(0.20, 183, 0.52, 0.4).toColor(),
       colorGlobalTimeBackground: const HSLColor.fromAHSL(0.2, 0, 0, 0).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(0.4, 0, 0, 0).toColor(),
+      colorGroupMentionBackground: const HSLColor.fromAHSL(0.20, 183, 0.52, 0.4).toColor(),
       colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(), // the same as light in Web
       colorMathBlockBorder: const HSLColor.fromAHSL(1, 240, 0.4, 0.4).toColor(),
       colorMessageMediaContainerBackground: const HSLColor.fromAHSL(0.03, 0, 0, 1).toColor(),
@@ -91,6 +92,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorPollVoteCountText: const HSLColor.fromAHSL(1, 185, 0.35, 0.65).toColor(),
       colorTableCellBorder: const HSLColor.fromAHSL(1, 0, 0, 0.33).toColor(),
       colorTableHeaderBackground: const HSLColor.fromAHSL(0.5, 0, 0, 0).toColor(),
+      colorTextDirectMention: const HSLColor.fromAHSL(1, 240, 1.0, 0.88).toColor(),
+      colorTextGroupOrWildcardMention: const HSLColor.fromAHSL(1, 184, 0.52, 0.63).toColor(),
       colorThematicBreak: const HSLColor.fromAHSL(1, 0, 0, .87).toColor().withValues(alpha: 0.2),
       textStylePlainParagraph: _plainParagraphCommon(context).copyWith(
         color: const HSLColor.fromAHSL(1, 0, 0, 0.85).toColor(),
@@ -113,9 +116,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme._({
     required this.colorCodeBlockBackground,
     required this.colorDirectMentionBackground,
-    required this.colorGroupMentionBackground,
     required this.colorGlobalTimeBackground,
     required this.colorGlobalTimeBorder,
+    required this.colorGroupMentionBackground,
     required this.colorLink,
     required this.colorMathBlockBorder,
     required this.colorMessageMediaContainerBackground,
@@ -125,6 +128,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     required this.colorPollVoteCountText,
     required this.colorTableCellBorder,
     required this.colorTableHeaderBackground,
+    required this.colorTextDirectMention,
+    required this.colorTextGroupOrWildcardMention,
     required this.colorThematicBreak,
     required this.textStylePlainParagraph,
     required this.textStyleEmoji,
@@ -147,9 +152,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
 
   final Color colorCodeBlockBackground;
   final Color colorDirectMentionBackground;
-  final Color colorGroupMentionBackground;
   final Color colorGlobalTimeBackground;
   final Color colorGlobalTimeBorder;
+  final Color colorGroupMentionBackground;
   final Color colorLink;
   final Color colorMathBlockBorder; // TODO(#46) this won't be needed
   final Color colorMessageMediaContainerBackground;
@@ -159,6 +164,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   final Color colorPollVoteCountText;
   final Color colorTableCellBorder;
   final Color colorTableHeaderBackground;
+  final Color colorTextDirectMention;
+  final Color colorTextGroupOrWildcardMention;
   final Color colorThematicBreak;
 
   /// The complete [TextStyle] we use for plain, unstyled paragraphs.
@@ -209,9 +216,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
   ContentTheme copyWith({
     Color? colorCodeBlockBackground,
     Color? colorDirectMentionBackground,
-    Color? colorGroupMentionBackground,
     Color? colorGlobalTimeBackground,
     Color? colorGlobalTimeBorder,
+    Color? colorGroupMentionBackground,
     Color? colorLink,
     Color? colorMathBlockBorder,
     Color? colorMessageMediaContainerBackground,
@@ -221,6 +228,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     Color? colorPollVoteCountText,
     Color? colorTableCellBorder,
     Color? colorTableHeaderBackground,
+    Color? colorTextDirectMention,
+    Color? colorTextGroupOrWildcardMention,
     Color? colorThematicBreak,
     TextStyle? textStylePlainParagraph,
     TextStyle? textStyleEmoji,
@@ -233,9 +242,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: colorCodeBlockBackground ?? this.colorCodeBlockBackground,
       colorDirectMentionBackground: colorDirectMentionBackground ?? this.colorDirectMentionBackground,
-      colorGroupMentionBackground: colorGroupMentionBackground ?? this.colorGroupMentionBackground,
       colorGlobalTimeBackground: colorGlobalTimeBackground ?? this.colorGlobalTimeBackground,
       colorGlobalTimeBorder: colorGlobalTimeBorder ?? this.colorGlobalTimeBorder,
+      colorGroupMentionBackground: colorGroupMentionBackground ?? this.colorGroupMentionBackground,
       colorLink: colorLink ?? this.colorLink,
       colorMathBlockBorder: colorMathBlockBorder ?? this.colorMathBlockBorder,
       colorMessageMediaContainerBackground: colorMessageMediaContainerBackground ?? this.colorMessageMediaContainerBackground,
@@ -245,6 +254,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorPollVoteCountText: colorPollVoteCountText ?? this.colorPollVoteCountText,
       colorTableCellBorder: colorTableCellBorder ?? this.colorTableCellBorder,
       colorTableHeaderBackground: colorTableHeaderBackground ?? this.colorTableHeaderBackground,
+      colorTextDirectMention: colorTextDirectMention ?? this.colorTextDirectMention,
+      colorTextGroupOrWildcardMention: colorTextGroupOrWildcardMention ?? this.colorTextGroupOrWildcardMention,
       colorThematicBreak: colorThematicBreak ?? this.colorThematicBreak,
       textStylePlainParagraph: textStylePlainParagraph ?? this.textStylePlainParagraph,
       textStyleEmoji: textStyleEmoji ?? this.textStyleEmoji,
@@ -264,9 +275,9 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     return ContentTheme._(
       colorCodeBlockBackground: Color.lerp(colorCodeBlockBackground, other.colorCodeBlockBackground, t)!,
       colorDirectMentionBackground: Color.lerp(colorDirectMentionBackground, other.colorDirectMentionBackground, t)!,
-      colorGroupMentionBackground: Color.lerp(colorGroupMentionBackground, other.colorGroupMentionBackground, t)!,
       colorGlobalTimeBackground: Color.lerp(colorGlobalTimeBackground, other.colorGlobalTimeBackground, t)!,
       colorGlobalTimeBorder: Color.lerp(colorGlobalTimeBorder, other.colorGlobalTimeBorder, t)!,
+      colorGroupMentionBackground: Color.lerp(colorGroupMentionBackground, other.colorGroupMentionBackground, t)!,
       colorLink: Color.lerp(colorLink, other.colorLink, t)!,
       colorMathBlockBorder: Color.lerp(colorMathBlockBorder, other.colorMathBlockBorder, t)!,
       colorMessageMediaContainerBackground: Color.lerp(colorMessageMediaContainerBackground, other.colorMessageMediaContainerBackground, t)!,
@@ -276,6 +287,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
       colorPollVoteCountText: Color.lerp(colorPollVoteCountText, other.colorPollVoteCountText, t)!,
       colorTableCellBorder: Color.lerp(colorTableCellBorder, other.colorTableCellBorder, t)!,
       colorTableHeaderBackground: Color.lerp(colorTableHeaderBackground, other.colorTableHeaderBackground, t)!,
+      colorTextDirectMention: Color.lerp(colorTextDirectMention, other.colorTextDirectMention, t)!,
+      colorTextGroupOrWildcardMention: Color.lerp(colorTextGroupOrWildcardMention, other.colorTextGroupOrWildcardMention, t)!,
       colorThematicBreak: Color.lerp(colorThematicBreak, other.colorThematicBreak, t)!,
       textStylePlainParagraph: TextStyle.lerp(textStylePlainParagraph, other.textStylePlainParagraph, t)!,
       textStyleEmoji: TextStyle.lerp(textStyleEmoji, other.textStyleEmoji, t)!,
@@ -304,7 +317,8 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = this.content;
-    return InheritedMessage(message: message,
+    return InheritedMessageWidget(
+      data: InheritedMessage(message: message, content: content),
       child: DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: switch (content) {
@@ -314,19 +328,34 @@ class MessageContent extends StatelessWidget {
   }
 }
 
-class InheritedMessage extends InheritedWidget {
-  const InheritedMessage({super.key, required this.message, required super.child});
+/// A [Message] together with its parsed [content], shared down the widget tree by
+/// [InheritedMessageWidget].
+class InheritedMessage {
+  const InheritedMessage({required this.message, required this.content});
 
   final Message message;
+  final ZulipMessageContent content;
+}
+
+/// Provides access to the ambient [InheritedMessage].
+class InheritedMessageWidget extends InheritedWidget {
+  const InheritedMessageWidget({
+    super.key,
+    required this.data,
+    required super.child,
+  });
+
+  final InheritedMessage data;
 
   @override
-  bool updateShouldNotify(covariant InheritedMessage oldWidget) =>
-    !identical(oldWidget.message, message);
+  bool updateShouldNotify(covariant InheritedMessageWidget oldWidget) =>
+    !identical(oldWidget.data.message, data.message)
+      || !identical(oldWidget.data.content, data.content);
 
-  static Message of(BuildContext context) {
-    final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessage>();
-    assert(widget != null, 'No InheritedMessage ancestor');
-    return widget!.message;
+  static InheritedMessage of(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessageWidget>();
+    assert(widget != null, 'No InheritedMessageWidget ancestor');
+    return widget!.data;
   }
 }
 
@@ -656,7 +685,7 @@ class MessageInlineVideo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = InheritedMessage.of(context);
+    final message = InheritedMessageWidget.of(context).message;
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.srcUrl);
 
@@ -821,6 +850,7 @@ class WebsitePreview extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final resolvedImageSrcUrl = store.tryResolveUrl(node.imageSrcUrl);
     final isSmallWidth = MediaQuery.sizeOf(context).width <= 576;
+    final inheritedMessage = InheritedMessageWidget.of(context);
 
     // On Web on larger width viewports, the title and description container's
     // width is constrained using `max-width: calc(100% - 115px)`, we do not
@@ -853,9 +883,9 @@ class WebsitePreview extends StatelessWidget {
       child: InsetShadowBox(
         bottom: 8,
         // TODO(#488) use different color for non-message contexts
-        // TODO(#647) use different color for highlighted messages
         // TODO(#681) use different color for DM messages
-        color: DesignVariables.of(context).bgMessageRegular,
+        color: messageBackgroundColor(
+          context, inheritedMessage.message, inheritedMessage.content),
         child: ClipRect(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: 80),
@@ -1241,11 +1271,14 @@ class Mention extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final contentTheme = ContentTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final message = InheritedMessageWidget.of(context).message;
 
     var nodes = node.nodes;
+    bool isSelfMention = false;
     switch (node) {
       case UserGroupMentionNode(:final userGroupId):
         final userGroup = store.getGroup(userGroupId);
+        isSelfMention = userGroup?.members.contains(store.selfUserId) ?? false;
         if (userGroup case UserGroup(:final name, :final isSystemGroup)) {
           final String displayName;
           if (isSystemGroup) {
@@ -1258,13 +1291,28 @@ class Mention extends StatelessWidget {
           nodes = [TextNode(node.isSilent ? displayName : '@$displayName')];
         }
       case UserMentionNode(:final userId?):
+        isSelfMention = userId == store.selfUserId;
         final user = store.getUser(userId);
         if (user case User(:final fullName)) {
           nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
         }
       case UserMentionNode(userId: null):
+        break;
       case WildcardMentionNode():
+        isSelfMention = message.flags.any((flag) =>
+          flag == .topicWildcardMentioned || flag == .streamWildcardMentioned);
     }
+
+    // Following web, the mention text is styled purely on whether the mention is
+    // a self-mention, independent of `isSilent` and channel subscription.
+    //   See `user-mention-me` in zulip:web/src/rendered_markdown.ts.
+    final TextStyle mentionTextStyle = isSelfMention
+      ? ambientTextStyle.copyWith(
+          color: node is UserMentionNode
+            ? contentTheme.colorTextDirectMention
+            : contentTheme.colorTextGroupOrWildcardMention,
+        ).merge(weightVariableTextStyle(context, wght: 600))
+      : ambientTextStyle;
 
     final backgroundPillColor = switch (node) {
       UserMentionNode() => contentTheme.colorDirectMentionBackground,
@@ -1284,8 +1332,7 @@ class Mention extends StatelessWidget {
         // (The parser on creating a MentionNode has a TODO to check that.)
         linkRecognizers: null,
 
-        // TODO(#647) when self-user is mentioned, make bold, and change font color.
-        style: ambientTextStyle,
+        style: mentionTextStyle,
 
         nodes: nodes));
 
@@ -1558,7 +1605,7 @@ class _Image extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final message = InheritedMessage.of(context);
+    final message = InheritedMessageWidget.of(context).message;
 
     final resolvedSrc = switch (node.src) {
       ImageNodeSrcThumbnail(:final value) => value.resolve(context,
