@@ -91,6 +91,16 @@ void main() {
       expected: (OptionNone(), OptionNone()));
   });
 
+  test('UserSettingName.fromRawString handles unknown values', () {
+    check(UserSettingName.fromRawString('twenty_four_hour_time'))
+      .equals(.twentyFourHourTime);
+
+    for (final unknown in ['unknown_user_setting_name', '']) {
+      check(UserSettingName.fromRawString(unknown))
+        .equals(.unknown);
+    }
+  });
+
   group('User', () {
     final Map<String, dynamic> baseJson = Map.unmodifiable({
       'user_id': 123,
@@ -131,6 +141,53 @@ void main() {
     });
   });
 
+  group('ZulipStream', () {
+    final baseJson = Map<String, dynamic>.unmodifiable({
+      'stream_id': 123,
+      'name': 'A Channel',
+      'is_archived': false,
+      'description': 'Description of A Channel',
+      'rendered_description': '<p>Description of A Channel</p>',
+      'date_created': 1781164720,
+      'first_message_id': null,
+      'folder_id': null,
+      'invite_only': false,
+      'is_web_public': false,
+      'history_public_to_subscribers': true,
+      'message_retention_days': -1,
+      'stream_post_policy': 1,
+      'can_add_subscribers_group': 100,
+      'can_delete_any_message_group': 100,
+      'can_delete_own_message_group': 100,
+      'can_send_message_group': 100,
+      'can_subscribe_group': 100,
+      'is_recently_active': false,
+      'stream_weekly_traffic': null,
+    });
+
+    ZulipStream mkChannel([Map<String, dynamic>? specialJson]) {
+      return ZulipStream.fromJson({...baseJson, ...?specialJson});
+    }
+
+    test('stream_post_policy: unknown', () {
+      check(mkChannel()).channelPostPolicy.equals(.any);
+      check(mkChannel({'stream_post_policy': -100})).channelPostPolicy.equals(.unknown);
+    });
+  });
+
+  test('ChannelProperty.fromRawString handles unknown values', () {
+    check(ChannelProperty.fromRawString('is_recently_active')).equals(.isRecentlyActive);
+
+    for (final unknown in ['unknown_channel_property', '']) {
+      check(ChannelProperty.fromRawString(unknown)).equals(.unknown);
+    }
+  });
+
+  test('ChannelPostPolicy.fromApiValue handles unknown values', () {
+    check(ChannelPostPolicy.fromApiValue(1)).equals(.any);
+    check(ChannelPostPolicy.fromApiValue(-100)).equals(.unknown);
+  });
+
   group('Subscription', () {
     test('converts color to int', () {
       Subscription subWithColor(String color) {
@@ -148,6 +205,33 @@ void main() {
   group('Message', () {
     Map<String, dynamic> baseStreamJson() =>
       deepToJson(eg.streamMessage()) as Map<String, dynamic>;
+
+    Map<String, dynamic> baseDmJson() =>
+      deepToJson(eg.dmMessage(from: eg.selfUser, to: [])) as Map<String, dynamic>;
+
+    test('type: stream -> channel', () {
+      check(baseStreamJson()['type']).equals('channel');
+      check(Message.fromJson(baseStreamJson()))
+        .isA<StreamMessage>()
+        .type.equals(.channel);
+
+      check(Message.fromJson(baseStreamJson()
+        ..['type'] = 'stream'
+      )).isA<StreamMessage>()
+        .type.equals(.channel);
+    });
+
+    test('type: private -> direct', () {
+      check(baseDmJson()['type']).equals('direct');
+      check(Message.fromJson(baseDmJson()))
+        .isA<DmMessage>()
+        .type.equals(.direct);
+
+      check(Message.fromJson(baseDmJson()
+        ..['type'] = 'private'
+      )).isA<DmMessage>()
+        .type.equals(.direct);
+    });
 
     test('subject -> topic', () {
       check(baseStreamJson()).not((it) => it.containsKey('topic'));
@@ -169,13 +253,13 @@ void main() {
         (deepToJson(eg.streamMessage()) as Map<String, dynamic>)
           ..['flags'] = ['read', 'something_unknown'],
       );
-      check(m1).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
+      check(m1).flags.deepEquals(<MessageFlag>[.read, .unknown]);
 
       final m2 = Message.fromJson(
         (deepToJson(eg.dmMessage(from: eg.selfUser, to: [eg.otherUser])) as Map<String, dynamic>)
           ..['flags'] = ['read', 'something_unknown'],
       );
-      check(m2).flags.deepEquals([MessageFlag.read, MessageFlag.unknown]);
+      check(m2).flags.deepEquals(<MessageFlag>[.read, .unknown]);
     });
 
     test('require displayRecipient on parse', () {

@@ -363,7 +363,7 @@ void main() {
       final stream = eg.stream();
       final otherStream = eg.stream();
       await prepare(narrow: ChannelNarrow(stream.streamId), stream: stream);
-      await store.setUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'muted', .muted);
       await prepareOutboxMessagesTo([
         StreamDestination(stream.streamId, eg.t('topic')),
         StreamDestination(stream.streamId, eg.t('muted')),
@@ -1108,7 +1108,7 @@ void main() {
     /// (Should run after `prepare`.)
     Future<void> prepareMutes([
       bool streamMuted = false,
-      UserTopicVisibilityPolicy policy = UserTopicVisibilityPolicy.none,
+      UserTopicVisibilityPolicy policy = .none,
     ]) async {
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: streamMuted));
@@ -1149,7 +1149,7 @@ void main() {
                   .conversation.allRecipientIds.deepEquals([eg.selfUser.userId]),
       ]);
 
-      await setVisibility(UserTopicVisibilityPolicy.muted);
+      await setVisibility(.muted);
       checkNotifiedOnce();
       checkHasMessageIds([1, 4, 5]);
       check(model).outboxMessages.deepEquals(<Condition<Object?>>[
@@ -1173,7 +1173,7 @@ void main() {
       check(model).outboxMessages.length.equals(3);
       checkNotified(count: 3);
 
-      await setVisibility(UserTopicVisibilityPolicy.muted);
+      await setVisibility(.muted);
       check(model).outboxMessages.isEmpty();
       checkNotifiedOnce();
     }));
@@ -1182,7 +1182,7 @@ void main() {
       // Compare the parallel ChannelNarrow test below.
       await prepare(narrow: const CombinedFeedNarrow());
       // Mute the stream, so that combined-feed vs. stream visibility differ.
-      await prepareMutes(true, UserTopicVisibilityPolicy.followed);
+      await prepareMutes(true, .followed);
       await prepareMessages(foundOldest: true, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: topic),
       ]);
@@ -1190,13 +1190,13 @@ void main() {
 
       // Dropping from followed to none hides the message
       // (whereas it'd have no effect in a stream narrow).
-      await setVisibility(UserTopicVisibilityPolicy.none);
+      await setVisibility(.none);
       checkNotifiedOnce();
       checkHasMessageIds([]);
 
       // Dropping from none to muted has no further effect
       // (whereas it'd hide the message in a stream narrow).
-      await setVisibility(UserTopicVisibilityPolicy.muted);
+      await setVisibility(.muted);
       checkNotNotified();
       checkHasMessageIds([]);
     });
@@ -1205,7 +1205,7 @@ void main() {
       // Compare the parallel CombinedFeedNarrow test above.
       await prepare(narrow: ChannelNarrow(stream.streamId));
       // Mute the stream, so that combined-feed vs. stream visibility differ.
-      await prepareMutes(true, UserTopicVisibilityPolicy.followed);
+      await prepareMutes(true, .followed);
       await prepareMessages(foundOldest: true, messages: [
         eg.streamMessage(id: 1, stream: stream, topic: topic),
       ]);
@@ -1213,13 +1213,13 @@ void main() {
 
       // Dropping from followed to none has no effect
       // (whereas it'd hide the message in the combined feed).
-      await setVisibility(UserTopicVisibilityPolicy.none);
+      await setVisibility(.none);
       checkNotNotified();
       checkHasMessageIds([1]);
 
       // Dropping from none to muted hides the message
       // (whereas it'd have no effect in the combined feed).
-      await setVisibility(UserTopicVisibilityPolicy.muted);
+      await setVisibility(.muted);
       checkNotifiedOnce();
       checkHasMessageIds([]);
     });
@@ -1232,7 +1232,7 @@ void main() {
       ]);
       checkHasMessageIds([1]);
 
-      await setVisibility(UserTopicVisibilityPolicy.muted);
+      await setVisibility(.muted);
       checkNotNotified();
       checkHasMessageIds([1]);
     });
@@ -1246,7 +1246,7 @@ void main() {
       ]);
       checkHasMessageIds([1]);
 
-      await setVisibility(UserTopicVisibilityPolicy.muted);
+      await setVisibility(.muted);
       checkNotNotified();
       checkHasMessageIds([1]);
     });
@@ -1265,7 +1265,7 @@ void main() {
       final outboxMessage = model.outboxMessages.single;
       checkNotifiedOnce();
 
-      await setVisibility(UserTopicVisibilityPolicy.muted);
+      await setVisibility(.muted);
       checkNotNotified();
       checkHasMessageIds([1]);
       check(model).outboxMessages.single.equals(outboxMessage);
@@ -1279,7 +1279,7 @@ void main() {
         eg.streamMessage(id: 2, stream: stream, topic: topic),
       ];
       await prepareMessages(foundOldest: true, messages: messages);
-      await store.setUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'muted', .muted);
       await prepareOutboxMessagesTo([
         StreamDestination(stream.streamId, eg.t(topic)),
         StreamDestination(stream.streamId, eg.t('muted')),
@@ -1290,7 +1290,7 @@ void main() {
 
       connection.prepare(
         json: newestResult(foundOldest: true, messages: messages).toJson());
-      await setVisibility(UserTopicVisibilityPolicy.unmuted);
+      await setVisibility(.unmuted);
       checkNotifiedOnce();
       check(model).fetched.isFalse();
       checkHasMessageIds([]);
@@ -1315,7 +1315,7 @@ void main() {
         json: newestResult(foundOldest: true, messages: messages).toJson());
       final fetchFuture = model.fetchInitial();
 
-      await setVisibility(UserTopicVisibilityPolicy.unmuted);
+      await setVisibility(.unmuted);
       checkNotNotified();
 
       // The new policy does get applied when the fetch eventually completes.
@@ -1355,10 +1355,10 @@ void main() {
       await prepare(narrow: MentionsNarrow(), users: users);
       await prepareMessages(foundOldest: true, messages: [
         eg.dmMessage(id: 1, from: eg.selfUser, to: [user1],
-          flags: [MessageFlag.mentioned]),
+          flags: [.mentioned]),
         eg.dmMessage(id: 2, from: eg.selfUser, to: [user2],
-          flags: [MessageFlag.mentioned]),
-        eg.streamMessage(id: 3, flags: [MessageFlag.mentioned]),
+          flags: [.mentioned]),
+        eg.streamMessage(id: 3, flags: [.mentioned]),
       ]);
       checkHasMessageIds([1, 2, 3]);
 
@@ -1374,10 +1374,10 @@ void main() {
         users: users);
       await prepareMessages(foundOldest: true, messages: [
         eg.dmMessage(id: 1, from: eg.selfUser, to: [user1],
-          flags: [MessageFlag.starred]),
+          flags: [.starred]),
         eg.dmMessage(id: 2, from: eg.selfUser, to: [user2],
-          flags: [MessageFlag.starred]),
-        eg.streamMessage(id: 3, flags: [MessageFlag.starred]),
+          flags: [.starred]),
+        eg.streamMessage(id: 3, flags: [.starred]),
       ]);
       checkHasMessageIds([1, 2, 3]);
 
@@ -2305,7 +2305,7 @@ void main() {
       await store.addMessage(message);
 
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, message.id));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .add, message.id));
 
       check(notifiedCount1).equals(3); // fetch, new-message event, reaction event
       check(notifiedCount2).equals(3); // fetch, new-message event, reaction event
@@ -2348,7 +2348,7 @@ void main() {
     test('ReactionEvent is applied even when message not in any msglists', () async {
       await checkApplied(
         mkEvent: (message) =>
-          eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, message.id),
+          eg.reactionEvent(eg.unicodeEmojiReaction, .add, message.id),
         doCheckMessageAfterFetch:
           (messageSubject) => messageSubject.reactions.isNotNull().total.equals(1),
       );
@@ -2370,12 +2370,12 @@ void main() {
       await checkApplied(
         mkEvent: (message) => UpdateMessageFlagsAddEvent(
           id: 1,
-          flag: MessageFlag.hasAlertWord,
+          flag: .hasAlertWord,
           messages: [message.id],
           all: false,
         ),
         doCheckMessageAfterFetch:
-          (messageSubject) => messageSubject.flags.contains(MessageFlag.hasAlertWord),
+          (messageSubject) => messageSubject.flags.contains(.hasAlertWord),
       );
     });
   });
@@ -2411,9 +2411,9 @@ void main() {
       await prepare(narrow: const CombinedFeedNarrow());
       await store.addStreams([stream1, stream2]);
       await store.addSubscription(eg.subscription(stream1));
-      await store.setUserTopic(stream1, 'B', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream1, 'B', .muted);
       await store.addSubscription(eg.subscription(stream2, isMuted: true));
-      await store.setUserTopic(stream2, 'C', UserTopicVisibilityPolicy.unmuted);
+      await store.setUserTopic(stream2, 'C', .unmuted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
@@ -2471,8 +2471,8 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
-      await store.setUserTopic(stream, 'A', UserTopicVisibilityPolicy.unmuted);
-      await store.setUserTopic(stream, 'C', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'A', .unmuted);
+      await store.setUserTopic(stream, 'C', .muted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
@@ -2516,7 +2516,7 @@ void main() {
       await prepare(narrow: ChannelNarrow(stream.streamId));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream));
-      await store.setUserTopic(stream, 'muted', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'muted', .muted);
       await prepareMessages(foundOldest: true, messages: []);
 
       // Check filtering on sent messages…
@@ -2549,7 +2549,7 @@ void main() {
       await prepare(narrow: eg.topicNarrow(stream.streamId, 'A'));
       await store.addStream(stream);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
-      await store.setUserTopic(stream, 'A', UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, 'A', .muted);
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: [
@@ -2579,20 +2579,20 @@ void main() {
       const mutedTopic = 'muted';
       await prepare(narrow: const MentionsNarrow());
       await store.addStream(stream);
-      await store.setUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, mutedTopic, .muted);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
 
       List<Message> getMessages(int startingId) => [
         eg.streamMessage(id: startingId,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.topicWildcardMentioned]),
+          stream: stream, topic: mutedTopic, flags: [.topicWildcardMentioned]),
         eg.streamMessage(id: startingId + 1,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.streamWildcardMentioned]),
+          stream: stream, topic: mutedTopic, flags: [.streamWildcardMentioned]),
         eg.streamMessage(id: startingId + 2,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.wildcardMentioned]),
+          stream: stream, topic: mutedTopic, flags: [.wildcardMentioned]),
         eg.streamMessage(id: startingId + 3,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.mentioned]),
+          stream: stream, topic: mutedTopic, flags: [.mentioned]),
         eg.dmMessage(id: startingId + 4,
-          from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
+          from: eg.otherUser, to: [eg.selfUser], flags: [.mentioned]),
       ];
 
       // Check filtering on fetchInitial…
@@ -2624,14 +2624,14 @@ void main() {
         starredMessages: [101, 102, 201, 202, 301, 302],
       );
       await store.addStream(stream);
-      await store.setUserTopic(stream, mutedTopic, UserTopicVisibilityPolicy.muted);
+      await store.setUserTopic(stream, mutedTopic, .muted);
       await store.addSubscription(eg.subscription(stream, isMuted: true));
 
       List<Message> getMessages(int startingId) => [
         eg.streamMessage(id: startingId,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.starred]),
+          stream: stream, topic: mutedTopic, flags: [.starred]),
         eg.dmMessage(id: startingId + 1,
-          from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.starred]),
+          from: eg.otherUser, to: [eg.selfUser], flags: [.starred]),
       ];
 
       // Check filtering on fetchInitial…
@@ -2811,7 +2811,7 @@ void main() {
       ]);
 
       await store.handleEvent(eg.userTopicEvent(
-        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+        stream.streamId, 'bar', .muted));
       checkNotifiedOnce();
     });
 
@@ -2828,7 +2828,7 @@ void main() {
       ]);
 
       await store.handleEvent(eg.userTopicEvent(
-        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+        stream.streamId, 'bar', .muted));
       checkNotifiedOnce();
     });
 
@@ -2850,7 +2850,7 @@ void main() {
       check(model).middleMessage.equals(model.messages.length);
 
       await store.handleEvent(eg.userTopicEvent(
-        stream.streamId, 'bar', UserTopicVisibilityPolicy.muted));
+        stream.streamId, 'bar', .muted));
       checkNotifiedOnce();
     });
 
@@ -3103,13 +3103,13 @@ void main() {
           sender: sender,
           stream: channel,
           topic: topic,
-          flags: [MessageFlag.starred, MessageFlag.mentioned],
+          flags: [.starred, .mentioned],
         );
         final message2 = eg.streamMessage(
           sender: sender,
           stream: channel,
           topic: topic,
-          flags: [MessageFlag.starred, MessageFlag.mentioned],
+          flags: [.starred, .mentioned],
         );
 
         await prepare(

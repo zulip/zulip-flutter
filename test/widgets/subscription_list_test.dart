@@ -202,7 +202,7 @@ void main() {
           streamId: stream.streamId,
           topicName: eg.t('b'),
           lastUpdated: 1234567890,
-          visibilityPolicy: UserTopicVisibilityPolicy.unmuted,
+          visibilityPolicy: .unmuted,
         )],
         unreadMsgs: unreadMsgs);
     check(tester.widget<Text>(find.descendant(
@@ -228,7 +228,7 @@ void main() {
     ]);
     await setupStreamListPage(tester,
       subscriptions: [eg.subscription(stream, isMuted: true)],
-      userTopics: [eg.userTopicItem(stream, 'b', UserTopicVisibilityPolicy.none)],
+      userTopics: [eg.userTopicItem(stream, 'b', .none)],
       unreadMsgs: unreadMsgs);
 
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(1);
@@ -241,7 +241,7 @@ void main() {
     ]);
     await setupStreamListPage(tester,
       subscriptions: [eg.subscription(stream, isMuted: false)],
-      userTopics: [eg.userTopicItem(stream, 'b', UserTopicVisibilityPolicy.none)],
+      userTopics: [eg.userTopicItem(stream, 'b', .none)],
       unreadMsgs: unreadMsgs);
 
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
@@ -254,7 +254,7 @@ void main() {
     ]);
     await setupStreamListPage(tester,
       subscriptions: [eg.subscription(stream, isMuted: true)],
-      userTopics: [eg.userTopicItem(stream, 'b', UserTopicVisibilityPolicy.muted)],
+      userTopics: [eg.userTopicItem(stream, 'b', .muted)],
       unreadMsgs: unreadMsgs);
 
     check(find.byType(MutedUnreadBadge).evaluate().length).equals(0);
@@ -301,8 +301,8 @@ void main() {
         eg.subscription(stream2, isMuted: false),
       ],
       userTopics: [
-        eg.userTopicItem(stream1, 'a', UserTopicVisibilityPolicy.unmuted),
-        eg.userTopicItem(stream2, 'b', UserTopicVisibilityPolicy.unmuted),
+        eg.userTopicItem(stream1, 'a', .unmuted),
+        eg.userTopicItem(stream2, 'b', .unmuted),
       ],
       unreadMsgs: eg.unreadMsgs(channels: [
         eg.unreadChannelMsgs(streamId: stream1.streamId, topic: 'a', unreadMessageIds: [1, 2]),
@@ -334,10 +334,10 @@ void main() {
         eg.subscription(mutedStreamWithNoUnmutedUnreads,   isMuted: true),
       ],
       userTopics: [
-        eg.userTopicItem(unmutedStreamWithUnmutedUnreads,   'a', UserTopicVisibilityPolicy.unmuted),
-        eg.userTopicItem(unmutedStreamWithNoUnmutedUnreads, 'b', UserTopicVisibilityPolicy.muted),
-        eg.userTopicItem(mutedStreamWithUnmutedUnreads,     'c', UserTopicVisibilityPolicy.unmuted),
-        eg.userTopicItem(mutedStreamWithNoUnmutedUnreads,   'd', UserTopicVisibilityPolicy.muted),
+        eg.userTopicItem(unmutedStreamWithUnmutedUnreads,   'a', .unmuted),
+        eg.userTopicItem(unmutedStreamWithNoUnmutedUnreads, 'b', .muted),
+        eg.userTopicItem(mutedStreamWithUnmutedUnreads,     'c', .unmuted),
+        eg.userTopicItem(mutedStreamWithNoUnmutedUnreads,   'd', .muted),
       ],
       unreadMsgs: eg.unreadMsgs(channels: [
         eg.unreadChannelMsgs(streamId: unmutedStreamWithUnmutedUnreads.streamId,   topic: 'a', unreadMessageIds: [1]),
