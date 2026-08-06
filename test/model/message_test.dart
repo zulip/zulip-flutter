@@ -159,7 +159,7 @@ void main() {
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
-          'type': 'stream',
+          'type': 'channel',
           'to': stream.streamId.toString(),
           'topic': 'world',
           'content': 'hello',
