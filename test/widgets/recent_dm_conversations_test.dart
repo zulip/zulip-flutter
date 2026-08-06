@@ -199,7 +199,7 @@ void main() {
         final store = await testBinding.globalStore.perAccount(
           testBinding.globalStore.accounts.single.id);
         await store.handleEvent(UpdateMessageFlagsAddEvent(
-          id: 1, flag: MessageFlag.read, all: false, messages: [message.id]));
+          id: 1, flag: .read, all: false, messages: [message.id]));
         await tester.pump();
       }
 

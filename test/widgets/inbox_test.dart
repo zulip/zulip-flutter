@@ -502,7 +502,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
-        await store.setUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.muted);
+        await store.setUserTopic(stream, 'lunch', .muted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(0);
       });
@@ -524,7 +524,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: 'lunch')]);
-        await store.setUserTopic(stream, 'lunch', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(stream, 'lunch', .unmuted);
         await tester.pump();
         check(tester.widgetList(find.text('lunch'))).length.equals(1);
       });
@@ -540,7 +540,7 @@ void main() {
           streams: [stream],
           subscriptions: [subscription],
           unreadMessages: [eg.streamMessage(stream: stream, topic: topic,
-            flags: [MessageFlag.mentioned])]);
+            flags: [.mentioned])]);
 
         checkChannelHeader(tester, subscription, expectAtSignIcon: true);
         checkTopic(topic, expectAtSignIcon: true);
@@ -561,7 +561,7 @@ void main() {
         await setupPage(tester,
           users: [eg.selfUser, eg.otherUser],
           unreadMessages: [eg.dmMessage(from: eg.otherUser, to: [eg.selfUser],
-            flags: [MessageFlag.mentioned])]);
+            flags: [.mentioned])]);
 
         checkFolderHeader('Direct messages');
         checkDm(eg.otherUser.fullName, expectAtSignIcon: true);
@@ -597,7 +597,7 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel)],
           unreadMessages: [message]);
-        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+        await store.setUserTopic(channel, topic, .followed);
         await tester.pump();
         checkTopic(topic, expectFollowIcon: true);
       });
@@ -607,8 +607,8 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel)],
           unreadMessages: [eg.streamMessage(stream: channel, topic: topic,
-            flags: [MessageFlag.mentioned])]);
-        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.followed);
+            flags: [.mentioned])]);
+        await store.setUserTopic(channel, topic, .followed);
         await tester.pump();
         checkTopic(topic, expectAtSignIcon: true, expectFollowIcon: true);
       });
@@ -619,7 +619,7 @@ void main() {
           streams: [channel],
           subscriptions: [eg.subscription(channel, isMuted: true)],
           unreadMessages: [message]);
-        await store.setUserTopic(channel, topic, UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(channel, topic, .unmuted);
         await tester.pump();
         checkTopic(topic, expectUnmuteIcon: true);
       });
@@ -630,23 +630,23 @@ void main() {
         //   its own view-model
 
         final message1 = eg.streamMessage(stream: channel, topic: 'aaa');
-        final message2 = eg.streamMessage(stream: channel, topic: 'AaA', flags: [MessageFlag.read]);
-        final message3 = eg.streamMessage(stream: channel, topic: 'aAa', flags: [MessageFlag.read]);
+        final message2 = eg.streamMessage(stream: channel, topic: 'AaA', flags: [.read]);
+        final message3 = eg.streamMessage(stream: channel, topic: 'aAa', flags: [.read]);
         await setupPage(tester,
           users: [eg.selfUser, eg.otherUser],
           streams: [channel],
           subscriptions: [eg.subscription(channel, isMuted: true)],
           unreadMessages: [message1]);
-        await store.setUserTopic(channel, 'aaa', UserTopicVisibilityPolicy.unmuted);
+        await store.setUserTopic(channel, 'aaa', .unmuted);
         await tester.pump();
 
         checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '1');
 
-        await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message2]));
+        await store.handleEvent(eg.updateMessageFlagsRemoveEvent(.read, [message2]));
         await tester.pump();
         checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '2');
 
-        await store.handleEvent(eg.updateMessageFlagsRemoveEvent(MessageFlag.read, [message3]));
+        await store.handleEvent(eg.updateMessageFlagsRemoveEvent(.read, [message3]));
         await tester.pump();
         checkTopic('aaa', expectUnmuteIcon: true, expectCounterBadgeText: '3');
       });
@@ -692,7 +692,7 @@ void main() {
 
           final newColor = Colors.orange.argbInt;
           await store.handleEvent(SubscriptionUpdateEvent(id: 1, channelId: 1,
-            property: SubscriptionProperty.color, value: newColor));
+            property: .color, value: newColor));
           check(subscription.color).equals(Colors.orange.argbInt);
           await tester.pump();
 

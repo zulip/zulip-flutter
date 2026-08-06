@@ -1439,9 +1439,9 @@ class GlobalTime extends StatelessWidget {
     //   see zulip:web/styles/rendered_markdown.css .
     // TODO(i18n): localize; see plan with ffi in #45
     final format = switch (twentyFourHourTimeMode) {
-      TwentyFourHourTimeMode.twelveHour => _format12,
-      TwentyFourHourTimeMode.twentyFourHour => _format24,
-      TwentyFourHourTimeMode.localeDefault => _formatLocaleDefault,
+      .twelveHour => _format12,
+      .twentyFourHour => _format24,
+      .localeDefault => _formatLocaleDefault,
     };
     final text = format.format(node.datetime.toLocal());
     final contentTheme = ContentTheme.of(context);

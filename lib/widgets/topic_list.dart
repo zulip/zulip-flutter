@@ -241,13 +241,13 @@ class _TopicItem extends StatelessWidget {
     final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
     final double opacity;
     switch (visibilityPolicy) {
-      case UserTopicVisibilityPolicy.muted:
+      case .muted:
         opacity = 0.5;
-      case UserTopicVisibilityPolicy.none:
-      case UserTopicVisibilityPolicy.unmuted:
-      case UserTopicVisibilityPolicy.followed:
+      case .none:
+      case .unmuted:
+      case .followed:
         opacity = 1;
-      case UserTopicVisibilityPolicy.unknown:
+      case .unknown:
         assert(false);
         opacity = 1;
     }
