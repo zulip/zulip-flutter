@@ -309,7 +309,7 @@ User user({
     isBot: isBot ?? false,
     botType: null,
     botOwnerId: botOwnerId,
-    role: role ?? UserRole.member,
+    role: role ?? .member,
     timezone: 'UTC',
     avatarUrl: avatarUrl,
     avatarVersion: 0,
@@ -801,7 +801,7 @@ StreamMessage streamMessage({
     'subject': topic ?? _defaultTopic,
     'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
-    'type': 'stream',
+    'type': 'channel',
     'match_content': matchContent,
     'match_subject': matchTopic,
   }) as Map<String, dynamic>);
@@ -844,7 +844,7 @@ DmMessage dmMessage({
     'subject': '',
     'submessages': submessages ?? [],
     'timestamp': timestamp ?? 1678139636,
-    'type': 'private',
+    'type': 'direct',
   }) as Map<String, dynamic>);
 }
 
@@ -1107,7 +1107,7 @@ DeleteMessageEvent deleteMessageEvent(List<StreamMessage> messages) {
   return DeleteMessageEvent(
     id: 0,
     messageIds: messages.map((message) => message.id).toList(),
-    messageType: MessageType.stream,
+    messageType: .channel,
     streamId: messages[0].streamId,
     topic: messages[0].topic,
   );
@@ -1255,14 +1255,14 @@ UpdateMessageFlagsRemoveEvent updateMessageFlagsRemoveEvent(
         message.id,
         switch (message) {
           StreamMessage() => UpdateMessageFlagsMessageDetail(
-            type: MessageType.stream,
+            type: .channel,
             mentioned: mentioned,
             streamId: message.streamId,
             topic: message.topic,
             userIds: null,
           ),
           DmMessage() => UpdateMessageFlagsMessageDetail(
-            type: MessageType.direct,
+            type: .direct,
             mentioned: mentioned,
             streamId: null,
             topic: null,
@@ -1293,13 +1293,13 @@ TypingEvent typingEvent(SendableNarrow narrow, TypingOp op, int senderId) {
   switch (narrow) {
     case TopicNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
-        messageType: MessageType.stream,
+        messageType: .channel,
         streamId: narrow.channelId,
         topic: narrow.topic,
         recipientIds: null);
     case DmNarrow():
       return TypingEvent(id: 0, op: op, senderId: senderId,
-        messageType: MessageType.direct,
+        messageType: .direct,
         recipientIds: narrow.allRecipientIds,
         streamId: null,
         topic: null);
@@ -1393,10 +1393,10 @@ UserSettings userSettings({
   bool? presenceEnabled,
 }) {
   return UserSettings(
-    twentyFourHourTime: twentyFourHourTime ?? TwentyFourHourTimeMode.twelveHour,
+    twentyFourHourTime: twentyFourHourTime ?? .twelveHour,
     starredMessageCounts: true,
     displayEmojiReactionUsers: displayEmojiReactionUsers ?? true,
-    emojiset: emojiset ?? Emojiset.google,
+    emojiset: emojiset ?? .google,
     webInboxShowChannelFolders: webInboxShowChannelFolders ?? true,
     presenceEnabled: presenceEnabled ?? true,
   );
@@ -1503,7 +1503,7 @@ InitialSnapshot initialSnapshot({
     realmCanDeleteAnyMessageGroup: realmCanDeleteAnyMessageGroup,
     realmCanDeleteOwnMessageGroup: realmCanDeleteOwnMessageGroup,
     realmDeleteOwnMessagePolicy: realmDeleteOwnMessagePolicy,
-    realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? RealmWildcardMentionPolicy.everyone,
+    realmWildcardMentionPolicy: realmWildcardMentionPolicy ?? .everyone,
     // no default; allow `null` to simulate servers without this
     realmTopicsPolicy: realmTopicsPolicy,
     realmMandatoryTopics: realmMandatoryTopics ?? true,

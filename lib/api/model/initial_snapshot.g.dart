@@ -107,7 +107,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
     _$RealmDeleteOwnMessagePolicyEnumMap,
     json['realm_delete_own_message_policy'],
   ),
-  realmWildcardMentionPolicy: $enumDecode(
+  realmWildcardMentionPolicy: $enumDecodeNullable(
     _$RealmWildcardMentionPolicyEnumMap,
     json['realm_wildcard_mention_policy'],
   ),
