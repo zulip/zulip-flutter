@@ -108,6 +108,12 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
         // which conversation to open.
         // See NotificationOpenService (in lib/notifications/ios_service.dart).
         NotificationOpenPayload.kIosNotificationUrlKey: notificationUrl.toString(),
+        // These values are consumed by the iOS Notification Service Extension
+        // to create a Communication Notification with the sender's avatar.
+        NotificationOpenPayload.kIosNotificationSenderAvatarUrlKey:
+          data.senderAvatarUrl.toString(),
+        NotificationOpenPayload.kIosNotificationSenderIdKey: data.senderId.toString(),
+        NotificationOpenPayload.kIosNotificationSenderNameKey: data.senderFullName,
       });
   }
 }

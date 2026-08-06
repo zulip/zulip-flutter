@@ -1,4 +1,7 @@
 import Flutter
+import Foundation
+import Intents
+import UIKit
 import UserNotifications
 import os
 
@@ -6,21 +9,28 @@ import os
 ///   https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension
 ///   https://developer.apple.com/documentation/usernotifications/modifying-content-in-newly-delivered-notifications
 class NotificationService: UNNotificationServiceExtension {
+  private static let senderAvatarUrlKey = "sender_avatar_url"
+  private static let senderIdKey = "sender_id"
+  private static let senderNameKey = "sender_name"
+  private static let notificationUrlKey = "notification_url"
+
   let logger = Logger()
 
   var contentHandler: ((UNNotificationContent) -> Void)?
   var bestAttemptContent: UNMutableNotificationContent?
+  private var hasDeliveredContent = false
 
   /// See docs: https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension/didreceive(_:withcontenthandler:)
   override func didReceive(
     _ request: UNNotificationRequest,
     withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
   ) {
+    hasDeliveredContent = false
     self.contentHandler = contentHandler
     bestAttemptContent =
       (request.content.mutableCopy() as? UNMutableNotificationContent)
     guard let bestAttemptContent = bestAttemptContent else {
-      contentHandler(request.content)  // TODO(log)
+      deliver(request.content, with: contentHandler)
       return
     }
 
@@ -40,7 +50,7 @@ class NotificationService: UNNotificationServiceExtension {
       libraryURI: "package:zulip/notifications/ios_service.dart"
     )
     if !started {
-      contentHandler(request.content)  // TODO(log)
+      deliver(request.content, with: contentHandler)
       return
     }
 
@@ -70,12 +80,21 @@ class NotificationService: UNNotificationServiceExtension {
           bestAttemptContent.sound = UNNotificationSound.default
         }
         bestAttemptContent.userInfo = improvedNotificationContent.userInfo as [AnyHashable: Any]
-        contentHandler(bestAttemptContent)
+
+        Task {
+          let content = await self.communicationNotificationContent(
+            from: bestAttemptContent,
+            userInfo: improvedNotificationContent.userInfo
+          )
+          self.deliver(content, with: contentHandler)
+          loopRunning = false
+        }
 
       case .failure(let error):  // TODO(log)
         self.logger.debug(
           "IosNotifFlutterApi.didReceivePushNotification failed: \(error.localizedDescription)")
-        contentHandler(bestAttemptContent)
+        self.deliver(bestAttemptContent, with: contentHandler)
+        loopRunning = false
       }
     }
 
@@ -124,7 +143,85 @@ class NotificationService: UNNotificationServiceExtension {
     if let contentHandler = contentHandler,
       let bestAttemptContent = bestAttemptContent
     {
-      contentHandler(bestAttemptContent)  // TODO(log)
+      deliver(bestAttemptContent, with: contentHandler)
+    }
+  }
+
+  /// Delivers content at most once. The notification service extension can
+  /// race a network completion with serviceExtensionTimeWillExpire().
+  private func deliver(
+    _ content: UNNotificationContent,
+    with handler: @escaping (UNNotificationContent) -> Void
+  ) {
+    guard !hasDeliveredContent else { return }
+    hasDeliveredContent = true
+    handler(content)
+  }
+
+  /// Converts a normal notification into an iOS Communication Notification.
+  /// Any failure returns the already-prepared normal notification.
+  private func communicationNotificationContent(
+    from content: UNMutableNotificationContent,
+    userInfo: [String: Any?]
+  ) async -> UNNotificationContent {
+    guard
+      let avatarUrlString = userInfo[Self.senderAvatarUrlKey] as? String,
+      let avatarUrl = URL(string: avatarUrlString),
+      avatarUrl.scheme == "https",
+      let senderId = userInfo[Self.senderIdKey] as? String,
+      let senderName = userInfo[Self.senderNameKey] as? String
+    else {
+      return content
+    }
+
+    var request = URLRequest(url: avatarUrl)
+    request.timeoutInterval = 5
+
+    guard
+      let (imageData, response) = try? await URLSession.shared.data(for: request),
+      let httpResponse = response as? HTTPURLResponse,
+      (200..<300).contains(httpResponse.statusCode),
+      imageData.count <= 2 * 1024 * 1024,
+      UIImage(data: imageData) != nil
+    else {
+      return content
+    }
+
+    let avatar = INImage(imageData: imageData)
+    let sender = INPerson(
+      personHandle: INPersonHandle(value: senderId, type: .unknown),
+      nameComponents: nil,
+      displayName: senderName,
+      image: avatar,
+      contactIdentifier: nil,
+      customIdentifier: senderId
+    )
+
+    let conversationIdentifier = userInfo[Self.notificationUrlKey] as? String
+    let speakableGroupName =
+      content.title.isEmpty
+      ? nil
+      : INSpeakableString(spokenPhrase: content.title)
+    let intent = INSendMessageIntent(
+      recipients: nil,
+      outgoingMessageType: .outgoingMessageText,
+      content: content.body,
+      speakableGroupName: speakableGroupName,
+      conversationIdentifier: conversationIdentifier,
+      serviceName: "Zulip",
+      sender: sender,
+      attachments: nil
+    )
+
+    let interaction = INInteraction(intent: intent, response: nil)
+    interaction.direction = .incoming
+
+    do {
+      try await interaction.donate()
+      return try content.updating(from: intent)
+    } catch {
+      logger.debug("Unable to create Communication Notification: \(error.localizedDescription)")
+      return content
     }
   }
 }

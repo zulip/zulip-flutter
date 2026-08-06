@@ -84,6 +84,10 @@ void main() {
       ..sound.equals(IosNotificationSound.systemDefault)
       ..userInfo.deepEquals({
         NotificationOpenPayload.kIosNotificationUrlKey: expectedNotificationUrl.toString(),
+        NotificationOpenPayload.kIosNotificationSenderAvatarUrlKey:
+          data.senderAvatarUrl.toString(),
+        NotificationOpenPayload.kIosNotificationSenderIdKey: data.senderId.toString(),
+        NotificationOpenPayload.kIosNotificationSenderNameKey: data.senderFullName,
       });
   }
 

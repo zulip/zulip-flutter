@@ -283,6 +283,12 @@ class NotificationOpenPayload {
   /// [NotificationOpenService] above).
   static const kIosNotificationUrlKey = 'notification_url';
 
+  /// The sender metadata used by the iOS notification service extension to
+  /// create a Communication Notification with the sender's avatar.
+  static const kIosNotificationSenderAvatarUrlKey = 'sender_avatar_url';
+  static const kIosNotificationSenderIdKey = 'sender_id';
+  static const kIosNotificationSenderNameKey = 'sender_name';
+
   /// Parses the iOS APNs payload and retrieves the information
   /// required for navigation.
   factory NotificationOpenPayload.parseIosApnsPayload(Map<Object?, Object?> payload) {
