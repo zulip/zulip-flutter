@@ -834,18 +834,20 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   }
 
   void handleReactionEvent(ReactionEvent event) {
+    if (event.op == .unknown) return;
+
     final message = messages[event.messageId];
     if (message == null) return;
 
     switch (event.op) {
-      case ReactionOp.add:
+      case .add:
         (message.reactions ??= Reactions([])).add(Reaction(
           emojiName: event.emojiName,
           emojiCode: event.emojiCode,
           reactionType: event.reactionType,
           userId: event.userId,
         ));
-      case ReactionOp.remove:
+      case .remove:
         if (message.reactions == null) { // TODO(log)
           return;
         }
@@ -854,6 +856,8 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
           emojiCode: event.emojiCode,
           userId: event.userId,
         );
+      case .unknown:
+        // Shouldn't reach here because of the early return.
     }
     _notifyMessageListViewsForOneMessage(event.messageId);
   }
