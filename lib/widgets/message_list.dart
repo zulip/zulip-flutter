@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
@@ -23,6 +24,7 @@ import 'button.dart';
 import 'color.dart';
 import 'compose_box.dart';
 import 'content.dart';
+import 'double_tap_listener.dart';
 import 'emoji_reaction.dart';
 import 'icons.dart';
 import 'input.dart';
@@ -2358,6 +2360,18 @@ class MessageWithPossibleSender extends StatelessWidget {
           child: content);
       }
     }
+
+    content = DoubleTapListener(
+      onDoubleTap: () {
+        final firstPopularEmoji = store.popularEmojiCandidates().firstOrNull;
+        // Popular emojis are not loaded yet; do nothing.
+        if (firstPopularEmoji == null) return; // TODO(log)
+
+        HapticFeedback.lightImpact();
+        ZulipAction.toggleReaction(context,
+          messageId: message.id, emoji: firstPopularEmoji);
+      },
+      child: content);
 
     final tapOpensConversation = switch (narrow) {
       CombinedFeedNarrow()
