@@ -1176,19 +1176,19 @@ void main() {
         await tester.pump();
         check(finder.evaluate()).isEmpty();
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.start, eg.otherUser.userId),
+          eg.typingEvent(narrow, .start, eg.otherUser.userId),
           expected: 'Other User is typing…');
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.start, eg.selfUser.userId),
+          eg.typingEvent(narrow, .start, eg.selfUser.userId),
           expected: 'Other User is typing…');
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.start, eg.thirdUser.userId),
+          eg.typingEvent(narrow, .start, eg.thirdUser.userId),
           expected: 'Other User and Third User are typing…');
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.start, eg.fourthUser.userId),
+          eg.typingEvent(narrow, .start, eg.fourthUser.userId),
           expected: 'Several people are typing…');
         await checkTyping(tester,
-          eg.typingEvent(narrow, TypingOp.stop, eg.otherUser.userId),
+          eg.typingEvent(narrow, .stop, eg.otherUser.userId),
           expected: 'Third User and Fourth User are typing…');
         // Verify that typing indicators expire after a set duration.
         await tester.pump(const Duration(seconds: 15));
@@ -1202,7 +1202,7 @@ void main() {
       await setupMessageListPage(tester,
         narrow: narrow, users: [], messages: [streamMessage]);
       await checkTyping(tester,
-        eg.typingEvent(narrow, TypingOp.start, 1000),
+        eg.typingEvent(narrow, .start, 1000),
         expected: '(unknown user) is typing…',
       );
       // Wait for the pending timers to end.
@@ -1214,18 +1214,18 @@ void main() {
         narrow: topicNarrow, users: users, messages: [streamMessage]);
 
       await checkTyping(tester,
-        eg.typingEvent(topicNarrow, TypingOp.start, eg.otherUser.userId),
+        eg.typingEvent(topicNarrow, .start, eg.otherUser.userId),
         expected: 'Other User is typing…');
 
       await checkTyping(tester,
-        eg.typingEvent(topicNarrow, TypingOp.start, eg.thirdUser.userId),
+        eg.typingEvent(topicNarrow, .start, eg.thirdUser.userId),
         expected: 'Other User and Third User are typing…');
 
       await store.setMutedUsers([eg.otherUser.userId]);
       await tester.pump();
 
       await checkTyping(tester,
-        eg.typingEvent(topicNarrow, TypingOp.start, eg.thirdUser.userId),
+        eg.typingEvent(topicNarrow, .start, eg.thirdUser.userId),
         expected: 'Third User is typing…', // no "Other User"
       );
 
@@ -2167,12 +2167,12 @@ void main() {
       for (final (timestampStr, expectedTwelveHour, expectedTwentyFourHour) in cases) {
         for (final mode in TwentyFourHourTimeMode.values) {
           final expected = switch (mode) {
-            TwentyFourHourTimeMode.twelveHour => expectedTwelveHour,
-            TwentyFourHourTimeMode.twentyFourHour => expectedTwentyFourHour,
+            .twelveHour => expectedTwelveHour,
+            .twentyFourHour => expectedTwentyFourHour,
             // This expectation will hold as long as we're always using the
             // default locale, en_US, which uses the twelve-hour format.
             // TODO(#1727) test with other locales
-            TwentyFourHourTimeMode.localeDefault => expectedTwelveHour,
+            .localeDefault => expectedTwelveHour,
           };
 
           test('${style.name} in ${mode.name}: $timestampStr returns $expected', () {

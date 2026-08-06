@@ -486,7 +486,7 @@ void main() {
       final composeInputFinder = await setupToComposeInput(tester);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-        property: UserSettingName.emojiset, value: Emojiset.text));
+        property: .emojiset, value: Emojiset.text));
 
       // TODO(#226): Remove this extra edit when this bug is fixed.
       await tester.enterText(composeInputFinder, 'hi :');

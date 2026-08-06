@@ -708,7 +708,7 @@ class PinUnpinButton extends ActionSheetMenuItemButton {
       await updateSubscriptionSettings(
         PerAccountStoreWidget.of(pageContext).connection,
         streamId: channelId,
-        property: SubscriptionProperty.pinToTop,
+        property: .pinToTop,
         value: !isPinned);
     } catch (e) {
       if (!pageContext.mounted) return;

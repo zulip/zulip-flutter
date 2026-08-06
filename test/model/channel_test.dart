@@ -63,12 +63,12 @@ void main() {
       checkUnified(store);
 
       await store.handleEvent(eg.channelUpdateEvent(store.streams[stream1.streamId]!,
-        property: ChannelPropertyName.name, value: 'new stream',
+        property: .name, value: 'new stream',
       ));
       checkUnified(store);
 
       await store.handleEvent(eg.channelUpdateEvent(store.streams[stream1.streamId]!,
-        property: ChannelPropertyName.channelPostPolicy,
+        property: .channelPostPolicy,
         value: ChannelPostPolicy.administrators,
       ));
       checkUnified(store);
@@ -137,7 +137,7 @@ void main() {
 
       await store.handleEvent(SubscriptionUpdateEvent(id: 1,
         channelId: stream.streamId,
-        property: SubscriptionProperty.color,
+        property: .color,
         value: 0xFFFF00FF));
       check(store.subscriptions[stream.streamId]!.color).equals(0xFFFF00FF);
     });
@@ -151,7 +151,7 @@ void main() {
 
       await store.handleEvent(SubscriptionUpdateEvent(id: 1,
         channelId: stream.streamId,
-        property: SubscriptionProperty.isMuted,
+        property: .isMuted,
         value: true));
       check(store.subscriptions[stream.streamId]!.isMuted).isTrue();
     });
@@ -587,33 +587,33 @@ void main() {
   });
 
   group('selfCanSendMessage, legacy', () {
-    final testCases = [
-      (ChannelPostPolicy.unknown,        UserRole.guest,         true),
-      (ChannelPostPolicy.unknown,        UserRole.member,        true),
-      (ChannelPostPolicy.unknown,        UserRole.moderator,     true),
-      (ChannelPostPolicy.unknown,        UserRole.administrator, true),
-      (ChannelPostPolicy.unknown,        UserRole.owner,         true),
-      (ChannelPostPolicy.any,            UserRole.guest,         true),
-      (ChannelPostPolicy.any,            UserRole.member,        true),
-      (ChannelPostPolicy.any,            UserRole.moderator,     true),
-      (ChannelPostPolicy.any,            UserRole.administrator, true),
-      (ChannelPostPolicy.any,            UserRole.owner,         true),
-      (ChannelPostPolicy.fullMembers,    UserRole.guest,         false),
+    final testCases = <(ChannelPostPolicy, UserRole, bool)>[
+      (.unknown,        .guest,         true),
+      (.unknown,        .member,        true),
+      (.unknown,        .moderator,     true),
+      (.unknown,        .administrator, true),
+      (.unknown,        .owner,         true),
+      (.any,            .guest,         true),
+      (.any,            .member,        true),
+      (.any,            .moderator,     true),
+      (.any,            .administrator, true),
+      (.any,            .owner,         true),
+      (.fullMembers,    .guest,         false),
       // The fullMembers/member case gets its own tests further below.
-      // (ChannelPostPolicy.fullMembers,    UserRole.member,        /* complicated */),
-      (ChannelPostPolicy.fullMembers,    UserRole.moderator,     true),
-      (ChannelPostPolicy.fullMembers,    UserRole.administrator, true),
-      (ChannelPostPolicy.fullMembers,    UserRole.owner,         true),
-      (ChannelPostPolicy.moderators,     UserRole.guest,         false),
-      (ChannelPostPolicy.moderators,     UserRole.member,        false),
-      (ChannelPostPolicy.moderators,     UserRole.moderator,     true),
-      (ChannelPostPolicy.moderators,     UserRole.administrator, true),
-      (ChannelPostPolicy.moderators,     UserRole.owner,         true),
-      (ChannelPostPolicy.administrators, UserRole.guest,         false),
-      (ChannelPostPolicy.administrators, UserRole.member,        false),
-      (ChannelPostPolicy.administrators, UserRole.moderator,     false),
-      (ChannelPostPolicy.administrators, UserRole.administrator, true),
-      (ChannelPostPolicy.administrators, UserRole.owner,         true),
+      // (.fullMembers,    .member,        /* complicated */),
+      (.fullMembers,    .moderator,     true),
+      (.fullMembers,    .administrator, true),
+      (.fullMembers,    .owner,         true),
+      (.moderators,     .guest,         false),
+      (.moderators,     .member,        false),
+      (.moderators,     .moderator,     true),
+      (.moderators,     .administrator, true),
+      (.moderators,     .owner,         true),
+      (.administrators, .guest,         false),
+      (.administrators, .member,        false),
+      (.administrators, .moderator,     false),
+      (.administrators, .administrator, true),
+      (.administrators, .owner,         true),
     ];
 
     for (final (ChannelPostPolicy policy, UserRole role, bool canPost) in testCases) {
@@ -643,14 +643,14 @@ void main() {
           realmUsers: [selfUser]));
 
       User memberUser({required String dateJoined}) => eg.user(
-        role: UserRole.member, dateJoined: dateJoined);
+        role: .member, dateJoined: dateJoined);
 
       test('a "full" member -> can post in the channel', () {
         final store = localStore(
           selfUser: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
           realmWaitingPeriodThreshold: 3);
         final hasPermission = store.selfCanSendMessage(
-          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+          inChannel: eg.stream(channelPostPolicy: .fullMembers),
           byDate: DateTime.utc(2024, 11, 28, 10, 00));
         check(hasPermission).isTrue();
       });
@@ -660,7 +660,7 @@ void main() {
           selfUser: memberUser(dateJoined: '2024-11-25T10:00+00:00'),
           realmWaitingPeriodThreshold: 3);
         final actual = store.selfCanSendMessage(
-          inChannel: eg.stream(channelPostPolicy: ChannelPostPolicy.fullMembers),
+          inChannel: eg.stream(channelPostPolicy: .fullMembers),
           byDate: DateTime.utc(2024, 11, 28, 09, 59));
         check(actual).isFalse();
       });
