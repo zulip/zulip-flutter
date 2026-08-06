@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
+      with:
+        # Full history, so the authorship suite can see the
+        # branch's commits; it reads only commit metadata, hence
+        # the blob filter.
+        fetch-depth: 0
+        filter: blob:none
 
     - name: Clone Flutter SDK
       run: tools/ci/clone-flutter-sdk
