@@ -114,7 +114,7 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
       // > Guests can never subscribe themselves to a channel.
       // (Web also hides the corresponding link for guests;
       // see web/templates/left_sidebar.hbs.)
-      && store.selfUser.role.isAtLeast(UserRole.member);
+      && store.selfUser.role.isAtLeast(.member);
 
     final List<Subscription> pinned = [];
     final List<Subscription> unpinned = [];

@@ -50,11 +50,11 @@ class _PollWidgetState extends State<PollWidget> {
 
   void _toggleVote(PollOption option) async {
     final store = PerAccountStoreWidget.of(context);
-    final op = option.voters.contains(store.selfUserId)
-      ? PollVoteOp.remove
-      : PollVoteOp.add;
+    final PollVoteOp op = option.voters.contains(store.selfUserId)
+      ? .remove
+      : .add;
     unawaited(sendSubmessage(store.connection, messageId: widget.messageId,
-      submessageType: SubmessageType.widget,
+      submessageType: .widget,
       content: PollVoteEventSubmessage(key: option.key, op: op)));
   }
 

@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/initial_snapshot.dart';
-import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/model/binding.dart';
@@ -74,7 +73,7 @@ void main() {
         final future = ZulipAction.markNarrowAsRead(context, narrow);
         await tester.pump(Duration.zero);
         await future;
-        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+        final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(.unread));
         check(connection.lastRequest).isA<http.Request>()
           ..method.equals('POST')
           ..url.path.equals('/api/v1/messages/flags/narrow')
@@ -142,14 +141,14 @@ void main() {
       const progressMessage = 'progressMessage';
       const onFailedTitle = 'onFailedTitle';
       final narrow = TopicNarrow.ofMessage(eg.streamMessage());
-      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread));
+      final apiNarrow = narrow.apiEncode()..add(ApiNarrowIs(.unread));
 
       Future<bool> invokeUpdateMessageFlagsStartingFromAnchor() =>
         ZulipAction.updateMessageFlagsStartingFromAnchor(
           context: context,
           apiNarrow: apiNarrow,
-          op: UpdateMessageFlagsOp.add,
-          flag: MessageFlag.read,
+          op: .add,
+          flag: .read,
           includeAnchor: false,
           anchor: AnchorCode.oldest,
           onCompletedMessage: onCompletedMessage,

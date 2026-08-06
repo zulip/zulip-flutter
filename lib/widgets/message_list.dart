@@ -2257,15 +2257,15 @@ enum MessageTimestampStyle {
   static final _timeFormatLocaleDefaultWithSeconds = DateFormat('jms');
 
   static DateFormat _resolveTimeFormat(TwentyFourHourTimeMode mode) => switch (mode) {
-    TwentyFourHourTimeMode.twelveHour => _timeFormat12,
-    TwentyFourHourTimeMode.twentyFourHour => _timeFormat24,
-    TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefault,
+    .twelveHour => _timeFormat12,
+    .twentyFourHour => _timeFormat24,
+    .localeDefault => _timeFormatLocaleDefault,
   };
 
   static DateFormat _resolveTimeFormatWithSeconds(TwentyFourHourTimeMode mode) => switch (mode) {
-    TwentyFourHourTimeMode.twelveHour => _timeFormat12WithSeconds,
-    TwentyFourHourTimeMode.twentyFourHour => _timeFormat24WithSeconds,
-    TwentyFourHourTimeMode.localeDefault => _timeFormatLocaleDefaultWithSeconds,
+    .twelveHour => _timeFormat12WithSeconds,
+    .twentyFourHour => _timeFormat24WithSeconds,
+    .localeDefault => _timeFormatLocaleDefaultWithSeconds,
   };
 
   /// Format a [Message.timestamp] for this mode.
@@ -2322,11 +2322,11 @@ class MessageWithPossibleSender extends StatelessWidget {
     final zulipLocalizations = ZulipLocalizations.of(context);
     String? editStateText;
     switch (message.editState) {
-      case MessageEditState.edited:
+      case .edited:
         editStateText = zulipLocalizations.messageIsEditedLabel;
-      case MessageEditState.moved:
+      case .moved:
         editStateText = zulipLocalizations.messageIsMovedLabel;
-      case MessageEditState.none:
+      case .none:
     }
 
     Widget? star;

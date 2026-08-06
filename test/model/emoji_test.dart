@@ -33,7 +33,7 @@ void main() {
 
   group('emojiDisplayFor', () {
     test('Unicode emoji', () {
-      check(eg.store().emojiDisplayFor(emojiType: ReactionType.unicodeEmoji,
+      check(eg.store().emojiDisplayFor(emojiType: .unicodeEmoji,
         emojiCode: '1f642', emojiName: 'slight_smile')
       ).isA<UnicodeEmojiDisplay>()
         ..emojiName.equals('slight_smile')
@@ -41,7 +41,7 @@ void main() {
     });
 
     test('invalid Unicode emoji -> no crash', () {
-      check(eg.store().emojiDisplayFor(emojiType: ReactionType.unicodeEmoji,
+      check(eg.store().emojiDisplayFor(emojiType: .unicodeEmoji,
         emojiCode: 'asdf', emojiName: 'invalid')
       ).isA<TextEmojiDisplay>()
         .emojiName.equals('invalid');
@@ -59,7 +59,7 @@ void main() {
 
       Subject<EmojiDisplay> checkDisplay({
           required String emojiCode, required String emojiName}) {
-        return check(store.emojiDisplayFor(emojiType: ReactionType.realmEmoji,
+        return check(store.emojiDisplayFor(emojiType: .realmEmoji,
           emojiCode: emojiCode, emojiName: emojiName)
         )..emojiName.equals(emojiName);
       }
@@ -90,12 +90,18 @@ void main() {
     });
 
     test(':zulip:', () {
-      check(eg.store().emojiDisplayFor(emojiType: ReactionType.zulipExtraEmoji,
+      check(eg.store().emojiDisplayFor(emojiType: .zulipExtraEmoji,
         emojiCode: 'zulip', emojiName: 'zulip')
       ).isA<ImageEmojiDisplay>()
         ..emojiName.equals('zulip')
         ..resolvedUrl.equals(eg.realmUrl.resolve(EmojiStoreImpl.kZulipEmojiUrl))
         ..resolvedStillUrl.isNull();
+    });
+
+    test('unknown emoji', () {
+      check(eg.store().emojiDisplayFor(emojiType: .unknown,
+        emojiCode: 'asdf', emojiName: 'unknown')
+      ).isA<TextEmojiDisplay>().emojiName.equals('unknown');
     });
   });
 
@@ -107,7 +113,7 @@ void main() {
   Condition<Object?> isUnicodeCandidate(String? emojiCode, List<String>? names) {
     return (it_) {
       final it = it_.isA<EmojiCandidate>();
-      it.emojiType.equals(ReactionType.unicodeEmoji);
+      it.emojiType.equals(.unicodeEmoji);
       if (emojiCode != null) it.emojiCode.equals(emojiCode);
       if (names != null) {
         it.emojiName.equals(names.first);
@@ -119,7 +125,7 @@ void main() {
   Condition<Object?> isRealmCandidate({String? emojiCode, String? emojiName}) {
     return (it_) {
       final it = it_.isA<EmojiCandidate>();
-      it.emojiType.equals(ReactionType.realmEmoji);
+      it.emojiType.equals(.realmEmoji);
       if (emojiCode != null) it.emojiCode.equals(emojiCode);
       if (emojiName != null) it.emojiName.equals(emojiName);
       it.aliases.isEmpty();
@@ -128,7 +134,7 @@ void main() {
 
   Condition<Object?> isZulipCandidate() {
     return (it) => it.isA<EmojiCandidate>()
-      ..emojiType.equals(ReactionType.zulipExtraEmoji)
+      ..emojiType.equals(.zulipExtraEmoji)
       ..emojiCode.equals('zulip')
       ..emojiName.equals('zulip')
       ..aliases.isEmpty();
@@ -543,7 +549,7 @@ void main() {
   group('EmojiAutocompleteQuery', () {
     EmojiCandidate unicode(List<String> names, {String? emojiCode}) {
       emojiCode ??= '10ffff';
-      return EmojiCandidate(emojiType: ReactionType.unicodeEmoji,
+      return EmojiCandidate(emojiType: .unicodeEmoji,
         emojiCode: emojiCode,
         emojiName: names.first, aliases: names.sublist(1),
         emojiDisplay: UnicodeEmojiDisplay(
@@ -683,7 +689,7 @@ void main() {
 
     EmojiCandidate realmCandidate(String emojiName) {
       return EmojiCandidate(
-        emojiType: ReactionType.realmEmoji,
+        emojiType: .realmEmoji,
         emojiCode: '1', emojiName: emojiName, aliases: null,
         emojiDisplay: ImageEmojiDisplay(
           emojiName: emojiName,
@@ -702,10 +708,10 @@ void main() {
     EmojiCandidate zulipCandidate() {
       final store = eg.store();
       return EmojiCandidate(
-        emojiType: ReactionType.zulipExtraEmoji,
+        emojiType: .zulipExtraEmoji,
         emojiCode: 'zulip', emojiName: 'zulip', aliases: null,
         emojiDisplay: store.emojiDisplayFor(
-          emojiType: ReactionType.zulipExtraEmoji,
+          emojiType: .zulipExtraEmoji,
           emojiCode: 'zulip', emojiName: 'zulip'));
     }
 

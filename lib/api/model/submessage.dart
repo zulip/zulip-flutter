@@ -118,8 +118,8 @@ sealed class WidgetData extends SubmessageData {
     final map = json as Map<String, Object?>;
     final rawWidgetType = map['widget_type'] as String;
     return switch (WidgetType.fromRawString(rawWidgetType)) {
-      WidgetType.poll => PollWidgetData.fromJson(map),
-      WidgetType.unknown => UnsupportedWidgetData.fromJson(map),
+      .poll => PollWidgetData.fromJson(map),
+      .unknown => UnsupportedWidgetData.fromJson(map),
     };
   }
 
@@ -148,7 +148,7 @@ enum WidgetType {
 class PollWidgetData extends WidgetData {
   @override
   @JsonKey(includeToJson: true)
-  WidgetType get widgetType => WidgetType.poll;
+  WidgetType get widgetType => .poll;
 
   /// The initial question and options on the poll.
   final PollWidgetExtraData extraData;
@@ -187,7 +187,7 @@ class PollWidgetExtraData {
 class UnsupportedWidgetData extends WidgetData {
   @override
   @JsonKey(includeToJson: true)
-  WidgetType get widgetType => WidgetType.unknown;
+  WidgetType get widgetType => .unknown;
 
   final Object? json;
 
@@ -218,10 +218,10 @@ sealed class PollEventSubmessage extends SubmessageData {
   factory PollEventSubmessage.fromJson(Map<String, Object?> json) {
     final rawPollEventType = json['type'] as String;
     switch (PollEventSubmessageType.fromRawString(rawPollEventType)) {
-      case PollEventSubmessageType.newOption: return PollNewOptionEventSubmessage.fromJson(json);
-      case PollEventSubmessageType.question: return PollQuestionEventSubmessage.fromJson(json);
-      case PollEventSubmessageType.vote: return PollVoteEventSubmessage.fromJson(json);
-      case PollEventSubmessageType.unknown: return UnknownPollEventSubmessage.fromJson(json);
+      case .newOption: return PollNewOptionEventSubmessage.fromJson(json);
+      case .question: return PollQuestionEventSubmessage.fromJson(json);
+      case .vote: return PollVoteEventSubmessage.fromJson(json);
+      case .unknown: return UnknownPollEventSubmessage.fromJson(json);
     }
   }
 
@@ -237,7 +237,7 @@ enum PollEventSubmessageType {
   vote,
   unknown;
 
-  static PollEventSubmessageType fromRawString(String raw) => _byRawString[raw]!;
+  static PollEventSubmessageType fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   static final _byRawString = _$PollEventSubmessageTypeEnumMap
     .map((key, value) => MapEntry(value, key));
@@ -252,7 +252,7 @@ typedef PollOptionKey = String;
 class PollNewOptionEventSubmessage extends PollEventSubmessage {
   @override
   @JsonKey(includeToJson: true)
-  PollEventSubmessageType get type => PollEventSubmessageType.newOption;
+  PollEventSubmessageType get type => .newOption;
 
   final String option;
   /// A sequence number for this option, among options added to this poll
@@ -277,7 +277,7 @@ class PollNewOptionEventSubmessage extends PollEventSubmessage {
 class PollQuestionEventSubmessage extends PollEventSubmessage {
   @override
   @JsonKey(includeToJson: true)
-  PollEventSubmessageType get type => PollEventSubmessageType.question;
+  PollEventSubmessageType get type => .question;
 
   final String question;
 
@@ -297,7 +297,7 @@ class PollQuestionEventSubmessage extends PollEventSubmessage {
 class PollVoteEventSubmessage extends PollEventSubmessage {
   @override
   @JsonKey(includeToJson: true)
-  PollEventSubmessageType get type => PollEventSubmessageType.vote;
+  PollEventSubmessageType get type => .vote;
 
   /// The key of the affected option.
   ///
@@ -341,7 +341,7 @@ enum PollVoteOp {
 class UnknownPollEventSubmessage extends PollEventSubmessage {
   @override
   @JsonKey(includeToJson: true)
-  PollEventSubmessageType get type => PollEventSubmessageType.unknown;
+  PollEventSubmessageType get type => .unknown;
 
   final Map<String, Object?> json;
 
@@ -455,11 +455,11 @@ class Poll extends ChangeNotifier {
         }
 
         switch (event.op) {
-          case PollVoteOp.add:
+          case .add:
             option.voters.add(senderId);
-          case PollVoteOp.remove:
+          case .remove:
             option.voters.remove(senderId);
-          case PollVoteOp.unknown:
+          case .unknown:
             assert(debugLog('unknown vote op ${event.op}')); // TODO(log)
         }
 

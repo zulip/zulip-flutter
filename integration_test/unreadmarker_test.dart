@@ -26,7 +26,7 @@ void main() {
 
     // prepare message list data
     final messages = List.generate(messageCount,
-      (i) => eg.streamMessage(flags: [MessageFlag.read]));
+      (i) => eg.streamMessage(flags: [.read]));
     connection.prepare(json:
       eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
 
@@ -43,12 +43,12 @@ void main() {
     final messages = await setupMessageListPage(tester, 500);
     await binding.traceAction(() async {
       await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
-        MessageFlag.read,
+        .read,
         messages));
       await tester.pumpAndSettle();
       await store.handleEvent(UpdateMessageFlagsAddEvent(
         id: 1,
-        flag: MessageFlag.read,
+        flag: .read,
         messages: messages.map((e) => e.id).toList(),
         all: false));
       await tester.pumpAndSettle();

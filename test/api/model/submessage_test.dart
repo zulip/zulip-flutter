@@ -19,12 +19,12 @@ void main() {
       check(Submessage.fromJson({
         ...baseJson,
         'msg_type': 'widget',
-      })).msgType.equals(SubmessageType.widget);
+      })).msgType.equals(.widget);
 
       check(Submessage.fromJson({
         ...baseJson,
         'msg_type': 'unknown_widget',
-      })).msgType.equals(SubmessageType.unknown);
+      })).msgType.equals(.unknown);
     });
   });
 
@@ -35,7 +35,7 @@ void main() {
     )) as Map<String, Object?>;
 
     check(WidgetData.fromJson(pollWidgetData)).isA<PollWidgetData>()
-      ..widgetType.equals(WidgetType.poll)
+      ..widgetType.equals(.poll)
       ..extraData.which((x) => x
           ..question.equals('example question')
           ..options.deepEquals(['A', 'B', 'C'])
@@ -57,14 +57,14 @@ void main() {
       'option': 'new option',
       'idx': 0,
     })).isA<PollNewOptionEventSubmessage>()
-      ..type.equals(PollEventSubmessageType.newOption)
+      ..type.equals(.newOption)
       ..option.equals('new option');
 
     check(PollEventSubmessage.fromJson({
       'type': 'question',
       'question': 'new question',
     })).isA<PollQuestionEventSubmessage>()
-      ..type.equals(PollEventSubmessageType.question)
+      ..type.equals(.question)
       ..question.equals('new question');
 
     check(PollEventSubmessage.fromJson({
@@ -72,15 +72,15 @@ void main() {
       'vote': 1,
       'key': PollEventSubmessage.optionKey(senderId: null, idx: 0),
     })).isA<PollVoteEventSubmessage>()
-      ..type.equals(PollEventSubmessageType.vote)
-      ..op.equals(PollVoteOp.add)
+      ..type.equals(.vote)
+      ..op.equals(.add)
       ..key.equals('canned,0');
   });
 
   test('handle unknown poll event', () {
-    check(() => PollEventSubmessage.fromJson({
+    check(PollEventSubmessage.fromJson({
       'type': 'foo',
-    })).throws<TypeError>();
+    })).isA<UnknownPollEventSubmessage>();
   });
 
   test('crash on poll vote key', () {
@@ -107,12 +107,20 @@ void main() {
     })).throws<FormatException>();
   });
 
+  test('PollEventSubmessageType.fromRawString handles unknown values', () {
+    check(PollEventSubmessageType.fromRawString('new_option')).equals(.newOption);
+
+    for (final unknown in ['unknown_poll_option', '']) {
+      check(PollEventSubmessageType.fromRawString(unknown)).equals(.unknown);
+    }
+  });
+
   test('handle unknown poll vote op', () {
     check(PollEventSubmessage.fromJson({
       'type': 'vote',
       'vote': 'invalid',
       'key': PollEventSubmessage.optionKey(senderId: null, idx: 0)
-    })).isA<PollVoteEventSubmessage>().op.equals(PollVoteOp.unknown);
+    })).isA<PollVoteEventSubmessage>().op.equals(.unknown);
   });
 
   // Parsing polls with PollEventSubmessages are tested in
