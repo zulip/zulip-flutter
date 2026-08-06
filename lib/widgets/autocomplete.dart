@@ -236,7 +236,25 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
           // and losing data for the channel.
           return;
         }
+        // TODO(#2154): use complete channel link on "only general chat" channel
+        replacementString = channelLink(channel, pendingTopicAutocomplete: true, store: store);
+      case TopicLinkAutocompleteChannelResult(:final channelId):
+        final channel = store.streams[channelId];
+        if (channel == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the channel.
+          return;
+        }
         replacementString = '${channelLink(channel, store: store)} ';
+      case TopicLinkAutocompleteNewTopicResult(:final channelId, :final topic):
+      case TopicLinkAutocompleteTopicResult(:final channelId, :final topic):
+        final channel = store.streams[channelId];
+        if (channel == null) {
+          // Don't crash on theoretical race between async results-filtering
+          // and losing data for the channel.
+          return;
+        }
+        replacementString = '${topicLink(channel, topic, store: store)} ';
     }
 
     controller.value = intent.textEditingValue.replaced(
@@ -255,6 +273,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
       MentionAutocompleteResult() => MentionAutocompleteItem(
         option: option, narrow: narrow),
       ChannelLinkAutocompleteResult() => _ChannelLinkAutocompleteItem(option: option),
+      TopicLinkAutocompleteResult() => _TopicLinkAutocompleteItem(option: option),
       EmojiAutocompleteResult() => EmojiAutocompleteItem(option: option),
     };
     return InkWell(
@@ -405,7 +424,74 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
   }
 }
 
-@visibleForTesting
+class _TopicLinkAutocompleteItem extends StatelessWidget {
+  const _TopicLinkAutocompleteItem({required this.option});
+
+  final TopicLinkAutocompleteResult option;
+
+  static const _iconSize = 17.0;
+  static const _iconBoxSize = 24.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    final channel = store.streams[option.channelId];
+
+    if (channel == null) return SizedBox.shrink();
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final designVariables = DesignVariables.of(context);
+
+    var labelStyle = TextStyle(
+      fontSize: 17, height: 20 / 17,
+      color: designVariables.contextMenuItemLabel,
+    ).merge(weightVariableTextStyle(context, wght: 500));
+
+    Icon icon;
+    String label;
+    String? trailingLabel;
+    switch (option) {
+      case TopicLinkAutocompleteChannelResult():
+        icon = Icon(iconDataForStream(channel), size: _iconSize,
+          color: colorSwatchFor(context, store.subscriptions[channel.streamId]));
+        label = channel.name;
+        trailingLabel = zulipLocalizations.topicAutocompleteChannelOptionLabel;
+      case TopicLinkAutocompleteNewTopicResult(:var topic):
+        icon = Icon(ZulipIcons.corner_down_right, size: _iconSize,
+          color: designVariables.topicAutocompleteTopicOptionIcon);
+        label = topic.displayName!; // query topic is non-empty
+        trailingLabel = zulipLocalizations.topicAutocompleteNewOptionLabel;
+      case TopicLinkAutocompleteTopicResult(:var topic):
+        icon = Icon(ZulipIcons.corner_down_right, size: _iconSize,
+          color: designVariables.topicAutocompleteTopicOptionIcon);
+        if (topic.displayName != null) {
+          label = topic.displayName!;
+        } else {
+          label = store.realmEmptyTopicDisplayName;
+          labelStyle = labelStyle.copyWith(fontStyle: FontStyle.italic);
+        }
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: 44),
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(12, 2, 10, 2),
+        child: Padding(
+          padding: option is TopicLinkAutocompleteChannelResult
+            ? EdgeInsets.zero
+            // Align the topic option icon to the center of the channel option icon.
+            : const EdgeInsetsDirectional.only(start: _iconSize / 2),
+          child: Row(spacing: 10, children: [
+            SizedBox.square(dimension: _iconBoxSize, child: icon),
+            Expanded(child: Text(label, overflow: .ellipsis, style: labelStyle)),
+            if (trailingLabel != null)
+              Text(trailingLabel,
+                style: TextStyle(fontSize: 14, height: 16 / 14, fontStyle: .italic,
+                  color: designVariables.contextMenuItemMeta)),
+          ]))));
+  }
+}
+
 class EmojiAutocompleteItem extends StatelessWidget {
   const EmojiAutocompleteItem({super.key, required this.option});
 
