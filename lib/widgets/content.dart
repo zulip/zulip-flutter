@@ -631,6 +631,8 @@ class MessageImagePreviewList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
+      spacing: 5,
+      runSpacing: 5,
       children: node.imagePreviews.map((node) => MessageImagePreview(node: node)).toList());
   }
 }
@@ -642,10 +644,14 @@ class MessageImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Image(node: node, size: MessageMediaContainer.size,
-      buildContainer: (onTap, child) {
-        return MessageMediaContainer(onTap: onTap, child: child);
-      });
+    // The gray background and border are present only for gallery items on web, not
+    // for standalone inline images; see web/styles/rendered_markdown.css.
+    return ColoredBox(
+      color: ContentTheme.of(context).colorMessageMediaContainerBackground,
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: _Image(node: node,
+          ambientTextStyle: DefaultTextStyle.of(context).style)));
   }
 }
 
@@ -1366,46 +1372,16 @@ class InlineImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-
-    // Follow web's max-height behavior (10em);
-    // see image_box_em in web/src/postprocess_content.ts.
-    final maxHeight = ambientTextStyle.fontSize! * 10;
-
-    final imageSize = (node.originalWidth != null && node.originalHeight != null)
-      ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio
-      // Layout plan when original dimensions are unknown:
-      // a [MessageMediaContainer]-sized and -colored rectangle.
-      : MessageMediaContainer.size;
-
-    // (a) Don't let tall, thin images take up too much vertical space,
-    //     which could be annoying to scroll through. And:
-    // (b) Don't let small images grow to occupy more physical pixels
-    //     than they have data for.
-    //     It looks like web has code for this in web/src/postprocess_content.ts
-    //     but it doesn't account for the device pixel ratio, in 2026-01.
-    //     So in web, small images do get blown up and blurry on modern devices:
-    //       https://chat.zulip.org/#narrow/channel/101-design/topic/Inline.20images.20blown.20up.20and.20blurry/near/2346831
-    final size = BoxConstraints(maxHeight: maxHeight)
-      .constrainSizeAndAttemptToPreserveAspectRatio(imageSize);
-
-    Widget child = _Image(node: node, size: size,
-      buildContainer: (onTap, child) {
-        if (onTap == null) return child;
-        return GestureDetector(onTap: onTap, child: child);
-      });
-
     return Padding(
-      // Separate images vertically when they flow onto separate lines.
-      // (3px follows web; see web/styles/rendered_markdown.css.)
-      padding: const EdgeInsets.only(top: 3),
-      child: ConstrainedBox(
-        constraints: BoxConstraints.loose(size),
-        child: AspectRatio(
-          aspectRatio: size.aspectRatio,
-          child: ColoredBox(
-            color: ContentTheme.of(context).colorMessageMediaContainerBackground,
-            child: child))));
+      // Separate images vertically when they flow onto separate lines and
+      // horizontally from adjacent elements. Padding values follow web.
+      // The conditional removal of margin when an image opens a paragraph in web is
+      // omitted as the difference is barely noticeable on mobile.
+      // See web/styles/rendered_markdown.css.
+      padding: EdgeInsets.symmetric(
+        vertical: 3,
+        horizontal: ambientTextStyle.fontSize! * 0.125),
+      child: _Image(node: node, ambientTextStyle: ambientTextStyle));
   }
 }
 
@@ -1540,23 +1516,39 @@ class MessageTableCell extends StatelessWidget {
   }
 }
 
-typedef _ImageContainerBuilder = Widget Function(VoidCallback? onTap, Widget child);
-
 /// A helper widget to deduplicate much of the logic in common
 /// between image previews and inline images.
 class _Image extends StatelessWidget {
-  const _Image({
-    required this.node,
-    required this.size,
-    required this.buildContainer,
-  });
+  const _Image({required this.node, required this.ambientTextStyle});
 
   final ImageNode node;
-  final Size size;
-  final _ImageContainerBuilder buildContainer;
+  final TextStyle ambientTextStyle;
 
   @override
   Widget build(BuildContext context) {
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+
+    // Follow web's max-height behavior (10em);
+    // see image_box_em in web/src/postprocess_content.ts.
+    final maxHeight = ambientTextStyle.fontSize! * 10;
+
+    final imageSize = (node.originalWidth != null && node.originalHeight != null)
+      ? Size(node.originalWidth!, node.originalHeight!) / devicePixelRatio
+      // Layout plan when original dimensions are unknown:
+      // a [MessageMediaContainer]-sized and -colored rectangle.
+      : MessageMediaContainer.size;
+
+    // (a) Don't let tall, thin images take up too much vertical space,
+    //     which could be annoying to scroll through. And:
+    // (b) Don't let small images grow to occupy more physical pixels
+    //     than they have data for.
+    //     It looks like web has code for this in web/src/postprocess_content.ts
+    //     but it doesn't account for the device pixel ratio, in 2026-01.
+    //     So in web, small images do get blown up and blurry on modern devices:
+    //       https://chat.zulip.org/#narrow/channel/101-design/topic/Inline.20images.20blown.20up.20and.20blurry/near/2346831
+    final size = BoxConstraints(maxHeight: maxHeight)
+      .constrainSizeAndAttemptToPreserveAspectRatio(imageSize);
+
     final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
 
@@ -1598,31 +1590,34 @@ class _Image extends StatelessWidget {
     final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
       ? resolvedOriginalSrc
       : resolvedSrc;
-    if (lightboxDisplayUrl == null) {
-      // TODO(log)
-      return buildContainer(null, child);
-    }
-
-    return buildContainer(
-      () {
-        Navigator.of(context).push(getImageLightboxRoute(
-          context: context,
-          message: message,
+    if (lightboxDisplayUrl != null) { // TODO(log) if null
+      child = GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(getImageLightboxRoute(
+            context: context,
+            message: message,
+            messageImageContext: context,
+            src: lightboxDisplayUrl,
+            thumbnailUrl: node.src is ImageNodeSrcThumbnail
+              ? node.loading
+                // (Image thumbnail is loading; don't show hard-coded spinner image
+                // even if that happens to be a thumbnail URL.)
+                ? null
+                : resolvedSrc
+              : null,
+            originalWidth: node.originalWidth,
+            originalHeight: node.originalHeight));
+        },
+        child: LightboxHero(
           messageImageContext: context,
           src: lightboxDisplayUrl,
-          thumbnailUrl: node.src is ImageNodeSrcThumbnail
-            ? node.loading
-              // (Image thumbnail is loading; don't show hard-coded spinner image
-              // even if that happens to be a thumbnail URL.)
-              ? null
-              : resolvedSrc
-            : null,
-          originalWidth: node.originalWidth,
-          originalHeight: node.originalHeight));
-      },
-      LightboxHero(
-        messageImageContext: context,
-        src: lightboxDisplayUrl,
+          child: child));
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints.loose(size),
+      child: AspectRatio(
+        aspectRatio: size.aspectRatio,
         child: child));
   }
 }
