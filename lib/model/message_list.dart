@@ -686,7 +686,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       || DmNarrow() => false,
     MentionsNarrow()
       || StarredMessagesNarrow()
-      || KeywordSearchNarrow() => true,
+      || SearchNarrow() => true,
   };
 
   /// Whether [message] should actually appear in this message list,
@@ -754,7 +754,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // ([MessageStore.starredMessages] is just a list of message IDs.)
         return true;
 
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         if (message.conversation case DmConversation(:final allRecipientIds)) {
           return !store.shouldMuteDmConversation(DmNarrow(
             allRecipientIds: allRecipientIds, selfUserId: store.selfUserId));
@@ -782,7 +782,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case StarredMessagesNarrow():
         return true;
 
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return false;
     }
   }
@@ -802,7 +802,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case DmNarrow():
       case MentionsNarrow():
       case StarredMessagesNarrow():
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return UserTopicVisibilityEffect.none;
     }
   }
@@ -825,7 +825,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case StarredMessagesNarrow():
         return MutedUsersVisibilityEffect.none;
 
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         return store.mightChangeShouldMuteDmConversation(event);
     }
   }
@@ -842,8 +842,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
 
-    if (narrow case KeywordSearchNarrow(keyword: '')) {
-      // The server would reject an empty keyword search; skip the request.
+    if (narrow case SearchNarrow(filters: [])) {
+      // The server would interpret this as the CombinedFeedNarrow request; skip.
       // TODO this seems like an awkward layer to handle this at --
       //   probably better if the UI code doesn't take it to this point.
       _haveOldest = true;
@@ -1304,7 +1304,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // Recipient headers, and downstream of those, may change, though.
         _messagesMovedInternally(messageIds);
 
-      case KeywordSearchNarrow():
+      case SearchNarrow():
         // This might not be quite true, since matches can be determined by
         // the topic alone, and topics change. Punt on trying to add/remove
         // messages, though, because we aren't equipped to evaluate the match

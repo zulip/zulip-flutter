@@ -213,17 +213,31 @@ class ApiNarrowPmWith extends ApiNarrowDm {
 }
 
 /// An [ApiNarrowElement] with the 'search' operator.
+///
+/// The search string, i.e. [operand], must have been trimmed with [String.trim]
+/// and must not be empty.
 class ApiNarrowSearch extends ApiNarrowElement {
   @override String get operator => 'search';
 
   @override final String operand;
 
-  ApiNarrowSearch(this.operand, {super.negated});
+  ApiNarrowSearch(this.operand, {super.negated})
+    : assert(operand.trim() == operand),
+      assert(operand.isNotEmpty);
 
   factory ApiNarrowSearch.fromJson(Map<String, dynamic> json) => ApiNarrowSearch(
     json['operand'] as String,
     negated: json['negated'] as bool? ?? false,
   );
+}
+
+/// An [ApiNarrowElement] with the 'sender' operator.
+class ApiNarrowSender extends ApiNarrowElement {
+  @override String get operator => 'sender';
+
+  @override final int operand;
+
+  ApiNarrowSender(this.operand, {super.negated});
 }
 
 class ApiNarrowIs extends ApiNarrowElement {

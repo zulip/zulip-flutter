@@ -944,11 +944,11 @@ void main() {
       }));
 
       test('adopt even when narrow.containsMessage is null (e.g. search)', () async {
-        // A narrow like [KeywordSearchNarrow] can't say whether a message
+        // A narrow like [SearchNarrow] can't say whether a message
         // belongs (containsMessage returns null), but a message the view
         // already has must still adopt the event's copy.
         final stream = eg.stream();
-        await prepare(narrow: KeywordSearchNarrow('hello'), stream: stream);
+        await prepare(narrow: SearchNarrow(filters: [ApiNarrowSearch('hello')]), stream: stream);
         final messages = List.generate(30, (i) => eg.streamMessage(stream: stream));
         final message = eg.streamMessage(stream: stream, content: '<p>edited</p>');
         await prepareMessages(foundOldest: true,
@@ -3138,6 +3138,8 @@ void main() {
     doTest(narrow: TopicNarrow(channelId, eg.t(topic)), expected: false);
     doTest(narrow: StarredMessagesNarrow(),             expected: true);
     doTest(narrow: MentionsNarrow(),                    expected: true);
+    doTest(narrow: SearchNarrow(filters: [ApiNarrowSearch('keyword')]),
+                                                        expected: true);
   });
 
   test('showSender is maintained correctly', () => awaitFakeAsync((async) async {
@@ -3422,14 +3424,14 @@ void checkInvariants(MessageListView model) {
         case DmNarrow():
         case MentionsNarrow():
         case StarredMessagesNarrow():
-        case KeywordSearchNarrow():
+        case SearchNarrow():
       }
     } else if (message is DmMessage) {
       final narrow = DmNarrow.ofMessage(message, selfUserId: model.store.selfUserId);
       switch (model.narrow) {
         case CombinedFeedNarrow():
         case MentionsNarrow():
-        case KeywordSearchNarrow():
+        case SearchNarrow():
           check(model.store.shouldMuteDmConversation(narrow)).isFalse();
         case ChannelNarrow():
         case TopicNarrow():
