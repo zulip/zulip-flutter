@@ -149,7 +149,7 @@ void main() {
         await setupPage(tester, change: UserStatusChange(
           text: OptionSome('Happy'),
           emoji: OptionSome(StatusEmoji(emojiName: 'slight_smile',
-            emojiCode: '1f642', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f642', reactionType: .unicodeEmoji))));
         checkButtonsEnabled(tester, expectClear: true, expectSave: false);
       });
 
@@ -163,7 +163,7 @@ void main() {
         await setupPage(tester, change: UserStatusChange(
           text: OptionNone(),
           emoji: OptionSome(StatusEmoji(emojiName: 'slight_smile',
-            emojiCode: '1f642', reactionType: ReactionType.unicodeEmoji))));
+            emojiCode: '1f642', reactionType: .unicodeEmoji))));
         checkButtonsEnabled(tester, expectClear: true, expectSave: false);
       });
     });
@@ -268,7 +268,7 @@ void main() {
             change: UserStatusChange(
               text: OptionSome('Happy'),
               emoji: OptionSome(StatusEmoji(emojiName: 'slight_smile',
-                emojiCode: '1f642', reactionType: ReactionType.unicodeEmoji))));
+                emojiCode: '1f642', reactionType: .unicodeEmoji))));
           checkButtonsEnabled(tester, expectClear: true, expectSave: false);
 
           // Choose 'calender' included in suggested emojis.
@@ -284,7 +284,7 @@ void main() {
           await setupPage(tester, change: UserStatusChange(
             text: OptionSome('Happy'),
             emoji: OptionSome(StatusEmoji(emojiName: 'slight_smile',
-              emojiCode: '1f642', reactionType: ReactionType.unicodeEmoji))));
+              emojiCode: '1f642', reactionType: .unicodeEmoji))));
           checkButtonsEnabled(tester, expectClear: true, expectSave: false);
 
           await tester.enterText(findStatusTextField(), 'Happy as a calm');
@@ -296,7 +296,7 @@ void main() {
           await setupPage(tester, change: UserStatusChange(
             text: OptionSome('Happy'),
             emoji: OptionSome(StatusEmoji(emojiName: 'slight_smile',
-              emojiCode: '1f642', reactionType: ReactionType.unicodeEmoji))));
+              emojiCode: '1f642', reactionType: .unicodeEmoji))));
           checkButtonsEnabled(tester, expectClear: true, expectSave: false);
 
           await tester.enterText(findStatusTextField(), ' Happy  ');
@@ -310,7 +310,7 @@ void main() {
             change: UserStatusChange(
               text: OptionSome('Happy'),
               emoji: OptionSome(StatusEmoji(emojiName: 'slight_smile',
-                emojiCode: '1f642', reactionType: ReactionType.unicodeEmoji))));
+                emojiCode: '1f642', reactionType: .unicodeEmoji))));
           checkButtonsEnabled(tester, expectClear: true, expectSave: false);
 
           await tester.tap(findSuggestion(code: '1f6e0', text: 'Busy'));
@@ -335,7 +335,7 @@ void main() {
             change: UserStatusChange(
               text: OptionSome('Happy'),
               emoji: OptionSome(StatusEmoji(emojiName: 'slight_smile',
-                emojiCode: '1f642', reactionType: ReactionType.unicodeEmoji))));
+                emojiCode: '1f642', reactionType: .unicodeEmoji))));
           checkButtonsEnabled(tester, expectClear: true, expectSave: false);
 
           // Choose 'calender' included in suggested emojis.
@@ -365,7 +365,7 @@ void main() {
             change: UserStatusChange(
               text: OptionSome('Working remotely'),
               emoji: OptionSome(StatusEmoji(emojiName: 'house',
-                emojiCode: '1f3e0', reactionType: ReactionType.unicodeEmoji))));
+                emojiCode: '1f3e0', reactionType: .unicodeEmoji))));
           checkButtonsEnabled(tester, expectClear: true, expectSave: false);
 
           await tester.tap(findSuggestion(code: '1f6e0', text: 'Busy'));
@@ -384,7 +384,7 @@ void main() {
       await setupPage(tester, change: UserStatusChange(
         text: OptionSome('Happy'),
         emoji: OptionSome(StatusEmoji(emojiName: 'slight_smile',
-          emojiCode: '1f642', reactionType: ReactionType.unicodeEmoji))));
+          emojiCode: '1f642', reactionType: .unicodeEmoji))));
 
       check(findEmojiButton(emojiSelected: true)).findsOne();
       check(tester.widget<TextField>(findStatusTextField()).controller!.text)

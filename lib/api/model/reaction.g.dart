@@ -11,7 +11,11 @@ part of 'reaction.dart';
 Reaction _$ReactionFromJson(Map<String, dynamic> json) => Reaction(
   emojiName: json['emoji_name'] as String,
   emojiCode: json['emoji_code'] as String,
-  reactionType: $enumDecode(_$ReactionTypeEnumMap, json['reaction_type']),
+  reactionType: $enumDecode(
+    _$ReactionTypeEnumMap,
+    json['reaction_type'],
+    unknownValue: ReactionType.unknown,
+  ),
   userId: (json['user_id'] as num).toInt(),
 );
 
@@ -26,4 +30,5 @@ const _$ReactionTypeEnumMap = {
   ReactionType.unicodeEmoji: 'unicode_emoji',
   ReactionType.realmEmoji: 'realm_emoji',
   ReactionType.zulipExtraEmoji: 'zulip_extra_emoji',
+  ReactionType.unknown: 'unknown',
 };

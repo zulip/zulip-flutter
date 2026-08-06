@@ -72,7 +72,7 @@ abstract final class ZulipAction {
       // The server applies the same optimization within the (deprecated)
       // specialized endpoints for marking messages as read; see
       // `do_mark_stream_messages_as_read` in `zulip:zerver/actions/message_flags.py`.
-      apiNarrow: narrow.apiEncode()..add(ApiNarrowIs(IsOperand.unread)),
+      apiNarrow: narrow.apiEncode()..add(ApiNarrowIs(.unread)),
       // Use [AnchorCode.oldest], because [AnchorCode.firstUnread]
       // will be the oldest non-muted unread message, which would
       // result in muted unreads older than the first unread not
@@ -82,7 +82,7 @@ abstract final class ZulipAction {
       // message ID.
       includeAnchor: false,
       op: UpdateMessageFlagsOp.add,
-      flag: MessageFlag.read,
+      flag: .read,
       onCompletedMessage: zulipLocalizations.markAsReadComplete,
       progressMessage: zulipLocalizations.markAsReadInProgress,
       onFailedTitle: zulipLocalizations.errorMarkAsReadFailedTitle);
@@ -110,7 +110,7 @@ abstract final class ZulipAction {
       anchor: NumericAnchor(message.id),
       includeAnchor: true,
       op: UpdateMessageFlagsOp.remove,
-      flag: MessageFlag.read,
+      flag: .read,
       onCompletedMessage: zulipLocalizations.markAsUnreadComplete,
       progressMessage: zulipLocalizations.markAsUnreadInProgress,
       onFailedTitle: zulipLocalizations.errorMarkAsUnreadFailedTitle);

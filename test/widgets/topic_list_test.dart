@@ -315,7 +315,7 @@ void main() {
           eg.getChannelTopicsEntry(maxId: 1, name: 'non-muted'),
         ],
         userTopics: [
-          eg.userTopicItem(channel, 'muted', UserTopicVisibilityPolicy.muted),
+          eg.userTopicItem(channel, 'muted', .muted),
         ],
         messages: [
           eg.streamMessage(stream: channel, topic: 'muted'),
@@ -345,9 +345,9 @@ void main() {
           eg.streamMessage(stream: channel, topic: 'not mentioned'),
           eg.streamMessage(stream: channel, topic: 'not mentioned'),
           eg.streamMessage(stream: channel, topic: 'not mentioned',
-            flags: [MessageFlag.mentioned, MessageFlag.read]),
+            flags: [.mentioned, .read]),
           eg.streamMessage(stream: channel, topic: 'mentioned',
-            flags: [MessageFlag.mentioned]),
+            flags: [.mentioned]),
         ]);
 
       check(findInTopicItemAt(0, find.text('2'))).findsOne();
@@ -375,7 +375,7 @@ void main() {
       await prepare(tester, channel: channel,
         topics: [eg.getChannelTopicsEntry(name: 'topic')],
         userTopics: [
-          eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.muted),
+          eg.userTopicItem(channel, 'topic', .muted),
         ]);
       check(find.descendant(of: topicItemFinder,
         matching: find.byIcon(ZulipIcons.mute))).findsOne();
@@ -386,7 +386,7 @@ void main() {
       await prepare(tester, channel: channel,
         topics: [eg.getChannelTopicsEntry(name: 'topic')],
         userTopics: [
-          eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.unmuted),
+          eg.userTopicItem(channel, 'topic', .unmuted),
         ]);
       check(find.descendant(of: topicItemFinder,
         matching: find.byIcon(ZulipIcons.unmute))).findsOne();
@@ -397,7 +397,7 @@ void main() {
       await prepare(tester, channel: channel,
         topics: [eg.getChannelTopicsEntry(name: 'topic')],
         userTopics: [
-          eg.userTopicItem(channel, 'topic', UserTopicVisibilityPolicy.followed),
+          eg.userTopicItem(channel, 'topic', .followed),
         ]);
       check(find.descendant(of: topicItemFinder,
         matching: find.byIcon(ZulipIcons.follow))).findsOne();

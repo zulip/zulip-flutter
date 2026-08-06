@@ -48,7 +48,7 @@ void main() {
 
     test('add', () {
       final reaction0 = Reaction(
-        reactionType: ReactionType.unicodeEmoji, emojiCode: '1f44d', emojiName: 'thumbs_up', userId: 1);
+        reactionType: .unicodeEmoji, emojiCode: '1f44d', emojiName: 'thumbs_up', userId: 1);
       final reactions = Reactions([reaction0]);
       check(reactions)
         ..aggregated.deepEquals([
@@ -58,7 +58,7 @@ void main() {
 
       // …Different reactionType
       final reaction1 = Reaction(
-        reactionType: ReactionType.realmEmoji, emojiCode: '181', emojiName: 'twocents', userId: 1);
+        reactionType: .realmEmoji, emojiCode: '181', emojiName: 'twocents', userId: 1);
       reactions.add(reaction1);
       check(reactions)
         ..aggregated.deepEquals([
@@ -69,7 +69,7 @@ void main() {
 
       // …Same reactionType, different emojiCode
       final reaction2 = Reaction(
-        reactionType: ReactionType.realmEmoji, emojiCode: '2049', emojiName: 'something', userId: 1);
+        reactionType: .realmEmoji, emojiCode: '2049', emojiName: 'something', userId: 1);
       reactions.add(reaction2);
       check(reactions)
         ..aggregated.deepEquals([
@@ -81,7 +81,7 @@ void main() {
 
       // …Same emojiCode, different reactionType
       final reaction3 = Reaction(
-        reactionType: ReactionType.unicodeEmoji, emojiCode: '2049', emojiName: 'nuclear', userId: 1);
+        reactionType: .unicodeEmoji, emojiCode: '2049', emojiName: 'nuclear', userId: 1);
       reactions.add(reaction3);
       check(reactions)
         ..aggregated.deepEquals([
@@ -94,7 +94,7 @@ void main() {
 
       // …Same reaction, different user
       final reaction4 = Reaction(
-        reactionType: ReactionType.unicodeEmoji, emojiCode: '2049', emojiName: 'nuclear', userId: 2);
+        reactionType: .unicodeEmoji, emojiCode: '2049', emojiName: 'nuclear', userId: 2);
       reactions.add(reaction4);
       check(reactions)
         ..aggregated.deepEquals([
@@ -106,7 +106,7 @@ void main() {
         ..total.equals(5);
 
       final reaction5 = Reaction(
-        reactionType: ReactionType.unicodeEmoji, emojiCode: '1f6e0', emojiName: 'working_on_it', userId: 2);
+        reactionType: .unicodeEmoji, emojiCode: '1f6e0', emojiName: 'working_on_it', userId: 2);
       reactions.add(reaction5);
       check(reactions)
         ..aggregated.deepEquals([
@@ -120,7 +120,7 @@ void main() {
 
       // …Same reactionType and emojiCode, different emojiName
       final reaction6 = Reaction(
-        reactionType: ReactionType.unicodeEmoji, emojiCode: '1f6e0', emojiName: 'tools', userId: 3);
+        reactionType: .unicodeEmoji, emojiCode: '1f6e0', emojiName: 'tools', userId: 3);
       reactions.add(reaction6);
       check(reactions)
         ..aggregated.deepEquals([
@@ -134,17 +134,17 @@ void main() {
     });
 
     test('remove', () {
-      final reaction1 = Reaction(emojiName: 'thumbs_up', emojiCode: '1f44d', reactionType: ReactionType.unicodeEmoji,    userId: 1);
-      final reaction2 = Reaction(emojiName: 'thumbs_up', emojiCode: '1f44d', reactionType: ReactionType.unicodeEmoji,    userId: 2);
-      final reaction3 = Reaction(emojiName: 'thumbs_up', emojiCode: '1f44d', reactionType: ReactionType.unicodeEmoji,    userId: 3);
+      final reaction1 = Reaction(emojiName: 'thumbs_up', emojiCode: '1f44d', reactionType: .unicodeEmoji,    userId: 1);
+      final reaction2 = Reaction(emojiName: 'thumbs_up', emojiCode: '1f44d', reactionType: .unicodeEmoji,    userId: 2);
+      final reaction3 = Reaction(emojiName: 'thumbs_up', emojiCode: '1f44d', reactionType: .unicodeEmoji,    userId: 3);
 
-      final reaction4 = Reaction(emojiName: 'twocents',  emojiCode: '181',   reactionType: ReactionType.realmEmoji,      userId: 1);
-      final reaction5 = Reaction(emojiName: 'twocents',  emojiCode: '181',   reactionType: ReactionType.realmEmoji,      userId: 2);
+      final reaction4 = Reaction(emojiName: 'twocents',  emojiCode: '181',   reactionType: .realmEmoji,      userId: 1);
+      final reaction5 = Reaction(emojiName: 'twocents',  emojiCode: '181',   reactionType: .realmEmoji,      userId: 2);
 
-      final reaction6 = Reaction(emojiName: 'zulip',     emojiCode: 'zulip', reactionType: ReactionType.zulipExtraEmoji, userId: 4);
-      final reaction7 = Reaction(emojiName: 'zulip',     emojiCode: 'zulip', reactionType: ReactionType.zulipExtraEmoji, userId: 5);
-      final reaction8 = Reaction(emojiName: 'zulip',     emojiCode: 'zulip', reactionType: ReactionType.zulipExtraEmoji, userId: 6);
-      final reaction9 = Reaction(emojiName: 'zulip',     emojiCode: 'zulip', reactionType: ReactionType.zulipExtraEmoji, userId: 7);
+      final reaction6 = Reaction(emojiName: 'zulip',     emojiCode: 'zulip', reactionType: .zulipExtraEmoji, userId: 4);
+      final reaction7 = Reaction(emojiName: 'zulip',     emojiCode: 'zulip', reactionType: .zulipExtraEmoji, userId: 5);
+      final reaction8 = Reaction(emojiName: 'zulip',     emojiCode: 'zulip', reactionType: .zulipExtraEmoji, userId: 6);
+      final reaction9 = Reaction(emojiName: 'zulip',     emojiCode: 'zulip', reactionType: .zulipExtraEmoji, userId: 7);
 
       final reactions = Reactions([reaction1, reaction2, reaction3, reaction4,
         reaction5, reaction6, reaction7, reaction8, reaction9]);
@@ -202,5 +202,30 @@ void main() {
         ..aggregated.deepEquals([])
         ..total.equals(0);
     });
+  });
+
+  test('Reaction.reactionType handles unknown values', () {
+    final json = Map<String, dynamic>.unmodifiable({
+      'emoji_name': '+1',
+      'emoji_code': '1f44d',
+      'reaction_type': 'unicode_emoji',
+      'user_id': 100,
+    });
+
+    check(Reaction.fromJson(json))
+      .reactionType.equals(.unicodeEmoji);
+
+    for (final unknown in ['unknown_emoji', '']) {
+      check(Reaction.fromJson({...json, 'reaction_type': unknown}))
+        .reactionType.equals(.unknown);
+    }
+  });
+
+  test('ReactionType.fromRawString handles unknown values', () {
+    check(ReactionType.fromRawString('unicode_emoji')).equals(.unicodeEmoji);
+
+    for (final unknown in ['unknown_emoji', '']) {
+      check(ReactionType.fromRawString(unknown)).equals(.unknown);
+    }
   });
 }
