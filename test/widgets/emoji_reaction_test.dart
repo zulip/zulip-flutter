@@ -143,7 +143,7 @@ void main() {
   group('ReactionChipsList', () {
     // Smoke tests under various conditions.
     for (final displayEmojiReactionUsers in [true, false]) {
-      for (final emojiset in [Emojiset.text, Emojiset.google]) {
+      for (final emojiset in <Emojiset>[.text, .google]) {
         for (final textDirection in TextDirection.values) {
           for (final textScaleFactor in kTextScaleFactors) {
             void runSmokeTest(
@@ -190,10 +190,10 @@ void main() {
                 await store.handleEvent(RealmEmojiUpdateEvent(id: 1,
                   realmEmoji: realmEmoji));
                 await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-                  property: UserSettingName.displayEmojiReactionUsers,
+                  property: .displayEmojiReactionUsers,
                   value: displayEmojiReactionUsers));
                 await store.handleEvent(UserSettingsUpdateEvent(id: 1,
-                  property: UserSettingName.emojiset,
+                  property: .emojiset,
                   value: emojiset));
 
                 // This does mean that all image emoji will look the same…
@@ -476,15 +476,15 @@ void main() {
       check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
         ...arePopularEntries,
         conditionEmojiListEntry(
-          emojiType: ReactionType.realmEmoji,
+          emojiType: .realmEmoji,
           emojiCode: '1',
           emojiName: 'buzzing'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.zulipExtraEmoji,
+          emojiType: .zulipExtraEmoji,
           emojiCode: 'zulip',
           emojiName: 'zulip'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.unicodeEmoji,
+          emojiType: .unicodeEmoji,
           emojiCode: '1f4a4',
           emojiName: 'zzz'),
       ]);
@@ -494,15 +494,15 @@ void main() {
 
       check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
         conditionEmojiListEntry(
-          emojiType: ReactionType.zulipExtraEmoji,
+          emojiType: .zulipExtraEmoji,
           emojiCode: 'zulip',
           emojiName: 'zulip'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.unicodeEmoji,
+          emojiType: .unicodeEmoji,
           emojiCode: '1f4a4',
           emojiName: 'zzz'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.realmEmoji,
+          emojiType: .realmEmoji,
           emojiCode: '1',
           emojiName: 'buzzing'),
       ]);
@@ -512,11 +512,11 @@ void main() {
 
       check(tester.widgetList<EmojiPickerListEntry>(find.byType(EmojiPickerListEntry))).deepEquals([
         conditionEmojiListEntry(
-          emojiType: ReactionType.unicodeEmoji,
+          emojiType: .unicodeEmoji,
           emojiCode: '1f4a4',
           emojiName: 'zzz'),
         conditionEmojiListEntry(
-          emojiType: ReactionType.realmEmoji,
+          emojiType: .realmEmoji,
           emojiCode: '1',
           emojiName: 'buzzing'),
       ]);

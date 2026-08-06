@@ -1395,8 +1395,8 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
-              selfUserRole: UserRole.member,
+              realmDeleteOwnMessagePolicy: .everyone,
+              selfUserRole: .member,
           )))
             ..equals(await evaluate(
              CanDeleteMessageParams.pre407(
@@ -1415,8 +1415,8 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.admins,
-              selfUserRole: UserRole.administrator,
+              realmDeleteOwnMessagePolicy: .admins,
+              selfUserRole: .administrator,
           )))
             ..equals(await evaluate(
              CanDeleteMessageParams.pre407(
@@ -1435,8 +1435,8 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.admins,
-              selfUserRole: UserRole.moderator,
+              realmDeleteOwnMessagePolicy: .admins,
+              selfUserRole: .moderator,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre407(
                 senderConfig: CanDeleteMessageSenderConfig.self,
@@ -1459,16 +1459,16 @@ void main() {
               senderConfig: CanDeleteMessageSenderConfig.otherHuman,
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
-              selfUserRole: UserRole.member,
+              realmDeleteOwnMessagePolicy: .everyone,
+              selfUserRole: .member,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre291(
                 senderConfig: CanDeleteMessageSenderConfig.otherHuman,
                 timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
                 inRealmCanDeleteAnyMessageGroup: false,
                 isChannelArchived: false,
-                realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
-                selfUserRole: UserRole.member)))
+                realmDeleteOwnMessagePolicy: .everyone,
+                selfUserRole: .member)))
             ..isFalse();
         });
 
@@ -1478,16 +1478,16 @@ void main() {
               senderConfig: CanDeleteMessageSenderConfig.otherHuman,
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
-              selfUserRole: UserRole.administrator,
+              realmDeleteOwnMessagePolicy: .everyone,
+              selfUserRole: .administrator,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre291(
                 senderConfig: CanDeleteMessageSenderConfig.otherHuman,
                 timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
                 inRealmCanDeleteAnyMessageGroup: true,
                 isChannelArchived: false,
-                realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
-                selfUserRole: UserRole.administrator)))
+                realmDeleteOwnMessagePolicy: .everyone,
+                selfUserRole: .administrator)))
             ..isTrue();
         });
       });
@@ -1571,7 +1571,7 @@ void main() {
       final originalMessage = eg.streamMessage(
         content: "<p>Hello, world</p>");
       final updateEvent = eg.updateMessageEditEvent(originalMessage,
-        flags: [MessageFlag.hasAlertWord],
+        flags: [.hasAlertWord],
         renderedContent: "<p>Hello, edited</p>",
         editTimestamp: 99999,
         isMeMessage: true,
@@ -1585,7 +1585,7 @@ void main() {
         ..lastEditTimestamp.isNull()
         ..flags.not((it) => it.deepEquals(updateEvent.flags))
         ..isMeMessage.not((it) => it.equals(updateEvent.isMeMessage!))
-        ..editState.equals(MessageEditState.none);
+        ..editState.equals(.none);
 
       await store.handleEvent(updateEvent);
       checkNotifiedOnce();
@@ -1595,7 +1595,7 @@ void main() {
         ..lastEditTimestamp.equals(updateEvent.editTimestamp)
         ..flags.equals(updateEvent.flags)
         ..isMeMessage.equals(updateEvent.isMeMessage!)
-        ..editState.equals(MessageEditState.edited);
+        ..editState.equals(.edited);
     });
 
     test('ignore when message unknown', () async {
@@ -1659,8 +1659,8 @@ void main() {
         await prepareOrigMessages(origTopic: 'origTopic');
         await store.handleEvent(eg.updateMessageEditEvent(origMessages[0]));
         checkNotifiedOnce();
-        check(store).messages[origMessages[0].id].editState.equals(MessageEditState.edited);
-        check(store).messages[origMessages[1].id].editState.equals(MessageEditState.none);
+        check(store).messages[origMessages[0].id].editState.equals(.edited);
+        check(store).messages[origMessages[1].id].editState.equals(.none);
       });
 
       test('message topic moved update', () async {
@@ -1672,7 +1672,7 @@ void main() {
         checkNotified(count: 2);
         check(store).messages.values.every(((message) =>
           message.isA<StreamMessage>()
-            ..editState.equals(MessageEditState.moved)
+            ..editState.equals(.moved)
             ..displayRecipient.equals(originalDisplayRecipient)));
       });
 
@@ -1682,7 +1682,7 @@ void main() {
           origMessages: origMessages,
           newTopicStr: '✔ new topic'));
         checkNotified(count: 2);
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
+        check(store).messages.values.every(((message) => message.editState.equals(.none)));
       });
 
       test('message topic unresolved update', () async {
@@ -1691,7 +1691,7 @@ void main() {
           origMessages: origMessages,
           newTopicStr: 'new topic'));
         checkNotified(count: 2);
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.none)));
+        check(store).messages.values.every(((message) => message.editState.equals(.none)));
       });
 
       test('message topic both resolved and edited update', () async {
@@ -1700,7 +1700,7 @@ void main() {
           origMessages: origMessages,
           newTopicStr: '✔ new topic 2'));
         checkNotified(count: 2);
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
+        check(store).messages.values.every(((message) => message.editState.equals(.moved)));
       });
 
       test('message topic both unresolved and edited update', () async {
@@ -1709,7 +1709,7 @@ void main() {
           origMessages: origMessages,
           newTopicStr: 'new topic 2'));
         checkNotified(count: 2);
-        check(store).messages.values.every(((message) => message.editState.equals(MessageEditState.moved)));
+        check(store).messages.values.every(((message) => message.editState.equals(.moved)));
       });
 
       test('message stream moved without topic change', () async {
@@ -1720,7 +1720,7 @@ void main() {
         checkNotified(count: 2);
         check(store).messages.values.every(((message) =>
           message.isA<StreamMessage>()
-            ..editState.equals(MessageEditState.moved)
+            ..editState.equals(.moved)
             ..displayRecipient.equals(null)));
       });
 
@@ -1731,8 +1731,8 @@ void main() {
           newStreamId: 20,
           newContent: 'new content'));
         checkNotified(count: 2);
-        check(store).messages[origMessages[0].id].editState.equals(MessageEditState.edited);
-        check(store).messages[origMessages[1].id].editState.equals(MessageEditState.moved);
+        check(store).messages[origMessages[0].id].editState.equals(.edited);
+        check(store).messages[origMessages[1].id].editState.equals(.moved);
       });
     });
   });
@@ -1770,7 +1770,7 @@ void main() {
     });
 
     test('delete a starred message', () async {
-      final message = eg.streamMessage(flags: [MessageFlag.starred]);
+      final message = eg.streamMessage(flags: [.starred]);
       await prepare(starredMessages: [message.id]);
 
       // The actual message hasn't been fetched by a message list;
@@ -1805,7 +1805,7 @@ void main() {
         await prepare();
         final message = eg.streamMessage(flags: []);
         await prepareMessages([message]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [2]));
+        await store.handleEvent(mkAddEvent(.read, [2]));
         checkNotNotified();
         check(store).messages.values.single.flags.deepEquals([]);
       });
@@ -1815,11 +1815,11 @@ void main() {
         final message1 = eg.streamMessage(flags: []);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages([message1, message2]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [message2.id, 3]));
+        await store.handleEvent(mkAddEvent(.read, [message2.id, 3]));
         checkNotifiedOnce();
         check(store).messages
           ..[message1.id].flags.deepEquals([])
-          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+          ..[message2.id].flags.deepEquals(<MessageFlag>[.read]);
       });
 
       test('all: true; we have some known messages', () async {
@@ -1827,28 +1827,28 @@ void main() {
         final message1 = eg.streamMessage(flags: []);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages([message1, message2]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        await store.handleEvent(mkAddEvent(.read, [], all: true));
         checkNotifiedOnce();
         check(store).messages
-          ..[message1.id].flags.deepEquals([MessageFlag.read])
-          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+          ..[message1.id].flags.deepEquals(<MessageFlag>[.read])
+          ..[message2.id].flags.deepEquals(<MessageFlag>[.read]);
       });
 
       test('all: true; we don\'t know about any messages', () async {
         await prepare();
         await prepareMessages([]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        await store.handleEvent(mkAddEvent(.read, [], all: true));
         checkNotNotified();
       });
 
       test('other flags not clobbered', () async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message = eg.streamMessage(flags: [.starred]);
         await prepare(starredMessages: [message.id]);
         await prepareMessages([message]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
+        await store.handleEvent(mkAddEvent(.read, [message.id]));
         checkNotifiedOnce();
         check(store).messages.values
-          .single.flags.deepEquals([MessageFlag.starred, MessageFlag.read]);
+          .single.flags.deepEquals(<MessageFlag>[.starred, .read]);
       });
 
       test('add to starredMessages', () async {
@@ -1858,7 +1858,7 @@ void main() {
         await prepareMessages([message2]);
         check(store).starredMessages.isEmpty();
         await store.handleEvent(
-          mkAddEvent(MessageFlag.starred, [message1.id, message2.id]));
+          mkAddEvent(.starred, [message1.id, message2.id]));
         checkNotified(count: 1, storeCount: 1);
         check(store).starredMessages.deepEquals([message1.id, message2.id]);
       });
@@ -1866,71 +1866,71 @@ void main() {
       test('prevent duplicate flags, when all: false', () async {
         // Regression test for https://github.com/zulip/zulip-flutter/issues/1986
         await prepare();
-        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        final message = eg.streamMessage(flags: [.read]);
         await prepareMessages([message]);
 
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [message.id]));
+        await store.handleEvent(mkAddEvent(.read, [message.id]));
         checkNotifiedOnce();
-        check(store).messages[message.id].flags.deepEquals([MessageFlag.read]);
+        check(store).messages[message.id].flags.deepEquals(<MessageFlag>[.read]);
       });
 
       test('prevent duplicate flags, when all: true', () async {
         // Regression test for https://github.com/zulip/zulip-flutter/issues/1986
         await prepare();
-        final message1 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message1 = eg.streamMessage(flags: [.read]);
         final message2 = eg.streamMessage(flags: []);
         await prepareMessages([message1, message2]);
 
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [], all: true));
+        await store.handleEvent(mkAddEvent(.read, [], all: true));
         checkNotifiedOnce();
         check(store).messages
-          ..[message1.id].flags.deepEquals([MessageFlag.read])
-          ..[message2.id].flags.deepEquals([MessageFlag.read]);
+          ..[message1.id].flags.deepEquals(<MessageFlag>[.read])
+          ..[message2.id].flags.deepEquals(<MessageFlag>[.read]);
       });
     });
 
     group('remove flag', () {
       test('message is unknown', () async {
         await prepare();
-        final message = eg.streamMessage(flags: [MessageFlag.read]);
+        final message = eg.streamMessage(flags: [.read]);
         await prepareMessages([message]);
-        await store.handleEvent(mkAddEvent(MessageFlag.read, [2]));
+        await store.handleEvent(mkAddEvent(.read, [2]));
         checkNotNotified();
         check(store).messages.values
-          .single.flags.deepEquals([MessageFlag.read]);
+          .single.flags.deepEquals(<MessageFlag>[.read]);
       });
 
       test('affected message, unaffected message, absent message', () async {
         await prepare();
-        final message1 = eg.streamMessage(flags: [MessageFlag.read]);
-        final message2 = eg.streamMessage(flags: [MessageFlag.read]);
-        final message3 = eg.streamMessage(flags: [MessageFlag.read]);
+        final message1 = eg.streamMessage(flags: [.read]);
+        final message2 = eg.streamMessage(flags: [.read]);
+        final message3 = eg.streamMessage(flags: [.read]);
         await prepareMessages([message1, message2]);
-        await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message2, message3]));
+        await store.handleEvent(mkRemoveEvent(.read, [message2, message3]));
         checkNotifiedOnce();
         check(store).messages
-          ..[message1.id].flags.deepEquals([MessageFlag.read])
+          ..[message1.id].flags.deepEquals(<MessageFlag>[.read])
           ..[message2.id].flags.deepEquals([]);
       });
 
       test('other flags not affected', () async {
-        final message = eg.streamMessage(flags: [MessageFlag.starred, MessageFlag.read]);
+        final message = eg.streamMessage(flags: [.starred, .read]);
         await prepare(starredMessages: [message.id]);
         await prepareMessages([message]);
-        await store.handleEvent(mkRemoveEvent(MessageFlag.read, [message]));
+        await store.handleEvent(mkRemoveEvent(.read, [message]));
         checkNotifiedOnce();
         check(store).messages.values
-          .single.flags.deepEquals([MessageFlag.starred]);
+          .single.flags.deepEquals(<MessageFlag>[.starred]);
       });
 
       test('remove from starredMessages', () async {
-        final message1 = eg.streamMessage(flags: [MessageFlag.starred]);
-        final message2 = eg.streamMessage(flags: [MessageFlag.starred]);
+        final message1 = eg.streamMessage(flags: [.starred]);
+        final message2 = eg.streamMessage(flags: [.starred]);
         await prepare(starredMessages: [message1.id, message2.id]);
         await prepareMessages([message2]);
         check(store).starredMessages.deepEquals([message1.id, message2.id]);
         await store.handleEvent(
-          mkRemoveEvent(MessageFlag.starred, [message1, message2]));
+          mkRemoveEvent(.starred, [message1, message2]));
         checkNotified(count: 1, storeCount: 1);
         check(store).starredMessages.isEmpty();
       });
@@ -1945,7 +1945,7 @@ void main() {
       final message = store.messages.values.single;
 
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .add, originalMessage.id));
       checkNotifiedOnce();
       check(store.messages).values.single
         ..identicalTo(message)
@@ -1957,29 +1957,29 @@ void main() {
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .add, 1000));
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNull();
     });
 
     test('remove reaction', () async {
-      final eventReaction = Reaction(reactionType: ReactionType.unicodeEmoji,
+      final eventReaction = Reaction(reactionType: .unicodeEmoji,
         emojiName: 'wave',          emojiCode: '1f44b', userId: 1);
 
       // Same emoji, different user. Not to be removed.
-      final reaction2 = Reaction(reactionType: ReactionType.unicodeEmoji,
+      final reaction2 = Reaction(reactionType: .unicodeEmoji,
         emojiName: 'wave',          emojiCode: '1f44b', userId: 2);
 
       // Same user, different emoji. Not to be removed.
-      final reaction3 = Reaction(reactionType: ReactionType.unicodeEmoji,
+      final reaction3 = Reaction(reactionType: .unicodeEmoji,
         emojiName: 'working_on_it', emojiCode: '1f6e0', userId: 1);
 
       // Same user, same emojiCode, different emojiName. To be removed: servers
       // key on user, message, reaction type, and emoji code, but not emoji name.
       // So we mimic that behavior; see discussion:
       //   https://github.com/zulip/zulip-flutter/pull/256#discussion_r1284865099
-      final reaction4 = Reaction(reactionType: ReactionType.unicodeEmoji,
+      final reaction4 = Reaction(reactionType: .unicodeEmoji,
         emojiName: 'hello',         emojiCode: '1f44b', userId: 1);
 
       final originalMessage = eg.streamMessage(
@@ -1989,7 +1989,7 @@ void main() {
       final message = store.messages.values.single;
 
       await store.handleEvent(
-        eg.reactionEvent(eventReaction, ReactionOp.remove, originalMessage.id));
+        eg.reactionEvent(eventReaction, .remove, originalMessage.id));
       checkNotifiedOnce();
       check(store.messages).values.single
         ..identicalTo(message)
@@ -2001,7 +2001,7 @@ void main() {
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .remove, 1000));
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);

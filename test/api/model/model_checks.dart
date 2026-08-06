@@ -57,6 +57,7 @@ extension ZulipStreamChecks on Subject<ZulipStream> {
 
   Subject<bool> get inviteOnly => has((x) => x.inviteOnly, 'inviteOnly');
   Subject<bool> get isWebPublic => has((x) => x.isWebPublic, 'isWebPublic');
+  Subject<ChannelPostPolicy?> get channelPostPolicy => has((x) => x.channelPostPolicy, 'channelPostPolicy');
 }
 
 extension SubscriptionChecks on Subject<Subscription> {
@@ -109,7 +110,7 @@ extension MessageChecks on Subject<Message> {
   Subject<String> get senderFullName => has((e) => e.senderFullName, 'senderFullName');
   Subject<String> get senderRealmStr => has((e) => e.senderRealmStr, 'senderRealmStr');
   Subject<Poll?> get poll => has((e) => e.poll, 'poll');
-  Subject<String> get type => has((e) => e.type, 'type');
+  Subject<MessageType> get type => has((e) => e.type, 'type');
   Subject<List<MessageFlag>> get flags => has((e) => e.flags, 'flags');
   Subject<String?> get matchContent => has((e) => e.matchContent, 'matchContent');
   Subject<String?> get matchTopic => has((e) => e.matchTopic, 'matchTopic');

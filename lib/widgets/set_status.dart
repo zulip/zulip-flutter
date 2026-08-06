@@ -103,7 +103,7 @@ class _SetStatusPageState extends State<SetStatusPage> {
           UserStatus(
             text: statusText,
             emoji: StatusEmoji(emojiName: emojiName, emojiCode: emojiCode,
-              reactionType: ReactionType.unicodeEmoji)),
+              reactionType: .unicodeEmoji)),
     ];
   }
 

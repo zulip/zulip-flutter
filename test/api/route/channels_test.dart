@@ -47,7 +47,7 @@ void main() {
       connection.prepare(json: {});
       await updateUserTopic(connection,
         channelId: 1, topic: const TopicName('topic'),
-        visibilityPolicy: UserTopicVisibilityPolicy.followed);
+        visibilityPolicy: .followed);
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/user_topics')
@@ -63,7 +63,7 @@ void main() {
     return FakeApiConnection.with_((connection) async {
       check(() => updateUserTopic(connection,
         channelId: 1, topic: const TopicName('topic'),
-        visibilityPolicy: UserTopicVisibilityPolicy.unknown),
+        visibilityPolicy: .unknown),
       ).throws<AssertionError>();
     });
   });
@@ -73,7 +73,7 @@ void main() {
       connection.prepare(json: {});
       await updateUserTopicCompat(connection,
         channelId: 1, topic: const TopicName('topic'),
-        visibilityPolicy: UserTopicVisibilityPolicy.followed);
+        visibilityPolicy: .followed);
       check(connection.takeRequests()).single.isA<http.Request>()
         ..method.equals('POST')
         ..url.path.equals('/api/v1/user_topics')
@@ -90,7 +90,7 @@ void main() {
       return FakeApiConnection.with_(zulipFeatureLevel: 169, (connection) async {
         check(() => updateUserTopic(connection,
           channelId: 1, topic: const TopicName('topic'),
-          visibilityPolicy: UserTopicVisibilityPolicy.muted),
+          visibilityPolicy: .muted),
         ).throws<AssertionError>();
       });
     });
@@ -99,7 +99,7 @@ void main() {
       return FakeApiConnection.with_(zulipFeatureLevel: 169, (connection) async {
         check(() => updateUserTopicCompat(connection,
           channelId: 1, topic: const TopicName('topic'),
-          visibilityPolicy: UserTopicVisibilityPolicy.followed),
+          visibilityPolicy: .followed),
         ).throws<UnsupportedError>();
       });
     });
@@ -109,7 +109,7 @@ void main() {
         connection.prepare(json: {});
         await updateUserTopicCompat(connection,
           channelId: 1, topic: const TopicName('topic'),
-          visibilityPolicy: UserTopicVisibilityPolicy.none);
+          visibilityPolicy: .none);
         check(connection.takeRequests()).single.isA<http.Request>()
           ..method.equals('PATCH')
           ..url.path.equals('/api/v1/users/me/subscriptions/muted_topics')
@@ -126,7 +126,7 @@ void main() {
         connection.prepare(json: {});
         await updateUserTopicCompat(connection,
           channelId: 1, topic: const TopicName('topic'),
-          visibilityPolicy: UserTopicVisibilityPolicy.muted);
+          visibilityPolicy: .muted);
         check(connection.takeRequests()).single.isA<http.Request>()
           ..method.equals('PATCH')
           ..url.path.equals('/api/v1/users/me/subscriptions/muted_topics')

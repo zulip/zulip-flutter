@@ -3,6 +3,10 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../route/messages.dart';
+import 'events.dart';
+import 'model.dart';
+
 part 'reaction.g.dart';
 
 /// A message's reactions, in a convenient data structure.
@@ -147,6 +151,7 @@ class ReactionWithVotes {
 class Reaction {
   final String emojiName;
   final String emojiCode;
+  @JsonKey(unknownEnumValue: ReactionType.unknown)
   final ReactionType reactionType;
   final int userId;
   // final Map<String, dynamic> user; // deprecated; ignore
@@ -167,17 +172,26 @@ class Reaction {
   String toString() => 'Reaction(emojiName: $emojiName, emojiCode: $emojiCode, reactionType: $reactionType, userId: $userId)';
 }
 
-/// As in [Reaction.reactionType].
+/// As in [Reaction.reactionType], [StatusEmoji.reactionType],
+/// [ReactionEvent.reactionType], [addReaction], and [removeReaction].
 @JsonEnum(fieldRename: FieldRename.snake)
 enum ReactionType {
   unicodeEmoji,
   realmEmoji,
-  zulipExtraEmoji;
+  zulipExtraEmoji,
+
+  /// A new, unrecognized type.
+  unknown;
 
   String toJson() => _$ReactionTypeEnumMap[this]!;
 
-  static ReactionType fromApiValue(String value) => _byApiValue[value]!;
+  /// Get a [ReactionType] from a raw, snake-case string we recognize,
+  /// else [ReactionType.unknown]
+  ///
+  /// Example:
+  ///   'unicode_emoji' -> ReactionType.unicodeEmoji
+  static ReactionType fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
-  static final _byApiValue = _$ReactionTypeEnumMap
+  static final _byRawString = _$ReactionTypeEnumMap
     .map((key, value) => MapEntry(value, key));
 }

@@ -372,7 +372,7 @@ void main() {
       await store.changeUserStatus(user.userId, UserStatusChange(
         text: OptionSome('Busy'),
         emoji: OptionSome(StatusEmoji(emojiName: 'working_on_it',
-          emojiCode: '1f6e0', reactionType: ReactionType.unicodeEmoji))));
+          emojiCode: '1f6e0', reactionType: .unicodeEmoji))));
       await tester.pump();
 
       checkFindsTileStatusEmoji(tester, user, find.text('\u{1f6e0}'));
