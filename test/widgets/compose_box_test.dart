@@ -43,6 +43,7 @@ import '../model/store_checks.dart';
 import '../model/test_store.dart';
 import '../model/typing_status_test.dart';
 import '../stdlib_checks.dart';
+import '../test_images.dart';
 import 'checks.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
@@ -933,6 +934,7 @@ void main() {
     }
 
     testWidgets('navigating away sends a "typing stopped" notice', (tester) async {
+      prepareBoringImageHttpClient();
       await prepareComposeBoxWithNavigation(tester);
 
       await checkStartTyping(tester, narrow);
@@ -941,6 +943,7 @@ void main() {
       (await ZulipApp.navigator).pop();
       await tester.pump(Duration.zero);
       checkTypingRequest(TypingOp.stop, narrow);
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('for content input, unfocusing sends a "typing stopped" notice', (tester) async {
