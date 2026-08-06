@@ -1395,7 +1395,7 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+              realmDeleteOwnMessagePolicy: .everyone,
               selfUserRole: UserRole.member,
           )))
             ..equals(await evaluate(
@@ -1415,7 +1415,7 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.admins,
+              realmDeleteOwnMessagePolicy: .admins,
               selfUserRole: UserRole.administrator,
           )))
             ..equals(await evaluate(
@@ -1435,7 +1435,7 @@ void main() {
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               inRealmCanDeleteAnyMessageGroup: false,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.admins,
+              realmDeleteOwnMessagePolicy: .admins,
               selfUserRole: UserRole.moderator,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre407(
@@ -1459,7 +1459,7 @@ void main() {
               senderConfig: CanDeleteMessageSenderConfig.otherHuman,
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+              realmDeleteOwnMessagePolicy: .everyone,
               selfUserRole: UserRole.member,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre291(
@@ -1467,7 +1467,7 @@ void main() {
                 timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
                 inRealmCanDeleteAnyMessageGroup: false,
                 isChannelArchived: false,
-                realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+                realmDeleteOwnMessagePolicy: .everyone,
                 selfUserRole: UserRole.member)))
             ..isFalse();
         });
@@ -1478,7 +1478,7 @@ void main() {
               senderConfig: CanDeleteMessageSenderConfig.otherHuman,
               timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
               isChannelArchived: false,
-              realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+              realmDeleteOwnMessagePolicy: .everyone,
               selfUserRole: UserRole.administrator,
           )))..equals(await evaluate(
               CanDeleteMessageParams.pre291(
@@ -1486,7 +1486,7 @@ void main() {
                 timeLimitConfig: CanDeleteMessageTimeLimitConfig.notLimited,
                 inRealmCanDeleteAnyMessageGroup: true,
                 isChannelArchived: false,
-                realmDeleteOwnMessagePolicy: RealmDeleteOwnMessagePolicy.everyone,
+                realmDeleteOwnMessagePolicy: .everyone,
                 selfUserRole: UserRole.administrator)))
             ..isTrue();
         });
@@ -1945,7 +1945,7 @@ void main() {
       final message = store.messages.values.single;
 
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .add, originalMessage.id));
       checkNotifiedOnce();
       check(store.messages).values.single
         ..identicalTo(message)
@@ -1957,7 +1957,7 @@ void main() {
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .add, 1000));
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNull();
@@ -1989,7 +1989,7 @@ void main() {
       final message = store.messages.values.single;
 
       await store.handleEvent(
-        eg.reactionEvent(eventReaction, ReactionOp.remove, originalMessage.id));
+        eg.reactionEvent(eventReaction, .remove, originalMessage.id));
       checkNotifiedOnce();
       check(store.messages).values.single
         ..identicalTo(message)
@@ -2001,7 +2001,7 @@ void main() {
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .remove, 1000));
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);

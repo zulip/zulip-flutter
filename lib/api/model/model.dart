@@ -341,13 +341,20 @@ enum UserSettingName {
   emojiset,
   webInboxShowChannelFolders,
   presenceEnabled,
+  // TODO: add more as needed
+
+  /// A user setting (name) that:
+  ///   - The server sends, but we currently don't support.
+  ///   - The server may start sending in the future.
+  unknown,
   ;
 
-  /// Get a [UserSettingName] from a raw, snake-case string we recognize, else null.
+  /// Get a [UserSettingName] from a raw, snake-case string we recognize,
+  /// else [UserSettingName.unknown].
   ///
   /// Example:
   ///   'display_emoji_reaction_users' -> UserSettingName.displayEmojiReactionUsers
-  static UserSettingName? fromRawString(String raw) => _byRawString[raw];
+  static UserSettingName fromRawString(String raw) => _byRawString[raw] ?? unknown;
 
   // _$…EnumMap is thanks to `alwaysCreate: true` and `fieldRename: FieldRename.snake`
   static final _byRawString = _$UserSettingNameEnumMap
@@ -368,6 +375,12 @@ enum TwentyFourHourTimeMode {
   // TODO(server-future) Write down what server N starts sending null;
   //   adjust the comment; leave a TODO(server-N) to delete the comment
   localeDefault(apiValue: null),
+
+  // We can't have an unknown value because all values permitted by the
+  // server API (true, false, and null) are represented above.
+  // If the server ever sends a different kind of value, that would indicate
+  // a change to the API and we should update this model accordingly.
+  // unknown(apiValue: null),
   ;
 
   const TwentyFourHourTimeMode({required this.apiValue});
@@ -1221,7 +1234,10 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
 
-  String get type;
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
+  MessageType get type;
 
   // final List<TopicLink> topicLinks; // TODO handle
   // final string type; // handled by runtime type of object
@@ -1280,13 +1296,50 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   // TODO(dart): This has to be a static method, because factories/constructors
   //   do not support type parameters: https://github.com/dart-lang/language/issues/647
   static Message fromJson(Map<String, dynamic> json) {
-    final type = json['type'] as String;
-    if (type == 'stream') return StreamMessage.fromJson(json);
-    if (type == 'private') return DmMessage.fromJson(json);
-    throw Exception("Message.fromJson: unexpected message type $type");
+    return switch (MessageType.fromJson(json['type'] as String)) {
+      .channel => StreamMessage.fromJson(json),
+      .direct => DmMessage.fromJson(json),
+    };
   }
 
   Map<String, dynamic> toJson();
+}
+
+/// As in [Message.type], [DeleteMessageEvent.messageType],
+/// [UpdateMessageFlagsMessageDetail.type], or [TypingEvent.messageType].
+@JsonEnum(alwaysCreate: true)
+enum MessageType {
+  channel,
+  direct,
+
+  // We don't accept an unknown message type because we generally cannot decide
+  // how to interpret such data. In particular, when a message with an unknown
+  // type is received from the server, we cannot determine which message model
+  // to instantiate: either [StreamMessage] or [DmMessage]. See [Message.fromJson].
+  // unknown,
+  ;
+
+  factory MessageType.fromJson(String json) {
+    switch (json) {
+      case 'stream': json = 'channel'; // TODO(server-future)
+      case 'private': json = 'direct'; // TODO(server-future)
+    }
+    return $enumDecode(_$MessageTypeEnumMap, json);
+  }
+}
+
+class MessageTypeConverter extends JsonConverter<MessageType, String> {
+  const MessageTypeConverter();
+
+  @override
+  MessageType fromJson(String json) {
+    return MessageType.fromJson(json);
+  }
+
+  @override
+  String toJson(MessageType object) {
+    return _$MessageTypeEnumMap[object]!;
+  }
 }
 
 /// https://zulip.com/api/update-message-flags#available-flags
@@ -1339,7 +1392,7 @@ enum MessageFlag {
 class StreamMessage extends Message<StreamConversation> {
   @override
   @JsonKey(includeToJson: true)
-  String get type => 'stream';
+  MessageType get type => .channel;
 
   @JsonKey(includeToJson: true)
   int get streamId => conversation.streamId;
@@ -1393,7 +1446,7 @@ class StreamMessage extends Message<StreamConversation> {
 class DmMessage extends Message<DmConversation> {
   @override
   @JsonKey(includeToJson: true)
-  String get type => 'private';
+  MessageType get type => .direct;
 
   /// The user IDs of all users in the thread, sorted numerically, as in
   /// `display_recipient` from the server.
