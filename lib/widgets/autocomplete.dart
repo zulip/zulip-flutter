@@ -215,7 +215,7 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
         //   (maybe handle centrally in `controller`)
         replacementString = '${userMention(user, silent: query.silent, users: store)} ';
       case WildcardMentionAutocompleteResult(:var wildcardOption):
-        replacementString = '${wildcardMention(wildcardOption, store: store)} ';
+        replacementString = '${wildcardMention(wildcardOption)} ';
       case UserGroupMentionAutocompleteResult(:final groupId):
         if (query is! MentionAutocompleteQuery) {
           return; // Shrug; similar to `intent == null` case above.
