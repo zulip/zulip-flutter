@@ -395,6 +395,8 @@ void main() {
   });
 
   group('handleMessageEvent', () {
+    // A DM can't really have `topicWildcardMentioned`, but it is harmless here
+    // because the model only checks whether a message has any mention flag at all.
     void testFlagCombination(
       bool isUnread,
       bool isStream,
@@ -555,6 +557,9 @@ void main() {
                 if (isKnownToModel) message,
               ]);
 
+              // A DM can't really have `topicWildcardMentioned`,
+              // but it is harmless here because the model only checks
+              // whether a message has any mention flag at all.
               for (final List<MessageFlag> newFlags in [
                 [...baseFlags, MessageFlag.mentioned],
                 [...baseFlags, MessageFlag.mentioned, MessageFlag.wildcardMentioned],
@@ -1029,6 +1034,8 @@ void main() {
       });
     }
 
+    // A DM can't really have `topicWildcardMentioned`, but it is harmless here
+    // because the model only checks whether a message has any mention flag at all.
     for (final mentionFlag in [
       MessageFlag.mentioned,
       MessageFlag.topicWildcardMentioned,
