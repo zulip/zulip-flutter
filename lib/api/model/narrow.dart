@@ -137,7 +137,7 @@ enum IsOperand {
   alerted,
   mentioned,
   starred,
-  followed,  // TODO(server-9) new in FL 265
+  followed,
   resolved,
   unread,
   unknown;
