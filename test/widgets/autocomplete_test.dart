@@ -267,7 +267,6 @@ void main() {
     testWidgets('wildcard options appear, disappear, and change correctly', (tester) async {
       final composeInputFinder = await setupToComposeInput(tester,
         narrow: const ChannelNarrow(1));
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
       // Options are filtered correctly for query
       // TODO(#226): Remove this extra edit when this bug is fixed.
@@ -285,7 +284,7 @@ void main() {
       await tester.tap(find.text(WildcardMentionOption.channel.canonicalString));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
-        .contains(wildcardMention(WildcardMentionOption.channel, store: store));
+        .contains(wildcardMention(WildcardMentionOption.channel));
       checkWildcardShown(WildcardMentionOption.channel, expected: false);
       checkWildcardShown(WildcardMentionOption.topic, expected: false);
       checkWildcardShown(WildcardMentionOption.all, expected: false);
