@@ -134,7 +134,7 @@ MessageLegacyFcmMessage legacyMessageFcmMessage(
 
     "server": "zulip.example.cloud",
     "realm_id": "4",
-    "realm_uri": account.realmUrl.toString(),
+    "realm_url": account.realmUrl.toString(),
     "user_id": account.userId.toString(),
     "realm_name": ?realmName,
 
@@ -184,7 +184,7 @@ RemoveLegacyFcmMessage legacyRemoveFcmMessage(List<Message> zulipMessages, {Acco
 
     "server": "zulip.example.cloud",
     "realm_id": "4",
-    "realm_uri": account.realmUrl.toString(),
+    "realm_url": account.realmUrl.toString(),
     "realm_name": account.realmName,
     "user_id": account.userId.toString(),
 
