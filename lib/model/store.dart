@@ -24,6 +24,7 @@ import '../notifications/ios_service.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'binding.dart';
+import 'connectivity.dart';
 import 'database.dart';
 import 'emoji.dart';
 import 'localizations.dart';
@@ -97,6 +98,11 @@ abstract class GlobalStoreBackend {
 /// settings. It also includes a small amount of data for each account: enough
 /// to authenticate as the active account, if there is one.
 ///
+/// Besides data, this object owns machinery that serves the stores
+/// app-wide, like [connectivityMonitor] --
+/// much as a [PerAccountStore] owns [PerAccountStore.connection]
+/// and [PerAccountStore.updateMachine].
+///
 /// For other data associated with a particular account, a [GlobalStore]
 /// provides a [PerAccountStore] for each account, which can be reached with
 /// [GlobalStore.perAccount] or [GlobalStore.perAccountSync].
@@ -128,6 +134,30 @@ abstract class GlobalStore extends ChangeNotifier {
   final GlobalSettingsStore settings;
 
   final GlobalPushKeyStore pushKeys;
+
+  /// A monitor of the device's network connectivity, shared app-wide.
+  ///
+  /// Lazy, so that constructing a [GlobalStore] doesn't require
+  /// [ZulipBinding] to be initialized.
+  /// The live app starts it eagerly; see [startConnectivityMonitor].
+  ConnectivityMonitor get connectivityMonitor =>
+    _connectivityMonitor ??= ConnectivityMonitor();
+  ConnectivityMonitor? _connectivityMonitor;
+
+  /// Ensure [connectivityMonitor] has started watching.
+  ///
+  /// Call this at app startup:
+  /// a change can be recognized only against a baseline,
+  /// so the earlier the monitor starts,
+  /// the sooner its signals -- and the current state,
+  /// for any consumer that wants that -- become meaningful.
+  void startConnectivityMonitor() => connectivityMonitor;
+
+  @override
+  void dispose() {
+    _connectivityMonitor?.dispose();
+    super.dispose();
+  }
 
   /// Construct a new [ApiConnection], real or fake as appropriate.
   ///
