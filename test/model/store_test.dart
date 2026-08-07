@@ -953,6 +953,12 @@ void main() {
       });
     }
 
+    void prepareHeartbeat(int eventId, {Duration delay = Duration.zero}) {
+      connection.prepare(delay: delay, json: GetEventsResult(events: [
+        HeartbeatEvent(id: eventId),
+      ], queueId: null).toJson());
+    }
+
     // These cases are ordered by how far the request got before it failed.
 
     void prepareUnexpectedLoopError() {
@@ -1158,6 +1164,35 @@ void main() {
         connection.prepare(json: GetEventsResult(events: [
           HeartbeatEvent(id: 2),
         ], queueId: null).toJson());
+        async.flushTimers();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      test('no abort when backoff is from a non-connectionFailed network error', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail with a transport error that isn't a failed connection
+        // (its kind is [NetworkExceptionKind.other]); see #1884 for why
+        // waking should cut short only failed-connection backoffs.
+        prepareNetworkException();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        final machineBefore = updateMachine.debugPollBackoffMachine;
+
+        // Coming to the foreground doesn't cut the backoff short,
+        // and doesn't discard the accumulated backoff state either.
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+        check(updateMachine.debugPollBackoffMachine).identicalTo(machineBefore);
+
+        // Polling continues after the backoff.
+        prepareHeartbeat(2);
         async.flushTimers();
         checkLastRequest(lastEventId: 1, expectDontBlock: true);
         check(updateMachine.lastEventId).equals(2);
