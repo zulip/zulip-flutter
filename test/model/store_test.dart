@@ -1171,6 +1171,37 @@ void main() {
         check(updateMachine.lastEventId).equals(2);
       }));
 
+      test('no abort when backoff is from a non-connectionFailed network error', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail with a transport error that isn't a failed connection:
+        // a TLS failure, as from an expired server certificate.
+        // See #1884 for why an app resume should cut short only
+        // failed-connection backoffs.
+        prepareNetworkExceptionOther();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        final machineBefore = updateMachine.debugPollBackoffMachine;
+        check(machineBefore).isNotNull();
+
+        // The app resuming doesn't cut the backoff short,
+        // and doesn't discard the accumulated backoff state either.
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+        check(updateMachine.debugPollBackoffMachine).identicalTo(machineBefore);
+
+        // Polling continues after the backoff.
+        prepareHeartbeat(2);
+        async.flushTimers();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
       test('no effect when no backoff in progress', () => awaitFakeAsync((async) async {
         await preparePoll(lastEventId: 1);
 
