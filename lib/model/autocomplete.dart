@@ -744,8 +744,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       if (tryOption(WildcardMentionOption.all)) break all;
       if (tryOption(WildcardMentionOption.everyone)) break all;
       if (isComposingChannelMessage) {
-        final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
-        if (isChannelWildcardAvailable && tryOption(WildcardMentionOption.channel)) break all;
+        if (tryOption(WildcardMentionOption.channel)) break all;
         if (tryOption(WildcardMentionOption.stream)) break all;
       }
     }
