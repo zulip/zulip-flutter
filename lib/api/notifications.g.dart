@@ -106,9 +106,7 @@ Map<String, dynamic> _$NotifPayloadRemoveToJson(NotifPayloadRemove instance) =>
 MessageLegacyFcmMessage _$MessageLegacyFcmMessageFromJson(
   Map<String, dynamic> json,
 ) => MessageLegacyFcmMessage(
-  realmUrl: Uri.parse(
-    LegacyFcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
-  ),
+  realmUrl: Uri.parse(json['realm_url'] as String),
   realmName: json['realm_name'] as String,
   userId: const _IntConverter().fromJson(json['user_id'] as String),
   senderId: const _IntConverter().fromJson(json['sender_id'] as String),
@@ -149,9 +147,7 @@ LegacyFcmMessageChannelRecipient _$LegacyFcmMessageChannelRecipientFromJson(
 RemoveLegacyFcmMessage _$RemoveLegacyFcmMessageFromJson(
   Map<String, dynamic> json,
 ) => RemoveLegacyFcmMessage(
-  realmUrl: Uri.parse(
-    LegacyFcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
-  ),
+  realmUrl: Uri.parse(json['realm_url'] as String),
   realmName: json['realm_name'] as String,
   userId: const _IntConverter().fromJson(json['user_id'] as String),
   messageIds: const _IntListConverter().fromJson(
