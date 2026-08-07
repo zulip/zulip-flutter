@@ -1275,9 +1275,6 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'إخطار القناة';
 
   @override
-  String get wildcardMentionStreamDescription => 'إخطار الدفق';
-
-  @override
   String get wildcardMentionAllDmDescription => 'إخطار المستلمين';
 
   @override
