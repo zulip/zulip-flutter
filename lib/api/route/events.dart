@@ -78,12 +78,13 @@ enum _IdleQueueTimeout {
 Future<GetEventsResult> getEvents(ApiConnection connection, {
   required String queueId, int? lastEventId, bool? dontBlock,
   Duration? timeout,
+  Future<void>? abortTrigger,
 }) {
   return connection.get('getEvents', GetEventsResult.fromJson, 'events', {
     'queue_id': RawParameter(queueId),
     'last_event_id': ?lastEventId,
     'dont_block': ?dontBlock,
-  }, timeout: timeout);
+  }, timeout: timeout, abortTrigger: abortTrigger);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
