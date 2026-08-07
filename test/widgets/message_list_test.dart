@@ -792,7 +792,7 @@ void main() {
           ..method.equals('GET')
           ..url.path.equals('/api/v1/messages')
           ..url.queryParameters.deepEquals({
-            'narrow': jsonEncode(resolveApiNarrowForServer(narrow.apiEncode(), connection.zulipFeatureLevel!)),
+            'narrow': jsonEncode(narrow.apiEncode()),
             'anchor': AnchorCode.firstUnread.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
             'num_after': kMessageListFetchBatchSize.toString(),
@@ -825,7 +825,7 @@ void main() {
           ..method.equals('GET')
           ..url.path.equals('/api/v1/messages')
           ..url.queryParameters.deepEquals({
-            'narrow': jsonEncode(resolveApiNarrowForServer(narrow.apiEncode(), connection.zulipFeatureLevel!)),
+            'narrow': jsonEncode(narrow.apiEncode()),
             'anchor': AnchorCode.firstUnread.toJson(),
             'num_before': kMessageListFetchBatchSize.toString(),
             'num_after': kMessageListFetchBatchSize.toString(),
@@ -1394,7 +1394,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
@@ -1651,7 +1651,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });

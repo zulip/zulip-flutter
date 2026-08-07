@@ -83,7 +83,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
@@ -172,7 +172,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
@@ -197,7 +197,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
@@ -216,7 +216,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
@@ -240,7 +240,7 @@ void main() {
               'include_anchor': 'false',
               'num_before': '0',
               'num_after': '1000',
-              'narrow': jsonEncode(resolveApiNarrowForServer(apiNarrow, connection.zulipFeatureLevel!)),
+              'narrow': jsonEncode(apiNarrow),
               'op': 'add',
               'flag': 'read',
             });
