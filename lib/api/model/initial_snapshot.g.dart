@@ -130,11 +130,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
         ),
       ),
   maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
-  serverThumbnailFormats:
-      (json['server_thumbnail_formats'] as List<dynamic>?)
-          ?.map((e) => ThumbnailFormat.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      [],
+  serverThumbnailFormats: (json['server_thumbnail_formats'] as List<dynamic>)
+      .map((e) => ThumbnailFormat.fromJson(e as Map<String, dynamic>))
+      .toList(),
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
   eventQueueLongpollTimeoutSeconds:
       (json['event_queue_longpoll_timeout_seconds'] as num).toInt(),
