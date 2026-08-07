@@ -16,7 +16,7 @@ enum WildcardMentionOption {
   all(canonicalString: 'all'),
   everyone(canonicalString: 'everyone'),
   channel(canonicalString: 'channel'),
-  // TODO(server-9): Deprecated in FL 247. Empirically, current servers (FL 339)
+  // Deprecated in FL 247. Empirically, current servers (FL 500)
   // still parse "@**stream**" in messages though.
   stream(canonicalString: 'stream'),
   topic(canonicalString: 'topic');
@@ -159,22 +159,15 @@ String _userMentionImpl({required bool silent, required String fullName, int? us
   '@${silent ? '_' : ''}**$fullName${userId != null ? '|$userId' : ''}**';
 
 /// An @-mention of all the users in a conversation, like @**channel**.
-String wildcardMention(WildcardMentionOption wildcardOption, {
-  required PerAccountStore store,
-}) {
-  final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
-
+String wildcardMention(WildcardMentionOption wildcardOption) {
   String name = wildcardOption.canonicalString;
   switch (wildcardOption) {
     case WildcardMentionOption.all:
     case WildcardMentionOption.everyone:
-      break;
     case WildcardMentionOption.channel:
-      assert(isChannelWildcardAvailable);
+      break;
     case WildcardMentionOption.stream:
-      if (isChannelWildcardAvailable) {
-        name = WildcardMentionOption.channel.canonicalString;
-      }
+      name = WildcardMentionOption.channel.canonicalString;
     case WildcardMentionOption.topic:
       break;
   }
