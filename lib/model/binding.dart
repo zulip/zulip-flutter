@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart' as connectivity_plus;
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
@@ -21,6 +22,7 @@ import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
 import 'store.dart';
 
+export 'package:connectivity_plus/connectivity_plus.dart' show ConnectivityResult;
 export 'package:file_picker/file_picker.dart' show FilePickerResult, FileType, PlatformFile;
 export 'package:image_picker/image_picker.dart' show ImageSource, XFile;
 
@@ -142,6 +144,38 @@ abstract class ZulipBinding {
   /// A broadcast stream of the app's lifecycle-state changes,
   /// via [AppLifecycleListener.onStateChange].
   Stream<AppLifecycleState> get appLifecycleStateChanges;
+
+  /// A broadcast stream of updates on the device's network connectivity,
+  /// via package:connectivity_plus.
+  ///
+  /// An event describes the connectivity state as a whole, not a delta.
+  ///
+  /// While the app is in the background, updates may be dropped
+  /// rather than delivered on returning to the foreground;
+  /// to learn of a change that happened in the background,
+  /// use [checkConnectivity].
+  /// For the Android behavior, see the plugin README:
+  ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/README.md#android
+  /// For iOS, see the guard in the plugin implementation:
+  ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/ios/connectivity_plus/Sources/connectivity_plus/ConnectivityPlusPlugin.swift#L87-L92
+  ///
+  /// A subscriber's first event may describe the current state
+  /// rather than a change:
+  /// both platform implementations emit the current state
+  /// when the underlying platform channel gains its first listener,
+  /// while a subscriber that joins an already-listening channel
+  /// just sees the next change.  For the initial emissions, see:
+  ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/android/src/main/java/dev/fluttercommunity/plus/connectivity/ConnectivityBroadcastReceiver.java#L87-L89
+  ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/ios/connectivity_plus/Sources/connectivity_plus/ConnectivityPlusPlugin.swift#L73-L80
+  ///
+  /// This wraps [connectivity_plus.Connectivity.onConnectivityChanged].
+  Stream<List<connectivity_plus.ConnectivityResult>> get connectivityChanges;
+
+  /// The device's current network connectivity,
+  /// via package:connectivity_plus.
+  ///
+  /// This wraps [connectivity_plus.Connectivity.checkConnectivity].
+  Future<List<connectivity_plus.ConnectivityResult>> checkConnectivity();
 
   /// Provides device and operating system information,
   /// via package:device_info_plus.
@@ -489,6 +523,14 @@ class LiveZulipBinding extends ZulipBinding {
     AppLifecycleListener(onStateChange: controller.add);
     return controller.stream;
   }
+
+  @override
+  Stream<List<connectivity_plus.ConnectivityResult>> get connectivityChanges =>
+    connectivity_plus.Connectivity().onConnectivityChanged;
+
+  @override
+  Future<List<connectivity_plus.ConnectivityResult>> checkConnectivity() =>
+    connectivity_plus.Connectivity().checkConnectivity();
 
   @override
   Future<BaseDeviceInfo?> get deviceInfo => _deviceInfo;
