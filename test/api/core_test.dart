@@ -557,6 +557,14 @@ void main() {
     await checkMalformed(  json: {'x': 3},   fromJson: (json) => json['x'] as String);
   });
 
+  test('unexpected error while reading response body fails an assert', () async {
+    // (In a release build, this would instead fall through
+    // to be treated like a malformed response.)
+    await check(tryRequest(body: '{"result',
+        bodyException: StateError('surprise')))
+      .throws<AssertionError>();
+  });
+
   test('malformed API success responses: exception preserves details', () async {
     int distinctivelyNamedFromJson(Map<String, dynamic> json) {
       throw DistinctiveError("something is wrong");

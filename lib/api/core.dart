@@ -201,9 +201,15 @@ class ApiConnection {
     } on IOException catch (e) {
       // As above: a network error, arriving with its original type.
       if (httpStatus == 200) _throwNetworkException(routeName, e);
-    } catch (_) {
+    } on FormatException {
       // The response body arrived but wasn't valid UTF-8-encoded JSON.
       // We'll throw something below, seeing `json` is null.
+    } on TypeError {
+      // The body was valid JSON, but not a JSON object.  As above.
+    } catch (e) { // TODO(log)
+      // Unexpected.  In debug mode, fail loudly; in a release build,
+      // fall through and throw below, seeing `json` is null.
+      assert(false, 'unexpected error reading response body: $e');
     }
 
     if (httpStatus != 200 || json == null) {
