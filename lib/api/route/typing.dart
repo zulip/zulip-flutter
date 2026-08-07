@@ -11,19 +11,16 @@ Future<void> setTypingStatus(ApiConnection connection, {
   switch (destination) {
     case StreamDestination():
       final supportsTypeChannel = connection.zulipFeatureLevel! >= 248; // TODO(server-9)
-      final supportsStreamId = connection.zulipFeatureLevel! >= 215; // TODO(server-8)
       return connection.post('setTypingStatus', (_) {}, 'typing', {
-        'op':    RawParameter(op.toJson()),
-        'type':  RawParameter(supportsTypeChannel ? 'channel' : 'stream'),
-        if (supportsStreamId) 'stream_id': destination.streamId
-        else                  'to': [destination.streamId],
-        'topic': RawParameter(destination.topic.apiName),
+        'op':        RawParameter(op.toJson()),
+        'type':      RawParameter(supportsTypeChannel ? 'channel' : 'stream'),
+        'stream_id': destination.streamId,
+        'topic':     RawParameter(destination.topic.apiName),
       });
     case DmDestination():
-      final supportsDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
       return connection.post('setTypingStatus', (_) {}, 'typing', {
         'op':   RawParameter(op.toJson()),
-        'type': RawParameter(supportsDirect ? 'direct' : 'private'),
+        'type': RawParameter('direct'),
         'to':   destination.userIds,
       });
   }

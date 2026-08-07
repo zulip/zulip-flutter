@@ -698,7 +698,6 @@ class ZulipStream {
   GroupSettingValue? canSubscribeGroup; // TODO(server-10)
 
   bool? isRecentlyActive; // TODO(server-10)
-  // TODO(server-8): added in FL 199, was previously only on [Subscription] objects
   int? streamWeeklyTraffic;
 
   ZulipStream({
@@ -986,8 +985,8 @@ class ChannelFolder {
 enum UserTopicVisibilityPolicy {
   none(apiValue: 0),
   muted(apiValue: 1),
-  unmuted(apiValue: 2), // TODO(server-7) newly added
-  followed(apiValue: 3), // TODO(server-8) newly added
+  unmuted(apiValue: 2),
+  followed(apiValue: 3),
   unknown(apiValue: null); // TODO(#1074) remove this
 
   const UserTopicVisibilityPolicy({required this.apiValue});
@@ -1298,7 +1297,6 @@ enum MessageFlag {
   mentioned,
   topicWildcardMentioned,
   streamWildcardMentioned,
-  wildcardMentioned, // TODO(server-8) Remove deprecated flag.
   hasAlertWord,
   historical,
   unknown;
@@ -1321,7 +1319,6 @@ enum MessageFlag {
       case MessageFlag.mentioned:
       case MessageFlag.topicWildcardMentioned:
       case MessageFlag.streamWildcardMentioned:
-      case MessageFlag.wildcardMentioned:
         return true;
 
       case MessageFlag.read:

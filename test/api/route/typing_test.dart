@@ -74,29 +74,4 @@ void main() {
         });
     });
   });
-
-  test('legacy: use to=[streamId] instead of stream_id=streamId', () {
-    return FakeApiConnection.with_(zulipFeatureLevel: 214, (connection) {
-      return checkSetTypingStatus(connection, TypingOp.start,
-        destination: const StreamDestination(streamId, TopicName(topic)),
-        expectedBodyFields: {
-          'op': 'start',
-          'type': 'stream',
-          'to': jsonEncode([streamId]),
-          'topic': topic,
-        });
-    });
-  });
-
-  test('legacy: use "private" instead of "direct"', () {
-    return FakeApiConnection.with_(zulipFeatureLevel: 173, (connection) {
-      return checkSetTypingStatus(connection, TypingOp.start,
-        destination: const DmDestination(userIds: userIds),
-        expectedBodyFields: {
-          'op': 'start',
-          'type': 'private',
-          'to': jsonEncode(userIds),
-        });
-    });
-  });
 }

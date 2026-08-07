@@ -126,7 +126,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   /// Unread messages with the self-user @-mentioned, directly or by wildcard.
   ///
   /// At initialization, if a message is:
-  ///   1) muted because of the user's stream- and topic-level choices [1], and
+  ///   1) muted because of the user's stream- and topic-level choices, and
   ///   2) wildcard mentioned but not directly mentioned
   /// then it will be absent, and its unread state will be unknown to [mentions]
   /// because the message is absent in [UnreadMessagesSnapshot]:
@@ -137,18 +137,11 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
   ///   b) the message gains a direct @-mention ([UpdateMessageFlagsEvent]), or
   ///   c) TODO unimplemented: the user loads the message in the message list
   /// But otherwise, assume its unread state remains unknown to [mentions].
-  ///
-  /// [1] This item applies verbatim at Server 8.0+. For older servers, the
-  ///     item would say "in a muted stream" because the "unmute topic"
-  ///     feature was not considered:
-  ///       https://chat.zulip.org/#narrow/stream/412-api-documentation/topic/register.3A.20.60unread_msgs.2Ementions.60/near/1645622
   // If a message's unread state is unknown, it's likely the user doesn't
   // care about it anyway -- it's really old, or it's in a muted conversation.
   // Still, good to recover the knowledge when possible. In the rare case
   // that a user shows they are interested, like by unmuting or loading messages
   // in the message list, it's important to display as much known state as we can.
-  //
-  // TODO(server-8) Remove [1].
   final Set<int> mentions;
 
   /// Whether the model is missing data on old unread messages.
@@ -442,7 +435,6 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
       case MessageFlag.mentioned:
       case MessageFlag.topicWildcardMentioned:
       case MessageFlag.streamWildcardMentioned:
-      case MessageFlag.wildcardMentioned:
         // Empirically, we don't seem to get these events when a message is edited
         // to add/remove an @-mention, even though @-mention state is represented
         // as flags. Instead, we just get the [UpdateMessageEvent], and that

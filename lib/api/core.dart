@@ -15,8 +15,6 @@ import 'exception.dart';
 ///
 /// When updating this, also update [kMinAllowedZulipFeatureLevel]
 /// and the README.
-// TODO(#1838) address all TODO(server-7)
-// TODO(#2362) address all TODO(server-8)
 // TODO(#2363) address all TODO(server-9)
 const kMinAllowedZulipVersion = '9.0';
 
@@ -154,7 +152,6 @@ class ApiConnection {
   Future<T> send<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
     http.BaseRequest request, {
     bool useAuth = true,
-    String? overrideUserAgent,
   }) async {
     assert(_isOpen);
 
@@ -170,11 +167,7 @@ class ApiConnection {
       addAuth(request);
     }
 
-    if (overrideUserAgent != null) {
-      request.headers['User-Agent'] = overrideUserAgent;
-    } else {
-      addUserAgent(request);
-    }
+    addUserAgent(request);
 
     final http.StreamedResponse response;
     try {
@@ -237,13 +230,13 @@ class ApiConnection {
   }
 
   Future<T> post<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      String path, Map<String, dynamic>? params, {String? overrideUserAgent}) async {
+      String path, Map<String, dynamic>? params) async {
     final url = realmUrl.replace(path: "/api/v1/$path");
     final request = http.Request('POST', url);
     if (params != null) {
       request.bodyFields = encodeParameters(params)!;
     }
-    return send(routeName, fromJson, request, overrideUserAgent: overrideUserAgent);
+    return send(routeName, fromJson, request);
   }
 
   Future<T> postFileFromStream<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
