@@ -122,7 +122,6 @@ class InitialSnapshot {
 
   final int maxFileUploadSizeMib;
 
-  @JsonKey(defaultValue: []) // TODO(server-9) remove default value
   final List<ThumbnailFormat> serverThumbnailFormats;
 
   final Uri serverEmojiDataUrl;
