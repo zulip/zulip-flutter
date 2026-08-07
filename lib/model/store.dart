@@ -1698,24 +1698,44 @@ class UpdateMachine {
 
   StreamSubscription<AppLifecycleState>? _appLifecycleSubscription;
 
-  /// Non-null just when the most recent poll failure suggests
-  /// the device was asleep or the app was in the background,
-  /// so that waking should discard the accumulated backoff state.
+  /// Non-null just when the poll loop is in, or headed for, a backoff wait
+  /// after a transport failure: one where no complete response arrived,
+  /// so that the network is a plausible culprit.
   ///
   /// Completing it aborts the backoff wait in progress, if any.
-  /// See [_handleAppLifecycleStateChange].
+  /// See [_abortPollBackoff] and [_handleAppLifecycleStateChange].
   Completer<void>? _pollBackoffAbortTrigger;
+
+  /// Whether waking should discard the backoff state
+  /// from the latest poll failure,
+  /// aborting the backoff wait in progress, if any.
+  ///
+  /// Waking is weaker evidence about a failure's cause than a
+  /// connectivity change is: it should cut backoff short only when the
+  /// failure looked sleep-induced (a failed connection; see #1884),
+  /// not for other transport failures.
+  bool _pollBackoffAbortableOnWake = false;
+
+  /// Abort the backoff wait of [_pollBackoffAbortTrigger],
+  /// if one is in progress,
+  /// and discard the accumulated backoff state
+  /// so that after any further failure, backoff starts over small.
+  void _abortPollBackoff() {
+    final trigger = _pollBackoffAbortTrigger;
+    _pollBackoffMachine = null;
+    _pollBackoffAbortTrigger = null;
+    trigger?.complete();
+  }
 
   void _handleAppLifecycleStateChange(AppLifecycleState state) {
     assert(!_disposed); // The subscription is canceled in [dispose].
     if (state != .resumed) return;
-    if (_pollBackoffAbortTrigger case final trigger?) {
+    if (_pollBackoffAbortableOnWake && _pollBackoffMachine != null) {
       // Retry immediately, and if the network still isn't back
       // (it can take a moment after waking), let backoff start over small.
+      // (With no wait in progress, this just discards the backoff state.)
       assert(debugLog('App returned to foreground; aborting poll backoff.'));
-      _pollBackoffMachine = null;
-      _pollBackoffAbortTrigger = null;
-      trigger.complete();
+      _abortPollBackoff();
     }
   }
 
@@ -1746,6 +1766,7 @@ class UpdateMachine {
     // If server logs show pressure from too many requests, we can investigate.
     _pollBackoffMachine = null;
     _pollBackoffAbortTrigger = null;
+    _pollBackoffAbortableOnWake = false;
 
     store.isRecoveringEventStream = false;
     _accumulatedTransientFailureCount = 0;
@@ -1810,9 +1831,17 @@ class UpdateMachine {
     if (shouldReportToUser) {
       _maybeReportToUserTransientError(error);
     }
-    _pollBackoffAbortTrigger = abortBackoffOnWake ? Completer() : null;
+    // Any NetworkException means the transport failed before a complete
+    // response arrived, so the network is a plausible culprit and a
+    // network-connectivity change is evidence about the failure's cause:
+    // let such a change abort the wait, for an immediate retry.
+    // When the server did respond (a 5xx or a rate limit), a network
+    // change is no such evidence; let the wait run.
+    _pollBackoffAbortTrigger = (error is NetworkException) ? Completer() : null;
+    _pollBackoffAbortableOnWake = abortBackoffOnWake;
     await (_pollBackoffMachine ??= BackoffMachine())
       .wait(abortTrigger: _pollBackoffAbortTrigger?.future);
+    _pollBackoffAbortTrigger = null;
     if (_disposed) return;
     assert(debugLog('… Backoff wait complete, retrying poll.'));
   }
