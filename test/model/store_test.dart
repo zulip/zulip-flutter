@@ -574,6 +574,19 @@ void main() {
     });
   });
 
+  test('dispose connectivityMonitor with the GlobalStore', () => awaitFakeAsync((async) async {
+    addTearDown(testBinding.reset);
+    final globalStore = eg.globalStore();
+    final monitor = globalStore.connectivityMonitor;
+    async.flushMicrotasks();
+    final countBefore = monitor.updateCount;
+
+    globalStore.dispose();
+    testBinding.notifyConnectivityChanged([.mobile]);
+    async.flushMicrotasks();
+    check(monitor.updateCount).equals(countBefore);
+  }));
+
   group('PerAccountStore.handleEvent', () {
     // Mostly this method just dispatches to ChannelStore and MessageStore etc.,
     // and so its tests generally live in the test files for those
