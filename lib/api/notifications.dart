@@ -303,7 +303,6 @@ sealed class LegacyFcmMessageWithIdentity extends LegacyFcmMessage implements No
   /// This is a real, absolute URL which is the base for all URLs a client uses
   /// with this realm.  It corresponds to [GetServerSettingsResult.realmUri].
   @override
-  @JsonKey(readValue: _readRealmUrl) // TODO(server-9)
   final Uri realmUrl;
 
   /// The realm's name.
@@ -323,11 +322,6 @@ sealed class LegacyFcmMessageWithIdentity extends LegacyFcmMessage implements No
     required this.realmName,
     required this.userId,
   });
-
-  // TODO(server-9): FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
-  static String _readRealmUrl(Map<dynamic, dynamic> json, String key) {
-    return (json['realm_url'] ?? json['realm_uri']) as String;
-  }
 }
 
 /// Parsed version of a legacy plaintext FCM message of type `message`.
@@ -403,7 +397,6 @@ class MessageLegacyFcmMessage extends LegacyFcmMessageWithIdentity implements No
         if (recipient.channelName != null) result['stream'] = recipient.channelName;
         result['topic'] = recipient.topic;
     }
-    result['realm_uri'] = realmUrl.toString(); // TODO(server-9): deprecated in FL 257
     return result;
   }
 }
@@ -506,11 +499,7 @@ class RemoveLegacyFcmMessage extends LegacyFcmMessageWithIdentity implements Not
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final result = _$RemoveLegacyFcmMessageToJson(this);
-    result['realm_uri'] = realmUrl.toString(); // TODO(server-9): deprecated in FL 257
-    return result;
-  }
+  Map<String, dynamic> toJson() => _$RemoveLegacyFcmMessageToJson(this);
 }
 
 class _IntListConverter extends JsonConverter<List<int>, String> {
