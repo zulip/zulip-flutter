@@ -977,7 +977,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
       processResult: (result) {
-        _oldestFetchedMessageId = result.messages.firstOrNull?.id ?? _oldestFetchedMessageId;
+        if (result.messages.isNotEmpty) {
+          _oldestFetchedMessageId = result.messages.first.id;
+        }
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -1008,7 +1010,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numBefore: 0,
       numAfter: kMessageListFetchBatchSize,
       processResult: (result) {
-        _newestFetchedMessageId = result.messages.lastOrNull?.id ?? _newestFetchedMessageId;
+        if (result.messages.isNotEmpty) {
+          _newestFetchedMessageId = result.messages.last.id;
+        }
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
