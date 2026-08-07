@@ -3,7 +3,6 @@ import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/model/localizations.dart';
-import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
 import 'binding.dart';
@@ -296,27 +295,15 @@ hello
     });
 
     test('wildcard', () {
-      PerAccountStore store({int? zulipFeatureLevel}) {
-        return eg.store(
-          account: eg.account(user: eg.selfUser,
-            zulipFeatureLevel: zulipFeatureLevel),
-          initialSnapshot: eg.initialSnapshot(
-            zulipFeatureLevel: zulipFeatureLevel));
-      }
-
-      check(wildcardMention(WildcardMentionOption.all, store: store()))
+      check(wildcardMention(WildcardMentionOption.all))
         .equals('@**all**');
-      check(wildcardMention(WildcardMentionOption.everyone, store: store()))
+      check(wildcardMention(WildcardMentionOption.everyone))
         .equals('@**everyone**');
-      check(wildcardMention(WildcardMentionOption.channel, store: store()))
+      check(wildcardMention(WildcardMentionOption.channel))
         .equals('@**channel**');
-      check(wildcardMention(WildcardMentionOption.stream,
-          store: store(zulipFeatureLevel: 247)))
+      check(wildcardMention(WildcardMentionOption.stream))
         .equals('@**channel**');
-      check(wildcardMention(WildcardMentionOption.stream,
-          store: store(zulipFeatureLevel: 246)))
-        .equals('@**stream**');
-      check(wildcardMention(WildcardMentionOption.topic, store: store()))
+      check(wildcardMention(WildcardMentionOption.topic))
         .equals('@**topic**');
     });
 
