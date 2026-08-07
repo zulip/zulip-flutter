@@ -1289,9 +1289,6 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'Powiadom w kanale';
 
   @override
-  String get wildcardMentionStreamDescription => 'Powiadom w strumieniu';
-
-  @override
   String get wildcardMentionAllDmDescription => 'Powiadom zainteresowanych';
 
   @override

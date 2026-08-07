@@ -1309,10 +1309,6 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Notifier tous les abonnés du canal';
 
   @override
-  String get wildcardMentionStreamDescription =>
-      'Notifier tous les abonnés du canal';
-
-  @override
   String get wildcardMentionAllDmDescription => 'Notifier les destinataires';
 
   @override

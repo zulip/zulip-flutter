@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/emoji.dart';
-import '../model/store.dart';
 import 'emoji.dart';
 import 'icons.dart';
 import 'store.dart';
@@ -281,21 +280,15 @@ class MentionAutocompleteItem extends StatelessWidget {
 
   String wildcardSublabel(WildcardMentionOption wildcardOption, {
     required BuildContext context,
-    required PerAccountStore store,
   }) {
     final isDmNarrow = narrow is DmNarrow;
-    final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
     final zulipLocalizations = ZulipLocalizations.of(context);
     return switch (wildcardOption) {
       WildcardMentionOption.all || WildcardMentionOption.everyone => isDmNarrow
         ? zulipLocalizations.wildcardMentionAllDmDescription
-        : isChannelWildcardAvailable
-            ? zulipLocalizations.wildcardMentionChannelDescription
-            : zulipLocalizations.wildcardMentionStreamDescription,
-      WildcardMentionOption.channel => zulipLocalizations.wildcardMentionChannelDescription,
-      WildcardMentionOption.stream => isChannelWildcardAvailable
-        ? zulipLocalizations.wildcardMentionChannelDescription
-        : zulipLocalizations.wildcardMentionStreamDescription,
+        : zulipLocalizations.wildcardMentionChannelDescription,
+      WildcardMentionOption.channel || WildcardMentionOption.stream =>
+        zulipLocalizations.wildcardMentionChannelDescription,
       WildcardMentionOption.topic => zulipLocalizations.wildcardMentionTopicDescription,
     };
   }
@@ -336,7 +329,7 @@ class MentionAutocompleteItem extends StatelessWidget {
           child: const Icon(ZulipIcons.three_person, size: 24));
         label = wildcardOption.canonicalString;
         emoji = null;
-        sublabel = wildcardSublabel(wildcardOption, context: context, store: store);
+        sublabel = wildcardSublabel(wildcardOption, context: context);
     }
 
     final labelWidget = Row(children: [
