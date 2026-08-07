@@ -50,7 +50,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
 }) {
   assert(allowEmptyTopicName, '`allowEmptyTopicName` should only be true');
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
-    'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
+    'narrow': narrow,
     'anchor': RawParameter(anchor.toJson()),
     'include_anchor': ?includeAnchor,
     'num_before': numBefore,
@@ -407,7 +407,7 @@ Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnect
     'include_anchor': ?includeAnchor,
     'num_before': numBefore,
     'num_after': numAfter,
-    'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
+    'narrow': narrow,
     'op': RawParameter(op.toJson()),
     'flag': RawParameter(flag.toJson()),
   });

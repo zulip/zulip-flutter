@@ -6,36 +6,6 @@ part 'narrow.g.dart';
 
 typedef ApiNarrow = List<ApiNarrowElement>;
 
-/// Adapt the given narrow to be sent to the given Zulip server version.
-///
-/// Any elements that are unknown to old servers and can
-/// reasonably be omitted will be omitted.
-ApiNarrow resolveApiNarrowForServer(ApiNarrow narrow, int zulipFeatureLevel) {
-  final supportsOperatorWith = zulipFeatureLevel >= 271; // TODO(server-9)
-
-  bool hasWithElement = false;
-  for (final element in narrow) {
-    switch (element) {
-      case ApiNarrowWith(): hasWithElement = true;
-      default:
-    }
-  }
-  if (!(hasWithElement && !supportsOperatorWith)) {
-    return narrow;
-  }
-
-  final result = <ApiNarrowElement>[];
-  for (final element in narrow) {
-    switch (element) {
-      case ApiNarrowWith() when !supportsOperatorWith:
-        break; // drop unsupported element
-      default:
-        result.add(element);
-    }
-  }
-  return result;
-}
-
 /// An element in the list representing a narrow in the Zulip API.
 ///
 /// Docs: <https://zulip.com/api/construct-narrow>
@@ -182,8 +152,6 @@ enum IsOperand {
 }
 
 /// An [ApiNarrowElement] with the 'with' operator.
-///
-/// If part of [ApiNarrow] use [resolveApiNarrowForServer].
 class ApiNarrowWith extends ApiNarrowElement {
   @override String get operator => 'with';
 
