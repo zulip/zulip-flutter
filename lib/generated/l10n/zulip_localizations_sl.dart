@@ -1308,9 +1308,6 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'Obvesti kanal';
 
   @override
-  String get wildcardMentionStreamDescription => 'Obvesti tok';
-
-  @override
   String get wildcardMentionAllDmDescription => 'Obvesti prejemnike';
 
   @override

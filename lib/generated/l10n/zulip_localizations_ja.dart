@@ -1242,9 +1242,6 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'チャンネル参加者に通知';
 
   @override
-  String get wildcardMentionStreamDescription => 'ストリーム参加者に通知';
-
-  @override
   String get wildcardMentionAllDmDescription => '受信者に通知';
 
   @override
