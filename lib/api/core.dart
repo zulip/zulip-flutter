@@ -301,6 +301,32 @@ class ApiConnection {
   }
 }
 
+/// OS-level socket error texts that can arrive as the whole message of a
+/// bare [http.ClientException], the exception type erased on the way
+/// (see #2417).
+///
+/// (The pipeline, as of Dart 3.14 / package:http 1.6.0, August 2026:
+/// dart:io wraps the OS error text in a [SocketException];
+/// `_HttpClientConnection`'s socket-error handler flattens that to
+/// `HttpException(message)`; and `IOClient` rethrows it as a
+/// `ClientException`.)
+///
+/// These are strerror(3) texts, so the set is inherently best-effort:
+/// this covers the common POSIX texts (shared by Android, iOS, and Linux,
+/// except as noted); texts from other platforms can be added as observed.
+// TODO(#461): moot once we use the platform-native HTTP clients,
+//   which classify these errors natively.
+const _erasedSocketErrorMessages = {
+  'Software caused connection abort', // ECONNABORTED
+  'Connection reset by peer', // ECONNRESET
+  'Connection timed out', // ETIMEDOUT
+  'Operation timed out', // ETIMEDOUT (Darwin)
+  'No route to host', // EHOSTUNREACH
+  'Network is unreachable', // ENETUNREACH
+  'Network is down', // ENETDOWN
+  'Broken pipe', // EPIPE
+};
+
 /// Throw a [NetworkException] wrapping the given exception
 /// from the underlying HTTP client.
 Never _throwNetworkException(String routeName, Object cause) {
@@ -316,6 +342,21 @@ Never _throwNetworkException(String routeName, Object cause) {
     SocketException() && http.ClientException(:final message) =>
       (.connectionFailed, message),
     SocketException() => (.connectionFailed, zulipLocalizations.errorNetworkRequestFailed),
+    // A connection that died mid-request, its type erased to a bare
+    // ClientException on the way to us, so that only the message
+    // identifies it.  See #2417 for how these arise and why we match
+    // on the message; take care not to match persistent failures,
+    // like redirect loops, which would falsely classify as routine.
+    // TODO(upstream): have IOClient preserve the type instead, as it
+    //   already does for SocketException.
+    http.ClientException(:final message)
+        // dart:io's orderly-close messages, from _HttpParser
+        // and _HttpClientConnection…
+        when message.startsWith('Connection closed')
+          // …and their one stray, from _HttpClientConnection.send:
+          || message == 'Socket closed before request was sent'
+          || _erasedSocketErrorMessages.contains(message) =>
+      (.connectionFailed, zulipLocalizations.errorNetworkRequestFailed),
     http.ClientException(:final message) => (.other, message),
     TlsException(:final message) => (.other, message),
     _ => (.other, zulipLocalizations.errorNetworkRequestFailed),

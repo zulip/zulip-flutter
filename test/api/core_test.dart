@@ -298,6 +298,63 @@ void main() {
       ..kind.equals(.other)
       ..message.equals('Oops')
       ..asString.equals('NetworkException: Oops (ClientException: Oops)'));
+    // What `IOClient` actually throws when the connection dies mid-request:
+    // dart:io's HttpException, rewrapped as a plain ClientException,
+    // recognizable only by its message.
+    checkRequest(
+      http.ClientException('Connection closed before full header was received'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    checkRequest(
+      http.ClientException('Connection closed while receiving data'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    // An asynchronous socket error while awaiting the response arrives
+    // with the OS error text as the whole message.  This one is routine
+    // on Android when the OS cuts network access in the background…
+    checkRequest(
+      http.ClientException('Software caused connection abort'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    // …and the rest of the strerror family arrives the same way.
+    checkRequest(
+      http.ClientException('Connection reset by peer'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    checkRequest(
+      http.ClientException('Operation timed out'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    // A connection that died while the request was still being sent
+    // gets its own message, outside the "Connection closed" family.
+    checkRequest(
+      http.ClientException('Socket closed before request was sent'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    // Redirect errors arrive through the same rethrow (RedirectException
+    // implements HttpException), but are persistent failures; they keep
+    // the reported kind.
+    checkRequest(http.ClientException('Redirect loop detected'), (it) => it
+      ..kind.equals(.other)
+      ..message.equals('Redirect loop detected'));
+    // So does a request started after [ApiConnection.close] tore down
+    // the client; there'd be no client left to retry it on.
+    // (A request still in flight at close time instead fails with
+    // 'Connection closed before full header was received', matched
+    // above as connectionFailed.  That's accurate -- the connection
+    // was lost -- and callers that retry on connectionFailed, like
+    // the poll loop, check for disposal before retrying.)
+    checkRequest(
+      http.ClientException('HTTP request failed. Client is already closed.'),
+      (it) => it
+        ..kind.equals(.other)
+        ..message.equals('HTTP request failed. Client is already closed.'));
     checkRequest(const TlsException('Oops'), (it) => it
       ..kind.equals(.other)
       ..message.equals('Oops')
