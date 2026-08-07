@@ -17,6 +17,7 @@ import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/model/connectivity.dart';
 import 'package:zulip/model/presence.dart';
 import 'package:zulip/model/server_support.dart';
 import 'package:zulip/model/store.dart';
@@ -842,8 +843,8 @@ void main() {
         });
     }
 
-    void prepareHeartbeat(int eventId) {
-      connection.prepare(json: GetEventsResult(events: [
+    void prepareHeartbeat(int eventId, {Duration delay = Duration.zero}) {
+      connection.prepare(delay: delay, json: GetEventsResult(events: [
         HeartbeatEvent(id: eventId),
       ], queueId: null).toJson());
     }
@@ -1229,6 +1230,145 @@ void main() {
 
         updateMachine.dispose();
         testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+      }));
+    });
+
+    group('abort stalled poll on connectivity change', () {
+      /// Start a poll request that gets stuck
+      /// (see [prepareStuckPollResponse]).
+      void startStuckPoll(FakeAsync async) {
+        prepareStuckPollResponse();
+        updateMachine.debugAdvanceLoop();
+        async.flushMicrotasks();
+        checkLastRequest(lastEventId: 1);
+      }
+
+      test('abort request stuck awaiting response', () => awaitFakeAsync((async) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/2415
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        startStuckPoll(async);
+        async.elapse(const Duration(seconds: 30));
+
+        // On a connectivity change, the stuck request is aborted.
+        // It fails like any failed request -- the recovering state
+        // shows -- but with the backoff state discarded, so the retry
+        // goes out after just the initial backoff.
+        prepareHeartbeat(2);
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([.mobile]);
+        async.flushMicrotasks();
+        check(store).isRecoveringEventStream.isTrue();
+        async.elapse(const Duration(seconds: 1));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+        check(store).isRecoveringEventStream.isFalse();
+      }));
+
+      test('discard accumulated backoff state on abort', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail once, so that backoff state accumulates.
+        prepareServer5xxException();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+
+        // The retry gets stuck.
+        prepareStuckPollResponse();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(const Duration(seconds: 1));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        final machineBefore = updateMachine.debugPollBackoffMachine;
+        check(machineBefore).isNotNull();
+
+        // The abort discards the accumulated backoff state: after the
+        // failed request, error handling creates a fresh backoff machine.
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([.mobile]);
+        async.flushMicrotasks();
+        check(updateMachine.debugPollBackoffMachine)
+          ..isNotNull()
+          ..not((it) => it.identicalTo(machineBefore));
+      }));
+
+      test('deferred retry signal: abort a retry that predates the change', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        startStuckPoll(async);
+
+        // The first change aborts the poll…
+        prepareStuckPollResponse();
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([.mobile]);
+        async.elapse(const Duration(seconds: 1));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+
+        // …but another change soon after doesn't abort the retry
+        // immediately…
+        // (Let the loop run, so that an abort would show up as a retry.)
+        prepareHeartbeat(2);
+        updateMachine.debugAdvanceLoop();
+        async.elapse(const Duration(seconds: 4));
+        testBinding.notifyConnectivityChanged([.wifi]);
+        async.elapse(const Duration(seconds: 4));
+        check(connection.lastRequest).isNull();
+
+        // …only when the deferred signal comes at the cooldown's end:
+        // the retry predates that change, so its connection is suspect too.
+        async.elapse(const Duration(seconds: 2));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      test('deferred retry signal: no abort once a fresh request has started', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        startStuckPoll(async);
+
+        // A change aborts the poll; the retry is slow but healthy.
+        prepareHeartbeat(2, delay: const Duration(seconds: 5));
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([.mobile]);
+        final cooldownEnd = async.elapsed + ConnectivityMonitor.retrySignalCooldown;
+        async.elapse(const Duration(seconds: 1));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+
+        // Another change lands during the cooldown, deferred.
+        async.elapse(const Duration(seconds: 2));
+        testBinding.notifyConnectivityChanged([.wifi]);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+
+        // The retry completes, and the next poll goes out --
+        // a request made after the change, on the current network.
+        prepareStuckPollResponse();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(const Duration(seconds: 3));
+        checkLastRequest(lastEventId: 2);
+        check(updateMachine.lastEventId).equals(2);
+
+        // So when the cooldown ends, the deferred change is moot:
+        // the poll is left alone.
+        async.elapse(cooldownEnd - async.elapsed);
+        check(connection.lastRequest).isNull();
+        check(store).isRecoveringEventStream.isFalse();
+      }));
+
+      test('no effect after dispose', () => awaitFakeAsync((async) async {
+        await preparePoll(lastEventId: 1);
+
+        updateMachine.dispose();
+        testBinding.notifyConnectivityChanged([.mobile]);
         async.flushMicrotasks();
       }));
     });

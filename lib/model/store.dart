@@ -1652,6 +1652,9 @@ class UpdateMachine {
 
   void poll() async {
     assert(!_disposed);
+    assert(_retrySignalSubscription == null);
+    _retrySignalSubscription = _connectivityMonitor.retrySignals
+      .listen(_handleConnectivityRetrySignal);
     assert(_appLifecycleSubscription == null);
     _appLifecycleSubscription = ZulipBinding.instance.appLifecycleStateChanges
       .listen(_handleAppLifecycleStateChange);
@@ -1663,6 +1666,12 @@ class UpdateMachine {
         }
 
         final GetEventsResult result;
+        assert(_pollAbortTrigger == null);
+        final abortTrigger = Completer<void>();
+        _pollAbortTrigger = abortTrigger;
+        // Record the monitor's count as of this request;
+        // see [_handleConnectivityRetrySignal].
+        _pollConnectivityCount = _connectivityMonitor.updateCount;
         try {
           result = await getEvents(store.connection,
             queueId: store.queueId,
@@ -1674,9 +1683,14 @@ class UpdateMachine {
             dontBlock: store.isRecoveringEventStream ? true : null,
             // If the request outlives this, assume the connection is dead
             // even if it still looks open; give up on it and retry.  See #514.
-            timeout: store.eventQueueLongpollTimeout);
+            timeout: store.eventQueueLongpollTimeout,
+            // On a network-connectivity change, we abort the request;
+            // see [_handleConnectivityRetrySignal].  (#2415)
+            abortTrigger: abortTrigger.future);
+          _pollAbortTrigger = null;
           if (_disposed) return;
         } catch (e, stackTrace) {
+          _pollAbortTrigger = null;
           if (_disposed) return;
           await _handlePollRequestError(e, stackTrace); // may rethrow
           if (_disposed) return;
@@ -1726,6 +1740,30 @@ class UpdateMachine {
 
   StreamSubscription<AppLifecycleState>? _appLifecycleSubscription;
 
+  ConnectivityMonitor get _connectivityMonitor =>
+    store._globalStore.connectivityMonitor;
+
+  StreamSubscription<void>? _retrySignalSubscription;
+
+  /// The value of [ConnectivityMonitor.updateCount] as of the start
+  /// of the poll request now (or most recently) in flight.
+  ///
+  /// If the count has moved on, the network may have changed under
+  /// the request; see [_handleConnectivityRetrySignal].
+  int _pollConnectivityCount = 0;
+
+  /// Non-null while a poll request is in flight, until used to abort it.
+  ///
+  /// Completing it aborts the request, which then fails and is retried
+  /// just as if it had hit the request timeout.
+  /// Little is lost in the abort, even mid-response:
+  /// these responses aren't large, and the server retains events
+  /// until we ack them via `last_event_id`,
+  /// so the retry just fetches the same events again.
+  ///
+  /// See [_handleConnectivityRetrySignal].
+  Completer<void>? _pollAbortTrigger;
+
   /// Non-null just when the most recent poll failure suggests
   /// the device was asleep or the app was in the background,
   /// so that waking should discard the accumulated backoff state.
@@ -1746,12 +1784,42 @@ class UpdateMachine {
     trigger?.complete();
   }
 
+  /// Handle a [ConnectivityMonitor.retrySignals] event:
+  /// the network changed.
+  ///
+  /// A poll request from before the change
+  /// may be stuck on a dead connection.
+  /// Abort the request (see [_pollAbortTrigger]),
+  /// so that polling retries promptly on the new network.
+  void _handleConnectivityRetrySignal(void _) {
+    assert(!_disposed); // The subscription is canceled in [dispose].
+    if (_pollConnectivityCount == _connectivityMonitor.updateCount) {
+      // The current request started after the network change;
+      // the change is no evidence against it.
+      return;
+    }
+    if (_pollAbortTrigger case final trigger?) {
+      // A poll request is in progress; abort it.
+      // No backoff wait is in progress, so [_resetPollBackoff] just
+      // discards the stale backoff state, making the retry prompt.
+      assert(debugLog('Network connectivity changed; aborting stalled poll.'));
+      _pollAbortTrigger = null;
+      _resetPollBackoff();
+      trigger.complete();
+    }
+  }
+
   void _handleAppLifecycleStateChange(AppLifecycleState state) {
     assert(!_disposed); // The subscription is canceled in [dispose].
     if (state != .resumed) return;
     if (_pollBackoffAbortTrigger != null) {
       // Retry immediately, and if the network still isn't back
       // (it can take a moment after waking), let backoff start over small.
+      //
+      // Known harmless race: the monitor's resume recheck may record a
+      // background network change only after this retry has started,
+      // and so make this retry look suspect. Then it's aborted, after
+      // it has already connected (see #2476), and retried once more.
       assert(debugLog('App returned to foreground; aborting poll backoff.'));
       _resetPollBackoff();
     }
@@ -1971,6 +2039,7 @@ class UpdateMachine {
   void dispose() {
     assert(!_disposed);
     _appLifecycleSubscription?.cancel();
+    _retrySignalSubscription?.cancel();
     _disposed = true;
   }
 
