@@ -1305,9 +1305,6 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'Kanal benachrichtigen';
 
   @override
-  String get wildcardMentionStreamDescription => 'Stream benachrichtigen';
-
-  @override
   String get wildcardMentionAllDmDescription => 'Empfänger benachrichtigen';
 
   @override
