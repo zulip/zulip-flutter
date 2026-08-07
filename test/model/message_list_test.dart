@@ -163,7 +163,7 @@ void main() {
       ..method.equals('GET')
       ..url.path.equals('/api/v1/messages')
       ..url.queryParameters.deepEquals({
-        'narrow': jsonEncode(resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!)),
+        'narrow': jsonEncode(narrow),
         'anchor': anchor,
         if (includeAnchor != null) 'include_anchor': includeAnchor.toString(),
         'num_before': numBefore.toString(),
