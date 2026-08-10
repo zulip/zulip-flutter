@@ -98,6 +98,9 @@ dependency_overrides:
   #     https://github.com/flutter/flutter/issues/187145
   drift: 2.34.0
   drift_dev: 2.34.0
+  # TODO(#2218) remove this once we enable Swift Package Manager;
+  #   app_settings 8.0.0 dropped CocoaPods support, and requires SPM.
+  app_settings: ^7.0.0
 
 
 dev_dependencies:
