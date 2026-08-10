@@ -92,6 +92,12 @@ dependency_overrides:
   #     https://github.com/firebase/flutterfire/blob/main/packages/firebase_messaging/firebase_messaging/README.md#ios-apps-using-uiscene
   #   or stop getting the APNs token from Firebase, per #2257.
   firebase_messaging: '>=16.4.3 <16.5.0'
+  # TODO(upstream) remove both of these once pigeon allows analyzer 13.
+  #   drift and drift_dev have to move in lockstep,
+  #   and newer drift_dev needs analyzer 13:
+  #     https://github.com/flutter/flutter/issues/187145
+  drift: 2.34.0
+  drift_dev: 2.34.0
 
 
 dev_dependencies:
