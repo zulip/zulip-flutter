@@ -302,10 +302,10 @@ packages:
     dependency: transitive
     description:
       name: equatable
-      sha256: "3e0141505477fd8ad55d6eb4e7776d3fe8430be8e497ccb1521370c3f21a3e2b"
+      sha256: "3bce007a596ff8b3119c45d68aaef631272537c03d30e5d4534dd24bf4c5eaa2"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.8"
+    version: "2.1.0"
   fake_async:
     dependency: "direct dev"
     description:
@@ -882,26 +882,26 @@ packages:
     dependency: "direct dev"
     description:
       name: patrol
-      sha256: f43fda9425e90c0e69d2dac9e495e3a3036a22a550466365b4720fa4dd53d6ae
+      sha256: bdeec6400d0ec22aefb875b2fd17a7bd4f25d37a40fd3bd83a74441c65f69f1e
       url: "https://pub.dev"
     source: hosted
-    version: "4.6.1"
+    version: "4.8.0"
   patrol_finders:
     dependency: transitive
     description:
       name: patrol_finders
-      sha256: "34e75a59df653dc9e6fc6c0caa469b950b18aaa538aaf859f756b52f937f0da8"
+      sha256: "8608cdacaab90a3b00ecd7b09df11f13a62b01dea13c211b9f13fd86854e103a"
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.0"
+    version: "3.6.0"
   patrol_log:
     dependency: transitive
     description:
       name: patrol_log
-      sha256: "080608c3402480e18f7dce5a7ee17bf2e23fc191eedffb73a8a635506ce6d4bf"
+      sha256: "1f5b6f7e1d9feaab7a60eef31e34a83a6168d754e5c0336006a4f50fb5f27526"
       url: "https://pub.dev"
     source: hosted
-    version: "0.9.1"
+    version: "0.10.0"
   petitparser:
     dependency: transitive
     description:
