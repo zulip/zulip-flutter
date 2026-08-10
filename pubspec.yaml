@@ -101,6 +101,8 @@ dependency_overrides:
   # TODO(#2218) remove this once we enable Swift Package Manager;
   #   app_settings 8.0.0 dropped CocoaPods support, and requires SPM.
   app_settings: ^7.0.0
+  # TODO(upstream) remove this once file_picker 12 has a stable release.
+  file_picker: ^11.0.0
 
 
 dev_dependencies:
