@@ -85,6 +85,13 @@ dependency_overrides:
       url: https://github.com/gaaclarke/color_models.git
       ref: wide-gamut
       path: flutter_color_models
+  # TODO(#2257) With firebase_messaging 16.5.0 the APNs token doesn't arrive
+  #   when we initialize Firebase from Dart, in our non-UIScene app.  Unpin
+  #   once we either migrate iOS to UIScene, and carry out the extra Firebase
+  #   Messaging setup that requires:
+  #     https://github.com/firebase/flutterfire/blob/main/packages/firebase_messaging/firebase_messaging/README.md#ios-apps-using-uiscene
+  #   or stop getting the APNs token from Firebase, per #2257.
+  firebase_messaging: '>=16.4.3 <16.5.0'
 
 
 dev_dependencies:
