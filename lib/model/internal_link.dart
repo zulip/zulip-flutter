@@ -335,7 +335,6 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
 
 @JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
 enum _NarrowOperator {
-  // 'dm' is new in server-7.0; means the same as 'pm-with'
   dm,
   near,
   // cannot use `with` as it is a reserved keyword in Dart
@@ -344,6 +343,7 @@ enum _NarrowOperator {
   // cannot use `is` as it is a reserved keyword in Dart
   @JsonValue('is')
   is_,
+  // legacy alias for 'dm'
   pmWith,
   stream,
   channel,
