@@ -38,7 +38,8 @@ enum WildcardMentionOption {
 // https://spec.commonmark.org/0.30/#fenced-code-blocks
 final RegExp _openingBacktickFenceRegex = (() {
   // Recognize a fence with "up to three spaces of indentation".
-  // Servers don't recognize fences that start with spaces, as of Server 7.0:
+  // Servers don't recognize fences that start with spaces,
+  // as of Server 12 (2026-08):
   //   https://chat.zulip.org/#narrow/stream/6-frontend/topic/quote-and-reply.20fence.20length/near/1588273
   // but that's a bug, since those fences are valid in the spec.
   // Still, it's harmless to make our own fence longer even if the server
