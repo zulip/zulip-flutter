@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vector_graphics/vector_graphics.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -137,6 +138,18 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> wit
     if (pinned.isEmpty && unpinned.isEmpty) {
       if (includeAllChannelsButton) {
         return PageBodyEmptyContentPlaceholder(
+          illustration: VectorGraphic(
+            loader: const AssetBytesLoader(
+              'assets/images/empty-channel.svg.vec',
+            ),
+            width: 150,
+            height: 150,
+            colorFilter: ColorFilter.mode(
+              DesignVariables.of(context)
+                  .labelSearchPrompt
+                  .withValues(alpha: 0.8),
+              BlendMode.srcIn,
+            )),
           header: zulipLocalizations.channelsEmptyPlaceholderHeader,
           messageWithLinkMarkup:
             zulipLocalizations.channelsEmptyPlaceholderMessage(
