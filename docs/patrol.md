@@ -30,9 +30,12 @@ There are a few different types of Patrol tests we can write, based on
 the implementation of `ZulipBinding` they use:
 
  * *Live* Patrol tests use `LiveZulipBinding`, the same implementation
-   as the actual app.  This means they talk to a real Zulip server and
-   store their data in a real local database file, as well as using
-   the real device platform.
+   as the actual app.
+   (Specifically they use `PatrolLiveZulipBinding`, a subclass which
+   adds some convenience features.)
+   This means they talk to a real Zulip server
+   and store their data in a real local database file,
+   as well as using the real device platform.
 
    This is useful where the Zulip server, too, has complexity we're
    not entirely confident of modeling in our tests.  Zulip's main
@@ -291,19 +294,23 @@ Upstream docs: https://patrol.leancode.co/documentation
 
 ### Live login credentials
 
-In order to run the tests in `patrol_test/live_test.dart`, create a
+In order to run the tests in `patrol_test/live/`, create a
 file `.patrol.env` at the root of the project tree, like so:
 ```
 REALM_URL=https://chat.example.com
 EMAIL=user@example.com
+USER_ID=123
+API_KEY=asdf1234
 PASSWORD=hunter2
 OTHER_EMAIL=other.user@example.com
-OTHER_API_KEY=asdf1234
+OTHER_API_KEY=qwer5678
 ```
 
 with the realm URL of some real Zulip server, and credentials for
 two different test accounts there.  (The second account is used for
-sending messages to the first account, to cause notifications.)
+sending messages to the first account, to cause notifications.
+The password is used in testing the login flow itself,
+and the API key otherwise.)
 
 The tests will log into those real accounts and interact there.
 Avoid using chat.zulip.org or any other realm that people use
