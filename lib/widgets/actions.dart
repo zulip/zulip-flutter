@@ -441,6 +441,39 @@ abstract final class ZulipAction {
     }
   }
 
+  /// Update a property of the self-user's subscription to a channel,
+  /// showing an error dialog on failure.
+  ///
+  /// This is a wrapper around [channels_api.updateSubscriptionSettings].
+  static Future<void> updateSubscriptionSettings(BuildContext context, {
+    required int channelId,
+    required SubscriptionProperty property,
+    required Object value,
+    required String errorDialogTitle,
+  }) async {
+    try {
+      await channels_api.updateSubscriptionSettings(
+        PerAccountStoreWidget.of(context).connection,
+        streamId: channelId,
+        property: property,
+        value: value);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      showErrorDialog(context: context,
+        title: errorDialogTitle, message: errorMessage);
+    }
+  }
+
   /// Report a message to the realm admins.
   ///
   /// On success, shows a success [SnackBar] and returns true.

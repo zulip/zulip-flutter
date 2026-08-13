@@ -716,6 +716,30 @@ void main() {
             }]),
           });
       });
+
+      testWidgets('pin: request fails', (tester) async {
+        await prepare();
+        final narrow = ChannelNarrow(someChannel.streamId);
+        await showFromMsglistAppBar(tester, narrow: narrow);
+
+        connection.prepare(apiException: eg.apiBadRequest());
+        await tapButton(tester, 'Pin to top');
+        await tester.pump(Duration.zero);
+        checkErrorDialog(tester, expectedTitle: 'Failed to pin channel',
+          expectedMessage: 'Something failed');
+      });
+
+      testWidgets('unpin: request fails', (tester) async {
+        await prepare(isChannelPinned: true);
+        final narrow = ChannelNarrow(someChannel.streamId);
+        await showFromMsglistAppBar(tester, narrow: narrow);
+
+        connection.prepare(apiException: eg.apiBadRequest());
+        await tapButton(tester, 'Unpin from top');
+        await tester.pump(Duration.zero);
+        checkErrorDialog(tester, expectedTitle: 'Failed to unpin channel',
+          expectedMessage: 'Something failed');
+      });
     });
 
     group('UnsubscribeButton', () {
