@@ -1435,9 +1435,31 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           onTapMessageLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/star-a-message')!));
 
-      case KeywordSearchNarrow():
+      case KeywordSearchNarrow(:final keyword):
+        final words = keyword.split(RegExp(r'\s+'));
+        final hasStopWords = words.any(store.isStopWord);
+
+        TextSpan? stopWordsFeedback;
+        if (hasStopWords) {
+          const strikethrough = TextStyle(decoration: TextDecoration.lineThrough);
+          final keywordWithStopWordsStruck = <TextSpan>[];
+          for (final word in words) {
+            if (keywordWithStopWordsStruck.isNotEmpty) {
+              keywordWithStopWordsStruck.add(const TextSpan(text: ' '));
+            }
+            keywordWithStopWordsStruck.add(
+              TextSpan(text: word, style: store.isStopWord(word) ? strikethrough : null));
+          }
+          stopWordsFeedback = TextSpan(children: [
+            TextSpan(text: zulipLocalizations.emptyMessageListSearchStopwords),
+            const TextSpan(text: '\n'),
+            ...keywordWithStopWordsStruck,
+          ]);
+        }
+
         return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.emptyMessageListSearch);
+          header: zulipLocalizations.emptyMessageListSearch,
+          messageSpan: stopWordsFeedback);
     }
   }
 }
