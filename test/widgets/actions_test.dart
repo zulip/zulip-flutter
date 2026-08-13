@@ -282,6 +282,106 @@ void main() {
           store.tryResolveUrl('/temp/s3kr1t-auth-token/paper.pdf')!);
       });
     });
+
+    group('updateSubscriptionSettings', () {
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      final channel = eg.stream();
+
+      testWidgets('smoke', (tester) async {
+        await prepare(tester);
+        connection.prepare(json: {});
+        final future = ZulipAction.updateSubscriptionSettings(context,
+          channelId: channel.streamId,
+          property: .isMuted,
+          value: true);
+        await tester.pump(Duration.zero);
+        await future;
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/users/me/subscriptions/properties')
+          ..bodyFields.deepEquals({
+            'subscription_data': jsonEncode([{
+              'stream_id': channel.streamId,
+              'property': 'is_muted',
+              'value': true,
+            }]),
+          });
+        checkNoDialog(tester);
+      });
+
+      group('error dialog title', () {
+        Future<void> doTest(WidgetTester tester, {
+          required SubscriptionProperty property,
+          required Object value,
+          required String expectedTitle,
+        }) async {
+          await prepare(tester);
+          connection.prepare(apiException: eg.apiBadRequest(message: 'oops'));
+          final future = ZulipAction.updateSubscriptionSettings(context,
+            channelId: channel.streamId, property: property, value: value);
+          await tester.pump(Duration.zero);
+          await future;
+          checkErrorDialog(tester,
+            expectedTitle: expectedTitle, expectedMessage: 'oops');
+        }
+
+        testWidgets('color', (tester) => doTest(tester,
+          property: .color, value: 0xffabcdef,
+          expectedTitle: zulipLocalizations.errorSetChannelColorFailedTitle));
+
+        testWidgets('isMuted true', (tester) => doTest(tester,
+          property: .isMuted, value: true,
+          expectedTitle: zulipLocalizations.errorMuteChannelFailedTitle));
+
+        testWidgets('isMuted false', (tester) => doTest(tester,
+          property: .isMuted, value: false,
+          expectedTitle: zulipLocalizations.errorUnmuteChannelFailedTitle));
+
+        testWidgets('pinToTop true', (tester) => doTest(tester,
+          property: .pinToTop, value: true,
+          expectedTitle: zulipLocalizations.errorPinChannelFailedTitle));
+
+        testWidgets('pinToTop false', (tester) => doTest(tester,
+          property: .pinToTop, value: false,
+          expectedTitle: zulipLocalizations.errorUnpinChannelFailedTitle));
+
+        testWidgets('desktopNotifications true', (tester) => doTest(tester,
+          property: .desktopNotifications, value: true,
+          expectedTitle: zulipLocalizations.errorEnableDesktopNotificationsFailedTitle));
+
+        testWidgets('desktopNotifications false', (tester) => doTest(tester,
+          property: .desktopNotifications, value: false,
+          expectedTitle: zulipLocalizations.errorDisableDesktopNotificationsFailedTitle));
+
+        testWidgets('audibleNotifications true', (tester) => doTest(tester,
+          property: .audibleNotifications, value: true,
+          expectedTitle: zulipLocalizations.errorEnableAudibleNotificationsFailedTitle));
+
+        testWidgets('audibleNotifications false', (tester) => doTest(tester,
+          property: .audibleNotifications, value: false,
+          expectedTitle: zulipLocalizations.errorDisableAudibleNotificationsFailedTitle));
+
+        testWidgets('pushNotifications true', (tester) => doTest(tester,
+          property: .pushNotifications, value: true,
+          expectedTitle: zulipLocalizations.errorEnableMobileNotificationsFailedTitle));
+
+        testWidgets('pushNotifications false', (tester) => doTest(tester,
+          property: .pushNotifications, value: false,
+          expectedTitle: zulipLocalizations.errorDisableMobileNotificationsFailedTitle));
+
+        testWidgets('emailNotifications true', (tester) => doTest(tester,
+          property: .emailNotifications, value: true,
+          expectedTitle: zulipLocalizations.errorEnableEmailNotificationsFailedTitle));
+
+        testWidgets('emailNotifications false', (tester) => doTest(tester,
+          property: .emailNotifications, value: false,
+          expectedTitle: zulipLocalizations.errorDisableEmailNotificationsFailedTitle));
+
+        testWidgets('wildcardMentionsNotify', (tester) => doTest(tester,
+          property: .wildcardMentionsNotify, value: true,
+          expectedTitle: zulipLocalizations.errorSetChannelWildcardMentionsNotifyFailedTitle));
+      });
+    });
   });
 
   group('PlatformActions', () {

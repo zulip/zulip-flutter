@@ -441,6 +441,72 @@ abstract final class ZulipAction {
     }
   }
 
+  /// Update a property of the self-user's subscription to a channel,
+  /// showing an error dialog on failure.
+  ///
+  /// This is a wrapper around [channels_api.updateSubscriptionSettings].
+  static Future<void> updateSubscriptionSettings(BuildContext context, {
+    required int channelId,
+    required SubscriptionProperty property,
+    required Object value,
+  }) async {
+    try {
+      await channels_api.updateSubscriptionSettings(
+        PerAccountStoreWidget.of(context).connection,
+        streamId: channelId,
+        property: property,
+        value: value);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      String Function(Object) chooseTitleForBool(String titleForTrue, String titleForFalse) {
+        return (value) {
+          if (value is! bool) {
+            assert(false); // TODO(log)
+            return zulipLocalizations.errorSetChannelSettingFailedTitle;
+          }
+          return value ? titleForTrue : titleForFalse;
+        };
+      }
+      final String Function(Object) chooseTitle = switch (property) {
+        .color => (_) => zulipLocalizations.errorSetChannelColorFailedTitle,
+        .isMuted => chooseTitleForBool(
+          zulipLocalizations.errorMuteChannelFailedTitle,
+          zulipLocalizations.errorUnmuteChannelFailedTitle),
+        .pinToTop => chooseTitleForBool(
+          zulipLocalizations.errorPinChannelFailedTitle,
+          zulipLocalizations.errorUnpinChannelFailedTitle),
+        .desktopNotifications => chooseTitleForBool(
+          zulipLocalizations.errorEnableDesktopNotificationsFailedTitle,
+          zulipLocalizations.errorDisableDesktopNotificationsFailedTitle),
+        .audibleNotifications => chooseTitleForBool(
+          zulipLocalizations.errorEnableAudibleNotificationsFailedTitle,
+          zulipLocalizations.errorDisableAudibleNotificationsFailedTitle),
+        .pushNotifications => chooseTitleForBool(
+          zulipLocalizations.errorEnableMobileNotificationsFailedTitle,
+          zulipLocalizations.errorDisableMobileNotificationsFailedTitle),
+        .emailNotifications => chooseTitleForBool(
+          zulipLocalizations.errorEnableEmailNotificationsFailedTitle,
+          zulipLocalizations.errorDisableEmailNotificationsFailedTitle),
+        .wildcardMentionsNotify => (_) => zulipLocalizations.errorSetChannelWildcardMentionsNotifyFailedTitle,
+        // Should be unreachable; callers shouldn't pass [SubscriptionProperty.unknown].
+        .unknown => (_) => zulipLocalizations.errorSetChannelSettingFailedTitle,
+      };
+      showErrorDialog(context: context,
+        title: chooseTitle(value), message: errorMessage);
+    }
+  }
+
   /// Report a message to the realm admins.
   ///
   /// On success, shows a success [SnackBar] and returns true.

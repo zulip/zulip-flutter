@@ -147,11 +147,60 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get actionSheetOptionUnpinChannel => 'Von oben lösen';
 
   @override
+  String get errorSetChannelColorFailedTitle => 'Failed to set channel color';
+
+  @override
+  String get errorMuteChannelFailedTitle => 'Failed to mute channel';
+
+  @override
+  String get errorUnmuteChannelFailedTitle => 'Failed to unmute channel';
+
+  @override
   String get errorPinChannelFailedTitle =>
       'Kanal konnte nicht angeheftet werden';
 
   @override
   String get errorUnpinChannelFailedTitle => 'Kanal konnte nicht gelöst werden';
+
+  @override
+  String get errorEnableDesktopNotificationsFailedTitle =>
+      'Failed to enable desktop notifications';
+
+  @override
+  String get errorDisableDesktopNotificationsFailedTitle =>
+      'Failed to disable desktop notifications';
+
+  @override
+  String get errorEnableAudibleNotificationsFailedTitle =>
+      'Failed to enable audible notifications';
+
+  @override
+  String get errorDisableAudibleNotificationsFailedTitle =>
+      'Failed to disable audible notifications';
+
+  @override
+  String get errorEnableMobileNotificationsFailedTitle =>
+      'Failed to enable mobile notifications';
+
+  @override
+  String get errorDisableMobileNotificationsFailedTitle =>
+      'Failed to disable mobile notifications';
+
+  @override
+  String get errorEnableEmailNotificationsFailedTitle =>
+      'Failed to enable email notifications';
+
+  @override
+  String get errorDisableEmailNotificationsFailedTitle =>
+      'Failed to disable email notifications';
+
+  @override
+  String get errorSetChannelWildcardMentionsNotifyFailedTitle =>
+      'Failed to set channel wildcard-mention setting';
+
+  @override
+  String get errorSetChannelSettingFailedTitle =>
+      'Failed to set channel setting';
 
   @override
   String get actionSheetOptionMuteTopic => 'Thema stummschalten';
