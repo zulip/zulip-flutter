@@ -447,6 +447,53 @@ void main() {
       }
     });
 
+    group('willAffectIfTopicVisible on SubscriptionUpdateEvent', () {
+      SubscriptionUpdateEvent mkEvent(bool isMuted) =>
+        SubscriptionUpdateEvent(id: 1,
+          channelId: stream1.streamId,
+          property: SubscriptionProperty.isMuted,
+          value: isMuted);
+
+      void doTest({
+        required bool oldIsMuted,
+        required bool newIsMuted,
+        required TopicVisibilityEffect expected,
+      }) {
+        test('channel ${oldIsMuted ? 'muted' : 'not muted'}'
+             ' -> ${newIsMuted ? 'muted' : 'not muted'},'
+             ' means ${expected.name}', () async {
+          final store = eg.store();
+          await store.addStream(stream1);
+          await store.addSubscription(
+            eg.subscription(stream1, isMuted: oldIsMuted));
+          check(store.willAffectIfTopicVisible(mkEvent(newIsMuted)))
+            .equals(expected);
+        });
+      }
+
+      doTest(oldIsMuted: false, newIsMuted: false, expected: .none);
+      doTest(oldIsMuted: false, newIsMuted: true,  expected: .muted);
+      doTest(oldIsMuted: true,  newIsMuted: false, expected: .unmuted);
+      doTest(oldIsMuted: true,  newIsMuted: true,  expected: .none);
+
+      test('channel unsubscribed, means none', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        check(store.willAffectIfTopicVisible(mkEvent(true)))
+          .equals(TopicVisibilityEffect.none);
+      });
+
+      test('other subscription property, means none', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1));
+        check(store.willAffectIfTopicVisible(SubscriptionUpdateEvent(id: 1,
+          channelId: stream1.streamId,
+          property: SubscriptionProperty.pinToTop,
+          value: true))).equals(TopicVisibilityEffect.none);
+      });
+    });
+
     void compareTopicVisibility(PerAccountStore store, List<UserTopicItem> expected) {
       final expectedStore = eg.store(initialSnapshot: eg.initialSnapshot(
         userTopics: expected,
