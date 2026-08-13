@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-import 'store.dart';
 import 'text.dart';
 import 'theme.dart';
 
@@ -40,7 +39,6 @@ class CounterBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
 
     final Color textColor;
@@ -48,8 +46,7 @@ class CounterBadge extends StatelessWidget {
     if (channelIdForBackground != null) {
       textColor = designVariables.unreadCountBadgeTextForChannel;
 
-      final subscription = store.subscriptions[channelIdForBackground!];
-      final swatch = colorSwatchFor(context, subscription);
+      final swatch = colorSwatchFor(context, channelIdForBackground!);
       backgroundColor = swatch.unreadCountBadgeBackground;
     } else {
       textColor = switch (kind) {
