@@ -817,13 +817,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  UserTopicVisibilityEffect _willAffectVisibility(UserTopicEvent event) {
+  TopicVisibilityEffect _willAffectVisibility(UserTopicEvent event) {
     switch (narrow) {
       case CombinedFeedNarrow():
         return store.willAffectIfTopicVisible(event);
 
       case ChannelNarrow(:final channelId):
-        if (event.streamId != channelId) return UserTopicVisibilityEffect.none;
+        if (event.streamId != channelId) return TopicVisibilityEffect.none;
         return store.willAffectIfTopicVisibleInChannel(event);
 
       case TopicNarrow():
@@ -831,7 +831,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case MentionsNarrow():
       case StarredMessagesNarrow():
       case KeywordSearchNarrow():
-        return UserTopicVisibilityEffect.none;
+        return TopicVisibilityEffect.none;
     }
   }
 
@@ -1151,10 +1151,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   void handleUserTopicEvent(UserTopicEvent event) {
     switch (_willAffectVisibility(event)) {
-      case UserTopicVisibilityEffect.none:
+      case TopicVisibilityEffect.none:
         return;
 
-      case UserTopicVisibilityEffect.muted:
+      case TopicVisibilityEffect.muted:
         bool removed = _removeMessagesWhere((message) =>
           message is StreamMessage
             && message.streamId == event.streamId
@@ -1169,7 +1169,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           notifyListeners();
         }
 
-      case UserTopicVisibilityEffect.unmuted:
+      case TopicVisibilityEffect.unmuted:
         // TODO get the newly-unmuted messages from the message store
         // For now, we simplify the task by just refetching this message list
         // from scratch.
