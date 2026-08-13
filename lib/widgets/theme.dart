@@ -99,9 +99,8 @@ ThemeData zulipThemeData(BuildContext context) {
         .merge(weightVariableTextStyle(context, wght: 600)),
       titleSpacing: 4,
 
-      // TODO Figma has height 42; we should try `toolbarHeight: 42` and test
-      //   that it looks reasonable with different system text-size settings.
-      //   Also the back button will look too big and need adjusting.
+      // Figma design specifies 42px instead of the Material default (56px).
+      toolbarHeight: 42,
 
       shape: Border(bottom: BorderSide(
         color: designVariables.borderBar,
