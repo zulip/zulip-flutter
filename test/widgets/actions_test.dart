@@ -282,6 +282,47 @@ void main() {
           store.tryResolveUrl('/temp/s3kr1t-auth-token/paper.pdf')!);
       });
     });
+
+    group('updateSubscriptionSettings', () {
+      final channel = eg.stream();
+
+      testWidgets('smoke', (tester) async {
+        await prepare(tester);
+        connection.prepare(json: {});
+        final future = ZulipAction.updateSubscriptionSettings(context,
+          channelId: channel.streamId,
+          property: .isMuted,
+          value: true,
+          errorDialogTitle: 'Failed to mute channel');
+        await tester.pump(Duration.zero);
+        await future;
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/users/me/subscriptions/properties')
+          ..bodyFields.deepEquals({
+            'subscription_data': jsonEncode([{
+              'stream_id': channel.streamId,
+              'property': 'is_muted',
+              'value': true,
+            }]),
+          });
+        checkNoDialog(tester);
+      });
+
+      testWidgets('request fails', (tester) async {
+        await prepare(tester);
+        connection.prepare(apiException: eg.apiBadRequest(message: 'oops'));
+        final future = ZulipAction.updateSubscriptionSettings(context,
+          channelId: channel.streamId,
+          property: .isMuted,
+          value: true,
+          errorDialogTitle: 'Failed to mute channel');
+        await tester.pump(Duration.zero);
+        await future;
+        checkErrorDialog(tester,
+          expectedTitle: 'Failed to mute channel', expectedMessage: 'oops');
+      });
+    });
   });
 
   group('PlatformActions', () {
