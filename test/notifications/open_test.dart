@@ -192,32 +192,6 @@ void main() {
       testBinding.notificationPigeonApi.addNotificationTapEvent(event);
     }
 
-    void setupNotificationDataForLaunch(
-      WidgetTester tester,
-      Account account,
-      Message message, {
-      bool encrypted = true,
-    }) {
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-          // Set up an event to be emitted from
-          // `notificationPigeonApi.notificationTapEventsStream`.
-          final intentDataUrl = notificationUrlForMessage(account, message);
-          testBinding.notificationPigeonApi.addNotificationTapEvent(
-            AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
-
-        case TargetPlatform.iOS:
-          // Set up a value to return for
-          // `notificationPigeonApi.getNotificationDataFromLaunch`.
-          final payload = messageApnsPayload(account, message, encrypted: encrypted);
-          testBinding.notificationPigeonApi.setNotificationDataFromLaunch(
-            NotificationDataFromLaunch(payload: payload));
-
-        default:
-          throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"');
-      }
-    }
-
     void takeHomePageReplacement(int accountId) {
       check(lastPoppedRoute).which(
         (it) => it.isA<MaterialAccountWidgetRoute>()
@@ -560,7 +534,7 @@ void main() {
         addTearDown(testBinding.reset);
         final account = eg.selfAccount;
         final message = eg.streamMessage();
-        setupNotificationDataForLaunch(tester, account, message);
+        scheduleNotificationTapEvent(account, message);
 
         // Now start the app.
         await testBinding.globalStore.add(account, eg.initialSnapshot());
@@ -569,7 +543,7 @@ void main() {
 
         // Once the app is ready, we navigate to the conversation.
         await tester.pump();
-        takeHomePageRouteForAccount(account.id); // because associated account
+        takeHomePageRouteForAccount(account.id); // because last-visited account
         matchesNavigation(check(pushedRoutes).single, account, message);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
@@ -577,7 +551,7 @@ void main() {
         addTearDown(testBinding.reset);
         final account = eg.selfAccount;
         final message = eg.streamMessage();
-        setupNotificationDataForLaunch(tester, account, message, encrypted: false);
+        scheduleNotificationTapEvent(account, message, encrypted: false);
 
         // Now start the app.
         await testBinding.globalStore.add(account, eg.initialSnapshot());
@@ -586,11 +560,11 @@ void main() {
 
         // Once the app is ready, we navigate to the conversation.
         await tester.pump();
-        takeHomePageRouteForAccount(account.id); // because associated account
+        takeHomePageRouteForAccount(account.id); // because last-visited account
         matchesNavigation(check(pushedRoutes).single, account, message);
       }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
-      testWidgets('uses associated account as initial account; if initial route', (tester) async {
+      testWidgets('no HomePage replacement when notification is for the last-visited account', (tester) async {
         addTearDown(testBinding.reset);
 
         final accountA = eg.selfAccount;
@@ -599,13 +573,15 @@ void main() {
         await testBinding.globalStore.add(accountA, eg.initialSnapshot());
         await testBinding.globalStore.add(accountB, eg.initialSnapshot(
           realmUsers: [eg.otherUser]));
-        setupNotificationDataForLaunch(tester, accountB, message);
+        check(testBinding.globalStore).lastVisitedAccount.equals(accountB);
+        scheduleNotificationTapEvent(accountB, message);
 
         await prepare(tester, early: true);
         check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
         await tester.pump();
-        takeHomePageRouteForAccount(accountB.id); // because associated account
+        takeHomePageRouteForAccount(accountB.id); // because last-visited account
+        check(lastPoppedRoute).isNull();
         matchesNavigation(check(pushedRoutes).single, accountB, message);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
 
@@ -620,20 +596,14 @@ void main() {
           accountB, eg.initialSnapshot(realmUsers: [eg.otherUser]),
           markLastVisited: false);
         check(testBinding.globalStore).lastVisitedAccount.equals(accountA);
-        setupNotificationDataForLaunch(tester, accountB, message);
+        scheduleNotificationTapEvent(accountB, message);
 
         await prepare(tester, early: true);
         check(pushedRoutes).isEmpty(); // GlobalStore hasn't loaded yet
 
         await tester.pump();
-        if (defaultTargetPlatform == TargetPlatform.android) {
-          takeHomePageRouteForAccount(accountA.id); // initial account on launch
-          takeHomePageReplacement(accountB.id); // replaced by associated account
-        } else {
-          // On iOS, associated account is determined early while generating
-          // initial routes. See `_ZulipAppState._handleGenerateInitialRoutes`.
-          takeHomePageRouteForAccount(accountB.id);
-        }
+        takeHomePageRouteForAccount(accountA.id); // initial account on launch
+        takeHomePageReplacement(accountB.id); // replaced by associated account
         matchesNavigation(check(pushedRoutes).single, accountB, message);
         check(testBinding.globalStore).lastVisitedAccount.equals(accountB);
       }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
