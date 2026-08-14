@@ -521,29 +521,26 @@ void showChannelActionSheet(BuildContext context, {
   final channel = store.streams[channelId];
   final isSubscribed = channel is Subscription;
   final buttonSections = [
-    if (!isSubscribed
-        && channel != null && store.selfHasContentAccess(channel))
-      [SubscribeButton(pageContext: pageContext, channelId: channelId)],
+    // Affects only the self-user.
     [
-      // This section has frequent actions, with only short-term effects.
+      if (isSubscribed)
+        UnsubscribeButton(pageContext: pageContext, channelId: channelId)
+      else if (channel != null && store.selfHasContentAccess(channel))
+        SubscribeButton(pageContext: pageContext, channelId: channelId),
+      if (isSubscribed)
+        PinUnpinButton(pageContext: pageContext, channelId: channelId,
+          isPinned: channel.pinToTop),
       if (unreadCount > 0)
         MarkChannelAsReadButton(pageContext: pageContext, channelId: channelId),
+    ],
+    // No effect.
+    [
       if (showTopicListButton)
         TopicListButton(pageContext: pageContext, channelId: channelId),
       if (!isOnChannelFeed)
         ChannelFeedButton(pageContext: pageContext, channelId: channelId),
-      CopyChannelLinkButton(channelId: channelId, pageContext: pageContext)
+      CopyChannelLinkButton(channelId: channelId, pageContext: pageContext),
     ],
-    [
-      // This section has settings for the channel or subscription.
-      if (isSubscribed)
-        PinUnpinButton(pageContext: pageContext, channelId: channelId,
-          isPinned: channel.pinToTop),
-      // (It's harmless that this section can be empty; in that case
-      // it ends up rendering to nothing.)
-    ],
-    if (isSubscribed)
-      [UnsubscribeButton(pageContext: pageContext, channelId: channelId)],
   ];
 
   final header = BottomSheetHeader(
@@ -776,8 +773,6 @@ void showTopicActionSheet(BuildContext context, {
   final store = PerAccountStoreWidget.of(pageContext);
   final subscription = store.subscriptions[channelId];
 
-  final optionButtons = <ActionSheetMenuItemButton>[];
-
   // TODO(server-7): simplify this condition away
   final supportsUnmutingTopics = store.zulipFeatureLevel >= 170;
   // TODO(server-8): simplify this condition away
@@ -838,33 +833,38 @@ void showTopicActionSheet(BuildContext context, {
       }
     }
   }
-  optionButtons.addAll(visibilityOptions.map((to) {
-    return UserTopicUpdateButton(
-      currentVisibilityPolicy: visibilityPolicy,
-      newVisibilityPolicy: to,
-      narrow: TopicNarrow(channelId, topic),
-      pageContext: pageContext);
-  }));
-
-  // TODO: check for other cases that may disallow this action (e.g.: time
-  //   limit for editing topics).
-  if (someMessageIdInTopic != null && topic.displayName != null) {
-    optionButtons.add(ResolveUnresolveButton(pageContext: pageContext,
-      topic: topic,
-      someMessageIdInTopic: someMessageIdInTopic));
-  }
 
   final unreadCount = store.unreads.countInTopicNarrow(channelId, topic);
-  if (unreadCount > 0) {
-    optionButtons.add(MarkTopicAsReadButton(
-      channelId: channelId,
-      topic: topic,
-      pageContext: pageContext));
-  }
-
-  optionButtons.add(CopyTopicLinkButton(
-    narrow: TopicNarrow(channelId, topic, with_: someMessageIdInTopic),
-    pageContext: pageContext));
+  final buttonSections = [
+    // Affects everyone.
+    [
+      // TODO: check for other cases that may disallow this action (e.g.: time
+      //   limit for editing topics).
+      if (someMessageIdInTopic != null && topic.displayName != null)
+        ResolveUnresolveButton(pageContext: pageContext,
+          topic: topic,
+          someMessageIdInTopic: someMessageIdInTopic),
+    ],
+    // Affects only the self-user.
+    [
+      ...visibilityOptions.map((to) => UserTopicUpdateButton(
+        currentVisibilityPolicy: visibilityPolicy,
+        newVisibilityPolicy: to,
+        narrow: TopicNarrow(channelId, topic),
+        pageContext: pageContext)),
+      if (unreadCount > 0)
+        MarkTopicAsReadButton(
+          channelId: channelId,
+          topic: topic,
+          pageContext: pageContext),
+    ],
+    // No effect.
+    [
+      CopyTopicLinkButton(
+        narrow: TopicNarrow(channelId, topic, with_: someMessageIdInTopic),
+        pageContext: pageContext),
+    ],
+  ];
 
   final header = BottomSheetHeader(
     buildTitle: (baseStyle) => Text.rich(
@@ -879,7 +879,7 @@ void showTopicActionSheet(BuildContext context, {
   _showActionSheet(pageContext,
     header: header,
     headerScrollable: false,
-    buttonSections: [optionButtons]);
+    buttonSections: buttonSections);
 }
 
 class UserTopicUpdateButton extends ActionSheetMenuItemButton {
@@ -1136,21 +1136,22 @@ void showDmActionSheet(BuildContext context, {required DmNarrow narrow}) {
   final unreadCount = store.unreads.countInDmNarrow(narrow);
 
   final buttonSections = [
-    // TODO(#1534) Button to show list of participants as a separate page?
-
+    // Affects only the self-user.
     [
+      if (unreadCount > 0)
+        MarkDmConversationAsReadButton(pageContext: pageContext, narrow: narrow),
+      // TODO(#2113) Mute/unmute button
+    ],
+    // No effect.
+    [
+      // TODO(#1534) Button to show list of participants as a separate page?
       if (otherRecipientIds.isEmpty)
         ViewProfileButton(pageContext: pageContext,
           userId: store.selfUserId)
       else if (otherRecipientIds.length == 1)
         ViewProfileButton(pageContext: pageContext,
           userId: otherRecipientIds.single),
-
-      if (unreadCount > 0)
-        MarkDmConversationAsReadButton(pageContext: pageContext, narrow: narrow),
     ],
-
-    // TODO(#2113) Mute/unmute button
   ];
 
   final header = BottomSheetHeader(
@@ -1256,13 +1257,17 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final canReport = reportChannelId != null && reportChannelId != -1;
 
   final buttonSections = [
+    // Affects everyone.
     [
       if (popularEmojiLoaded)
         ReactionButtons(message: message, pageContext: pageContext),
-      if (hasReactions)
-        ViewReactionsButton(message: message, pageContext: pageContext),
-      if (readReceiptsEnabled)
-        ViewReadReceiptsButton(message: message, pageContext: pageContext),
+      if (_getShouldShowEditButton(pageContext, message))
+        EditButton(message: message, pageContext: pageContext),
+      if (store.selfCanDeleteMessage(message.id, atDate: now))
+        DeleteMessageButton(message: message, pageContext: pageContext),
+    ],
+    // Affects only the self-user.
+    [
       StarButton(message: message, pageContext: pageContext),
       if (isComposeBoxOffered)
         QuoteAndReplyButton(message: message, pageContext: pageContext),
@@ -1271,16 +1276,19 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       if (isSenderMuted)
         // The message must have been revealed in order to open this action sheet.
         UnrevealMutedMessageButton(message: message, pageContext: pageContext),
+    ],
+    // No effect.
+    [
+      if (hasReactions)
+        ViewReactionsButton(message: message, pageContext: pageContext),
+      if (readReceiptsEnabled)
+        ViewReadReceiptsButton(message: message, pageContext: pageContext),
       CopyMessageTextButton(message: message, pageContext: pageContext),
       CopyMessageLinkButton(message: message, pageContext: pageContext),
       ShareButton(message: message, pageContext: pageContext),
-      if (_getShouldShowEditButton(pageContext, message))
-        EditButton(message: message, pageContext: pageContext),
+      if (canReport)
+        ReportMessageButton(message: message, pageContext: pageContext),
     ],
-    if (canReport)
-      [ReportMessageButton(message: message, pageContext: pageContext)],
-    if (store.selfCanDeleteMessage(message.id, atDate: now))
-      [DeleteMessageButton(message: message, pageContext: pageContext)],
   ];
 
   _showActionSheet(pageContext,
