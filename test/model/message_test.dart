@@ -223,7 +223,10 @@ void main() {
     Future<void> prepareOutboxMessageToSucceedAfterDelay(Duration delay) async {
       await prepare(stream: stream);
       await prepareMessages([eg.streamMessage(stream: stream)]);
-      connection.prepare(json: SendMessageResult(id: 1).toJson(),
+      // Create this after the fixture message above,
+      // so its ID is newer, as a just-sent message's would be.
+      message = eg.streamMessage(stream: stream);
+      connection.prepare(json: SendMessageResult(id: message.id).toJson(),
         delay: delay);
       outboxMessageSucceedFuture = store.sendMessage(
         destination: streamDestination, content: 'content');
