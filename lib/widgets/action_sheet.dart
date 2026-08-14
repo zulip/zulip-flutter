@@ -44,6 +44,9 @@ import 'user.dart';
 /// [header] should not use vertical padding to position itself on the sheet.
 /// It will be wrapped in vertical padding
 /// and, if [headerScrollable], a scroll view and an [InsetShadowBox].
+///
+/// Empty lists in [buttonSections] are dropped,
+/// so callers don't need to filter those out themselves.
 void _showActionSheet(
   BuildContext pageContext, {
   Widget? header,
@@ -116,8 +119,10 @@ void _showActionSheet(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     spacing: 8,
-                    children: buttonSections.map((buttons) =>
-                      MenuButtonsShape(buttons: buttons)).toList())))),
+                    children: buttonSections
+                      .where((buttons) => buttons.isNotEmpty)
+                      .map((buttons) => MenuButtonsShape(buttons: buttons))
+                      .toList())))),
               const BottomSheetDismissButton(style: BottomSheetDismissButtonStyle.cancel),
             ])));
 
