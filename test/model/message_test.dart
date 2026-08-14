@@ -219,6 +219,16 @@ void main() {
         destination: streamDestination, content: 'content');
     }
 
+    late Future<void> outboxMessageSucceedFuture;
+    Future<void> prepareOutboxMessageToSucceedAfterDelay(Duration delay) async {
+      await prepare(stream: stream);
+      await prepareMessages([eg.streamMessage(stream: stream)]);
+      connection.prepare(json: SendMessageResult(id: 1).toJson(),
+        delay: delay);
+      outboxMessageSucceedFuture = store.sendMessage(
+        destination: streamDestination, content: 'content');
+    }
+
     Future<void> receiveMessage([Message? messageReceived]) async {
       await store.handleEvent(eg.messageEvent(messageReceived ?? message,
         localMessageId: store.outboxMessages.keys.single));
@@ -294,22 +304,16 @@ void main() {
     }));
 
     test('waiting -> waitPeriodExpired -> waiting and never return to waitPeriodExpired', () => awaitFakeAsync((async) async {
-      await prepare(stream: stream);
-      await prepareMessages([eg.streamMessage(stream: stream)]);
       // Set up a [sendMessage] request that succeeds after enough delay,
       // for the outbox message to reach the waitPeriodExpired state.
-      // TODO extract helper to add prepare an outbox message with a delayed
-      //   successful [sendMessage] request if we have more tests like this
-      connection.prepare(json: SendMessageResult(id: 1).toJson(),
-        delay: kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
-      final future = store.sendMessage(
-        destination: streamDestination, content: 'content');
+      await prepareOutboxMessageToSucceedAfterDelay(
+        kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
       async.elapse(kSendMessageOfferRestoreWaitPeriod);
       checkState().equals(OutboxMessageState.waitPeriodExpired);
       checkNotified(count: 2);
 
       // Wait till the [sendMessage] request succeeds.
-      await future;
+      await outboxMessageSucceedFuture;
       checkState().equals(OutboxMessageState.waiting);
       checkNotifiedOnce();
 
