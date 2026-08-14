@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../api/model/model.dart';
+import '../api/route/messages.dart' show NumericAnchor;
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/notifications.dart';
 import '../log.dart';
@@ -166,8 +167,13 @@ class NotificationOpenService {
       // by opening the notification.
       navigator.popUntil((route) => route is PageRoute);
 
-      // TODO(#1565): Scroll to the specific message if nearby; else jump there,
-      //   or push a new page anchored there.
+      final messageId = data.messageId;
+      if (messageId != null) {
+        // TODO: Scroll to the message if it's already nearby,
+        //   instead of fetching the message list afresh anchored there.
+        MessageListPage.stateOfRoute(currentPageRoute)
+          ?.refresh(NumericAnchor(messageId));
+      }
       return;
     }
 

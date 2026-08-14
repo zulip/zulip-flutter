@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
@@ -462,6 +463,12 @@ void main() {
         await transitionDurationObserver.pumpPastTransition(tester);
       }
 
+      /// Prepare the response to the fetch made on opening the page at [anchor].
+      void prepareFetchAtMessage(int anchor, {required List<Message> messages}) {
+        connection.prepare(json: eg.nearGetMessagesResult(anchor: anchor,
+          foundOldest: true, foundNewest: true, messages: messages).toJson());
+      }
+
       testWidgets('at same conversation, dedupes page', (tester) async {
         final stream = eg.stream();
         final message1 = eg.streamMessage(stream: stream, topic: 'a');
@@ -470,14 +477,38 @@ void main() {
           messages: [message1]);
 
         final message2 = eg.streamMessage(stream: stream, topic: 'a');
+        prepareFetchAtMessage(message2.id, messages: [message1, message2]);
         await openNotification(tester, eg.selfAccount, message2);
         check(lastPoppedRoute).isNull();
         check(pushedRoutes).isEmpty();
 
         final message3 = eg.streamMessage(stream: stream, topic: 'A');
+        prepareFetchAtMessage(message3.id, messages: [message1, message2, message3]);
         await openNotification(tester, eg.selfAccount, message3);
         check(lastPoppedRoute).isNull();
         check(pushedRoutes).isEmpty();
+      });
+
+      testWidgets('at same conversation, page moves to the message', (tester) async {
+        final stream = eg.stream();
+        final message1 = eg.streamMessage(stream: stream, topic: 'a',
+          content: '<p>message 1</p>');
+        await prepareMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(message1),
+          messages: [message1]);
+
+        // The page doesn't show the message the notification is for…
+        final message2 = eg.streamMessage(stream: stream, topic: 'a',
+          content: '<p>message 2</p>');
+        check(find.text('message 2')).findsNothing();
+
+        // … until the notification is opened, which brings it into view
+        // on the same page, without pushing another one.
+        prepareFetchAtMessage(message2.id, messages: [message1, message2]);
+        await openNotification(tester, eg.selfAccount, message2);
+        await tester.pump();
+        check(pushedRoutes).isEmpty();
+        check(find.text('message 2')).findsOne();
       });
 
       testWidgets('at different conversation, proceeds normally', (tester) async {
@@ -530,6 +561,7 @@ void main() {
         pushedRoutes.clear();
 
         final message2 = eg.streamMessage(stream: stream, topic: 'a');
+        prepareFetchAtMessage(message2.id, messages: [message1, message2]);
         await openNotification(tester, eg.selfAccount, message2);
         // The dialog was popped (and nothing was pushed).
         check(lastPoppedRoute).equals(pushed);
