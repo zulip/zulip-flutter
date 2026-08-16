@@ -311,7 +311,7 @@ User user({
     botOwnerId: botOwnerId,
     role: role ?? UserRole.member,
     timezone: 'UTC',
-    avatarUrl: avatarUrl,
+    avatarUrl: avatarUrl != null ? JsonNullable(avatarUrl) : null,
     avatarVersion: 0,
     profileData: profileData,
     isSystemBot: false,

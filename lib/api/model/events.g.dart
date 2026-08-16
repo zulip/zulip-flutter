@@ -412,7 +412,10 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
       .toInt(),
   fullName: RealmUserUpdateEvent._readFromPerson(json, 'full_name') as String?,
   avatarUrl:
-      RealmUserUpdateEvent._readFromPerson(json, 'avatar_url') as String?,
+      _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+        RealmUserUpdateEvent._readNullableStringFromPerson(json, 'avatar_url'),
+        const NullableStringJsonConverter().fromJson,
+      ),
   avatarVersion:
       (RealmUserUpdateEvent._readFromPerson(json, 'avatar_version') as num?)
           ?.toInt(),
@@ -452,7 +455,11 @@ Map<String, dynamic> _$RealmUserUpdateEventToJson(
   'op': instance.op,
   'user_id': instance.userId,
   'full_name': instance.fullName,
-  'avatar_url': instance.avatarUrl,
+  'avatar_url':
+      _$JsonConverterToJson<JsonNullable<String>, JsonNullable<String>>(
+        instance.avatarUrl,
+        const NullableStringJsonConverter().toJson,
+      ),
   'avatar_version': instance.avatarVersion,
   'timezone': instance.timezone,
   'bot_owner_id': instance.botOwnerId,
