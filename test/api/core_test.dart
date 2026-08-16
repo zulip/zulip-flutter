@@ -365,6 +365,33 @@ void main() {
       ..asString.equals('NetworkException: Network request failed ((foo: bar))'));
   });
 
+  test('API network errors while receiving response body', () async {
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/2418
+    void checkRequest<T extends Object>(
+        T exception, Condition<NetworkException> condition) {
+      unawaited(check(
+        tryRequest(body: '{"result": "succ', bodyException: exception))
+        .throws<NetworkException>((it) => it
+          ..routeName.equals(kExampleRouteName)
+          ..cause.equals(exception)
+          ..which(condition)));
+    }
+
+    checkRequest(
+      http.ClientException('Connection closed before full body was received'),
+      (it) => it.kind.equals(.connectionFailed));
+    checkRequest(const SocketException('Connection reset by peer'),
+      (it) => it.kind.equals(.connectionFailed));
+    checkRequest(const TlsException('Oops'),
+      (it) => it.kind.equals(.other));
+
+    // On an HTTP error status, though, that status is the more useful
+    // signal; the network error doesn't obscure it.
+    unawaited(check(tryRequest(httpStatus: 500, body: '{"resu',
+        bodyException: const SocketException('Connection reset by peer')))
+      .throws<Server5xxException>());
+  });
+
   test('API request timeout', () => awaitFakeAsync((async) async {
     await FakeApiConnection.with_((connection) async {
       connection.prepare(delay: const Duration(seconds: 300), json: {});
@@ -386,6 +413,16 @@ void main() {
           ..routeName.equals(kExampleRouteName)
           ..kind.equals(.connectionFailed)
           ..cause.isA<http.RequestAbortedException>());
+    });
+  }));
+
+  test('HTTP status wins over a timeout while reading the response body', () => awaitFakeAsync((async) async {
+    await FakeApiConnection.with_((connection) async {
+      connection.prepare(httpStatus: 500, body: 'splat',
+        bodyDelay: const Duration(seconds: 300));
+      await check(connection.get(kExampleRouteName, (json) => json,
+          'example/route', {}, timeout: const Duration(seconds: 90)))
+        .throws<Server5xxException>();
     });
   }));
 
@@ -620,15 +657,18 @@ Future<T> tryRequest<T extends Object?>({
   int? httpStatus,
   Map<String, dynamic>? json,
   String? body,
+  Object? bodyException,
   T Function(Map<String, dynamic>)? fromJson,
 }) {
   assert((exception != null && json == null && body == null)
       || (exception == null && json != null && body == null)
       || (exception == null && json == null && body != null));
+  assert(exception == null || bodyException == null);
   fromJson ??= (((Map<String, dynamic> x) => x) as T Function(Map<String, dynamic>));
   return FakeApiConnection.with_((connection) {
     connection.prepare(
-      httpException: exception, httpStatus: httpStatus, json: json, body: body);
+      httpException: exception, httpStatus: httpStatus, json: json, body: body,
+      bodyException: bodyException);
     return connection.get(kExampleRouteName, fromJson!, 'example/route', {});
   });
 }

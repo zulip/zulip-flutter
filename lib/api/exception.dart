@@ -38,8 +38,8 @@ sealed class ApiRequestException implements Exception {
 /// because the cause's concrete type depends on
 /// which HTTP client implementation is in use.
 enum NetworkExceptionKind {
-  /// The connection couldn't be established, or was lost,
-  /// below the level of any HTTP response.
+  /// The connection couldn't be established,
+  /// or was lost before or while receiving the response.
   ///
   /// This includes a request timing out,
   /// which we treat as the connection having died
@@ -55,8 +55,10 @@ enum NetworkExceptionKind {
   other,
 }
 
-/// A network-level error that prevented even getting an HTTP response
-/// to some Zulip API network request.
+/// A network-level error that prevented getting a usable HTTP response
+/// to some Zulip API network request:
+/// either no response at all,
+/// or a success response cut off partway through the body.
 ///
 /// This is the antonym of [HttpException].
 class NetworkException extends ApiRequestException {
@@ -65,9 +67,11 @@ class NetworkException extends ApiRequestException {
 
   /// The exception describing the underlying error.
   ///
-  /// This can be any exception value that [http.Client.send] throws.
+  /// This can be any exception value that [http.Client.send] throws,
+  /// or one thrown while reading the response body.
   /// Ideally that would always be an [http.ClientException],
-  /// but empirically it can be [TlsException] and possibly others.
+  /// but empirically it can be [TlsException], [IOException],
+  /// and possibly others.
   ///
   /// The concrete type depends on which HTTP client implementation
   /// the app is using, so prefer [kind] for making decisions;

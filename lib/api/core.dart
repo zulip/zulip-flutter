@@ -190,10 +190,19 @@ class ApiConnection {
       // while the response is still being downloaded, improving latency.
       final jsonStream = jsonUtf8Decoder.bind(response.stream);
       json = await jsonStream.single as Map<String, dynamic>?;
-    } on http.RequestAbortedException catch (e) {
-      // The timeout in [_withTimeout] fired while we were reading the response.
-      _throwNetworkException(routeName, e);
-    } catch (e) {
+    } on http.ClientException catch (e) {
+      // A network error, like the connection being interrupted
+      // partway through receiving the response body; or the timeout
+      // in [_withTimeout] firing while we were reading it, which
+      // arrives here as an [http.RequestAbortedException].
+      // On an HTTP error status, though, that status is the more useful
+      // signal: fall through, and throw from it below.
+      if (httpStatus == 200) _throwNetworkException(routeName, e);
+    } on IOException catch (e) {
+      // As above: a network error, arriving with its original type.
+      if (httpStatus == 200) _throwNetworkException(routeName, e);
+    } catch (_) {
+      // The response body arrived but wasn't valid UTF-8-encoded JSON.
       // We'll throw something below, seeing `json` is null.
     }
 
@@ -225,6 +234,8 @@ class ApiConnection {
   /// then the request is aborted, tearing down the connection,
   /// and this throws a [NetworkException]
   /// with kind [NetworkExceptionKind.connectionFailed].
+  /// (But if an error response's headers had already arrived,
+  /// the exception reflects that HTTP status instead.)
   Future<T> get<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
       String path, Map<String, dynamic>? params, {Duration? timeout}) async {
     final url = realmUrl.replace(
