@@ -21,7 +21,8 @@ If you're reading this page for the first time, see the sections on
     something in our Weblate setup), run `tools/check` on it yourself.
   * Merge the PR.
 
-* Write an entry in `docs/changelog.md`, under "Unreleased".
+* Write an entry in `docs/changelog.md`, under "Unreleased",
+  as described in [howto/changelog-entry.md](howto/changelog-entry.md).
   Commit that change.
 
 * Run `tools/bump-version` to update the version number.
