@@ -791,6 +791,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Whether [message] belongs in this view:
+  /// it's known to be in [narrow], and it's visible ([_messageVisible]).
+  bool _messageBelongsHere(MessageBase message) =>
+    narrow.containsMessage(message) == true && _messageVisible(message);
+
   /// Whether [_messageVisible] is true for all possible messages.
   ///
   /// This is useful for an optimization.
@@ -1092,9 +1097,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   bool _shouldAddOutboxMessage(OutboxMessage outboxMessage) {
     assert(haveNewest);
-    return !outboxMessage.hidden
-      && narrow.containsMessage(outboxMessage) == true
-      && _messageVisible(outboxMessage);
+    return !outboxMessage.hidden && _messageBelongsHere(outboxMessage);
   }
 
   /// Reads [MessageStore.outboxMessages] and copies to [outboxMessages]
@@ -1246,7 +1249,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       return;
     }
 
-    if (narrow.containsMessage(message) != true || !_messageVisible(message)) {
+    if (!_messageBelongsHere(message)) {
       assert(event.localMessageId == null || outboxMessages.none((message) =>
         message.localMessageId == int.parse(event.localMessageId!, radix: 10)));
       return;
