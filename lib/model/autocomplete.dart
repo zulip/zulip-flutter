@@ -38,6 +38,15 @@ extension ComposeContentAutocomplete on ComposeContentController {
       // selection to the left. Once we know where the syntax starts, we can at
       // least require that the selection doesn't extend leftward past that;
       // see below.
+      //
+      // If we did require [isCollapsed], then on iOS each backspace would
+      // tear down and recreate the view-model in the widgets code.
+      // That would hide the options list until the next edit (see #226), and
+      // the wasted work of recomputing the results from scratch would make
+      // backspacing through a query laggy and janky, with dropped frames:
+      //   https://github.com/zulip/zulip-flutter/pull/2137#discussion_r3858506382
+      // TODO(#226): Once the options list follows the view-model, update the
+      //   above: the options list hiding becomes a flicker on each backspace.
       return null;
     }
 
