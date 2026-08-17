@@ -480,7 +480,9 @@ void main() {
         // and the outbox message is still hidden.
         store.reconcileMessages([message]);
         checkState().equals(OutboxMessageState.hidden);
-        checkNotNotified();
+        // The view was notified only because the newer message
+        // invalidated [MessageListView.haveNewest].
+        checkNotifiedOnce();
 
         // The send response arrives; the outbox message is deleted
         // without ever being shown.
@@ -520,14 +522,17 @@ void main() {
         store.reconcileMessages([message]);
         checkState().equals(OutboxMessageState.waiting);
         check(store.outboxMessages).values.single.messageId.isNull();
-        checkNotNotified();
+        // The view was notified because the newer message invalidated
+        // [MessageListView.haveNewest], removing the outbox message from it.
+        checkNotifiedOnce();
 
         // The send response arrives; the message in the store is recognized
         // as this outbox message's, and the outbox message is deleted.
+        // (The view already removed it, on the invalidation.)
         async.elapse(const Duration(seconds: 1));
         await check(outboxMessageSucceedFuture).completes();
         check(store.outboxMessages).isEmpty();
-        checkNotifiedOnce();
+        checkNotNotified();
 
         // The wait-period timer was canceled when the outbox message
         // was deleted.
@@ -545,14 +550,17 @@ void main() {
         // The message arrives in a fetch while the send request is in flight.
         store.reconcileMessages([message]);
         checkState().equals(OutboxMessageState.waitPeriodExpired);
-        checkNotNotified();
+        // The view was notified because the newer message invalidated
+        // [MessageListView.haveNewest], removing the outbox message from it.
+        checkNotifiedOnce();
 
         // The send response arrives; the outbox message is deleted,
         // without flickering back to the waiting state first.
+        // (The view already removed it, on the invalidation.)
         async.elapse(const Duration(seconds: 1));
         await check(outboxMessageSucceedFuture).completes();
         check(store.outboxMessages).isEmpty();
-        checkNotifiedOnce();
+        checkNotNotified();
       }));
 
       test('no delete when unrelated message found in fetch', () => awaitFakeAsync((async) async {
@@ -563,7 +571,10 @@ void main() {
 
         store.reconcileMessages([eg.streamMessage(stream: stream)]);
         checkState().equals(OutboxMessageState.waiting);
-        checkNotNotified();
+        // The view was notified, but only because the newer message
+        // invalidated [MessageListView.haveNewest];
+        // the outbox message remains in the store.
+        checkNotifiedOnce();
       }));
 
       test('waitPeriodExpired -> (delete) when event arrives before send request fails', () => awaitFakeAsync((async) async {

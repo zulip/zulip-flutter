@@ -418,6 +418,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
 
   void reconcileMessages(List<Message> messages) {
     assert(!_disposed);
+    List<Message>? newlyLearned;
     for (int i = 0; i < messages.length; i++) {
       final message = messages[i];
 
@@ -432,8 +433,18 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
       // as a cause of inaccuracies.
 
       messages[i] = this.messages.update(message.id,
-        ifAbsent: () => _reconcileUnrecognizedMessage(message),
+        ifAbsent: () {
+          final result = _reconcileUnrecognizedMessage(message);
+          (newlyLearned ??= []).add(result);
+          return result;
+        },
         (current) => _reconcileRecognizedMessage(current, message));
+    }
+
+    if (newlyLearned != null) {
+      for (final view in _messageListViews) {
+        view.handleMessagesLearnedFromFetch(newlyLearned!);
+      }
     }
 
     _removeDeliveredOutboxMessages();
