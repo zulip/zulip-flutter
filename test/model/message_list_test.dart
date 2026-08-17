@@ -331,6 +331,34 @@ void main() {
         ..outboxMessages.length.equals(1);
     }));
 
+    test('sent message found in fetch; outbox message removed', () => awaitFakeAsync((async) async {
+      final stream = eg.stream();
+      await prepare(
+        narrow: eg.topicNarrow(stream.streamId, 'topic'), stream: stream);
+
+      await prepareOutboxMessages(count: 1, stream: stream, topic: 'topic');
+      final messageId = store.outboxMessages.values.single.messageId!;
+      async.elapse(kLocalEchoDebounceDuration);
+      checkNotNotified();
+      check(model)
+        ..fetched.isFalse()
+        ..outboxMessages.isEmpty();
+
+      // The fetch finds the message the outbox message was sent as
+      // (see [OutboxMessage.messageId]).  The view must show it just once,
+      // with no stale outbox copy.
+      connection.prepare(json: newestResult(foundOldest: true, messages: [
+        eg.streamMessage(id: messageId, stream: stream, topic: 'topic',
+          sender: eg.selfUser)]).toJson());
+      await model.fetchInitial();
+      checkNotifiedOnce();
+      check(store.outboxMessages).isEmpty();
+      check(model)
+        ..fetched.isTrue()
+        ..outboxMessages.isEmpty()
+        ..messages.single.id.equals(messageId);
+    }));
+
     test('outbox messages not added until haveNewest', () => awaitFakeAsync((async) async {
       final stream = eg.stream();
       await prepare(
