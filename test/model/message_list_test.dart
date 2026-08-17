@@ -958,6 +958,43 @@ void main() {
           ..oldestFetchedMessageId.equals(200)..newestFetchedMessageId.equals(299);
       });
     });
+
+    test('message event', () async {
+      await prepare();
+      connection.prepare(json: newestResult(
+        foundOldest: true,
+        messages: channelMessages(fromId: 100, count: 100),
+      ).toJson());
+      await model.fetchInitial();
+      checkNotifiedOnce();
+      check(model).newestFetchedMessageId.equals(199);
+
+      await store.addMessage(channelMessage(id: 200));
+      checkNotifiedOnce();
+      check(model)
+        ..messages.last.id.equals(200)
+        ..newestFetchedMessageId.equals(200);
+    });
+
+    test('message event when no messages fetched', () async {
+      await prepare();
+      connection.prepare(json: newestResult(
+        foundOldest: true, messages: []).toJson());
+      await model.fetchInitial();
+      checkNotifiedOnce();
+      check(model)
+        ..oldestFetchedMessageId.isNull()..newestFetchedMessageId.isNull();
+
+      await store.addMessage(channelMessage(id: 100));
+      checkNotifiedOnce();
+      check(model)
+        ..oldestFetchedMessageId.equals(100)..newestFetchedMessageId.equals(100);
+
+      await store.addMessage(channelMessage(id: 200));
+      checkNotifiedOnce();
+      check(model)
+        ..oldestFetchedMessageId.equals(100)..newestFetchedMessageId.equals(200);
+    });
   });
 
   // TODO(#1569): test jumpToEnd
@@ -3831,6 +3868,13 @@ void checkInvariants(MessageListView model) {
     .isTrue();
   check(isSortedWithoutDuplicates(model.outboxMessages.map((m) => m.localMessageId).toList()))
     .isTrue();
+
+  if (model.messages.isNotEmpty) {
+    check(model).oldestFetchedMessageId.isNotNull()
+      .isLessOrEqual(model.messages.first.id);
+    check(model).newestFetchedMessageId.isNotNull()
+      .isGreaterOrEqual(model.messages.last.id);
+  }
 
   check(model).middleMessage
     ..isGreaterOrEqual(0)

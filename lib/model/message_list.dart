@@ -141,10 +141,13 @@ mixin _MessageSequence {
   /// The corresponding item index is [middleItem].
   int middleMessage = 0;
 
-  /// The ID of the oldest message fetched so far in this narrow.
+  /// The ID of the oldest message fetched so far in this narrow,
+  /// or of the first message added on a message event
+  /// when none had been fetched.
   ///
   /// This is used as the anchor for fetching the next batch of older messages
-  /// and will be `null` if no messages of this narrow have been fetched yet.
+  /// and will be `null` if no messages of this narrow
+  /// have been fetched or added yet.
   ///
   /// A message with this ID might not appear in [messages]:
   /// - The message may be in a muted conversation.
@@ -154,10 +157,12 @@ mixin _MessageSequence {
   int? get oldestFetchedMessageId => _oldestFetchedMessageId;
   int? _oldestFetchedMessageId;
 
-  /// The ID of the newest message fetched so far in this narrow.
+  /// The ID of the newest message fetched so far in this narrow,
+  /// or of a newer message added on a message event while [haveNewest].
   ///
   /// This is used as the anchor for fetching the next batch of newer messages
-  /// and will be `null` if no messages of this narrow have been fetched yet.
+  /// and will be `null` if no messages of this narrow
+  /// have been fetched or added yet.
   ///
   /// A message with this ID might not appear in [messages]:
   /// - The message may be in a muted conversation.
@@ -1272,6 +1277,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     _removeOutboxMessageItems();
     // TODO insert in middle of [messages] instead, when appropriate
     _addMessage(message);
+    // Keep [newestFetchedMessageId] up to date as the anchor for a future
+    // [fetchNewer], so that such a fetch can't return this message again
+    // (which would corrupt [messages] with a duplicate).
+    _newestFetchedMessageId = message.id;
+    // If the view had no messages at all, this message also bounds
+    // the history on the other end.
+    _oldestFetchedMessageId ??= message.id;
     _removeOutboxMessageOfEvent(event);
     _reprocessOutboxMessages();
     notifyListeners();
