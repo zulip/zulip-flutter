@@ -2679,10 +2679,11 @@ void main() {
           anchor: AnchorCode.newest)
         ..addListener(() => notifiedCount2++);
 
+      final initialMessage = eg.streamMessage(stream: stream, topic: 'hello');
       for (final m in [model1, model2]) {
         connection.prepare(json: newestResult(
           foundOldest: false,
-          messages: [eg.streamMessage(stream: stream, topic: 'hello')]).toJson());
+          messages: [initialMessage]).toJson());
         await m.fetchInitial();
       }
 
