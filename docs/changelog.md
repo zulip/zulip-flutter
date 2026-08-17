@@ -2,6 +2,72 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* (Android) Attach photos and videos with the system photo picker. (#1490)
+* (iOS) Restore support for iOS 15. (PR #2373)
+* Fix a glitch where a message you just sent could appear twice. (#929)
+* Speed up the initial load by around 20% in large organizations. (#254)
+* Reconnect sooner when you come back to the app. (#1884)
+* Fix loading older messages when many in a row are muted. (#1256)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Tooling:
+  * `tools/check`: Give a clear error when the base commit can't be
+    resolved. (#2371)
+  * `tools/provision-vm`: Install shellcheck, for `tools/check`'s
+    `shellcheck` suite. (#2369)
+
+* Merge log: PRs, with fixed issues and user-visible changes (earliest first).
+  * #2352.  Flutter and package upgrades.
+  * #2343: fix #2271.  Follow the user's setting for organizing the
+    inbox by channel folders.
+  * #2320: fix #109.  Login page: link to a doc explaining what your
+    "server URL" is.
+  * #2264: fix part of #2263.  Update the resolved-topic icon to
+    match web, in most of the UI.
+  * #2331: fix #1490, fix #1510, fix part of #855.  Use the Android
+    system photo picker for attaching photos and videos.
+  * #2359: fix #2358.  Fix literal-emoji matching in the emoji picker.
+  * #2334: fix #2278.
+  * #2360: fix #1839.  Require Zulip Server 9.0+.
+  * #2361.  Warn on connecting to servers older than Zulip Server 10.0.
+  * #2372
+  * #2364: fix #254.  Fetch most avatar URLs lazily, making the
+    initial load about 20% faster on chat.zulip.org.  See profiling
+    data on the PR.
+  * #2366
+  * #2369
+  * #2371
+  * #2370
+  * #2373.  Restore iOS 15 support.
+  * #2340: fix #1843.  Disable the topic input in channels restricted
+    to "general chat".
+  * #2382: fix #2105.  Escape more characters in links the app
+    generates, matching web.
+  * #2377
+  * #2396: fix #514.  Time out stalled event-polling requests.
+  * #2390: fix #2389.  Release notes link and other improvements on
+    the About Zulip page.
+  * #2388: fix #929.  Fix duplicate message on a fetch/event race.
+  * #2413: fix part of #2397.  Drop the sending-message placeholder
+    when its message arrives in a fetch.
+  * #2342: fix #2338.  Haptic feedback on error dialogs.
+  * #2399: fix #1884.  Reconnect promptly when the app returns to the
+    foreground.
+  * #1989: fix #1256.  Fetch older messages past a long run of muted
+    ones.
+  * #2079: fix #1476.  Apply muting when messages move to or from
+    muted topics.
+  * #2403
+  * #2425: fix part of #2397.  Drop the sending-message placeholder on
+    send success when its message was already fetched.
+  * #2421: fix #2417, fix #2418.  Recognize connection failures in
+    more cases.
+
 
 ## 30.0.273 (2026-06-24)
 
