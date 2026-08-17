@@ -38,6 +38,12 @@ extension ComposeContentAutocomplete on ComposeContentController {
       // selection to the left. Once we know where the syntax starts, we can at
       // least require that the selection doesn't extend leftward past that;
       // see below.
+      //
+      // If we did require it, then on iOS each backspace would
+      // tear down and recreate the view-model in the widgets code,
+      // hiding the options list until the next edit. See #226.
+      // TODO(#226): Once the options list follows the view-model, update the
+      //   above: the effect becomes a flicker on each backspace.
       return null;
     }
 
