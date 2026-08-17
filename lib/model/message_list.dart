@@ -1184,6 +1184,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// ([haveNewest] becomes false),
   /// so that a subsequent [fetchNewer] will find them.
   ///
+  /// If the view has never had any messages,
+  /// a [fetchNewer] would have nothing to anchor its request at.
+  /// In that case, reset and refetch from scratch instead.
+  ///
   /// Normally such messages would already have been added to this view,
   /// on a message event.
   /// But the event queue might be delayed or stuck
@@ -1201,9 +1205,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     final anchorId = newestFetchedMessageId;
     if (anchorId == null) {
       // A [fetchNewer] would have no message to anchor its request at.
-      // TODO if a newly-learned message belongs in this view, reset and
-      //   refetch, as in [_messagesMovedIntoMessageList].  The view has
-      //   never had any messages, so there's no content to preserve.
+      // But the view has never had any messages,
+      // so there's no content to preserve. Just refetch from scratch.
+      if (newlyLearned.any(_messageBelongsHere)) {
+        _reset();
+        notifyListeners();
+        fetchInitial();
+      }
       return;
     }
     final hasNewerMessage = newlyLearned.any((message) =>

@@ -1534,18 +1534,35 @@ void main() {
       check(model).haveNewest.isFalse();
     });
 
-    test('empty narrow -> no effect', () async {
-      // TODO make this case reset and refetch.  See TODO in
-      //   [MessageListView.handleMessagesLearnedFromFetch].
+    test('empty narrow -> reset and refetch', () => awaitFakeAsync((async) async {
       await prepare(narrow: narrow, stream: channel);
       await prepareMessages(foundOldest: true, messages: []);
       check(model).haveNewest.isTrue();
       check(model).messages.isEmpty();
 
-      store.reconcileMessages([
-        eg.streamMessage(id: 2000, stream: channel, topic: 'topic')]);
-      checkNotNotified();
+      final message = eg.streamMessage(id: 2000, stream: channel, topic: 'topic');
+      connection.prepare(delay: const Duration(seconds: 2), json: newestResult(
+        foundOldest: true, messages: [message]).toJson());
+      store.reconcileMessages([message]);
+      check(model).fetched.isFalse();
+      checkNotifiedOnce();
+
+      async.elapse(const Duration(seconds: 2));
+      checkHasMessageIds([2000]);
       check(model).haveNewest.isTrue();
+      checkNotifiedOnce();
+    }));
+
+    test('empty narrow, message in muted topic -> no effect', () async {
+      await prepare(narrow: narrow, stream: channel);
+      await store.setUserTopic(channel, 'muted topic', UserTopicVisibilityPolicy.muted);
+      await prepareMessages(foundOldest: true, messages: []);
+      check(model).haveNewest.isTrue();
+
+      store.reconcileMessages([
+        eg.streamMessage(id: 2000, stream: channel, topic: 'muted topic')]);
+      checkNotNotified();
+      check(model).fetched.isTrue();
     });
 
     test('outbox messages removed, and restored when fetch reaches end', () => awaitFakeAsync((async) async {
