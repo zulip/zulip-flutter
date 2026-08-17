@@ -17,6 +17,7 @@ import 'package:zulip/api/route/events.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
+import 'package:zulip/model/binding.dart';
 import 'package:zulip/model/presence.dart';
 import 'package:zulip/model/server_support.dart';
 import 'package:zulip/model/store.dart';
@@ -953,6 +954,19 @@ void main() {
       });
     }
 
+    void prepareHeartbeat(int eventId, {Duration delay = Duration.zero}) {
+      connection.prepare(delay: delay, json: GetEventsResult(events: [
+        HeartbeatEvent(id: eventId),
+      ], queueId: null).toJson());
+    }
+
+    /// Prepare a response that never arrives:
+    /// the connection died silently (see #514).
+    void prepareStuckPollResponse() {
+      connection.prepare(delay: const Duration(seconds: 300),
+        json: GetEventsResult(events: [], queueId: null).toJson());
+    }
+
     // These cases are ordered by how far the request got before it failed.
 
     void prepareUnexpectedLoopError() {
@@ -1163,6 +1177,35 @@ void main() {
         check(updateMachine.lastEventId).equals(2);
       }));
 
+      test('no abort when backoff is from a non-connectionFailed network error', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail with a transport error that isn't a failed connection
+        // (its kind is [NetworkExceptionKind.other]); see #1884 for why
+        // waking should cut short only failed-connection backoffs.
+        prepareNetworkException();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        final machineBefore = updateMachine.debugPollBackoffMachine;
+
+        // Coming to the foreground doesn't cut the backoff short,
+        // and doesn't discard the accumulated backoff state either.
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+        check(updateMachine.debugPollBackoffMachine).identicalTo(machineBefore);
+
+        // Polling continues after the backoff.
+        prepareHeartbeat(2);
+        async.flushTimers();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
       test('no effect when no backoff in progress', () => awaitFakeAsync((async) async {
         await preparePoll(lastEventId: 1);
 
@@ -1177,6 +1220,195 @@ void main() {
 
         updateMachine.dispose();
         testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+      }));
+    });
+
+    group('abort stalled poll on connectivity change', () {
+      /// Start a poll request that gets stuck
+      /// (see [prepareStuckPollResponse]).
+      void startStuckPoll(FakeAsync async) {
+        prepareStuckPollResponse();
+        updateMachine.debugAdvanceLoop();
+        async.flushMicrotasks();
+        checkLastRequest(lastEventId: 1);
+      }
+
+      test('abort request stuck awaiting response', () => awaitFakeAsync((async) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/2415
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        startStuckPoll(async);
+        async.elapse(const Duration(seconds: 30));
+
+        // On a connectivity change, the stuck request is aborted.
+        // It fails like any failed request -- the recovering state
+        // shows -- but with the backoff state discarded, so the retry
+        // goes out after just the initial backoff.
+        prepareHeartbeat(2);
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([ConnectivityResult.mobile]);
+        async.flushMicrotasks();
+        check(store).isRecoveringEventStream.isTrue();
+        async.elapse(const Duration(seconds: 1));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+        check(store).isRecoveringEventStream.isFalse();
+      }));
+
+      test('abort discards accumulated backoff state', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail once, so that backoff state accumulates; from a server
+        // error, so that no backoff-abort trigger is armed.
+        prepareServer5xxException();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+
+        // The retry gets stuck.
+        prepareStuckPollResponse();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(const Duration(seconds: 1));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        final machineBefore = updateMachine.debugPollBackoffMachine;
+        check(machineBefore).isNotNull();
+
+        // The abort discards the accumulated backoff state: the machine
+        // the failed request's error handling creates is a fresh one.
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([ConnectivityResult.mobile]);
+        async.flushMicrotasks();
+        check(updateMachine.debugPollBackoffMachine)
+          ..isNotNull()
+          ..not((it) => it.identicalTo(machineBefore));
+      }));
+
+      test('abort backoff wait from a non-connectionFailed transport failure', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail with a transport error that isn't a failed connection
+        // (its kind is [NetworkExceptionKind.other]), entering a backoff
+        // wait.  A wake wouldn't abort this wait…
+        prepareNetworkException();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(async.pendingTimers).length.equals(1);
+
+        // …but a connectivity change does: the transport failed, so the
+        // network is a plausible culprit, and the network just changed.
+        prepareHeartbeat(2);
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([ConnectivityResult.mobile]);
+        async.flushMicrotasks();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        // The change also discarded the accumulated backoff state.
+        check(updateMachine.debugPollBackoffMachine).isNull();
+        async.elapse(Duration.zero);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      test('no abort of backoff wait from a server error', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail from the server itself: the network demonstrably worked,
+        // so a connectivity change is no reason to retry sooner.
+        prepareServer5xxException();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(async.pendingTimers).length.equals(1);
+
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([ConnectivityResult.mobile]);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+
+        // Polling continues after the backoff.
+        prepareHeartbeat(2);
+        async.flushTimers();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      test('deferred retry signal aborts a retry that predates the change', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        startStuckPoll(async);
+
+        // The first change aborts the poll…
+        prepareStuckPollResponse();
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([ConnectivityResult.mobile]);
+        async.elapse(const Duration(seconds: 1));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+
+        // …but another change hard on its heels doesn't abort the retry
+        // immediately…
+        async.elapse(const Duration(seconds: 4));
+        testBinding.notifyConnectivityChanged([ConnectivityResult.wifi]);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+
+        // …only when the deferred signal comes at the cooldown's end:
+        // the retry predates that change, so its connection is suspect too.
+        prepareHeartbeat(2);
+        updateMachine.debugAdvanceLoop();
+        async.elapse(const Duration(seconds: 6));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      test('deferred retry signal is moot once a fresh request has started', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        startStuckPoll(async);
+
+        // A change aborts the poll; the retry is slow but healthy.
+        prepareHeartbeat(2, delay: const Duration(seconds: 5));
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([ConnectivityResult.mobile]);
+        async.elapse(const Duration(seconds: 1));
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+
+        // Another change lands during the cooldown, deferred.
+        async.elapse(const Duration(seconds: 2));
+        testBinding.notifyConnectivityChanged([ConnectivityResult.wifi]);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+
+        // The retry completes, and the next poll goes out --
+        // a request made after the change, on the current network.
+        prepareStuckPollResponse();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(const Duration(seconds: 3));
+        checkLastRequest(lastEventId: 2);
+        check(updateMachine.lastEventId).equals(2);
+
+        // So when the cooldown ends, the deferred change is moot:
+        // the poll is left alone.
+        async.elapse(const Duration(seconds: 5));
+        check(connection.lastRequest).isNull();
+      }));
+
+      test('no effect after dispose', () => awaitFakeAsync((async) async {
+        await preparePoll(lastEventId: 1);
+
+        updateMachine.dispose();
+        testBinding.notifyConnectivityChanged([ConnectivityResult.mobile]);
         async.flushMicrotasks();
       }));
     });
