@@ -141,10 +141,13 @@ mixin _MessageSequence {
   /// The corresponding item index is [middleItem].
   int middleMessage = 0;
 
-  /// The ID of the oldest message fetched so far in this narrow.
+  /// The ID of the oldest message fetched so far in this narrow,
+  /// or of the first message added on a message event
+  /// when none had been fetched.
   ///
   /// This is used as the anchor for fetching the next batch of older messages
-  /// and will be `null` if no messages of this narrow have been fetched yet.
+  /// and will be `null` if no messages of this narrow
+  /// have been fetched or added yet.
   ///
   /// A message with this ID might not appear in [messages]:
   /// - The message may be in a muted conversation.
@@ -154,10 +157,12 @@ mixin _MessageSequence {
   int? get oldestFetchedMessageId => _oldestFetchedMessageId;
   int? _oldestFetchedMessageId;
 
-  /// The ID of the newest message fetched so far in this narrow.
+  /// The ID of the newest message fetched so far in this narrow,
+  /// or of a newer message added on a message event while [haveNewest].
   ///
   /// This is used as the anchor for fetching the next batch of newer messages
-  /// and will be `null` if no messages of this narrow have been fetched yet.
+  /// and will be `null` if no messages of this narrow
+  /// have been fetched or added yet.
   ///
   /// A message with this ID might not appear in [messages]:
   /// - The message may be in a muted conversation.
@@ -451,6 +456,22 @@ mixin _MessageSequence {
     }
     _reprocessOutboxMessages();
     return true;
+  }
+
+  /// Mark this sequence as no longer having the newest messages,
+  /// so that a subsequent [MessageListView.fetchNewer] can find them.
+  ///
+  /// This removes all [outboxMessages],
+  /// preserving the invariant that those are present only when [haveNewest].
+  /// See [MessageListView._syncOutboxMessagesFromStore],
+  /// which will restore the outbox messages
+  /// when a fetch again reaches the newest messages.
+  ///
+  /// This does not call [notifyListeners].
+  void _invalidateHaveNewest() {
+    assert(haveNewest);
+    _removeOutboxMessagesWhere((_) => true);
+    _haveNewest = false;
   }
 
   /// Reset all [_MessageSequence] data, and cancel any active fetches.
@@ -791,6 +812,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Whether [message] belongs in this view:
+  /// it's known to be in [narrow], and it's visible ([_messageVisible]).
+  bool _messageBelongsHere(MessageBase message) =>
+    narrow.containsMessage(message) == true && _messageVisible(message);
+
   /// Whether [_messageVisible] is true for all possible messages.
   ///
   /// This is useful for an optimization.
@@ -1083,7 +1109,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   void jumpToEnd() {
     assert(fetched);
     assert(!haveNewest);
-    assert(anchor != AnchorCode.newest);
+    // [anchor] is usually not [AnchorCode.newest] here, but it can be,
+    // when [haveNewest] was invalidated.  See [handleMessagesLearnedFromFetch].
     _anchor = AnchorCode.newest;
     _reset();
     notifyListeners();
@@ -1092,9 +1119,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   bool _shouldAddOutboxMessage(OutboxMessage outboxMessage) {
     assert(haveNewest);
-    return !outboxMessage.hidden
-      && narrow.containsMessage(outboxMessage) == true
-      && _messageVisible(outboxMessage);
+    return !outboxMessage.hidden && _messageBelongsHere(outboxMessage);
   }
 
   /// Reads [MessageStore.outboxMessages] and copies to [outboxMessages]
@@ -1147,6 +1172,56 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     if (_removeOutboxMessage(outboxMessage)) {
       notifyListeners();
     }
+  }
+
+  /// Called when the store has newly learned of messages from a fetch,
+  /// whether by this view or another.
+  /// See [MessageStoreImpl.reconcileMessages].
+  ///
+  /// If any of the messages belong in this view
+  /// but are newer than the messages it has,
+  /// then stop claiming to have the newest messages
+  /// ([haveNewest] becomes false),
+  /// so that a subsequent [fetchNewer] will find them.
+  ///
+  /// If the view has never had any messages,
+  /// a [fetchNewer] would have nothing to anchor its request at.
+  /// In that case, reset and refetch from scratch instead.
+  ///
+  /// Normally such messages would already have been added to this view,
+  /// on a message event.
+  /// But the event queue might be delayed or stuck
+  /// while fetches continue to succeed
+  /// (see #2397, and e.g. #514 and #2415 for ways this can happen).
+  /// In that case this is how the view learns
+  /// its impression of being caught up is stale.
+  ///
+  /// A view on a search narrow never invalidates this way,
+  /// because the client can't tell which messages belong in it
+  /// (see [Narrow.containsMessage]).
+  /// So such a view can keep claiming [haveNewest] when it's stale.
+  void handleMessagesLearnedFromFetch(List<Message> newlyLearned) {
+    if (!haveNewest) return;
+    final anchorId = newestFetchedMessageId;
+    if (anchorId == null) {
+      // A [fetchNewer] would have no message to anchor its request at.
+      // But the view has never had any messages,
+      // so there's no content to preserve. Just refetch from scratch.
+      if (newlyLearned.any(_messageBelongsHere)) {
+        _reset();
+        notifyListeners();
+        fetchInitial();
+      }
+      return;
+    }
+    final hasNewerMessage = newlyLearned.any((message) =>
+      // A message at or before [anchorId] wouldn't be found by [fetchNewer],
+      // so don't invalidate for it.  (A message the view lacks, with an ID
+      // in the already-fetched range, can arise from a message move.)
+      message.id > anchorId && _messageBelongsHere(message));
+    if (!hasNewerMessage) return;
+    _invalidateHaveNewest();
+    notifyListeners();
   }
 
   void handleUserTopicEvent(UserTopicEvent event) {
@@ -1246,7 +1321,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       return;
     }
 
-    if (narrow.containsMessage(message) != true || !_messageVisible(message)) {
+    if (!_messageBelongsHere(message)) {
       assert(event.localMessageId == null || outboxMessages.none((message) =>
         message.localMessageId == int.parse(event.localMessageId!, radix: 10)));
       return;
@@ -1269,6 +1344,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     _removeOutboxMessageItems();
     // TODO insert in middle of [messages] instead, when appropriate
     _addMessage(message);
+    // Keep [newestFetchedMessageId] up to date as the anchor for a future
+    // [fetchNewer], so that such a fetch can't return this message again
+    // (which would corrupt [messages] with a duplicate).
+    _newestFetchedMessageId = message.id;
+    // If the view had no messages at all, this message also bounds
+    // the history on the other end.
+    _oldestFetchedMessageId ??= message.id;
     _removeOutboxMessageOfEvent(event);
     _reprocessOutboxMessages();
     notifyListeners();
