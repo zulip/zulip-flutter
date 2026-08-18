@@ -1331,22 +1331,14 @@ extension _SystemGroupNameDisplayName on SystemGroupName {
   /// This lives outside lib/api so that lib/api
   /// doesn't depend on the app's localizations, or on Flutter (#2335).
   String displayName(ZulipLocalizations zulipLocalizations) => switch (this) {
-    SystemGroupName.everyoneOnInternet =>
-      zulipLocalizations.systemGroupNameEveryoneOnInternet,
-    SystemGroupName.everyone =>
-      zulipLocalizations.systemGroupNameEveryone,
-    SystemGroupName.members =>
-      zulipLocalizations.systemGroupNameMembers,
-    SystemGroupName.fullMembers =>
-      zulipLocalizations.systemGroupNameFullMembers,
-    SystemGroupName.moderators =>
-      zulipLocalizations.systemGroupNameModerators,
-    SystemGroupName.administrators =>
-      zulipLocalizations.systemGroupNameAdministrators,
-    SystemGroupName.owners =>
-      zulipLocalizations.systemGroupNameOwners,
-    SystemGroupName.nobody =>
-      zulipLocalizations.systemGroupNameNobody,
+    .everyoneOnInternet => zulipLocalizations.systemGroupNameEveryoneOnInternet,
+    .everyone           => zulipLocalizations.systemGroupNameEveryone,
+    .members            => zulipLocalizations.systemGroupNameMembers,
+    .fullMembers        => zulipLocalizations.systemGroupNameFullMembers,
+    .moderators         => zulipLocalizations.systemGroupNameModerators,
+    .administrators     => zulipLocalizations.systemGroupNameAdministrators,
+    .owners             => zulipLocalizations.systemGroupNameOwners,
+    .nobody             => zulipLocalizations.systemGroupNameNobody,
   };
 }
 
