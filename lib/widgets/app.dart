@@ -9,7 +9,6 @@ import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
-import '../notifications/open.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
 import 'home.dart';
@@ -183,38 +182,33 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  AccountRoute<void>? _initialRouteIos(BuildContext context) {
-    return NotificationOpenService.instance
-        .routeForNotificationFromLaunch(context: context);
-  }
-
   List<Route<dynamic>> _handleGenerateInitialRoutes(String initialRoute) {
+    // We ignore any notification at this step, and handle any initial
+    // notification by a navigation after the first frame.
+    // See `NotificationOpenService.start`, and the buffering in
+    // NotificationTapEventListener.kt (on Android) and
+    // NotificationTapEventListener.swift (on iOS),
+    // for events that arrive before `onListen` is called.
+    //
+    // That navigation causes a small visible glitch, where one loading
+    // spinner gets replaced by another; and when the notification is for
+    // an account other than the last-visited one, a brief flash of the
+    // latter's home page.
+    // See recordings for Android (the behavior is similar on iOS):
+    //   https://github.com/zulip/zulip-flutter/pull/2043#discussion_r2794138972
+    //
+    // TODO avoid the glitch by controlling the initial route.
+    //   On Android, this may become possible when this upstream issue is fixed:
+    //     https://github.com/flutter/flutter/issues/178305
+    //   Or on both platforms, we could instead have the native side flag whether
+    //   a tap event came from the app's launch, and await the first such event
+    //   (or a report that none is coming) via `GlobalStoreWidget.blockingFuture`
+    //   before generating the initial routes.
+
     // The `_ZulipAppState.context` lacks the required ancestors. Instead
     // we use the Navigator which should be available when this callback is
     // called and its context should have the required ancestors.
     final context = ZulipApp.navigatorKey.currentContext!;
-
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final route = _initialRouteIos(context);
-      if (route != null) {
-        return [
-          HomePage.buildRoute(accountId: route.accountId),
-          route,
-        ];
-      }
-    } else {
-      // On Android, we ignore any notification at this step, and handle
-      // any initial notification by a navigation after the first frame.
-      // See [NotificationOpenService.start], and the buffering in
-      // NotificationTapEventListener.kt when onListen is not yet called.
-      //
-      // The navigation causes a small visible glitch where one loading spinner
-      // gets replaced by another; see recordings:
-      //   https://github.com/zulip/zulip-flutter/pull/2043#discussion_r2794138972
-      // TODO it'd be nice to avoid that glitch by controlling the initial route.
-      //   We accept this glitch as a workaround for an upstream issue:
-      //   https://github.com/flutter/flutter/issues/178305
-    }
 
     final globalStore = GlobalStoreWidget.of(context);
     final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
@@ -241,7 +235,6 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return GlobalStoreWidget(
-      blockingFuture: NotificationOpenService.instance.initialized,
       child: Builder(builder: (context) {
         return MaterialApp(
           onGenerateTitle: (BuildContext context) {
