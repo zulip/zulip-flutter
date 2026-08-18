@@ -437,6 +437,67 @@ void main() {
     });
   }));
 
+  /// Test that a request under [ApiConnection.get]'s [abortTrigger]
+  /// (and possibly a timeout) fails as an aborted request does,
+  /// after [expectedElapsed].
+  void testAbortedRequest(String description, {
+    bool responseStarted = false,
+    Duration? timeout,
+    bool fireAbortTrigger = true,
+    required Duration expectedElapsed,
+  }) {
+    test(description, () => awaitFakeAsync((async) async {
+      await FakeApiConnection.with_((connection) async {
+        const responseDelay = Duration(seconds: 300);
+        connection.prepare(
+          delay: responseStarted ? Duration.zero : responseDelay,
+          bodyDelay: responseStarted ? responseDelay : Duration.zero,
+          json: {});
+        final abortTrigger = Completer<void>();
+        final future = connection.get(kExampleRouteName, (json) => json,
+          'example/route', {},
+          timeout: timeout, abortTrigger: abortTrigger.future);
+        if (fireAbortTrigger) {
+          async.elapse(const Duration(seconds: 30));
+          abortTrigger.complete();
+        }
+        await check(future).throws<NetworkException>((it) => it
+          ..routeName.equals(kExampleRouteName)
+          ..kind.equals(.connectionFailed)
+          ..cause.isA<http.RequestAbortedException>());
+        check(async.elapsed).equals(expectedElapsed);
+      });
+    }));
+  }
+
+  testAbortedRequest('API request aborted by abortTrigger',
+    expectedElapsed: const Duration(seconds: 30));
+
+  testAbortedRequest('API request aborted by abortTrigger while reading response body',
+    responseStarted: true,
+    expectedElapsed: const Duration(seconds: 30));
+
+  testAbortedRequest('abortTrigger aborts request before its timeout',
+    timeout: const Duration(seconds: 90),
+    expectedElapsed: const Duration(seconds: 30));
+
+  testAbortedRequest('timeout still applies when abortTrigger never fires',
+    timeout: const Duration(seconds: 90),
+    fireAbortTrigger: false,
+    expectedElapsed: const Duration(seconds: 90));
+
+  test('no effect when abortTrigger fires after request completes', () => awaitFakeAsync((async) async {
+    await FakeApiConnection.with_((connection) async {
+      final abortTrigger = Completer<void>();
+      connection.prepare(json: {'x': 3});
+      final result = await connection.get(kExampleRouteName, (json) => json['x'],
+        'example/route', {}, abortTrigger: abortTrigger.future);
+      check(result).equals(3);
+      abortTrigger.complete();
+      async.flushMicrotasks();
+    });
+  }));
+
   test('API 4xx errors, well formed', () async {
     Future<void> checkRequest({
       int httpStatus = 400,

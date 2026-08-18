@@ -79,6 +79,7 @@ class TestZulipBinding extends ZulipBinding {
     _resetLaunchUrl();
     _resetCloseInAppWebView();
     _resetAppLifecycleStateChanges();
+    _resetConnectivity();
     _resetDeviceInfo();
     _resetPackageInfo();
     _resetFirebase();
@@ -275,6 +276,62 @@ class TestZulipBinding extends ZulipBinding {
   @override
   Stream<AppLifecycleState> get appLifecycleStateChanges =>
     _appLifecycleStateChangesController.stream;
+
+  void _resetConnectivity() {
+    _connectivityChanges = null;
+    connectivityResult = _defaultConnectivityResult;
+    connectivityCheckDelay = Duration.zero;
+    connectivityCheckError = null;
+  }
+
+  /// The value that `ZulipBinding.instance.checkConnectivity` should return.
+  ///
+  /// Also updated by [notifyConnectivityChanged], to keep the fake
+  /// self-consistent.
+  List<ConnectivityResult> connectivityResult = _defaultConnectivityResult;
+  static const _defaultConnectivityResult = [ConnectivityResult.wifi];
+
+  /// How long [checkConnectivity] takes to complete.
+  ///
+  /// The result reflects [connectivityResult] as of when the call was made,
+  /// like a real check's result reflects the state when the platform
+  /// sampled it.
+  Duration connectivityCheckDelay = Duration.zero;
+
+  /// If non-null, [checkConnectivity] throws this instead of returning.
+  Object? connectivityCheckError;
+
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() async {
+    final result = connectivityResult;
+    final error = connectivityCheckError;
+    if (connectivityCheckDelay != Duration.zero) {
+      await Future<void>.delayed(connectivityCheckDelay);
+    }
+    if (error != null) throw error;
+    return result;
+  }
+
+  /// Simulate a network-connectivity change,
+  /// causing [connectivityChanges] to fire
+  /// and updating [connectivityResult] to match.
+  void notifyConnectivityChanged(List<ConnectivityResult> result) {
+    connectivityResult = result;
+    _connectivityChangesController.add(result);
+  }
+
+  /// Simulate an error event on [connectivityChanges].
+  void notifyConnectivityError(Object error) {
+    _connectivityChangesController.addError(error);
+  }
+
+  StreamController<List<ConnectivityResult>> get _connectivityChangesController =>
+    _connectivityChanges ??= StreamController.broadcast();
+  StreamController<List<ConnectivityResult>>? _connectivityChanges;
+
+  @override
+  Stream<List<ConnectivityResult>> get connectivityChanges =>
+    _connectivityChangesController.stream;
 
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;

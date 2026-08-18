@@ -37,6 +37,7 @@ dependencies:
 
   app_settings: ^7.0.0
   collection: ^1.17.2
+  connectivity_plus: ^7.3.1
   convert: ^3.1.1
   crypto: ^3.0.3
   csslib: ^1.0.2
