@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# SessionStart hook, configured in .claude/settings.json.
+#
+# In a Claude Code on the web session, finish connecting up the
+# environment provisioned by tools/provision-cloud (which runs as
+# the cloud environment's setup script; see docs/howto/claude-web.md).
+#
+# In other sessions (a local machine, the Lima VM), do nothing.
+
+if [ "${CLAUDE_CODE_REMOTE-}" != true ]; then
+    exit 0
+fi
+
+cd "$CLAUDE_PROJECT_DIR"
+
+# Warn if this session was started against the upstream repo instead
+# of a personal fork.  The team workflow is fork + PR; any commits
+# made here would be unpushable (or, worse, pushed to upstream).
+# A SessionStart hook can't halt a session (it has no blocking or
+# decision control; see the Claude Code hooks docs), so instead print
+# a warning to stdout, which reaches Claude as context: tell it to
+# stop and have the user restart on their fork.
+origin_url=$(git config --get remote.origin.url || true)
+# Normalize away a trailing slash and any .git suffix, so one
+# pattern matches every spelling of the URL.
+origin_url=${origin_url%/}
+case "${origin_url%.git}" in
+    *[/:]zulip/zulip-flutter)
+        cat <<'EOF'
+STOP: this session is on zulip/zulip-flutter, the upstream repo, not a
+personal fork.  Do not make any changes, commits, or pushes.  Tell the
+user to start a new session and pick their own fork from the repo
+dropdown; the team workflow is fork + PR, and work done here has
+nowhere good to go.
+EOF
+        exit 0;;
+esac
+
+# The session starts from a fresh clone of the repo, so fetch pub
+# deps (fast: the environment cache has a warm pub cache).  On
+# resume, /clear, and compaction the clone is unchanged, so skip
+# the Flutter tool's multi-second spin-up.
+if ! { [ .dart_tool/package_config.json -nt pubspec.yaml ] \
+           && [ .dart_tool/package_config.json -nt pubspec.lock ]; }; then
+    # Quiet on success, because this hook's output lands in Claude's
+    # context.  On failure, show the output and let Claude sort it out --
+    # e.g. if the cached Flutter SDK has fallen behind pubspec.yaml's
+    # minimum version, `flutter upgrade` fixes that.
+    if ! output=$(flutter pub get 2>&1); then
+        echo "$output"
+        echo "cloud-session-start: \`flutter pub get\` failed; see above."
+        exit 0
+    fi
+fi
+
+# One line so that success is distinguishable from not running at all.
+echo "cloud-session-start: ok"

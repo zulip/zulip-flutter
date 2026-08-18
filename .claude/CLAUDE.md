@@ -138,6 +138,41 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   content.
 
 
+## Cloud sessions (Claude Code on the web)
+
+- Before running tests, apply this workaround: the network proxy
+  blocks `package:sqlite3`'s download of its prebuilt library
+  (anthropics/claude-code#78330), which makes `flutter test` fail
+  with a bogus hash-mismatch error. Add to `pubspec.yaml`:
+
+  ```yaml
+  hooks:
+    user_defines:
+      sqlite3:
+        source: system
+  ```
+
+  and keep that hunk uncommitted. (The system SQLite it selects
+  is installed by tools/provision-cloud.)
+
+- On Claude Code on the web, the GitHub API is scoped to the
+  session's own repo. To read upstream issues and PRs,
+  use the built-in GitHub search tools with `repo:zulip/zulip-flutter`
+  in the query, or fetch the item's github.com URL with WebFetch.
+  Issue comments are reachable by neither route (PR comments are);
+  when an issue's comment thread matters, ask the user to paste it.
+  (Limitation tracked as anthropics/claude-code#78277.)
+
+- **Open pull requests only as drafts.**
+  A PR is created on behalf of the user's own GitHub account,
+  and a session's commits are authored as Claude, with no
+  responsible human author. A draft says so: it's a handoff,
+  not a submission. After opening one, tell the user the rest
+  is theirs — check out the branch locally, revise and take
+  authorship (with `--reset-author`), and mark the PR ready
+  for review. See docs/howto/claude-web.md ("Trust model").
+
+
 ## Using Git
 
 - **Use `@` instead of `HEAD`** —
@@ -167,3 +202,11 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Instead, use `git cherry-pick`
   (with `--no-commit` when modifications are needed)
   to replay commits.
+
+- **Don't commit files that aren't meant for the repo** —
+  reports, reviews, drafts, and other output addressed to the
+  person you're working with rather than to the codebase.
+  Leave these uncommitted unless explicitly asked.
+  This matters most on Claude Code on the web, which pushes
+  commits to GitHub automatically: a committed security review
+  would go public before any human had looked at it.
