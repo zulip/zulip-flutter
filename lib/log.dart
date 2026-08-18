@@ -1,5 +1,5 @@
 
-import 'package:flutter/foundation.dart';
+import 'basic.dart';
 
 /// Whether [debugLog] should do anything.
 ///
