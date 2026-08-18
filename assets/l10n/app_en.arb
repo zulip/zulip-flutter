@@ -167,6 +167,18 @@
   "@actionSheetOptionUnpinChannel": {
     "description": "Label in the channel action sheet for unpinning the channel."
   },
+  "errorSetChannelColorFailedTitle": "Failed to set channel color",
+  "@errorSetChannelColorFailedTitle": {
+    "description": "Error title when setting the channel color fails."
+  },
+  "errorMuteChannelFailedTitle": "Failed to mute channel",
+  "@errorMuteChannelFailedTitle": {
+    "description": "Error title when muting a channel fails."
+  },
+  "errorUnmuteChannelFailedTitle": "Failed to unmute channel",
+  "@errorUnmuteChannelFailedTitle": {
+    "description": "Error title when unmuting a channel fails."
+  },
   "errorPinChannelFailedTitle": "Failed to pin channel",
   "@errorPinChannelFailedTitle": {
     "description": "Error title when pinning a channel to the top fails."
@@ -174,6 +186,46 @@
   "errorUnpinChannelFailedTitle": "Failed to unpin channel",
   "@errorUnpinChannelFailedTitle": {
     "description": "Error title when unpinning a channel from the top fails."
+  },
+  "errorEnableDesktopNotificationsFailedTitle": "Failed to enable desktop notifications",
+  "@errorEnableDesktopNotificationsFailedTitle": {
+    "description": "Error title when enabling desktop notifications for a channel fails."
+  },
+  "errorDisableDesktopNotificationsFailedTitle": "Failed to disable desktop notifications",
+  "@errorDisableDesktopNotificationsFailedTitle": {
+    "description": "Error title when disabling desktop notifications for a channel fails."
+  },
+  "errorEnableAudibleNotificationsFailedTitle": "Failed to enable audible notifications",
+  "@errorEnableAudibleNotificationsFailedTitle": {
+    "description": "Error title when enabling audible notifications for a channel fails."
+  },
+  "errorDisableAudibleNotificationsFailedTitle": "Failed to disable audible notifications",
+  "@errorDisableAudibleNotificationsFailedTitle": {
+    "description": "Error title when disabling audible notifications for a channel fails."
+  },
+  "errorEnableMobileNotificationsFailedTitle": "Failed to enable mobile notifications",
+  "@errorEnableMobileNotificationsFailedTitle": {
+    "description": "Error title when enabling mobile notifications for a channel fails."
+  },
+  "errorDisableMobileNotificationsFailedTitle": "Failed to disable mobile notifications",
+  "@errorDisableMobileNotificationsFailedTitle": {
+    "description": "Error title when disabling mobile notifications for a channel fails."
+  },
+  "errorEnableEmailNotificationsFailedTitle": "Failed to enable email notifications",
+  "@errorEnableEmailNotificationsFailedTitle": {
+    "description": "Error title when enabling email notifications for a channel fails."
+  },
+  "errorDisableEmailNotificationsFailedTitle": "Failed to disable email notifications",
+  "@errorDisableEmailNotificationsFailedTitle": {
+    "description": "Error title when disabling email notifications for a channel fails."
+  },
+  "errorSetChannelWildcardMentionsNotifyFailedTitle": "Failed to set channel wildcard-mention setting",
+  "@errorSetChannelWildcardMentionsNotifyFailedTitle": {
+    "description": "Error title when setting a channel's wildcard-mention notification setting fails."
+  },
+  "errorSetChannelSettingFailedTitle": "Failed to set channel setting",
+  "@errorSetChannelSettingFailedTitle": {
+    "description": "Error title when setting a channel subscription setting fails."
   },
   "actionSheetOptionMuteTopic": "Mute topic",
   "@actionSheetOptionMuteTopic":  {
