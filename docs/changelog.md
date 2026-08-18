@@ -2,13 +2,22 @@
 
 ## Unreleased
 
+
+## 30.0.274 (2026-08-17)
+
+This release branch includes some experimental changes
+not yet merged to the main branch.
+
+
 ### Highlights for users
 
 * (Android) Attach photos and videos with the system photo picker. (#1490)
 * (iOS) Restore support for iOS 15. (PR #2373)
-* Fix a glitch where a message you just sent could appear twice. (#929)
+* Fix glitches where a message you just sent could appear twice
+  or stay marked as sending. (#929, #2397)
 * Speed up the initial load by around 20% in large organizations. (#254)
-* Reconnect sooner when you come back to the app. (#1884)
+* Reconnect sooner when you come back to the app or your network
+  changes. (#1884, #2415)
 * Fix loading older messages when many in a row are muted. (#1256)
 * Too many other improvements and fixes to describe them all here.
 
@@ -67,6 +76,10 @@
     send success when its message was already fetched.
   * #2421: fix #2417, fix #2418.  Recognize connection failures in
     more cases.
+
+* Resolved in the experimental branch:
+  * #2397 via PR #2428
+  * #2415 via PR #2429
 
 
 ## 30.0.273 (2026-06-24)
