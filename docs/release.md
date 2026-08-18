@@ -270,6 +270,11 @@ Steps specific to this type of release are:
 * After the new release is uploaded, the changelog and version number
   in main should be updated to match the new release.
 
+  This is coherent even though main lacks the experimental changes:
+  the changelog records the releases we've published, not the history
+  of main itself, and the entry's "experimental" annotations (see
+  previous step) identify exactly which changes aren't yet in main.
+
   Try `git checkout -p v12.34.567 docs/changelog.md pubspec.yaml`.
   Use the `-p` prompt to skip any other pubspec updates, such as
   dependencies.  Then
