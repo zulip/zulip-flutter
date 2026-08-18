@@ -237,6 +237,8 @@ class ComposeAutocomplete extends AutocompleteField<ComposeAutocompleteQuery, Co
           // and losing data for the channel.
           return;
         }
+        // TODO(#1805) language-appropriate space character; check active keyboard?
+        //   (maybe handle centrally in `controller`)
         replacementString = '${channelLink(channel, store: store)} ';
       case TopicLinkAutocompleteChannelResult():
       case TopicLinkAutocompleteNewTopicResult():
