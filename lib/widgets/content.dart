@@ -1323,7 +1323,7 @@ class Mention extends StatelessWidget {
 }
 
 extension _SystemGroupNameDisplayName on SystemGroupName {
-  /// Get the display name to use in the UI for this system group.
+  /// The display name to use in the UI for this system group.
   ///
   /// Display names mirror the web app's display name strings.
   /// See `system_user_groups_list` in web/src/settings_config.ts.
