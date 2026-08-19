@@ -10,10 +10,9 @@ Future<void> setTypingStatus(ApiConnection connection, {
 }) {
   switch (destination) {
     case StreamDestination():
-      final supportsTypeChannel = connection.zulipFeatureLevel! >= 248; // TODO(server-9)
       return connection.post('setTypingStatus', (_) {}, 'typing', {
         'op':        RawParameter(op.toJson()),
-        'type':      RawParameter(supportsTypeChannel ? 'channel' : 'stream'),
+        'type':      RawParameter('channel'),
         'stream_id': destination.streamId,
         'topic':     RawParameter(destination.topic.apiName),
       });

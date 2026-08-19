@@ -133,11 +133,10 @@ Future<SendMessageResult> sendMessage(
   String? queueId,
   String? localId,
 }) {
-  final supportsTypeChannel = connection.zulipFeatureLevel! >= 248; // TODO(server-9)
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
     ...(switch (destination) {
       StreamDestination() => {
-        'type': supportsTypeChannel ? RawParameter('channel') : RawParameter('stream'),
+        'type': RawParameter('channel'),
         'to': destination.streamId,
         'topic': RawParameter(destination.topic.apiName),
       },
