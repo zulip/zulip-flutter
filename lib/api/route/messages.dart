@@ -135,11 +135,10 @@ Future<SendMessageResult> sendMessage(
   required bool readBySender,
 }) {
   assert(readBySender, '`readBySender` should only be true');
-  final supportsTypeChannel = connection.zulipFeatureLevel! >= 248; // TODO(server-9)
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
     ...(switch (destination) {
       StreamDestination() => {
-        'type': supportsTypeChannel ? RawParameter('channel') : RawParameter('stream'),
+        'type': RawParameter('channel'),
         'to': destination.streamId,
         'topic': RawParameter(destination.topic.apiName),
       },
