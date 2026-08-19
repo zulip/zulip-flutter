@@ -1405,8 +1405,9 @@ class DeleteMessageEvent extends Event {
 
   final List<int> messageIds;
   // final int messageId; // Not present; we support the bulk_message_deletion capability
-  // The server never actually sends "direct" here yet (it's "private" instead),
-  // but we accept both forms for forward-compatibility.
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType messageType;
   final int? streamId;
@@ -1423,7 +1424,7 @@ class DeleteMessageEvent extends Event {
   factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) {
     final result = _$DeleteMessageEventFromJson(json);
     // Crunchy-shell validation
-    if (result.messageType == MessageType.stream) {
+    if (result.messageType == .channel) {
       result.streamId as int;
       result.topic as String;
     }
@@ -1432,30 +1433,6 @@ class DeleteMessageEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);
-}
-
-/// As in [DeleteMessageEvent.messageType],
-/// [UpdateMessageFlagsMessageDetail.type],
-/// or [TypingEvent.messageType].
-@JsonEnum(alwaysCreate: true)
-enum MessageType {
-  stream,
-  direct;
-}
-
-class MessageTypeConverter extends JsonConverter<MessageType, String> {
-  const MessageTypeConverter();
-
-  @override
-  MessageType fromJson(String json) {
-    if (json == 'private') json = 'direct'; // TODO(server-future)
-    return $enumDecode(_$MessageTypeEnumMap, json);
-  }
-
-  @override
-  String toJson(MessageType object) {
-    return _$MessageTypeEnumMap[object]!;
-  }
 }
 
 /// A Zulip event of type `update_message_flags`.
@@ -1536,8 +1513,9 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
 /// As in [UpdateMessageFlagsRemoveEvent.messageDetails].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageFlagsMessageDetail {
-  // The server never actually sends "direct" here yet (it's "private" instead),
-  // but we accept both forms for forward-compatibility.
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType type;
   final bool? mentioned;
@@ -1557,10 +1535,10 @@ class UpdateMessageFlagsMessageDetail {
     final result = _$UpdateMessageFlagsMessageDetailFromJson(json);
     // Crunchy-shell validation
     switch (result.type) {
-      case MessageType.stream:
+      case .channel:
         result.streamId as int;
         result.topic as String;
-      case MessageType.direct:
+      case .direct:
         result.userIds as List<int>;
     }
     return result;
@@ -1614,6 +1592,8 @@ class TypingEvent extends Event {
   String get type => 'typing';
 
   final TypingOp op;
+  // The server never actually sends "channel" here yet (it's "stream" instead),
+  // but we accept both forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType messageType;
   @JsonKey(readValue: _readSenderId)
@@ -1647,10 +1627,10 @@ class TypingEvent extends Event {
     final result = _$TypingEventFromJson(json);
     // Crunchy-shell validation
     switch (result.messageType) {
-      case MessageType.stream:
+      case .channel:
         result.streamId as int;
         result.topic as String;
-      case MessageType.direct:
+      case .direct:
         result.recipientIds as List<int>;
     }
     return result;
