@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/permission.dart';
 import 'package:zulip/model/realm.dart';
@@ -38,6 +39,25 @@ void main() {
     doCheck(eg.t('other topic'),         eg.t('other topic'),         334);
 
     doCheck(eg.t('(no topic)'),          eg.t(''),                    370);
+  });
+
+  test('mediaPreviewSizeFactor', () {
+    double factorFor(RealmMediaPreviewSize? size) {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        realmMediaPreviewSize: size));
+      return store.mediaPreviewSizeFactor;
+    }
+
+    for (final size in RealmMediaPreviewSize.values) {
+      final expected = switch (size) {
+        RealmMediaPreviewSize.small   => 1.0,
+        RealmMediaPreviewSize.medium  => 1.5,
+        RealmMediaPreviewSize.large   => 2.0,
+        RealmMediaPreviewSize.unknown => 1.0,
+      };
+      check(factorFor(size)).equals(expected);
+    }
+    check(factorFor(null)).equals(1.0);
   });
 
   group('selfHasPassedWaitingPeriod', () {
