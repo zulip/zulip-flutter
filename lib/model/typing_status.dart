@@ -62,18 +62,22 @@ class TypingStatus extends HasRealmStore with ChangeNotifier {
   }
 
   void handleTypingEvent(TypingEvent event) {
+    if (event.op == .unknown) return;
+
     SendableNarrow narrow = switch (event.messageType) {
-      MessageType.direct => DmNarrow(
+      .direct => DmNarrow(
         allRecipientIds: event.recipientIds!, selfUserId: selfUserId),
-      MessageType.stream => TopicNarrow(event.streamId!, event.topic!),
+      .channel => TopicNarrow(event.streamId!, event.topic!),
     };
 
     bool hasUpdate = false;
     switch (event.op) {
-      case TypingOp.start:
+      case .start:
         hasUpdate = _addTypist(narrow, event.senderId);
-      case TypingOp.stop:
+      case .stop:
         hasUpdate = _removeTypist(narrow, event.senderId);
+      case .unknown:
+        // Shouldn't reach here because of the early return.
     }
 
     if (hasUpdate) {
@@ -176,7 +180,7 @@ class TypingNotifier extends HasRealmStore {
 
     unawaited(setTypingStatus(
       connection,
-      op: TypingOp.start,
+      op: .start,
       destination: _currentDestination!.destination));
   }
 
@@ -190,7 +194,7 @@ class TypingNotifier extends HasRealmStore {
 
     unawaited(setTypingStatus(
       connection,
-      op: TypingOp.stop,
+      op: .stop,
       destination: destination.destination));
   }
 
