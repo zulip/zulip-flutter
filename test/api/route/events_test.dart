@@ -25,7 +25,7 @@ void main() {
             'idle_queue_timeout': jsonEncode(idleQueueTimeout),
 
           'apply_markdown': jsonEncode(true),
-          'client_gravatar': jsonEncode(false),
+          'client_gravatar': jsonEncode(true),
           'slim_presence': jsonEncode(true),
 
           'client_capabilities': jsonEncode({

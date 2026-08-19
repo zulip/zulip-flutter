@@ -10,6 +10,8 @@ import 'submessage.dart';
 export 'json.dart' show JsonNullable;
 export 'reaction.dart';
 
+import 'json.dart';
+
 part 'model.g.dart';
 
 /// A Zulip "group-setting value": https://zulip.com/api/group-setting-values
@@ -475,6 +477,7 @@ class UserGroup {
 /// For docs, search for "realm_users:"
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
+@NullableStringJsonConverter()
 class User {
   // When adding a field to this class:
   //  * If a [RealmUserUpdateEvent] can update it, be sure to add
@@ -498,7 +501,14 @@ class User {
   @JsonKey(unknownEnumValue: UserRole.unknown)
   UserRole role;
   String timezone;
-  String? avatarUrl; // TODO(#255) distinguish null from missing, as a `JsonNullable<String>?`
+  /// The user's avatar URL from the server, distinguishing omitted vs null.
+  ///
+  /// Dart `null` means the JSON property was omitted (use `/avatar/{id}`).
+  /// [JsonNullable] with a null [JsonNullable.value] means the server sent
+  /// `'avatar_url': null` (Gravatar; see [client_gravatar] on register).
+  /// [JsonNullable] with a non-null value is an uploaded or absolute URL.
+  @JsonKey(readValue: JsonNullable.readStringFromJson)
+  JsonNullable<String>? avatarUrl;
   int avatarVersion;
 
   // null for bots, which don't have custom profile fields.

@@ -618,6 +618,7 @@ class RealmUserUpdateCustomProfileField {
 
 /// A [RealmUserEvent] with op `update`: https://zulip.com/api/get-events#realm_user-update
 @JsonSerializable(fieldRename: FieldRename.snake)
+@NullableStringJsonConverter()
 class RealmUserUpdateEvent extends RealmUserEvent {
   @override
   @JsonKey(includeToJson: true)
@@ -626,7 +627,9 @@ class RealmUserUpdateEvent extends RealmUserEvent {
   @JsonKey(readValue: _readFromPerson) final int userId;
 
   @JsonKey(readValue: _readFromPerson) final String? fullName;
-  @JsonKey(readValue: _readFromPerson) final String? avatarUrl;
+  @JsonKey(readValue: _readNullableStringFromPerson)
+  @NullableStringJsonConverter()
+  final JsonNullable<String>? avatarUrl;
   // @JsonKey(readValue: _readFromPerson) final String? avatarSource; // TODO obsolete?
   // @JsonKey(readValue: _readFromPerson) final String? avatarUrlMedium; // TODO obsolete?
   @JsonKey(readValue: _readFromPerson) final int? avatarVersion;
