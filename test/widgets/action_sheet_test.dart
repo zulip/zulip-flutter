@@ -814,7 +814,6 @@ void main() {
       bool? isChannelMuted,
       UserTopicVisibilityPolicy? visibilityPolicy,
       UnreadMessagesSnapshot? unreadMsgs,
-      int? zulipFeatureLevel,
     }) async {
       final effectiveChannel = channel ?? someChannel;
       assert(isChannelSubscribed || isChannelMuted == null);
@@ -830,8 +829,7 @@ void main() {
         userTopics: visibilityPolicy != null
           ? [eg.userTopicItem(effectiveChannel, topic, visibilityPolicy)]
           : null,
-        unreadMsgs: unreadMsgs,
-        zulipFeatureLevel: zulipFeatureLevel));
+        unreadMsgs: unreadMsgs));
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
       connection = store.connection as FakeApiConnection;
     }
@@ -1030,7 +1028,6 @@ void main() {
       Future<void> setupToTopicActionSheet(WidgetTester tester, {
         required bool? isChannelMuted,
         required UserTopicVisibilityPolicy visibilityPolicy,
-        int? zulipFeatureLevel,
       }) async {
         addTearDown(testBinding.reset);
 
@@ -1041,7 +1038,6 @@ void main() {
           isChannelSubscribed: isChannelMuted != null, // shorthand; see dartdoc
           isChannelMuted: isChannelMuted,
           visibilityPolicy: visibilityPolicy,
-          zulipFeatureLevel: zulipFeatureLevel,
         );
 
         final message = eg.streamMessage(
@@ -1148,60 +1144,6 @@ void main() {
             await setupToTopicActionSheet(tester,
               isChannelMuted: isChannelMuted,
               visibilityPolicy: visibilityPolicy);
-            checkButtons(buttons);
-          });
-        }
-      });
-
-      group('legacy: follow is unsupported when FL < 219', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
-
-          (true,  UserTopicVisibilityPolicy.muted,    [unmute]),
-          (true,  UserTopicVisibilityPolicy.none,     [unmute]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (true,  UserTopicVisibilityPolicy.followed, [mute]),
-
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-        ];
-
-        for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
-          final description = 'isChannelMuted: ${isChannelMuted ?? "(not subscribed)"}, $visibilityPolicy';
-          testWidgets(description, (tester) async {
-            await setupToTopicActionSheet(tester,
-              isChannelMuted: isChannelMuted,
-              visibilityPolicy: visibilityPolicy,
-              zulipFeatureLevel: 218);
-            checkButtons(buttons);
-          });
-        }
-      });
-
-      group('legacy: unmute is unsupported when FL < 170', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
-
-          (true,  UserTopicVisibilityPolicy.muted,    <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.followed, <Finder>[]),
-
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-        ];
-
-        for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
-          final description = 'isChannelMuted: ${isChannelMuted ?? "(not subscribed)"}, $visibilityPolicy';
-          testWidgets(description, (tester) async {
-            await setupToTopicActionSheet(tester,
-              isChannelMuted: isChannelMuted,
-              visibilityPolicy: visibilityPolicy,
-              zulipFeatureLevel: 169);
             checkButtons(buttons);
           });
         }
@@ -1349,9 +1291,7 @@ void main() {
         check(connection.lastRequest).isA<http.Request>()
           ..url.path.equals('/api/v1/messages/flags/narrow')
           ..bodyFields['narrow'].equals(jsonEncode([
-              ...resolveApiNarrowForServer(
-                eg.topicNarrow(someChannel.streamId, someTopic).apiEncode(),
-                connection.zulipFeatureLevel!),
+              ...eg.topicNarrow(someChannel.streamId, someTopic).apiEncode(),
               ApiNarrowIs(IsOperand.unread),
             ]))
           ..bodyFields['op'].equals('add')
@@ -1375,8 +1315,7 @@ void main() {
 
       testWidgets('copies topic link to clipboard', (tester) async {
         final message = eg.streamMessage(stream: someChannel, topic: someTopic);
-        await prepare(channel: someChannel, topic: someTopic,
-          zulipFeatureLevel: eg.recentZulipFeatureLevel);
+        await prepare(channel: someChannel, topic: someTopic);
         await showFromAppBar(tester, channel: someChannel,
           topic: TopicName(someTopic), messages: [message]);
 
@@ -1385,22 +1324,6 @@ void main() {
         final expectedLink = narrowLink(store,
           TopicNarrow(someChannel.streamId, TopicName(someTopic), with_: message.id));
         check(expectedLink.toString().contains('/with/')).isTrue();
-        check((await Clipboard.getData('text/plain'))!)
-          .text.equals(expectedLink.toString());
-      });
-
-      testWidgets('FL < 271 -> link doesn\'t contain "with" operator', (tester) async {
-        final message = eg.streamMessage(stream: someChannel, topic: someTopic);
-        await prepare(channel: someChannel, topic: someTopic,
-          zulipFeatureLevel: 270);
-        await showFromAppBar(tester, channel: someChannel,
-          topic: TopicName(someTopic), messages: [message]);
-
-        await tapCopyTopicLinkButton(tester);
-        await tester.pump(Duration.zero);
-        final expectedLink = narrowLink(store,
-          TopicNarrow(someChannel.streamId, TopicName(someTopic)));
-        check(expectedLink.toString().contains('/with/')).isFalse();
         check((await Clipboard.getData('text/plain'))!)
           .text.equals(expectedLink.toString());
       });
@@ -1673,9 +1596,7 @@ void main() {
         check(connection.lastRequest).isA<http.Request>()
           ..url.path.equals('/api/v1/messages/flags/narrow')
           ..bodyFields['narrow'].equals(jsonEncode([
-              ...resolveApiNarrowForServer(
-                narrow.apiEncode(),
-                connection.zulipFeatureLevel!),
+              ...narrow.apiEncode(),
               ApiNarrowIs(IsOperand.unread),
             ]))
           ..bodyFields['op'].equals('add')
@@ -2316,9 +2237,7 @@ void main() {
                 'include_anchor': 'true',
                 'num_before': '0',
                 'num_after': '1000',
-                'narrow': jsonEncode(resolveApiNarrowForServer(
-                  TopicNarrow.ofMessage(message).apiEncode(),
-                  connection.zulipFeatureLevel!)),
+                'narrow': jsonEncode(TopicNarrow.ofMessage(message).apiEncode()),
                 'op': 'remove',
                 'flag': 'read',
               });
@@ -2361,9 +2280,7 @@ void main() {
             ..method.equals('POST')
             ..url.path.equals('/api/v1/messages/flags/narrow')
             ..bodyFields['narrow'].equals(
-                jsonEncode(resolveApiNarrowForServer(
-                  eg.topicNarrow(newStream.streamId, newTopic).apiEncode(),
-                  connection.zulipFeatureLevel!)));
+                jsonEncode(eg.topicNarrow(newStream.streamId, newTopic).apiEncode()));
         });
 
         testWidgets('shows error when fails', (tester) async {

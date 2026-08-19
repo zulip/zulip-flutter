@@ -69,10 +69,9 @@ void main() {
         required String name,
         String? topic,
         int? nearMessageId,
-        int? zulipFeatureLevel = eg.futureZulipFeatureLevel,
       }) async {
         assert(expectedFragment.startsWith('#'), 'wrong-looking expectedFragment');
-        final store = eg.store()..connection.zulipFeatureLevel = zulipFeatureLevel;
+        final store = eg.store();
         await store.addStream(eg.stream(streamId: channelId, name: name));
         final narrow = topic == null
           ? ChannelNarrow(channelId)
@@ -81,7 +80,7 @@ void main() {
           .equals(store.realmUrl.resolve(expectedFragment));
       }
 
-      test('modern including "channel" operator', () {
+      test('smoke', () {
         checkNarrow(channelId: 1,   name: 'announce',       '#narrow/channel/1-announce');
         checkNarrow(channelId: 378, name: 'api design',     '#narrow/channel/378-api-design');
         checkNarrow(channelId: 391, name: 'Outreachy',      '#narrow/channel/391-Outreachy');
@@ -99,14 +98,6 @@ void main() {
                     '#narrow/channel/377-translation.2Fzh_tw/topic/.E7.BF.BB.E8.AD.AF.20.22stream.22');
         checkNarrow(channelId: 42,  name: 'Outreachy 2016-2017', topic: '2017-18 Stream?', nearMessageId: 302690,
                     '#narrow/channel/42-Outreachy-2016-2017/topic/2017-18.20Stream.3F/near/302690');
-      });
-
-      test('legacy including "stream" operator', () {
-        checkNarrow(channelId: 1,   name: 'announce',       zulipFeatureLevel: 249,
-                    '#narrow/stream/1-announce');
-        checkNarrow(channelId: 48,  name: 'mobile-team', topic: 'Welcome screen UI',
-                    zulipFeatureLevel: 249,
-                    '#narrow/stream/48-mobile-team/topic/Welcome.20screen.20UI');
       });
 
       // Mirrors Zulip web's shared encodeHashComponent fixture,
@@ -156,7 +147,7 @@ void main() {
     });
 
     test('DmNarrow', () {
-      void checkNarrow(String expectedFragment, String legacyExpectedFragment, {
+      void checkNarrow(String expectedFragment, {
         required List<int> allRecipientIds,
         required int selfUserId,
         int? nearMessageId,
@@ -166,26 +157,18 @@ void main() {
         final narrow = DmNarrow(allRecipientIds: allRecipientIds, selfUserId: selfUserId);
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
           .equals(store.realmUrl.resolve(expectedFragment));
-        store.connection.zulipFeatureLevel = 176;
-        check(narrowLink(store, narrow, nearMessageId: nearMessageId))
-          .equals(store.realmUrl.resolve(legacyExpectedFragment));
       }
 
       checkNarrow(allRecipientIds: [1], selfUserId: 1,
-        '#narrow/dm/1-dm',
-        '#narrow/pm-with/1-pm');
+        '#narrow/dm/1-dm');
       checkNarrow(allRecipientIds: [1, 2], selfUserId: 1,
-        '#narrow/dm/1,2-dm',
-        '#narrow/pm-with/1,2-pm');
+        '#narrow/dm/1,2-dm');
       checkNarrow(allRecipientIds: [1, 2, 3], selfUserId: 1,
-        '#narrow/dm/1,2,3-group',
-        '#narrow/pm-with/1,2,3-group');
+        '#narrow/dm/1,2,3-group');
       checkNarrow(allRecipientIds: [1, 2, 3, 4], selfUserId: 4,
-        '#narrow/dm/1,2,3,4-group',
-        '#narrow/pm-with/1,2,3,4-group');
+        '#narrow/dm/1,2,3,4-group');
       checkNarrow(allRecipientIds: [1, 2], selfUserId: 1, nearMessageId: 12345,
-        '#narrow/dm/1,2-dm/near/12345',
-        '#narrow/pm-with/1,2-pm/near/12345');
+        '#narrow/dm/1,2-dm/near/12345');
     });
 
     test('normalize links to always include a "/" after hostname', () {

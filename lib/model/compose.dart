@@ -16,10 +16,10 @@ enum WildcardMentionOption {
   all(canonicalString: 'all'),
   everyone(canonicalString: 'everyone'),
   channel(canonicalString: 'channel'),
-  // TODO(server-9): Deprecated in FL 247. Empirically, current servers (FL 339)
+  // Deprecated in FL 247. Empirically, current servers (FL 500)
   // still parse "@**stream**" in messages though.
   stream(canonicalString: 'stream'),
-  topic(canonicalString: 'topic'); // TODO(server-8): New in FL 224.
+  topic(canonicalString: 'topic');
 
   const WildcardMentionOption({required this.canonicalString});
 
@@ -38,7 +38,8 @@ enum WildcardMentionOption {
 // https://spec.commonmark.org/0.30/#fenced-code-blocks
 final RegExp _openingBacktickFenceRegex = (() {
   // Recognize a fence with "up to three spaces of indentation".
-  // Servers don't recognize fences that start with spaces, as of Server 7.0:
+  // Servers don't recognize fences that start with spaces,
+  // as of Server 12 (2026-08):
   //   https://chat.zulip.org/#narrow/stream/6-frontend/topic/quote-and-reply.20fence.20length/near/1588273
   // but that's a bug, since those fences are valid in the spec.
   // Still, it's harmless to make our own fence longer even if the server
@@ -158,25 +159,17 @@ String _userMentionImpl({required bool silent, required String fullName, int? us
   '@${silent ? '_' : ''}**$fullName${userId != null ? '|$userId' : ''}**';
 
 /// An @-mention of all the users in a conversation, like @**channel**.
-String wildcardMention(WildcardMentionOption wildcardOption, {
-  required PerAccountStore store,
-}) {
-  final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
-  final isTopicWildcardAvailable = store.zulipFeatureLevel >= 224; // TODO(server-8)
-
+String wildcardMention(WildcardMentionOption wildcardOption) {
   String name = wildcardOption.canonicalString;
   switch (wildcardOption) {
     case WildcardMentionOption.all:
     case WildcardMentionOption.everyone:
-      break;
     case WildcardMentionOption.channel:
-      assert(isChannelWildcardAvailable);
+      break;
     case WildcardMentionOption.stream:
-      if (isChannelWildcardAvailable) {
-        name = WildcardMentionOption.channel.canonicalString;
-      }
+      name = WildcardMentionOption.channel.canonicalString;
     case WildcardMentionOption.topic:
-      assert(isTopicWildcardAvailable);
+      break;
   }
   return '@**$name**';
 }

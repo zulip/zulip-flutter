@@ -29,17 +29,11 @@ InitialSnapshot _$InitialSnapshotFromJson(
   serverPresenceOfflineThresholdSeconds:
       (json['server_presence_offline_threshold_seconds'] as num).toInt(),
   serverTypingStartedExpiryPeriodMilliseconds:
-      (json['server_typing_started_expiry_period_milliseconds'] as num?)
-          ?.toInt() ??
-      15000,
+      (json['server_typing_started_expiry_period_milliseconds'] as num).toInt(),
   serverTypingStoppedWaitPeriodMilliseconds:
-      (json['server_typing_stopped_wait_period_milliseconds'] as num?)
-          ?.toInt() ??
-      5000,
+      (json['server_typing_stopped_wait_period_milliseconds'] as num).toInt(),
   serverTypingStartedWaitPeriodMilliseconds:
-      (json['server_typing_started_wait_period_milliseconds'] as num?)
-          ?.toInt() ??
-      10000,
+      (json['server_typing_started_wait_period_milliseconds'] as num).toInt(),
   mutedUsers: (json['muted_users'] as List<dynamic>)
       .map((e) => MutedUserItem.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -136,11 +130,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
         ),
       ),
   maxFileUploadSizeMib: (json['max_file_upload_size_mib'] as num).toInt(),
-  serverThumbnailFormats:
-      (json['server_thumbnail_formats'] as List<dynamic>?)
-          ?.map((e) => ThumbnailFormat.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      [],
+  serverThumbnailFormats: (json['server_thumbnail_formats'] as List<dynamic>)
+      .map((e) => ThumbnailFormat.fromJson(e as Map<String, dynamic>))
+      .toList(),
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
   eventQueueLongpollTimeoutSeconds:
       (json['event_queue_longpoll_timeout_seconds'] as num).toInt(),

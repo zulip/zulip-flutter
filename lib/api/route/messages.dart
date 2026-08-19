@@ -50,7 +50,7 @@ Future<GetMessagesResult> getMessages(ApiConnection connection, {
 }) {
   assert(allowEmptyTopicName, '`allowEmptyTopicName` should only be true');
   return connection.get('getMessages', GetMessagesResult.fromJson, 'messages', {
-    'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
+    'narrow': narrow,
     'anchor': RawParameter(anchor.toJson()),
     'include_anchor': ?includeAnchor,
     'num_before': numBefore,
@@ -132,43 +132,24 @@ Future<SendMessageResult> sendMessage(
   required String content,
   String? queueId,
   String? localId,
-  bool? readBySender,
+  required bool readBySender,
 }) {
-  final supportsTypeChannel = connection.zulipFeatureLevel! >= 248; // TODO(server-9)
-  final supportsTypeDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
-  final supportsReadBySender = connection.zulipFeatureLevel! >= 236; // TODO(server-8)
+  assert(readBySender, '`readBySender` should only be true');
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
     ...(switch (destination) {
       StreamDestination() => {
-        'type': supportsTypeChannel ? RawParameter('channel') : RawParameter('stream'),
+        'type': RawParameter('channel'),
         'to': destination.streamId,
         'topic': RawParameter(destination.topic.apiName),
       },
       DmDestination() => {
-        'type': supportsTypeDirect ? RawParameter('direct') : RawParameter('private'),
+        'type': RawParameter('direct'),
         'to': destination.userIds,
       }}),
     'content': RawParameter(content),
     if (queueId != null) 'queue_id': RawParameter(queueId),
     if (localId != null) 'local_id': RawParameter(localId),
-    'read_by_sender': ?readBySender,
-  },
-  overrideUserAgent: switch ((supportsReadBySender, readBySender)) {
-    // Old servers use the user agent to decide if we're a UI client
-    // and so whether the message should be marked as read for its author
-    // (see #440). We are a UI client; so, use a value those servers will
-    // interpret correctly. With newer servers, passing `readBySender: true`
-    // gives the same result.
-    // TODO(#467) include platform, platform version, and app version
-    (false, _   ) => 'ZulipMobile/flutter',
-
-    // According to the doc, a user-agent heuristic is still used in this case:
-    //   https://zulip.com/api/send-message#parameter-read_by_sender
-    // TODO find out if our default user agent would work with that.
-    // TODO(#467) include platform, platform version, and app version
-    (true,  null) => 'ZulipMobile/flutter',
-
-    _             => null,
+    'read_by_sender': readBySender,
   });
 }
 
@@ -425,7 +406,7 @@ Future<UpdateMessageFlagsForNarrowResult> updateMessageFlagsForNarrow(ApiConnect
     'include_anchor': ?includeAnchor,
     'num_before': numBefore,
     'num_after': numAfter,
-    'narrow': resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!),
+    'narrow': narrow,
     'op': RawParameter(op.toJson()),
     'flag': RawParameter(flag.toJson()),
   });

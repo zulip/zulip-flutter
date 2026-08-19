@@ -163,7 +163,7 @@ void main() {
       ..method.equals('GET')
       ..url.path.equals('/api/v1/messages')
       ..url.queryParameters.deepEquals({
-        'narrow': jsonEncode(resolveApiNarrowForServer(narrow, connection.zulipFeatureLevel!)),
+        'narrow': jsonEncode(narrow),
         'anchor': anchor,
         if (includeAnchor != null) 'include_anchor': includeAnchor.toString(),
         'num_before': numBefore.toString(),
@@ -2945,24 +2945,22 @@ void main() {
         eg.streamMessage(id: startingId + 1,
           stream: stream, topic: mutedTopic, flags: [MessageFlag.streamWildcardMentioned]),
         eg.streamMessage(id: startingId + 2,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.wildcardMentioned]),
-        eg.streamMessage(id: startingId + 3,
           stream: stream, topic: mutedTopic, flags: [MessageFlag.mentioned]),
-        eg.dmMessage(id: startingId + 4,
+        eg.dmMessage(id: startingId + 3,
           from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
       ];
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: getMessages(201));
       final expected = <int>[];
-      checkHasMessageIds(expected..addAll([201, 202, 203, 204, 205]));
+      checkHasMessageIds(expected..addAll([201, 202, 203, 204]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      checkHasMessageIds(expected..insertAll(0, [101, 102, 103, 104, 105]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102, 103, 104]));
 
       // … and on MessageEvent.
       final messages = getMessages(301);
