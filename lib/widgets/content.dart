@@ -649,7 +649,7 @@ class MessageImagePreview extends StatelessWidget {
     return ColoredBox(
       color: ContentTheme.of(context).colorMessageMediaContainerBackground,
       child: Padding(
-        padding: const EdgeInsets.all(1),
+        padding: const EdgeInsets.all(3),
         child: _Image(node: node,
           ambientTextStyle: DefaultTextStyle.of(context).style)));
   }
