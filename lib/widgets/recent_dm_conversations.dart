@@ -168,18 +168,37 @@ class RecentDmConversationsItem extends StatelessWidget {
   final int unreadCount;
   final OnDmSelectCallback onDmSelect;
 
+  InlineSpan _selfNameSpan({
+    required BuildContext context,
+    required String fullName,
+    required int selfUserId,
+    required String youLabel,
+    required Color color,
+  }) {
+    return TextSpan(text: fullName, children: [
+      TextSpan(
+        text: wrapInLocalizedParens(context, youLabel, addSpaceBeforeIfNotCjk: true),
+        style: TextStyle(color: color.withValues(alpha: 0.60))),
+      UserStatusEmoji.asWidgetSpan(userId: selfUserId,
+        fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     final InlineSpan title;
     switch (narrow.otherRecipientIds) { // TODO dedupe with DM items in [InboxPage]
       case []:
-        title = TextSpan(text: store.selfUser.fullName, children: [
-          UserStatusEmoji.asWidgetSpan(userId: store.selfUserId,
-            fontSize: 17, textScaler: MediaQuery.textScalerOf(context)),
-        ]);
+        title = _selfNameSpan(
+          context: context,
+          fullName: store.selfUser.fullName,
+          selfUserId: store.selfUserId,
+          youLabel: zulipLocalizations.you,
+          color: designVariables.labelMenuButton);
       case [var otherUserId]:
         title = TextSpan(text: store.userDisplayName(otherUserId), children: [
           UserStatusEmoji.asWidgetSpan(userId: otherUserId,

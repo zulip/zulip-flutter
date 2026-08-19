@@ -15,12 +15,14 @@ import 'package:legacy_checks/legacy_checks.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
+import 'package:zulip/generated/l10n/zulip_localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/text.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -705,6 +707,13 @@ void main() {
     }
 
     void checkUserList(WidgetTester tester, String emojiName, List<User> expectUsers) {
+      final context = tester.element(find.byType(ViewReactionsUserListSliver));
+      final zulipLocalizations = ZulipLocalizations.of(context);
+      String userLabel(User user) =>
+        user.userId == eg.selfUser.userId
+          ? '${user.fullName}${wrapInLocalizedParens(context, zulipLocalizations.you, addSpaceBeforeIfNotCjk: true)}'
+          : user.fullName;
+
       final findPanel = find.semantics.byPredicate((node) =>
         node.role == SemanticsRole.tabPanel
         && node.label.contains('Votes for $emojiName'));
@@ -713,10 +722,11 @@ void main() {
       check(panel).containsSemantics(label: 'Votes for $emojiName (${expectUsers.length})');
 
       for (final user in expectUsers) {
+        final label = userLabel(user);
         check(find.semantics.descendant(
           of: findPanel,
-          matching: find.semantics.byLabel(user.fullName)),
-        because: 'expect ${user.fullName}').findsOne();
+          matching: find.semantics.byLabel(label)),
+        because: 'expect $label').findsOne();
       }
     }
 
