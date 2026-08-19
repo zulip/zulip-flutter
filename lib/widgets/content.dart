@@ -1373,12 +1373,15 @@ class InlineImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      // Separate images vertically when they flow onto separate lines.
-      // (3px follows web; see web/styles/rendered_markdown.css.)
-      padding: const EdgeInsets.only(top: 3),
-      child: ColoredBox(
-        color: ContentTheme.of(context).colorMessageMediaContainerBackground,
-        child: _Image(node: node, ambientTextStyle: ambientTextStyle)));
+      // Separate images vertically when they flow onto separate lines and
+      // horizontally from adjacent elements. Padding values follow web.
+      // The conditional removal of margin when an image opens a paragraph in web is
+      // omitted as the difference is barely noticeable on mobile.
+      // See web/styles/rendered_markdown.css.
+      padding: EdgeInsets.symmetric(
+        vertical: 3,
+        horizontal: ambientTextStyle.fontSize! * 0.125),
+      child: _Image(node: node, ambientTextStyle: ambientTextStyle));
   }
 }
 
