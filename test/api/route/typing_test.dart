@@ -61,17 +61,4 @@ void main() {
         });
     });
   });
-
-  test('legacy: use "stream" instead of "channel"', () {
-    return FakeApiConnection.with_(zulipFeatureLevel: 247, (connection) {
-      return checkSetTypingStatus(connection, TypingOp.start,
-        destination: const StreamDestination(streamId, TopicName(topic)),
-        expectedBodyFields: {
-          'op': 'start',
-          'type': 'stream',
-          'stream_id': streamId.toString(),
-          'topic': topic,
-        });
-    });
-  });
 }
