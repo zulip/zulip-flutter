@@ -297,14 +297,14 @@ class DmNarrow extends Narrow implements SendableNarrow {
   }
 
   // Not [otherRecipientIds], because for the self-1:1 thread the server rejects
-  // that as of Zulip Server 7 (2023-06), with BAD_REQUEST.
+  // that as of Zulip Server 12 (2026-08), with BAD_REQUEST.
   @override
   DmDestination get destination => DmDestination(userIds: allRecipientIds);
 
-  // Not [otherRecipientIds], because for the self-1:1 thread that triggers
-  // a server bug as of Zulip Server 7 (2023-05): an empty list here
-  // causes a 5xx response from the server.
-  // TODO(server): fix bug on empty operand to dm/pm-with narrow operator
+  // Not [otherRecipientIds], because for the self-1:1 thread an empty list
+  // doesn't select that conversation: the server matches no messages at all. See:
+  //   https://github.com/zulip/zulip/pull/31347
+  // Before Zulip Server 10.0, an empty list caused a 5xx error instead.
   @override
   ApiNarrow apiEncode() => [ApiNarrowDm(allRecipientIds)];
 

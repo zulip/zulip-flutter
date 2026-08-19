@@ -156,7 +156,7 @@ void main() {
     });
 
     test('DmNarrow', () {
-      void checkNarrow(String expectedFragment, String legacyExpectedFragment, {
+      void checkNarrow(String expectedFragment, {
         required List<int> allRecipientIds,
         required int selfUserId,
         int? nearMessageId,
@@ -166,26 +166,18 @@ void main() {
         final narrow = DmNarrow(allRecipientIds: allRecipientIds, selfUserId: selfUserId);
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
           .equals(store.realmUrl.resolve(expectedFragment));
-        store.connection.zulipFeatureLevel = 176;
-        check(narrowLink(store, narrow, nearMessageId: nearMessageId))
-          .equals(store.realmUrl.resolve(legacyExpectedFragment));
       }
 
       checkNarrow(allRecipientIds: [1], selfUserId: 1,
-        '#narrow/dm/1-dm',
-        '#narrow/pm-with/1-pm');
+        '#narrow/dm/1-dm');
       checkNarrow(allRecipientIds: [1, 2], selfUserId: 1,
-        '#narrow/dm/1,2-dm',
-        '#narrow/pm-with/1,2-pm');
+        '#narrow/dm/1,2-dm');
       checkNarrow(allRecipientIds: [1, 2, 3], selfUserId: 1,
-        '#narrow/dm/1,2,3-group',
-        '#narrow/pm-with/1,2,3-group');
+        '#narrow/dm/1,2,3-group');
       checkNarrow(allRecipientIds: [1, 2, 3, 4], selfUserId: 4,
-        '#narrow/dm/1,2,3,4-group',
-        '#narrow/pm-with/1,2,3,4-group');
+        '#narrow/dm/1,2,3,4-group');
       checkNarrow(allRecipientIds: [1, 2], selfUserId: 1, nearMessageId: 12345,
-        '#narrow/dm/1,2-dm/near/12345',
-        '#narrow/pm-with/1,2-pm/near/12345');
+        '#narrow/dm/1,2-dm/near/12345');
     });
 
     test('normalize links to always include a "/" after hostname', () {
