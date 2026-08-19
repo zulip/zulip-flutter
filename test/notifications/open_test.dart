@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
@@ -152,11 +153,14 @@ void main() {
         realmUrl: data.realmUrl,
         userId: data.userId,
         narrow: switch (data.recipient) {
-        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
-          TopicNarrow(channelId, topic),
-        NotifPayloadDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      }).buildNotificationUrl();
+          NotifPayloadChannelRecipient(:var channelId, :var topic) =>
+            TopicNarrow(channelId, topic),
+          NotifPayloadDmRecipient(:var allRecipientIds) =>
+            DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+        },
+        // TODO(#1565): also open at the specific message on iOS
+        messageId: defaultTargetPlatform == TargetPlatform.iOS
+          ? null : data.messageId).buildNotificationUrl();
     }
 
     Map<String, Object?> messageApnsPayload(
@@ -233,9 +237,12 @@ void main() {
     void matchesNavigation(Subject<Route<void>> route, Account account, Message message) {
       route.isA<MaterialAccountWidgetRoute>()
         ..accountId.equals(account.id)
-        ..page.isA<MessageListPage>()
-          .initNarrow.equals(SendableNarrow.ofMessage(message,
-            selfUserId: account.userId));
+        ..page.isA<MessageListPage>().which((it) => it
+          ..initNarrow.equals(SendableNarrow.ofMessage(message,
+            selfUserId: account.userId))
+          // TODO(#1565): also open at the specific message on iOS
+          ..initAnchorMessageId.equals(
+              defaultTargetPlatform == TargetPlatform.iOS ? null : message.id));
     }
 
     Future<void> checkOpenNotification(
@@ -456,6 +463,12 @@ void main() {
         await transitionDurationObserver.pumpPastTransition(tester);
       }
 
+      /// Prepare the response to the fetch made on opening the page at [anchor].
+      void prepareFetchAtMessage(int anchor, {required List<Message> messages}) {
+        connection.prepare(json: eg.nearGetMessagesResult(anchor: anchor,
+          foundOldest: true, foundNewest: true, messages: messages).toJson());
+      }
+
       testWidgets('at same conversation, dedupes page', (tester) async {
         final stream = eg.stream();
         final message1 = eg.streamMessage(stream: stream, topic: 'a');
@@ -464,14 +477,38 @@ void main() {
           messages: [message1]);
 
         final message2 = eg.streamMessage(stream: stream, topic: 'a');
+        prepareFetchAtMessage(message2.id, messages: [message1, message2]);
         await openNotification(tester, eg.selfAccount, message2);
         check(lastPoppedRoute).isNull();
         check(pushedRoutes).isEmpty();
 
         final message3 = eg.streamMessage(stream: stream, topic: 'A');
+        prepareFetchAtMessage(message3.id, messages: [message1, message2, message3]);
         await openNotification(tester, eg.selfAccount, message3);
         check(lastPoppedRoute).isNull();
         check(pushedRoutes).isEmpty();
+      });
+
+      testWidgets('at same conversation, page moves to the message', (tester) async {
+        final stream = eg.stream();
+        final message1 = eg.streamMessage(stream: stream, topic: 'a',
+          content: '<p>message 1</p>');
+        await prepareMessageListPage(tester,
+          narrow: TopicNarrow.ofMessage(message1),
+          messages: [message1]);
+
+        // The page doesn't show the message the notification is for…
+        final message2 = eg.streamMessage(stream: stream, topic: 'a',
+          content: '<p>message 2</p>');
+        check(find.text('message 2')).findsNothing();
+
+        // … until the notification is opened, which brings it into view
+        // on the same page, without pushing another one.
+        prepareFetchAtMessage(message2.id, messages: [message1, message2]);
+        await openNotification(tester, eg.selfAccount, message2);
+        await tester.pump();
+        check(pushedRoutes).isEmpty();
+        check(find.text('message 2')).findsOne();
       });
 
       testWidgets('at different conversation, proceeds normally', (tester) async {
@@ -524,6 +561,7 @@ void main() {
         pushedRoutes.clear();
 
         final message2 = eg.streamMessage(stream: stream, topic: 'a');
+        prepareFetchAtMessage(message2.id, messages: [message1, message2]);
         await openNotification(tester, eg.selfAccount, message2);
         // The dialog was popped (and nothing was pushed).
         check(lastPoppedRoute).equals(pushed);
@@ -605,24 +643,28 @@ void main() {
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
         narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
+        messageId: 123,
       );
       var url = payload.buildNotificationUrl();
       check(NotificationOpenPayload.parseNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
-        ..narrow.equals(payload.narrow);
+        ..narrow.equals(payload.narrow)
+        ..messageId.equals(payload.messageId);
 
       // Topic narrow
       payload = NotificationOpenPayload(
         realmUrl: Uri.parse('http://chat.example'),
         userId: 1001,
         narrow: eg.topicNarrow(1, 'topic A'),
+        messageId: 456,
       );
       url = payload.buildNotificationUrl();
       check(NotificationOpenPayload.parseNotificationUrl(url))
         ..realmUrl.equals(payload.realmUrl)
         ..userId.equals(payload.userId)
-        ..narrow.equals(payload.narrow);
+        ..narrow.equals(payload.narrow)
+        ..messageId.equals(payload.messageId);
     });
 
     group('parseLegacyIosApnsPayload', () {
@@ -638,7 +680,8 @@ void main() {
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
-            ..otherRecipientIds.deepEquals([1002]));
+            ..otherRecipientIds.deepEquals([1002]))
+          ..messageId.isNull();
       });
 
       test('smoke group DM', () {
@@ -654,7 +697,8 @@ void main() {
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
-            ..otherRecipientIds.deepEquals([1002, 1003]));
+            ..otherRecipientIds.deepEquals([1002, 1003]))
+          ..messageId.isNull();
       });
 
       test('smoke topic message', () {
@@ -671,7 +715,8 @@ void main() {
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()
             ..channelId.equals(1)
-            ..topic.equals(TopicName('topic A')));
+            ..topic.equals(TopicName('topic A')))
+          ..messageId.isNull();
       });
     });
 
@@ -681,6 +726,27 @@ void main() {
           realmUrl: Uri.parse('http://chat.example'),
           userId: 1001,
           narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
+          messageId: 123,
+        ).buildNotificationUrl();
+        check(url)
+          ..scheme.equals('zulip')
+          ..host.equals('notification')
+          ..queryParameters.deepEquals({
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'dm',
+            'all_recipient_ids': '1001,1002',
+            'message_id': '123',
+          });
+      });
+
+      test('smoke DM, without a message ID', () {
+        // TODO(#1565): iOS omits the message ID for now.
+        final url = NotificationOpenPayload(
+          realmUrl: Uri.parse('http://chat.example'),
+          userId: 1001,
+          narrow: DmNarrow(allRecipientIds: [1001, 1002], selfUserId: 1001),
+          messageId: null,
         ).buildNotificationUrl();
         check(url)
           ..scheme.equals('zulip')
@@ -698,6 +764,28 @@ void main() {
           realmUrl: Uri.parse('http://chat.example'),
           userId: 1001,
           narrow: eg.topicNarrow(1, 'topic A'),
+          messageId: 123,
+        ).buildNotificationUrl();
+        check(url)
+          ..scheme.equals('zulip')
+          ..host.equals('notification')
+          ..queryParameters.deepEquals({
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+            'message_id': '123',
+          });
+      });
+
+      test('smoke topic, without a message ID', () {
+        // TODO(#1565): iOS omits the message ID for now.
+        final url = NotificationOpenPayload(
+          realmUrl: Uri.parse('http://chat.example'),
+          userId: 1001,
+          narrow: eg.topicNarrow(1, 'topic A'),
+          messageId: null,
         ).buildNotificationUrl();
         check(url)
           ..scheme.equals('zulip')
@@ -722,16 +810,60 @@ void main() {
             'user_id': '1001',
             'narrow_type': 'dm',
             'all_recipient_ids': '1001,1002',
+            'message_id': '123',
           });
         check(NotificationOpenPayload.parseNotificationUrl(url))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
             ..allRecipientIds.deepEquals([1001, 1002])
-            ..otherRecipientIds.deepEquals([1002]));
+            ..otherRecipientIds.deepEquals([1002]))
+          ..messageId.equals(123);
+      });
+
+      test('smoke DM, without a message ID', () {
+        // TODO(#1565): iOS omits the message ID for now.
+        final url = Uri(
+          scheme: 'zulip',
+          host: 'notification',
+          queryParameters: <String, String>{
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'dm',
+            'all_recipient_ids': '1001,1002',
+          });
+        check(NotificationOpenPayload.parseNotificationUrl(url))
+          ..realmUrl.equals(Uri.parse('http://chat.example'))
+          ..userId.equals(1001)
+          ..narrow.which((it) => it.isA<DmNarrow>()
+            ..allRecipientIds.deepEquals([1001, 1002])
+            ..otherRecipientIds.deepEquals([1002]))
+          ..messageId.isNull();
       });
 
       test('smoke topic', () {
+        final url = Uri(
+          scheme: 'zulip',
+          host: 'notification',
+          queryParameters: <String, String>{
+            'realm_url': 'http://chat.example',
+            'user_id': '1001',
+            'narrow_type': 'topic',
+            'channel_id': '1',
+            'topic': 'topic A',
+            'message_id': '123',
+          });
+        check(NotificationOpenPayload.parseNotificationUrl(url))
+          ..realmUrl.equals(Uri.parse('http://chat.example'))
+          ..userId.equals(1001)
+          ..narrow.which((it) => it.isA<TopicNarrow>()
+            ..channelId.equals(1)
+            ..topic.equals(eg.t('topic A')))
+          ..messageId.equals(123);
+      });
+
+      test('smoke topic, without a message ID', () {
+        // TODO(#1565): iOS omits the message ID for now.
         final url = Uri(
           scheme: 'zulip',
           host: 'notification',
@@ -747,7 +879,8 @@ void main() {
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()
             ..channelId.equals(1)
-            ..topic.equals(eg.t('topic A')));
+            ..topic.equals(eg.t('topic A')))
+          ..messageId.isNull();
       });
 
       test('fails when missing any expected query parameters', () {
@@ -853,4 +986,5 @@ extension on Subject<NotificationOpenPayload> {
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
   Subject<int> get userId => has((x) => x.userId, 'userId');
   Subject<Narrow> get narrow => has((x) => x.narrow, 'narrow');
+  Subject<int?> get messageId => has((x) => x.messageId, 'messageId');
 }

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../api/model/model.dart';
+import '../api/route/messages.dart' show NumericAnchor;
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/notifications.dart';
 import '../log.dart';
@@ -135,8 +136,8 @@ class NotificationOpenService {
 
     return MessageListPage.buildRoute(
       accountId: account.id,
-      // TODO(#1565): Open at specific message, not just conversation
-      narrow: data.narrow);
+      narrow: data.narrow,
+      initAnchorMessageId: data.messageId);
   }
 
   /// Navigate appropriately for opening the given notification.
@@ -166,8 +167,13 @@ class NotificationOpenService {
       // by opening the notification.
       navigator.popUntil((route) => route is PageRoute);
 
-      // TODO(#1565): Scroll to the specific message if nearby; else jump there,
-      //   or push a new page anchored there.
+      final messageId = data.messageId;
+      if (messageId != null) {
+        // TODO: Scroll to the message if it's already nearby,
+        //   instead of fetching the message list afresh anchored there.
+        MessageListPage.stateOfRoute(currentPageRoute)
+          ?.refresh(NumericAnchor(messageId));
+      }
       return;
     }
 
@@ -176,8 +182,8 @@ class NotificationOpenService {
     }
     unawaited(navigator.push(MessageListPage.buildRoute(
       accountId: account.id,
-      // TODO(#1565): Open at specific message, not just conversation
-      narrow: data.narrow)));
+      narrow: data.narrow,
+      initAnchorMessageId: data.messageId)));
   }
 
   /// Navigate appropriately for opening the notification described by
@@ -269,10 +275,23 @@ class NotificationOpenPayload {
   final int userId;
   final Narrow narrow;
 
+  /// The message to open the message list at,
+  /// or null to open at its default anchor.
+  ///
+  /// When a notification represents several messages in a conversation,
+  /// this is the earliest of them,
+  /// so that opening the notification shows the whole batch (#1565).
+  ///
+  /// Null when the notification doesn't identify a message:
+  /// from iOS (TODO(#1565)),
+  /// or from a notification created before this field existed.
+  final int? messageId;
+
   NotificationOpenPayload({
     required this.realmUrl,
     required this.userId,
     required this.narrow,
+    required this.messageId,
   });
 
   /// A key to set the notification URL (created via [buildNotificationUrl]) in
@@ -357,7 +376,8 @@ class NotificationOpenPayload {
       return NotificationOpenPayload(
         realmUrl: Uri.parse(realmUrl),
         userId: userId,
-        narrow: narrow);
+        narrow: narrow,
+        messageId: null);
     } else {
       // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
       throw const FormatException();
@@ -402,10 +422,16 @@ class NotificationOpenPayload {
           throw const FormatException();
       }
 
+      final messageId = switch (url.queryParameters['message_id']) {
+        final messageIdStr? => int.parse(messageIdStr, radix: 10),
+        null => null,
+      };
+
       return NotificationOpenPayload(
         realmUrl: realmUrl,
         userId: userId,
         narrow: narrow,
+        messageId: messageId,
       );
     } else {
       // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
@@ -431,7 +457,8 @@ class NotificationOpenPayload {
             'all_recipient_ids': allRecipientIds.join(','),
           },
           _ => throw UnsupportedError('Found an unexpected Narrow of type ${narrow.runtimeType}.'),
-        })
+        }),
+        if (messageId != null) 'message_id': messageId.toString(),
       },
     );
   }
