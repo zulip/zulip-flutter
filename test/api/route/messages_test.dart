@@ -245,20 +245,6 @@ void main() {
       });
     });
 
-    test('to stream, with legacy type "stream"', () {
-      return FakeApiConnection.with_(zulipFeatureLevel: 247, (connection) async {
-        await checkSendMessage(connection,
-          destination: StreamDestination(streamId, eg.t(topic)), content: content,
-          expectedBodyFields: {
-            'type': 'stream',
-            'to': streamId.toString(),
-            'topic': topic,
-            'content': content,
-            'read_by_sender': 'true',
-          });
-      });
-    });
-
     test('to DM conversation', () {
       return FakeApiConnection.with_((connection) async {
         await checkSendMessage(connection,
