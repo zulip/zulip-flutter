@@ -21,6 +21,7 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
 import 'finders.dart';
@@ -73,12 +74,15 @@ void main() {
 
   group('RecentDmConversationsPage', () {
     testWidgets('appearance when empty', (tester) async {
+      prepareBoringImageHttpClient();
       await setupPage(tester, users: [], dmMessages: []);
       check(find.text('You have no direct messages yet!')).findsOne();
       check(find.text('Why not start a conversation?')).findsOne();
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('page builds; conversations appear in order', (tester) async {
+      prepareBoringImageHttpClient();
       final user1 = eg.user(userId: 1);
       final user2 = eg.user(userId: 2);
 
@@ -94,9 +98,11 @@ void main() {
       check(items[0].narrow).equals(DmNarrow.ofMessage(message3, selfUserId: eg.selfUser.userId));
       check(items[1].narrow).equals(DmNarrow.ofMessage(message2, selfUserId: eg.selfUser.userId));
       check(items[2].narrow).equals(DmNarrow.ofMessage(message1, selfUserId: eg.selfUser.userId));
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('fling to scroll down', (tester) async {
+      prepareBoringImageHttpClient();
       final List<User> users = [];
       final List<DmMessage> messages = [];
       for (int i = 1; i <= 30; i++) {
@@ -115,9 +121,11 @@ void main() {
         const Offset(0, -200), 4000);
       await tester.pumpAndSettle();
       check(tester.any(oldestConversationFinder)).isTrue(); // onscreen
+      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('opens new DM sheet on New DM button tap', (tester) async {
+      prepareBoringImageHttpClient();
       Route<dynamic>? lastPushedRoute;
       Route<dynamic>? lastPoppedRoute;
       final testNavObserver = TestNavigatorObserver()
@@ -141,6 +149,7 @@ void main() {
         // TODO not sure why a 1ms fudge is needed; investigate.
         + Duration(milliseconds: 1));
       check(find.byType(NewDmPicker)).findsNothing();
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -218,31 +227,38 @@ void main() {
 
       group('self-1:1', () {
         testWidgets('has right title/avatar', (tester) async {
+          prepareBoringImageHttpClient();
           final message = eg.dmMessage(from: eg.selfUser, to: []);
           await setupPage(tester, users: [], dmMessages: [message]);
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
           checkTitle(tester, eg.selfUser.fullName);
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('short name takes one line', (tester) async {
+          prepareBoringImageHttpClient();
           const name = 'Short name';
           final selfUser = eg.user(fullName: name);
           await setupPage(tester, selfUser: selfUser, users: [],
             dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
           checkTitle(tester, name, 1);
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('very long name takes two lines (must be ellipsized)', (tester) async {
+          prepareBoringImageHttpClient();
           const name = 'Long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name';
           final selfUser = eg.user(fullName: name);
           await setupPage(tester, selfUser: selfUser, users: [],
             dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
           checkTitle(tester, name, 2);
+          debugNetworkImageHttpClientProvider = null;
         });
 
         group('User status', () {
           testWidgets('emoji & text are set -> emoji is displayed, text is not', (tester) async {
+            prepareBoringImageHttpClient();
             final message = eg.dmMessage(from: eg.selfUser, to: []);
             await setupPage(tester, dmMessages: [message], users: []);
             await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
@@ -253,9 +269,11 @@ void main() {
 
             checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
             check(find.textContaining('Busy')).findsNothing();
+            debugNetworkImageHttpClientProvider = null;
           });
 
           testWidgets('emoji is not set, text is set -> text is not displayed', (tester) async {
+            prepareBoringImageHttpClient();
             final message = eg.dmMessage(from: eg.selfUser, to: []);
             await setupPage(tester, dmMessages: [message], users: []);
             await store.changeUserStatus(eg.selfUser.userId, UserStatusChange(
@@ -263,31 +281,37 @@ void main() {
             await tester.pump();
 
             check(find.textContaining('Busy')).findsNothing();
+            debugNetworkImageHttpClientProvider = null;
           });
         });
 
         testWidgets('unread counts', (tester) async {
+          prepareBoringImageHttpClient();
           final message = eg.dmMessage(from: eg.selfUser, to: []);
           await setupPage(tester, users: [], dmMessages: [message]);
 
           checkUnreadCount(tester, 1);
           await markMessageAsRead(tester, message);
           checkUnreadCount(tester, 0);
+          debugNetworkImageHttpClientProvider = null;
         });
       });
 
       group('1:1', () {
         group('has right title/avatar', () {
           testWidgets('non-muted user', (tester) async {
+            prepareBoringImageHttpClient();
             final user = eg.user(userId: 1);
             final message = eg.dmMessage(from: eg.selfUser, to: [user]);
             await setupPage(tester, users: [user], dmMessages: [message]);
 
             checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
             checkTitle(tester, user.fullName);
+            debugNetworkImageHttpClientProvider = null;
           });
 
           testWidgets('muted user', (tester) async {
+            prepareBoringImageHttpClient();
             final user = eg.user(userId: 1);
             final message = eg.dmMessage(from: eg.selfUser, to: [user]);
             await setupPage(tester,
@@ -297,10 +321,12 @@ void main() {
 
             final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
             check(findConversationItem(narrow)).findsNothing();
+            debugNetworkImageHttpClientProvider = null;
           });
         });
 
         testWidgets('no error when user somehow missing from user store', (tester) async {
+          prepareBoringImageHttpClient();
           final user = eg.user(userId: 1);
           final message = eg.dmMessage(from: eg.selfUser, to: [user]);
           await setupPage(tester,
@@ -310,24 +336,30 @@ void main() {
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
           checkTitle(tester, '(unknown user)');
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('short name takes one line', (tester) async {
+          prepareBoringImageHttpClient();
           final user = eg.user(userId: 1, fullName: 'Short name');
           final message = eg.dmMessage(from: eg.selfUser, to: [user]);
           await setupPage(tester, users: [user], dmMessages: [message]);
           checkTitle(tester, user.fullName, 1);
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('very long name takes two lines (must be ellipsized)', (tester) async {
+          prepareBoringImageHttpClient();
           final user = eg.user(userId: 1, fullName: 'Long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name long name');
           final message = eg.dmMessage(from: eg.selfUser, to: [user]);
           await setupPage(tester, users: [user], dmMessages: [message]);
           checkTitle(tester, user.fullName, 2);
+          debugNetworkImageHttpClientProvider = null;
         });
 
         group('User status', () {
           testWidgets('emoji & text are set -> emoji is displayed, text is not', (tester) async {
+            prepareBoringImageHttpClient();
             final user = eg.user();
             final message = eg.dmMessage(from: eg.selfUser, to: [user]);
             await setupPage(tester, users: [user], dmMessages: [message]);
@@ -339,9 +371,11 @@ void main() {
 
             checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
             check(find.textContaining('Busy')).findsNothing();
+            debugNetworkImageHttpClientProvider = null;
           });
 
           testWidgets('emoji is not set, text is set -> text is not displayed', (tester) async {
+            prepareBoringImageHttpClient();
             final user = eg.user();
             final message = eg.dmMessage(from: eg.selfUser, to: [user]);
             await setupPage(tester, users: [user], dmMessages: [message]);
@@ -350,16 +384,19 @@ void main() {
             await tester.pump();
 
             check(find.textContaining('Busy')).findsNothing();
+            debugNetworkImageHttpClientProvider = null;
           });
         });
 
         testWidgets('unread counts', (tester) async {
+          prepareBoringImageHttpClient();
           final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
           await setupPage(tester, users: [], dmMessages: [message]);
 
           checkUnreadCount(tester, 1);
           await markMessageAsRead(tester, message);
           checkUnreadCount(tester, 0);
+          debugNetworkImageHttpClientProvider = null;
         });
       });
 
@@ -374,6 +411,7 @@ void main() {
 
         group('has right title/avatar', () {
           testWidgets('no users muted', (tester) async {
+            prepareBoringImageHttpClient();
             final users = usersList(2);
             final user0 = users[0];
             final user1 = users[1];
@@ -382,9 +420,11 @@ void main() {
 
             checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
             checkTitle(tester, '${user0.fullName}, ${user1.fullName}');
+            debugNetworkImageHttpClientProvider = null;
           });
 
           testWidgets('some users muted', (tester) async {
+            prepareBoringImageHttpClient();
             final users = usersList(2);
             final user0 = users[0];
             final user1 = users[1];
@@ -396,9 +436,11 @@ void main() {
 
             checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
             checkTitle(tester, 'Muted user, ${user1.fullName}');
+            debugNetworkImageHttpClientProvider = null;
           });
 
           testWidgets('all users muted', (tester) async {
+            prepareBoringImageHttpClient();
             final users = usersList(2);
             final user0 = users[0];
             final user1 = users[1];
@@ -410,10 +452,12 @@ void main() {
 
             final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
             check(findConversationItem(narrow)).findsNothing();
+            debugNetworkImageHttpClientProvider = null;
           });
         });
 
         testWidgets('no error when one user somehow missing from user store', (tester) async {
+          prepareBoringImageHttpClient();
           final users = usersList(2);
           final user0 = users[0];
           final user1 = users[1];
@@ -425,23 +469,29 @@ void main() {
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
           checkTitle(tester, '${user0.fullName}, (unknown user)');
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('few names takes one line', (tester) async {
+          prepareBoringImageHttpClient();
           final users = usersList(2);
           final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
           checkTitle(tester, users.map((u) => u.fullName).join(', '), 1);
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('very many names takes two lines (must be ellipsized)', (tester) async {
+          prepareBoringImageHttpClient();
           final users = usersList(40);
           final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
           checkTitle(tester, users.map((u) => u.fullName).join(', '), 2);
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('status emoji & text are set -> none of them is displayed', (tester) async {
+          prepareBoringImageHttpClient();
           final users = usersList(4);
           final message = eg.dmMessage(from: eg.selfUser, to: users);
           await setupPage(tester, users: users, dmMessages: [message]);
@@ -453,15 +503,18 @@ void main() {
 
           check(find.text('\u{1f6e0}')).findsNothing();
           check(find.textContaining('Busy')).findsNothing();
+          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('unread counts', (tester) async {
+          prepareBoringImageHttpClient();
           final message = eg.dmMessage(from: eg.thirdUser, to: [eg.selfUser, eg.otherUser]);
           await setupPage(tester, users: [], dmMessages: [message]);
 
           checkUnreadCount(tester, 1);
           await markMessageAsRead(tester, message);
           checkUnreadCount(tester, 0);
+          debugNetworkImageHttpClientProvider = null;
         });
       });
     });
@@ -471,6 +524,7 @@ void main() {
         required DmMessage message,
         required List<User> users
       }) async {
+        prepareBoringImageHttpClient();
         final expectedNarrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
         final pushedRoutes = <Route<dynamic>>[];
         final testNavObserver = TestNavigatorObserver()
@@ -486,6 +540,7 @@ void main() {
         check(pushedRoutes).last.isA<WidgetRoute>().page
           .isA<MessageListPage>()
           .initNarrow.equals(expectedNarrow);
+        debugNetworkImageHttpClientProvider = null;
       }
 
       testWidgets('1:1', (tester) async {
