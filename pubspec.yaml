@@ -14,8 +14,8 @@ environment:
   # We use a recent version of Flutter from its main channel, and
   # the corresponding recent version of the Dart SDK.
   # Feel free to update these regularly; see README.md for instructions.
-  sdk: '>=3.13.0-270.0.dev <4.0.0'
-  flutter: '>=3.46.0-1.0.pre-413'  # 6995038d96ef2b723cbb45882e76600deb02c9d3
+  sdk: '>=3.14.0-29.0.dev <4.0.0'
+  flutter: '>=3.47.0-1.0.pre-91'  # f65eec98830b2a4c0c7d5d0b13e3e914b4fb00f7
 
 # To update dependencies, see instructions in README.md.
 dependencies:
@@ -85,6 +85,24 @@ dependency_overrides:
       url: https://github.com/gaaclarke/color_models.git
       ref: wide-gamut
       path: flutter_color_models
+  # TODO(#2257) With firebase_messaging 16.5.0 the APNs token doesn't arrive
+  #   when we initialize Firebase from Dart, in our non-UIScene app.  Unpin
+  #   once we either migrate iOS to UIScene, and carry out the extra Firebase
+  #   Messaging setup that requires:
+  #     https://github.com/firebase/flutterfire/blob/main/packages/firebase_messaging/firebase_messaging/README.md#ios-apps-using-uiscene
+  #   or stop getting the APNs token from Firebase, per #2257.
+  firebase_messaging: '>=16.4.3 <16.5.0'
+  # TODO(upstream) remove both of these once pigeon allows analyzer 13.
+  #   drift and drift_dev have to move in lockstep,
+  #   and newer drift_dev needs analyzer 13:
+  #     https://github.com/flutter/flutter/issues/187145
+  drift: 2.34.0
+  drift_dev: 2.34.0
+  # TODO(#2218) remove this once we enable Swift Package Manager;
+  #   app_settings 8.0.0 dropped CocoaPods support, and requires SPM.
+  app_settings: ^7.0.0
+  # TODO(upstream) remove this once file_picker 12 has a stable release.
+  file_picker: ^11.0.0
 
 
 dev_dependencies:

@@ -18,15 +18,7 @@
         id="InvalidPackage"
         message="Invalid package reference in library; not included in Android: `java.lang.management`. Referenced from `io.ktor.util.debug.IntellijIdeaDebugDetector`.">
         <location
-            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/io.ktor/ktor-utils-jvm/3.0.3/8938221fdf8253200824443515b7a2bef4d09d3/ktor-utils-jvm-3.0.3.jar"/>
-    </issue>
-
-    <!--TODO(#855) see if this is no longer needed-->
-    <issue
-        id="InvalidPackage"
-        message="Invalid package reference in library; not included in Android: `javax.xml.stream`. Referenced from `org.apache.tika.utils.XMLReaderUtils`.">
-        <location
-            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/org.apache.tika/tika-core/3.2.3/4b1b82f8cce72c9bd3676532c8b613e24041d96c/tika-core-3.2.3.jar"/>
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/io.ktor/ktor-utils-jvm/3.2.2/3e428dc68493063ce992693c388513e101a282a2/ktor-utils-jvm-3.2.2.jar"/>
     </issue>
 
 </issues>

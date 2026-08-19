@@ -131,7 +131,10 @@ private class AndroidNotificationHost(val context: Context)
 
     @SuppressLint(
         // For `getIdentifier`.  TODO make a cleaner API.
-        "DiscouragedApi")
+        "DiscouragedApi",
+        // False positive: `use` closes the stream.  Lint started reporting
+        // this when we moved to Kotlin 2.4.
+        "Recycle")
     override fun copySoundResourceToMediaStore(
         targetFileDisplayName: String,
         sourceResourceName: String
