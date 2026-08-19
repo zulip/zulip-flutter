@@ -651,7 +651,6 @@ class MessageImagePreview extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(1),
         child: _Image(node: node,
-          sizeDynamically: false,
           ambientTextStyle: DefaultTextStyle.of(context).style)));
   }
 }
@@ -1379,9 +1378,7 @@ class InlineImage extends StatelessWidget {
       padding: const EdgeInsets.only(top: 3),
       child: ColoredBox(
         color: ContentTheme.of(context).colorMessageMediaContainerBackground,
-        child: _Image(node: node,
-          sizeDynamically: true,
-          ambientTextStyle: ambientTextStyle)));
+        child: _Image(node: node, ambientTextStyle: ambientTextStyle)));
   }
 }
 
@@ -1519,18 +1516,9 @@ class MessageTableCell extends StatelessWidget {
 /// A helper widget to deduplicate much of the logic in common
 /// between image previews and inline images.
 class _Image extends StatelessWidget {
-  const _Image({
-    required this.node,
-    required this.sizeDynamically,
-    required this.ambientTextStyle,
-  });
+  const _Image({required this.node, required this.ambientTextStyle});
 
   final ImageNode node;
-
-  /// Whether to size the image from its original dimensions,
-  /// rather than at a fixed [MessageMediaContainer.size].
-  final bool sizeDynamically;
-
   final TextStyle ambientTextStyle;
 
   /// The size to show the image at, based on its original dimensions.
@@ -1561,8 +1549,7 @@ class _Image extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = sizeDynamically
-      ? _imageSize(context) : MessageMediaContainer.size;
+    final size = _imageSize(context);
 
     final store = PerAccountStoreWidget.of(context);
     final message = InheritedMessage.of(context);
