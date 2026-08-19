@@ -2025,7 +2025,7 @@ void main() {
       final message = store.messages.values.single;
 
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, originalMessage.id));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .add, originalMessage.id));
       checkNotifiedOnce();
       check(store.messages).values.single
         ..identicalTo(message)
@@ -2037,7 +2037,7 @@ void main() {
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.add, 1000));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .add, 1000));
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNull();
@@ -2069,7 +2069,7 @@ void main() {
       final message = store.messages.values.single;
 
       await store.handleEvent(
-        eg.reactionEvent(eventReaction, ReactionOp.remove, originalMessage.id));
+        eg.reactionEvent(eventReaction, .remove, originalMessage.id));
       checkNotifiedOnce();
       check(store.messages).values.single
         ..identicalTo(message)
@@ -2081,7 +2081,7 @@ void main() {
       await prepare();
       await prepareMessages([someMessage]);
       await store.handleEvent(
-        eg.reactionEvent(eg.unicodeEmojiReaction, ReactionOp.remove, 1000));
+        eg.reactionEvent(eg.unicodeEmojiReaction, .remove, 1000));
       checkNotNotified();
       check(store.messages).values.single
         .reactions.isNotNull().jsonEquals([eg.unicodeEmojiReaction]);
