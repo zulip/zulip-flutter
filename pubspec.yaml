@@ -105,7 +105,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   ini: ^2.1.0
   json_serializable: ^6.5.4
+  leak_tracker_flutter_testing: ^3.0.10
   legacy_checks: ^0.1.0
+  meta: ^1.19.0
   patrol: ^4.1.1
   pigeon: ^27.1.0
   stack_trace: ^1.11.1
