@@ -1212,6 +1212,13 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get topicsButtonTooltip => 'Teemad';
 
   @override
+  String get filterTopicsHintText => 'Filter topics';
+
+  @override
+  String get filteredTopicsEmptyPlaceholderHeader =>
+      'No topics match your filters.';
+
+  @override
   String get channelFeedButtonTooltip => 'Channel feed';
 
   @override
