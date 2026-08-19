@@ -73,7 +73,6 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
 }
 
 String narrowLinkFragment(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
-  // TODO(server-7)
   final apiNarrow = resolveApiNarrowForServer(
     narrow.apiEncode(), store.zulipFeatureLevel);
   final fragment = StringBuffer('narrow');
@@ -93,14 +92,9 @@ String narrowLinkFragment(PerAccountStore store, Narrow narrow, {int? nearMessag
         fragment.write('$channelId-$slugifiedName');
       case ApiNarrowTopic():
         fragment.write(_encodeHashComponent(element.operand.apiName));
-      case ApiNarrowDmModern():
+      case ApiNarrowDm():
         final suffix = element.operand.length >= 3 ? 'group' : 'dm';
         fragment.write('${element.operand.join(',')}-$suffix');
-      case ApiNarrowPmWith():
-        final suffix = element.operand.length >= 3 ? 'group' : 'pm';
-        fragment.write('${element.operand.join(',')}-$suffix');
-      case ApiNarrowDm():
-        assert(false, 'ApiNarrowDm should have been resolved');
       case ApiNarrowWith():
         fragment.write(element.operand.toString());
       case ApiNarrowIs():
@@ -335,7 +329,6 @@ NarrowLink? _interpretNarrowSegments(List<String> segments, PerAccountStore stor
 
 @JsonEnum(fieldRename: FieldRename.kebab, alwaysCreate: true)
 enum _NarrowOperator {
-  // 'dm' is new in server-7.0; means the same as 'pm-with'
   dm,
   near,
   // cannot use `with` as it is a reserved keyword in Dart
@@ -344,6 +337,7 @@ enum _NarrowOperator {
   // cannot use `is` as it is a reserved keyword in Dart
   @JsonValue('is')
   is_,
+  // legacy alias for 'dm'
   pmWith,
   stream,
   channel,

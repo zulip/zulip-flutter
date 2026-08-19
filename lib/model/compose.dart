@@ -19,7 +19,7 @@ enum WildcardMentionOption {
   // TODO(server-9): Deprecated in FL 247. Empirically, current servers (FL 339)
   // still parse "@**stream**" in messages though.
   stream(canonicalString: 'stream'),
-  topic(canonicalString: 'topic'); // TODO(server-8): New in FL 224.
+  topic(canonicalString: 'topic');
 
   const WildcardMentionOption({required this.canonicalString});
 
@@ -38,7 +38,8 @@ enum WildcardMentionOption {
 // https://spec.commonmark.org/0.30/#fenced-code-blocks
 final RegExp _openingBacktickFenceRegex = (() {
   // Recognize a fence with "up to three spaces of indentation".
-  // Servers don't recognize fences that start with spaces, as of Server 7.0:
+  // Servers don't recognize fences that start with spaces,
+  // as of Server 12 (2026-08):
   //   https://chat.zulip.org/#narrow/stream/6-frontend/topic/quote-and-reply.20fence.20length/near/1588273
   // but that's a bug, since those fences are valid in the spec.
   // Still, it's harmless to make our own fence longer even if the server
@@ -162,7 +163,6 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
   required PerAccountStore store,
 }) {
   final isChannelWildcardAvailable = store.zulipFeatureLevel >= 247; // TODO(server-9)
-  final isTopicWildcardAvailable = store.zulipFeatureLevel >= 224; // TODO(server-8)
 
   String name = wildcardOption.canonicalString;
   switch (wildcardOption) {
@@ -176,7 +176,7 @@ String wildcardMention(WildcardMentionOption wildcardOption, {
         name = WildcardMentionOption.channel.canonicalString;
       }
     case WildcardMentionOption.topic:
-      assert(isTopicWildcardAvailable);
+      break;
   }
   return '@**$name**';
 }
