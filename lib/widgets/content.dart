@@ -631,6 +631,8 @@ class MessageImagePreviewList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
+      spacing: 5,
+      runSpacing: 5,
       children: node.imagePreviews.map((node) => MessageImagePreview(node: node)).toList());
   }
 }
@@ -642,12 +644,15 @@ class MessageImagePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Image(node: node,
-      sizeDynamically: false,
-      ambientTextStyle: DefaultTextStyle.of(context).style,
-      buildContainer: (onTap, child) {
-        return MessageMediaContainer(onTap: onTap, child: child);
-      });
+    // The gray background and border are present only for gallery items on web,
+    // not for standalone inline images; see web/styles/rendered_markdown.css.
+    return ColoredBox(
+      color: ContentTheme.of(context).colorMessageMediaContainerBackground,
+      child: Padding(
+        padding: const EdgeInsets.all(1),
+        child: _Image(node: node,
+          sizeDynamically: false,
+          ambientTextStyle: DefaultTextStyle.of(context).style)));
   }
 }
 
@@ -1376,11 +1381,7 @@ class InlineImage extends StatelessWidget {
         color: ContentTheme.of(context).colorMessageMediaContainerBackground,
         child: _Image(node: node,
           sizeDynamically: true,
-          ambientTextStyle: ambientTextStyle,
-          buildContainer: (onTap, child) {
-            if (onTap == null) return child;
-            return GestureDetector(onTap: onTap, child: child);
-          })));
+          ambientTextStyle: ambientTextStyle)));
   }
 }
 
@@ -1515,8 +1516,6 @@ class MessageTableCell extends StatelessWidget {
   }
 }
 
-typedef _ImageContainerBuilder = Widget Function(VoidCallback? onTap, Widget child);
-
 /// A helper widget to deduplicate much of the logic in common
 /// between image previews and inline images.
 class _Image extends StatelessWidget {
@@ -1524,7 +1523,6 @@ class _Image extends StatelessWidget {
     required this.node,
     required this.sizeDynamically,
     required this.ambientTextStyle,
-    required this.buildContainer,
   });
 
   final ImageNode node;
@@ -1534,7 +1532,6 @@ class _Image extends StatelessWidget {
   final bool sizeDynamically;
 
   final TextStyle ambientTextStyle;
-  final _ImageContainerBuilder buildContainer;
 
   /// The size to show the image at, based on its original dimensions.
   Size _imageSize(BuildContext context) {
@@ -1608,35 +1605,35 @@ class _Image extends StatelessWidget {
     final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
       ? resolvedOriginalSrc
       : resolvedSrc;
-    VoidCallback? onTap;
     if (lightboxDisplayUrl != null) { // TODO(log) if null
-      onTap = () {
-        Navigator.of(context).push(getImageLightboxRoute(
-          context: context,
-          message: message,
+      child = GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(getImageLightboxRoute(
+            context: context,
+            message: message,
+            messageImageContext: context,
+            src: lightboxDisplayUrl,
+            thumbnailUrl: node.src is ImageNodeSrcThumbnail
+              ? node.loading
+                // (Image thumbnail is loading; don't show hard-coded spinner image
+                // even if that happens to be a thumbnail URL.)
+                ? null
+                : resolvedSrc
+              : null,
+            originalWidth: node.originalWidth,
+            originalHeight: node.originalHeight));
+        },
+        child: LightboxHero(
           messageImageContext: context,
           src: lightboxDisplayUrl,
-          thumbnailUrl: node.src is ImageNodeSrcThumbnail
-            ? node.loading
-              // (Image thumbnail is loading; don't show hard-coded spinner image
-              // even if that happens to be a thumbnail URL.)
-              ? null
-              : resolvedSrc
-            : null,
-          originalWidth: node.originalWidth,
-          originalHeight: node.originalHeight));
-      };
-      child = LightboxHero(
-        messageImageContext: context,
-        src: lightboxDisplayUrl,
-        child: child);
+          child: child));
     }
 
-    return buildContainer(onTap, ConstrainedBox(
+    return ConstrainedBox(
       constraints: BoxConstraints.loose(size),
       child: AspectRatio(
         aspectRatio: size.aspectRatio,
-        child: child)));
+        child: child));
   }
 }
 
