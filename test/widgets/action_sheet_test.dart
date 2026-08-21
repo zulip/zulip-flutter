@@ -411,6 +411,21 @@ void main() {
         await showFromTopicListAppBar(tester);
         checkButtons();
       });
+
+      testWidgets('button order', (tester) async {
+        await prepare();
+        await showFromInbox(tester);
+        final buttons = tester.widgetList<ZulipMenuItemButton>(
+          find.descendant(of: actionSheetFinder, matching: find.byType(ZulipMenuItemButton)));
+        check(buttons.map((b) => b.label).toList()).deepEquals([
+          'Unsubscribe',
+          'Pin to top',
+          'Mark channel as read',
+          'List of topics',
+          'Channel feed',
+          'Copy link to channel',
+        ]);
+      });
     });
 
     group('SubscribeButton', () {
