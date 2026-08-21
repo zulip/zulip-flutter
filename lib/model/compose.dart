@@ -257,6 +257,55 @@ String inlineLink(String visibleText, String destination) {
   return '[$visibleText]($destination)';
 }
 
+/// https://spec.commonmark.org/0.30/#images
+///
+/// The syntax for images is similar to the syntax defined in [inlineLink], except
+/// that the "link text" is replaced by an "image description", which is made by
+/// enclosing [description] between square brackets, prefixed with "!".
+///
+/// This syntax is suitable for an uploaded image whose MIME type is in
+/// [supportedInlineImageTypes].
+String inlineImage(String description, String destination) {
+  return '![$description]($destination)';
+}
+
+/// Markdown for an uploaded image, with a fallback for old servers.
+///
+/// Produces [inlineImage] if the server supports it, else [inlineLink].
+// TODO(server-12): Remove this helper and call [inlineImage] directly.
+String imageCompat(String description, String destination, {
+  required int zulipFeatureLevel,
+}) {
+  // Zulip's Markdown image syntax was introduced at FL 437 and changed
+  // through FL 467 (server 12.0).
+  // Only generate it for servers that have its final form.  See:
+  //   https://zulip.com/api/message-formatting#changes-to-image-formatting
+  return zulipFeatureLevel >= 467
+    ? inlineImage(description, destination)
+    : inlineLink(description, destination);
+}
+
+/// The image MIME types the server renders inline from Markdown image syntax.
+///
+/// Should be kept identical to the web app's `SUPPORTED_IMAGE_TYPES` list.  See:
+///   https://github.com/zulip/zulip/blob/afb960c04/web/src/upload.ts#L36-L44
+const supportedInlineImageTypes = <String>{
+  'image/avif',
+  'image/gif',
+  'image/heic',
+  'image/jpeg',
+  'image/png',
+  'image/tiff',
+  'image/webp',
+};
+
+/// Whether the server renders a file of this [mimeType] inline from Markdown
+/// image syntax (`![]()`).
+///
+/// See [supportedInlineImageTypes].
+bool isSupportedInlineImage(String? mimeType) =>
+  supportedInlineImageTypes.contains(mimeType);
+
 /// What we show while fetching the target message's raw Markdown.
 ///
 /// Like [quoteAndReply], but the message content is replaced with a placeholder.
