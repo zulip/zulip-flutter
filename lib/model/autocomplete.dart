@@ -427,10 +427,10 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   @protected
   Future<List<ResultT>?> computeResults();
 
-  /// Completes in a later microtask, returning true if evaluation
+  /// Completes in a later event-queue task, returning true if evaluation
   /// of the current query should stop and false if it should continue.
   ///
-  /// The deferral to a later microtask allows other code in the app to run.
+  /// The deferral to a later event-queue task allows other code in the app to run.
   /// A long CPU-intensive loop should call this regularly
   /// (e.g. every 1000 iterations) so that the UI remains responsive.
   @protected
