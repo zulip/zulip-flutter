@@ -53,6 +53,7 @@ dependencies:
   image_picker_android: ^0.8.13+14
   image_picker_platform_interface: ^2.11.1
   json_annotation: ^4.9.0
+  meta: ^1.18.3
   mime: ^2.0.0
   package_info_plus: ^9.0.0
   path: ^1.8.3
