@@ -615,6 +615,12 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     _maybeStaleChannelMessages.addAll(affectedKnownMessageIds);
   }
 
+  void handleSubscriptionUpdateEvent(SubscriptionUpdateEvent event) {
+    for (final view in _messageListViews) {
+      view.handleSubscriptionUpdateEvent(event);
+    }
+  }
+
   void handleUserTopicEvent(UserTopicEvent event) {
     for (final view in _messageListViews) {
       view.handleUserTopicEvent(event);

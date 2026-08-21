@@ -732,6 +732,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   ///
   /// See also [_allMessagesVisible].
   // When updating this, check [_allMessagesVisible], [_willAffectVisibility],
+  // [_subscriptionUpdateEventWillAffectVisibility],
   // [_mutedUsersEventWillAffectVisibility], and [messagesMoved] to see whether
   // they need to be updated too.
   // Also check the unread-count methods in [Unreads] to make sure they count
@@ -817,13 +818,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  UserTopicVisibilityEffect _willAffectVisibility(UserTopicEvent event) {
+  TopicVisibilityEffect _willAffectVisibility(UserTopicEvent event) {
     switch (narrow) {
       case CombinedFeedNarrow():
         return store.willAffectIfTopicVisible(event);
 
       case ChannelNarrow(:final channelId):
-        if (event.streamId != channelId) return UserTopicVisibilityEffect.none;
+        if (event.streamId != channelId) return TopicVisibilityEffect.none;
         return store.willAffectIfTopicVisibleInChannel(event);
 
       case TopicNarrow():
@@ -831,7 +832,28 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case MentionsNarrow():
       case StarredMessagesNarrow():
       case KeywordSearchNarrow():
-        return UserTopicVisibilityEffect.none;
+        return TopicVisibilityEffect.none;
+    }
+  }
+
+  /// Whether this event could affect the result that [_messageVisible]
+  /// would ever have returned for any possible message in this message list.
+  ///
+  /// The event must have [SubscriptionProperty.isMuted]
+  /// for its [SubscriptionUpdateEvent.property].
+  TopicVisibilityEffect _subscriptionUpdateEventWillAffectVisibility(SubscriptionUpdateEvent event) {
+    assert(event.property == SubscriptionProperty.isMuted);
+    switch (narrow) {
+      case CombinedFeedNarrow():
+        return store.willAffectIfTopicVisible(event);
+
+      case ChannelNarrow():
+      case TopicNarrow():
+      case DmNarrow():
+      case MentionsNarrow():
+      case StarredMessagesNarrow():
+      case KeywordSearchNarrow():
+        return TopicVisibilityEffect.none;
     }
   }
 
@@ -1151,10 +1173,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   void handleUserTopicEvent(UserTopicEvent event) {
     switch (_willAffectVisibility(event)) {
-      case UserTopicVisibilityEffect.none:
+      case TopicVisibilityEffect.none:
         return;
 
-      case UserTopicVisibilityEffect.muted:
+      case TopicVisibilityEffect.muted:
         bool removed = _removeMessagesWhere((message) =>
           message is StreamMessage
             && message.streamId == event.streamId
@@ -1169,7 +1191,57 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           notifyListeners();
         }
 
-      case UserTopicVisibilityEffect.unmuted:
+      case TopicVisibilityEffect.unmuted:
+        // TODO get the newly-unmuted messages from the message store
+        // For now, we simplify the task by just refetching this message list
+        // from scratch.
+        if (fetched) {
+          _reset();
+          notifyListeners();
+          fetchInitial();
+        }
+    }
+  }
+
+  void handleSubscriptionUpdateEvent(SubscriptionUpdateEvent event) {
+    if (event.property != SubscriptionProperty.isMuted) return;
+    switch (_subscriptionUpdateEventWillAffectVisibility(event)) {
+      case .none:
+        return;
+
+      case .muted:
+        bool nowHidden(TopicName topic) {
+          switch (store.topicVisibilityPolicy(event.channelId, topic)) {
+            case .none: // Was visible in the unmuted channel; now hidden.
+              return true;
+            case .muted: // Was already hidden; shouldn't be in the list anyway.
+              return true;
+            case .unmuted:
+            case .followed:
+              // Stays visible despite the channel's mutedness.
+              return false;
+            case .unknown:
+              // [ChannelStoreImpl.handleUserTopicEvent] never stores this.
+              assert(false);
+              return false;
+          }
+        }
+
+        bool removed = _removeMessagesWhere((message) =>
+          message is StreamMessage
+            && message.streamId == event.channelId
+            && nowHidden(message.topic));
+
+        removed |= _removeOutboxMessagesWhere((message) =>
+          message is StreamOutboxMessage
+            && message.conversation.streamId == event.channelId
+            && nowHidden(message.conversation.topic));
+
+        if (removed) {
+          notifyListeners();
+        }
+
+      case .unmuted:
         // TODO get the newly-unmuted messages from the message store
         // For now, we simplify the task by just refetching this message list
         // from scratch.

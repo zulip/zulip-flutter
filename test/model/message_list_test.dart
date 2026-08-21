@@ -1525,6 +1525,150 @@ void main() {
     });
   });
 
+  group('SubscriptionUpdateEvent', () {
+    // The ChannelStore.willAffectIfTopicVisible method has its own
+    // thorough unit tests.  So these tests focus on the rest of the logic.
+
+    final stream = eg.stream();
+
+    Future<void> setChannelMuted(bool isMuted) async {
+      await store.updateSubscription(
+        stream.streamId, SubscriptionProperty.isMuted, isMuted);
+    }
+
+    test('mute a channel', () => awaitFakeAsync((async) async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await store.setUserTopic(stream, 'unmuted', UserTopicVisibilityPolicy.unmuted);
+      final otherStream = eg.stream();
+      await store.addStream(otherStream);
+      await store.addSubscription(eg.subscription(otherStream));
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'foo'),
+        eg.streamMessage(id: 2, stream: stream, topic: 'unmuted'),
+        eg.streamMessage(id: 3, stream: otherStream, topic: 'foo'),
+        eg.dmMessage(    id: 4, from: eg.otherUser, to: [eg.selfUser]),
+      ]);
+      checkHasMessageIds([1, 2, 3, 4]);
+
+      await prepareOutboxMessagesTo([
+        StreamDestination(stream.streamId, eg.t('foo')),
+        StreamDestination(stream.streamId, eg.t('unmuted')),
+        StreamDestination(otherStream.streamId, eg.t('foo')),
+      ]);
+      async.elapse(kLocalEchoDebounceDuration);
+      checkNotified(count: 3);
+
+      await setChannelMuted(true);
+      checkNotifiedOnce();
+      checkHasMessageIds([2, 3, 4]);
+      check(model).outboxMessages.deepEquals(<Condition<Object?>>[
+        (it) => it.isA<StreamOutboxMessage>().conversation
+                  ..streamId.equals(stream.streamId)
+                  ..topic.equals(eg.t('unmuted')),
+        (it) => it.isA<StreamOutboxMessage>().conversation
+                  .streamId.equals(otherStream.streamId),
+      ]);
+    }));
+
+    test('mute a channel, no affected messages -> no notification', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await store.setUserTopic(stream, 'unmuted', UserTopicVisibilityPolicy.unmuted);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'unmuted'),
+      ]);
+      checkHasMessageIds([1]);
+
+      await setChannelMuted(true);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('unmute a channel -> refetch from scratch', () => awaitFakeAsync((async) async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream, isMuted: true));
+      final messages = <Message>[
+        eg.dmMessage(id: 1, from: eg.otherUser, to: [eg.selfUser]),
+        eg.streamMessage(id: 2, stream: stream, topic: 'foo'),
+      ];
+      await prepareMessages(foundOldest: true, messages: messages);
+      checkHasMessageIds([1]);
+
+      connection.prepare(
+        json: newestResult(foundOldest: true, messages: messages).toJson());
+      await setChannelMuted(false);
+      checkNotifiedOnce();
+      check(model).fetched.isFalse();
+      checkHasMessageIds([]);
+
+      async.elapse(Duration.zero);
+      checkNotifiedOnce();
+      checkHasMessageIds([1, 2]);
+    }));
+
+    test('unmute a channel before initial fetch completes -> do nothing', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream, isMuted: true));
+      final messages = [
+        eg.streamMessage(id: 1, stream: stream, topic: 'foo'),
+      ];
+
+      connection.prepare(
+        json: newestResult(foundOldest: true, messages: messages).toJson());
+      final fetchFuture = model.fetchInitial();
+
+      await setChannelMuted(false);
+      checkNotNotified();
+
+      // The new mutedness does get applied when the fetch eventually completes.
+      await fetchFuture;
+      checkNotifiedOnce();
+      checkHasMessageIds([1]);
+    });
+
+    test('in ChannelNarrow, do nothing', () async {
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'foo'),
+      ]);
+      checkHasMessageIds([1]);
+
+      // Muting the channel doesn't remove the message
+      // (whereas it would in the combined feed).
+      await setChannelMuted(true);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+
+      // Unmuting the channel doesn't cause a refetch
+      // (whereas it would in the combined feed).
+      await setChannelMuted(false);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+
+    test('other subscription property -> do nothing', () async {
+      await prepare(narrow: const CombinedFeedNarrow());
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: 'foo'),
+      ]);
+      checkHasMessageIds([1]);
+
+      await store.updateSubscription(
+        stream.streamId, SubscriptionProperty.pinToTop, true);
+      checkNotNotified();
+      checkHasMessageIds([1]);
+    });
+  });
+
   group('MutedUsersEvent', () {
     final user1 = eg.user(userId: 1);
     final user2 = eg.user(userId: 2);
