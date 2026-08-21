@@ -1269,8 +1269,6 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     // Affects only the self-user.
     [
       StarButton(message: message, pageContext: pageContext),
-      if (isComposeBoxOffered)
-        QuoteAndReplyButton(message: message, pageContext: pageContext),
       if (isMessageRead)
         MarkAsUnreadButton(message: message, pageContext: pageContext),
       if (isSenderMuted)
@@ -1279,10 +1277,12 @@ void showMessageActionSheet({required BuildContext context, required Message mes
     ],
     // No effect.
     [
-      if (hasReactions)
-        ViewReactionsButton(message: message, pageContext: pageContext),
       if (readReceiptsEnabled)
         ViewReadReceiptsButton(message: message, pageContext: pageContext),
+      if (hasReactions)
+        ViewReactionsButton(message: message, pageContext: pageContext),
+      if (isComposeBoxOffered)
+        QuoteAndReplyButton(message: message, pageContext: pageContext),
       CopyMessageTextButton(message: message, pageContext: pageContext),
       CopyMessageLinkButton(message: message, pageContext: pageContext),
       ShareButton(message: message, pageContext: pageContext),
