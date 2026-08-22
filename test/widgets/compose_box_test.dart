@@ -1479,6 +1479,28 @@ void main() {
         checkAppearsLoading(tester, false);
       }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
+      testWidgets('iOS (uses file_picker): MIME type inferred from extension '
+          'is corrected for deprecated audio types', (tester) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/2431
+        await prepare(tester);
+
+        testBinding.pickFilesResult = FilePickerResult([PlatformFile(
+          readStream: Stream.fromIterable(['asdf'.codeUnits]),
+          path: '/private/var/mobile/Containers/Data/Application/foo/tmp/test.flac',
+          name: 'test.flac',
+          size: 12345,
+        )]);
+        connection.prepare(json:
+          UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.flac').toJson());
+
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        check(connection.lastRequest!).isA<http.MultipartRequest>()
+          .files.single.contentType.asString.equals('audio/flac');
+
+        await tester.pump(const Duration(seconds: 1));
+      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+
       // TODO test what happens when selecting/uploading fails
     });
 
@@ -1658,6 +1680,28 @@ void main() {
           expectedTitle: 'Content not inserted',
           expectedMessage: 'The file to be inserted is empty or cannot be accessed.');
         checkAppearsLoading(tester, false);
+      });
+    });
+
+    group('canonicalizeMimeType', () {
+      test('translate deprecated audio/x-flac to audio/flac', () {
+        check(canonicalizeMimeType('audio/x-flac')).equals('audio/flac');
+      });
+
+      test('translate deprecated audio/x-wav to audio/vnd.wave', () {
+        check(canonicalizeMimeType('audio/x-wav')).equals('audio/vnd.wave');
+      });
+
+      test('leave already-canonical MIME type unchanged', () {
+        check(canonicalizeMimeType('audio/flac')).equals('audio/flac');
+      });
+
+      test('leave unrelated MIME type unchanged', () {
+        check(canonicalizeMimeType('image/jpeg')).equals('image/jpeg');
+      });
+
+      test('leave null unchanged', () {
+        check(canonicalizeMimeType(null)).isNull();
       });
     });
   });

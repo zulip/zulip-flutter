@@ -984,13 +984,35 @@ class FileToUpload {
     required this.content,
     required this.length,
     required this.filename,
-    required this.mimeType,
-  });
+    required String? mimeType,
+  }) : mimeType = canonicalizeMimeType(mimeType);
 
   final Stream<List<int>> content;
   final int length;
   final String filename;
   final String? mimeType;
+}
+
+/// Correct a MIME type that's technically valid but deprecated,
+/// to the modern MIME type with the same meaning.
+///
+/// `package:mime`, and possibly some platforms' file pickers,
+/// can report one of these deprecated `audio/x-*` names
+/// for certain audio files.
+/// The server won't recognize those as reason to offer
+/// inline-audio-player content for the corresponding message
+/// (see e.g. zulip/zulip-flutter#2179),
+/// so translate them to the modern IANA-registered names.
+///
+/// See discussion:
+///   https://github.com/zulip/zulip-flutter/issues/2431
+@visibleForTesting
+String? canonicalizeMimeType(String? mimeType) {
+  return switch (mimeType) {
+    'audio/x-flac' => 'audio/flac',
+    'audio/x-wav'  => 'audio/vnd.wave',
+    _ => mimeType,
+  };
 }
 
 Future<void> _uploadFiles({
