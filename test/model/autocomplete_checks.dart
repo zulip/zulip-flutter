@@ -37,3 +37,17 @@ extension TopicAutocompleteResultChecks on Subject<TopicAutocompleteResult> {
 extension ChannelLinkAutocompleteResultChecks on Subject<ChannelLinkAutocompleteResult> {
   Subject<int> get channelId => has((r) => r.channelId, 'channelId');
 }
+
+extension TopicLinkAutocompleteChannelResultChecks on Subject<TopicLinkAutocompleteChannelResult> {
+  Subject<int> get channelId => has((r) => r.channelId, 'channelId');
+}
+
+extension TopicLinkAutocompleteNewTopicResultChecks on Subject<TopicLinkAutocompleteNewTopicResult> {
+  Subject<int> get channelId => has((r) => r.channelId, 'channelId');
+  Subject<TopicName> get topic => has((r) => r.topic, 'topic');
+}
+
+extension TopicLinkAutocompleteTopicResultChecks on Subject<TopicLinkAutocompleteTopicResult> {
+  Subject<int> get channelId => has((r) => r.channelId, 'channelId');
+  Subject<TopicName> get topic => has((r) => r.topic, 'topic');
+}

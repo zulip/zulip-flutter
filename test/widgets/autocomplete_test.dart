@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -27,10 +28,12 @@ import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/test_store.dart';
+import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'test_app.dart';
 
 late PerAccountStore store;
+late FakeApiConnection connection;
 
 /// Simulates loading a [MessageListPage] and tapping to focus the compose input.
 ///
@@ -56,7 +59,7 @@ Future<Finder> setupToComposeInput(WidgetTester tester, {
   await store.addUsers([eg.selfUser, eg.otherUser]);
   await store.addUsers(users);
   await store.addStreams(channels);
-  final connection = store.connection as FakeApiConnection;
+  connection = store.connection as FakeApiConnection;
 
   narrow ??= DmNarrow(
     allRecipientIds: [eg.selfUser.userId, eg.otherUser.userId],
@@ -383,11 +386,16 @@ void main() {
       checkChannelShown(channel2, expected: true);
       checkChannelShown(channel3, expected: true);
 
+      // Prepare a response for when choosing a channel triggers a fetch of its
+      // topics as a result of the "#**…>" syntax being inserted into the
+      // compose box.
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+
       // Finishing autocomplete updates compose box; causes options to disappear.
       await tester.tap(find.text('mobile design'));
       await tester.pump();
       check(tester.widget<TextField>(composeInputFinder).controller!.text)
-        .contains(channelLink(channel2, store: store));
+        .contains(channelLink(channel2, pendingTopicAutocomplete: true, store: store));
       checkChannelShown(channel1, expected: false);
       checkChannelShown(channel2, expected: false);
       checkChannelShown(channel3, expected: false);
@@ -408,6 +416,231 @@ void main() {
       checkChannelShown(channel3, expected: false);
 
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('tapping a channel with .emptyTopicOnly policy inserts completed link', (tester) async {
+      final channel = eg.stream(name: 'mobile', topicsPolicy: .emptyTopicOnly);
+      final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #mobil');
+      await tester.enterText(composeInputFinder, 'check #mobile');
+      await tester.pumpAndSettle(); // async computation; options appear
+      checkChannelShown(channel, expected: true);
+
+      await tester.tap(find.text('mobile'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .equals('check ${channelLink(channel, store: store)} ');
+      checkChannelShown(channel, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
+  group('#channel>topic link', () {
+    void checkChannelShown(ZulipStream channel, {required bool expected}) {
+      check(find.ancestor(of: find.byIcon(iconDataForStream(channel)),
+        matching: find.ancestor(of: find.text(channel.name),
+          matching: find.ancestor(of: find.text('(link to channel)'),
+            matching: find.byType(Row))))
+      ).findsExactly(expected ? 1 : 0);
+    }
+
+    void checkTopicShown(TopicName topic, {required bool expected, bool isNew = false}) {
+      final topicNameFinder = find.text(topic.displayName ?? store.realmEmptyTopicDisplayName);
+      if (isNew) {
+        check(find.ancestor(of: topicNameFinder,
+          matching: find.ancestor(of: find.text('New'),
+            matching: find.byType(Row)))
+        ).findsExactly(expected ? 1 : 0);
+      } else {
+        check(topicNameFinder).findsExactly(expected ? 1 : 0);
+      }
+    }
+
+    testWidgets('options appear, disappear, and change correctly', (tester) async {
+      final channel = eg.stream(name: 'mobile');
+      final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 30, name: 'team');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 20, name: 'design');
+      final topic3 = eg.getChannelTopicsEntry(maxId: 10, name: 'dev help');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2, topic3]).toJson());
+
+      // Options are filtered correctly for query.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>d');
+      await tester.enterText(composeInputFinder, 'check #**mobile>de');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: true);
+      checkTopicShown(topic3.name, expected: true);
+
+      // Finishing autocomplete updates compose box; causes options to disappear.
+      await tester.tap(find.text('design'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(topicLink(channel, topic2.name, store: store));
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: false);
+      checkTopicShown(topic3.name, expected: false);
+
+      // Then a new autocomplete intent brings up options again.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>de');
+      await tester.enterText(composeInputFinder, 'check #**mobile>dev');
+      await tester.pumpAndSettle(); // async computation; options appear
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: false);
+      checkTopicShown(topic3.name, expected: true);
+
+      // Removing autocomplete intent causes options to disappear.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check ');
+      await tester.enterText(composeInputFinder, 'check');
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: false);
+      checkTopicShown(topic3.name, expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets("query doesn't exactly match any topic -> a new topic option appears", (tester) async {
+      final channel = eg.stream(name: 'mobile');
+      final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'design');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'dev help');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+
+      // The query doesn't exactly match any of the topics.
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>d');
+      await tester.enterText(composeInputFinder, 'check #**mobile>dev');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      // A new topic option appears.
+      checkTopicShown(eg.t('dev'), expected: true, isNew: true);
+      checkTopicShown(topic1.name, expected: false);
+      checkTopicShown(topic2.name, expected: true);
+
+      // Tapping on the new option inserts the topic link.
+      await tester.tap(find.text('dev'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(topicLink(channel, eg.t('dev'), store: store));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('empty query -> an option for the channel appears', (tester) async {
+      final channel = eg.stream(name: 'mobile');
+      final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'design');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'dev help');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>d');
+      await tester.enterText(composeInputFinder, 'check #**mobile>');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      // The channel option appears.
+      checkChannelShown(channel,   expected: true);
+      checkTopicShown(topic1.name, expected: true);
+      checkTopicShown(topic2.name, expected: true);
+
+      // Tapping on the channel option inserts the channel link.
+      await tester.tap(find.text('mobile'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(channelLink(channel, store: store));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets("query naming a different channel -> that channel's topics appear", (tester) async {
+      final mobile = eg.stream(name: 'mobile');
+      final backend = eg.stream(name: 'backend');
+      final composeInputFinder = await setupToComposeInput(tester,
+        channels: [mobile, backend]);
+
+      final mobileTopic = eg.getChannelTopicsEntry(maxId: 20, name: 'docker setup');
+      final backendTopic = eg.getChannelTopicsEntry(maxId: 10, name: 'docker');
+
+      connection.prepare(json: GetChannelTopicsResult(topics: [mobileTopic]).toJson());
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(composeInputFinder, 'check #**mobile>d');
+      await tester.enterText(composeInputFinder, 'check #**mobile>do');
+      await tester.pumpAndSettle(); // async computation; options appear
+      checkTopicShown(mobileTopic.name, expected: true);
+
+      // Replace the whole query with one naming a different channel,
+      // as pasting over the selected text would.
+      connection.prepare(json: GetChannelTopicsResult(topics: [backendTopic]).toJson());
+      await tester.enterText(composeInputFinder, 'check #**backend>do');
+      await tester.pumpAndSettle(); // async computation; options appear
+
+      checkTopicShown(backendTopic.name, expected: true);
+      checkTopicShown(mobileTopic.name, expected: false);
+
+      // Choosing an option links to the channel the query names.
+      await tester.tap(find.text('docker'));
+      await tester.pump();
+      check(tester.widget<TextField>(composeInputFinder).controller!.text)
+        .contains(topicLink(backend, backendTopic.name, store: store));
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    group('backspace ending the interaction', () {
+      /// Simulate an iOS backspace over the ">" at the end of [text],
+      /// as two synchronous editing-state updates.
+      void backspaceOverTopicDelimiter(WidgetTester tester, String text) {
+        assert(text.endsWith('>'));
+        final shortened = text.substring(0, text.length - 1);
+        tester.testTextInput.updateEditingValue(TextEditingValue(text: text,
+          selection: TextSelection(
+            baseOffset: shortened.length, extentOffset: text.length)));
+        tester.testTextInput.updateEditingValue(TextEditingValue(text: shortened,
+          selection: TextSelection.collapsed(offset: shortened.length)));
+      }
+
+      testWidgets('no error when channel is unknown', (tester) async {
+        final composeInputFinder = await setupToComposeInput(tester);
+        await tester.enterText(composeInputFinder, '#>');
+
+        backspaceOverTopicDelimiter(tester, '#>');
+        await tester.pumpAndSettle();
+        check(tester.takeException()).isNull();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('no error when topics are being fetched', (tester) async {
+        final channel = eg.stream(streamId: 10, name: 'mobile');
+        final composeInputFinder = await setupToComposeInput(tester, channels: [channel]);
+
+        connection.takeRequests();
+
+        connection.prepare(delay: Duration(seconds: 1),
+          json: GetChannelTopicsResult(topics: []).toJson());
+        await tester.enterText(composeInputFinder, '#**mobile>');
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/v1/users/me/10/topics');
+
+        backspaceOverTopicDelimiter(tester, '#**mobile>');
+        check(tester.takeException()).isNull();
+
+        await tester.pump(Duration(seconds: 1));
+        check(tester.takeException()).isNull();
+
+        debugNetworkImageHttpClientProvider = null;
+      });
     });
   });
 

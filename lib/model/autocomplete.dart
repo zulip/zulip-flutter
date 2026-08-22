@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
+import '../api/exception.dart';
 import '../api/model/events.dart';
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -20,22 +22,36 @@ extension ComposeContentAutocomplete on ComposeContentController {
   // To avoid spending a lot of time searching for autocomplete intents
   // in long messages, we bound how far back we look for the intent's start.
   int get _maxLookbackForAutocompleteIntent {
-    return 1 // intent character, e.g. "#"
-      + 2 // some optional characters e.g., "_" for silent mention or "**"
-
-      // Per the API doc, maxChannelNameLength is in Unicode code points.
+    // Longest autocomplete syntax is for the fallback topic link intent (as of 2026-08):
+    //   [#escapedChannelName](#narrow/channel/channelId-slugifiedChannelName)>topicName
+    return 2 // [#
+      // Largest length of an escaped channel name (see `compose.escapeChannelTopicAvoidedChars`).
+      + 5 * store.maxChannelNameLength
+      + 18 // ](#narrow/channel/
+      + 19 // largest channel ID (9223372036854775807 — largest int) length
+      + 1  // hyphen character (-)
+      // Largest length of a slugified channel name (see `internal_link.narrowLinkFragment`).
+      // `_encodeHashComponent` encodes each code point as up to 4 UTF-8 bytes,
+      // emitting up to 3 UTF-16 code units for each byte.
+      + 12 * store.maxChannelNameLength
+      + 2  // )>
+      // Per the API doc, maxTopicLength is in Unicode code points.
       // We walk the string by UTF-16 code units, and there might be one or two
       // of those encoding each Unicode code point.
-      + 2 * store.maxChannelNameLength;
+      + 2 * store.maxTopicLength;
   }
 
   AutocompleteIntent<ComposeAutocompleteQuery>? autocompleteIntent() {
     if (!selection.isValid || !selection.isNormalized) {
       // We don't require [isCollapsed] to be true because we've seen that
       // autocorrect and even backspace involve programmatically expanding the
-      // selection to the left. Once we know where the syntax starts, we can at
-      // least require that the selection doesn't extend leftward past that;
-      // see below.
+      // selection to the left.
+      //
+      // If we did require it, then on iOS each backspace would
+      // tear down and recreate the view-model in the widgets code,
+      // hiding the options list until the next edit. See #226.
+      // TODO(#226): Once the options list follows the view-model, update the
+      //   above: the effect becomes a flicker on each backspace.
       return null;
     }
 
@@ -48,23 +64,15 @@ extension ComposeContentAutocomplete on ComposeContentController {
     }
 
     final textUntilCursor = text.substring(0, selection.end);
-    int pos;
-    for (pos = selection.end - 1; pos > selection.start; pos--) {
-      final charAtPos = textUntilCursor[pos];
-      if (charAtPos == '@') {
-        final match = _mentionIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else if (charAtPos == ':') {
-        final match = _emojiIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else if (charAtPos == '#') {
-        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
-        if (match == null) continue;
-      } else {
-        continue;
-      }
-      // See comment about [TextSelection.isCollapsed] above.
-      return null;
+
+    int pos = selection.start;
+    if (selection.isCollapsed) {
+      // Allow ^@chris^ but not ^@chris to trigger autocomplete for "chris".
+      // (^ represents selection handles or the blinking cursor.)
+      // Not sure this special-casing is helpful; could easily start looking
+      // on the left of the selection handle, just like with the blinking cursor,
+      // if desired.
+      pos--;
     }
 
     for (; pos >= earliest; pos--) {
@@ -79,9 +87,20 @@ extension ComposeContentAutocomplete on ComposeContentController {
         if (match == null) continue;
         query = EmojiAutocompleteQuery(match[1]!);
       } else if (charAtPos == '#') {
-        final match = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos);
+        final channelIntentMatch = _channelLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
+        if (channelIntentMatch != null) {
+          query = ChannelLinkAutocompleteQuery(channelIntentMatch.namedGroup('rawQuery')!);
+        } else {
+          final topicIntentMatch = _topicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
+          if (topicIntentMatch == null) continue;
+          query = TopicLinkAutocompleteQuery(topicIntentMatch.namedGroup('rawQuery')!,
+            channelName: topicIntentMatch.namedGroup('channelName'));
+        }
+      } else if (charAtPos == '[') {
+        final match = _fallbackTopicLinkIntentRegex.matchAsPrefix(textUntilCursor, pos) as RegExpMatch?;
         if (match == null) continue;
-        query = ChannelLinkAutocompleteQuery(match[1] ?? match[2]!);
+        final channelName = unescapeChannelTopicAvoidedChars(match.namedGroup('escapedChannelName')!);
+        query = TopicLinkAutocompleteQuery(match.namedGroup('rawQuery')!, channelName: channelName);
       } else {
         continue;
       }
@@ -99,6 +118,75 @@ extension ComposeTopicAutocomplete on ComposeTopicController {
       syntaxStart: 0,
       query: TopicAutocompleteQuery(value.text),
       textEditingValue: value);
+  }
+}
+
+/// A [TextInputFormatter] for the compose content input that replaces
+/// a channel (fallback) link followed by a ">" with a pending topic link
+/// autocomplete syntax.
+///
+///   - "#**…** >" or "#**…**>" is replaced with "#**…>"
+///   - "[#…](#narrow…) >" is replaced with "[#…](#narrow…)>"
+class PendingTopicLinkAutocompleteFormatter extends TextInputFormatter {
+  const PendingTopicLinkAutocompleteFormatter(this.store);
+
+  final PerAccountStore store;
+
+  // To avoid spending a lot of time searching for a channel link
+  // in long messages, we bound how far back we look for the link's start.
+  int get _maxLookbackForChannelLink {
+    // Longest channel link is the channel fallback link:
+    //   [#escapedChannelName](#narrow/channel/channelId-slugifiedChannelName) >
+    return 2 // [#
+      // Largest length of an escaped channel name (see `compose.escapeChannelTopicAvoidedChars`).
+      + 5 * store.maxChannelNameLength
+      + 18 // ](#narrow/channel/
+      + 19 // largest channel ID (9223372036854775807 — largest int) length
+      + 1  // hyphen character (-)
+      // Largest length of a slugified channel name (see `internal_link.narrowLinkFragment`).
+      // `_encodeHashComponent` encodes each code point as up to 4 UTF-8 bytes,
+      // emitting up to 3 UTF-16 code units for each byte.
+      + 12 * store.maxChannelNameLength
+      + 3; // ) >
+  }
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    final selection = newValue.selection;
+    final text = newValue.text;
+    if (!selection.isCollapsed || text.isEmpty) return newValue;
+
+    final cursorPosition = selection.baseOffset;
+    final positionBeforeCursor = cursorPosition - 1;
+    if (positionBeforeCursor < 0 || text[positionBeforeCursor] != '>') {
+      return newValue;
+    }
+
+    final textUntilCursor = text.substring(0, cursorPosition);
+    final earliest = max(0, cursorPosition - _maxLookbackForChannelLink);
+
+    for (int pos = cursorPosition - 1; pos >= earliest; pos--) {
+      final charAtPos = textUntilCursor[pos];
+      if (charAtPos == '#') {
+        final channelLinkMatch = _channelLinkWithTopicDelimiterRegex.matchAsPrefix(textUntilCursor, pos);
+        if (channelLinkMatch == null) continue;
+        final channel = store.streamsByName[channelLinkMatch[1]];
+        if (channel == null) break;
+        return newValue.replaced(
+          TextRange(start: pos, end: cursorPosition),
+          channelLink(channel, pendingTopicAutocomplete: true, store: store));
+      } else if (charAtPos == '[') {
+        final channelFallbackLinkMatch = _channelFallbackLinkWithTopicDelimiterRegex.matchAsPrefix(textUntilCursor, pos);
+        if (channelFallbackLinkMatch == null) continue;
+        final channelName = unescapeChannelTopicAvoidedChars(channelFallbackLinkMatch[1]!);
+        final channel = store.streamsByName[channelName];
+        if (channel == null) break;
+        return newValue.replaced(
+          TextRange(start: pos, end: cursorPosition),
+          channelLink(channel, pendingTopicAutocomplete: true, store: store));
+      }
+    }
+    return newValue;
   }
 }
 
@@ -199,16 +287,28 @@ final RegExp _channelLinkIntentRegex = () {
   //   meaning "whitespace and punctuation, except not `#` or `@`":
   //     r'(?<=^|[[\s\p{Punctuation}]--[#@]])'
 
-  // In a channel name, the server accepts a wide range of characters.
-  // It excludes only portions of the `\p{C}` major category,
-  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
-  //   - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
-  //
-  // TODO: match the server constraints
-  const nameCharExclusions = r'\r\n';
+  // Characters a channel query cannot contain.
+  const queryCharExclusions =
+    // In topic-link autocomplete, ">" is a delimiter between channel and topic.
+    // Excluding it here keeps two syntaxes from being misread as channel links:
+    //  - "[#…](#narrow…)>topic" would be detected as a channel link
+    //    autocomplete intent with "narrow…)>topic" as the query;
+    //  - "#**channel>topic" would be detected as one for a channel named
+    //    "channel>topic", because `autocompleteIntent` checks the channel-link
+    //    form before the topic-link form.
+    // As a result, a channel whose name contains ">" stops autocompleting once
+    // you type the ">". That seems acceptable but we can revisit if prompted.
+    r'>'
+    // The characters that are not allowed in a channel name. In a channel name,
+    // the server accepts a wide range of characters. It excludes only portions
+    // of the `\p{C}` major category, namely the minor categories `\p{Cc}`,
+    // `\p{Cs}`, and part of `\p{Cn}`.
+    //   - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
+    // Of those, `\r` and `\n` are the only ones likely to be typed,
+    // so excluding just them is enough in practice.
+    // TODO: incorporate the server constraints
+    r'\r\n';
 
-  // TODO(upstream): maybe use duplicate-named capture groups for better readability?
-  //   https://github.com/dart-lang/sdk/issues/61337
   return RegExp(unicode: true,
     before
     + r'#'
@@ -219,14 +319,131 @@ final RegExp _channelLinkIntentRegex = () {
     // option, instead of clearing the entire query and starting from scratch.
     + r'(?:'
       // Case '#channel': right after '#', reject whitespace as well as '**'.
-      + r'(?!\s|\*\*)([^' + nameCharExclusions + r']*)'
+      + r'(?!\s|\*\*)(?<rawQuery>[^' + queryCharExclusions + r']*)'
       + r'|'
       // Case '#**channel': right after '#**', reject whitespace.
       // Also, make sure that the remaining query doesn't contain '**',
       // otherwise '#**channel**' (which is a completed channel link syntax) and
-      // any text followed by that will always match.
+      // any text following that will always match.
       + r'\*\*(?!\s)'
-      + r'((?:'
+      + r'(?<rawQuery>(?:'
+        + r'[^*' + queryCharExclusions + r']'
+        + r'|'
+        + r'\*[^*' + queryCharExclusions + r']'
+        + r'|'
+        + r'\*$'
+      + r')*)'
+    + r')$');
+}();
+
+/// Matches "#**…** >", a completed channel link syntax followed by an optional
+/// space followed by ">".
+///
+/// This indicates that the user wants to initiate a topic autocomplete
+/// interaction for the channel.
+/// The match will then be replaced with "#**…>",
+/// which will end up initiating the topic autocomplete interaction.
+///
+/// See [PendingTopicLinkAutocompleteFormatter] where this is used.
+final RegExp _channelLinkWithTopicDelimiterRegex = () {
+  // What's likely to come just before "#**…** >" syntax: the start of the
+  // string, whitespace, or punctuation. Letters are unlikely.
+  //
+  // Only some punctuation, like "(", is actually likely here. We don't
+  // currently try to be specific about that.
+  const before = r'(?<=^|\s|\p{Punctuation})';
+
+  // Characters the channel name cannot contain in this syntax.
+  // These include but are not limited to the following:
+  // - The ">" character, which is the delimiter before the topic, so that a
+  //   complete "#**channel>topic**" link isn't matched as a channel-only one.
+  //   A channel whose name contains ">" gets the fallback markdown link syntax
+  //   instead of this one (see `compose.channelLink`), so a ">" here is never
+  //   part of the name.
+  // - The characters that are not allowed in a channel name. In a channel name,
+  //   the server accepts a wide range of characters. It excludes only portions
+  //   of the `\p{C}` major category, namely the minor categories `\p{Cc}`,
+  //   `\p{Cs}`, and part of `\p{Cn}`.
+  //     - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L56
+  //   Of those, `\r` and `\n` are the only ones likely to be typed,
+  //   so excluding just them is enough in practice.
+  //   TODO: incorporate the server constraints
+  const nameCharExclusions = r'>\r\n';
+
+  return RegExp(unicode: true,
+    before + r'#\*\*([^' + nameCharExclusions + r']+)\*\*\p{Space_Separator}?>$');
+}();
+
+/// Matches "[#…](#narrow…) >", a channel fallback link followed by a space and ">".
+///
+/// This indicates that the user wants to initiate a topic autocomplete
+/// interaction for the channel.
+/// The match will then be replaced with "[#…](#narrow…)>",
+/// which will end up initiating the topic autocomplete interaction.
+///
+/// See [PendingTopicLinkAutocompleteFormatter] where this is used.
+final RegExp _channelFallbackLinkWithTopicDelimiterRegex = () {
+  // Characters the channel name cannot contain in this syntax.
+  // These include but are not limited to the following:
+  // - The ">" character, which is the delimiter before the topic, so that a
+  //   complete "[#channel > topic](#narrow…)" link isn't matched as a channel-only
+  //   one. Here the channel name appears escaped, and escaping maps ">" to
+  //   "&gt;" (see `compose.escapeChannelTopicAvoidedChars`), so a literal ">"
+  //   here is never part of the name.
+  // - The characters that are not allowed in a channel name. In a channel name,
+  //   the server accepts a wide range of characters. It excludes only portions
+  //   of the `\p{C}` major category, namely the minor categories `\p{Cc}`,
+  //   `\p{Cs}`, and part of `\p{Cn}`.
+  //     - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L56
+  //   Of those, `\r` and `\n` are the only ones likely to be typed,
+  //   so excluding just them is enough in practice.
+  //   (Escaping leaves them unchanged, so they do still need to be excluded.)
+  //   TODO: incorporate the server constraints
+  const nameCharExclusions = r'>\r\n';
+
+  return RegExp(unicode: true,
+    r'\[#([^' + nameCharExclusions + r']+)\]\(#[^)]+\)\p{Space_Separator}>$');
+}();
+
+final RegExp _topicLinkIntentRegex = () {
+  // What's likely to come just before #channel>topic syntax: the start of the
+  // string, whitespace, or punctuation. Letters are unlikely.
+  //
+  // Only some punctuation, like "(", is actually likely here. We don't
+  // currently try to be specific about that.
+  const before = r'(?<=^|\s|\p{Punctuation})';
+
+  // In a channel/topic name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L65
+  // Of those, `\r` and `\n` are the only ones likely to be typed,
+  // so excluding just them is enough in practice.
+  // TODO: incorporate the server constraints
+  //
+  // The queries below take the same rule: a topic query is a prospective
+  // topic name.
+  const nameCharExclusions = r'\r\n';
+
+  return RegExp(unicode: true,
+    before
+    + r'#'
+    // Match both '#>topic' (shortcut syntax) and '#**…>topic'.
+    + r'(?:'
+      // Case '#>topic'.
+      + r'>(?!\s)(?<rawQuery>[^' + nameCharExclusions + r']*)'
+      + r'|'
+      // Case '#**…>topic'.
+      // Exclude ">" from the channel-name pattern, expecting it only to mark
+      // the end of the channel name. A channel whose name contains ">" gets
+      // the fallback markdown link syntax instead of this one
+      // (see `compose.channelLink`), so a ">" here is never part of the name.
+      + r'\*\*(?<channelName>[^>' + nameCharExclusions + r']+)'
+      + r'>(?!\s)'
+      // Make sure that the query doesn't contain '**', otherwise '#**…>…**'
+      // (which is a completed topic link syntax) with any text following that
+      // will always match.
+      + r'(?<rawQuery>(?:'
         + r'[^*' + nameCharExclusions + r']'
         + r'|'
         + r'\*[^*' + nameCharExclusions + r']'
@@ -234,6 +451,30 @@ final RegExp _channelLinkIntentRegex = () {
         + r'\*$'
       + r')*)'
     + r')$');
+}();
+
+final RegExp _fallbackTopicLinkIntentRegex = () {
+  // In a channel/topic name, the server accepts a wide range of characters.
+  // It excludes only portions of the `\p{C}` major category,
+  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+  //   - https://github.com/zulip/zulip/blob/e52f5afb7/zerver/lib/string_validation.py#L8-L65
+  // Of those, `\r` and `\n` are the only ones likely to be typed,
+  // so excluding just them is enough in practice.
+  // TODO: incorporate the server constraints
+  //
+  // The query below takes the same rule: a topic query is a prospective
+  // topic name.
+  const nameCharExclusions = r'\r\n';
+
+  return RegExp(unicode: true,
+    // Exclude the ">" character, which is the delimiter before the topic,
+    // so that a complete "[#channel > topic](#narrow…)" link isn't matched as a
+    // channel-only one. Here the channel name appears escaped, and escaping
+    // maps ">" to "&gt;" (see `compose.escapeChannelTopicAvoidedChars`),
+    // so a literal ">" here is never part of the name.
+    r'\[#(?<escapedChannelName>[^>' + nameCharExclusions + r']+)\]\(#[^)]+\)'
+    + r'>'
+    + r'(?!\s)(?<rawQuery>[^' + nameCharExclusions + r']*)$');
 }();
 
 /// The text controller's recognition that the user might want autocomplete UI.
@@ -427,10 +668,10 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   @protected
   Future<List<ResultT>?> computeResults();
 
-  /// Completes in a later microtask, returning true if evaluation
+  /// Completes in a later event-queue task, returning true if evaluation
   /// of the current query should stop and false if it should continue.
   ///
-  /// The deferral to a later microtask allows other code in the app to run.
+  /// The deferral to a later event-queue task allows other code in the app to run.
   /// A long CPU-intensive loop should call this regularly
   /// (e.g. every 1000 iterations) so that the UI remains responsive.
   @protected
@@ -1104,7 +1345,27 @@ class AutocompleteDataCache {
 
   List<String> normalizedNameWordsForChannel(ZulipStream channel) {
     return _normalizedNameWordsByChannel[channel.streamId]
-      ?? normalizedNameForChannel(channel).split(' ');
+      ??= normalizedNameForChannel(channel).split(' ');
+  }
+
+  final Map<String, String> _normalizedNamesByTopic = {};
+
+  /// The normalized form of a topic's display name
+  /// or the org's chosen display name for the empty topic.
+  ///
+  /// The expected input is the string obtained by
+  /// `topic.displayName ?? store.realmEmptyTopicDisplayName`.
+  String normalizedTopicDisplayName(String topic) {
+    return _normalizedNamesByTopic[topic]
+      ??= AutocompleteQuery.lowercaseAndStripDiacritics(topic);
+  }
+
+  final Map<String, List<String>> _normalizedNameWordsByTopic = {};
+
+  /// [normalizedTopicDisplayName], split into words.
+  List<String> normalizedTopicDisplayNameWords(String topic) {
+    return _normalizedNameWordsByTopic[topic]
+      ??= normalizedTopicDisplayName(topic).split(' ');
   }
 
   void invalidateUser(int userId) {
@@ -1590,5 +1851,284 @@ class ChannelLinkAutocompleteResult extends ComposeAutocompleteResult {
   //   in the channel name. This doesn't seem to be helpful in most cases,
   //   because it is hard for a query to be present in the name (the way
   //   mentioned before) and also present in the description.
+  final int rank;
+}
+
+/// An [AutocompleteView] for a #channel>topic autocomplete interaction,
+/// an example of a [ComposeAutocompleteView].
+class TopicLinkAutocompleteView extends AutocompleteView<TopicLinkAutocompleteQuery, TopicLinkAutocompleteResult> {
+  TopicLinkAutocompleteView({
+    required super.store,
+    required super.query,
+    required this.narrow,
+  });
+
+  final Narrow narrow;
+
+  /// The ID of the channel whose topics this interaction offers,
+  /// or null if the channel is unknown.
+  ///
+  /// When [query] names a channel, as in `#**channel>`,
+  /// this is the channel it names,
+  /// or null if the user doesn't know any channel by that name.
+  ///
+  /// When [query] names no channel, as in the shortcut syntax `#>`,
+  /// this is the channel of [narrow],
+  /// or null if it can't be derived from [narrow], as in a [DmNarrow].
+  int? get _channelId {
+    if (query.channelName != null) {
+      return store.streamsByName[query.channelName]?.streamId;
+    } else {
+      return switch (narrow) {
+        ChannelNarrow(:final channelId) || TopicNarrow(:final channelId) => channelId,
+        _ => null,
+      };
+    }
+  }
+
+  bool _fetchScheduled = false;
+
+  @override
+  Future<List<TopicLinkAutocompleteResult>?> computeResults() async {
+    final channelId = _channelId;
+    if (channelId == null) {
+      // Returning `[]` here directly would have [_startSearch]
+      // notify listeners as soon as microtasks are next drained,
+      // and by then, this view-model may already have been disposed.
+      // That happens when backspacing "#>" to "#" in a DM narrow:
+      // iOS sends two editing-state updates for the single backspace,
+      // and each is delivered immediately (see [ChannelBuffers.setListener]),
+      // so the first restarts this search and the second disposes
+      // this view-model, both before any microtask runs.
+      // So wait before returning a result,
+      // to give [_startSearch] up-to-date state to act on.
+      // [shouldStop] does that by waiting for a later event-queue task;
+      // waiting only for a later microtask would do just as well,
+      // but this is the method we already have for the job.
+      return (await shouldStop()) ? null : [];
+    }
+
+    final unsorted = <TopicLinkAutocompleteResult>[];
+
+    final channelResult = _channelResult(channelId);
+    if (channelResult != null) unsorted.add(channelResult);
+
+    // TODO(#2154): provide no topics for "only general chat" channel
+
+    final topics = store.topics.channelTopics(channelId);
+    if (topics == null) {
+      // Not fetched yet; fetch and re-run the search when the topics arrive.
+      // On failure, offer no topics: the user can still type one out,
+      // and the next keystroke retries the fetch.
+      //
+      // [_fetchScheduled] limits this to one fetch at a time,
+      // and hence one re-query;
+      // otherwise each keystroke during the fetch
+      // would schedule a re-query of its own
+      // (though not another request: [Topics.getChannelTopics] avoids that).
+      if (!_fetchScheduled) {
+        _fetchScheduled = true;
+        unawaited(() async {
+          try {
+            await store.topics.getChannelTopics(channelId);
+          } on ApiRequestException {
+            return;
+          } finally {
+            _fetchScheduled = false;
+          }
+          unawaited(_startSearch());
+        }());
+      }
+      // As at the `channelId == null` return above,
+      // wait until a later event-queue task before returning.
+      return (await shouldStop()) ? null : unsorted;
+    }
+
+    final newTopicResult = _newTopicResult(channelId);
+    if (newTopicResult != null) unsorted.add(newTopicResult);
+
+    if (await filterCandidates(
+          filter: (query, topic) => query.testTopic(
+            channelId: channelId, topic: topic.name, store),
+          candidates: topics, results: unsorted)) {
+      return null;
+    }
+
+    return bucketSort(unsorted, (r) => r.rank,
+      numBuckets: TopicLinkAutocompleteQuery._numResultRanks);
+  }
+
+  TopicLinkAutocompleteChannelResult? _channelResult(int channelId) {
+    if (query.raw.isNotEmpty) return null;
+    return TopicLinkAutocompleteChannelResult(channelId: channelId);
+  }
+
+  TopicLinkAutocompleteNewTopicResult? _newTopicResult(int channelId) {
+    if (query.raw.isEmpty) return null;
+    // The query can have trailing whitespace, but not leading.
+    // The server would trim it anyway.
+    final queryTopic = store.processTopicLikeServer(TopicName(query.raw.trim()));
+    // Don't offer a new topic the channel wouldn't accept sending a message to.
+    final topicsPolicy = store.effectiveTopicsPolicy(channelId);
+    if (queryTopic.displayName == null
+          ? topicsPolicy == .disableEmptyTopic
+          : topicsPolicy == .emptyTopicOnly) {
+      return null;
+    }
+    final queryTopicExists =
+      store.topics.latestMessageInChannelTopic(channelId, queryTopic) != null;
+    if (queryTopicExists) return null;
+    return TopicLinkAutocompleteNewTopicResult(channelId: channelId, topic: queryTopic);
+  }
+}
+
+/// A #channel>topic autocomplete query, used by [TopicLinkAutocompleteView].
+class TopicLinkAutocompleteQuery extends ComposeAutocompleteQuery {
+  TopicLinkAutocompleteQuery(super.raw, {required this.channelName});
+
+  /// The channel name in the syntax, as in `#**channel>`,
+  /// or null if the syntax names no channel, as in the shortcut syntax `#>`.
+  ///
+  /// This is raw text from the compose box,
+  /// so callers should consult the store
+  /// to see if it names a channel the user knows about,
+  /// e.g. with [ChannelStore.streamsByName].
+  final String? channelName;
+
+  @override
+  ComposeAutocompleteView initViewModel({
+    required PerAccountStore store,
+    required ZulipLocalizations localizations,
+    required Narrow narrow,
+  }) {
+    return TopicLinkAutocompleteView(store: store, narrow: narrow, query: this);
+  }
+
+  TopicLinkAutocompleteTopicResult? testTopic(PerAccountStore store, {
+    required int channelId,
+    required TopicName topic,
+  }) {
+    final cache = store.autocompleteViewManager.autocompleteDataCache;
+    final userFacingName = topic.displayName ?? store.realmEmptyTopicDisplayName;
+    final matchQuality = _matchName(
+      normalizedName: cache.normalizedTopicDisplayName(userFacingName),
+      normalizedNameWords: cache.normalizedTopicDisplayNameWords(userFacingName));
+    if (matchQuality == null) return null;
+    return TopicLinkAutocompleteTopicResult(
+      channelId: channelId, topic: topic, rank: _rankTopicResult(matchQuality));
+  }
+
+  /// A measure of a topic result's quality in the context of the query,
+  /// from 1 (best) to one less than [_numResultRanks].
+  ///
+  /// (Rank 0 is reserved either for [TopicLinkAutocompleteChannelResult]
+  /// or [TopicLinkAutocompleteNewTopicResult].)
+  static int _rankTopicResult(NameMatchQuality matchQuality) {
+    return switch(matchQuality) {
+      .exact        => 1,
+      .totalPrefix  => 2,
+      .wordPrefixes => 3,
+    };
+  }
+
+  /// The number of possible values returned by [_rankTopicResult],
+  /// plus one for either [TopicLinkAutocompleteChannelResult]
+  /// or [TopicLinkAutocompleteNewTopicResult].
+  static const _numResultRanks = 4;
+
+  @override
+  String toString() {
+    return '${objectRuntimeType(this, 'TopicLinkAutocompleteQuery')}(raw: $raw, channelName: $channelName)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! TopicLinkAutocompleteQuery) return false;
+    return other.raw == raw && other.channelName == channelName;
+  }
+
+  @override
+  int get hashCode => Object.hash('TopicLinkAutocompleteQuery', raw, channelName);
+}
+
+/// An autocomplete result for a #channel>topic autocomplete interaction.
+///
+/// This is abstract because there are several kinds of results that can all be
+/// offered in the same #channel>topic autocomplete interaction:
+/// channel, new topic, or an existing topic.
+sealed class TopicLinkAutocompleteResult extends ComposeAutocompleteResult {
+  int get channelId;
+  int get rank;
+}
+
+/// A result for just a channel link, after all, not any topic.
+///
+/// Offered at the top of the list when the topic query is empty.
+///
+/// See also [TopicLinkAutocompleteNewTopicResult], which is mutually exclusive
+/// with this result.
+class TopicLinkAutocompleteChannelResult extends TopicLinkAutocompleteResult {
+  TopicLinkAutocompleteChannelResult({required this.channelId});
+
+  @override
+  final int channelId;
+
+  /// This should always come first in the list of options.
+  ///
+  /// Used internally by [TopicLinkAutocompleteView] for ranking the results.
+  @override
+  int get rank => 0;
+}
+
+/// A result for a new topic taken from the query itself.
+///
+/// Offered at the top of the list when the topic query is not empty and the
+/// query topic doesn't exist in the list of topics.
+///
+/// See also [TopicLinkAutocompleteChannelResult], which is mutually exclusive
+/// with this result.
+class TopicLinkAutocompleteNewTopicResult extends TopicLinkAutocompleteResult {
+  TopicLinkAutocompleteNewTopicResult({required this.channelId, required this.topic});
+
+  @override
+  final int channelId;
+
+  final TopicName topic;
+
+  /// This should always come first in the list of options.
+  ///
+  /// Used internally by [TopicLinkAutocompleteView] for ranking the results.
+  @override
+  int get rank => 0;
+}
+
+/// A result for an existing topic.
+class TopicLinkAutocompleteTopicResult extends TopicLinkAutocompleteResult {
+  TopicLinkAutocompleteTopicResult({
+    required this.channelId,
+    required this.topic,
+    required this.rank,
+  });
+
+  @override
+  final int channelId;
+
+  final TopicName topic;
+
+  /// A measure of the result's quality in the context of the query.
+  ///
+  /// Used internally by [TopicLinkAutocompleteView] for ranking the results.
+  // Behavior we have that web doesn't and might like to follow:
+  // - A "word-prefixes" match quality on topic names:
+  //   see [NameMatchQuality.wordPrefixes], which we rank on.
+  //
+  // Behavior web has that seems undesired, which we don't plan to follow:
+  // - A "word-boundary" match quality on topic names:
+  //   special rank when the whole query appears contiguously
+  //   right after a word-boundary character.
+  //   Our [NameMatchQuality.wordPrefixes] seems smarter.
+  // - Ranking some case-sensitive matches differently from case-insensitive
+  //   matches. Users will expect a lowercase query to be adequate.
+  @override
   final int rank;
 }
