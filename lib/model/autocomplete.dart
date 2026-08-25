@@ -481,7 +481,6 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     store.autocompleteViewManager.unregisterAutocomplete(this);
     // We cancel in-progress computations by checking [hasListeners] between tasks.
     // After [super.dispose] is called, [hasListeners] returns false.
-    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
     super.dispose();
   }
 }
