@@ -530,6 +530,29 @@ void main() {
       ..not((results) => results.contains(11000));
   });
 
+  test('MentionAutocompleteView disposed during computation does not notify', () async {
+    const narrow = ChannelNarrow(1);
+    final store = eg.store();
+    for (int i = 1; i <= 1500; i++) {
+      await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
+    }
+
+    bool notified = false;
+    final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+      narrow: narrow, query: MentionAutocompleteQuery('User 234'));
+    view.addListener(() { notified = true; });
+
+    await Future(() {});
+    check(notified).isFalse(); // search still in progress
+    view.dispose();
+
+    // If the search continued, it would call notifyListeners on
+    // the disposed view-model, an error that would fail this test.
+    for (int i = 0; i < 10; i++) { // for good measure
+      await Future(() {});
+    }
+  });
+
   group('MentionAutocompleteView sorting results', () {
     late PerAccountStore store;
 
