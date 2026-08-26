@@ -407,10 +407,19 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   Iterable<ResultT> get results => _results;
   List<ResultT> _results = [];
 
+  /// A sequence number for invalidating stale searches.
+  ///
+  /// This is incremented when a search starts.
+  /// A search that finds it has changed since the search started
+  /// is stale, and should stop.
+  int _generation = 0;
+
   Future<void> _startSearch() async {
+    final generation = ++_generation;
     final newResults = await computeResults();
-    if (newResults == null) {
-      // Query was old; new search is in progress. Or, no listeners to notify.
+    if (generation != _generation || newResults == null) {
+      // A newer search has started; or the search aborted early
+      // (see [computeResults]), e.g. because there are no listeners to notify.
       return;
     }
 
@@ -435,11 +444,11 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   /// (e.g. every 1000 iterations) so that the UI remains responsive.
   @protected
   Future<bool> shouldStop() async {
-    final query = _query;
+    final generation = _generation;
     await Future(() {});
 
-    // If the query has changed, stop work on the old query.
-    if (query != _query) return true;
+    // If a newer search has started, stop work on this one.
+    if (generation != _generation) return true;
 
     // If there are no listeners to get the result, stop work.
     // This happens in particular if [dispose] was called.
@@ -458,13 +467,14 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     required Iterable<T> candidates,
     required List<ResultT> results,
   }) async {
+    final generation = _generation;
     final query = _query;
 
     final iterator = candidates.iterator;
     outer: while (true) {
-      assert(_query == query);
+      assert(_generation == generation);
       if (await shouldStop()) return true;
-      assert(_query == query);
+      assert(_generation == generation);
 
       for (int i = 0; i < 1000; i++) {
         if (!iterator.moveNext()) break outer;

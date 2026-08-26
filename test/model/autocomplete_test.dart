@@ -553,6 +553,41 @@ void main() {
     }
   });
 
+  test('MentionAutocompleteView same query set again during computation aborts old search', () async {
+    // Setting the query restarts the search even if the query is equal,
+    // as happens on a cursor move in the compose box's topic input.
+    // Use more than 1000 users, so the search takes more than one batch
+    // (see filterCandidates) and can be interrupted partway through.
+    const narrow = ChannelNarrow(1);
+    final store = eg.store();
+    for (int i = 1; i <= 1500; i++) {
+      await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
+    }
+
+    int notifiedCount = 0;
+    final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+      narrow: narrow, query: MentionAutocompleteQuery('User 234'));
+    view.addListener(() { notifiedCount++; });
+
+    await Future(() {});
+    check(notifiedCount).equals(0); // search still in progress
+    view.query = MentionAutocompleteQuery('User 234');
+
+    for (int i = 0; i < 10; i++) {
+      await Future(() {});
+      if (notifiedCount > 0) break;
+    }
+    check(notifiedCount).equals(1);
+    check(view.results).single.isA<UserMentionAutocompleteResult>()
+      .userId.equals(234);
+
+    // The old search, which was a task ahead, doesn't finish and notify too.
+    for (int i = 0; i < 10; i++) { // for good measure
+      await Future(() {});
+      check(notifiedCount).equals(1);
+    }
+  });
+
   group('MentionAutocompleteView sorting results', () {
     late PerAccountStore store;
 
