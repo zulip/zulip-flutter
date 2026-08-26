@@ -1443,6 +1443,26 @@ void main() {
     check(done).isTrue();
   });
 
+  test('TopicAutocompleteView disposed before topics are loaded does not start a search', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+    connection.prepare(json: GetChannelTopicsResult(
+      topics: [eg.getChannelTopicsEntry(name: 'test')]
+    ).toJson());
+
+    final view = TopicAutocompleteView.init(
+      store: store,
+      channelId: eg.stream().streamId,
+      query: TopicAutocompleteQuery('te'));
+    view.dispose();
+
+    // If the arriving topics started a search, the assert at the top of
+    // _startSearch would fail this test.
+    for (int i = 0; i < 10; i++) { // for good measure
+      await Future(() {});
+    }
+  });
+
   test('TopicAutocompleteView fetches topics once for a channel', () async {
     final store = eg.store();
     final connection = store.connection as FakeApiConnection;

@@ -415,11 +415,11 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   int _generation = 0;
 
   Future<void> _startSearch() async {
+    assert(!_disposed);
     final generation = ++_generation;
     final newResults = await computeResults();
-    if (generation != _generation || newResults == null) {
-      // A newer search has started; or the search aborted early
-      // (see [computeResults]), e.g. because there are no listeners to notify.
+    if (_disposed || generation != _generation || newResults == null) {
+      // A null result means the search aborted early; see [computeResults].
       return;
     }
 
@@ -447,14 +447,7 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     final generation = _generation;
     await Future(() {});
 
-    // If a newer search has started, stop work on this one.
-    if (generation != _generation) return true;
-
-    // If there are no listeners to get the result, stop work.
-    // This happens in particular if [dispose] was called.
-    if (!hasListeners) return true;
-
-    return false;
+    return _disposed || generation != _generation;
   }
 
   /// Examine the given candidates against `query`, adding matches to `results`.
@@ -486,11 +479,14 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     return false;
   }
 
+  bool _disposed = false;
+
   @override
   void dispose() {
     store.autocompleteViewManager.unregisterAutocomplete(this);
-    // We cancel in-progress computations by checking [hasListeners] between tasks.
-    // After [super.dispose] is called, [hasListeners] returns false.
+    // Stop any search in progress, so that it doesn't call
+    // [notifyListeners] on this disposed object.
+    _disposed = true;
     super.dispose();
   }
 }
@@ -1264,7 +1260,9 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// fetched topics.
   Future<void> _fetch() async {
     // TODO: handle fetch failure
-    _topics = (await store.topics.getChannelTopics(channelId)).map((e) => e.name);
+    final result = await store.topics.getChannelTopics(channelId);
+    if (_disposed) return;
+    _topics = result.map((e) => e.name);
     return _startSearch();
   }
 
