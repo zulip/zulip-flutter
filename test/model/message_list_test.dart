@@ -226,6 +226,18 @@ void main() {
       });
     });
 
+    test('disposed before the fetch completes', () async {
+      await prepare();
+      connection.prepare(json: newestResult(
+        foundOldest: true, messages: [eg.streamMessage()]).toJson());
+      final fetchFuture = model.fetchInitial();
+      model.dispose();
+
+      // If the fetch went on to call notifyListeners on the disposed model,
+      // that error would fail this test.
+      await fetchFuture;
+    });
+
     test('short history', () async {
       await prepare();
       connection.prepare(json: newestResult(
@@ -548,6 +560,54 @@ void main() {
         numAfter: 0,
         allowEmptyTopicName: true,
       );
+    });
+
+    group('fetchOlder disposed', () {
+      test('before the fetch completes', () async {
+        await prepare();
+        await prepareMessages(foundOldest: false, messages: [eg.streamMessage(id: 1000)]);
+
+        connection.prepare(json: olderResult(anchor: 1000, foundOldest: false,
+          messages: [eg.streamMessage(id: 999)]).toJson());
+        final fetchFuture = model.fetchOlder();
+        check(model).busyFetchingMore.isTrue();
+        model.dispose();
+
+        // If the fetch went on to call notifyListeners on the disposed model,
+        // that error would fail this test.
+        await fetchFuture;
+      });
+
+      test('before the fetch fails', () async {
+        await prepare();
+        await prepareMessages(foundOldest: false, messages: [eg.streamMessage(id: 1000)]);
+
+        connection.prepare(apiException: eg.apiBadRequest());
+        final fetchFuture = model.fetchOlder();
+        check(model).busyFetchingMore.isTrue();
+        model.dispose();
+
+        // If the failure went on to call notifyListeners on the disposed model,
+        // that error would replace the expected one and fail this test.
+        await check(fetchFuture).throws<ZulipApiException>();
+      });
+
+      test('during backoff after a failure', () => awaitFakeAsync((async) async {
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await prepare();
+        await prepareMessages(foundOldest: false, messages: [eg.streamMessage(id: 1000)]);
+
+        connection.prepare(apiException: eg.apiBadRequest());
+        BackoffMachine.debugDuration = const Duration(seconds: 1);
+        await check(model.fetchOlder()).throws<ZulipApiException>();
+        check(model).busyFetchingMore.isTrue();
+        model.dispose();
+
+        // If the end of the backoff went on to call notifyListeners on
+        // the disposed model, that error would fail this test.
+        async.elapse(const Duration(seconds: 1));
+        check(async.pendingTimers).isEmpty();
+      }));
     });
 
     test('fetchNewer smoke', () async {

@@ -691,6 +691,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   final PerAccountStore store;
 
+  bool _disposed = false;
+
   /// The narrow shown in this message list.
   ///
   /// This can change over time, notably if showing a topic that gets moved,
@@ -700,6 +702,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Set [narrow] and [anchor], reset, [notifyListeners], and [fetchInitial].
   void renarrowAndFetch(Narrow newNarrow, Anchor anchor) {
+    assert(!_disposed);
     _narrow = newNarrow;
     _anchor = anchor;
     _reset();
@@ -724,7 +727,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   @override
   void dispose() {
+    assert(!_disposed);
     store.unregisterMessageList(this);
+    // Fetches in progress check this when they resume, so that they
+    // don't act on, or notify listeners of, this disposed object.
+    _disposed = true;
     super.dispose();
   }
 
@@ -893,6 +900,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Fetch messages, starting from scratch.
   Future<void> fetchInitial() async {
+    assert(!_disposed);
     assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
     assert(oldestFetchedMessageId == null && newestFetchedMessageId == null);
@@ -918,7 +926,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numAfter: kMessageListFetchBatchSize,
       allowEmptyTopicName: true,
     );
-    if (this.generation > generation) return;
+    if (_disposed || this.generation > generation) return;
 
     _oldestFetchedMessageId = result.messages.firstOrNull?.id;
     _newestFetchedMessageId = result.messages.lastOrNull?.id;
@@ -994,6 +1002,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// That makes this method suitable to call frequently, e.g. every frame,
   /// whenever it looks likely to be useful to have more messages.
   Future<void> fetchOlder() async {
+    assert(!_disposed);
     if (haveOldest) return;
     if (busyFetchingMore) return;
     assert(fetched);
@@ -1027,6 +1036,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// That makes this method suitable to call frequently, e.g. every frame,
   /// whenever it looks likely to be useful to have more messages.
   Future<void> fetchNewer() async {
+    assert(!_disposed);
     if (haveNewest) return;
     if (busyFetchingMore) return;
     assert(fetched);
@@ -1082,16 +1092,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         hasFetchError = true;
         rethrow;
       }
-      if (this.generation > generation) return;
+      if (_disposed || this.generation > generation) return;
 
       processResult(result);
     } finally {
-      if (this.generation == generation) {
+      if (!_disposed && this.generation == generation) {
         if (hasFetchError) {
           _setStatus(FetchingStatus.backoff, was: FetchingStatus.fetchingMore);
           unawaited((_fetchBackoffMachine ??= BackoffMachine())
             .wait().then((_) {
-              if (this.generation != generation) return;
+              if (_disposed || this.generation != generation) return;
               _setStatus(FetchingStatus.idle, was: FetchingStatus.backoff);
             }));
         } else {
@@ -1107,6 +1117,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// This will set [anchor] to [AnchorCode.newest],
   /// and cause messages to be re-fetched from scratch.
   void jumpToEnd() {
+    assert(!_disposed);
     assert(fetched);
     assert(!haveNewest);
     // [anchor] is usually not [AnchorCode.newest] here, but it can be,
