@@ -183,6 +183,18 @@ final RegExp _emojiIntentRegex = (() {
     + r')$');
 })();
 
+/// Characters to exclude when matching a channel name,
+/// or a query for one, in the intent regex below.
+///
+/// In a channel name, the server accepts a wide range of characters.
+/// It excludes only portions of the `\p{C}` major category,
+/// namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
+///   - https://github.com/zulip/zulip/blob/c9732f97a/zerver/lib/string_validation.py#L8-L65
+/// Of those, `\r` and `\n` are the only ones likely to be typed,
+/// so excluding just them is enough in practice.
+// TODO: incorporate the server constraints
+const _channelNameCharExclusions = r'\r\n';
+
 /// Matches the text before the cursor as a #channel autocomplete intent:
 /// `#query` or `#**query`, where `query` is matched against channel names
 /// (see [ChannelLinkAutocompleteQuery.testChannel]).
@@ -218,32 +230,20 @@ final RegExp _channelLinkIntentRegex = () {
   //   meaning "whitespace and punctuation, except not `#` or `@`":
   //     r'(?<=^|[[\s\p{Punctuation}]--[#@]])'
 
-  // In a channel name, the server accepts a wide range of characters.
-  // It excludes only portions of the `\p{C}` major category,
-  // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
-  //   - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
-  // Of those, `\r` and `\n` are the only ones likely to be typed,
-  // so excluding just them is enough in practice.
-  // TODO: incorporate the server constraints
-  //
-  // The queries below take the same rule: a channel query is a prospective
-  // channel name.
-  const nameCharExclusions = r'\r\n';
-
   return RegExp(unicode: true,
     before
     + r'#'
     // As Web, match both `#query` and `#**query`.
     + r'(?:'
       // Case `#query`.
-      + r'(?!\s|\*\*)(?<rawQuery>[^' + nameCharExclusions + r']*)'
+      + r'(?!\s|\*\*)(?<rawQuery>[^' + _channelNameCharExclusions + r']*)'
       + r'|'
       // Case `#**query`.
       + r'\*\*(?!\s)'
       + r'(?<rawQuery>(?:'
-        + r'[^*' + nameCharExclusions + r']'
+        + r'[^*' + _channelNameCharExclusions + r']'
         + r'|'
-        + r'\*[^*' + nameCharExclusions + r']'
+        + r'\*[^*' + _channelNameCharExclusions + r']'
         + r'|'
         + r'\*$'
       + r')*)'
