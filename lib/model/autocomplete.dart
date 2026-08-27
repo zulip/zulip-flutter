@@ -183,6 +183,24 @@ final RegExp _emojiIntentRegex = (() {
     + r')$');
 })();
 
+/// Matches the text before the cursor as a #channel autocomplete intent:
+/// `#query` or `#**query`, where `query` is matched against channel names
+/// (see [ChannelLinkAutocompleteQuery.testChannel]).
+///
+/// Like the other intent regexes, this is for [RegExp.matchAsPrefix]
+/// at the `#`, on the text field's text up to the cursor;
+/// the match must extend to the cursor.
+/// There is no match unless the `#` is at the start of the text
+/// or follows whitespace or punctuation,
+/// and the query, if nonempty, doesn't begin with whitespace
+/// and doesn't contain a line break.
+///
+/// The `#**query` form arises when the user chooses a channel from the list
+/// and then backspaces into the inserted syntax to change their choice.
+/// The query cannot contain `**`, so a completed `#**channel**` never matches,
+/// with or without text after it.
+///
+/// Groups: `rawQuery` (always present, possibly empty).
 final RegExp _channelLinkIntentRegex = () {
   // What's likely to come just before #channel syntax: the start of the string,
   // whitespace, or punctuation. Letters are unlikely; in that case a GitHub-
@@ -204,26 +222,23 @@ final RegExp _channelLinkIntentRegex = () {
   // It excludes only portions of the `\p{C}` major category,
   // namely the minor categories `\p{Cc}`, `\p{Cs}`, and part of `\p{Cn}`.
   //   - https://github.com/zulip/zulip/blob/9467296e0/zerver/lib/string_validation.py#L8-L56
+  // Of those, `\r` and `\n` are the only ones likely to be typed,
+  // so excluding just them is enough in practice.
+  // TODO: incorporate the server constraints
   //
-  // TODO: match the server constraints
+  // The queries below take the same rule: a channel query is a prospective
+  // channel name.
   const nameCharExclusions = r'\r\n';
 
   return RegExp(unicode: true,
     before
     + r'#'
-    // As Web, match both '#channel' and '#**channel'. In both cases, the raw
-    // query is going to be 'channel'. Matching the second case ('#**channel')
-    // is useful when the user selects a channel from the autocomplete list, but
-    // then starts pressing "backspace" to edit the query and choose another
-    // option, instead of clearing the entire query and starting from scratch.
+    // As Web, match both `#query` and `#**query`.
     + r'(?:'
-      // Case '#channel': right after '#', reject whitespace as well as '**'.
+      // Case `#query`.
       + r'(?!\s|\*\*)(?<rawQuery>[^' + nameCharExclusions + r']*)'
       + r'|'
-      // Case '#**channel': right after '#**', reject whitespace.
-      // Also, make sure that the remaining query doesn't contain '**',
-      // otherwise '#**channel**' (which is a completed channel link syntax) and
-      // any text following that will always match.
+      // Case `#**query`.
       + r'\*\*(?!\s)'
       + r'(?<rawQuery>(?:'
         + r'[^*' + nameCharExclusions + r']'
