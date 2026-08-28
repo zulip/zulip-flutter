@@ -255,7 +255,7 @@ class UserStoreImpl extends HasRealmStore with UserStore {
           return; // TODO log
         }
         if (event.fullName != null)       user.fullName       = event.fullName!;
-        if (event.avatarUrl != null)      user.avatarUrl      = event.avatarUrl!;
+        if (event.avatarUrl != null)      user.avatarUrl      = event.avatarUrl;
         if (event.avatarVersion != null)  user.avatarVersion  = event.avatarVersion!;
         if (event.timezone != null)       user.timezone       = event.timezone!;
         if (event.botOwnerId != null)     user.botOwnerId     = event.botOwnerId!;

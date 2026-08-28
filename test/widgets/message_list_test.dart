@@ -2388,7 +2388,8 @@ void main() {
       }
 
       Future<void> handleNewAvatarEventAndPump(WidgetTester tester, String avatarUrl) async {
-        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId, avatarUrl: avatarUrl));
+        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+          avatarUrl: JsonNullable(avatarUrl)));
         await tester.pump();
       }
 
@@ -2396,7 +2397,7 @@ void main() {
 
       await setupMessageListPage(tester, users: [user],
         messages: [eg.streamMessage(sender: user)]);
-      checkResultForSender(user.avatarUrl);
+      checkResultForSender(user.avatarUrl?.value);
 
       await handleNewAvatarEventAndPump(tester, '/foo.png');
       checkResultForSender('/foo.png');

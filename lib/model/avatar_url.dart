@@ -1,3 +1,9 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+
+import '../api/model/json.dart';
+
 /// The size threshold above which is "medium" size for an avatar.
 ///
 /// This is in physical pixels, i.e. image pixels:
@@ -11,22 +17,35 @@ const defaultUploadSizePx = 100;
 abstract class AvatarUrl {
   /// The right [AvatarUrl] subclass for the given user data.
   ///
-  /// [resolvedUrl] is the user's `avatar_url` resolved against the realm URL,
-  /// or null if the server omitted the field; see `user_avatar_url_field_optional`
-  /// at https://zulip.com/api/register-queue#parameter-client_capabilities .
+  /// [avatarUrl] is the user's `avatar_url` field:
+  ///  * Dart `null` — property omitted; use `/avatar/{user_id}`
+  ///    (see `user_avatar_url_field_optional` at
+  ///    https://zulip.com/api/register-queue#parameter-client_capabilities ).
+  ///  * `JsonNullable(null)` — `'avatar_url': null`; compute Gravatar from [email]
+  ///    (see `client_gravatar` on register).
+  ///  * `JsonNullable(url)` — uploaded avatar or absolute Gravatar URL string.
+  ///
+  /// [resolvedUrl] is the non-null string value of [avatarUrl] resolved against
+  /// the realm URL, when present.
   factory AvatarUrl.fromUserData({
+    required JsonNullable<String>? avatarUrl,
     required Uri? resolvedUrl,
+    required String email,
     required int userId,
     required Uri realmUrl,
   }) {
-    // TODO(#255): handle computing gravatars
-    if (resolvedUrl == null) {
+    if (avatarUrl == null) {
       return FallbackAvatarUrl(realmUrl: realmUrl, userId: userId);
-    } else if (resolvedUrl.toString().startsWith(GravatarUrl.origin)) {
-      return GravatarUrl(resolvedUrl: resolvedUrl);
-    } else {
-      return UploadedAvatarUrl(resolvedUrl: resolvedUrl);
     }
+    if (avatarUrl.value == null) {
+      return GravatarUrl.fromEmail(email: email);
+    }
+    assert(resolvedUrl != null);
+    final url = resolvedUrl!;
+    if (url.toString().startsWith('${GravatarUrl.origin}/')) {
+      return GravatarUrl(resolvedUrl: url);
+    }
+    return UploadedAvatarUrl(resolvedUrl: url);
   }
 
   Uri get(int sizePhysicalPx);
@@ -34,6 +53,15 @@ abstract class AvatarUrl {
 
 class GravatarUrl implements AvatarUrl {
   GravatarUrl({required Uri resolvedUrl}) : standardUrl = resolvedUrl;
+
+  /// Build a Gravatar URL from an email, as in zulip-mobile's `GravatarURL`.
+  ///
+  /// See https://secure.gravatar.com/site/implement/images/
+  factory GravatarUrl.fromEmail({required String email}) {
+    final hash = md5.convert(utf8.encode(email.toLowerCase())).toString();
+    return GravatarUrl(
+      resolvedUrl: Uri.parse('$origin/avatar/$hash?d=identicon'));
+  }
 
   static String origin = 'https://secure.gravatar.com';
 

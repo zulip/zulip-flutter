@@ -30,7 +30,7 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection, {
     // for the reasons in the dartdoc above.
     // (We might change these; we'll just need to update types to match.)
     'apply_markdown': true,
-    'client_gravatar': false, // TODO(#255): turn on
+    'client_gravatar': true,
     // 'include_subscribers': false, // the default
     'slim_presence': true,
     'client_capabilities': {
