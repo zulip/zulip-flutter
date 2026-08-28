@@ -1,0 +1,62 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Zulip Flutter
+Upstream-Contact: Zulip development community <https://chat.zulip.org>
+Source: https://github.com/zulip/zulip-flutter
+Comment:
+ Unless otherwise noted, the Zulip Flutter app is distributed under the
+ Apache License, Version 2.0; see the LICENSE file. The software includes
+ some works released by third parties under other free and open source
+ licenses. Those works are redistributed under the license terms under
+ which the works were received.
+ .
+ (Licenses for fonts and other assets in our asset bundle appear in
+ LICENSE files alongside the assets themselves, and are shown to users
+ in the app's licenses page; see lib/licenses.dart.)
+
+Files: *
+Copyright: Kandra Labs, Inc., and contributors
+License: Apache-2.0
+
+Files: lib/widgets/double_tap_recognizer.dart
+       test/widgets/double_tap_recognizer_test.dart
+       test/widgets/gesture_tester.dart
+Copyright: 2014 The Flutter Authors
+License: BSD-3-clause
+Comment:
+ Copied and adapted from the Flutter framework, at commit ab7eb7aff:
+ .
+  https://github.com/flutter/flutter/blob/ab7eb7aff/packages/flutter/lib/src/gestures/multitap.dart#L49-L382
+  https://github.com/flutter/flutter/blob/ab7eb7aff/packages/flutter/test/gestures/double_tap_test.dart
+  https://github.com/flutter/flutter/blob/ab7eb7aff/packages/flutter/test/gestures/gesture_tester.dart
+ .
+ See the header comments in those files for details of the adaptations.
+
+License: Apache-2.0
+ The complete text of the Apache License, Version 2.0 can be found in
+ the LICENSE file in the root of this source tree, or at
+ https://www.apache.org/licenses/LICENSE-2.0 .
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without modification,
+ are permitted provided that the following conditions are met:
+ .
+     * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+     * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+     * Neither the name of Google Inc. nor the names of its
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

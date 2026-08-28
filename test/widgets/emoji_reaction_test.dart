@@ -17,10 +17,12 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/content.dart';
 import 'package:zulip/widgets/emoji_reaction.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/message_list.dart';
+import 'package:zulip/widgets/theme.dart';
 
 import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
@@ -524,6 +526,51 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('highlight self-voted emoji entries', (tester) async {
+      void checkHighlighted(({ReactionType type, String code}) emoji,
+          {required bool expected}) {
+        final entryFinder = find.byWidgetPredicate((widget) =>
+          widget is EmojiPickerListEntry
+          && (code: widget.emoji.emojiCode, type: widget.emoji.emojiType) == emoji);
+
+        check(entryFinder).findsOne();
+
+        final designVariables = DesignVariables.of(tester.element(entryFinder));
+        final matcher = paints
+          ..rect(color: designVariables.contextMenuItemBg.withFadedAlpha(0.20));
+        check(tester.renderObject(entryFinder))
+          .legacyMatcher(expected ? equals(matcher) : isNot(equals(matcher)));
+      }
+
+      final otherReaction = Reaction(emojiName: 'tada', emojiCode: '1f389',
+        reactionType: .unicodeEmoji, userId: eg.otherUser.userId);
+      final message = eg.streamMessage(reactions: [
+        eg.unicodeEmojiReaction, eg.zulipExtraEmojiReaction, otherReaction,
+      ]);
+
+      await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+      // Check that self-voted emojis are highlighted.
+      checkHighlighted(
+        (code: eg.unicodeEmojiReaction.emojiCode, type: eg.unicodeEmojiReaction.reactionType),
+        expected: true);
+      checkHighlighted(
+        (code: eg.zulipExtraEmojiReaction.emojiCode, type: eg.zulipExtraEmojiReaction.reactionType),
+        expected: true);
+
+      // Check that other-user-voted emojis are not highlighted.
+      checkHighlighted(
+        (code: otherReaction.emojiCode, type: otherReaction.reactionType),
+        expected: false);
+
+      // Check that other emojis are not highlighted either.
+      checkHighlighted(
+        (code: '1f642', type: .unicodeEmoji),
+        expected: false);
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     testWidgets('adding success', (tester) async {
       final message = eg.streamMessage();
       await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
@@ -534,6 +581,32 @@ void main() {
 
       check(connection.lastRequest).isA<http.Request>()
         ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages/${message.id}/reactions')
+        ..bodyFields.deepEquals({
+            'reaction_type': 'unicode_emoji',
+            'emoji_code': '1f4a4',
+            'emoji_name': 'zzz',
+          });
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('removing success', (tester) async {
+      final message = eg.streamMessage(reactions: [
+        Reaction(
+          emojiName: 'zzz',
+          emojiCode: '1f4a4',
+          reactionType: .unicodeEmoji,
+          userId: eg.selfUser.userId),
+        ]);
+      await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
+
+      connection.prepare(json: {});
+      await tester.tap(findInPicker(find.text('\u{1f4a4}')));
+      await tester.pump(Duration.zero);
+
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('DELETE')
         ..url.path.equals('/api/v1/messages/${message.id}/reactions')
         ..bodyFields.deepEquals({
             'reaction_type': 'unicode_emoji',
