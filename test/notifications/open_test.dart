@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/api/route/channels.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -268,6 +270,30 @@ void main() {
       await prepare(tester);
       await checkOpenNotification(tester, eg.selfAccount, eg.streamMessage());
     }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
+
+    test('iOS notification reply sends a message', () async {
+      addTearDown(testBinding.reset);
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final connection = store.connection as FakeApiConnection;
+      connection.prepare(json: SendMessageResult(id: 123).toJson());
+
+      final message = eg.streamMessage();
+      final payload = messageApnsPayload(eg.selfAccount, message)
+        ..[NotificationOpenService.kIosNotificationReplyTextKey] = 'A reply';
+      await NotificationOpenService.debugSendNotificationReply(
+        IosNotificationTapEvent(payload: payload));
+
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields['content'].equals('A reply')
+        ..bodyFields['type'].equals('stream')
+        ..bodyFields['topic'].equals(message.topic.apiName);
+    });
 
    testWidgets('stream message: iOS legacy plaintext', (tester) async {
       addTearDown(testBinding.reset);
