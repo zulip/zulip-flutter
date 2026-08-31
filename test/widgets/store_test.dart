@@ -17,6 +17,7 @@ import '../model/binding.dart';
 import '../example_data.dart' as eg;
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
+import '../test_images.dart';
 import '../test_navigation.dart';
 
 /// A widget whose state uses [PerAccountStoreAwareStateMixin].
@@ -279,6 +280,7 @@ void main() {
       await tester.pump();
     }
 
+    prepareBoringImageHttpClient();
     addTearDown(testBinding.reset);
 
     final user1 = eg.user();
@@ -335,6 +337,8 @@ void main() {
     check(findAccount1PageContent).findsNothing();
     check(findLoadingPage).findsNothing();
     check(findAccount2PageContent).findsOne();
+
+    debugNetworkImageHttpClientProvider = null;
   });
 
   testWidgets('PerAccountStoreAwareStateMixin', (tester) async {
