@@ -43,16 +43,16 @@ void main() {
   }
 
   test('send typing status start for topic', () {
-    return checkSetTypingStatusForTopic(TypingOp.start, 'start');
+    return checkSetTypingStatusForTopic(.start, 'start');
   });
 
   test('send typing status stop for topic', () {
-    return checkSetTypingStatusForTopic(TypingOp.stop, 'stop');
+    return checkSetTypingStatusForTopic(.stop, 'stop');
   });
 
   test('send typing status start for dm', () {
     return FakeApiConnection.with_((connection) {
-      return checkSetTypingStatus(connection, TypingOp.start,
+      return checkSetTypingStatus(connection, .start,
         destination: const DmDestination(userIds: userIds),
         expectedBodyFields: {
           'op': 'start',
@@ -64,7 +64,7 @@ void main() {
 
   test('legacy: use "stream" instead of "channel"', () {
     return FakeApiConnection.with_(zulipFeatureLevel: 247, (connection) {
-      return checkSetTypingStatus(connection, TypingOp.start,
+      return checkSetTypingStatus(connection, .start,
         destination: const StreamDestination(streamId, TopicName(topic)),
         expectedBodyFields: {
           'op': 'start',
@@ -77,7 +77,7 @@ void main() {
 
   test('legacy: use to=[streamId] instead of stream_id=streamId', () {
     return FakeApiConnection.with_(zulipFeatureLevel: 214, (connection) {
-      return checkSetTypingStatus(connection, TypingOp.start,
+      return checkSetTypingStatus(connection, .start,
         destination: const StreamDestination(streamId, TopicName(topic)),
         expectedBodyFields: {
           'op': 'start',
@@ -90,7 +90,7 @@ void main() {
 
   test('legacy: use "private" instead of "direct"', () {
     return FakeApiConnection.with_(zulipFeatureLevel: 173, (connection) {
-      return checkSetTypingStatus(connection, TypingOp.start,
+      return checkSetTypingStatus(connection, .start,
         destination: const DmDestination(userIds: userIds),
         expectedBodyFields: {
           'op': 'start',
