@@ -20,7 +20,7 @@ sealed class EmojiDisplay {
 
   EmojiDisplay resolve(UserSettings userSettings) {
     if (this is TextEmojiDisplay) return this;
-    if (userSettings.emojiset == Emojiset.text) {
+    if (userSettings.emojiset == .text) {
       return TextEmojiDisplay(emojiName: emojiName);
     }
     return this;

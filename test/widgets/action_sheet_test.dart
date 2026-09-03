@@ -81,7 +81,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   assert(narrow.containsMessage(message)!);
 
   selfUser ??= eg.selfUser;
-  assert(!(hasDeletePermission && selfUser.role == UserRole.guest));
+  assert(!(hasDeletePermission && selfUser.role == .guest));
   final selfAccount = eg.account(user: selfUser,
     zulipFeatureLevel: zulipFeatureLevel);
   await testBinding.globalStore.add(
@@ -334,7 +334,7 @@ void main() {
           await store.handleEvent(ChannelUpdateEvent(id: 1,
             streamId: someChannel.streamId,
             name: someChannel.name,
-            property: null, value: null,
+            property: .unknown, value: null,
             // (Ideally we'd use `property` and `value` but I'm not sure if
             // modern servers actually do that or if they still use this
             // separate field.)
@@ -349,7 +349,7 @@ void main() {
         testWidgets('private channel', (tester) async {
           await prepare();
           await store.handleEvent(eg.channelUpdateEvent(someChannel,
-            property: ChannelPropertyName.inviteOnly, value: true));
+            property: .inviteOnly, value: true));
           check(store.streams[someChannel.streamId]).isNotNull()
             ..inviteOnly.isTrue()..isWebPublic.isFalse();
           await showFromInbox(tester);
@@ -433,9 +433,9 @@ void main() {
         await prepare();
         await store.addStream(privateChannel);
         await store.updateChannel(privateChannel.streamId,
-          ChannelPropertyName.canSubscribeGroup, eg.groupSetting(members: []));
+          .canSubscribeGroup, eg.groupSetting(members: []));
         await store.updateChannel(privateChannel.streamId,
-          ChannelPropertyName.canAddSubscribersGroup, eg.groupSetting(members: []));
+          .canAddSubscribersGroup, eg.groupSetting(members: []));
         final narrow = ChannelNarrow(privateChannel.streamId);
         check(store.selfHasContentAccess(privateChannel)).isFalse();
         await showFromMsglistAppBar(tester,
@@ -2159,16 +2159,16 @@ void main() {
         });
 
         testWidgets('no error if user lost posting permission after action sheet opened', (tester) async {
-          final selfUser = eg.user(role: UserRole.member);
+          final selfUser = eg.user(role: .member);
           final stream = eg.stream();
           final message = eg.streamMessage(stream: stream);
           await setupToMessageActionSheet(tester, selfUser: selfUser,
             message: message, narrow: TopicNarrow.ofMessage(message));
 
           await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: selfUser.userId,
-            role: UserRole.guest));
+            role: .guest));
           await store.handleEvent(eg.channelUpdateEvent(stream,
-            property: ChannelPropertyName.channelPostPolicy,
+            property: .channelPostPolicy,
             value: ChannelPostPolicy.administrators));
           await tester.pump();
 
