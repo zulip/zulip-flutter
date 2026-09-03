@@ -760,7 +760,7 @@ void main () {
       await prepareBanner(tester,
         zulipFeatureLevel: unsupportedFeatureLevel,
         zulipVersion: unsupportedVersion,
-        selfUser: eg.user(role: UserRole.administrator));
+        selfUser: eg.user(role: .administrator));
       check(find.text(zulipLocalizations.serverCompatBannerAdminMessage(
         sampleRealmUrl, unsupportedVersion))).findsOne();
     });
@@ -769,7 +769,7 @@ void main () {
       await prepareBanner(tester,
         zulipFeatureLevel: unsupportedFeatureLevel,
         zulipVersion: unsupportedVersion,
-        selfUser: eg.user(role: UserRole.owner));
+        selfUser: eg.user(role: .owner));
       check(find.text(zulipLocalizations.serverCompatBannerAdminMessage(
         sampleRealmUrl, unsupportedVersion))).findsOne();
     });

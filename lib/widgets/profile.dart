@@ -191,8 +191,8 @@ class _LastActiveTimeState extends State<_LastActiveTime> with PerAccountStoreAw
     final status = model!.presenceStatusForUser(widget.userId,
       utcNow: nowDate);
     switch (status) {
-      case PresenceStatus.active: return zulipLocalizations.userActiveNow;
-      case PresenceStatus.idle:   return zulipLocalizations.userIdle;
+      case .active: return zulipLocalizations.userActiveNow;
+      case .idle:   return zulipLocalizations.userIdle;
       case null:                  break; // handle below
     }
 
@@ -297,7 +297,7 @@ class _InvisibleModeToggle extends StatelessWidget {
     return RemoteSettingBuilder<bool>(
       findValueInStore: (store) => !store.userSettings.presenceEnabled,
       sendValueToServer: (value) => updateSettings(store.connection,
-        newSettings: {UserSettingName.presenceEnabled: !value}),
+        newSettings: {.presenceEnabled: !value}),
       // TODO(#741) interpret API errors for user
       onError: (e, requestedValue) => reportErrorToUserBriefly(
         requestedValue
@@ -334,12 +334,12 @@ class _ProfileErrorPage extends StatelessWidget {
 
 String roleToLabel(UserRole role, ZulipLocalizations zulipLocalizations) {
   return switch (role) {
-    UserRole.owner => zulipLocalizations.userRoleOwner,
-    UserRole.administrator => zulipLocalizations.userRoleAdministrator,
-    UserRole.moderator => zulipLocalizations.userRoleModerator,
-    UserRole.member => zulipLocalizations.userRoleMember,
-    UserRole.guest => zulipLocalizations.userRoleGuest,
-    UserRole.unknown => zulipLocalizations.userRoleUnknown,
+    .owner => zulipLocalizations.userRoleOwner,
+    .administrator => zulipLocalizations.userRoleAdministrator,
+    .moderator => zulipLocalizations.userRoleModerator,
+    .member => zulipLocalizations.userRoleMember,
+    .guest => zulipLocalizations.userRoleGuest,
+    .unknown => zulipLocalizations.userRoleUnknown,
   };
 }
 
@@ -362,16 +362,16 @@ class _ProfileDataTable extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
 
     switch (realmField.type) {
-      case CustomProfileFieldType.link:
+      case .link:
         return _LinkWidget(url: value, text: value);
 
-      case CustomProfileFieldType.choice:
+      case .choice:
         final choiceFieldData = _tryDecode(CustomProfileFieldChoiceDataItem.parseFieldDataChoices, realmField.fieldData);
         if (choiceFieldData == null) return null;
         final choiceItem = choiceFieldData[value];
         return (choiceItem == null) ? null : _TextWidget(text: choiceItem.text);
 
-      case CustomProfileFieldType.externalAccount:
+      case .externalAccount:
         final externalAccountFieldData = _tryDecode(CustomProfileFieldExternalAccountData.fromJson, realmField.fieldData);
         if (externalAccountFieldData == null) return null;
         final urlPattern = externalAccountFieldData.urlPattern ??
@@ -380,7 +380,7 @@ class _ProfileDataTable extends StatelessWidget {
         final url = urlPattern.replaceFirst('%(username)s', value);
         return _LinkWidget(url: url, text: value);
 
-      case CustomProfileFieldType.user:
+      case .user:
         // TODO(server): This is completely undocumented.  The key to
         //   reverse-engineering it was:
         //   https://github.com/zulip/zulip/blob/18230fcd9/static/js/settings_account.js#L247
@@ -391,21 +391,21 @@ class _ProfileDataTable extends StatelessWidget {
         return Column(
           children: userIds.map((userId) => _UserWidget(userId: userId)).toList());
 
-      case CustomProfileFieldType.date:
+      case .date:
         // TODO(server): The value's format is undocumented, but empirically
         //   it's a date in ISO format, like 2000-01-01.
         // That's readable as is, but:
         // TODO(i18n) format this date using user's locale.
         return _TextWidget(text: value);
 
-      case CustomProfileFieldType.shortText:
-      case CustomProfileFieldType.longText:
-      case CustomProfileFieldType.pronouns:
+      case .shortText:
+      case .longText:
+      case .pronouns:
         // The web client appears to treat `longText` identically to `shortText`;
         // `pronouns` is explicitly meant to display the same as `shortText`.
         return _TextWidget(text: value);
 
-      case CustomProfileFieldType.unknown:
+      case .unknown:
         return null;
     }
   }

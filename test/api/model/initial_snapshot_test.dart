@@ -69,7 +69,7 @@ void main() {
     for (final unknownValue in unknownValues) {
       final json = eg.userSettings().toJson()..['emojiset'] = unknownValue;
       final settings = UserSettings.fromJson(json);
-      check(settings.emojiset).equals(Emojiset.unknown);
+      check(settings.emojiset).equals(.unknown);
     }
   });
 }

@@ -1594,7 +1594,7 @@ void main() {
 
     Future<void> prepare(
       WidgetTester tester,
-      [TwentyFourHourTimeMode twentyFourHourTimeMode = TwentyFourHourTimeMode.localeDefault]
+      [TwentyFourHourTimeMode twentyFourHourTimeMode = .localeDefault]
     ) async {
       final initialSnapshot = eg.initialSnapshot()
         ..userSettings.twentyFourHourTime = twentyFourHourTimeMode;
@@ -1611,17 +1611,17 @@ void main() {
     });
 
     testWidgets('TwentyFourHourTimeMode.twelveHour', (tester) async {
-      await prepare(tester, TwentyFourHourTimeMode.twelveHour);
+      await prepare(tester, .twelveHour);
       check(find.textContaining(renderedTextRegexpTwelveHour)).findsOne();
     });
 
     testWidgets('TwentyFourHourTimeMode.twentyFourHour', (tester) async {
-      await prepare(tester, TwentyFourHourTimeMode.twentyFourHour);
+      await prepare(tester, .twentyFourHour);
       check(find.textContaining(renderedTextRegexpTwentyFourHour)).findsOne();
     });
 
     testWidgets('TwentyFourHourTimeMode.localeDefault', (tester) async {
-      await prepare(tester, TwentyFourHourTimeMode.localeDefault);
+      await prepare(tester, .localeDefault);
       // This expectation holds as long as we're always formatting in en_US,
       // the default locale, which uses the twelve-hour format.
       // TODO(#1727) follow the actual locale; test with different locales

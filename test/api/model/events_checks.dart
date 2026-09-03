@@ -15,6 +15,11 @@ extension AlertWordsEventChecks on Subject<AlertWordsEvent> {
   Subject<List<String>> get alertWords => has((e) => e.alertWords, 'alertWords');
 }
 
+extension UserSettingsUpdateEventChecks on Subject<UserSettingsUpdateEvent> {
+  Subject<UserSettingName> get property => has((e) => e.property, 'property');
+  Subject<Object?> get value => has((e) => e.value, 'value');
+}
+
 extension DeviceUpdateEventChecks on Subject<DeviceUpdateEvent> {
   Subject<JsonNullable<int>?> get pushKeyId => has((e) => e.pushKeyId, 'pushKeyId');
   Subject<JsonNullable<String>?> get pushTokenId => has((e) => e.pushTokenId, 'pushTokenId');
@@ -85,11 +90,16 @@ extension UpdateMessageFlagsMessageDetailCheck on Subject<UpdateMessageFlagsMess
 }
 
 extension TypingEventChecks on Subject<TypingEvent> {
+  Subject<TypingOp> get op => has((e) => e.op, 'op');
   Subject<MessageType> get messageType => has((e) => e.messageType, 'messageType');
   Subject<int> get senderId => has((e) => e.senderId, 'senderId');
   Subject<List<int>?> get recipientIds => has((e) => e.recipientIds, 'recipientIds');
   Subject<int?> get streamId => has((e) => e.streamId, 'streamId');
   Subject<TopicName?> get topic => has((e) => e.topic, 'topic');
+}
+
+extension ReactionEventChecks on Subject<ReactionEvent> {
+  Subject<ReactionOp> get op => has((e) => e.op, 'op');
 }
 
 extension HeartbeatEventChecks on Subject<HeartbeatEvent> {

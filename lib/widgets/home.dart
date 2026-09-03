@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../api/core.dart';
-import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/narrow.dart';
 import 'about_zulip.dart';
@@ -871,7 +870,7 @@ class _ServerCompatBanner extends StatelessWidget {
     final showCompatBanner =
       store.zulipFeatureLevel < kMinSupportedZulipFeatureLevel
       && !globalStore.getServerCompatBannerDismissed(store.accountId);
-    final isAtLeastAdmin = store.selfUser.role.isAtLeast(UserRole.administrator);
+    final isAtLeastAdmin = store.selfUser.role.isAtLeast(.administrator);
     final label = isAtLeastAdmin
       ? zulipLocalizations.serverCompatBannerAdminMessage(
           store.realmUrl.toString(), store.zulipVersion)

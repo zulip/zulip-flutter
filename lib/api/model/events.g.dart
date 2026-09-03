@@ -85,10 +85,10 @@ UserSettingsUpdateEvent _$UserSettingsUpdateEventFromJson(
   Map<String, dynamic> json,
 ) => UserSettingsUpdateEvent(
   id: (json['id'] as num).toInt(),
-  property: $enumDecodeNullable(
+  property: $enumDecode(
     _$UserSettingNameEnumMap,
     json['property'],
-    unknownValue: JsonKey.nullForUndefinedEnumValue,
+    unknownValue: UserSettingName.unknown,
   ),
   value: UserSettingsUpdateEvent._readValue(json, 'value'),
 );
@@ -110,6 +110,7 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.emojiset: 'emojiset',
   UserSettingName.webInboxShowChannelFolders: 'web_inbox_show_channel_folders',
   UserSettingName.presenceEnabled: 'presence_enabled',
+  UserSettingName.unknown: 'unknown',
 };
 
 DeviceAddEvent _$DeviceAddEventFromJson(Map<String, dynamic> json) =>
@@ -1061,7 +1062,11 @@ const _$SubmessageTypeEnumMap = {
 
 TypingEvent _$TypingEventFromJson(Map<String, dynamic> json) => TypingEvent(
   id: (json['id'] as num).toInt(),
-  op: $enumDecode(_$TypingOpEnumMap, json['op']),
+  op: $enumDecode(
+    _$TypingOpEnumMap,
+    json['op'],
+    unknownValue: TypingOp.unknown,
+  ),
   messageType: const MessageTypeConverter().fromJson(
     json['message_type'] as String,
   ),
@@ -1085,7 +1090,11 @@ Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
       'topic': instance.topic,
     };
 
-const _$TypingOpEnumMap = {TypingOp.start: 'start', TypingOp.stop: 'stop'};
+const _$TypingOpEnumMap = {
+  TypingOp.start: 'start',
+  TypingOp.stop: 'stop',
+  TypingOp.unknown: 'unknown',
+};
 
 PresenceEvent _$PresenceEventFromJson(Map<String, dynamic> json) =>
     PresenceEvent(
@@ -1131,7 +1140,11 @@ const _$PresenceStatusEnumMap = {
 ReactionEvent _$ReactionEventFromJson(Map<String, dynamic> json) =>
     ReactionEvent(
       id: (json['id'] as num).toInt(),
-      op: $enumDecode(_$ReactionOpEnumMap, json['op']),
+      op: $enumDecode(
+        _$ReactionOpEnumMap,
+        json['op'],
+        unknownValue: ReactionOp.unknown,
+      ),
       emojiName: json['emoji_name'] as String,
       emojiCode: json['emoji_code'] as String,
       reactionType: $enumDecode(_$ReactionTypeEnumMap, json['reaction_type']),
@@ -1154,6 +1167,7 @@ Map<String, dynamic> _$ReactionEventToJson(ReactionEvent instance) =>
 const _$ReactionOpEnumMap = {
   ReactionOp.add: 'add',
   ReactionOp.remove: 'remove',
+  ReactionOp.unknown: 'unknown',
 };
 
 const _$ReactionTypeEnumMap = {
@@ -1167,8 +1181,3 @@ HeartbeatEvent _$HeartbeatEventFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$HeartbeatEventToJson(HeartbeatEvent instance) =>
     <String, dynamic>{'id': instance.id, 'type': instance.type};
-
-const _$MessageTypeEnumMap = {
-  MessageType.stream: 'stream',
-  MessageType.direct: 'direct',
-};
