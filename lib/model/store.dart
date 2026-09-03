@@ -988,6 +988,10 @@ class PerAccountStore extends PerAccountStoreBase with
         if (event is SubscriptionRemoveEvent) {
           _messages.handleSubscriptionRemoveEvent(event);
         }
+        if (event is SubscriptionUpdateEvent) {
+          _messages.handleSubscriptionUpdateEvent(event);
+        }
+        // Update _channels last, so other handlers can compare to the old value.
         _channels.handleSubscriptionEvent(event);
         notifyListeners();
 

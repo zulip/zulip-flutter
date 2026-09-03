@@ -357,8 +357,8 @@ void main() {
 
       void checkChanges(PerAccountStore store,
           UserTopicVisibilityPolicy newPolicy,
-          UserTopicVisibilityEffect expectedInChannel,
-          UserTopicVisibilityEffect expectedOverall) {
+          TopicVisibilityEffect expectedInChannel,
+          TopicVisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
         check(store.willAffectIfTopicVisibleInChannel(event)).equals(expectedInChannel);
         check(store.willAffectIfTopicVisible         (event)).equals(expectedOverall);
@@ -373,7 +373,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
         checkChanges(store, UserTopicVisibilityPolicy.followed,
-          UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.none);
+          TopicVisibilityEffect.none, TopicVisibilityEffect.none);
       });
 
       test('channel not muted, policy none -> muted, means muted', () async {
@@ -381,7 +381,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1));
         checkChanges(store, UserTopicVisibilityPolicy.muted,
-          UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.muted);
+          TopicVisibilityEffect.muted, TopicVisibilityEffect.muted);
       });
 
       test('channel muted, policy none -> followed, means none/unmuted', () async {
@@ -389,7 +389,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         checkChanges(store, UserTopicVisibilityPolicy.followed,
-          UserTopicVisibilityEffect.none, UserTopicVisibilityEffect.unmuted);
+          TopicVisibilityEffect.none, TopicVisibilityEffect.unmuted);
       });
 
       test('channel muted, policy none -> muted, means muted/none', () async {
@@ -397,7 +397,7 @@ void main() {
         await store.addStream(stream1);
         await store.addSubscription(eg.subscription(stream1, isMuted: true));
         checkChanges(store, UserTopicVisibilityPolicy.muted,
-          UserTopicVisibilityEffect.muted, UserTopicVisibilityEffect.none);
+          TopicVisibilityEffect.muted, TopicVisibilityEffect.none);
       });
 
       final policies = [
@@ -432,10 +432,10 @@ void main() {
               final newVisibleInChannel = store.isTopicVisibleInChannel(stream1.streamId, eg.t('topic'));
               final newVisible          = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
-              UserTopicVisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
-                if (newVisible == oldVisible) return UserTopicVisibilityEffect.none;
-                if (newVisible) return UserTopicVisibilityEffect.unmuted;
-                return UserTopicVisibilityEffect.muted;
+              TopicVisibilityEffect fromOldNew(bool oldVisible, bool newVisible) {
+                if (newVisible == oldVisible) return TopicVisibilityEffect.none;
+                if (newVisible) return TopicVisibilityEffect.unmuted;
+                return TopicVisibilityEffect.muted;
               }
               check(willAffectInChannel)
                 .equals(fromOldNew(oldVisibleInChannel, newVisibleInChannel));
@@ -445,6 +445,53 @@ void main() {
           }
         }
       }
+    });
+
+    group('willAffectIfTopicVisible on SubscriptionUpdateEvent', () {
+      SubscriptionUpdateEvent mkEvent(bool isMuted) =>
+        SubscriptionUpdateEvent(id: 1,
+          channelId: stream1.streamId,
+          property: SubscriptionProperty.isMuted,
+          value: isMuted);
+
+      void doTest({
+        required bool oldIsMuted,
+        required bool newIsMuted,
+        required TopicVisibilityEffect expected,
+      }) {
+        test('channel ${oldIsMuted ? 'muted' : 'not muted'}'
+             ' -> ${newIsMuted ? 'muted' : 'not muted'},'
+             ' means ${expected.name}', () async {
+          final store = eg.store();
+          await store.addStream(stream1);
+          await store.addSubscription(
+            eg.subscription(stream1, isMuted: oldIsMuted));
+          check(store.willAffectIfTopicVisible(mkEvent(newIsMuted)))
+            .equals(expected);
+        });
+      }
+
+      doTest(oldIsMuted: false, newIsMuted: false, expected: .none);
+      doTest(oldIsMuted: false, newIsMuted: true,  expected: .muted);
+      doTest(oldIsMuted: true,  newIsMuted: false, expected: .unmuted);
+      doTest(oldIsMuted: true,  newIsMuted: true,  expected: .none);
+
+      test('channel unsubscribed, means none', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        check(store.willAffectIfTopicVisible(mkEvent(true)))
+          .equals(TopicVisibilityEffect.none);
+      });
+
+      test('other subscription property, means none', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1));
+        check(store.willAffectIfTopicVisible(SubscriptionUpdateEvent(id: 1,
+          channelId: stream1.streamId,
+          property: SubscriptionProperty.pinToTop,
+          value: true))).equals(TopicVisibilityEffect.none);
+      });
     });
 
     void compareTopicVisibility(PerAccountStore store, List<UserTopicItem> expected) {
