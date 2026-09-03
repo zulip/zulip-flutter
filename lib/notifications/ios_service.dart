@@ -107,7 +107,7 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
         // Pass the notification URL to this custom data map, so when a
         // notification is opened we can read this custom map to decide
         // which conversation to open.
-        // See NotificationOpenService (in lib/notifications/ios_service.dart).
+        // See NotificationOpenService (in lib/notifications/open.dart).
         NotificationOpenPayload.kIosNotificationUrlKey: notificationUrl.toString(),
       });
   }
