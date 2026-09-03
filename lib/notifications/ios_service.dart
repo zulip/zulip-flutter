@@ -94,9 +94,11 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
       NotificationDisplayManager.titleForNotifPayload(data, zulipLocalizations);
     final subtitle =
       NotificationDisplayManager.subtitleForNotifPayloadOnIos(data);
+    // A notification on iOS shows a single message.
+    // See [NotificationOpenPayload.messageId].
     final notificationUrl =
-      // TODO(#1565): Open at specific message on iOS too.
-      NotificationDisplayManager.notificationUrlForNotifPayload(data, messageId: null);
+      NotificationDisplayManager.notificationUrlForNotifPayload(
+        data, messageId: data.messageId);
 
     return ImprovedNotificationContent(
       title: title,
