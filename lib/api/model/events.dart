@@ -244,11 +244,11 @@ class UserSettingsUpdateEvent extends Event {
   @JsonKey(includeToJson: true)
   String get op => 'update';
 
-  /// The name of the setting, or null if we don't recognize it.
-  @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
-  final UserSettingName? property;
+  /// The name of the setting, or [UserSettingName.unknown] if we don't recognize it.
+  @JsonKey(unknownEnumValue: UserSettingName.unknown)
+  final UserSettingName property;
 
-  /// The new value, or null if we don't recognize the setting.
+  /// The new value, or null if we don't recognize the setting ([UserSettingName.unknown]).
   ///
   /// This will have the type appropriate for [property]; for example,
   /// if the setting is boolean, then `value is bool` will always be true.
@@ -261,17 +261,17 @@ class UserSettingsUpdateEvent extends Event {
   static Object? _readValue(Map<dynamic, dynamic> json, String key) {
     final value = json['value'];
     switch (UserSettingName.fromRawString(json['property'] as String)) {
-      case UserSettingName.twentyFourHourTime:
+      case .twentyFourHourTime:
         return TwentyFourHourTimeMode.fromApiValue(value as bool?);
-      case UserSettingName.starredMessageCounts:
-      case UserSettingName.displayEmojiReactionUsers:
+      case .starredMessageCounts:
+      case .displayEmojiReactionUsers:
         return value as bool;
-      case UserSettingName.emojiset:
+      case .emojiset:
         return Emojiset.fromRawString(value as String);
-      case UserSettingName.webInboxShowChannelFolders:
-      case UserSettingName.presenceEnabled:
+      case .webInboxShowChannelFolders:
+      case .presenceEnabled:
         return value as bool;
-      case null:
+      case .unknown:
         return null;
     }
   }
@@ -1405,8 +1405,9 @@ class DeleteMessageEvent extends Event {
 
   final List<int> messageIds;
   // final int messageId; // Not present; we support the bulk_message_deletion capability
-  // The server never actually sends "direct" here yet (it's "private" instead),
-  // but we accept both forms for forward-compatibility.
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType messageType;
   final int? streamId;
@@ -1423,7 +1424,7 @@ class DeleteMessageEvent extends Event {
   factory DeleteMessageEvent.fromJson(Map<String, dynamic> json) {
     final result = _$DeleteMessageEventFromJson(json);
     // Crunchy-shell validation
-    if (result.messageType == MessageType.stream) {
+    if (result.messageType == .channel) {
       result.streamId as int;
       result.topic as String;
     }
@@ -1432,30 +1433,6 @@ class DeleteMessageEvent extends Event {
 
   @override
   Map<String, dynamic> toJson() => _$DeleteMessageEventToJson(this);
-}
-
-/// As in [DeleteMessageEvent.messageType],
-/// [UpdateMessageFlagsMessageDetail.type],
-/// or [TypingEvent.messageType].
-@JsonEnum(alwaysCreate: true)
-enum MessageType {
-  stream,
-  direct;
-}
-
-class MessageTypeConverter extends JsonConverter<MessageType, String> {
-  const MessageTypeConverter();
-
-  @override
-  MessageType fromJson(String json) {
-    if (json == 'private') json = 'direct'; // TODO(server-future)
-    return $enumDecode(_$MessageTypeEnumMap, json);
-  }
-
-  @override
-  String toJson(MessageType object) {
-    return _$MessageTypeEnumMap[object]!;
-  }
 }
 
 /// A Zulip event of type `update_message_flags`.
@@ -1536,8 +1513,9 @@ class UpdateMessageFlagsRemoveEvent extends UpdateMessageFlagsEvent {
 /// As in [UpdateMessageFlagsRemoveEvent.messageDetails].
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageFlagsMessageDetail {
-  // The server never actually sends "direct" here yet (it's "private" instead),
-  // but we accept both forms for forward-compatibility.
+  // The server never actually sends "channel" or "direct" here yet
+  // (it's "stream" or "private" instead), but we accept both the old
+  // and new forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType type;
   final bool? mentioned;
@@ -1557,10 +1535,10 @@ class UpdateMessageFlagsMessageDetail {
     final result = _$UpdateMessageFlagsMessageDetailFromJson(json);
     // Crunchy-shell validation
     switch (result.type) {
-      case MessageType.stream:
+      case .channel:
         result.streamId as int;
         result.topic as String;
-      case MessageType.direct:
+      case .direct:
         result.userIds as List<int>;
     }
     return result;
@@ -1613,7 +1591,10 @@ class TypingEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'typing';
 
+  @JsonKey(unknownEnumValue: TypingOp.unknown)
   final TypingOp op;
+  // The server never actually sends "channel" here yet (it's "stream" instead),
+  // but we accept both forms for forward-compatibility.
   @MessageTypeConverter()
   final MessageType messageType;
   @JsonKey(readValue: _readSenderId)
@@ -1647,10 +1628,10 @@ class TypingEvent extends Event {
     final result = _$TypingEventFromJson(json);
     // Crunchy-shell validation
     switch (result.messageType) {
-      case MessageType.stream:
+      case .channel:
         result.streamId as int;
         result.topic as String;
-      case MessageType.direct:
+      case .direct:
         result.recipientIds as List<int>;
     }
     return result;
@@ -1664,7 +1645,10 @@ class TypingEvent extends Event {
 @JsonEnum(fieldRename: FieldRename.snake)
 enum TypingOp {
   start,
-  stop;
+  stop,
+
+  /// A new, unrecognized operation.
+  unknown;
 
   String toJson() => _$TypingOpEnumMap[this]!;
 }
@@ -1743,6 +1727,7 @@ class ReactionEvent extends Event {
   @JsonKey(includeToJson: true)
   String get type => 'reaction';
 
+  @JsonKey(unknownEnumValue: ReactionOp.unknown)
   final ReactionOp op;
 
   final String emojiName;
@@ -1774,6 +1759,9 @@ class ReactionEvent extends Event {
 enum ReactionOp {
   add,
   remove,
+
+  /// A new, unrecognized operation.
+  unknown;
 }
 
 /// A Zulip event of type `heartbeat`: https://zulip.com/api/get-events#heartbeat

@@ -91,6 +91,16 @@ void main() {
       expected: (OptionNone(), OptionNone()));
   });
 
+  test('UserSettingName.fromRawString handles unknown values', () {
+    check(UserSettingName.fromRawString('twenty_four_hour_time'))
+      .equals(.twentyFourHourTime);
+
+    for (final unknown in ['unknown_user_setting_name', '']) {
+      check(UserSettingName.fromRawString(unknown))
+        .equals(.unknown);
+    }
+  });
+
   group('User', () {
     final Map<String, dynamic> baseJson = Map.unmodifiable({
       'user_id': 123,
@@ -148,6 +158,33 @@ void main() {
   group('Message', () {
     Map<String, dynamic> baseStreamJson() =>
       deepToJson(eg.streamMessage()) as Map<String, dynamic>;
+
+    Map<String, dynamic> baseDmJson() =>
+      deepToJson(eg.dmMessage(from: eg.selfUser, to: [])) as Map<String, dynamic>;
+
+    test('type: stream -> channel', () {
+      check(baseStreamJson()['type']).equals('channel');
+      check(Message.fromJson(baseStreamJson()))
+        .isA<StreamMessage>()
+        .type.equals(.channel);
+
+      check(Message.fromJson(baseStreamJson()
+        ..['type'] = 'stream'
+      )).isA<StreamMessage>()
+        .type.equals(.channel);
+    });
+
+    test('type: private -> direct', () {
+      check(baseDmJson()['type']).equals('direct');
+      check(Message.fromJson(baseDmJson()))
+        .isA<DmMessage>()
+        .type.equals(.direct);
+
+      check(Message.fromJson(baseDmJson()
+        ..['type'] = 'private'
+      )).isA<DmMessage>()
+        .type.equals(.direct);
+    });
 
     test('subject -> topic', () {
       check(baseStreamJson()).not((it) => it.containsKey('topic'));
