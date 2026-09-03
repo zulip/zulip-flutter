@@ -43,6 +43,10 @@
     ]
   },
 
+  "attribution": {
+    "sessionUrl": false
+  },
+
   "hooks": {
     "SessionStart": [
       {
