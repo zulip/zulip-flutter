@@ -76,8 +76,7 @@ void main() {
         NotifPayloadDmRecipient(:var allRecipientIds) =>
           DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
       },
-      // TODO(#1565): also open at the specific message on iOS
-      messageId: null).buildNotificationUrl();
+      messageId: data.messageId).buildNotificationUrl();
 
     check(result)
       ..title.equals(expectedTitle)
