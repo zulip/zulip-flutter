@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/basic.dart';
+import 'package:zulip/generated/l10n/zulip_localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/home.dart';
@@ -15,6 +16,7 @@ import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/new_dm_sheet.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/recent_dm_conversations.dart';
+import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/user.dart';
 
 import '../example_data.dart' as eg;
@@ -66,6 +68,12 @@ Future<void> setupPage(WidgetTester tester, {
 
 void main() {
   TestZulipBinding.ensureInitialized();
+
+  String selfLabel(WidgetTester tester, String fullName) {
+    final context = tester.element(find.byType(RecentDmConversationsItem));
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return '$fullName${wrapInLocalizedParens(context, zulipLocalizations.you, addSpaceBeforeIfNotCjk: true)}';
+  }
 
   Finder findConversationItem(Narrow narrow) => find.byWidgetPredicate(
     (widget) => widget is RecentDmConversationsItem && widget.narrow == narrow,
@@ -222,7 +230,7 @@ void main() {
           await setupPage(tester, users: [], dmMessages: [message]);
 
           checkAvatar(tester, DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId));
-          checkTitle(tester, eg.selfUser.fullName);
+          checkTitle(tester, selfLabel(tester, eg.selfUser.fullName));
         });
 
         testWidgets('short name takes one line', (tester) async {
@@ -230,7 +238,7 @@ void main() {
           final selfUser = eg.user(fullName: name);
           await setupPage(tester, selfUser: selfUser, users: [],
             dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
-          checkTitle(tester, name, 1);
+          checkTitle(tester, selfLabel(tester, name), 1);
         });
 
         testWidgets('very long name takes two lines (must be ellipsized)', (tester) async {
@@ -238,7 +246,7 @@ void main() {
           final selfUser = eg.user(fullName: name);
           await setupPage(tester, selfUser: selfUser, users: [],
             dmMessages: [eg.dmMessage(from: selfUser, to: [])]);
-          checkTitle(tester, name, 2);
+          checkTitle(tester, selfLabel(tester, name), 2);
         });
 
         group('User status', () {
