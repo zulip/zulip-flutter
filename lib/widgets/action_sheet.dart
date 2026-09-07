@@ -704,31 +704,10 @@ class PinUnpinButton extends ActionSheetMenuItemButton {
 
   @override
   void onPressed() async {
-    try {
-      await updateSubscriptionSettings(
-        PerAccountStoreWidget.of(pageContext).connection,
-        streamId: channelId,
-        property: SubscriptionProperty.pinToTop,
-        value: !isPinned);
-    } catch (e) {
-      if (!pageContext.mounted) return;
-
-      String? errorMessage;
-      switch (e) {
-        case ZulipApiException():
-          errorMessage = e.message;
-          // TODO(#741) specific messages for common errors, like network errors
-          //   (support with reusable code)
-        default:
-      }
-
-      final zulipLocalizations = ZulipLocalizations.of(pageContext);
-      showErrorDialog(context: pageContext,
-        title: isPinned
-          ? zulipLocalizations.errorUnpinChannelFailedTitle
-          : zulipLocalizations.errorPinChannelFailedTitle,
-        message: errorMessage);
-    }
+    await ZulipAction.updateSubscriptionSettings(pageContext,
+      channelId: channelId,
+      property: .pinToTop,
+      value: !isPinned);
   }
 }
 

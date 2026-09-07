@@ -402,6 +402,24 @@ abstract class ZulipLocalizations {
   /// **'Unpin from top'**
   String get actionSheetOptionUnpinChannel;
 
+  /// Error title when setting the channel color fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to set channel color'**
+  String get errorSetChannelColorFailedTitle;
+
+  /// Error title when muting a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to mute channel'**
+  String get errorMuteChannelFailedTitle;
+
+  /// Error title when unmuting a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to unmute channel'**
+  String get errorUnmuteChannelFailedTitle;
+
   /// Error title when pinning a channel to the top fails.
   ///
   /// In en, this message translates to:
@@ -413,6 +431,66 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Failed to unpin channel'**
   String get errorUnpinChannelFailedTitle;
+
+  /// Error title when enabling desktop notifications for a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to enable desktop notifications'**
+  String get errorEnableDesktopNotificationsFailedTitle;
+
+  /// Error title when disabling desktop notifications for a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to disable desktop notifications'**
+  String get errorDisableDesktopNotificationsFailedTitle;
+
+  /// Error title when enabling audible notifications for a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to enable audible notifications'**
+  String get errorEnableAudibleNotificationsFailedTitle;
+
+  /// Error title when disabling audible notifications for a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to disable audible notifications'**
+  String get errorDisableAudibleNotificationsFailedTitle;
+
+  /// Error title when enabling mobile notifications for a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to enable mobile notifications'**
+  String get errorEnableMobileNotificationsFailedTitle;
+
+  /// Error title when disabling mobile notifications for a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to disable mobile notifications'**
+  String get errorDisableMobileNotificationsFailedTitle;
+
+  /// Error title when enabling email notifications for a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to enable email notifications'**
+  String get errorEnableEmailNotificationsFailedTitle;
+
+  /// Error title when disabling email notifications for a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to disable email notifications'**
+  String get errorDisableEmailNotificationsFailedTitle;
+
+  /// Error title when setting a channel's wildcard-mention notification setting fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to set channel wildcard-mention setting'**
+  String get errorSetChannelWildcardMentionsNotifyFailedTitle;
+
+  /// Error title when setting a channel subscription setting fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to set channel setting'**
+  String get errorSetChannelSettingFailedTitle;
 
   /// Label for muting a topic on action sheet.
   ///
