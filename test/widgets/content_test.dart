@@ -702,6 +702,20 @@ void main() {
       check(images.map((i) => i.src).toList())
         .deepEquals(expectedImages.map((n) => otherSrc(n.src)));
     });
+
+    testWidgets('scale size by mediaPreviewSizeFactor', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await prepareContent(tester,
+        messageContent(ContentExample.imagePreviewSingle.html),
+        initialSnapshot: eg.initialSnapshot(
+          realmMediaPreviewSize: RealmMediaPreviewSize.large),
+        wrapWithPerAccountStoreWidget: true);
+      // The image is tall enough to use the max height: 10em,
+      // with 1em = [kBaseFontSize]. Size gets doubled by the "large" setting.
+      check(tester.getSize(find.byType(RealmContentNetworkImage)))
+        .equals(Size(510, 340));
+    });
   });
 
   group("MessageInlineVideo", () {
@@ -733,6 +747,18 @@ void main() {
       await tester.tap(find.byIcon(Icons.play_arrow_rounded));
       check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
         .fullscreenDialog.isTrue(); // opened lightbox
+    });
+
+    testWidgets('scale thumbnail size by mediaPreviewSizeFactor', (tester) async {
+      await prepareContent(tester,
+        messageContent(ContentExample.videoInline.html),
+        initialSnapshot: eg.initialSnapshot(
+          realmMediaPreviewSize: RealmMediaPreviewSize.large),
+        wrapWithPerAccountStoreWidget: true);
+      check(tester.getSize(find.descendant(
+        of: find.byType(MessageMediaContainer),
+        matching: find.byType(Container)))
+      ).equals(MessageMediaContainer.baseSize * 2);
     });
   });
 
