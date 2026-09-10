@@ -94,7 +94,8 @@ web sessions on your fork, not on zulip/zulip-flutter.
      (If your fork isn't named `zulip-flutter`, adjust the path
      to match.) The script installs the system packages and the
      Flutter SDK, warms the pub cache, and clones the Zulip
-     server repo to `../zulip`.
+     server repo to `../zulip` and the legacy mobile app's to
+     `../zulip-mobile`.
 
 [upstream-repo]: https://github.com/zulip/zulip-flutter
 [fork-a-repo]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo
