@@ -27,6 +27,9 @@ this_dir=${BASH_SOURCE[0]%/*}
 # shellcheck source=tools/lib/deps.sh
 . "${this_dir}"/lib/deps.sh
 
+# shellcheck source=tools/lib/authorship.sh
+. "${this_dir}"/lib/authorship.sh
+
 
 ## CLI PARSING
 
@@ -39,6 +42,7 @@ default_suites=(
 
 extra_suites=(
     shellcheck  # Requires its own dependency, from outside the pub system.
+    authorship  # Meant for CI; locally, run by name when adopting cloud commits.
 )
 
 usage() {
@@ -64,7 +68,9 @@ What tests to run:
               \`--diff @~10\` for files changed in last 10 commits; or see
               \`git help revisions\` for many more ways to name a commit.)
   --all       In the given suites, run on all files. If no list of suites
-              was specified, run all suites.
+              was specified, run all suites -- including \`authorship\`,
+              which needs upstream \`main\` fetched and a clone deep
+              enough to reach the branch's fork point.
   --exclude SUITE
               Don't run the given suite, despite \`--all\`
               or the suite appearing as a positional argument.
@@ -350,6 +356,68 @@ EOF
     if_verbose echo "OK Flutter ${flutter_version} aka ${flutter_commit}"
 
     return 0
+}
+
+
+# usage: list_bot_commits BASE
+#
+# List the commits in BASE..@ authored or committed by a bot email,
+# as "HASH  <AUTHOR>  <COMMITTER>" lines. Exit 0 if there are any,
+# 1 if none, and 2 on error -- like grep, which does the matching.
+list_bot_commits() {
+    local commits
+    local -a grep_args
+    commits=$(git log --format='%h  <%ae>  <%ce>' "$1..@") || return 2
+    mapfile -t grep_args < <(bot_email_grep_args)
+    grep -F "${grep_args[@]}" <<<"$commits"
+}
+
+# Check that the branch's commits are authored and committed by a
+# human, not a coding agent (per $bot_emails, in
+# tools/lib/authorship.sh). An agent working on
+# its own, as in a Claude Code on the web session, commits under its
+# own identity; that's fine for a draft, but a human should take
+# authorship before it lands in a PR. See docs/howto/claude-web.md
+# ("Trust model").
+run_authorship() {
+    local base bad status hashes
+    # CI fetches full history for this; see .github/workflows/ci.yml.
+    if ! base=$(base_commit_with_hint); then
+        # ...following the hint it just printed, to fetch more history.
+        if [ -n "${opt_all}" ]; then
+            echo >&2 "Or leave this suite out: \`--exclude authorship\`."
+        fi
+        return 1
+    fi
+    status=0
+    bad=$(list_bot_commits "${base}") || status=$?
+    case $status in
+        0) ;;                        # bot-authored commit(s) found
+        1) return 0 ;;               # none -- clean
+        *) echo "authorship: listing commits failed" >&2; return 2 ;;
+    esac
+
+    # Re-list the flagged commits with subjects, for readability.
+    hashes=$(awk '{print $1}' <<<"$bad")
+    # shellcheck disable=SC2086  # deliberately word-split the hash list
+    bad=$(git show -s --format='  %h  %ae  %ce  %s' $hashes) || return
+
+    cat >&2 <<EOF
+error: commit(s) authored or committed by a coding agent:
+
+${bad}
+
+Take authorship of these when adopting them. For a flagged commit
+at the tip of the branch:
+  \$ git commit --amend --reset-author
+Or, when adopting a branch that's wholly an agent's, re-author every
+commit since the branch's fork point from upstream main (below as
+the remote \`upstream\`, freshly fetched):
+  \$ git rebase --exec 'git commit --amend --reset-author --no-edit' \\
+        \$(git merge-base @ upstream/main)
+See docs/howto/claude-web.md ("Trust model").
+EOF
+    return 1
 }
 
 # Whether the build_runner suite should run, given $opt_files.
@@ -689,6 +757,7 @@ for suite in "${opt_suites[@]}"; do
         test)         maybe_time "$suite" run_test ;;
         flutter_version)
                       maybe_time "$suite" run_flutter_version ;;
+        authorship)   maybe_time "$suite" run_authorship ;;
         build_runner) maybe_time "$suite" run_build_runner ;;
         l10n)         maybe_time "$suite" run_l10n ;;
         drift)        maybe_time "$suite" run_drift ;;

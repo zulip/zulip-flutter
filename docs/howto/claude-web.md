@@ -226,7 +226,9 @@ author and committer (`noreply@anthropic.com`), not your name,
 and you're expected to take authorship at the moment you're
 ready to stand behind the commits, before sending a non-draft
 PR (see [session workflow](#session-workflow)), which leaves
-Claude credited in a Co-Authored-By trailer.
+Claude credited in a Co-Authored-By trailer. The `authorship`
+suite in `tools/check` enforces this in CI.
+(Locally, run it by name: `tools/check authorship`.)
 
 (Commits are also unsigned: the container would sign them as
 Anthropic's `claude` GitHub identity, but the session-start
