@@ -80,12 +80,15 @@ echo "==> Downloading Flutter artifacts and pub dependencies"
 run_visibly flutter precache --universal
 run_visibly flutter pub get
 
-echo "==> Cloning the Zulip server repo"
-# For researching server behavior the API docs don't answer, and for
-# reading the API changelog's source; see .claude/rules/api.md.
+echo "==> Cloning the Zulip server and legacy-app repos"
+# The server: for researching behavior the API docs don't answer, and
+# for reading the API changelog's source; see .claude/rules/api.md.
 # A full clone (about 600 MiB), not blob-filtered: history searches
 # like `git log -S` stay fast, and sessions never need to fetch from
 # it on demand through the proxy.
 run_visibly git clone https://github.com/zulip/zulip ../zulip
+# zulip-mobile, the legacy React Native app: code comments cite it by
+# path and commit; see .claude/CLAUDE.md. About 45 MiB.
+run_visibly git clone https://github.com/zulip/zulip-mobile ../zulip-mobile
 
 echo "==> Done."

@@ -109,6 +109,8 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Exception: for questions about server behavior that the API docs
   don't answer, and for work on API documentation or design itself,
   do read the server code, in `../zulip` if present.
+- Code comments often cite zulip-mobile, the legacy React Native app,
+  by path or commit. Read it in `../zulip-mobile` if present.
 
 
 ## Writing clear code
