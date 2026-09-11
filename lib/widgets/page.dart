@@ -256,6 +256,7 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
     this.headerWithLinkMarkup,
     this.onTapHeaderLink,
     this.message,
+    this.messageSpan,
     this.messageWithLinkMarkup,
     this.onTapMessageLink,
   }) : assert(
@@ -266,6 +267,7 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
   final String? headerWithLinkMarkup;
   final VoidCallback? onTapHeaderLink;
   final String? message;
+  final InlineSpan? messageSpan;
   final String? messageWithLinkMarkup;
   final VoidCallback? onTapMessageLink;
 
@@ -309,6 +311,12 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
         textAlign: TextAlign.center,
         style: _messageStyle(context),
         message!);
+    }
+    if (messageSpan != null) {
+      return Text.rich(
+        textAlign: TextAlign.center,
+        style: _messageStyle(context),
+        messageSpan!);
     }
     if (messageWithLinkMarkup != null) {
       return TextWithLink(

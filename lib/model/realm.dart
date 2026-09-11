@@ -97,6 +97,11 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   int get maxChannelNameLength;
   int get maxTopicLength;
 
+  /// The stopwords used by the server's full-text search.
+  ///
+  /// Search for "stop_words" in https://zulip.com/api/register-queue.
+  List<String> get stopWords;
+
   //|//////////////////////////////
   // Realm settings with their own events.
 
@@ -149,6 +154,14 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
     }
     return topic;
   }
+
+  /// Whether the given word is one of the [stopWords]
+  /// that the server's full-text search ignores.
+  ///
+  /// The comparison is case-insensitive,
+  /// matching how the server's search treats stopwords;
+  /// see https://zulip.com/help/search-for-messages .
+  bool isStopWord(String word) => stopWords.contains(word.toLowerCase());
 
   /// Whether the self-user has passed the realm's waiting period
   /// to be a full member.
@@ -231,6 +244,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get maxTopicLength => realmStore.maxTopicLength;
   @override
+  List<String> get stopWords => realmStore.stopWords;
+  @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
@@ -290,6 +305,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
+    stopWords = initialSnapshot.stopWords,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
   @override
@@ -480,6 +496,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int maxChannelNameLength;
   @override
   final int maxTopicLength;
+
+  @override
+  final List<String> stopWords;
 
   @override
   List<CustomProfileField> customProfileFields;
