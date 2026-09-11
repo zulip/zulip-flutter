@@ -6,6 +6,22 @@ permissions:
   contents: read
 
 jobs:
+  authorship:
+    # Its own job, so that a branch that isn't ready shows as such
+    # by name, within seconds, while the slower jobs run.
+    name: "authorship"
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        # Full history, so the suite can see the branch's commits;
+        # it reads only commit metadata, hence the blob filter.
+        fetch-depth: 0
+        filter: blob:none
+
+    - name: Run tools/check
+      run: tools/check authorship
+
   check:
     name: "analyze, test, generate"
     runs-on: ubuntu-24.04
@@ -19,7 +35,7 @@ jobs:
       run: flutter pub get
 
     - name: Run tools/check
-      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android --exclude ios --exclude swift_format
+      run: TERM=dumb tools/check --no-pub --all --output ci --exclude android --exclude ios --exclude swift_format --exclude authorship
 
   android:
     name: "Android build and lint"
