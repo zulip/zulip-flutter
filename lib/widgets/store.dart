@@ -95,6 +95,10 @@ class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
     super.initState();
     (() async {
       final store = await ZulipBinding.instance.getGlobalStoreUniquely();
+      // Here rather than in the store itself, so that processes with no UI
+      // (the notification-handling processes, in particular) don't
+      // needlessly watch connectivity.
+      store.startConnectivityMonitor();
       if (widget.blockingFuture != null) {
         await widget.blockingFuture!.catchError((_) {});
       }
