@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zulip/model/channel.dart';
 import 'package:zulip/model/settings.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/text.dart';
@@ -151,40 +152,74 @@ void main() {
     testWidgets('light–dark animation', (tester) async {
       addTearDown(testBinding.reset);
 
-      final subscription = eg.subscription(eg.stream(), color: baseColor);
+      final channel = eg.stream();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        streams: [channel],
+        subscriptions: [eg.subscription(channel, color: baseColor)]));
 
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-      await tester.pumpWidget(const TestZulipApp());
-      await tester.pump();
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
 
       final element = tester.element(find.byType(Placeholder));
       // Compares all the swatch's members; see [ColorSwatch]'s `operator ==`.
-      check(colorSwatchFor(element, subscription))
+      check(colorSwatchFor(element, channel.streamId))
         .isSameColorSwatchAs(ChannelColorSwatch.light(baseColor));
 
       tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
       await tester.pump();
 
       await tester.pump(kThemeAnimationDuration * 0.4);
-      check(colorSwatchFor(element, subscription))
+      check(colorSwatchFor(element, channel.streamId))
         .isSameColorSwatchAs(ChannelColorSwatch.lerp(
           ChannelColorSwatch.light(baseColor),
           ChannelColorSwatch.dark(baseColor),
           0.4)!);
 
       await tester.pump(kThemeAnimationDuration * 0.6);
-      check(colorSwatchFor(element, subscription))
+      check(colorSwatchFor(element, channel.streamId))
         .isSameColorSwatchAs(ChannelColorSwatch.dark(baseColor));
     });
 
-    testWidgets('fallback to default base color when no subscription', (tester) async {
-      await tester.pumpWidget(const TestZulipApp());
-      await tester.pump();
+    testWidgets('client-side color for unsubscribed channel', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/1848
+      addTearDown(testBinding.reset);
+      ChannelStoreImpl.debugDisableColorShuffle = true;
+      addTearDown(() => ChannelStoreImpl.debugDisableColorShuffle = false);
+      final subscribed = eg.stream();
+      final unsubscribed = eg.stream();
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        streams: [subscribed, unsubscribed],
+        subscriptions: [
+          eg.subscription(subscribed, color: kChannelColorPalette[0])]));
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+
+      final element = tester.element(find.byType(Placeholder));
+      // An unused palette color; for the details of the choice,
+      // see ChannelStore.channelColor and its tests.
+      check(colorSwatchFor(element, unsubscribed.streamId))
+        .isSameColorSwatchAs(ChannelColorSwatch.light(kChannelColorPalette[1]));
+    });
+
+    testWidgets('fallback to default base color when channel unknown', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id));
+      await tester.pump(); // global store
+      await tester.pump(); // per-account store
+
       final element = tester.element(find.byType(Placeholder));
       check(colorSwatchFor(element, null)).isSameColorSwatchAs(
         ChannelColorSwatch.light(kDefaultChannelColorSwatchBaseColor));
+      final channelNotInStore = eg.stream();
+      check(colorSwatchFor(element, channelNotInStore.streamId))
+        .isSameColorSwatchAs(
+          ChannelColorSwatch.light(kDefaultChannelColorSwatchBaseColor));
     });
   });
 }

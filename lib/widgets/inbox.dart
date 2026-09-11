@@ -443,7 +443,7 @@ class InboxChannelHeaderItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final swatch = colorSwatchFor(context, subscription);
+    final swatch = colorSwatchFor(context, subscription.streamId);
 
     Widget result = Material(
       // The Figma uses a gradient background, which we decided we didn't like:
@@ -560,8 +560,7 @@ class InboxTopicItem extends StatelessWidget {
       :topic, :count, :hasMention, :lastUnreadId) = data;
 
     final store = PerAccountStoreWidget.of(context);
-    final subscription = store.subscriptions[streamId];
-    final swatch = colorSwatchFor(context, subscription);
+    final swatch = colorSwatchFor(context, streamId);
 
     final designVariables = DesignVariables.of(context);
     final visibilityIcon = iconDataForTopicVisibilityPolicy(

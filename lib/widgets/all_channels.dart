@@ -95,7 +95,6 @@ class AllChannelsListEntry extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
     final channel = this.channel;
-    final Subscription? subscription = channel is Subscription ? channel : null;
     final hasContentAccess = store.selfHasContentAccess(channel);
 
     return InkWell(
@@ -108,7 +107,7 @@ class AllChannelsListEntry extends StatelessWidget {
           child: Row(spacing: 6, children: [
             Icon(
               size: 20,
-              color: colorSwatchFor(context, subscription).iconOnPlainBackground,
+              color: colorSwatchFor(context, channel.streamId).iconOnPlainBackground,
               iconDataForStream(channel)),
             Expanded(
               child: Text(
