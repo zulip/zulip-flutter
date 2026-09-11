@@ -2351,7 +2351,16 @@ class $$GlobalSettingsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$GlobalSettingsTable, GlobalSettingsData>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $GlobalSettingsTable,
+                    GlobalSettingsData
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2503,7 +2512,18 @@ class $$BoolGlobalSettingsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$BoolGlobalSettingsTable, BoolGlobalSettingRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $BoolGlobalSettingsTable,
+                    BoolGlobalSettingRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2659,7 +2679,18 @@ class $$IntGlobalSettingsTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$IntGlobalSettingsTable, IntGlobalSettingRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $IntGlobalSettingsTable,
+                    IntGlobalSettingRow
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -2687,36 +2718,34 @@ typedef $$IntGlobalSettingsTableProcessedTableManager =
       IntGlobalSettingRow,
       PrefetchHooks Function()
     >;
-typedef $$AccountsTableCreateCompanionBuilder =
-    AccountsCompanion Function({
-      Value<int> id,
-      required Uri realmUrl,
-      Value<String?> realmName,
-      Value<Uri?> realmIcon,
-      required int userId,
-      Value<int?> deviceId,
-      required String email,
-      required String apiKey,
-      required String zulipVersion,
-      Value<String?> zulipMergeBase,
-      required int zulipFeatureLevel,
-      Value<bool> possibleLegacyPushToken,
-    });
-typedef $$AccountsTableUpdateCompanionBuilder =
-    AccountsCompanion Function({
-      Value<int> id,
-      Value<Uri> realmUrl,
-      Value<String?> realmName,
-      Value<Uri?> realmIcon,
-      Value<int> userId,
-      Value<int?> deviceId,
-      Value<String> email,
-      Value<String> apiKey,
-      Value<String> zulipVersion,
-      Value<String?> zulipMergeBase,
-      Value<int> zulipFeatureLevel,
-      Value<bool> possibleLegacyPushToken,
-    });
+typedef $$AccountsTableCreateCompanionBuilder = AccountsCompanion Function({
+  Value<int> id,
+  required Uri realmUrl,
+  Value<String?> realmName,
+  Value<Uri?> realmIcon,
+  required int userId,
+  Value<int?> deviceId,
+  required String email,
+  required String apiKey,
+  required String zulipVersion,
+  Value<String?> zulipMergeBase,
+  required int zulipFeatureLevel,
+  Value<bool> possibleLegacyPushToken,
+});
+typedef $$AccountsTableUpdateCompanionBuilder = AccountsCompanion Function({
+  Value<int> id,
+  Value<Uri> realmUrl,
+  Value<String?> realmName,
+  Value<Uri?> realmIcon,
+  Value<int> userId,
+  Value<int?> deviceId,
+  Value<String> email,
+  Value<String> apiKey,
+  Value<String> zulipVersion,
+  Value<String?> zulipMergeBase,
+  Value<int> zulipFeatureLevel,
+  Value<bool> possibleLegacyPushToken,
+});
 
 final class $$AccountsTableReferences
     extends BaseReferences<_$AppDatabase, $AccountsTable, Account> {
@@ -3073,7 +3102,7 @@ class $$AccountsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$AccountsTable, Account>(table),
                   $$AccountsTableReferences(db, table, e),
                 ),
               )
@@ -3118,24 +3147,22 @@ typedef $$AccountsTableProcessedTableManager =
       Account,
       PrefetchHooks Function({bool pushKeysRefs})
     >;
-typedef $$PushKeysTableCreateCompanionBuilder =
-    PushKeysCompanion Function({
-      required int pushKeyId,
-      required Uint8List pushKey,
-      required int accountId,
-      required int createdTimestamp,
-      Value<int?> supersededTimestamp,
-      Value<int> rowid,
-    });
-typedef $$PushKeysTableUpdateCompanionBuilder =
-    PushKeysCompanion Function({
-      Value<int> pushKeyId,
-      Value<Uint8List> pushKey,
-      Value<int> accountId,
-      Value<int> createdTimestamp,
-      Value<int?> supersededTimestamp,
-      Value<int> rowid,
-    });
+typedef $$PushKeysTableCreateCompanionBuilder = PushKeysCompanion Function({
+  required int pushKeyId,
+  required Uint8List pushKey,
+  required int accountId,
+  required int createdTimestamp,
+  Value<int?> supersededTimestamp,
+  Value<int> rowid,
+});
+typedef $$PushKeysTableUpdateCompanionBuilder = PushKeysCompanion Function({
+  Value<int> pushKeyId,
+  Value<Uint8List> pushKey,
+  Value<int> accountId,
+  Value<int> createdTimestamp,
+  Value<int?> supersededTimestamp,
+  Value<int> rowid,
+});
 
 final class $$PushKeysTableReferences
     extends BaseReferences<_$AppDatabase, $PushKeysTable, PushKey> {
@@ -3375,7 +3402,7 @@ class $$PushKeysTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable(table),
+                  e.readTable<$PushKeysTable, PushKey>(table),
                   $$PushKeysTableReferences(db, table, e),
                 ),
               )
@@ -3401,17 +3428,15 @@ class $$PushKeysTableTableManager
                     >
                   >(state) {
                     if (accountId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.accountId,
-                                referencedTable: $$PushKeysTableReferences
-                                    ._accountIdTable(db),
-                                referencedColumn: $$PushKeysTableReferences
-                                    ._accountIdTable(db)
-                                    .id,
-                              )
-                              as T;
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.accountId,
+                        referencedTable: $$PushKeysTableReferences
+                            ._accountIdTable(db),
+                        referencedColumn: $$PushKeysTableReferences
+                            ._accountIdTable(db)
+                            .id,
+                      ) as T;
                     }
 
                     return state;
