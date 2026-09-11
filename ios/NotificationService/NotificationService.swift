@@ -6,8 +6,6 @@ import os
 ///   https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension
 ///   https://developer.apple.com/documentation/usernotifications/modifying-content-in-newly-delivered-notifications
 class NotificationService: UNNotificationServiceExtension {
-  let logger = Logger()
-
   var contentHandler: ((UNNotificationContent) -> Void)?
   var bestAttemptContent: UNMutableNotificationContent?
 
@@ -22,6 +20,68 @@ class NotificationService: UNNotificationServiceExtension {
     guard let bestAttemptContent = bestAttemptContent else {
       contentHandler(request.content)  // TODO(log)
       return
+    }
+
+    // iOS calls this method on a background thread, but a FlutterEngine must be
+    // created and run on the main thread.  So hop to the main actor for that.
+    //
+    // This function will therefore return before `contentHandler` is called,
+    // which is fine: all iOS asks is that it eventually get called, either by
+    // the task below or by `serviceExtensionTimeWillExpire`.
+    Task { @MainActor in
+      let improvedContent = await DartNotificationService.didReceivePushNotification(
+        NotificationContent(payload: bestAttemptContent.userInfo))
+      if let improvedContent = improvedContent {
+        bestAttemptContent.title = improvedContent.title
+        bestAttemptContent.subtitle = improvedContent.subtitle
+        bestAttemptContent.body = improvedContent.body
+        switch improvedContent.sound {
+        case .systemDefault:
+          bestAttemptContent.sound = UNNotificationSound.default
+        }
+        bestAttemptContent.userInfo = improvedContent.userInfo as [AnyHashable: Any]
+      }
+      contentHandler(bestAttemptContent)
+    }
+  }
+
+  /// Called by iOS when the `didReceive(_:withContentHandler:)` method doesn't
+  /// call `contentHandler()` within a certain time limit (docs say 30 seconds).
+  ///
+  /// See docs: https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension/serviceextensiontimewillexpire()
+  override func serviceExtensionTimeWillExpire() {
+    if let contentHandler = contentHandler,
+      let bestAttemptContent = bestAttemptContent
+    {
+      contentHandler(bestAttemptContent)  // TODO(log)
+    }
+  }
+}
+
+/// The Dart side of this NotificationService, run in a headless FlutterEngine.
+///
+/// See `IosNotificationService` in lib/notifications/ios_service.dart.
+///
+/// This is isolated to the main actor because a FlutterEngine must be created
+/// and run on the main thread.
+///
+/// See docs: https://api.flutter.dev/ios-embedder/interface_flutter_engine.html
+@MainActor
+enum DartNotificationService {
+  private static let logger = Logger()
+
+  /// The headless FlutterEngine, if we've started one in this process.
+  ///
+  /// The other notifications this process handles will reuse it, like on
+  /// Android where package:firebase_messaging starts one background engine
+  /// and later notifications run in its isolate.
+  private static var engine: FlutterEngine?
+
+  /// The headless FlutterEngine, starting one if we haven't already,
+  /// or nil if it wouldn't start.
+  private static func startedEngine() -> FlutterEngine? {
+    if let engine = engine {
+      return engine
     }
 
     // Initialise a headless FlutterEngine, and start executing Dart code
@@ -40,8 +100,7 @@ class NotificationService: UNNotificationServiceExtension {
       libraryURI: "package:zulip/notifications/ios_service.dart"
     )
     if !started {
-      contentHandler(request.content)  // TODO(log)
-      return
+      return nil  // TODO(log)
     }
 
     IosNativeHostApiSetup.setUp(
@@ -50,81 +109,36 @@ class NotificationService: UNNotificationServiceExtension {
     // Register Flutter plugins with the headless engine.
     GeneratedPluginRegistrant.register(with: headlessEngine)
 
-    let iosNotifFlutterApi = IosNotifFlutterApi(
-      binaryMessenger: headlessEngine.binaryMessenger
-    )
-
-    var loopRunning = true
-    iosNotifFlutterApi.didReceivePushNotification(
-      content: NotificationContent(payload: bestAttemptContent.userInfo)
-    ) { result in
-      defer { loopRunning = false }
-
-      switch result {
-      case .success(let improvedNotificationContent):
-        bestAttemptContent.title = improvedNotificationContent.title
-        bestAttemptContent.subtitle = improvedNotificationContent.subtitle
-        bestAttemptContent.body = improvedNotificationContent.body
-        switch improvedNotificationContent.sound {
-        case .systemDefault:
-          bestAttemptContent.sound = UNNotificationSound.default
-        }
-        bestAttemptContent.userInfo = improvedNotificationContent.userInfo as [AnyHashable: Any]
-        contentHandler(bestAttemptContent)
-
-      case .failure(let error):  // TODO(log)
-        self.logger.debug(
-          "IosNotifFlutterApi.didReceivePushNotification failed: \(error.localizedDescription)")
-        contentHandler(bestAttemptContent)
-      }
-    }
-
-    // FlutterEngine even in the headless mode assumes that the event loop of
-    // current thread is being polled by the system. Which is not the case in
-    // the NotificationService extension, so here we manually poll the event loop.
-    // See discussion:
-    //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/Running.20Dart.20code.20in.20iOS.20Notification.20Service.20Extension/with/2370721
-    // TODO(upstream) let FlutterEngine itself handle this, or expose an API
-    //   that makes this easier, maybe with something like:
-    //     https://github.com/flutter/flutter/pull/181645
-
-    // Adapted from: https://github.com/flutter/flutter/blob/65b1ec407/engine/src/flutter/fml/platform/darwin/message_loop_darwin.mm#L44-L62
-    let kDistantFuture = 1.0e10
-    while loopRunning {
-      let result = CFRunLoopRunInMode(.defaultMode, kDistantFuture, true)
-
-      switch result {
-      case .timedOut:
-        // This should never be reachable because the timeout is 1e10 seconds
-        // (~316 years). But continue looping here, matching the upstream
-        // implementation.
-        continue
-
-      case .handledSource:
-        // Keep polling until there are events in the event loop.
-        continue
-
-      case .finished, .stopped:
-        loopRunning = false
-
-      @unknown default:  // TODO(log)
-        logger.debug("Unknown result from CFRunLoopRunInMode: \(String(describing: result))")
-        continue
-      }
-    }
-
-    headlessEngine.destroyContext()
+    engine = headlessEngine
+    return headlessEngine
   }
 
-  /// Called by iOS when the `didReceive(_:withContentHandler:)` method doesn't
-  /// call `contentHandler()` within a certain time limit (docs say 30 seconds).
-  ///
-  /// See docs: https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension/serviceextensiontimewillexpire()
-  override func serviceExtensionTimeWillExpire() {
-    if let contentHandler = contentHandler,
-      let bestAttemptContent = bestAttemptContent
-    {
-      contentHandler(bestAttemptContent)  // TODO(log)
+  /// Ask the Dart code what content to show for a push notification
+  /// we received, or nil if it didn't give us any.
+  static func didReceivePushNotification(
+    _ content: NotificationContent
+  ) async -> ImprovedNotificationContent? {
+    guard let engine = startedEngine() else {
+      return nil
+    }
+
+    let iosNotifFlutterApi = IosNotifFlutterApi(
+      binaryMessenger: engine.binaryMessenger
+    )
+    let result = await withCheckedContinuation { continuation in
+      iosNotifFlutterApi.didReceivePushNotification(content: content) { result in
+        continuation.resume(returning: result)
+      }
+    }
+
+    switch result {
+    case .success(let improvedNotificationContent):
+      return improvedNotificationContent
+
+    case .failure(let error):  // TODO(log)
+      logger.debug(
+        "IosNotifFlutterApi.didReceivePushNotification failed: \(error.localizedDescription)")
+      return nil
     }
   }
 }
