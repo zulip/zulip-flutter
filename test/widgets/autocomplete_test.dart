@@ -728,5 +728,52 @@ void main() {
       await tester.pump(Duration.zero);
       check(controller.value).text.equals('');
     });
+
+    testWidgets('non-exact matching query shows "New" option and choosing it updates topic and focus', (tester) async {
+      final topic1 = eg.getChannelTopicsEntry(maxId: 1, name: 'new topic');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 2, name: 'new topic 1');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic1, topic2]);
+      final topicController = tester.widget<TextField>(topicInputFinder).controller!;
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'new');
+      await tester.enterText(topicInputFinder, 'new topi');
+      await tester.pumpAndSettle();
+
+      // "new topi" (New) option appears along with "new topic" and "new topic 1"
+      final newOptionFinder = find.ancestor(
+        of: find.text('new topi'),
+        matching: find.byType(InkWell));
+      check(newOptionFinder).findsOne();
+      check(find.text('New')).findsOne();
+      check(find.text('new topic')).findsOne();
+      check(find.text('new topic 1')).findsOne();
+
+      // Tap on "new topi" (New)
+      await tester.tap(newOptionFinder);
+      await tester.pumpAndSettle();
+
+      check(topicController.text).equals('new topi');
+      check(find.text('New')).findsNothing();
+
+      final contentInputFinder = find.byWidgetPredicate((widget) => widget is TextField
+        && widget.controller is ComposeContentController);
+      check(tester.widget<TextField>(contentInputFinder).focusNode!.hasFocus).isTrue();
+    });
+
+    testWidgets('exact case-sensitive match does not show "New" option', (tester) async {
+      final topic1 = eg.getChannelTopicsEntry(maxId: 1, name: 'new topic');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 2, name: 'new topic 1');
+      final topicInputFinder = await setupToTopicInput(tester, topics: [topic1, topic2]);
+
+      // TODO(#226): Remove this extra edit when this bug is fixed.
+      await tester.enterText(topicInputFinder, 'new');
+      await tester.enterText(topicInputFinder, 'new topic');
+      await tester.pumpAndSettle();
+
+      check(find.text('New')).findsNothing();
+      check(find.ancestor(of: find.text('new topic'), matching: find.byType(InkWell))).findsOne();
+      check(find.text('new topic 1')).findsOne();
+    });
   });
 }

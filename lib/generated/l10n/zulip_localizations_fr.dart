@@ -1320,6 +1320,9 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Notifier les participants à cette conversation';
 
   @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get systemGroupNameEveryoneOnInternet => 'Tout le monde sur Internet';
 
   @override

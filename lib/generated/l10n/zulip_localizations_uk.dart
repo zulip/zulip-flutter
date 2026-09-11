@@ -1299,6 +1299,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Повідомити канал';
 
   @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get systemGroupNameEveryoneOnInternet => 'Everyone on the internet';
 
   @override
