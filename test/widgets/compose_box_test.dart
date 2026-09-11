@@ -1683,25 +1683,33 @@ void main() {
       });
     });
 
-    group('canonicalizeMimeType', () {
-      test('translate deprecated audio/x-flac to audio/flac', () {
-        check(canonicalizeMimeType('audio/x-flac')).equals('audio/flac');
+    group('zulipMimeResolver', () {
+      test('resolve .flac extension to audio/flac', () {
+        check(zulipMimeResolver.lookup('test.flac')).equals('audio/flac');
       });
 
-      test('translate deprecated audio/x-wav to audio/vnd.wave', () {
-        check(canonicalizeMimeType('audio/x-wav')).equals('audio/vnd.wave');
+      test('resolve .wav extension to audio/vnd.wave', () {
+        check(zulipMimeResolver.lookup('test.wav')).equals('audio/vnd.wave');
       });
 
-      test('leave already-canonical MIME type unchanged', () {
-        check(canonicalizeMimeType('audio/flac')).equals('audio/flac');
+      test('resolve FLAC magic number to audio/flac', () {
+        check(zulipMimeResolver.lookup('',
+          headerBytes: [0x66, 0x4C, 0x61, 0x43, 0x00]),
+        ).equals('audio/flac');
       });
 
-      test('leave unrelated MIME type unchanged', () {
-        check(canonicalizeMimeType('image/jpeg')).equals('image/jpeg');
+      test('resolve WAVE magic number to audio/vnd.wave', () {
+        check(zulipMimeResolver.lookup('',
+          headerBytes: [
+            0x52, 0x49, 0x46, 0x46,
+            0x24, 0x00, 0x00, 0x00,
+            0x57, 0x41, 0x56, 0x45,
+          ]),
+        ).equals('audio/vnd.wave');
       });
 
-      test('leave null unchanged', () {
-        check(canonicalizeMimeType(null)).isNull();
+      test('leave unrelated MIME type resolution unchanged', () {
+        check(zulipMimeResolver.lookup('test.jpg')).equals('image/jpeg');
       });
     });
   });

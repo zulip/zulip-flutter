@@ -984,8 +984,8 @@ class FileToUpload {
     required this.content,
     required this.length,
     required this.filename,
-    required String? mimeType,
-  }) : mimeType = canonicalizeMimeType(mimeType);
+    required this.mimeType,
+  });
 
   final Stream<List<int>> content;
   final int length;
@@ -993,27 +993,36 @@ class FileToUpload {
   final String? mimeType;
 }
 
-/// Correct a MIME type that's technically valid but deprecated,
-/// to the modern MIME type with the same meaning.
+/// A [MimeTypeResolver] that corrects known bugs in `package:mime`'s
+/// default extension map and magic-number list,
+/// where a deprecated `audio/x-*` MIME-type name
+/// is reported for a format that has a newer, IANA-registered name
+/// with the same meaning.
 ///
-/// `package:mime`, and possibly some platforms' file pickers,
-/// can report one of these deprecated `audio/x-*` names
-/// for certain audio files.
-/// The server won't recognize those as reason to offer
+/// The server won't recognize the deprecated names as reason to offer
 /// inline-audio-player content for the corresponding message
 /// (see e.g. zulip/zulip-flutter#2179),
-/// so translate them to the modern IANA-registered names.
+/// so use the modern names instead.
 ///
 /// See discussion:
 ///   https://github.com/zulip/zulip-flutter/issues/2431
-@visibleForTesting
-String? canonicalizeMimeType(String? mimeType) {
-  return switch (mimeType) {
-    'audio/x-flac' => 'audio/flac',
-    'audio/x-wav'  => 'audio/vnd.wave',
-    _ => mimeType,
-  };
-}
+///
+/// TODO(upstream) drop this once these are fixed:
+///   https://github.com/dart-lang/tools/issues/588 (magic numbers)
+///   https://github.com/dart-lang/tools/issues/2028 (extension map)
+final MimeTypeResolver zulipMimeResolver = MimeTypeResolver()
+  ..addExtension('flac', 'audio/flac')
+  ..addExtension('wav', 'audio/vnd.wave')
+  ..addMagicNumber([0x66, 0x4C, 0x61, 0x43], 'audio/flac') // "fLaC"
+  ..addMagicNumber([
+      0x52, 0x49, 0x46, 0x46, // "RIFF"
+      0x00, 0x00, 0x00, 0x00, // (file size)
+      0x57, 0x41, 0x56, 0x45, // "WAVE"
+    ], 'audio/vnd.wave', mask: [
+      0xFF, 0xFF, 0xFF, 0xFF,
+      0x00, 0x00, 0x00, 0x00,
+      0xFF, 0xFF, 0xFF, 0xFF,
+    ]);
 
 Future<void> _uploadFiles({
   required BuildContext context,
@@ -1168,15 +1177,15 @@ Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileTyp
 
   return result.files.map((f) {
     assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
-    final mimeType = lookupMimeType(
+    final mimeType = zulipMimeResolver.lookup(
       // Seems like the path shouldn't be required; we still want to look for
       // matches on `headerBytes`. Thankfully we can still do that, by calling
-      // lookupMimeType with the empty string as the path. That's a value that
+      // lookup with the empty string as the path. That's a value that
       // doesn't map to any particular type, so the path will be effectively
       // ignored, as desired. Upstream comment:
       //   https://github.com/dart-lang/mime/issues/11#issuecomment-2246824452
       f.path ?? '',
-      headerBytes: f.bytes?.take(defaultMagicNumbersMaxLength).toList(),
+      headerBytes: f.bytes?.take(zulipMimeResolver.magicNumbersMaxLength).toList(),
     );
     return FileToUpload(
       content: f.readStream!,
@@ -1226,7 +1235,7 @@ Future<FileToUpload?> _fileFromXFile(XFile xFile) async {
       // accurate, but it's nontrivial to verify. If it's inaccurate, we'd
       // rather sacrifice this part of the MIME lookup than throw the whole
       // upload. So, the try/catch.
-      min(defaultMagicNumbersMaxLength, length),
+      min(zulipMimeResolver.magicNumbersMaxLength, length),
     ).expand((l) => l).toList();
   } catch (e) {
     // TODO(log)
@@ -1236,7 +1245,7 @@ Future<FileToUpload?> _fileFromXFile(XFile xFile) async {
     length: length,
     filename: xFile.name,
     mimeType: xFile.mimeType
-      ?? lookupMimeType(xFile.path, headerBytes: headerBytes));
+      ?? zulipMimeResolver.lookup(xFile.path, headerBytes: headerBytes));
 }
 
 class _AttachMediaButton extends _AttachUploadsButton {
