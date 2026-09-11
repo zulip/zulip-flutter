@@ -120,6 +120,31 @@ void main() {
     check(find.text(longString).evaluate()).isNotEmpty();
   });
 
+  group('deactivated block icon', () {
+    // The name-row icon and avatar are the only places a block icon could
+    // appear on this page; for deactivated users we expect exactly one (the
+    // name-row icon), with the corner badge on the avatar suppressed via
+    // markIfDeactivated: false.
+    final findBlockIcon = find.byIcon(Icons.block);
+
+    testWidgets('active user: no block icon, presence circle present', (tester) async {
+      final user = eg.user(isActive: true);
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+      check(findBlockIcon).findsNothing();
+      check(find.byType(PresenceCircle)).findsAtLeast(1);
+    });
+
+    testWidgets('deactivated user: block icon in name row, no presence circle', (tester) async {
+      final user = eg.user(isActive: false);
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+      // Exactly one block icon: the name-row indicator.  The Avatar above
+      // has markIfDeactivated: false so it paints no badge of its own.
+      check(findBlockIcon).findsOne();
+      check(find.byType(PresenceCircle)).findsNothing();
+    });
+
+  });
+
   group('_LastActiveTime', () {
     Future<void> update(WidgetTester tester, User user, {
       required int activeSeconds,

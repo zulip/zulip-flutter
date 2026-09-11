@@ -118,6 +118,12 @@ void main() {
         .equals('name@email.com');
     });
 
+    test('is_deleted', () {
+      // The server only sends is_deleted when true, so absence -> false.
+      check(mkUser({}).isDeleted).isFalse();
+      check(mkUser({'is_deleted': true}).isDeleted).isTrue();
+    });
+
     test('profile_data', () {
       check(mkUser({'profile_data': <String, dynamic>{}}).profileData).isNull();
       check(mkUser({'profile_data': null}).profileData).isNull();

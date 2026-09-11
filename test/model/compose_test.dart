@@ -293,6 +293,18 @@ hello
         check(userMentionFromMessage(message, silent: false, users: store))
           .equals('@**Full Name|123**'); // not replaced with 'Muted user'
       });
+
+      test('userMentionFromMessage, deleted user', () async {
+        // The server accepts only the user's real name in mention syntax,
+        // so the localized 'Deleted user' replacement must not appear here.
+        final user = eg.user(userId: 123, fullName: 'Deleted User 123',
+          isActive: false, isDeleted: true);
+        final message = eg.streamMessage(sender: user);
+        final store = eg.store();
+        await store.addUser(user);
+        check(userMentionFromMessage(message, silent: true, users: store))
+          .equals('@_**Deleted User 123|123**'); // not 'Deleted user'
+      });
     });
 
     test('wildcard', () {
