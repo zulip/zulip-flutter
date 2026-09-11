@@ -154,10 +154,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
           .toList(),
   realmNonActiveUsers:
       (InitialSnapshot._readUsersIsActiveFallbackFalse(
-                json,
-                'realm_non_active_users',
-              )
-              as List<dynamic>)
+            json,
+            'realm_non_active_users',
+          ) as List<dynamic>)
           .map((e) => User.fromJson(e as Map<String, dynamic>))
           .toList(),
   crossRealmBots:
