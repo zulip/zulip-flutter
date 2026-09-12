@@ -293,9 +293,6 @@ void main() {
       });
 
       test('optional fields missing cause no error', () {
-        check(parse({ ...streamJson }..remove('realm_name')))
-          .realmName.isNull();
-
         check(parse({ ...streamJson }..remove('stream')))
           .recipient.isA<LegacyFcmMessageChannelRecipient>().which((it) => it
             ..channelId.equals(42)
@@ -359,6 +356,7 @@ void main() {
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('realm_name')));
 
         test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': 'abc' }));
         test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': '12,34' }));

@@ -308,7 +308,7 @@ sealed class LegacyFcmMessageWithIdentity extends LegacyFcmMessage implements No
 
   /// The realm's name.
   @override
-  final String? realmName; // TODO(server-8)
+  final String realmName;
 
   /// This user's ID within the server.
   ///
