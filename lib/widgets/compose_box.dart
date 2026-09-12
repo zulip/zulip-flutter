@@ -805,6 +805,26 @@ class _TopicInputState extends State<_TopicInput> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final store = PerAccountStoreWidget.of(context);
+    final messageForReplyDestination =
+      MessageListPage.maybeLocalMessagesOf(context)!.messageForReplyDestination;
+    final String topic;
+    if (messageForReplyDestination == null) {
+      topic = '';
+    } else {
+      final message = store.messages[messageForReplyDestination]!;
+      if (message is! StreamMessage) return;
+      topic = message.topic.apiName;
+    }
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      widget.controller.topic.text = topic;
+    });
+  }
+
+  @override
   void didUpdateWidget(covariant _TopicInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
