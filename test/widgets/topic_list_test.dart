@@ -178,9 +178,129 @@ void main() {
     of: topicItemFinder.at(index),
     matching: finder);
 
+  Finder findInTopicItem(Finder finder) => find.descendant(
+    of: topicItemFinder, matching: finder);
+
   InlineIcon checkmarkIconAt(WidgetTester tester, int index) =>
     tester.widget<InlineIcon>(findInTopicItemAt(index, find.byWidgetPredicate(
       (w) => w is InlineIcon && w.icon == ZulipIcons.check)));
+
+  // Enough topics that the list scrolls.
+  final topicsAtoZ = [
+    for (int i = 0; i < 26; i++)
+      eg.getChannelTopicsEntry(
+        name: 'topic ${String.fromCharCode('A'.codeUnitAt(0) + i)}',
+        maxId: 26 - i),
+  ];
+
+  void checkTopicsVisible({required bool first, required bool last}) {
+    check(findInTopicItem(find.text('topic A'))).findsExactly(first ? 1 : 0);
+    check(findInTopicItem(find.text('topic Z'))).findsExactly(last ? 1 : 0);
+  }
+
+  Future<void> scrollToEnd(WidgetTester tester) async {
+    await tester.dragUntilVisible(
+      findInTopicItem(find.text('topic Z')),
+      find.byType(ListView),
+      Offset(0, -50));
+    await tester.pump();
+  }
+
+  testWidgets('tap status bar to scroll to top', (tester) async {
+    addTearDown(tester.view.reset);
+    tester.view.padding = FakeViewPadding(top: 25); // the status bar
+
+    await prepare(tester, topics: topicsAtoZ);
+    checkTopicsVisible(first: true, last: false);
+
+    await scrollToEnd(tester);
+    checkTopicsVisible(first: false, last: true);
+
+    tester.simulateStatusBarTap();
+    await tester.pumpAndSettle();
+    checkTopicsVisible(first: true, last: false);
+  }, variant: TargetPlatformVariant.only(.iOS));
+
+  group('filter topics field', () {
+    testWidgets('filters topics', (tester) async {
+      await prepare(tester, topics: [
+        eg.getChannelTopicsEntry(name: 'Topic at the start', maxId: 4),
+        eg.getChannelTopicsEntry(name: 'topic', maxId: 3),
+        eg.getChannelTopicsEntry(name: 'a different subject', maxId: 2),
+        eg.getChannelTopicsEntry(name: 'another TOPIC at the middle', maxId: 1),
+      ]);
+
+      check(findInTopicItemAt(0, find.text('Topic at the start'))).findsOne();
+      check(findInTopicItemAt(1, find.text('topic'))).findsOne();
+      check(findInTopicItemAt(2, find.text('a different subject'))).findsOne();
+      check(findInTopicItemAt(3, find.text('another TOPIC at the middle'))).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'topic');
+      await tester.pump();
+
+      check(findInTopicItemAt(0, find.text('Topic at the start'))).findsOne();
+      check(findInTopicItemAt(1, find.text('topic'))).findsOne();
+      check(findInTopicItemAt(2, find.text('another TOPIC at the middle'))).findsOne();
+      check(findInTopicItem(find.text('a different subject'))).findsNothing();
+    });
+
+    testWidgets('shows empty state when no filtered topics', (tester) async {
+      await prepare(tester, topics: [
+        eg.getChannelTopicsEntry(name: 'topic A', maxId: 2),
+        eg.getChannelTopicsEntry(name: 'topic B', maxId: 1),
+      ]);
+
+      check(findInTopicItemAt(0, find.text('topic A'))).findsOne();
+      check(findInTopicItemAt(1, find.text('topic B'))).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'channel');
+      await tester.pump();
+
+      check(findInTopicItem(find.text('topic A'))).findsNothing();
+      check(findInTopicItem(find.text('topic B'))).findsNothing();
+      check(find.text('No topics match your filters.')).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'channelsss');
+      await tester.pump();
+
+      check(findInTopicItem(find.text('topic A'))).findsNothing();
+      check(findInTopicItem(find.text('topic B'))).findsNothing();
+      check(find.text('No topics match your filters.')).findsOne();
+
+      await tester.enterText(find.byType(TextField), 'topic');
+      await tester.pump();
+
+      check(findInTopicItem(find.text('topic A'))).findsOne();
+      check(findInTopicItem(find.text('topic B'))).findsOne();
+      check(find.text('No topics match your filters.')).findsNothing();
+    });
+
+    testWidgets('scroll to top on query change', (tester) async {
+      await prepare(tester, topics: topicsAtoZ);
+      checkTopicsVisible(first: true, last: false);
+
+      await scrollToEnd(tester);
+      checkTopicsVisible(first: false, last: true);
+
+      // same query as before
+      await tester.enterText(find.byType(TextField), '');
+      await tester.pump();
+      checkTopicsVisible(first: false, last: true);
+
+      // different query from before
+      await tester.enterText(find.byType(TextField), 'topic');
+      await tester.pump();
+      checkTopicsVisible(first: true, last: false);
+
+      await scrollToEnd(tester);
+      checkTopicsVisible(first: false, last: true);
+
+      // same query as before
+      await tester.enterText(find.byType(TextField), 'topic');
+      await tester.pump();
+      checkTopicsVisible(first: false, last: true);
+    });
+  });
 
   testWidgets('sort topics by maxId', (tester) async {
     await prepare(tester, topics: [
@@ -234,6 +354,7 @@ void main() {
       origMessages: [message],
       newTopicStr: 'bar'));
     await tester.pump();
+    await tester.pump(Duration.zero);
     check(topicItemFinder).findsExactly(2);
 
     // After the move, the message with maxId moved away from "foo". The topic
@@ -276,6 +397,7 @@ void main() {
       newTopic: eg.t('foo').resolve(),
       propagateMode: .changeAll));
     await tester.pump();
+    await tester.pump(Duration.zero);
     check(checkmarkIconAt(tester, 0).visible).isTrue();
     check(findInTopicItemAt(0, find.text('foo'))).findsOne();
   });

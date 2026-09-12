@@ -7,6 +7,7 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 import '../api/model/events.dart';
 import '../api/model/model.dart';
+import '../api/route/channels.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../widgets/compose_box.dart';
 import 'algorithms.dart';
@@ -1232,48 +1233,52 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
     required super.store,
     required super.query,
     required this.channelId,
-  });
+  }) {
+    store.topics.addListener(_startSearch);
+  }
 
   factory TopicAutocompleteView.init({
     required PerAccountStore store,
     required int channelId,
     required TopicAutocompleteQuery query,
   }) {
-    return TopicAutocompleteView._(store: store, channelId: channelId, query: query)
-      .._fetch();
+    return TopicAutocompleteView._(store: store, channelId: channelId, query: query);
   }
 
   /// The channel/stream the eventual message will be sent to.
   final int channelId;
 
-  Iterable<TopicName> _topics = [];
-
-  /// Fetches topics of the current stream narrow, if needed.
-  ///
-  /// Starts fetching once the stream narrow is active, then when results
-  /// are fetched it restarts search to refresh UI showing the newly
-  /// fetched topics.
-  Future<void> _fetch() async {
-    // TODO: handle fetch failure
-    _topics = (await store.topics.getChannelTopics(channelId)).map((e) => e.name);
-    return _startSearch();
-  }
-
   @override
   Future<List<TopicAutocompleteResult>?> computeResults() async {
+    final List<GetChannelTopicsEntry> topics;
+    try {
+      topics = await store.topics.getChannelTopics(channelId);
+    } catch (_) {
+      // Return null to not notify;
+      // the fetch can be re-triggered by changing the query.
+      // TODO: keep track of the failed state
+      return null;
+    }
+
     final results = <TopicAutocompleteResult>[];
     if (await filterCandidates(filter: _testTopic,
-          candidates: _topics, results: results)) {
+          candidates: topics, results: results)) {
       return null;
     }
     return results;
   }
 
-  TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, TopicName topic) {
-    if (query.testTopic(topic, store)) {
+  TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, GetChannelTopicsEntry topic) {
+    if (query.testTopic(topic.name, store)) {
       return TopicAutocompleteResult(topic: topic);
     }
     return null;
+  }
+
+  @override
+  void dispose() {
+    store.topics.removeListener(_startSearch);
+    super.dispose();
   }
 }
 
@@ -1284,13 +1289,9 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 
   bool testTopic(TopicName topic, PerAccountStore store) {
     // TODO(#881): Sort by match relevance, like web does.
-
-    if (topic.displayName == null) {
-      return AutocompleteQuery.lowercaseAndStripDiacritics(store.realmEmptyTopicDisplayName)
-        .contains(_normalized);
-    }
-    return topic.displayName != raw
-      && AutocompleteQuery.lowercaseAndStripDiacritics(topic.displayName!).contains(_normalized);
+    return AutocompleteQuery.lowercaseAndStripDiacritics(
+      topic.displayName ?? store.realmEmptyTopicDisplayName
+    ).contains(_normalized);
   }
 
   @override
@@ -1309,7 +1310,7 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 
 /// A topic chosen in an autocomplete interaction, via a [TopicAutocompleteView].
 class TopicAutocompleteResult extends AutocompleteResult {
-  final TopicName topic;
+  final GetChannelTopicsEntry topic;
 
   TopicAutocompleteResult({required this.topic});
 }

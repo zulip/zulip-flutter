@@ -1,5 +1,5 @@
 import 'package:checks/checks.dart';
-import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/model/autocomplete.dart';
 import 'package:zulip/model/compose.dart';
 import 'package:zulip/widgets/compose_box.dart';
@@ -31,7 +31,7 @@ extension UserGroupMentionAutocompleteResultChecks on Subject<UserGroupMentionAu
 }
 
 extension TopicAutocompleteResultChecks on Subject<TopicAutocompleteResult> {
-  Subject<TopicName> get topic => has((r) => r.topic, 'topic');
+  Subject<GetChannelTopicsEntry> get topic => has((r) => r.topic, 'topic');
 }
 
 extension ChannelLinkAutocompleteResultChecks on Subject<ChannelLinkAutocompleteResult> {
