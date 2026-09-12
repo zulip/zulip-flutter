@@ -50,7 +50,7 @@ Future<UpdatePresenceResult> updatePresence(ApiConnection connection, {
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdatePresenceResult {
-  final int? presenceLastUpdateId; // TODO(server-9.0) new in FL 263
+  final int? presenceLastUpdateId;
   final double? serverTimestamp; // 1656958539.6287155 in the example response
   final Map<int, PerUserPresence>? presences;
   // final bool zephyrMirrorActive; // deprecated, ignore

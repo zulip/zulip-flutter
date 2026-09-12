@@ -73,10 +73,8 @@ Uri narrowLink(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
 }
 
 String narrowLinkFragment(PerAccountStore store, Narrow narrow, {int? nearMessageId}) {
-  final apiNarrow = resolveApiNarrowForServer(
-    narrow.apiEncode(), store.zulipFeatureLevel);
   final fragment = StringBuffer('narrow');
-  for (ApiNarrowElement element in apiNarrow) {
+  for (ApiNarrowElement element in narrow.apiEncode()) {
     fragment.write('/');
     if (element.negated) {
       fragment.write('-');

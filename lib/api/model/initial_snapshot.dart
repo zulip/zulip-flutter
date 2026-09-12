@@ -31,12 +31,8 @@ class InitialSnapshot {
   final int serverPresencePingIntervalSeconds;
   final int serverPresenceOfflineThresholdSeconds;
 
-  // TODO(server-8): Remove the default values.
-  @JsonKey(defaultValue: 15000)
   final int serverTypingStartedExpiryPeriodMilliseconds;
-  @JsonKey(defaultValue: 5000)
   final int serverTypingStoppedWaitPeriodMilliseconds;
-  @JsonKey(defaultValue: 10000)
   final int serverTypingStartedWaitPeriodMilliseconds;
 
   final List<MutedUserItem> mutedUsers;
@@ -126,7 +122,6 @@ class InitialSnapshot {
 
   final int maxFileUploadSizeMib;
 
-  @JsonKey(defaultValue: []) // TODO(server-9) remove default value
   final List<ThumbnailFormat> serverThumbnailFormats;
 
   final Uri serverEmojiDataUrl;

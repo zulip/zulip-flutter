@@ -1290,9 +1290,6 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'Повідомити канал';
 
   @override
-  String get wildcardMentionStreamDescription => 'Повідомити канал';
-
-  @override
   String get wildcardMentionAllDmDescription => 'Повідомити одержувачів';
 
   @override

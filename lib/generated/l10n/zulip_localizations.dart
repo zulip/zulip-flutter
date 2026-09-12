@@ -2192,12 +2192,6 @@ abstract class ZulipLocalizations {
   /// **'Notify channel'**
   String get wildcardMentionChannelDescription;
 
-  /// Description for "@all", "@everyone", and "@stream" wildcard-mention autocomplete options when writing a channel message in older servers.
-  ///
-  /// In en, this message translates to:
-  /// **'Notify stream'**
-  String get wildcardMentionStreamDescription;
-
   /// Description for "@all" and "@everyone" wildcard-mention autocomplete options when writing a DM message.
   ///
   /// In en, this message translates to:
