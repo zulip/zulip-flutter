@@ -44,8 +44,15 @@ dependencies:
   device_info_plus: ^12.0.0
   drift: ^2.23.0
   file_picker: ^11.0.2
-  firebase_core: ^4.0.0
-  firebase_messaging: ^16.0.0
+  # TODO(#2257) Capped below firebase_messaging 16.5.0, where the plugin's
+  #   launch-time APNs registration became conditional on an auto-init
+  #   setting that's off while we configure Firebase from Dart, so
+  #   getAPNSToken returns null:
+  #     https://github.com/firebase/flutterfire/pull/18452
+  #   Capping firebase_core holds firebase_messaging's sibling packages back
+  #   too.  Upgrade both to latest once we stop using Firebase on iOS.
+  firebase_core: '>=4.13.0 <4.14.0'
+  firebase_messaging: '>=16.4.3 <16.5.0'
   flutter_color_models: ^1.3.3+2
   html: ^0.15.1
   http: ^1.0.0
