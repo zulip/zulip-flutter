@@ -70,11 +70,23 @@ class NotificationService: UNNotificationServiceExtension {
 enum DartNotificationService {
   private static let logger = Logger()
 
-  /// Ask the Dart code what content to show for a push notification
-  /// we received, or nil if it didn't give us any.
-  static func didReceivePushNotification(
-    _ content: NotificationContent
-  ) async -> ImprovedNotificationContent? {
+  /// The headless FlutterEngine, if we've started one in this process.
+  ///
+  /// The other notifications this process handles will reuse it, like on
+  /// Android where package:firebase_messaging starts one background engine
+  /// and later notifications run in its isolate.
+  private static var engine: FlutterEngine?
+
+  /// The Pigeon API for the Dart code running in `engine`.
+  private static var flutterApi: IosNotifFlutterApi?
+
+  /// The Pigeon API for the Dart code, starting the engine if we haven't
+  /// already, or nil if it wouldn't start.
+  private static func startedFlutterApi() -> IosNotifFlutterApi? {
+    if let flutterApi = flutterApi {
+      return flutterApi
+    }
+
     // Initialise a headless FlutterEngine, and start executing Dart code
     // using a custom entrypoint.
     //
@@ -94,19 +106,30 @@ enum DartNotificationService {
       return nil  // TODO(log)
     }
 
-    defer { headlessEngine.destroyContext() }
-
     IosNativeHostApiSetup.setUp(
       binaryMessenger: headlessEngine.binaryMessenger, api: IosNativeHostApiImpl())
 
     // Register Flutter plugins with the headless engine.
     GeneratedPluginRegistrant.register(with: headlessEngine)
 
-    let iosNotifFlutterApi = IosNotifFlutterApi(
+    flutterApi = IosNotifFlutterApi(
       binaryMessenger: headlessEngine.binaryMessenger
     )
+    engine = headlessEngine
+    return flutterApi
+  }
+
+  /// Ask the Dart code what content to show for a push notification
+  /// we received, or nil if it didn't give us any.
+  static func didReceivePushNotification(
+    _ content: NotificationContent
+  ) async -> ImprovedNotificationContent? {
+    guard let flutterApi = startedFlutterApi() else {
+      return nil
+    }
+
     let result = await withCheckedContinuation { continuation in
-      iosNotifFlutterApi.didReceivePushNotification(content: content) { result in
+      flutterApi.didReceivePushNotification(content: content) { result in
         continuation.resume(returning: result)
       }
     }
