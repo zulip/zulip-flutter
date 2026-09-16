@@ -27,21 +27,6 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Avatud lähtekoodiga tarkvara litsentsid';
 
   @override
-  String get upgradeWelcomeDialogTitle =>
-      'Tere tulemast kasutama uut Zulipi rakendust!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Tuttava kogemuse leiad kiiremast ja elegantsemast rakendusest.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Vaata teemakohast teavitust meie ajaveebi postitusest!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Alustame';
-
-  @override
   String get chooseAccountPageTitle => 'Vali kasutajakonto';
 
   @override

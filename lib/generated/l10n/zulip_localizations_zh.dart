@@ -26,20 +26,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'Open-source licenses';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
-
-  @override
   String get chooseAccountPageTitle => 'Choose account';
 
   @override
@@ -1448,18 +1434,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get aboutPageOpenSourceLicenses => '开源许可';
 
   @override
-  String get upgradeWelcomeDialogTitle => '欢迎来到新的 Zulip 应用程序！';
-
-  @override
-  String get upgradeWelcomeDialogMessage => '您将在更快、更流畅的版本中享受熟悉的体验。';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => '来看看最新的公告博客吧！';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => '开始吧';
-
-  @override
   String get chooseAccountPageTitle => '选择账号';
 
   @override
@@ -2576,18 +2550,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get aboutPageOpenSourceLicenses => '開源授權條款';
-
-  @override
-  String get upgradeWelcomeDialogTitle => '歡迎使用新的 Zulip 應用程式！';
-
-  @override
-  String get upgradeWelcomeDialogMessage => '您將在更快、更流暢的版本中享受熟悉的體驗。';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => '查看公告部落格文章！';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => '開始吧';
 
   @override
   String get chooseAccountPageTitle => '選取帳號';

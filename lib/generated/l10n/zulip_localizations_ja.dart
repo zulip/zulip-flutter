@@ -26,19 +26,6 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'オープンソースライセンス';
 
   @override
-  String get upgradeWelcomeDialogTitle => '新しいZulipアプリへようこそ！';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'より速く、洗練されたデザインで、これまでと同じ使い心地をお楽しみいただけます。';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => 'お知らせブログ記事をご確認ください！';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'はじめよう';
-
-  @override
   String get chooseAccountPageTitle => 'アカウントを選択';
 
   @override

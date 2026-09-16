@@ -26,19 +26,6 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'Lisensar for open kjeldekode';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Velkomen til den nye Zulip-appen!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Du finn eit kjent miljø i ei raskare og meir straumlineforma pakke.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => 'Sjekk kunngjeringsbloggposten!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'La oss starta';
-
-  @override
   String get chooseAccountPageTitle => 'Vel konto';
 
   @override

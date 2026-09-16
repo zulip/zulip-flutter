@@ -26,20 +26,6 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'רישיונות קוד פתוח';
 
   @override
-  String get upgradeWelcomeDialogTitle =>
-      'ברוכים הבאים לאפליקציית Zulip החדשה!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'תוכלו למצוא חוויה מוכרת בחבילה מהירה וחלקה יותר.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => 'עיין בפוסט בבלוג ההכרזה!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'בא נלך';
-
-  @override
   String get chooseAccountPageTitle => 'בחר חשבון';
 
   @override

@@ -26,20 +26,6 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get aboutPageOpenSourceLicenses => 'Licencje otwartego źródła';
 
   @override
-  String get upgradeWelcomeDialogTitle => 'Witaj w nowej apce Zulip!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Napotkasz na znane rozwiązania, które upakowaliśmy w szybszy i elegancki pakiet.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Sprawdź blog pod kątem obwieszczenia!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Zaczynajmy';
-
-  @override
   String get chooseAccountPageTitle => 'Wybierz konto';
 
   @override

@@ -186,30 +186,6 @@ abstract class ZulipLocalizations {
   /// **'Open-source licenses'**
   String get aboutPageOpenSourceLicenses;
 
-  /// Title for dialog shown on first upgrade from the legacy Zulip app.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome to the new Zulip app!'**
-  String get upgradeWelcomeDialogTitle;
-
-  /// Message text for dialog shown on first upgrade from the legacy Zulip app.
-  ///
-  /// In en, this message translates to:
-  /// **'You’ll find a familiar experience in a faster, sleeker package.'**
-  String get upgradeWelcomeDialogMessage;
-
-  /// Text of link in dialog shown on first upgrade from the legacy Zulip app.
-  ///
-  /// In en, this message translates to:
-  /// **'Check out the announcement blog post!'**
-  String get upgradeWelcomeDialogLinkText;
-
-  /// Label for button dismissing dialog shown on first upgrade from the legacy Zulip app.
-  ///
-  /// In en, this message translates to:
-  /// **'Let\'s go'**
-  String get upgradeWelcomeDialogDismiss;
-
   /// Title for the page to choose between Zulip accounts.
   ///
   /// In en, this message translates to:
