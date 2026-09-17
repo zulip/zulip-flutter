@@ -1,5 +1,10 @@
 import Flutter
 import UIKit
+import UserNotifications
+
+private let messageNotificationCategory = "MESSAGE"
+private let replyNotificationAction = "REPLY"
+private let replyTextUserInfoKey = "reply_text"
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -40,6 +45,20 @@ import UIKit
     )
 
     UNUserNotificationCenter.current().delegate = self
+    let replyAction = UNTextInputNotificationAction(
+      identifier: replyNotificationAction,
+      title: "Reply",
+      options: [],
+      textInputButtonTitle: "Send",
+      textInputPlaceholder: "Reply"
+    )
+    let messageCategory = UNNotificationCategory(
+      identifier: messageNotificationCategory,
+      actions: [replyAction],
+      intentIdentifiers: [],
+      options: []
+    )
+    UNUserNotificationCenter.current().setNotificationCategories([messageCategory])
 
     return super.application(
       application,
@@ -61,9 +80,14 @@ import UIKit
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
   ) async {
-    if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
-      let userInfo = response.notification.request.content.userInfo
-      notificationTapEventListener!.onNotificationTapEvent(payload: userInfo)
+    var userInfo = response.notification.request.content.userInfo
+    if response.actionIdentifier == replyNotificationAction,
+      let textResponse = response as? UNTextInputNotificationResponse
+    {
+      userInfo[replyTextUserInfoKey] = textResponse.userText
+      notificationTapEventListener?.onNotificationTapEvent(payload: userInfo)
+    } else if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+      notificationTapEventListener?.onNotificationTapEvent(payload: userInfo)
     }
   }
 }
@@ -84,15 +108,26 @@ private class NotificationHostApiImpl: NotificationHostApi {
 //   https://github.com/flutter/packages/blob/2dff6213a/packages/pigeon/example/app/ios/Runner/AppDelegate.swift#L49-L74
 class NotificationTapEventListener: NotificationTapEventsStreamHandler {
   var eventSink: PigeonEventSink<NotificationTapEvent>?
+  private var pendingReplyPayloads: [[AnyHashable: Any]] = []
 
   override func onListen(
     withArguments arguments: Any?,
     sink: PigeonEventSink<NotificationTapEvent>
   ) {
     eventSink = sink
+    for payload in pendingReplyPayloads {
+      sink.success(IosNotificationTapEvent(payload: payload))
+    }
+    pendingReplyPayloads.removeAll()
   }
 
   func onNotificationTapEvent(payload: [AnyHashable: Any]) {
-    eventSink?.success(IosNotificationTapEvent(payload: payload))
+    guard let eventSink else {
+      if payload[replyTextUserInfoKey] != nil {
+        pendingReplyPayloads.append(payload)
+      }
+      return
+    }
+    eventSink.success(IosNotificationTapEvent(payload: payload))
   }
 }
