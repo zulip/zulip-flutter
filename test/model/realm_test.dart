@@ -8,6 +8,7 @@ import 'package:zulip/model/store.dart';
 
 import '../example_data.dart' as eg;
 import 'binding.dart';
+import 'store_checks.dart';
 
 void main() {
   TestZulipBinding.ensureInitialized();
@@ -38,6 +39,15 @@ void main() {
     doCheck(eg.t('other topic'),         eg.t('other topic'),         334);
 
     doCheck(eg.t('(no topic)'),          eg.t(''),                    370);
+  });
+
+  test('realmDateCreated', () {
+    const timestamp = 1579089600;
+    final store = eg.store(initialSnapshot: eg.initialSnapshot(
+      realmDateCreated: timestamp));
+    check(store)
+      ..realmDateCreatedTimestamp.equals(timestamp)
+      ..realmDateCreated.equals(DateTime.utc(2020, 1, 15, 12));
   });
 
   group('selfHasPassedWaitingPeriod', () {

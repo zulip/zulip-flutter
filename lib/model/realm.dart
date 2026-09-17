@@ -98,6 +98,14 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   int get maxTopicLength;
 
   //|//////////////////////////////
+  // Realm data that never changes.
+
+  /// When the organization was created, in UTC.
+  DateTime get realmDateCreated =>
+    dateTimeFromTimestamp(realmDateCreatedTimestamp).toUtc();
+  int get realmDateCreatedTimestamp;
+
+  //|//////////////////////////////
   // Realm settings with their own events.
 
   List<CustomProfileField> get customProfileFields;
@@ -231,6 +239,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get maxTopicLength => realmStore.maxTopicLength;
   @override
+  int get realmDateCreatedTimestamp => realmStore.realmDateCreatedTimestamp;
+  @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
@@ -290,6 +300,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
+    realmDateCreatedTimestamp = initialSnapshot.realmDateCreated,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
   @override
@@ -480,6 +491,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int maxChannelNameLength;
   @override
   final int maxTopicLength;
+
+  @override
+  final int realmDateCreatedTimestamp;
 
   @override
   List<CustomProfileField> customProfileFields;

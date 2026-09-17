@@ -68,6 +68,8 @@ extension PerAccountStoreChecks on Subject<PerAccountStore> {
   Subject<bool?> get realmMandatoryTopics => has((x) => x.realmMandatoryTopics, 'realmMandatoryTopics');
   Subject<int> get maxFileUploadSizeMib => has((x) => x.maxFileUploadSizeMib, 'maxFileUploadSizeMib');
   Subject<Map<String, RealmDefaultExternalAccount>> get realmDefaultExternalAccounts => has((x) => x.realmDefaultExternalAccounts, 'realmDefaultExternalAccounts');
+  Subject<DateTime> get realmDateCreated => has((x) => x.realmDateCreated, 'realmDateCreated');
+  Subject<int> get realmDateCreatedTimestamp => has((x) => x.realmDateCreatedTimestamp, 'realmDateCreatedTimestamp');
   Subject<List<CustomProfileField>> get customProfileFields => has((x) => x.customProfileFields, 'customProfileFields');
   Subject<int> get accountId => has((x) => x.accountId, 'accountId');
   Subject<Account> get account => has((x) => x.account, 'account');
