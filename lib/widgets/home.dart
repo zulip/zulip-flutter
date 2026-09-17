@@ -121,7 +121,8 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(titleSpacing: 16,
+      appBar: ZulipAppBar(
+        leading: const _OrgIcon(),
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
@@ -143,6 +144,29 @@ class _HomePageState extends State<HomePage> {
                 ]))),
         ]),
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
+  }
+}
+
+class _OrgIcon extends StatelessWidget {
+  const _OrgIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    return Center(
+      child: IconButton(
+        tooltip: store.realmName,
+        onPressed: () {
+          Navigator.push(context,
+            MaterialWidgetRoute(page: const ChooseAccountPage()));
+        },
+        icon: AvatarShape(
+          size: 28,
+          borderRadius: 4,
+          child: RealmContentNetworkImage(
+            store.resolvedRealmIcon,
+            filterQuality: FilterQuality.medium,
+            fit: BoxFit.cover))));
   }
 }
 
