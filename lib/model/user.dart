@@ -116,6 +116,16 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
   ///
   /// If no status is set for the user, returns [UserStatus.zero].
   UserStatus getUserStatus(int userId);
+
+  /// The pronoun text for [user] from the primary pronoun field, or null.
+  ///
+  /// Returns null if the realm has no pronoun-type custom profile field,
+  /// or if the user has no value for that field.
+  String? primaryPronounsFor(User user) {
+    final fieldId = primaryPronounFieldId;
+    if (fieldId == null) return null;
+    return user.profileData?[fieldId]?.value;
+  }
 }
 
 /// Whether and how a given [MutedUsersEvent] may affect the results
