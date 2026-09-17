@@ -3681,7 +3681,11 @@ void main() {
   });
 
   group('findItemWithMessageId', () {
-    test('has MessageListDateSeparatorItem with null message ID', () => awaitFakeAsync((async) async {
+    test('has MessageListDateSeparatorItem with null message ID', () => awaitFakeAsync(
+        // Pin the clock, to noon, so the message is definitely dated on the
+        // previous calendar day. (This avoids flakes involving a 25-hour day
+        // when clocks fall back for Daylight Saving Time.)
+        initialTime: DateTime(2035, 8, 21, 12), (async) async {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream, topic: 'topic',
         timestamp: eg.utcTimestamp(clock.daysAgo(1)));
