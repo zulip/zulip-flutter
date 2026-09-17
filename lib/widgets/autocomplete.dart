@@ -392,7 +392,7 @@ class _ChannelLinkAutocompleteItem extends StatelessWidget {
         padding: EdgeInsetsDirectional.fromSTEB(12, 4, 10, 4),
         child: Row(spacing: 10, children: [
           SizedBox.square(dimension: 24, child: Icon(iconDataForStream(channel),
-            size: 18, color: colorSwatchFor(context, store.subscriptions[channel.streamId]))),
+            size: 18, color: colorSwatchFor(context, channel.streamId))),
           Expanded(child: Text(channel.name,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(

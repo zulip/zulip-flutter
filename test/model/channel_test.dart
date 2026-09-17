@@ -157,6 +157,98 @@ void main() {
     });
   });
 
+  group('channelColor', () {
+    setUp(() {
+      ChannelStoreImpl.debugDisableColorShuffle = true;
+      addTearDown(() => ChannelStoreImpl.debugDisableColorShuffle = false);
+    });
+
+    test('subscribed channel: server-assigned color', () {
+      final channel = eg.stream();
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [channel],
+        subscriptions: [eg.subscription(channel, color: 0xffff0000)]));
+      check(store.channelColor(channel.streamId)).equals(0xffff0000);
+    });
+
+    test('unknown channel: null', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot());
+      check(store.channelColor(eg.stream().streamId)).isNull();
+    });
+
+    test('unsubscribed channel: unused palette color, stable across calls', () {
+      final channel1 = eg.stream();
+      final channel2 = eg.stream();
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [channel1, channel2]));
+      check(store.channelColor(channel1.streamId)).equals(kChannelColorPalette[0]);
+      check(store.channelColor(channel2.streamId)).equals(kChannelColorPalette[1]);
+      check(store.channelColor(channel1.streamId)).equals(kChannelColorPalette[0]);
+    });
+
+    test('skip colors of subscriptions in initial snapshot', () {
+      final subscribed = eg.stream();
+      final unsubscribed = eg.stream();
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [subscribed, unsubscribed],
+        subscriptions: [
+          eg.subscription(subscribed, color: kChannelColorPalette[0])]));
+      check(store.channelColor(unsubscribed.streamId))
+        .equals(kChannelColorPalette[1]);
+    });
+
+    test('skip color claimed by new subscription', () async {
+      final channel1 = eg.stream();
+      final channel2 = eg.stream();
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [channel1, channel2]));
+      await store.addSubscription(
+        eg.subscription(channel1, color: kChannelColorPalette[0]));
+      check(store.channelColor(channel2.streamId))
+        .equals(kChannelColorPalette[1]);
+    });
+
+    test('skip color claimed by subscription color change', () async {
+      final channel1 = eg.stream();
+      final channel2 = eg.stream();
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [channel1, channel2],
+        subscriptions: [
+          eg.subscription(channel1, color: kChannelColorPalette[0])]));
+      await store.handleEvent(SubscriptionUpdateEvent(id: 1,
+        channelId: channel1.streamId,
+        property: SubscriptionProperty.color,
+        value: kChannelColorPalette[1]));
+      check(store.channelColor(channel2.streamId))
+        .equals(kChannelColorPalette[2]);
+    });
+
+    test('with shuffle: distinct palette colors, stable across calls', () {
+      ChannelStoreImpl.debugDisableColorShuffle = false;
+      final channel1 = eg.stream();
+      final channel2 = eg.stream();
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: [channel1, channel2]));
+      final color1 = store.channelColor(channel1.streamId)!;
+      final color2 = store.channelColor(channel2.streamId)!;
+      check(kChannelColorPalette).contains(color1);
+      check(kChannelColorPalette).contains(color2);
+      check(color1).not((it) => it.equals(color2));
+      check(store.channelColor(channel1.streamId)).equals(color1);
+    });
+
+    test('palette starts over when all colors are used', () {
+      final channels = List.generate(kChannelColorPalette.length + 1,
+        (_) => eg.stream());
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        streams: channels));
+      for (final (i, channel) in channels.indexed) {
+        check(store.channelColor(channel.streamId)).equals(
+          kChannelColorPalette[i % kChannelColorPalette.length]);
+      }
+    });
+  });
+
   group('ChannelFolderEvent', () {
     group('add', () {
       test('smoke', () async {
