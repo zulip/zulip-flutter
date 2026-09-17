@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:drift_dev/api/migrations_native.dart';
+import 'package:sqlite3/sqlite3.dart' show Database;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
@@ -332,6 +333,48 @@ void main() {
       await after.close();
     });
 
+    test('foreign keys are off while migrating', () async {
+      // Why they have to be: see beforeOpen in AppDatabase. This checks the
+      // assert in onUpgrade isn't vacuous: the setting is per-connection, so
+      // the assert has to read it on the connection the migration runs on.
+      final schema = await verifier.schemaAt(AppDatabase.latestSchemaVersion - 1);
+      schema.rawDatabase.execute('PRAGMA foreign_keys = ON');
+
+      final db = AppDatabase(schema.newConnection());
+      await check(db.select(db.accounts).get()).throws<AssertionError>((it) =>
+        it.has((e) => e.message.toString(), 'message')
+          .contains('Foreign keys must be off'));
+      await db.close();
+    });
+
+    group('a failed migration leaves the database alone', () {
+      // The rigging here makes a migration fail partway through. If it stops
+      // provoking a failure, the migration succeeds and the test fails,
+      // rather than quietly testing nothing.
+
+      test('upgrade', () async {
+        // Start at 14. Prepare the database so that:
+        // (a) the v14-to-v15 step succeeds, so a completed step and its
+        //     recorded version are what the rollback has to undo, but
+        // (b) the v15-to-v16 step fails, because the column it wants to add
+        //     (possible_legacy_push_token) is already present.
+        // The migration fails before reaching any later step, so new schema
+        // versions don't affect this.
+        //
+        // And check that the state after the failed migration reflects a
+        // rollback to the state before, at 14.
+        final schema = await verifier.schemaAt(14);
+        schema.rawDatabase.execute(
+          'ALTER TABLE accounts ADD COLUMN possible_legacy_push_token INTEGER');
+        final before = _schemaSnapshot(schema.rawDatabase);
+
+        final db = AppDatabase(schema.newConnection());
+        await check(db.select(db.accounts).get()).throws<SqliteException>();
+        check(_schemaSnapshot(schema.rawDatabase)).deepEquals(before);
+        await db.close();
+      });
+    });
+
     group('migrate without data', () {
       const versions = GeneratedHelper.versions;
       final latestVersion = versions.last;
@@ -512,6 +555,16 @@ void main() {
 
     // v16 covered by "existing Account row" above
   });
+}
+
+/// The database's schema and schema version, for comparing before and after.
+List<Object?> _schemaSnapshot(Database db) {
+  return [
+    db.select('PRAGMA user_version').single.values.single,
+    for (final row in db.select(
+      'SELECT type, name, sql FROM sqlite_master ORDER BY name'))
+      row.values,
+  ];
 }
 
 extension UpdateCompanionExtension<T> on UpdateCompanion<T> {
