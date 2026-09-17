@@ -45,6 +45,10 @@
 	<string>By allowing camera access, you can take photos and send them in Zulip messages.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose photos from your library and send them in Zulip messages.</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>INSendMessageIntent</string>
+	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
