@@ -180,6 +180,7 @@ void main() {
     });
 
     testWidgets('fallback to default base color when no subscription', (tester) async {
+      addTearDown(testBinding.reset);
       await tester.pumpWidget(const TestZulipApp());
       await tester.pump();
       final element = tester.element(find.byType(Placeholder));
