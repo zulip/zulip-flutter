@@ -2,7 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:drift_dev/api/migrations_native.dart';
-import 'package:sqlite3/sqlite3.dart' show Database;
+import 'package:sqlite3/sqlite3.dart' show Database, sqlite3;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
@@ -373,6 +373,37 @@ void main() {
         check(_schemaSnapshot(schema.rawDatabase)).deepEquals(before);
         await db.close();
       });
+
+      test('create', () async {
+        // Prepare schema creation to fail, by leaving a global_settings table
+        // of the wrong shape, with an unexpected and non-nullable column.
+        // The step that inserts the singleton global_settings row will fail
+        // because no value for that unexpected column is given.
+        // (The earlier `createAll` call won't fail; that skips creating a
+        // table which already exists.)
+        // Check that before-and-after schema snapshots match.
+        final rawDatabase = sqlite3.openInMemory();
+        rawDatabase.execute(
+          'CREATE TABLE global_settings (unexpected TEXT NOT NULL)');
+        final before = _schemaSnapshot(rawDatabase);
+
+        final db = AppDatabase(NativeDatabase.opened(rawDatabase));
+        await check(db.getGlobalSettings()).throws<SqliteException>();
+        check(_schemaSnapshot(rawDatabase)).deepEquals(before);
+        await db.close();
+      });
+    });
+
+    test('a create records the schema version in its transaction', () async {
+      // On the create path nothing records the schema version until Drift
+      // does, after beforeOpen. If that were the only record of it, this
+      // database would be complete but still at version zero, and the next
+      // launch would create over it again.
+      final rawDatabase = sqlite3.openInMemory();
+      final db = _InterruptedAtBeforeOpen(NativeDatabase.opened(rawDatabase));
+      await check(db.getGlobalSettings()).throws<_Interrupted>();
+      check(rawDatabase.userVersion).equals(AppDatabase.latestSchemaVersion);
+      await db.close();
     });
 
     group('migrate without data', () {
@@ -555,6 +586,28 @@ void main() {
 
     // v16 covered by "existing Account row" above
   });
+}
+
+/// An [AppDatabase] whose beforeOpen throws, aborting the open.
+///
+/// Drift runs beforeOpen on every open, so this interrupts any of them.
+/// Where a migration just ran, it stands in for the app being killed
+/// at that moment, before Drift finishes opening the database.
+class _InterruptedAtBeforeOpen extends AppDatabase {
+  _InterruptedAtBeforeOpen(super.e);
+
+  @override
+  MigrationStrategy get migration {
+    final strategy = super.migration;
+    return MigrationStrategy(
+      onCreate: strategy.onCreate,
+      onUpgrade: strategy.onUpgrade,
+      beforeOpen: (_) => throw const _Interrupted());
+  }
+}
+
+class _Interrupted implements Exception {
+  const _Interrupted();
 }
 
 /// The database's schema and schema version, for comparing before and after.

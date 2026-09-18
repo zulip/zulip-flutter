@@ -354,11 +354,22 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> _createLatestSchema(Migrator m) async {
     assert(debugLog('Creating DB schema from scratch.'));
-    await m.createAll();
-    // Corresponds to `from4to5` above.
-    await into(globalSettings).insert(GlobalSettingsCompanion());
-    // Corresponds to (but differs from) part of `from8To9` above.
-    await migrateLegacyAppData(this);
+    // In a transaction, so that if schema creation gets interrupted,
+    // the next open will find a clean slate to retry from,
+    // rather than a half-built database.
+    await transaction(() async {
+      await m.createAll();
+      // Corresponds to `from4to5` above.
+      await into(globalSettings).insert(GlobalSettingsCompanion());
+      // Corresponds to (but differs from) part of `from8To9` above.
+      await migrateLegacyAppData(this);
+      // Record the schema version inside the transaction, so it's done
+      // atomically with the creation work. (Drift would otherwise record it
+      // only outside the transaction, after beforeOpen. On the upgrade path --
+      // see onUpgrade -- runMigrationSteps already records each version inside
+      // the transaction.)
+      await customStatement('PRAGMA user_version = $latestSchemaVersion');
+    });
   }
 
   @override
