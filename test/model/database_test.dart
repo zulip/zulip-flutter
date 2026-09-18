@@ -347,6 +347,21 @@ void main() {
       await db.close();
     });
 
+    test('catch foreign-key violations from a migration', () async {
+      // Migrations run with foreign keys off, so they can orphan a row
+      // without SQLite objecting, hence the check in beforeOpen.
+      final schema = await verifier.schemaAt(AppDatabase.latestSchemaVersion - 1);
+      schema.rawDatabase.execute('INSERT INTO push_keys '
+        '(push_key_id, push_key, account_id, created_timestamp) '
+        "VALUES (1, x'00', 999, 0)");
+
+      final db = AppDatabase(schema.newConnection());
+      await check(db.select(db.accounts).get()).throws<AssertionError>((it) =>
+        it.has((e) => e.message.toString(), 'message')
+          .contains('foreign-key violations after migrating'));
+      await db.close();
+    });
+
     group('a failed migration leaves the database alone', () {
       // The rigging here makes a migration fail partway through. If it stops
       // provoking a failure, the migration succeeds and the test fails,

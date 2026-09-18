@@ -9,6 +9,7 @@ import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
 import '../api/route/realm.dart';
+import '../basic.dart';
 import '../log.dart';
 import 'legacy_app_data.dart';
 import 'schema_versions.g.dart';
@@ -412,6 +413,20 @@ class AppDatabase extends _$AppDatabase {
         });
       },
       beforeOpen: (details) async {
+        if (kDebugMode && (details.wasCreated || details.hadUpgrade)) {
+          // The migration ran with foreign-key enforcement off, and just
+          // turning it back on wouldn't catch a row that a step had orphaned:
+          // SQLite checks the statements it runs, not rows already on disk.
+          // So scan the database for violations, just in debug builds and
+          // just when a migration actually ran. Drift's docs recommend the
+          // same check, placed at the end of onUpgrade:
+          //   https://pub.dev/documentation/drift/latest/internal_versioned_schema/VersionedSchema/runMigrationSteps.html
+          final violations = await customSelect('PRAGMA foreign_key_check').get();
+          assert(violations.isEmpty,
+            'foreign-key violations after migrating: '
+            '${violations.map((r) => r.data).toList()}');
+        }
+
         // This runs after any migration, and it needs to stay that way.
         // If foreign_keys were on, a step that rewrites a table would likely
         // want to turn it off again -- but it couldn't, because the migration
