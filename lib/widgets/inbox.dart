@@ -8,6 +8,7 @@ import '../model/recent_dm_conversations.dart';
 import '../model/unreads.dart';
 import 'action_sheet.dart';
 import 'color.dart';
+import 'dialog.dart';
 import 'icons.dart';
 import 'message_list.dart';
 import 'page.dart';
@@ -62,6 +63,12 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
     setState(() {
       _collapsedStreamIds.remove(streamId);
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    IntroDialog.maybeShowIn(.inbox);
   }
 
   @override

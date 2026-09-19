@@ -175,7 +175,11 @@ class TestGlobalStore extends GlobalStore with _ApiConnectionsMixin, _DatabaseMi
     Iterable<PushKey>? pushKeys,
   }) : super(backend: _TestGlobalStoreBackend(),
          globalSettings: globalSettings ?? GlobalSettingsData(),
-         boolGlobalSettings: boolGlobalSettings ?? {},
+         // By default, prevent intro dialogs from appearing.
+         boolGlobalSettings: boolGlobalSettings ?? {
+           .inboxIntroDialogShown: true,
+           .combinedFeedIntroDialogShown: true,
+         },
          intGlobalSettings: intGlobalSettings ?? {},
          pushKeys: pushKeys ?? [],
        );
