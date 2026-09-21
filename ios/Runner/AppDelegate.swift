@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private let notificationTapEventListener = NotificationTapEventListener()
 
   override func application(
@@ -10,27 +10,25 @@ import UIKit
     didFinishLaunchingWithOptions launchOptions: [UIApplication
       .LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
-
-    // Use `DesignVariables.mainBackground` color as the background color
-    // of the default UIView.
-    window?.backgroundColor = UIColor(named: "LaunchBackground")
-
-    let controller = window?.rootViewController as! FlutterViewController
-
-    IosNativeHostApiSetup.setUp(
-      binaryMessenger: controller.binaryMessenger, api: IosNativeHostApiImpl())
-
-    NotificationTapEventsStreamHandler.register(
-      with: controller.binaryMessenger,
-      streamHandler: notificationTapEventListener
-    )
-
     UNUserNotificationCenter.current().delegate = self
 
     return super.application(
       application,
       didFinishLaunchingWithOptions: launchOptions
+    )
+  }
+
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    let binaryMessenger = engineBridge.applicationRegistrar.messenger()
+
+    IosNativeHostApiSetup.setUp(
+      binaryMessenger: binaryMessenger, api: IosNativeHostApiImpl())
+
+    NotificationTapEventsStreamHandler.register(
+      with: binaryMessenger,
+      streamHandler: notificationTapEventListener
     )
   }
 
