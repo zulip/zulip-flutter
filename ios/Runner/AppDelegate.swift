@@ -3,7 +3,7 @@ import UIKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
-  private var notificationTapEventListener: NotificationTapEventListener?
+  private let notificationTapEventListener = NotificationTapEventListener()
 
   override func application(
     _ application: UIApplication,
@@ -21,10 +21,9 @@ import UIKit
     IosNativeHostApiSetup.setUp(
       binaryMessenger: controller.binaryMessenger, api: IosNativeHostApiImpl())
 
-    notificationTapEventListener = NotificationTapEventListener()
     NotificationTapEventsStreamHandler.register(
       with: controller.binaryMessenger,
-      streamHandler: notificationTapEventListener!
+      streamHandler: notificationTapEventListener
     )
 
     UNUserNotificationCenter.current().delegate = self
@@ -51,7 +50,7 @@ import UIKit
   ) async {
     if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
       let userInfo = response.notification.request.content.userInfo
-      notificationTapEventListener!.onNotificationTapEvent(payload: userInfo)
+      notificationTapEventListener.onNotificationTapEvent(payload: userInfo)
     }
   }
 }
