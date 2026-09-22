@@ -454,10 +454,15 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Future<GlobalStore> getGlobalStore() {
-    return _globalStoreFuture ??= LiveGlobalStore.load().then((store) {
+    return _globalStoreFuture ??= doLoadGlobalStore().then((store) {
       return _globalStore = store;
     });
   }
+
+  /// Load the [GlobalStore], reading the app's database.
+  ///
+  /// This method should be called only by [getGlobalStore].
+  Future<GlobalStore> doLoadGlobalStore() => LiveGlobalStore.load();
 
   @override
   GlobalStore? getGlobalStoreSync() => _globalStore;
