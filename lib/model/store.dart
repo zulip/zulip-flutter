@@ -1184,40 +1184,47 @@ class LiveGlobalStore extends GlobalStore {
     final stopwatch = Stopwatch()..start();
     final file = await _dbFile();
     final db = AppDatabase(NativeDatabase.createInBackground(file));
-    final t1 = stopwatch.elapsed;
-    final globalSettings = await db.getGlobalSettings();
-    final t2 = stopwatch.elapsed;
-    final boolGlobalSettings = await db.getBoolGlobalSettings();
-    final t3 = stopwatch.elapsed;
-    final intGlobalSettings = await db.getIntGlobalSettings();
-    final t4 = stopwatch.elapsed;
-    final accounts = await db.select(db.accounts).get();
-    final t5 = stopwatch.elapsed;
-    final pushKeys = await db.select(db.pushKeys).get();
-    final t6 = stopwatch.elapsed;
-    if (kProfileMode) {
-      String format(Duration d) =>
-        "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
-      profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
-        "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
-        "${format(t4 - t3)} int-settings, "
-        "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys");
+    try {
+      final t1 = stopwatch.elapsed;
+      final globalSettings = await db.getGlobalSettings();
+      final t2 = stopwatch.elapsed;
+      final boolGlobalSettings = await db.getBoolGlobalSettings();
+      final t3 = stopwatch.elapsed;
+      final intGlobalSettings = await db.getIntGlobalSettings();
+      final t4 = stopwatch.elapsed;
+      final accounts = await db.select(db.accounts).get();
+      final t5 = stopwatch.elapsed;
+      final pushKeys = await db.select(db.pushKeys).get();
+      final t6 = stopwatch.elapsed;
+      if (kProfileMode) {
+        String format(Duration d) =>
+          "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
+        profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
+          "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
+          "${format(t4 - t3)} int-settings, "
+          "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys");
+      }
+
+      // Disable OS backups for the database file, see:
+      //   https://github.com/zulip/zulip-flutter/issues/2158
+      // This comes after the queries above, because it must come after
+      // the database file has been created on disk.
+      unawaited(_maybeDisableOsBackup(file)); // TODO(log) on error
+
+      return LiveGlobalStore._(
+        backend: LiveGlobalStoreBackend._(db: db),
+        globalSettings: globalSettings,
+        boolGlobalSettings: boolGlobalSettings,
+        intGlobalSettings: intGlobalSettings,
+        accounts: accounts,
+        pushKeys: pushKeys,
+      );
+    } catch (_) {
+      // A later load may follow, so don't leak this connection and its isolate.
+      // Ignore any error from closing, so that the original error propagates.
+      await db.close().catchError((_) {}); // TODO(log) on error
+      rethrow;
     }
-
-    // Disable OS backups for the database file, see:
-    //   https://github.com/zulip/zulip-flutter/issues/2158
-    // This comes after the queries above, because it must come after
-    // the database file has been created on disk.
-    unawaited(_maybeDisableOsBackup(file)); // TODO(log) on error
-
-    return LiveGlobalStore._(
-      backend: LiveGlobalStoreBackend._(db: db),
-      globalSettings: globalSettings,
-      boolGlobalSettings: boolGlobalSettings,
-      intGlobalSettings: intGlobalSettings,
-      accounts: accounts,
-      pushKeys: pushKeys,
-    );
   }
 
   /// The file path to use for the app database.
