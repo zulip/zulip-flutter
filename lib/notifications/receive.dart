@@ -64,7 +64,7 @@ class NotificationService {
   }
 
   Future<void> start() async {
-    await NotificationOpenService.instance.start();
+    NotificationOpenService.instance.start();
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
