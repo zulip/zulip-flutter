@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -5,11 +7,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/settings.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/app.dart';
+import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/dialog.dart';
+import 'package:zulip/widgets/home.dart';
+import 'package:zulip/widgets/message_list.dart';
 
+import '../api/fake_api.dart';
+import '../example_data.dart' as eg;
 import '../model/binding.dart';
+import '../model/test_store.dart';
 import 'dialog_checks.dart';
 import 'test_app.dart';
 
@@ -188,5 +198,123 @@ void main() {
       check(find.ancestor(of: find.text(expectedMessage),
         matching: find.byType(SingleChildScrollView))).findsOne();
     }, variant: TargetPlatformVariant.all());
+  });
+
+  group('IntroDialog', () {
+    late TransitionDurationObserver transitionObserver;
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
+    Future<void> prepare(WidgetTester tester, {
+      required BoolGlobalSetting setting,
+    }) async {
+      transitionObserver = TransitionDurationObserver();
+      addTearDown(testBinding.reset);
+
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+      // Clear the value that TestGlobalStore sets to suppress these dialogs,
+      // so that the app's real default for the setting applies.
+      await testBinding.globalStore.settings.setBool(setting, null);
+
+      // Real ZulipApp needed because the show-dialog function calls
+      // `await ZulipApp.navigator`.
+      await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionObserver]));
+      await tester.pump();
+    }
+
+    void checkOnPage(String title) {
+      check(find.descendant(of: find.byType(ZulipAppBar),
+        matching: find.text(title))
+      ).findsOne();
+    }
+
+    void checkDialogShown({required String title, required bool expected}) {
+      check(find.byType(IntroDialog)).findsExactly(expected ? 1 : 0);
+      check(find.text(title)).findsExactly(expected ? 1 : 0);
+    }
+
+    Future<void> dismissDialog(WidgetTester tester) async {
+      await tester.tap(find.text('Got it'));
+      await transitionObserver.pumpPastTransition(tester);
+    }
+
+    testWidgets('inbox: show only on first visit', (tester) async {
+      const title = 'Welcome to your inbox!';
+      await prepare(tester, setting: .inboxIntroDialogShown);
+
+      // The app starts in the "Inbox" page.
+      checkOnPage('Inbox');
+      // The dialog appears one frame after the page does.
+      await tester.pump();
+      checkDialogShown(title: title, expected: true);
+
+      await dismissDialog(tester);
+      checkDialogShown(title: title, expected: false);
+
+      // Visit the inbox afresh, as happens on switching to another account.
+      // (Switching tabs on the home page wouldn't do, because the home page
+      // keeps all its tabs alive.)
+      await testBinding.globalStore.add(eg.otherAccount,
+        eg.initialSnapshot(realmUsers: [eg.otherUser]));
+      final navigator = await ZulipApp.navigator;
+      unawaited(navigator.push(HomePage.buildRoute(accountId: eg.otherAccount.id)));
+      await transitionObserver.pumpPastTransition(tester);
+
+      checkOnPage('Inbox');
+
+      // A dialog, if any, would appear one frame after the page does.
+      await tester.pump();
+      checkDialogShown(title: title, expected: false);
+    });
+
+    testWidgets('combined feed: show only on first visit', (tester) async {
+      const title = 'Welcome to your combined feed!';
+      await prepare(tester, setting: .combinedFeedIntroDialogShown);
+
+      Future<void> visitCombinedFeed() async {
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: []).toJson());
+        await tester.tap(find.text('Feed'));
+        await transitionObserver.pumpPastTransition(tester);
+        checkOnPage('Combined feed');
+      }
+
+      // The app starts in the "Inbox" page.
+      checkOnPage('Inbox');
+
+      await visitCombinedFeed();
+      checkDialogShown(title: title, expected: true);
+      await dismissDialog(tester);
+      checkDialogShown(title: title, expected: false);
+
+      // Go back to the "Inbox" page, then visit the combined feed again.
+      await tester.pageBack();
+      await transitionObserver.pumpPastTransition(tester);
+      checkOnPage('Inbox');
+      await visitCombinedFeed();
+      checkDialogShown(title: title, expected: false);
+    });
+
+    testWidgets('combined feed: no show on other message lists', (tester) async {
+      await prepare(tester, setting: .combinedFeedIntroDialogShown);
+      final channel = eg.stream();
+      await store.addStream(channel);
+      await store.addSubscription(eg.subscription(channel));
+
+      connection.prepare(json: eg.newestGetMessagesResult(
+        foundOldest: true, messages: []).toJson());
+      final navigator = await ZulipApp.navigator;
+      unawaited(navigator.push(MessageListPage.buildRoute(
+        accountId: eg.selfAccount.id,
+        narrow: TopicNarrow(channel.streamId, eg.t('some topic')))));
+      await transitionObserver.pumpPastTransition(tester);
+      checkOnPage('some topic');
+
+      // A dialog, if any, would appear one frame after the page does.
+      await tester.pump();
+      check(find.byType(IntroDialog)).findsNothing();
+    });
   });
 }
