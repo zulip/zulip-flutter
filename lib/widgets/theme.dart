@@ -153,6 +153,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgMenuButtonSelected: Colors.white,
     bgMessageRegular: const HSLColor.fromAHSL(1, 0, 0, 1).toColor(),
     bgSearchInput: const Color(0xffe3e3e3),
+    bgSearchInputZone: const Color(0xfff0f0f0),
     bgTopBar: const Color(0xfff5f5f5),
     borderBar: Colors.black.withValues(alpha: 0.2),
     borderMenuButtonSelected: Colors.black.withValues(alpha: 0.2),
@@ -265,6 +266,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     bgMenuButtonSelected: Colors.black.withValues(alpha: 0.25),
     bgMessageRegular: const Color(0xff1d1d1d),
     bgSearchInput: const Color(0xff313131),
+    bgSearchInputZone: const Color(0xff000000),
     bgTopBar: const Color(0xff242424),
     borderBar: const Color(0xffffffff).withValues(alpha: 0.1),
     borderMenuButtonSelected: Colors.white.withValues(alpha: 0.1),
@@ -386,6 +388,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     required this.bgMenuButtonSelected,
     required this.bgMessageRegular,
     required this.bgSearchInput,
+    required this.bgSearchInputZone,
     required this.bgTopBar,
     required this.borderBar,
     required this.borderMenuButtonSelected,
@@ -499,6 +502,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   final Color bgMenuButtonSelected;
   final Color bgMessageRegular;
   final Color bgSearchInput;
+  final Color bgSearchInputZone;
   final Color bgTopBar;
   final Color borderBar;
   final Color borderMenuButtonSelected;
@@ -606,6 +610,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     Color? bgMenuButtonSelected,
     Color? bgMessageRegular,
     Color? bgSearchInput,
+    Color? bgSearchInputZone,
     Color? bgTopBar,
     Color? borderBar,
     Color? borderMenuButtonSelected,
@@ -708,6 +713,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgMenuButtonSelected: bgMenuButtonSelected ?? this.bgMenuButtonSelected,
       bgMessageRegular: bgMessageRegular ?? this.bgMessageRegular,
       bgSearchInput: bgSearchInput ?? this.bgSearchInput,
+      bgSearchInputZone: bgSearchInputZone ?? this.bgSearchInputZone,
       bgTopBar: bgTopBar ?? this.bgTopBar,
       borderBar: borderBar ?? this.borderBar,
       borderMenuButtonSelected: borderMenuButtonSelected ?? this.borderMenuButtonSelected,
@@ -817,6 +823,7 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
       bgMenuButtonSelected: Color.lerp(bgMenuButtonSelected, other.bgMenuButtonSelected, t)!,
       bgMessageRegular: Color.lerp(bgMessageRegular, other.bgMessageRegular, t)!,
       bgSearchInput: Color.lerp(bgSearchInput, other.bgSearchInput, t)!,
+      bgSearchInputZone: Color.lerp(bgSearchInputZone, other.bgSearchInputZone, t)!,
       bgTopBar: Color.lerp(bgTopBar, other.bgTopBar, t)!,
       borderBar: Color.lerp(borderBar, other.borderBar, t)!,
       borderMenuButtonSelected: Color.lerp(borderMenuButtonSelected, other.borderMenuButtonSelected, t)!,
