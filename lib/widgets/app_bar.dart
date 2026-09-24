@@ -10,7 +10,7 @@ class ZulipAppBar extends AppBar {
   ///
   /// [buildTitle] is passed a boolean `willCenterTitle` that answers
   /// whether the underlying [AppBar] will decide to center [title]
-  /// based on [centerTitle], the theme, the platform, and [actions].
+  /// based on the theme, the platform, and [actions].
   /// Useful if [title] is a container whose children should align the same way,
   /// such as a [Column] with multiple lines of text.
   // TODO(upstream) send a PR to replace our `willCenterTitle` code
@@ -19,7 +19,6 @@ class ZulipAppBar extends AppBar {
     super.titleSpacing,
     Widget? title,
     Widget Function(bool willCenterTitle)? buildTitle,
-    super.centerTitle,
     super.backgroundColor,
     super.shape,
     super.actions,
@@ -27,18 +26,16 @@ class ZulipAppBar extends AppBar {
     assert((title == null) != (buildTitle == null)),
     super(
       bottom: _ZulipAppBarBottom(backgroundColor: backgroundColor),
-      title: title ?? _Title(centerTitle: centerTitle, actions: actions, buildTitle: buildTitle!)
+      title: title ?? _Title(actions: actions, buildTitle: buildTitle!)
     );
 }
 
 class _Title extends StatelessWidget {
   const _Title({
-    required this.centerTitle,
     required this.actions,
     required this.buildTitle,
   });
 
-  final bool? centerTitle;
   final List<Widget>? actions;
   final Widget Function(bool centerTitle) buildTitle;
 
@@ -57,7 +54,7 @@ class _Title extends StatelessWidget {
       }
     }
 
-    return centerTitle ?? theme.appBarTheme.centerTitle ?? platformCenter();
+    return theme.appBarTheme.centerTitle ?? platformCenter();
   }
 
   @override

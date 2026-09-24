@@ -365,7 +365,7 @@ class GlobalSettingsStore extends ChangeNotifier {
           => true,
         CombinedFeedNarrow() || ChannelNarrow()
         || MentionsNarrow() || StarredMessagesNarrow()
-        || KeywordSearchNarrow()
+        || SearchNarrow()
           => false,
       },
     };
@@ -393,7 +393,7 @@ class GlobalSettingsStore extends ChangeNotifier {
           => true,
         CombinedFeedNarrow() || ChannelNarrow()
         || MentionsNarrow() || StarredMessagesNarrow()
-        || KeywordSearchNarrow()
+        || SearchNarrow()
           => false,
       },
     };

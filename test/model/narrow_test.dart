@@ -2,6 +2,7 @@
 import 'package:checks/checks.dart';
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/model/narrow.dart';
 
 import '../example_data.dart' as eg;
@@ -249,6 +250,84 @@ void main() {
         eg.streamOutboxMessage(stream: eg.stream(), topic: 'topic'))).isFalse();
       check(narrow.containsMessage(
         eg.dmOutboxMessage(from: eg.selfUser, to: []))).isFalse();
+    });
+  });
+
+  group('SearchNarrow', () {
+    SearchNarrow mkNarrow(List<ApiNarrowElement> filters) =>
+      SearchNarrow(filters: filters);
+
+    void checkEqual(SearchNarrow a, SearchNarrow b) {
+      check(a).equals(b);
+      check(a.hashCode).equals(b.hashCode);
+    }
+
+    void checkNotEqual(SearchNarrow a, SearchNarrow b) =>
+      check(a).not((it) => it.equals(b));
+
+    test('filters is unmodifiable, and copied from the caller', () {
+      final filters = <ApiNarrowElement>[ApiNarrowSearch('foo')];
+      final narrow = mkNarrow(filters);
+      check(() => narrow.filters.add(ApiNarrowChannel(1)))
+        .throws<UnsupportedError>(); // "Cannot add to an unmodifiable list"
+
+      filters.add(ApiNarrowChannel(1));
+      check(narrow.filters).length.equals(1);
+    });
+
+    test('no construct with empty filters', () {
+      check(() => mkNarrow([])).throws<AssertionError>();
+    });
+
+    test('empty', () {
+      final narrow = SearchNarrow.empty();
+      check(narrow).isA<EmptySearchNarrow>().filters.isEmpty();
+      check(narrow.apiEncode).throws<UnsupportedError>();
+    });
+
+    test("apiEncode keeps the filters' original order", () {
+      final keyword = ApiNarrowSearch('foo');
+      final dm = ApiNarrowDm([2, 1]);
+      final channel = ApiNarrowChannel(1);
+      check(mkNarrow([keyword, dm, channel]).apiEncode())
+        .deepEquals([keyword, dm, channel]);
+    });
+
+    group('==', () {
+      test('equal narrows', () {
+        checkEqual(SearchNarrow.empty(), SearchNarrow.empty());
+        checkEqual(mkNarrow([ApiNarrowSearch('foo')]),
+                   mkNarrow([ApiNarrowSearch('foo')]));
+        checkEqual(mkNarrow([ApiNarrowChannel(1), ApiNarrowSearch('foo')]),
+                   mkNarrow([ApiNarrowChannel(1), ApiNarrowSearch('foo')]));
+      });
+
+      test('unequal narrows', () {
+        checkNotEqual(SearchNarrow.empty(), mkNarrow([ApiNarrowSearch('foo')]));
+        checkNotEqual(mkNarrow([ApiNarrowSearch('foo')]),
+                      mkNarrow([ApiNarrowSearch('bar')]));
+        checkNotEqual(mkNarrow([ApiNarrowSearch('foo', negated: true)]),
+                      mkNarrow([ApiNarrowSearch('foo')]));
+        checkNotEqual(mkNarrow([ApiNarrowChannel(1), ApiNarrowSearch('foo')]),
+                      mkNarrow([ApiNarrowSearch('foo'), ApiNarrowChannel(1)]));
+        checkNotEqual(mkNarrow([ApiNarrowDm([1, 2])]),
+                      mkNarrow([ApiNarrowDm([1, 3])]));
+        checkNotEqual(mkNarrow([ApiNarrowDm([1, 2])]),
+                      mkNarrow([ApiNarrowDm([2, 1])]));
+        checkNotEqual(mkNarrow([ApiNarrowTopic(eg.t('Foo'))]),
+                      mkNarrow([ApiNarrowTopic(eg.t('foo'))]));
+      });
+
+      test('no keyword impersonating other filters', () {
+        // Equality compares the filters as one string, and a keyword can be
+        // any text, including whatever separates one filter from the next
+        // in that string.  So a single keyword filter that happens to read
+        // like two filters must still be distinct from those two filters.
+        checkNotEqual(mkNarrow([ApiNarrowSearch('foo, topic:bar')]),
+          mkNarrow([ApiNarrowSearch('foo'), ApiNarrowTopic(eg.t('bar'))]));
+        checkNotEqual(mkNarrow([ApiNarrowSearch('foo topic:bar')]),
+          mkNarrow([ApiNarrowSearch('foo'), ApiNarrowTopic(eg.t('bar'))]));
+      });
     });
   });
 }
