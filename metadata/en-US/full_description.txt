@@ -1,0 +1,9 @@
+Zulip (https://zulip.com/) helps teams of all sizes be more productive together, from a few friends hacking on a new idea, to globally distributed organizations with hundreds of people tackling the world's hardest problems.
+
+Unlike other chat apps, Zulip lets you read and respond to every message in context, no matter when it was sent. Maintain your focus and then catch up on your own time, reading the topics you care about, and skimming or skipping the rest.
+
+Like everything Zulip, this official Zulip mobile app is 100% open-source software: https://github.com/zulip/zulip-mobile . Thank you to the hundreds of contributors who have made Zulip what it is!
+
+Zulip is available as a managed cloud service or a self-hosted solution.
+
+Please send questions, comments, and bug reports to support@zulip.com, or tweet @zulip.
