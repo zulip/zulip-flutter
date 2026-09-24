@@ -1339,8 +1339,10 @@ void main() {
     doTest('a^bc^', TopicAutocompleteQuery('abc'));
   });
 
-  Condition<Object?> isTopic(TopicName topic) {
-    return (it) => it.isA<TopicAutocompleteResult>().topic.equals(topic);
+  Condition<Object?> isTopic(TopicName topic, {bool isNew = false}) {
+    return (it) => it.isA<TopicAutocompleteResult>()
+      ..topic.equals(topic)
+      ..isNew.equals(isNew);
   }
 
   test('TopicAutocompleteView misc', () async {
@@ -1363,7 +1365,48 @@ void main() {
     await Future(() {});
     await Future(() {});
     check(done).isTrue();
-    check(view.results).single.which(isTopic(third.name));
+    // 'Third' does not match 'Third Topic' case-sensitively, so 'Third' (new) is prepended.
+    check(view.results).deepEquals([
+      isTopic(eg.t('Third'), isNew: true),
+      isTopic(third.name),
+    ]);
+  });
+
+  test('TopicAutocompleteView prepends new option when query does not match case-sensitively', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+    final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'new topic');
+    final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'new topic 1');
+    connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+
+    final view = TopicAutocompleteView.init(
+      store: store,
+      channelId: eg.stream().streamId,
+      query: TopicAutocompleteQuery('new topi'));
+    bool done = false;
+    view.addListener(() { done = true; });
+
+    await Future(() {});
+    await Future(() {});
+    check(done).isTrue();
+    check(view.results).deepEquals([
+      isTopic(eg.t('new topi'), isNew: true),
+      isTopic(topic1.name),
+      isTopic(topic2.name),
+    ]);
+
+    // When query matches an existing topic case-sensitively, no new option is prepended.
+    view.query = TopicAutocompleteQuery('new topic');
+    await Future(() {});
+    check(view.results).deepEquals([
+      isTopic(topic1.name),
+      isTopic(topic2.name),
+    ]);
+
+    // When query does not match any existing topic, result is empty.
+    view.query = TopicAutocompleteQuery('nonexistent');
+    await Future(() {});
+    check(view.results).isEmpty();
   });
 
   test('TopicAutocompleteView updates results when topics are loaded', () async {
@@ -1411,12 +1454,15 @@ void main() {
     view1.query = TopicAutocompleteQuery('server');
     check(connection.takeRequests()).isEmpty();
     await Future(() {});
-    check(view1.results).single.which(isTopic(topic1.name));
+    check(view1.results).deepEquals([
+      isTopic(eg.t('server'), isNew: true),
+      isTopic(topic1.name),
+    ]);
     view1.dispose();
 
     // No need to prepare a response as there will be no request made.
     final view2 = TopicAutocompleteView.init(store: store, channelId: 1000,
-      query: TopicAutocompleteQuery('mobile'));
+      query: TopicAutocompleteQuery('mobile releases'));
     done = false;
     view2.addListener(() { done = true; });
 
@@ -1437,7 +1483,7 @@ void main() {
 
     test('topic is included if it matches the query', () {
       doCheck('', 'Top Name', true);
-      doCheck('Name', 'Name', false);
+      doCheck('Name', 'Name', true);
       doCheck('name', 'Name', true);
       doCheck('name', 'Nam', false);
       doCheck('nam', 'Name', true);

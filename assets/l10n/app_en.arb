@@ -1530,6 +1530,10 @@
   "@wildcardMentionTopicDescription": {
     "description": "Description for \"@topic\" wildcard-mention autocomplete options when writing a channel message."
   },
+  "topicAutocompleteNewOptionLabel": "New",
+  "@topicAutocompleteNewOptionLabel": {
+    "description": "Label for the topic autocomplete option matching the user's query when no exact topic exists."
+  },
   "systemGroupNameEveryoneOnInternet": "Everyone on the internet",
   "@systemGroupNameEveryoneOnInternet": {
     "description": "Display name for the system group that includes everyone on the internet."
