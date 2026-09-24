@@ -2,6 +2,7 @@ import 'package:checks/checks.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:drift_dev/api/migrations_native.dart';
+import 'package:sqlite3/sqlite3.dart' show Database, sqlite3;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/model/database.dart';
 import 'package:zulip/model/settings.dart';
@@ -332,6 +333,94 @@ void main() {
       await after.close();
     });
 
+    test('foreign keys are off while migrating', () async {
+      // Why they have to be: see beforeOpen in AppDatabase. This checks the
+      // assert in onUpgrade isn't vacuous: the setting is per-connection, so
+      // the assert has to read it on the connection the migration runs on.
+      final schema = await verifier.schemaAt(AppDatabase.latestSchemaVersion - 1);
+      schema.rawDatabase.execute('PRAGMA foreign_keys = ON');
+
+      final db = AppDatabase(schema.newConnection());
+      await check(db.select(db.accounts).get()).throws<AssertionError>((it) =>
+        it.has((e) => e.message.toString(), 'message')
+          .contains('Foreign keys must be off'));
+      await db.close();
+    });
+
+    test('catch foreign-key violations from a migration', () async {
+      // Migrations run with foreign keys off, so they can orphan a row
+      // without SQLite objecting, hence the check in beforeOpen.
+      final schema = await verifier.schemaAt(AppDatabase.latestSchemaVersion - 1);
+      schema.rawDatabase.execute('INSERT INTO push_keys '
+        '(push_key_id, push_key, account_id, created_timestamp) '
+        "VALUES (1, x'00', 999, 0)");
+
+      final db = AppDatabase(schema.newConnection());
+      await check(db.select(db.accounts).get()).throws<AssertionError>((it) =>
+        it.has((e) => e.message.toString(), 'message')
+          .contains('foreign-key violations after migrating'));
+      await db.close();
+    });
+
+    group('a failed migration leaves the database alone', () {
+      // The rigging here makes a migration fail partway through. If it stops
+      // provoking a failure, the migration succeeds and the test fails,
+      // rather than quietly testing nothing.
+
+      test('upgrade', () async {
+        // Start at 14. Prepare the database so that:
+        // (a) the v14-to-v15 step succeeds, so a completed step and its
+        //     recorded version are what the rollback has to undo, but
+        // (b) the v15-to-v16 step fails, because the column it wants to add
+        //     (possible_legacy_push_token) is already present.
+        // The migration fails before reaching any later step, so new schema
+        // versions don't affect this.
+        //
+        // And check that the state after the failed migration reflects a
+        // rollback to the state before, at 14.
+        final schema = await verifier.schemaAt(14);
+        schema.rawDatabase.execute(
+          'ALTER TABLE accounts ADD COLUMN possible_legacy_push_token INTEGER');
+        final before = _schemaSnapshot(schema.rawDatabase);
+
+        final db = AppDatabase(schema.newConnection());
+        await check(db.select(db.accounts).get()).throws<SqliteException>();
+        check(_schemaSnapshot(schema.rawDatabase)).deepEquals(before);
+        await db.close();
+      });
+
+      test('create', () async {
+        // Prepare schema creation to fail, by leaving a global_settings table
+        // of the wrong shape, with an unexpected and non-nullable column.
+        // The step that inserts the singleton global_settings row will fail
+        // because no value for that unexpected column is given.
+        // (The earlier `createAll` call won't fail; that skips creating a
+        // table which already exists.)
+        // Check that before-and-after schema snapshots match.
+        final rawDatabase = sqlite3.openInMemory();
+        rawDatabase.execute(
+          'CREATE TABLE global_settings (unexpected TEXT NOT NULL)');
+        final before = _schemaSnapshot(rawDatabase);
+
+        final db = AppDatabase(NativeDatabase.opened(rawDatabase));
+        await check(db.getGlobalSettings()).throws<SqliteException>();
+        check(_schemaSnapshot(rawDatabase)).deepEquals(before);
+        await db.close();
+      });
+    });
+
+    test('a create records the schema version in its transaction', () async {
+      // On the create path nothing records the schema version until Drift
+      // does, after beforeOpen. If that were the only record of it, this
+      // database would be complete but still at version zero, and the next
+      // launch would create over it again.
+      final rawDatabase = sqlite3.openInMemory();
+      final db = _InterruptedAtBeforeOpen(NativeDatabase.opened(rawDatabase));
+      await check(db.getGlobalSettings()).throws<_Interrupted>();
+      check(rawDatabase.userVersion).equals(AppDatabase.latestSchemaVersion);
+      await db.close();
+    });
+
     group('migrate without data', () {
       const versions = GeneratedHelper.versions;
       final latestVersion = versions.last;
@@ -512,6 +601,38 @@ void main() {
 
     // v16 covered by "existing Account row" above
   });
+}
+
+/// An [AppDatabase] whose beforeOpen throws, aborting the open.
+///
+/// Drift runs beforeOpen on every open, so this interrupts any of them.
+/// Where a migration just ran, it stands in for the app being killed
+/// at that moment, before Drift finishes opening the database.
+class _InterruptedAtBeforeOpen extends AppDatabase {
+  _InterruptedAtBeforeOpen(super.e);
+
+  @override
+  MigrationStrategy get migration {
+    final strategy = super.migration;
+    return MigrationStrategy(
+      onCreate: strategy.onCreate,
+      onUpgrade: strategy.onUpgrade,
+      beforeOpen: (_) => throw const _Interrupted());
+  }
+}
+
+class _Interrupted implements Exception {
+  const _Interrupted();
+}
+
+/// The database's schema and schema version, for comparing before and after.
+List<Object?> _schemaSnapshot(Database db) {
+  return [
+    db.select('PRAGMA user_version').single.values.single,
+    for (final row in db.select(
+      'SELECT type, name, sql FROM sqlite_master ORDER BY name'))
+      row.values,
+  ];
 }
 
 extension UpdateCompanionExtension<T> on UpdateCompanion<T> {
