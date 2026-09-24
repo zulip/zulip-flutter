@@ -149,6 +149,33 @@ void main() {
     Map<String, dynamic> baseStreamJson() =>
       deepToJson(eg.streamMessage()) as Map<String, dynamic>;
 
+    Map<String, dynamic> baseDmJson() =>
+      deepToJson(eg.dmMessage(from: eg.selfUser, to: [])) as Map<String, dynamic>;
+
+    test('type: stream -> channel', () {
+      check(baseStreamJson()['type']).equals('channel');
+      check(Message.fromJson(baseStreamJson()))
+        .isA<StreamMessage>()
+        .type.equals(.channel);
+
+      check(Message.fromJson(baseStreamJson()
+        ..['type'] = 'stream'
+      )).isA<StreamMessage>()
+        .type.equals(.channel);
+    });
+
+    test('type: private -> direct', () {
+      check(baseDmJson()['type']).equals('direct');
+      check(Message.fromJson(baseDmJson()))
+        .isA<DmMessage>()
+        .type.equals(.direct);
+
+      check(Message.fromJson(baseDmJson()
+        ..['type'] = 'private'
+      )).isA<DmMessage>()
+        .type.equals(.direct);
+    });
+
     test('subject -> topic', () {
       check(baseStreamJson()).not((it) => it.containsKey('topic'));
       check(Message.fromJson(baseStreamJson()
