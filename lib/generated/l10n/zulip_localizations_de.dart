@@ -448,6 +448,13 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get errorCouldNotConnectTitle => 'Konnte nicht verbinden';
 
   @override
+  String get errorCouldNotLoadAppTitle => 'Could not load Zulip';
+
+  @override
+  String get errorCouldNotLoadApp =>
+      'Zulip could not load data saved on this device. Please restart the app and try again.';
+
+  @override
   String get errorMessageDoesNotSeemToExist =>
       'Diese Nachricht scheint nicht zu existieren.';
 

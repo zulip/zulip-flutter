@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../log.dart';
 import '../model/binding.dart';
 import '../model/database.dart';
+import '../model/localizations.dart';
 import '../model/settings.dart';
 import '../model/store.dart';
 import 'page.dart';
@@ -20,6 +22,7 @@ class GlobalStoreWidget extends StatefulWidget {
     super.key,
     this.blockingFuture,
     this.placeholder = const BlankLoadingPlaceholder(),
+    @visibleForTesting this.globalStoreFuture,
     required this.child,
   });
 
@@ -31,6 +34,11 @@ class GlobalStoreWidget extends StatefulWidget {
   final Future<void>? blockingFuture;
 
   final Widget placeholder;
+
+  /// A future used instead of loading the global store from the binding.
+  @visibleForTesting
+  final Future<GlobalStore>? globalStoreFuture;
+
   final Widget child;
 
   /// The app's global data store.
@@ -89,26 +97,74 @@ class GlobalStoreWidget extends StatefulWidget {
 
 class _GlobalStoreWidgetState extends State<GlobalStoreWidget> {
   GlobalStore? store;
+  bool loadFailed = false;
 
   @override
   void initState() {
     super.initState();
     (() async {
-      final store = await ZulipBinding.instance.getGlobalStoreUniquely();
-      if (widget.blockingFuture != null) {
-        await widget.blockingFuture!.catchError((_) {});
+      try {
+        final store = await (widget.globalStoreFuture
+          ?? ZulipBinding.instance.getGlobalStoreUniquely());
+        if (widget.blockingFuture != null) {
+          await widget.blockingFuture!.catchError((_) {});
+        }
+        if (!mounted) return;
+        setState(() {
+          this.store = store;
+        });
+      } catch (e, st) {
+        assert(debugLog('$e\n$st'));
+        if (!mounted) return;
+        setState(() {
+          loadFailed = true;
+        });
       }
-      setState(() {
-        this.store = store;
-      });
     })();
   }
 
   @override
   Widget build(BuildContext context) {
     final store = this.store;
+    if (loadFailed) return const _GlobalStoreLoadError();
     if (store == null) return widget.placeholder;
     return _GlobalStoreInheritedWidget(store: store, child: widget.child);
+  }
+}
+
+class _GlobalStoreLoadError extends StatelessWidget {
+  const _GlobalStoreLoadError();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = GlobalLocalizations.zulipLocalizations;
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Material(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  localizations.errorCouldNotLoadAppTitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 20),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  localizations.errorCouldNotLoadApp,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
