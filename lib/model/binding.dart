@@ -86,6 +86,9 @@ abstract class ZulipBinding {
   /// Get the app's singleton [GlobalStore],
   /// loading it asynchronously if not already loaded.
   ///
+  /// If the load fails, the returned future completes with the error,
+  /// and a later call will try loading again.
+  ///
   /// Where possible, use [GlobalStoreWidget.of] to get access to a [GlobalStore].
   /// Use this method only in contexts like notifications where
   /// a widget tree may not exist.
@@ -453,17 +456,42 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<GlobalStore> getGlobalStore() {
-    return _globalStoreFuture ??= LiveGlobalStore.load().then((store) {
-      return _globalStore = store;
-    });
+  Future<GlobalStore> getGlobalStore() async {
+    // First, see if we have the store already.
+    final store = _globalStore;
+    if (store != null) {
+      return store;
+    }
+
+    // Next, see if another call has already started loading one.
+    Future<GlobalStore>? future = _globalStoreLoading;
+    if (future != null) {
+      return future;
+    }
+
+    // It's up to us. Start loading.
+    future = doLoadGlobalStore();
+    _globalStoreLoading = future;
+    try {
+      return _globalStore = await future;
+    } catch (_) {
+      // TODO(log) the load failure
+      rethrow;
+    } finally {
+      _globalStoreLoading = null;
+    }
   }
+
+  /// Load the [GlobalStore], reading the app's database.
+  ///
+  /// This method should be called only by [getGlobalStore].
+  Future<GlobalStore> doLoadGlobalStore() => LiveGlobalStore.load();
 
   @override
   GlobalStore? getGlobalStoreSync() => _globalStore;
 
-  Future<GlobalStore>? _globalStoreFuture;
   GlobalStore? _globalStore;
+  Future<GlobalStore>? _globalStoreLoading;
 
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
