@@ -975,12 +975,9 @@ void main() {
     Iterable<WildcardMentionOption> getWildcardOptionsFor(String rawQuery, {
       bool isSilent = false,
       required Narrow narrow,
-      int? zulipFeatureLevel,
       ZulipLocalizations? localizations,
     }) {
-      final store = eg.store(
-        account: eg.account(user: eg.selfUser, zulipFeatureLevel: zulipFeatureLevel),
-        initialSnapshot: eg.initialSnapshot(zulipFeatureLevel: zulipFeatureLevel));
+      final store = eg.store();
       localizations ??= zulipLocalizations;
       final view = MentionAutocompleteView.init(store: store, localizations: localizations,
         narrow: narrow, query: MentionAutocompleteQuery(rawQuery, silent: isSilent));
@@ -1075,28 +1072,14 @@ void main() {
         .isEmpty();
     });
 
-    test('${WildcardMentionOption.channel} is available FL-247 onwards', () {
-      check(getWildcardOptionsFor('channel',
-          narrow: channelNarrow, zulipFeatureLevel: 247))
+    test('${WildcardMentionOption.channel} is available', () {
+      check(getWildcardOptionsFor('channel', narrow: channelNarrow))
         .deepEquals([WildcardMentionOption.channel]);
     });
 
-    test('${WildcardMentionOption.channel} is not available before FL-247', () {
-      check(getWildcardOptionsFor('channel',
-          narrow: channelNarrow, zulipFeatureLevel: 246))
-        .deepEquals([]);
-    });
-
-    test('${WildcardMentionOption.topic} is available FL-224 onwards', () {
-      check(getWildcardOptionsFor('topic',
-          narrow: channelNarrow, zulipFeatureLevel: 224))
+    test('${WildcardMentionOption.topic} is available', () {
+      check(getWildcardOptionsFor('topic', narrow: channelNarrow))
         .deepEquals([WildcardMentionOption.topic]);
-    });
-
-    test('${WildcardMentionOption.topic} is not available before FL-224', () {
-      check(getWildcardOptionsFor('topic',
-          narrow: channelNarrow, zulipFeatureLevel: 223))
-        .deepEquals([]);
     });
   });
 

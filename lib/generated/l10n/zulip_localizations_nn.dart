@@ -1278,9 +1278,6 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'Varsle kanal';
 
   @override
-  String get wildcardMentionStreamDescription => 'Varsle straum';
-
-  @override
   String get wildcardMentionAllDmDescription => 'Varsle mottakarar';
 
   @override
