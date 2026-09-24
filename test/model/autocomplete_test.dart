@@ -530,6 +530,64 @@ void main() {
       ..not((results) => results.contains(11000));
   });
 
+  test('MentionAutocompleteView disposed during computation does not notify', () async {
+    const narrow = ChannelNarrow(1);
+    final store = eg.store();
+    for (int i = 1; i <= 1500; i++) {
+      await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
+    }
+
+    bool notified = false;
+    final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+      narrow: narrow, query: MentionAutocompleteQuery('User 234'));
+    view.addListener(() { notified = true; });
+
+    await Future(() {});
+    check(notified).isFalse(); // search still in progress
+    view.dispose();
+
+    // If the search continued, it would call notifyListeners on
+    // the disposed view-model, an error that would fail this test.
+    for (int i = 0; i < 10; i++) { // for good measure
+      await Future(() {});
+    }
+  });
+
+  test('MentionAutocompleteView same query set again during computation aborts old search', () async {
+    // Setting the query restarts the search even if the query is equal,
+    // as happens on a cursor move in the compose box's topic input.
+    // Use more than 1000 users, so the search takes more than one batch
+    // (see filterCandidates) and can be interrupted partway through.
+    const narrow = ChannelNarrow(1);
+    final store = eg.store();
+    for (int i = 1; i <= 1500; i++) {
+      await store.addUser(eg.user(userId: i, email: 'user$i@example.com', fullName: 'User $i'));
+    }
+
+    int notifiedCount = 0;
+    final view = MentionAutocompleteView.init(store: store, localizations: zulipLocalizations,
+      narrow: narrow, query: MentionAutocompleteQuery('User 234'));
+    view.addListener(() { notifiedCount++; });
+
+    await Future(() {});
+    check(notifiedCount).equals(0); // search still in progress
+    view.query = MentionAutocompleteQuery('User 234');
+
+    for (int i = 0; i < 10; i++) {
+      await Future(() {});
+      if (notifiedCount > 0) break;
+    }
+    check(notifiedCount).equals(1);
+    check(view.results).single.isA<UserMentionAutocompleteResult>()
+      .userId.equals(234);
+
+    // The old search, which was a task ahead, doesn't finish and notify too.
+    for (int i = 0; i < 10; i++) { // for good measure
+      await Future(() {});
+      check(notifiedCount).equals(1);
+    }
+  });
+
   group('MentionAutocompleteView sorting results', () {
     late PerAccountStore store;
 
@@ -1383,6 +1441,26 @@ void main() {
     check(done).isFalse();
     await Future(() {});
     check(done).isTrue();
+  });
+
+  test('TopicAutocompleteView disposed before topics are loaded does not start a search', () async {
+    final store = eg.store();
+    final connection = store.connection as FakeApiConnection;
+    connection.prepare(json: GetChannelTopicsResult(
+      topics: [eg.getChannelTopicsEntry(name: 'test')]
+    ).toJson());
+
+    final view = TopicAutocompleteView.init(
+      store: store,
+      channelId: eg.stream().streamId,
+      query: TopicAutocompleteQuery('te'));
+    view.dispose();
+
+    // If the arriving topics started a search, the assert at the top of
+    // _startSearch would fail this test.
+    for (int i = 0; i < 10; i++) { // for good measure
+      await Future(() {});
+    }
   });
 
   test('TopicAutocompleteView fetches topics once for a channel', () async {
