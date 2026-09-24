@@ -88,13 +88,13 @@ NotifPayloadNewMessage notifPayloadNewMessage(
   Account? account,
 }) {
   account ??= eg.selfAccount;
-  realmName ??= account.realmName;
+  realmName ??= account.realmName!;
   final narrow = SendableNarrow.ofMessage(zulipMessage, selfUserId: account.userId);
   return NotifPayload.fromJson({
     "type": "message",
 
     "realm_url": account.realmUrl.toString(),
-    "realm_name": ?realmName,
+    "realm_name": realmName,
     "user_id": account.userId,
 
     "message_id": zulipMessage.id,
@@ -127,7 +127,7 @@ MessageLegacyFcmMessage legacyMessageFcmMessage(
   Account? account,
 }) {
   account ??= eg.selfAccount;
-  realmName ??= account.realmName;
+  realmName ??= account.realmName!;
   final narrow = SendableNarrow.ofMessage(zulipMessage, selfUserId: account.userId);
   return LegacyFcmMessage.fromJson({
     "event": "message",
@@ -136,7 +136,7 @@ MessageLegacyFcmMessage legacyMessageFcmMessage(
     "realm_id": "4",
     "realm_uri": account.realmUrl.toString(),
     "user_id": account.userId.toString(),
-    "realm_name": ?realmName,
+    "realm_name": realmName,
 
     "zulip_message_id": zulipMessage.id.toString(),
     "time": zulipMessage.timestamp.toString(),
@@ -170,7 +170,7 @@ NotifPayloadRemove notifPayloadRemove(List<Message> zulipMessages, {Account? acc
     "type": "remove",
 
     "realm_url": account.realmUrl.toString(),
-    "realm_name": ?account.realmName,
+    "realm_name": account.realmName!,
     "user_id": account.userId,
 
     "message_ids": List<int>.unmodifiable(zulipMessages.map((e) => e.id)),
@@ -185,6 +185,7 @@ RemoveLegacyFcmMessage legacyRemoveFcmMessage(List<Message> zulipMessages, {Acco
     "server": "zulip.example.cloud",
     "realm_id": "4",
     "realm_uri": account.realmUrl.toString(),
+    "realm_name": account.realmName!,
     "user_id": account.userId.toString(),
 
     "zulip_message_ids": zulipMessages.map((e) => e.id).join(','),
@@ -495,9 +496,7 @@ void main() {
         },
         // The notification opens at the earliest message of the conversation.
         messageId: messageStyleMessages.first.messageId).buildNotificationUrl();
-      expectedSummaryText ??= account.realmName
-        ?? data.realmName
-        ?? data.realmUrl.toString();
+      expectedSummaryText ??= account.realmName ?? data.realmName;
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
@@ -924,37 +923,6 @@ void main() {
         expectedTitle: '#${stream.name} > $topic',
         expectedTagComponent: 'stream:${stream.streamId}:$topic',
         expectedSummaryText: 'Notif realm name');
-    })));
-
-    test('stream message: realm name absent in account and notif data, falls back to realm URL', () => runWithHttpClient(() => awaitFakeAsync((async) async {
-      await init(addSelfAccount: false);
-
-      var account = eg.account(
-        id: 1001,
-        user: eg.user(),
-        realmUrl: Uri.parse('http://realm1.example'));
-      await addAccount(account);
-
-      // Override the default realmName from eg.account().
-      account = await testBinding.globalStore.updateAccount(account.id,
-        AccountsCompanion(realmName: const Value(null)));
-      check(account).realmName.isNull();
-
-      final stream = eg.stream();
-      final topic = 'test topic';
-      final data = notifPayloadNewMessage(
-        eg.streamMessage(stream: stream, topic: topic),
-        account: account, streamName: stream.name);
-      check(data).realmName.isNull();
-
-      await receiveNotification(async, data);
-      checkNotification(data,
-        account: account,
-        messageStyleMessages: [data],
-        expectedIsGroupConversation: true,
-        expectedTitle: '#${stream.name} > $topic',
-        expectedTagComponent: 'stream:${stream.streamId}:$topic',
-        expectedSummaryText: account.realmUrl.toString());
     })));
 
     test('group DM: 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {
