@@ -58,6 +58,9 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
   /// If the user is muted and [replaceIfMuted] is true (the default),
   /// this is [ZulipLocalizations.mutedUser].
   ///
+  /// Otherwise, if the user is deleted (see [User.isDeleted]),
+  /// this is [ZulipLocalizations.deletedUser].
+  ///
   /// Otherwise this is the user's [User.fullName] if the user is known,
   /// or (if unknown) [ZulipLocalizations.unknownUserName].
   ///
@@ -67,7 +70,11 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
     if (replaceIfMuted && isUserMuted(userId)) {
       return GlobalLocalizations.zulipLocalizations.mutedUser;
     }
-    return getUser(userId)?.fullName
+    final user = getUser(userId);
+    if (user != null && user.isDeleted) {
+      return GlobalLocalizations.zulipLocalizations.deletedUser;
+    }
+    return user?.fullName
       ?? GlobalLocalizations.zulipLocalizations.unknownUserName;
   }
 
@@ -76,19 +83,34 @@ mixin UserStore on PerAccountStoreBase, RealmStore {
   /// If the sender is muted and [replaceIfMuted] is true (the default),
   /// this is [ZulipLocalizations.mutedUser].
   ///
+  /// Otherwise, if the sender is deleted (see [User.isDeleted]) and
+  /// [replaceIfDeleted] is true (the default),
+  /// this is [ZulipLocalizations.deletedUser].
+  ///
   /// Otherwise, if the user is known (see [getUser]),
   /// this is their current [User.fullName].
   /// If unknown, this uses the fallback value conveniently provided on the
   /// [Message] object itself, namely [Message.senderFullName].
   ///
+  /// Pass false for [replaceIfMuted] and [replaceIfDeleted] where the
+  /// sender's actual name is needed, as in @-mention syntax, where the
+  /// server accepts only the user's real name.
+  ///
   /// For a user who isn't the sender of some known message,
   /// see [userDisplayName].
-  String senderDisplayName(Message message, {bool replaceIfMuted = true}) {
+  String senderDisplayName(Message message, {
+    bool replaceIfMuted = true,
+    bool replaceIfDeleted = true,
+  }) {
     final senderId = message.senderId;
     if (replaceIfMuted && isUserMuted(senderId)) {
       return GlobalLocalizations.zulipLocalizations.mutedUser;
     }
-    return getUser(senderId)?.fullName ?? message.senderFullName;
+    final user = getUser(senderId);
+    if (replaceIfDeleted && user != null && user.isDeleted) {
+      return GlobalLocalizations.zulipLocalizations.deletedUser;
+    }
+    return user?.fullName ?? message.senderFullName;
   }
 
   /// Whether the user with [userId] is muted by the self-user.

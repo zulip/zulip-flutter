@@ -295,6 +295,7 @@ User user({
   int? botOwnerId,
   UserRole? role,
   String? avatarUrl,
+  bool? isDeleted,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
   _checkPositive(userId, 'user ID');
@@ -313,6 +314,7 @@ User user({
     timezone: 'UTC',
     avatarUrl: avatarUrl,
     avatarVersion: 0,
+    isDeleted: isDeleted ?? false,
     profileData: profileData,
     isSystemBot: false,
   );
@@ -375,6 +377,7 @@ class _ImmutableUser extends User {
     timezone: user.timezone,
     avatarUrl: user.avatarUrl,
     avatarVersion: user.avatarVersion,
+    isDeleted: user.isDeleted,
     profileData: user.profileData == null ? null : Map.unmodifiable(user.profileData!),
     isSystemBot: user.isSystemBot,
     // When adding a field here, be sure to add the corresponding setter below.
@@ -399,6 +402,7 @@ class _ImmutableUser extends User {
   @override set timezone(_) => throw _error;
   @override set avatarUrl(_) => throw _error;
   @override set avatarVersion(_) => throw _error;
+  @override set isDeleted(_) => throw _error;
   @override set profileData(_) => throw _error;
   // isSystemBot already immutable
 }
