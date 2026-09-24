@@ -158,9 +158,7 @@ void main() {
           NotifPayloadDmRecipient(:var allRecipientIds) =>
             DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
         },
-        // TODO(#1565): also open at the specific message on iOS
-        messageId: defaultTargetPlatform == TargetPlatform.iOS
-          ? null : data.messageId).buildNotificationUrl();
+        messageId: data.messageId).buildNotificationUrl();
     }
 
     Map<String, Object?> messageApnsPayload(
@@ -240,9 +238,7 @@ void main() {
         ..page.isA<MessageListPage>().which((it) => it
           ..initNarrow.equals(SendableNarrow.ofMessage(message,
             selfUserId: account.userId))
-          // TODO(#1565): also open at the specific message on iOS
-          ..initAnchorMessageId.equals(
-              defaultTargetPlatform == TargetPlatform.iOS ? null : message.id));
+          ..initAnchorMessageId.equals(message.id));
     }
 
     Future<void> checkOpenNotification(
@@ -674,14 +670,14 @@ void main() {
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageLegacyApnsPayload(eg.dmMessage(from: userB, to: [userA]),
-          account: account);
+        final message = eg.dmMessage(from: userB, to: [userA]);
+        final payload = messageLegacyApnsPayload(message, account: account);
         check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
             ..otherRecipientIds.deepEquals([1002]))
-          ..messageId.isNull();
+          ..messageId.equals(message.id);
       });
 
       test('smoke group DM', () {
@@ -691,14 +687,14 @@ void main() {
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageLegacyApnsPayload(eg.dmMessage(from: userC, to: [userA, userB]),
-          account: account);
+        final message = eg.dmMessage(from: userC, to: [userA, userB]);
+        final payload = messageLegacyApnsPayload(message, account: account);
         check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<DmNarrow>()
             ..otherRecipientIds.deepEquals([1002, 1003]))
-          ..messageId.isNull();
+          ..messageId.equals(message.id);
       });
 
       test('smoke topic message', () {
@@ -706,17 +702,17 @@ void main() {
         final account = eg.account(
           realmUrl: Uri.parse('http://chat.example'),
           user: userA);
-        final payload = messageLegacyApnsPayload(eg.streamMessage(
+        final message = eg.streamMessage(
           stream: eg.stream(streamId: 1),
-          topic: 'topic A'),
-          account: account);
+          topic: 'topic A');
+        final payload = messageLegacyApnsPayload(message, account: account);
         check(NotificationOpenPayload.parseLegacyIosApnsPayload(payload))
           ..realmUrl.equals(Uri.parse('http://chat.example'))
           ..userId.equals(1001)
           ..narrow.which((it) => it.isA<TopicNarrow>()
             ..channelId.equals(1)
             ..topic.equals(TopicName('topic A')))
-          ..messageId.isNull();
+          ..messageId.equals(message.id);
       });
     });
 
@@ -741,7 +737,6 @@ void main() {
       });
 
       test('smoke DM, without a message ID', () {
-        // TODO(#1565): iOS omits the message ID for now.
         final url = NotificationOpenPayload(
           realmUrl: Uri.parse('http://chat.example'),
           userId: 1001,
@@ -780,7 +775,6 @@ void main() {
       });
 
       test('smoke topic, without a message ID', () {
-        // TODO(#1565): iOS omits the message ID for now.
         final url = NotificationOpenPayload(
           realmUrl: Uri.parse('http://chat.example'),
           userId: 1001,
@@ -822,7 +816,6 @@ void main() {
       });
 
       test('smoke DM, without a message ID', () {
-        // TODO(#1565): iOS omits the message ID for now.
         final url = Uri(
           scheme: 'zulip',
           host: 'notification',
@@ -863,7 +856,6 @@ void main() {
       });
 
       test('smoke topic, without a message ID', () {
-        // TODO(#1565): iOS omits the message ID for now.
         final url = Uri(
           scheme: 'zulip',
           host: 'notification',
