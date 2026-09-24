@@ -146,7 +146,7 @@ class ReactionChipsList extends StatelessWidget {
   }
 }
 
-class ReactionChip extends StatelessWidget {
+class ReactionChip extends StatefulWidget {
   final bool showName;
   final int messageId;
   final ReactionWithVotes reactionWithVotes;
@@ -158,11 +158,41 @@ class ReactionChip extends StatelessWidget {
     required this.reactionWithVotes,
   });
 
+  @override
+  State<ReactionChip> createState() => _ReactionChipState();
+}
+
+class _ReactionChipState extends State<ReactionChip> {
+  /// Whether this is an image emoji whose image failed to load,
+  /// so that a text emoji is being shown instead.
+  bool _imageFailed = false;
+
+  @override
+  void didUpdateWidget(covariant ReactionChip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final reaction = widget.reactionWithVotes;
+    final oldReaction = oldWidget.reactionWithVotes;
+    if (reaction.reactionType != oldReaction.reactionType
+        || reaction.emojiCode != oldReaction.emojiCode) {
+      _imageFailed = false;
+    }
+  }
+
+  void _handleImageError() {
+    if (_imageFailed) return;
+    // This is called during build (see [EmojiWidget.onImageError]),
+    // so wait for the current frame before rebuilding.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _imageFailed = true);
+    });
+  }
+
   // Linear in the number of voters (of course);
   // best to avoid calling this unless we know there are few voters.
   String _voterNames(PerAccountStore store, ZulipLocalizations zulipLocalizations) {
     final selfUserId = store.selfUserId;
-    final userIds = reactionWithVotes.userIds;
+    final userIds = widget.reactionWithVotes.userIds;
     final result = <String>[];
     if (userIds.contains(selfUserId)) {
       // Putting "You" first is helpful when this is used in the semantics label.
@@ -180,15 +210,15 @@ class ReactionChip extends StatelessWidget {
     final store = PerAccountStoreWidget.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final reactionType = reactionWithVotes.reactionType;
-    final emojiCode = reactionWithVotes.emojiCode;
-    final emojiName = reactionWithVotes.emojiName;
-    final userIds = reactionWithVotes.userIds;
+    final reactionType = widget.reactionWithVotes.reactionType;
+    final emojiCode = widget.reactionWithVotes.emojiCode;
+    final emojiName = widget.reactionWithVotes.emojiName;
+    final userIds = widget.reactionWithVotes.userIds;
 
     final selfVoted = userIds.contains(store.selfUserId);
     final String label;
     final String semanticsLabel;
-    if (showName) {
+    if (widget.showName) {
       final names = _voterNames(store, zulipLocalizations);
       label = names;
       semanticsLabel = zulipLocalizations.reactionChipLabel(emojiName, names);
@@ -228,6 +258,7 @@ class ReactionChip extends StatelessWidget {
       squareDimension: _squareEmojiSize,
       squareDimensionScaler: _squareEmojiScalerClamped(context),
       imagePlaceholderStyle: EmojiImagePlaceholderStyle.text,
+      onImageError: _handleImageError,
       buildCustomTextEmoji: () => _TextEmoji(
         emojiName: emojiName, selected: selfVoted),
     );
@@ -241,13 +272,13 @@ class ReactionChip extends StatelessWidget {
         highlightColor: highlightColor,
         onLongPress: () {
           showViewReactionsSheet(PageRoot.contextOf(context),
-            messageId: messageId,
+            messageId: widget.messageId,
             initialReactionType: reactionType,
             initialEmojiCode: emojiCode);
         },
         onTap: () {
           (selfVoted ? removeReaction : addReaction).call(store.connection,
-            messageId: messageId,
+            messageId: widget.messageId,
             reactionType: reactionType,
             emojiCode: emojiCode,
             emojiName: emojiName,
@@ -260,17 +291,25 @@ class ReactionChip extends StatelessWidget {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final maxRowWidth = constraints.maxWidth;
-              // To give text emojis some room so they need fewer line breaks
-              // when the label is long.
-              // TODO(#433) This is a bit overzealous. The shorter width
-              //   won't be necessary when the text emoji is very short, or
-              //   in the near-universal case of small, square emoji (i.e.
-              //   Unicode and image emoji). But it's not simple to recognize
-              //   those cases here: we don't know at this point whether we'll
-              //   be showing a text emoji, because we use that for various
-              //   error conditions (including when an image fails to load,
-              //   which we learn about especially late).
-              final maxLabelWidth = (maxRowWidth - 6) * 0.75; // 6 is padding
+              // For a text emoji, give the emoji some room
+              // so it needs fewer line breaks when the label is long,
+              // by narrowing the label to part of the row's width.
+              // A square emoji (i.e. Unicode or image emoji,
+              // the near-universal case) doesn't need that room,
+              // so the label can have all the width the emoji doesn't use.
+              // An image emoji can still end up as a text emoji
+              // when its image fails to load; we learn about that
+              // especially late, so [_imageFailed] triggers a rebuild
+              // to switch to the text-emoji layout.  (#433)
+              final asTextEmoji = emojiDisplay is TextEmojiDisplay || _imageFailed;
+              final double maxLabelWidth;
+              if (asTextEmoji) {
+                maxLabelWidth = (maxRowWidth - 6) * 0.75; // 6 is padding
+              } else {
+                final emojiWidth = _squareEmojiScalerClamped(context)
+                  .scale(_squareEmojiSize);
+                maxLabelWidth = maxRowWidth - emojiWidth - 12; // 12 is padding
+              }
 
               final labelScaler = _labelTextScalerClamped(context);
               return Row(
