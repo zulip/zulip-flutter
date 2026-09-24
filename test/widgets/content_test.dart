@@ -364,7 +364,7 @@ void main() {
 
   testContentSmoke(ContentExample.quotation);
 
-  group('MessageImagePreview, MessageImagePreviewList', () {
+  group('MessageImageGallery, MessageImageGalleryItem', () {
     Future<void> prepare(WidgetTester tester, String html, {
       List<NavigatorObserver> navObservers = const [],
     }) async {
@@ -406,7 +406,7 @@ void main() {
           ..contains('href="$rawHref"')
           ..contains('src="$rawSrc"');
 
-        final findImagePreview = find.byType(MessageImagePreview);
+        final findImagePreview = find.byType(MessageImageGalleryItem);
         final findLoadingIndicator = find.descendant(
           of: findImagePreview, matching: find.byType(CupertinoActivityIndicator));
 
@@ -701,6 +701,45 @@ void main() {
         find.byType(RealmContentNetworkImage));
       check(images.map((i) => i.src).toList())
         .deepEquals(expectedImages.map((n) => otherSrc(n.src)));
+    });
+
+    group('inline image gallery', () {
+      testWidgets('renders images in order', (tester) async {
+        final example = ContentExample.inlineImageGalleryAdjacentAndBr;
+        await prepare(tester, example.html);
+        final paragraph = example.expectedNodes[0] as ParagraphNode;
+        final expectedImages = (paragraph.nodes[0] as InlineImageNodeList).inlineImages;
+        final images = tester.widgetList<RealmContentNetworkImage>(
+          find.byType(RealmContentNetworkImage));
+        check(images.map((i) => i.src).toList())
+          .deepEquals(expectedImages.map((n) => thumbnailSrc(n.src)));
+      });
+
+      testWidgets('text-separated images', (tester) async {
+        final example = ContentExample.inlineImageGalleryTextSeparated;
+        await prepare(tester, example.html);
+        final paragraph = example.expectedNodes[0] as ParagraphNode;
+        final expectedImages = (paragraph.nodes[0] as InlineImageNodeList).inlineImages
+          + (paragraph.nodes[5] as InlineImageNodeList).inlineImages;
+        final images = tester.widgetList<RealmContentNetworkImage>(
+          find.byType(RealmContentNetworkImage));
+        check(images.map((i) => i.src).toList())
+          .deepEquals(expectedImages.map((n) => thumbnailSrc(n.src)));
+      });
+
+      testWidgets('first inline second gallery', (tester) async {
+        final example = ContentExample.inlineImageFirstInlineSecondGallery;
+        await prepare(tester, example.html);
+        final paragraph = example.expectedNodes[0] as ParagraphNode;
+        final expectedImages = <InlineImageNode>[
+          paragraph.nodes[1] as InlineImageNode,
+          ...(paragraph.nodes[4] as InlineImageNodeList).inlineImages,
+        ];
+        final images = tester.widgetList<RealmContentNetworkImage>(
+          find.byType(RealmContentNetworkImage));
+        check(images.map((i) => i.src).toList())
+          .deepEquals(expectedImages.map((n) => thumbnailSrc(n.src)));
+      });
     });
   });
 

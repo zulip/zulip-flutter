@@ -269,77 +269,542 @@ class ContentExample {
     const ImageEmojiNode(
       src: '/static/generated/emoji/images/emoji/unicode/zulip.png', alt: ':zulip:'));
 
-  static final inlineImage = ContentExample.inline(
+  static final inlineImage = ContentExample(
     'inline image',
-    '![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
+    'text ![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Chris/near/2346984
-    '<p><img alt="image.png" class="inline-image" '
+    // Text before the image is not in the reference. It is included so the image
+    // stays as an individual InlineImageNode, rather than being put in a gallery.
+    '<p>'
+      'text '
+      '<img alt="image.png" class="inline-image" '
       'data-original-content-type="image/png" '
       'data-original-dimensions="186x142" '
       'data-original-src="/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png" '
-      'src="/user_uploads/thumbnail/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png/840x560.webp"></p>',
-    InlineImageNode(
-      loading: false,
-      src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
-        defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png/840x560.webp'))),
-      alt: 'image.png',
-      originalSrc: '/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png',
-      originalWidth: 186,
-      originalHeight: 142));
+      'src="/user_uploads/thumbnail/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png/840x560.webp"></p>', [
+    ParagraphNode(links: null, nodes: [
+      TextNode('text '),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png/840x560.webp'))),
+        alt: 'image.png',
+        originalSrc: '/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png',
+        originalWidth: 186,
+        originalHeight: 142),
+    ]),
+  ]);
 
-  static final inlineImageLoading = ContentExample.inline(
+  static final inlineImageLoading = ContentExample(
     'inline image, loading',
-    '![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
+    'text ![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
     // HTML constructed from the API doc in the pull request for this feature:
     //   https://github.com/zulip/zulip/pull/36226
-    '<p><img alt="example image" class="inline-image image-loading-placeholder" '
+    // Text before the image keeps it as an individual InlineImageNode.
+    '<p>'
+      'text '
+      '<img alt="example image" class="inline-image image-loading-placeholder" '
       'data-original-content-type="image/png" '
       'data-original-dimensions="1050x700" '
       'data-original-src="/user_uploads/path/to/example.png" '
-      'src="/path/to/spinner.png"></p>',
-    InlineImageNode(
-      loading: true,
-      src: ImageNodeSrcOther('/path/to/spinner.png'),
-      alt: 'example image',
-      originalSrc: '/user_uploads/path/to/example.png',
-      originalWidth: 1050,
-      originalHeight: 700));
+      'src="/path/to/spinner.png"></p>', [
+    ParagraphNode(links: null, nodes: [
+      TextNode('text '),
+      InlineImageNode(
+        loading: true,
+        src: ImageNodeSrcOther('/path/to/spinner.png'),
+        alt: 'example image',
+        originalSrc: '/user_uploads/path/to/example.png',
+        originalWidth: 1050,
+        originalHeight: 700),
+    ]),
+  ]);
 
-  static final inlineImageLoadingClassOrderReversed = ContentExample.inline(
+  static final inlineImageLoadingClassOrderReversed = ContentExample(
     'inline image, loading, class order reversed',
-    '![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
+    'text ![image.png](/user_uploads/2/15/nO8mls-ZGl6LBC9bRNVL2jAG/image.png)',
     // Hypothetical server variation on inlineImageLoading.
-    '<p><img alt="example image" class="image-loading-placeholder inline-image" '
+    // Text before the image keeps it as an individual InlineImageNode.
+    '<p>'
+      'text '
+      '<img alt="example image" class="image-loading-placeholder inline-image" '
       'data-original-content-type="image/png" '
       'data-original-dimensions="1050x700" '
       'data-original-src="/user_uploads/path/to/example.png" '
-      'src="/path/to/spinner.png"></p>',
-    InlineImageNode(
-      loading: true,
-      src: ImageNodeSrcOther('/path/to/spinner.png'),
-      alt: 'example image',
-      originalSrc: '/user_uploads/path/to/example.png',
-      originalWidth: 1050,
-      originalHeight: 700));
+      'src="/path/to/spinner.png"></p>', [
+    ParagraphNode(links: null, nodes: [
+      TextNode('text '),
+      InlineImageNode(
+        loading: true,
+        src: ImageNodeSrcOther('/path/to/spinner.png'),
+        alt: 'example image',
+        originalSrc: '/user_uploads/path/to/example.png',
+        originalWidth: 1050,
+        originalHeight: 700),
+    ]),
+  ]);
 
-  static final inlineImageAnimated = ContentExample.inline(
+  static final inlineImageAnimated = ContentExample(
     'inline image, animated',
-    '![2451eb2d.gif](/user_uploads/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif)',
+    'text ![2451eb2d.gif](/user_uploads/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif)',
     // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Chris/near/2346992
-    '<p><img alt="2451eb2d.gif" class="inline-image" '
+    // Text before the image keeps it as an individual InlineImageNode.
+    '<p>'
+      'text '
+      '<img alt="2451eb2d.gif" class="inline-image" '
       'data-animated="true" '
       'data-original-content-type="image/gif" '
       'data-original-dimensions="64x64" '
       'data-original-src="/user_uploads/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif" '
-      'src="/user_uploads/thumbnail/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif/840x560-anim.webp"></p>',
-    InlineImageNode(
-      loading: false,
-      src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: true,
-        defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif/840x560-anim.webp'))),
-      alt: '2451eb2d.gif',
-      originalSrc: '/user_uploads/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif',
-      originalWidth: 64,
-      originalHeight: 64));
+      'src="/user_uploads/thumbnail/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif/840x560-anim.webp"></p>', [
+    ParagraphNode(links: null, nodes: [
+      TextNode('text '),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: true,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif/840x560-anim.webp'))),
+        alt: '2451eb2d.gif',
+        originalSrc: '/user_uploads/2/1a/igMNAkwVOP7NLJy-Hye6WiKP/2451eb2d.gif',
+        originalWidth: 64,
+        originalHeight: 64),
+    ]),
+  ]);
+
+  static final inlineImageGallerySingle = ContentExample.inline(
+    'inline image gallery, single image',
+    '![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2460790
+    '<p><img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp"></p>',
+    InlineImageNodeList([
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+        alt: 'number-1.png',
+        originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+        originalWidth: 512,
+        originalHeight: 512),
+    ]));
+
+  static final inlineImageGalleryTwoAdjacent = ContentExample.inline(
+    'inline image gallery, two adjacent images',
+    '![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2460791
+    '<p>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp"></p>',
+    InlineImageNodeList([
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+        alt: 'number-1.png',
+        originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+        originalWidth: 512,
+        originalHeight: 512),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+        alt: 'number-2.png',
+        originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+        originalWidth: 512,
+        originalHeight: 512),
+    ]));
+
+  static final inlineImageGallerySpaceSeparated = ContentExample.inline(
+    'inline image gallery, space-separated images',
+    '![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png) ![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2460792
+    '<p>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      ' '
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp"></p>',
+    InlineImageNodeList([
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+        alt: 'number-1.png',
+        originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+        originalWidth: 512,
+        originalHeight: 512),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+        alt: 'number-2.png',
+        originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+        originalWidth: 512,
+        originalHeight: 512),
+    ]));
+
+  static final inlineImageGalleryBrSeparated = ContentExample.inline(
+    'inline image gallery, br-separated images',
+    '![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)\n![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2460793
+    '<p>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '<br>\n'
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp"></p>',
+    InlineImageNodeList([
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+        alt: 'number-1.png',
+        originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+        originalWidth: 512,
+        originalHeight: 512),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+        alt: 'number-2.png',
+        originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+        originalWidth: 512,
+        originalHeight: 512),
+    ]));
+
+  static final inlineImageGalleryAdjacentAndBr = ContentExample.inline(
+    'inline image gallery, adjacent and br-separated images in one gallery',
+    '![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png)\n![number-3.png](/user_uploads/2/39/YyOdS37_MX2OtZohjKrbfuyC/number-3.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2460794
+    '<p>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp">'
+      '<br>\n'
+      '<img alt="number-3.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/39/YyOdS37_MX2OtZohjKrbfuyC/number-3.png" '
+      'src="/user_uploads/thumbnail/2/39/YyOdS37_MX2OtZohjKrbfuyC/number-3.png/840x560.webp"></p>',
+    InlineImageNodeList([
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+        alt: 'number-1.png',
+        originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+        originalWidth: 512,
+        originalHeight: 512),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+        alt: 'number-2.png',
+        originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+        originalWidth: 512,
+        originalHeight: 512),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/39/YyOdS37_MX2OtZohjKrbfuyC/number-3.png/840x560.webp'))),
+        alt: 'number-3.png',
+        originalSrc: '/user_uploads/2/39/YyOdS37_MX2OtZohjKrbfuyC/number-3.png',
+        originalWidth: 512,
+        originalHeight: 512),
+    ]));
+
+  static final inlineImageGalleryTextSeparated = ContentExample(
+    'inline image gallery, text-separated images each in their own gallery',
+    '![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)\nsome text\n![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2460795
+    '<p>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '<br>\n'
+      'some text'
+      '<br>\n'
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp"></p>', [
+    ParagraphNode(links: null, nodes: [
+      InlineImageNodeList([
+        InlineImageNode(
+          loading: false,
+          src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+          alt: 'number-1.png',
+          originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+          originalWidth: 512,
+          originalHeight: 512),
+      ]),
+      LineBreakInlineNode(),
+      TextNode('\nsome text'),
+      LineBreakInlineNode(),
+      TextNode('\n'),
+      InlineImageNodeList([
+        InlineImageNode(
+          loading: false,
+          src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+          alt: 'number-2.png',
+          originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+          originalWidth: 512,
+          originalHeight: 512),
+      ]),
+    ]),
+  ]);
+
+  static final inlineImageFirstInlineSecondGallery = ContentExample(
+    'inline image gallery, first image inline (bounded by text), second in gallery',
+    'some text ![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)\n![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2460796
+    '<p>'
+      'some text '
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '<br>\n'
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp"></p>', [
+    ParagraphNode(links: null, nodes: [
+      TextNode('some text '),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+        alt: 'number-1.png',
+        originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+        originalWidth: 512,
+        originalHeight: 512),
+      LineBreakInlineNode(),
+      TextNode('\n'),
+      InlineImageNodeList([
+        InlineImageNode(
+          loading: false,
+          src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+          alt: 'number-2.png',
+          originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+          originalWidth: 512,
+          originalHeight: 512),
+      ]),
+    ]),
+  ]);
+
+  static final inlineImageFirstGallerySecondInline = ContentExample(
+    'inline image gallery, first image in gallery, second inline (bounded by text)',
+    '![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)\n![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png) some text',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2460797
+    '<p>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '<br>\n'
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp">'
+      ' some text</p>', [
+    ParagraphNode(links: null, nodes: [
+      InlineImageNodeList([
+        InlineImageNode(
+          loading: false,
+          src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+          alt: 'number-1.png',
+          originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+          originalWidth: 512,
+          originalHeight: 512),
+      ]),
+      LineBreakInlineNode(),
+      TextNode('\n'),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+        alt: 'number-2.png',
+        originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+        originalWidth: 512,
+        originalHeight: 512),
+      TextNode(' some text'),
+    ]),
+  ]);
+
+  static final inlineImagesTextBetween = ContentExample(
+    'inline images with text between, not gallerified',
+    '![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png) or ![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png)',
+    // Adapted from web test corpus (web/tests/postprocess_content.test.cjs). See:
+    //   https://github.com/zulip/zulip/pull/38324
+    '<p>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      ' or '
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp">'
+      '</p>', [
+    ParagraphNode(links: null, nodes: [
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+        alt: 'number-1.png',
+        originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+        originalWidth: 512,
+        originalHeight: 512),
+      TextNode(' or '),
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+        alt: 'number-2.png',
+        originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+        originalWidth: 512,
+        originalHeight: 512),
+    ]),
+  ]);
+
+  static final inlineImageGalleryWithSurroundingText = ContentExample(
+    'inline image gallery, with text before and after in paragraph',
+    'some text\n![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)\n![number-2.png](/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png)\nmore text',
+    // Adapted from web test corpus (web/tests/postprocess_content.test.cjs). See:
+    //   https://github.com/zulip/zulip/pull/38324
+    '<p>'
+      'some text<br>\n'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '<br>\n'
+      '<img alt="number-2.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png" '
+      'src="/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp">'
+      '<br>\n'
+      'more text</p>', [
+    ParagraphNode(links: null, nodes: [
+      TextNode('some text'),
+      LineBreakInlineNode(),
+      TextNode('\n'),
+      InlineImageNodeList([
+        InlineImageNode(
+          loading: false,
+          src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+          alt: 'number-1.png',
+          originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+          originalWidth: 512,
+          originalHeight: 512),
+        InlineImageNode(
+          loading: false,
+          src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png/840x560.webp'))),
+          alt: 'number-2.png',
+          originalSrc: '/user_uploads/2/af/g-nEd33W43G-8Iy5cGgPs3jC/number-2.png',
+          originalWidth: 512,
+          originalHeight: 512),
+      ]),
+      LineBreakInlineNode(),
+      TextNode('\nmore text'),
+    ]),
+  ]);
+
+  static final inlineImageInStrong = ContentExample(
+    'inline image inside strong, not gallerified',
+    '**![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)**',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2466691
+    '<p><strong>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '</strong></p>', [
+    ParagraphNode(links: null, nodes: [
+      StrongNode(nodes: [
+        InlineImageNode(
+          loading: false,
+          src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+            defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+          alt: 'number-1.png',
+          originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+          originalWidth: 512,
+          originalHeight: 512),
+      ]),
+    ]),
+  ]);
+
+  static final inlineImageInHeading = ContentExample(
+    'inline image inside heading, not gallerified',
+    '# ![number-1.png](/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png)',
+    // https://chat.zulip.org/#narrow/channel/7-test-here/topic/Ruhaan/near/2466692
+    '<h1>'
+      '<img alt="number-1.png" class="inline-image" '
+      'data-original-content-type="image/png" '
+      'data-original-dimensions="512x512" '
+      'data-original-src="/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png" '
+      'src="/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp">'
+      '</h1>', [
+    HeadingNode(level: HeadingLevel.h1, links: null, nodes: [
+      InlineImageNode(
+        loading: false,
+        src: ImageNodeSrcThumbnail(ImageThumbnailLocator(animated: false,
+          defaultFormatSrc: Uri.parse('/user_uploads/thumbnail/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png/840x560.webp'))),
+        alt: 'number-1.png',
+        originalSrc: '/user_uploads/2/54/MMM7YsKMLJvcVXRmGkd5x4h7/number-1.png',
+        originalWidth: 512,
+        originalHeight: 512),
+    ]),
+  ]);
 
   static final globalTime = ContentExample.inline(
     'global time',
@@ -1908,6 +2373,18 @@ void main() async {
   testParseExample(ContentExample.inlineImageLoading);
   testParseExample(ContentExample.inlineImageLoadingClassOrderReversed);
   testParseExample(ContentExample.inlineImageAnimated);
+  testParseExample(ContentExample.inlineImageGallerySingle);
+  testParseExample(ContentExample.inlineImageGalleryTwoAdjacent);
+  testParseExample(ContentExample.inlineImageGallerySpaceSeparated);
+  testParseExample(ContentExample.inlineImageGalleryBrSeparated);
+  testParseExample(ContentExample.inlineImageGalleryAdjacentAndBr);
+  testParseExample(ContentExample.inlineImageGalleryTextSeparated);
+  testParseExample(ContentExample.inlineImageFirstInlineSecondGallery);
+  testParseExample(ContentExample.inlineImageFirstGallerySecondInline);
+  testParseExample(ContentExample.inlineImagesTextBetween);
+  testParseExample(ContentExample.inlineImageGalleryWithSurroundingText);
+  testParseExample(ContentExample.inlineImageInStrong);
+  testParseExample(ContentExample.inlineImageInHeading);
   testParseExample(ContentExample.tableWithInlineImage);
 
   testParseExample(ContentExample.mathInline);
