@@ -173,18 +173,15 @@ enum BoolGlobalSetting {
   /// (Having one stable value in this enum is also handy for tests.)
   placeholderIgnore(GlobalSettingType.placeholder, false),
 
-  /// A pseudo-setting recording whether the user has been shown the
-  /// welcome dialog for upgrading from the legacy app.
-  upgradeWelcomeDialogShown(GlobalSettingType.internal, false),
-
   /// An experimental flag to enable rendering KaTeX even when some
   /// errors are encountered.
   forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
 
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
-  //   openFirstUnread  // v0.0.30
-  //   renderKatex      // v0.0.29 - v30.0.261
+  //   openFirstUnread            // v0.0.30
+  //   renderKatex                // v0.0.29 - v30.0.261
+  //   upgradeWelcomeDialogShown  // v30.0.256 - v30.0.274
   ;
 
   const BoolGlobalSetting(this.type, this.default_);
@@ -400,6 +397,11 @@ class GlobalSettingsStore extends ChangeNotifier {
   }
 
   /// The outcome, or in-progress status, of migrating data from the legacy app.
+  ///
+  /// Nothing reads this at present. It's kept because it distinguishes an
+  /// install that replaced the legacy app, which may be a useful signal when
+  /// deciding whether to prompt the user for an app review.
+  // TODO(#1886) use this signal, or drop this and the column it reads
   LegacyUpgradeState get legacyUpgradeState {
     return _data.legacyUpgradeState ?? LegacyUpgradeState._default;
   }
