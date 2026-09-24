@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:mime/mime.dart';
 
 import '../api/core.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -84,17 +83,17 @@ class ShareService {
       var mimeType = sharedFile.mimeType;
 
       // Try to guess the mimeType from file header magic-number.
-      mimeType ??= lookupMimeType(
+      mimeType ??= zulipMimeResolver.lookup(
         // Seems like the path shouldn't be required; we still want to look for
         // matches on `headerBytes` when we don't have a path/filename.
-        // Thankfully we can still do that, by calling lookupMimeType with the
+        // Thankfully we can still do that, by calling lookup with the
         // empty string as the path. That's a value that doesn't map to any
         // particular type, so the path will be effectively ignored, as desired.
         // Upstream comment:
         //   https://github.com/dart-lang/mime/issues/11#issuecomment-2246824452
         sharedFile.name ?? '',
         headerBytes: List.unmodifiable(
-          sharedFile.bytes.take(defaultMagicNumbersMaxLength)));
+          sharedFile.bytes.take(zulipMimeResolver.magicNumbersMaxLength)));
 
       final filename =
         sharedFile.name ?? 'unknown.${mimeType?.split('/').last ?? 'bin'}';
