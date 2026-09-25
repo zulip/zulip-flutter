@@ -26,6 +26,7 @@ android {
     namespace = "com.zulip.flutter"
 
     compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
