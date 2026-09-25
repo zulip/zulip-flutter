@@ -1,15 +1,15 @@
 plugins {
-    id 'com.android.library'
+    id("com.android.library")
 }
 
 android {
-    namespace "com.zulip.flutter"
+    namespace = "com.zulip.flutter"
 
     // This Gradle project is an empty placeholder that contains no actual code,
     // so the settings below have no real effect.  The Gradle project exists only
     // because the Flutter Gradle plugin expects every Flutter plugin to have one.
 
-    compileSdk flutter.compileSdkVersion
+    compileSdk = flutter.compileSdkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
