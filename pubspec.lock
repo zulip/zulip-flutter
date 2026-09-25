@@ -5,10 +5,10 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: "1b0e6a07425a3e460666e88bf1c949ccc7bb0116ad562ce94a1eca60fe820725"
+      sha256: fdcd9f70f9eb80df3bc5ed0fa67280df2595fd481948df8a9ab082e6a40ad04b
       url: "https://pub.dev"
     source: hosted
-    version: "103.0.0"
+    version: "108.0.0"
   _flutterfire_internals:
     dependency: transitive
     description:
@@ -21,10 +21,10 @@ packages:
     dependency: transitive
     description:
       name: analyzer
-      sha256: "61c04d0c1bfed555c681ea079519933f071a5a026578ff73c4ff0df2d3462e5e"
+      sha256: a51c769bff3b6dfbe9d60199b8606d808290702a296bef0c26a4ca391d414e46
       url: "https://pub.dev"
     source: hosted
-    version: "13.3.0"
+    version: "14.4.0"
   app_settings:
     dependency: "direct main"
     description:
@@ -37,10 +37,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: ace891da0862b0e4cabbb064ee3fd87b2728b898949fdb366d83fe98342c9f19
+      sha256: "6c5bcd986e06b94e3c40244af471750840a3d2341d1f9763a1100a14add517b4"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.0"
+    version: "4.3.0"
   args:
     dependency: "direct dev"
     description:
@@ -173,10 +173,10 @@ packages:
     dependency: transitive
     description:
       name: code_assets
-      sha256: bf394f466ba9205f1812a0433b392d6af280f155f56651eda7c18cc32ed493b8
+      sha256: "828110d598123b5ea96c00c9f3c72105bf79f8ee36c20a39b26209ade421ec57"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.1"
+    version: "2.1.0"
   code_builder:
     dependency: transitive
     description:
@@ -406,10 +406,10 @@ packages:
     dependency: transitive
     description:
       name: firebase_core_web
-      sha256: de1e678209a0c974d8aa4cff39f17d61d2dc263aa64993168360f9be4efb8e91
+      sha256: "8ed84f5001dbd7a0390e2818d46bc858ceebb970edededdfc8d6552c76fc2f6e"
       url: "https://pub.dev"
     source: hosted
-    version: "3.11.0"
+    version: "3.12.0"
   firebase_messaging:
     dependency: "direct main"
     description:
@@ -605,10 +605,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_ios
-      sha256: ee3885b6fcd71958fbc79770dd194c63371439d536d69c47b279171a486482ae
+      sha256: "852a7762962f3bb3ad54ef1d342669e41557f466033a676baa8876b367cf4050"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.13+7"
+    version: "0.8.13+8"
   image_picker_linux:
     dependency: transitive
     description:
@@ -802,10 +802,10 @@ packages:
     dependency: transitive
     description:
       name: native_toolchain_c
-      sha256: a1c26117c48cebe5677b0cf0e33a980a79a7c5577effc86f52e5a0d309cdcb60
+      sha256: "90eaad8059ebc2004a63810a4696ea9acdb02473e47ed3b6b3bafb100ac77e31"
       url: "https://pub.dev"
     source: hosted
-    version: "0.19.3"
+    version: "0.19.5"
   nm:
     dependency: transitive
     description:
@@ -834,18 +834,18 @@ packages:
     dependency: transitive
     description:
       name: objective_c
-      sha256: b7fb95a6d9a4f009edd63dc5ac69f07420b23a16161c6dd8660290b59c602e8e
+      sha256: ad56fd53a78ff6b1472fa59ff2a4e8b8ccabafc586fc263a1dfad0b99b5553e3
       url: "https://pub.dev"
     source: hosted
-    version: "9.5.0"
+    version: "9.6.0"
   package_config:
     dependency: transitive
     description:
       name: package_config
-      sha256: f096c55ebb7deb7e384101542bfba8c52696c1b56fca2eb62827989ef2353bbc
+      sha256: ffcf4cf3d6c0b74ac43708d9f56625506e8a68aa935abe9d267a7330f320eb5d
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "3.0.0"
   package_info_plus:
     dependency: "direct main"
     description:
@@ -922,10 +922,10 @@ packages:
     dependency: "direct dev"
     description:
       name: patrol
-      sha256: "743678f959a4878807efec59d19f8ebd65cc3d6953fdecce6562c987963f30a8"
+      sha256: "662c50d517b2f159fedbc359a7fb8d0d30cbefea6d5c2a08392a0593079d64d1"
       url: "https://pub.dev"
     source: hosted
-    version: "4.9.0"
+    version: "4.10.0"
   patrol_finders:
     dependency: transitive
     description:
@@ -1095,18 +1095,18 @@ packages:
     dependency: "direct main"
     description:
       name: sodium
-      sha256: "3d8bec7acb3bd958309e431a840f1eded82f508d57461ecd2920d399b802b38a"
+      sha256: ed4733228fbd45b4177e09feb84a08385d53dc39f2a2166b7439ad80a19ac5f5
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.4"
+    version: "4.1.1+1"
   source_gen:
     dependency: transitive
     description:
       name: source_gen
-      sha256: a603f1fb984a7391ae5978d1b92bfaaa08b350dca5c825256f925818f7943bf5
+      sha256: "11b6047da8e4eb6c643ccac3d0fda3f9c9e11651695f7da24a85ade8aff15a44"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.4"
+    version: "4.3.0"
   source_helper:
     dependency: transitive
     description:
@@ -1143,10 +1143,10 @@ packages:
     dependency: "direct main"
     description:
       name: sqlite3
-      sha256: "4c7fe79840389aaeaf05fd093f795b631b5a98e2bd28d54e555c100f4a9c7a1c"
+      sha256: fa3fd961e83b2dca8890a7b1014ab1226831d2b5908067c0ab7f385ffb655caf
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.2"
+    version: "3.6.0"
   sqlparser:
     dependency: transitive
     description:
