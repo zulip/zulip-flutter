@@ -12,7 +12,7 @@
 /// as the actual Zulip app.  The app's data remains untouched, though, so
 /// a normal `flutter run` will put things back as they were.
 /// This inconvenience could be fixed with a bit more work: we'd use
-/// `flutter run --flavor`, and define an Android flavor in build.gradle
+/// `flutter run --flavor`, and define an Android flavor in build.gradle.kts
 /// and an Xcode scheme in the iOS build config
 /// so as to set the app ID differently.
 library;
