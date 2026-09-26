@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:zulip/api/model/attachment.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -28,6 +29,7 @@ import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/color.dart';
 import 'package:zulip/widgets/compose_box.dart';
+import 'package:zulip/widgets/delete_uploaded_files.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/icons.dart';
@@ -2610,6 +2612,8 @@ void main() {
         await tester.pump(Duration.zero);
         checkNotInEditingMode(tester, narrow: narrow);
 
+        checkNoDialog(tester);
+
         // We'll say "SAVING EDIT…" in the message list until the event arrives.
         // (No need to make the event arrive here; message-list tests do that.)
         checkEditInProgressInMsglist(tester, messageId: messageId, expected: true);
@@ -2621,6 +2625,199 @@ void main() {
     testSmoke(narrow: channelNarrow, start: _EditInteractionStart.restoreFailedEdit);
     testSmoke(narrow: topicNarrow,   start: _EditInteractionStart.restoreFailedEdit);
     testSmoke(narrow: dmNarrow,      start: _EditInteractionStart.restoreFailedEdit);
+
+    group('detached uploads', () {
+      final attachments = [
+        Attachment(id: 42, name: 'photo.png'),
+        Attachment(id: 73, name: 'notes.txt'),
+      ];
+
+      // The saving-edit spinner keeps animating until an update event arrives,
+      // even after a successful API response. Pump route transitions without
+      // waiting for that independent animation to settle.
+      Future<void> pumpTransitions(WidgetTester tester) async {
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+      }
+
+      Future<void> prepareEdit(WidgetTester tester, {bool pushPage = false}) async {
+        await prepareEditMessage(tester, narrow: topicNarrow);
+        if (pushPage) {
+          connection.prepare(json: eg.newestGetMessagesResult(
+            foundOldest: true, messages: [message]).toJson());
+          unawaited(Navigator.of(state.context).push(MaterialAccountWidgetRoute(
+            accountId: store.accountId,
+            page: MessageListPage(initNarrow: topicNarrow))));
+          await pumpTransitions(tester);
+          state = tester.state<ComposeBoxState>(find.byType(ComposeBox));
+        }
+        await startEditInteractionFromActionSheet(tester,
+          messageId: message.id, originalRawContent: 'foo');
+        await tester.pump(const Duration(seconds: 1));
+        await enterContent(tester, 'bar');
+      }
+
+      Future<void> save(WidgetTester tester) async {
+        await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+        checkRequest(message.id, prevContent: 'foo', content: 'bar');
+        await tester.pump();
+        checkNotInEditingMode(tester, narrow: topicNarrow);
+      }
+
+      void checkAttachments(WidgetTester tester, List<Attachment> expected) {
+        check(find.byType(DeleteUploadedFilesDialog)).findsOne();
+        final dialog = tester.widget<DeleteUploadedFilesDialog>(
+          find.byType(DeleteUploadedFilesDialog));
+        check(dialog.attachments.map((a) => a.id)).deepEquals(expected.map((a) => a.id));
+        check(dialog.attachments.map((a) => a.name)).deepEquals(expected.map((a) => a.name));
+        for (final attachment in expected) {
+          check(find.text(attachment.name)).findsOne();
+        }
+        // Showing the confirmation must not itself delete anything.
+        check(connection.takeRequests()).isEmpty();
+      }
+
+      for (final count in [1, 2]) {
+        testWidgets('successful edit with $count files', (tester) async {
+          await prepareEdit(tester);
+          final files = attachments.take(count).toList();
+          connection.prepare(json: UpdateMessageResult(detachedUploads: files).toJson());
+          await save(tester);
+          await pumpTransitions(tester);
+          checkAttachments(tester, files);
+        });
+      }
+
+      for (final response in ['empty', 'null', 'omitted']) {
+        testWidgets('$response detached_uploads shows no dialog', (tester) async {
+          await prepareEdit(tester);
+          connection.prepare(json: switch (response) {
+            'empty' => {'detached_uploads': <Object?>[]},
+            'null' => {'detached_uploads': null},
+            _ => {},
+          });
+          await save(tester);
+          await pumpTransitions(tester);
+          checkNoDialog(tester);
+          check(connection.takeRequests()).isEmpty();
+        });
+      }
+
+      for (final deleteMessage in [false, true]) {
+        for (final succeeds in [false, true]) {
+          testWidgets('${deleteMessage ? 'delete' : 'update'} event before '
+              '${succeeds ? 'successful' : 'failed'} response', (tester) async {
+            await prepareEdit(tester);
+            if (succeeds) {
+              connection.prepare(json: UpdateMessageResult(detachedUploads: attachments).toJson(),
+                delay: const Duration(seconds: 1));
+            } else {
+              connection.prepare(httpException: const SocketException('offline'),
+                delay: const Duration(seconds: 1));
+            }
+            await save(tester);
+            if (deleteMessage) {
+              await store.handleEvent(eg.deleteMessageEvent([message]));
+            } else {
+              await store.handleEvent(eg.updateMessageEditEvent(message));
+            }
+            await tester.pump();
+            check(store.getEditMessageErrorStatus(message.id)).isNull();
+            checkNoDialog(tester);
+            await tester.pump(const Duration(seconds: 1));
+            await pumpTransitions(tester);
+            if (succeeds) {
+              checkAttachments(tester, attachments);
+            } else {
+              // The real store suppresses this failure and returns null.
+              checkNoDialog(tester);
+              check(connection.takeRequests()).isEmpty();
+            }
+          });
+        }
+      }
+
+      for (final succeeds in [false, true]) {
+        testWidgets('app disposed before ${succeeds ? 'success' : 'failure'}', (tester) async {
+          await prepareEdit(tester);
+          if (succeeds) {
+            connection.prepare(json: UpdateMessageResult(detachedUploads: attachments).toJson(),
+              delay: const Duration(seconds: 1));
+          } else {
+            connection.prepare(apiException: eg.apiBadRequest(), delay: const Duration(seconds: 1));
+          }
+          await save(tester);
+          await tester.pumpWidget(const SizedBox());
+          check(state.mounted).isFalse();
+          await tester.pump(const Duration(seconds: 1));
+          await pumpTransitions(tester);
+          checkNoDialog(tester);
+          check(tester.takeException()).isNull();
+          check(connection.takeRequests()).isEmpty();
+        });
+      }
+
+      for (final navigation in ['popped', 'exit animation', 'covered']) {
+        testWidgets('page $navigation before response', (tester) async {
+          await prepareEdit(tester, pushPage: true);
+          final pageContext = PageRoot.contextOf(state.context);
+          final route = ModalRoute.of(pageContext)!;
+          final navigator = Navigator.of(pageContext);
+          connection.prepare(json: UpdateMessageResult(detachedUploads: attachments).toJson(),
+            delay: const Duration(seconds: 5));
+          await save(tester);
+          if (navigation == 'exit animation') {
+            await tester.pump(const Duration(milliseconds: 4999));
+          }
+          if (navigation == 'covered') {
+            unawaited(navigator.push(MaterialPageRoute<void>(
+              builder: (context) => const Scaffold(body: Text('Other page')))));
+            await pumpTransitions(tester);
+          } else {
+            navigator.pop();
+            await tester.pump();
+            if (navigation == 'popped') await pumpTransitions(tester);
+          }
+          check(route.isCurrent).isFalse();
+          if (navigation == 'popped') {
+            check(pageContext.mounted).isFalse();
+          } else {
+            check(pageContext.mounted).isTrue();
+            check(state.mounted).isTrue();
+          }
+          await tester.pump(navigation == 'exit animation'
+            ? const Duration(milliseconds: 1) : const Duration(seconds: 5));
+          await pumpTransitions(tester);
+          checkNoDialog(tester);
+          check(tester.takeException()).isNull();
+          check(connection.takeRequests()).isEmpty();
+          if (navigation == 'covered') check(find.text('Other page')).findsOne();
+        });
+      }
+
+      testWidgets('compose box removed while page remains', (tester) async {
+        await prepareEdit(tester);
+        final pageContext = PageRoot.contextOf(state.context);
+        final page = MessageListPage.ancestorOf(pageContext);
+        connection.prepare(json: UpdateMessageResult(detachedUploads: attachments).toJson(),
+          delay: const Duration(seconds: 1));
+        await save(tester);
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: [message]).toJson());
+        page.model!.renarrowAndFetch(const CombinedFeedNarrow(), AnchorCode.newest);
+        await pumpTransitions(tester);
+        check(state.mounted).isFalse();
+        check(pageContext.mounted).isTrue();
+        check(ModalRoute.of(pageContext)!.isCurrent).isTrue();
+        connection.takeRequests(); // Fetch for the new narrow.
+        await tester.pump(const Duration(seconds: 1));
+        await pumpTransitions(tester);
+        checkNoDialog(tester);
+        check(tester.takeException()).isNull();
+        check(connection.takeRequests()).isEmpty();
+      });
+    });
 
     Future<void> expectAndHandleDiscardForEditConfirmation(WidgetTester tester, {
       required bool shouldContinue,
@@ -2871,56 +3068,69 @@ void main() {
     // testCancel(narrow: topicNarrow,   start: _EditInteractionStart.restoreFailedEdit);
     // testCancel(narrow: dmNarrow,      start: _EditInteractionStart.restoreFailedEdit);
 
-    testWidgets('if channel is unsubscribed, refresh on message-edit success', (tester) async {
-      // Regression test for the "first buggy behavior"
-      // in https://github.com/zulip/zulip-flutter/issues/1798 .
+    for (final hasDetachedUploads in [false, true]) {
+      testWidgets('if channel is unsubscribed, refresh on message-edit success; detached uploads: $hasDetachedUploads', (tester) async {
+        // Regression test for the "first buggy behavior"
+        // in https://github.com/zulip/zulip-flutter/issues/1798 .
 
-      final channel = eg.stream();
-      final narrow = ChannelNarrow(channel.streamId);
-      final message = eg.streamMessage(stream: channel, sender: eg.selfUser);
+        final channel = eg.stream();
+        final narrow = ChannelNarrow(channel.streamId);
+        final message = eg.streamMessage(stream: channel, sender: eg.selfUser);
 
-      await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
-      await store.addMessages([message]);
-      check(store.subscriptions[channel.streamId]).isNull();
-      await tester.pump(); // message list updates
+        await prepareComposeBox(tester, narrow: narrow, streams: [channel]);
+        await store.addMessages([message]);
+        check(store.subscriptions[channel.streamId]).isNull();
+        await tester.pump(); // message list updates
 
-      await startEditInteractionFromActionSheet(tester,
-        messageId: message.id, originalRawContent: 'foo');
-      await tester.pump(Duration(seconds: 1)); // fetch-raw-content request
-      checkContentInputValue(tester, 'foo');
+        await startEditInteractionFromActionSheet(tester,
+          messageId: message.id, originalRawContent: 'foo');
+        await tester.pump(Duration(seconds: 1)); // fetch-raw-content request
+        checkContentInputValue(tester, 'foo');
 
-      final newMarkdownContent = ContentExample.emojiUnicode.markdown!;
-      await enterContent(tester, newMarkdownContent);
+        final newMarkdownContent = ContentExample.emojiUnicode.markdown!;
+        await enterContent(tester, newMarkdownContent);
 
-      connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
-      await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
-      await tester.pump(Duration(milliseconds: 500));
-      checkRequest(message.id, prevContent: 'foo', content: newMarkdownContent);
+        final attachments = hasDetachedUploads
+          ? [Attachment(id: 42, name: 'photo.png')]
+          : <Attachment>[];
+        connection.prepare(json: UpdateMessageResult(detachedUploads: attachments).toJson(), delay: Duration(seconds: 1));
+        await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
+        await tester.pump(Duration(milliseconds: 500));
+        checkRequest(message.id, prevContent: 'foo', content: newMarkdownContent);
 
-      final updatedMessage =
-        Message.fromJson(message.toJson()..['content'] = ContentExample.emojiUnicode.html);
-      connection.prepare(json: eg.newestGetMessagesResult(
-        foundOldest: true, messages: [updatedMessage]).toJson());
-      await tester.pump(Duration(milliseconds: 500));
-      check(connection.lastRequest).isA<http.Request>()
-        ..method.equals('GET')
-        ..url.path.equals('/api/v1/messages')
-        ..url.queryParameters.deepEquals({
-          'narrow': jsonEncode(resolveApiNarrowForServer(
-            narrow.apiEncode(), connection.zulipFeatureLevel!)),
-          'anchor': '${message.id}',
-          'num_before': '100',
-          'num_after': '100',
-          'allow_empty_topic_name': 'true',
-        });
-      check(find.descendant(
-        of: find.byType(MessageWithPossibleSender),
-        matching: find.text(ContentExample.emojiUnicode.expectedText!))
-      ).findsOne();
-      // Regression coverage for the "third buggy behavior"
-      // in https://github.com/zulip/zulip-flutter/issues/1798 .
-      checkEditInProgressInMsglist(tester, messageId: message.id, expected: false);
-    });
+        final updatedMessage =
+          Message.fromJson(message.toJson()..['content'] = ContentExample.emojiUnicode.html);
+        connection.prepare(json: eg.newestGetMessagesResult(
+          foundOldest: true, messages: [updatedMessage]).toJson());
+        await tester.pump(Duration(milliseconds: 500));
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/v1/messages')
+          ..url.queryParameters.deepEquals({
+            'narrow': jsonEncode(resolveApiNarrowForServer(
+              narrow.apiEncode(), connection.zulipFeatureLevel!)),
+            'anchor': '${message.id}',
+            'num_before': '100',
+            'num_after': '100',
+            'allow_empty_topic_name': 'true',
+          });
+        await tester.pumpAndSettle();
+        if (hasDetachedUploads) {
+          check(find.byType(DeleteUploadedFilesDialog)).findsOne();
+          check(find.text('photo.png')).findsOne();
+          await tester.tap(find.text("Don't delete"));
+          await tester.pumpAndSettle();
+        }
+        checkNoDialog(tester);
+        check(find.descendant(
+          of: find.byType(MessageWithPossibleSender),
+          matching: find.text(ContentExample.emojiUnicode.expectedText!))
+        ).findsOne();
+        // Regression coverage for the "third buggy behavior"
+        // in https://github.com/zulip/zulip-flutter/issues/1798 .
+        checkEditInProgressInMsglist(tester, messageId: message.id, expected: false);
+      });
+    }
   });
 }
 
