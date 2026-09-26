@@ -321,6 +321,26 @@
   "@actionSheetOptionReportMessage": {
     "description": "Label for the 'Report message' button in the message action sheet."
   },
+  "deleteUploadedFilesDialogTitle": "Delete uploaded files?",
+  "@deleteUploadedFilesDialogTitle": {
+    "description": "Title of the confirmation dialog for deleting uploads detached from an edited message."
+  },
+  "deleteUploadedFilesDialogMessage": "These files are no longer attached to your message. Deleting them permanently removes them for everyone.",
+  "@deleteUploadedFilesDialogMessage": {
+    "description": "Explanation in the detached uploads deletion dialog, above the filenames. After a partial deletion, only files still awaiting deletion are listed."
+  },
+  "deleteUploadedFilesDialogCancel": "Don't delete",
+  "@deleteUploadedFilesDialogCancel": {
+    "description": "Button dismissing the uploaded files deletion dialog without deleting any more files."
+  },
+  "deleteUploadedFilesDialogConfirm": "Delete",
+  "@deleteUploadedFilesDialogConfirm": {
+    "description": "Button deleting the files listed in the uploaded files deletion dialog."
+  },
+  "errorDeleteUploadedFilesFailedTitle": "Failed to delete uploaded files",
+  "@errorDeleteUploadedFilesFailedTitle": {
+    "description": "Error title when deleting detached uploads fails. The user can retry deleting the remaining files."
+  },
   "reportMessageDialogTitle": "Report message",
   "@reportMessageDialogTitle": {
     "description": "Title for the report message dialog."
