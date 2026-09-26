@@ -2904,7 +2904,7 @@ void main() {
         narrow: TopicNarrow.ofMessage(message),
         messages: [message]);
 
-      connection.prepare(json: UpdateMessageResult().toJson());
+      connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
       unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'foo',
         newContent: 'bar'));

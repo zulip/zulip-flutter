@@ -2603,7 +2603,7 @@ void main() {
         //   (but as their own test cases, for a single narrow and start)
 
         // Save; check that the request is made and the compose box resets.
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         checkRequest(messageId,
           prevContent: 'foo', content: 'some new content[file.jpg](/path/file.jpg)');
@@ -2669,7 +2669,7 @@ void main() {
         await enterContent(tester, 'bar');
 
         // Save; check that the request is made and the compose box resets.
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         checkRequest(messageId, prevContent: 'foo', content: 'bar');
         await tester.pump(Duration.zero);
@@ -2726,7 +2726,7 @@ void main() {
         await enterContent(tester, 'baz');
 
         // Save; check that the request is made and the compose box resets.
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         checkRequest(messageId, prevContent: 'foo', content: 'baz');
         await tester.pump(Duration.zero);
@@ -2823,7 +2823,7 @@ void main() {
         await tester.pump(Duration(seconds: 1)); // fetch-raw-content request
         checkContentInputValue(tester, 'foo');
         await enterContent(tester, 'qwerty');
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
         checkRequest(messageId, prevContent: 'foo', content: 'qwerty');
         await tester.pump(Duration.zero);
@@ -2892,7 +2892,7 @@ void main() {
       final newMarkdownContent = ContentExample.emojiUnicode.markdown!;
       await enterContent(tester, newMarkdownContent);
 
-      connection.prepare(json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+      connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
       await tester.pump(Duration(milliseconds: 500));
       checkRequest(message.id, prevContent: 'foo', content: newMarkdownContent);

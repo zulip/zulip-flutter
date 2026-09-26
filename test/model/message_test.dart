@@ -932,7 +932,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'old content', newContent: 'new content'));
       checkRequest(message.id,
@@ -963,7 +963,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'old content', newContent: 'new content'));
       checkRequest(message.id,
@@ -976,7 +976,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
       check(store.getEditMessageErrorStatus(otherMessage.id)).isNull();
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: otherMessage.id,
         originalRawContent: 'other message old content', newContent: 'other message new content'));
       checkRequest(otherMessage.id,
@@ -1047,7 +1047,7 @@ void main() {
       await prepareEditMessage();
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'old content', newContent: 'new content'));
       async.elapse(Duration(milliseconds: 500));
@@ -1172,7 +1172,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'old content', newContent: 'new content'));
       checkNotifiedOnce();
@@ -1204,7 +1204,7 @@ void main() {
       check(connection.takeRequests()).length.equals(1); // message-list fetchInitial
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'old content', newContent: 'new content'));
       checkRequest(message.id, prevContent: 'old content', content: 'new content');
