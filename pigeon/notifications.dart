@@ -35,7 +35,7 @@ class AndroidNotificationTapEvent extends NotificationTapEvent {
   ///
   /// This is an internal URL that is generated using
   /// `NotificationOpenPayload.buildNotificationUrl` while creating the
-  /// notification during `NotificationDisplayManager._onNotifPayloadNewMessage`.
+  /// notification during `AndroidNotificationDisplayManager._onNotifPayloadNewMessage`.
   ///
   /// See [notificationTapEvents].
   final String dataUrl;
