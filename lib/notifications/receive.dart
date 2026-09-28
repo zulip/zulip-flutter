@@ -13,7 +13,7 @@ import '../log.dart';
 import '../model/binding.dart';
 import '../model/push_key.dart';
 import '../model/store.dart';
-import 'display.dart';
+import 'android_display.dart';
 import 'open.dart';
 
 @pragma('vm:entry-point')

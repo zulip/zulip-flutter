@@ -16,7 +16,7 @@ import '../fake_async.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../model/test_store.dart';
-import '../notifications/display_test.dart';
+import '../notifications/android_display_test.dart';
 import '../stdlib_checks.dart';
 import '../test_images.dart';
 import 'store_test.dart';
