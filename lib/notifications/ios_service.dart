@@ -96,7 +96,8 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
       NotificationDisplayManager.subtitleForNotifPayloadOnIos(data);
     final notificationUrl =
       // TODO(#1565): Open at specific message on iOS too.
-      NotificationDisplayManager.notificationUrlForNotifPayload(data, messageId: null);
+      NotificationOpenPayload.fromNotifPayload(data, messageId: null)
+        .buildNotificationUrl();
 
     return ImprovedNotificationContent(
       title: title,
