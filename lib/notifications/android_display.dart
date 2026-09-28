@@ -211,7 +211,7 @@ class NotificationChannelManager {
 }
 
 /// Service for managing the notifications shown to the user.
-class NotificationDisplayManager {
+class AndroidNotificationDisplayManager {
   static Future<void> init() async {
     assert(defaultTargetPlatform == TargetPlatform.android);
     await NotificationChannelManager.ensureChannel();
