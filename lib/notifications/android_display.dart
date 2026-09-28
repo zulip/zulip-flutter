@@ -35,7 +35,7 @@ enum NotificationSound {
 }
 
 /// Service for configuring our Android "notification channel".
-class NotificationChannelManager {
+class AndroidNotificationChannelManager {
   /// The channel ID we use for our one notification channel, which we use for
   /// all notifications.
   // Previous values from Zulip Flutter Beta:
@@ -214,7 +214,7 @@ class NotificationChannelManager {
 class AndroidNotificationDisplayManager {
   static Future<void> init() async {
     assert(defaultTargetPlatform == TargetPlatform.android);
-    await NotificationChannelManager.ensureChannel();
+    await AndroidNotificationChannelManager.ensureChannel();
   }
 
   static void onNotifPayload(NotifPayloadWithIdentity data, Account account) async {
@@ -301,7 +301,7 @@ class AndroidNotificationDisplayManager {
     await _androidHost.notify(
       id: kNotificationId,
       tag: conversationKey,
-      channelId: NotificationChannelManager.kChannelId,
+      channelId: AndroidNotificationChannelManager.kChannelId,
       groupKey: groupKey,
 
       color: kZulipBrandColor.argbInt,
@@ -344,7 +344,7 @@ class AndroidNotificationDisplayManager {
     await _androidHost.notify(
       id: kNotificationId,
       tag: groupKey,
-      channelId: NotificationChannelManager.kChannelId,
+      channelId: AndroidNotificationChannelManager.kChannelId,
       groupKey: groupKey,
       isGroupSummary: true,
 
