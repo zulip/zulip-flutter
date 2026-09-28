@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -118,9 +115,6 @@
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
-  },
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
@@ -1373,7 +1367,6 @@
   },
   "aboutPageAppVersion": "Wydanie apki",
   "aboutPageOpenSourceLicenses": "Licencje otwartego źródła",
-  "aboutPageTapToView": "Dotknij, aby pokazać",
   "aboutPageTitle": "O Zulip",
   "actionSheetOptionChannelFeed": "Strumień kanału",
   "actionSheetOptionCopyChannelLink": "Skopiuj odnośnik do kanału",
@@ -1409,7 +1402,6 @@
   "actionSheetReadReceiptsZeroReadCount": "Nikt jeszcze nie widział tej wiadomości.",
   "allChannelsEmptyPlaceholderHeader": "Brak kanałów do których masz wgląd w tej organizacji.",
   "allChannelsPageTitle": "Wszystkie kanały",
-  "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Strumień kanału",
   "channelsEmptyPlaceholderHeader": "Nie śledzisz żadnego z kanałów.",
   "channelsEmptyPlaceholderMessage": "Spróbuj skorzystać z <z-link>{allChannelsPageTitle}</z-link> i dołączyć do nich.",

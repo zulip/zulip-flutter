@@ -1,7 +1,8 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 /// The authentication information contained in the zulip:// redirect URL.
 class WebAuthPayload {

@@ -773,8 +773,6 @@ void showTopicActionSheet(BuildContext context, {
 
   final optionButtons = <ActionSheetMenuItemButton>[];
 
-  // TODO(server-7): simplify this condition away
-  final supportsUnmutingTopics = store.zulipFeatureLevel >= 170;
   // TODO(server-8): simplify this condition away
   final supportsFollowingTopics = store.zulipFeatureLevel >= 219;
 
@@ -808,29 +806,27 @@ void showTopicActionSheet(BuildContext context, {
     }
   } else {
     // Channel is muted.
-    if (supportsUnmutingTopics) {
-      switch (visibilityPolicy) {
-        case UserTopicVisibilityPolicy.none:
-        case UserTopicVisibilityPolicy.muted:
-          visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
-          if (supportsFollowingTopics) {
-            visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-          }
-        case UserTopicVisibilityPolicy.unmuted:
-          visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-          if (supportsFollowingTopics) {
-            visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-          }
-        case UserTopicVisibilityPolicy.followed:
-          visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-          if (supportsFollowingTopics) {
-            visibilityOptions.add(UserTopicVisibilityPolicy.none);
-          }
-        case UserTopicVisibilityPolicy.unknown:
-          // TODO(#1074): This should be unreachable as we keep `unknown` out of
-          //   our data structures.
-          assert(false);
-      }
+    switch (visibilityPolicy) {
+      case UserTopicVisibilityPolicy.none:
+      case UserTopicVisibilityPolicy.muted:
+        visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
+        if (supportsFollowingTopics) {
+          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
+        }
+      case UserTopicVisibilityPolicy.unmuted:
+        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
+        if (supportsFollowingTopics) {
+          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
+        }
+      case UserTopicVisibilityPolicy.followed:
+        visibilityOptions.add(UserTopicVisibilityPolicy.muted);
+        if (supportsFollowingTopics) {
+          visibilityOptions.add(UserTopicVisibilityPolicy.none);
+        }
+      case UserTopicVisibilityPolicy.unknown:
+        // TODO(#1074): This should be unreachable as we keep `unknown` out of
+        //   our data structures.
+        assert(false);
     }
   }
   optionButtons.addAll(visibilityOptions.map((to) {
@@ -971,7 +967,7 @@ class UserTopicUpdateButton extends ActionSheetMenuItemButton {
 
   @override void onPressed() async {
     try {
-      await updateUserTopicCompat(
+      await updateUserTopic(
         PerAccountStoreWidget.of(pageContext).connection,
         channelId: narrow.channelId,
         topic: narrow.topic,

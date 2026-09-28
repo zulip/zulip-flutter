@@ -298,6 +298,63 @@ void main() {
       ..kind.equals(.other)
       ..message.equals('Oops')
       ..asString.equals('NetworkException: Oops (ClientException: Oops)'));
+    // What `IOClient` actually throws when the connection dies mid-request:
+    // dart:io's HttpException, rewrapped as a plain ClientException,
+    // recognizable only by its message.
+    checkRequest(
+      http.ClientException('Connection closed before full header was received'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    checkRequest(
+      http.ClientException('Connection closed while receiving data'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    // An asynchronous socket error while awaiting the response arrives
+    // with the OS error text as the whole message.  This one is routine
+    // on Android when the OS cuts network access in the background…
+    checkRequest(
+      http.ClientException('Software caused connection abort'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    // …and the rest of the strerror family arrives the same way.
+    checkRequest(
+      http.ClientException('Connection reset by peer'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    checkRequest(
+      http.ClientException('Operation timed out'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    // A connection that died while the request was still being sent
+    // gets its own message, outside the "Connection closed" family.
+    checkRequest(
+      http.ClientException('Socket closed before request was sent'),
+      (it) => it
+        ..kind.equals(.connectionFailed)
+        ..message.equals(zulipLocalizations.errorNetworkRequestFailed));
+    // Redirect errors arrive through the same rethrow (RedirectException
+    // implements HttpException), but are persistent failures; they keep
+    // the reported kind.
+    checkRequest(http.ClientException('Redirect loop detected'), (it) => it
+      ..kind.equals(.other)
+      ..message.equals('Redirect loop detected'));
+    // So does a request started after [ApiConnection.close] tore down
+    // the client; there'd be no client left to retry it on.
+    // (A request still in flight at close time instead fails with
+    // 'Connection closed before full header was received', matched
+    // above as connectionFailed.  That's accurate -- the connection
+    // was lost -- and callers that retry on connectionFailed, like
+    // the poll loop, check for disposal before retrying.)
+    checkRequest(
+      http.ClientException('HTTP request failed. Client is already closed.'),
+      (it) => it
+        ..kind.equals(.other)
+        ..message.equals('HTTP request failed. Client is already closed.'));
     checkRequest(const TlsException('Oops'), (it) => it
       ..kind.equals(.other)
       ..message.equals('Oops')
@@ -306,6 +363,33 @@ void main() {
       ..kind.equals(.other)
       ..message.equals(zulipLocalizations.errorNetworkRequestFailed)
       ..asString.equals('NetworkException: Network request failed ((foo: bar))'));
+  });
+
+  test('API network errors while receiving response body', () async {
+    // Regression test for: https://github.com/zulip/zulip-flutter/issues/2418
+    void checkRequest<T extends Object>(
+        T exception, Condition<NetworkException> condition) {
+      unawaited(check(
+        tryRequest(body: '{"result": "succ', bodyException: exception))
+        .throws<NetworkException>((it) => it
+          ..routeName.equals(kExampleRouteName)
+          ..cause.equals(exception)
+          ..which(condition)));
+    }
+
+    checkRequest(
+      http.ClientException('Connection closed before full body was received'),
+      (it) => it.kind.equals(.connectionFailed));
+    checkRequest(const SocketException('Connection reset by peer'),
+      (it) => it.kind.equals(.connectionFailed));
+    checkRequest(const TlsException('Oops'),
+      (it) => it.kind.equals(.other));
+
+    // On an HTTP error status, though, that status is the more useful
+    // signal; the network error doesn't obscure it.
+    unawaited(check(tryRequest(httpStatus: 500, body: '{"resu',
+        bodyException: const SocketException('Connection reset by peer')))
+      .throws<Server5xxException>());
   });
 
   test('API request timeout', () => awaitFakeAsync((async) async {
@@ -329,6 +413,16 @@ void main() {
           ..routeName.equals(kExampleRouteName)
           ..kind.equals(.connectionFailed)
           ..cause.isA<http.RequestAbortedException>());
+    });
+  }));
+
+  test('HTTP status wins over a timeout while reading the response body', () => awaitFakeAsync((async) async {
+    await FakeApiConnection.with_((connection) async {
+      connection.prepare(httpStatus: 500, body: 'splat',
+        bodyDelay: const Duration(seconds: 300));
+      await check(connection.get(kExampleRouteName, (json) => json,
+          'example/route', {}, timeout: const Duration(seconds: 90)))
+        .throws<Server5xxException>();
     });
   }));
 
@@ -463,6 +557,14 @@ void main() {
     await checkMalformed(  json: {'x': 3},   fromJson: (json) => json['x'] as String);
   });
 
+  test('unexpected error while reading response body fails an assert', () async {
+    // (In a release build, this would instead fall through
+    // to be treated like a malformed response.)
+    await check(tryRequest(body: '{"result',
+        bodyException: StateError('surprise')))
+      .throws<AssertionError>();
+  });
+
   test('malformed API success responses: exception preserves details', () async {
     int distinctivelyNamedFromJson(Map<String, dynamic> json) {
       throw DistinctiveError("something is wrong");
@@ -563,15 +665,18 @@ Future<T> tryRequest<T extends Object?>({
   int? httpStatus,
   Map<String, dynamic>? json,
   String? body,
+  Object? bodyException,
   T Function(Map<String, dynamic>)? fromJson,
 }) {
   assert((exception != null && json == null && body == null)
       || (exception == null && json != null && body == null)
       || (exception == null && json == null && body != null));
+  assert(exception == null || bodyException == null);
   fromJson ??= (((Map<String, dynamic> x) => x) as T Function(Map<String, dynamic>));
   return FakeApiConnection.with_((connection) {
     connection.prepare(
-      httpException: exception, httpStatus: httpStatus, json: json, body: body);
+      httpException: exception, httpStatus: httpStatus, json: json, body: body,
+      bodyException: bodyException);
     return connection.get(kExampleRouteName, fromJson!, 'example/route', {});
   });
 }

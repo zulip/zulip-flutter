@@ -1179,33 +1179,6 @@ void main() {
           });
         }
       });
-
-      group('legacy: unmute is unsupported when FL < 170', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
-
-          (true,  UserTopicVisibilityPolicy.muted,    <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.followed, <Finder>[]),
-
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-        ];
-
-        for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
-          final description = 'isChannelMuted: ${isChannelMuted ?? "(not subscribed)"}, $visibilityPolicy';
-          testWidgets(description, (tester) async {
-            await setupToTopicActionSheet(tester,
-              isChannelMuted: isChannelMuted,
-              visibilityPolicy: visibilityPolicy,
-              zulipFeatureLevel: 169);
-            checkButtons(buttons);
-          });
-        }
-      });
     });
 
     group('ResolveUnresolveButton', () {

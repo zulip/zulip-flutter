@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -14,6 +17,7 @@ import 'zulip_localizations_et.dart';
 import 'zulip_localizations_fr.dart';
 import 'zulip_localizations_he.dart';
 import 'zulip_localizations_hu.dart';
+import 'zulip_localizations_hy.dart';
 import 'zulip_localizations_it.dart';
 import 'zulip_localizations_ja.dart';
 import 'zulip_localizations_kk.dart';
@@ -126,6 +130,7 @@ abstract class ZulipLocalizations {
     Locale('fr'),
     Locale('he'),
     Locale('hu'),
+    Locale('hy'),
     Locale('it'),
     Locale('ja'),
     Locale('kk'),
@@ -2519,6 +2524,7 @@ class _ZulipLocalizationsDelegate
     'fr',
     'he',
     'hu',
+    'hy',
     'it',
     'ja',
     'kk',
@@ -2589,6 +2595,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsHe();
     case 'hu':
       return ZulipLocalizationsHu();
+    case 'hy':
+      return ZulipLocalizationsHy();
     case 'it':
       return ZulipLocalizationsIt();
     case 'ja':

@@ -1322,6 +1322,26 @@ class Mention extends StatelessWidget {
 //     borderRadius: BorderRadius.all(Radius.circular(3))));
 }
 
+extension _SystemGroupNameDisplayName on SystemGroupName {
+  /// The display name to use in the UI for this system group.
+  ///
+  /// Display names mirror the web app's display name strings.
+  /// See `system_user_groups_list` in web/src/settings_config.ts.
+  ///
+  /// This lives outside lib/api so that lib/api
+  /// doesn't depend on the app's localizations, or on Flutter (#2335).
+  String displayName(ZulipLocalizations zulipLocalizations) => switch (this) {
+    .everyoneOnInternet => zulipLocalizations.systemGroupNameEveryoneOnInternet,
+    .everyone           => zulipLocalizations.systemGroupNameEveryone,
+    .members            => zulipLocalizations.systemGroupNameMembers,
+    .fullMembers        => zulipLocalizations.systemGroupNameFullMembers,
+    .moderators         => zulipLocalizations.systemGroupNameModerators,
+    .administrators     => zulipLocalizations.systemGroupNameAdministrators,
+    .owners             => zulipLocalizations.systemGroupNameOwners,
+    .nobody             => zulipLocalizations.systemGroupNameNobody,
+  };
+}
+
 class MessageImageEmoji extends StatelessWidget {
   const MessageImageEmoji({super.key, required this.node});
 

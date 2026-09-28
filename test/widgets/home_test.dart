@@ -56,12 +56,15 @@ void main () {
     ..onPushed = ((route, prevRoute) => pushedRoutes.add(route))
     ..onPopped = ((route, prevRoute) => lastPoppedRoute = route);
 
-  Future<void> prepare(WidgetTester tester) async {
-    addTearDown(testBinding.reset);
+  setUp(() {
     topRoute = null;
     previousTopRoute = null;
     pushedRoutes = [];
     lastPoppedRoute = null;
+  });
+
+  Future<void> prepare(WidgetTester tester) async {
+    addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
     connection = store.connection as FakeApiConnection;

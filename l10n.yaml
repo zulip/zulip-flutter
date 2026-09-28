@@ -10,3 +10,6 @@ untranslated-messages-file: build/untranslated_messages.json
 output-class: ZulipLocalizations
 preferred-supported-locales: [ en ]
 nullable-getter: false
+header: |
+  // TODO(#2463) stop using the deprecated members
+  // ignore_for_file: deprecated_member_use

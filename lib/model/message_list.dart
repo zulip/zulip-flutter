@@ -141,6 +141,37 @@ mixin _MessageSequence {
   /// The corresponding item index is [middleItem].
   int middleMessage = 0;
 
+  /// The ID of the oldest message fetched so far in this narrow,
+  /// or of the first message added on a message event
+  /// when none had been fetched.
+  ///
+  /// This is used as the anchor for fetching the next batch of older messages
+  /// and will be `null` if no messages of this narrow
+  /// have been fetched or added yet.
+  ///
+  /// A message with this ID might not appear in [messages]:
+  /// - The message may be in a muted conversation.
+  /// - The message may have been moved or deleted after it was fetched.
+  ///
+  /// See also [newestFetchedMessageId].
+  int? get oldestFetchedMessageId => _oldestFetchedMessageId;
+  int? _oldestFetchedMessageId;
+
+  /// The ID of the newest message fetched so far in this narrow,
+  /// or of a newer message added on a message event while [haveNewest].
+  ///
+  /// This is used as the anchor for fetching the next batch of newer messages
+  /// and will be `null` if no messages of this narrow
+  /// have been fetched or added yet.
+  ///
+  /// A message with this ID might not appear in [messages]:
+  /// - The message may be in a muted conversation.
+  /// - The message may have been moved or deleted after it was fetched.
+  ///
+  /// See also [oldestFetchedMessageId].
+  int? get newestFetchedMessageId => _newestFetchedMessageId;
+  int? _newestFetchedMessageId;
+
   /// Whether [messages] and [items] represent the results of a fetch.
   ///
   /// This allows the UI to distinguish "still working on fetching messages"
@@ -427,11 +458,29 @@ mixin _MessageSequence {
     return true;
   }
 
+  /// Mark this sequence as no longer having the newest messages,
+  /// so that a subsequent [MessageListView.fetchNewer] can find them.
+  ///
+  /// This removes all [outboxMessages],
+  /// preserving the invariant that those are present only when [haveNewest].
+  /// See [MessageListView._syncOutboxMessagesFromStore],
+  /// which will restore the outbox messages
+  /// when a fetch again reaches the newest messages.
+  ///
+  /// This does not call [notifyListeners].
+  void _invalidateHaveNewest() {
+    assert(haveNewest);
+    _removeOutboxMessagesWhere((_) => true);
+    _haveNewest = false;
+  }
+
   /// Reset all [_MessageSequence] data, and cancel any active fetches.
   void _reset() {
     generation += 1;
     messages.clear();
     middleMessage = 0;
+    _oldestFetchedMessageId = null;
+    _newestFetchedMessageId = null;
     outboxMessages.clear();
     _haveOldest = false;
     _haveNewest = false;
@@ -620,7 +669,7 @@ bool _sameDay(DateTime date1, DateTime date2) {
 ///  * Add listeners with [addListener].
 ///  * Fetch messages with [fetchInitial].  When the fetch completes, this object
 ///    will notify its listeners (as it will any other time the data changes.)
-///  * Fetch more messages as needed with [fetchOlder].
+///  * Fetch more messages as needed with [fetchOlder] and [fetchNewer].
 ///  * On reassemble, call [reassemble].
 ///  * When the object will no longer be used, call [dispose] to free
 ///    resources on the [PerAccountStore].
@@ -642,6 +691,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   final PerAccountStore store;
 
+  bool _disposed = false;
+
   /// The narrow shown in this message list.
   ///
   /// This can change over time, notably if showing a topic that gets moved,
@@ -651,6 +702,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Set [narrow] and [anchor], reset, [notifyListeners], and [fetchInitial].
   void renarrowAndFetch(Narrow newNarrow, Anchor anchor) {
+    assert(!_disposed);
     _narrow = newNarrow;
     _anchor = anchor;
     _reset();
@@ -675,7 +727,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   @override
   void dispose() {
+    assert(!_disposed);
     store.unregisterMessageList(this);
+    // Fetches in progress check this when they resume, so that they
+    // don't act on, or notify listeners of, this disposed object.
+    _disposed = true;
     super.dispose();
   }
 
@@ -703,9 +759,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// see [RevealedMutedMessagesState] in lib/widgets/message_list.dart.
   ///
   /// See also [_allMessagesVisible].
-  // When updating this, check [_allMessagesVisible], [_canAffectVisibility],
-  // and [_mutedUsersEventCanAffectVisibility] to see whether they need to be
-  // updated too.
+  // When updating this, check [_allMessagesVisible], [_willAffectVisibility],
+  // [_mutedUsersEventWillAffectVisibility], and [messagesMoved] to see whether
+  // they need to be updated too.
   // Also check the unread-count methods in [Unreads] to make sure they count
   // exactly the unread messages for which this would return true.
   bool _messageVisible(MessageBase message) {
@@ -723,7 +779,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         assert(message is MessageBase<StreamConversation>
                && message.conversation.streamId == channelId);
         if (message is! MessageBase<StreamConversation>) return false;
-        return store.isTopicVisibleInStream(channelId, message.conversation.topic);
+        return store.isTopicVisibleInChannel(channelId, message.conversation.topic);
 
       case TopicNarrow():
         assert((narrow as TopicNarrow).containsMessage(message));
@@ -763,6 +819,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Whether [message] belongs in this view:
+  /// it's known to be in [narrow], and it's visible ([_messageVisible]).
+  bool _messageBelongsHere(MessageBase message) =>
+    narrow.containsMessage(message) == true && _messageVisible(message);
+
   /// Whether [_messageVisible] is true for all possible messages.
   ///
   /// This is useful for an optimization.
@@ -789,14 +850,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  UserTopicVisibilityEffect _canAffectVisibility(UserTopicEvent event) {
+  UserTopicVisibilityEffect _willAffectVisibility(UserTopicEvent event) {
     switch (narrow) {
       case CombinedFeedNarrow():
-        return store.willChangeIfTopicVisible(event);
+        return store.willAffectIfTopicVisible(event);
 
       case ChannelNarrow(:final channelId):
         if (event.streamId != channelId) return UserTopicVisibilityEffect.none;
-        return store.willChangeIfTopicVisibleInStream(event);
+        return store.willAffectIfTopicVisibleInChannel(event);
 
       case TopicNarrow():
       case DmNarrow():
@@ -809,10 +870,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  MutedUsersVisibilityEffect _mutedUsersEventCanAffectVisibility(MutedUsersEvent event) {
+  MutedUsersVisibilityEffect _mutedUsersEventWillAffectVisibility(MutedUsersEvent event) {
     switch(narrow) {
       case CombinedFeedNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
 
       case ChannelNarrow():
       case TopicNarrow():
@@ -820,13 +881,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return MutedUsersVisibilityEffect.none;
 
       case MentionsNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
 
       case StarredMessagesNarrow():
         return MutedUsersVisibilityEffect.none;
 
       case KeywordSearchNarrow():
-        return store.mightChangeShouldMuteDmConversation(event);
+        return store.willAffectShouldMuteDmConversation(event);
     }
   }
 
@@ -839,8 +900,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Fetch messages, starting from scratch.
   Future<void> fetchInitial() async {
+    assert(!_disposed);
     assert(!fetched && !haveOldest && !haveNewest && !busyFetchingMore);
     assert(messages.isEmpty && contents.isEmpty);
+    assert(oldestFetchedMessageId == null && newestFetchedMessageId == null);
 
     if (narrow case KeywordSearchNarrow(keyword: '')) {
       // The server would reject an empty keyword search; skip the request.
@@ -855,6 +918,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
     // TODO schedule all this in another isolate
     final generation = this.generation;
+    // TODO(#2085): handle request failure
     final result = await getMessages(store.connection,
       narrow: narrow.apiEncode(),
       anchor: anchor,
@@ -862,7 +926,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       numAfter: kMessageListFetchBatchSize,
       allowEmptyTopicName: true,
     );
-    if (this.generation > generation) return;
+    if (_disposed || this.generation > generation) return;
+
+    _oldestFetchedMessageId = result.messages.firstOrNull?.id;
+    _newestFetchedMessageId = result.messages.lastOrNull?.id;
 
     _adjustNarrowForTopicPermalink(result.messages.firstOrNull);
 
@@ -935,15 +1002,19 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// That makes this method suitable to call frequently, e.g. every frame,
   /// whenever it looks likely to be useful to have more messages.
   Future<void> fetchOlder() async {
+    assert(!_disposed);
     if (haveOldest) return;
     if (busyFetchingMore) return;
     assert(fetched);
-    assert(messages.isNotEmpty);
+    assert(oldestFetchedMessageId != null);
     await _fetchMore(
-      anchor: NumericAnchor(messages[0].id),
+      anchor: NumericAnchor(oldestFetchedMessageId!),
       numBefore: kMessageListFetchBatchSize,
       numAfter: 0,
       processResult: (result) {
+        if (result.messages.isNotEmpty) {
+          _oldestFetchedMessageId = result.messages.first.id;
+        }
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -965,15 +1036,19 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// That makes this method suitable to call frequently, e.g. every frame,
   /// whenever it looks likely to be useful to have more messages.
   Future<void> fetchNewer() async {
+    assert(!_disposed);
     if (haveNewest) return;
     if (busyFetchingMore) return;
     assert(fetched);
-    assert(messages.isNotEmpty);
+    assert(newestFetchedMessageId != null);
     await _fetchMore(
-      anchor: NumericAnchor(messages.last.id),
+      anchor: NumericAnchor(newestFetchedMessageId!),
       numBefore: 0,
       numAfter: kMessageListFetchBatchSize,
       processResult: (result) {
+        if (result.messages.isNotEmpty) {
+          _newestFetchedMessageId = result.messages.last.id;
+        }
         store.reconcileMessages(result.messages);
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
@@ -1017,16 +1092,16 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         hasFetchError = true;
         rethrow;
       }
-      if (this.generation > generation) return;
+      if (_disposed || this.generation > generation) return;
 
       processResult(result);
     } finally {
-      if (this.generation == generation) {
+      if (!_disposed && this.generation == generation) {
         if (hasFetchError) {
           _setStatus(FetchingStatus.backoff, was: FetchingStatus.fetchingMore);
           unawaited((_fetchBackoffMachine ??= BackoffMachine())
             .wait().then((_) {
-              if (this.generation != generation) return;
+              if (_disposed || this.generation != generation) return;
               _setStatus(FetchingStatus.idle, was: FetchingStatus.backoff);
             }));
         } else {
@@ -1042,9 +1117,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   /// This will set [anchor] to [AnchorCode.newest],
   /// and cause messages to be re-fetched from scratch.
   void jumpToEnd() {
+    assert(!_disposed);
     assert(fetched);
     assert(!haveNewest);
-    assert(anchor != AnchorCode.newest);
+    // [anchor] is usually not [AnchorCode.newest] here, but it can be,
+    // when [haveNewest] was invalidated.  See [handleMessagesLearnedFromFetch].
     _anchor = AnchorCode.newest;
     _reset();
     notifyListeners();
@@ -1053,9 +1130,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   bool _shouldAddOutboxMessage(OutboxMessage outboxMessage) {
     assert(haveNewest);
-    return !outboxMessage.hidden
-      && narrow.containsMessage(outboxMessage) == true
-      && _messageVisible(outboxMessage);
+    return !outboxMessage.hidden && _messageBelongsHere(outboxMessage);
   }
 
   /// Reads [MessageStore.outboxMessages] and copies to [outboxMessages]
@@ -1100,8 +1175,68 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  /// Remove the [outboxMessage] from the view, its anticipated message
+  /// (see [OutboxMessage.messageId]) having been received in a fetch.
+  ///
+  /// This is a no-op if the message is not found.
+  void handleOutboxMessageDelivered(OutboxMessage outboxMessage) {
+    if (_removeOutboxMessage(outboxMessage)) {
+      notifyListeners();
+    }
+  }
+
+  /// Called when the store has newly learned of messages from a fetch,
+  /// whether by this view or another.
+  /// See [MessageStoreImpl.reconcileMessages].
+  ///
+  /// If any of the messages belong in this view
+  /// but are newer than the messages it has,
+  /// then stop claiming to have the newest messages
+  /// ([haveNewest] becomes false),
+  /// so that a subsequent [fetchNewer] will find them.
+  ///
+  /// If the view has never had any messages,
+  /// a [fetchNewer] would have nothing to anchor its request at.
+  /// In that case, reset and refetch from scratch instead.
+  ///
+  /// Normally such messages would already have been added to this view,
+  /// on a message event.
+  /// But the event queue might be delayed or stuck
+  /// while fetches continue to succeed
+  /// (see #2397, and e.g. #514 and #2415 for ways this can happen).
+  /// In that case this is how the view learns
+  /// its impression of being caught up is stale.
+  ///
+  /// A view on a search narrow never invalidates this way,
+  /// because the client can't tell which messages belong in it
+  /// (see [Narrow.containsMessage]).
+  /// So such a view can keep claiming [haveNewest] when it's stale.
+  void handleMessagesLearnedFromFetch(List<Message> newlyLearned) {
+    if (!haveNewest) return;
+    final anchorId = newestFetchedMessageId;
+    if (anchorId == null) {
+      // A [fetchNewer] would have no message to anchor its request at.
+      // But the view has never had any messages,
+      // so there's no content to preserve. Just refetch from scratch.
+      if (newlyLearned.any(_messageBelongsHere)) {
+        _reset();
+        notifyListeners();
+        fetchInitial();
+      }
+      return;
+    }
+    final hasNewerMessage = newlyLearned.any((message) =>
+      // A message at or before [anchorId] wouldn't be found by [fetchNewer],
+      // so don't invalidate for it.  (A message the view lacks, with an ID
+      // in the already-fetched range, can arise from a message move.)
+      message.id > anchorId && _messageBelongsHere(message));
+    if (!hasNewerMessage) return;
+    _invalidateHaveNewest();
+    notifyListeners();
+  }
+
   void handleUserTopicEvent(UserTopicEvent event) {
-    switch (_canAffectVisibility(event)) {
+    switch (_willAffectVisibility(event)) {
       case UserTopicVisibilityEffect.none:
         return;
 
@@ -1133,7 +1268,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   }
 
   void handleMutedUsersEvent(MutedUsersEvent event) {
-    switch (_mutedUsersEventCanAffectVisibility(event)) {
+    switch (_mutedUsersEventWillAffectVisibility(event)) {
       case MutedUsersVisibilityEffect.none:
         return;
 
@@ -1197,7 +1332,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       return;
     }
 
-    if (narrow.containsMessage(message) != true || !_messageVisible(message)) {
+    if (!_messageBelongsHere(message)) {
       assert(event.localMessageId == null || outboxMessages.none((message) =>
         message.localMessageId == int.parse(event.localMessageId!, radix: 10)));
       return;
@@ -1220,6 +1355,13 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     _removeOutboxMessageItems();
     // TODO insert in middle of [messages] instead, when appropriate
     _addMessage(message);
+    // Keep [newestFetchedMessageId] up to date as the anchor for a future
+    // [fetchNewer], so that such a fetch can't return this message again
+    // (which would corrupt [messages] with a duplicate).
+    _newestFetchedMessageId = message.id;
+    // If the view had no messages at all, this message also bounds
+    // the history on the other end.
+    _oldestFetchedMessageId ??= message.id;
     _removeOutboxMessageOfEvent(event);
     _reprocessOutboxMessages();
     notifyListeners();
@@ -1246,7 +1388,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
-  void _messagesMovedIntoNarrow() {
+  void _messagesMovedIntoMessageList() {
     // If there are some messages we don't have in [MessageStore], and they
     // occur later than the messages we have here, then we just have to
     // re-fetch from scratch.  That's always valid, so just do that always.
@@ -1256,7 +1398,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     fetchInitial();
   }
 
-  void _messagesMovedFromNarrow(List<int> messageIds) {
+  void _messagesMovedFromMessageList(List<int> messageIds) {
     if (_removeMessagesById(messageIds)) {
       notifyListeners();
     }
@@ -1286,11 +1428,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return;
 
       case CombinedFeedNarrow():
+        final wasVisible = store.isTopicVisible(origStreamId, origTopic);
+        final isVisible = store.isTopicVisible(newStreamId, newTopic);
+        switch ((wasVisible, isVisible)) {
+          case (false, false): return;
+          case (true,  true ): _messagesMovedInternally(messageIds);
+          case (false, true ): _messagesMovedIntoMessageList();
+          case (true,  false): _messagesMovedFromMessageList(messageIds);
+        }
+
       case MentionsNarrow():
       case StarredMessagesNarrow():
-        // The messages didn't enter or leave this narrow.
-        // TODO(#1255): … except they may have become muted or not.
-        //   We'll handle that at the same time as we handle muting itself changing.
+        // The messages didn't enter or leave this message list.
+        // (They may have been (un)muted, but we don't exclude channel messages
+        // in these narrows on the basis of muting. See _messageVisible.)
         // Recipient headers, and downstream of those, may change, though.
         _messagesMovedInternally(messageIds);
 
@@ -1299,14 +1450,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // the topic alone, and topics change. Punt on trying to add/remove
         // messages, though, because we aren't equipped to evaluate the match
         // without asking the server.
+        // (Messages may have been (un)muted, but we don't exclude channel
+        // messages in this narrow on the basis of muting. See _messageVisible.)
         _messagesMovedInternally(messageIds);
 
       case ChannelNarrow(:final channelId):
-        switch ((origStreamId == channelId, newStreamId == channelId)) {
+        final wasInChannelAndVisible = origStreamId == channelId
+          && store.isTopicVisibleInChannel(origStreamId, origTopic);
+        final isInChannelAndVisible = newStreamId == channelId
+          && store.isTopicVisibleInChannel(newStreamId, newTopic);
+        switch ((wasInChannelAndVisible, isInChannelAndVisible)) {
           case (false, false): return;
           case (true,  true ): _messagesMovedInternally(messageIds);
-          case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false): _messagesMovedFromNarrow(messageIds);
+          case (false, true ): _messagesMovedIntoMessageList();
+          case (true,  false): _messagesMovedFromMessageList(messageIds);
         }
 
       case TopicNarrow(:final channelId, :final topic):
@@ -1315,9 +1472,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         switch ((oldMatch, newMatch)) {
           case (false, false): return;
           case (true,  true ): return; // TODO(log) when no-op move
-          case (false, true ): _messagesMovedIntoNarrow();
+          case (false, true ): _messagesMovedIntoMessageList();
           case (true,  false):
-            _messagesMovedFromNarrow(messageIds);
+            _messagesMovedFromMessageList(messageIds);
             _handlePropagateMode(propagateMode, TopicNarrow(newStreamId, newTopic));
         }
     }

@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -130,9 +127,6 @@
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
-  },
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
@@ -1265,7 +1259,6 @@
   },
   "aboutPageAppVersion": "App 版本",
   "aboutPageOpenSourceLicenses": "开源许可",
-  "aboutPageTapToView": "查看更多",
   "aboutPageTitle": "关于 Zulip",
   "actionSheetOptionChannelFeed": "频道动态",
   "actionSheetOptionCopyChannelLink": "复制频道链接",
@@ -1303,7 +1296,6 @@
   "actionSheetTitleSelfDm": "与自己的私信",
   "allChannelsEmptyPlaceholderHeader": "目前组织中没有您可见的频道。",
   "allChannelsPageTitle": "所有频道",
-  "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "频道订阅",
   "channelsPageTitle": "频道",
   "chooseAccountButtonAddAnAccount": "添加一个账号",

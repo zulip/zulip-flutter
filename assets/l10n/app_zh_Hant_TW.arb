@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -118,9 +115,6 @@
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
-  },
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
@@ -1376,7 +1370,6 @@
   },
   "aboutPageAppVersion": "App 版本",
   "aboutPageOpenSourceLicenses": "開源授權條款",
-  "aboutPageTapToView": "點選查看",
   "aboutPageTitle": "關於 Zulip",
   "actionSheetOptionChannelFeed": "頻道動態",
   "actionSheetOptionCopyChannelLink": "複製頻道連結",
@@ -1412,7 +1405,6 @@
   "actionSheetReadReceiptsZeroReadCount": "尚無人閱讀此訊息。",
   "allChannelsEmptyPlaceholderHeader": "在此組織中沒有您可以查看的頻道。",
   "allChannelsPageTitle": "所有頻道",
-  "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "頻道動態",
   "channelsEmptyPlaceholderHeader": "您尚未訂閱任何頻道。",
   "channelsEmptyPlaceholderMessage": "試著前往 <z-link>{allChannelsPageTitle}</z-link>，加入一些頻道吧。",

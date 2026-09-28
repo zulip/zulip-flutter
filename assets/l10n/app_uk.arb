@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -112,9 +109,6 @@
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
-  },
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
@@ -1361,7 +1355,6 @@
   },
   "aboutPageAppVersion": "Версія додатку",
   "aboutPageOpenSourceLicenses": "Ліцензії з відкритим кодом",
-  "aboutPageTapToView": "Натисніть, щоб переглянути",
   "aboutPageTitle": "Про Zulip",
   "actionSheetOptionChannelFeed": "Стрічка каналу",
   "actionSheetOptionCopyChannelLink": "Копіювати посилання на канал",
@@ -1395,7 +1388,6 @@
   "actionSheetReadReceiptsZeroReadCount": "Ніхто ще не прочитав цього повідомлення.",
   "allChannelsEmptyPlaceholderHeader": "У цій організації немає каналів, які ви можете переглянути.",
   "allChannelsPageTitle": "Усі канали",
-  "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Стрічка каналу",
   "channelsEmptyPlaceholderHeader": "Ви ще не підписані на жодний канал.",
   "channelsEmptyPlaceholderMessage": "Спробуйте перейти за посиланням <z-link>{allChannelsPageTitle}</z-link> та приєднатися до деяких із них.",

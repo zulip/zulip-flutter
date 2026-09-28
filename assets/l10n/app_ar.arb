@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -26,18 +23,8 @@
   "@upgradeWelcomeDialogTitle": {
     "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
-  "@wildcardMentionAll": {},
-  "@wildcardMentionAllDmDescription": {},
-  "@wildcardMentionChannel": {},
-  "@wildcardMentionChannelDescription": {},
-  "@wildcardMentionEveryone": {},
-  "@wildcardMentionStream": {},
-  "@wildcardMentionStreamDescription": {},
-  "@wildcardMentionTopic": {},
-  "@wildcardMentionTopicDescription": {},
   "aboutPageAppVersion": "نسخة التطبيق",
   "aboutPageOpenSourceLicenses": "10.0.151.1",
-  "aboutPageTapToView": "اضغط للعرض",
   "aboutPageTitle": "عن زوليب",
   "chooseAccountPageTitle": "اختر حساب",
   "settingsPageTitle": "الإعدادات",

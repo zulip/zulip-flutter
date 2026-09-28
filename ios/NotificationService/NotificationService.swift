@@ -14,18 +14,19 @@ class NotificationService: UNNotificationServiceExtension {
   private static let senderNameKey = "sender_name"
   private static let notificationUrlKey = "notification_url"
 
-  let logger = Logger()
+  private let logger = Logger()
+  private let deliveryLock = NSLock()
+  private var hasDeliveredContent = false
 
   var contentHandler: ((UNNotificationContent) -> Void)?
   var bestAttemptContent: UNMutableNotificationContent?
-  private var hasDeliveredContent = false
 
   /// See docs: https://developer.apple.com/documentation/usernotifications/unnotificationserviceextension/didreceive(_:withcontenthandler:)
   override func didReceive(
     _ request: UNNotificationRequest,
     withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
   ) {
-    hasDeliveredContent = false
+    deliveryLock.withLock { hasDeliveredContent = false }
     self.contentHandler = contentHandler
     bestAttemptContent =
       (request.content.mutableCopy() as? UNMutableNotificationContent)
@@ -34,105 +35,35 @@ class NotificationService: UNNotificationServiceExtension {
       return
     }
 
-    // Initialise a headless FlutterEngine, and start executing Dart code
-    // using a custom entrypoint.
+    // iOS calls this method on a background thread, but a FlutterEngine must be
+    // created and run on the main thread.  So hop to the main actor for that.
     //
-    // See docs:
-    //   https://api.flutter.dev/ios-embedder/interface_flutter_engine.html#a4f74d860f311cb1a6c30a6411ca8e8ff
-    //   https://api.flutter.dev/ios-embedder/interface_flutter_engine.html#a2ae6940c35afbdc5e1088aa9c1b26bbd
-    let headlessEngine = FlutterEngine(
-      name: "zulip_headless",
-      project: nil,
-      allowHeadlessExecution: true
-    )
-    let started = headlessEngine.run(
-      withEntrypoint: "iosNotificationServiceMain",
-      libraryURI: "package:zulip/notifications/ios_service.dart"
-    )
-    if !started {
-      deliver(request.content, with: contentHandler)
-      return
-    }
-
-    IosNativeHostApiSetup.setUp(
-      binaryMessenger: headlessEngine.binaryMessenger, api: IosNativeHostApiImpl())
-
-    // Register Flutter plugins with the headless engine.
-    GeneratedPluginRegistrant.register(with: headlessEngine)
-
-    let iosNotifFlutterApi = IosNotifFlutterApi(
-      binaryMessenger: headlessEngine.binaryMessenger
-    )
-
-    var loopRunning = true
-    iosNotifFlutterApi.didReceivePushNotification(
-      content: NotificationContent(payload: bestAttemptContent.userInfo)
-    ) { result in
-      defer { loopRunning = false }
-
-      switch result {
-      case .success(let improvedNotificationContent):
-        bestAttemptContent.title = improvedNotificationContent.title
-        bestAttemptContent.subtitle = improvedNotificationContent.subtitle
-        bestAttemptContent.body = improvedNotificationContent.body
-        switch improvedNotificationContent.sound {
+    // This function will therefore return before `contentHandler` is called,
+    // which is fine: all iOS asks is that it eventually get called, either by
+    // the task below or by `serviceExtensionTimeWillExpire`.
+    Task { @MainActor in
+      let improvedContent = await DartNotificationService.didReceivePushNotification(
+        NotificationContent(payload: bestAttemptContent.userInfo))
+      if let improvedContent = improvedContent {
+        bestAttemptContent.title = improvedContent.title
+        bestAttemptContent.subtitle = improvedContent.subtitle
+        bestAttemptContent.body = improvedContent.body
+        switch improvedContent.sound {
         case .systemDefault:
           bestAttemptContent.sound = UNNotificationSound.default
         }
-        bestAttemptContent.userInfo = improvedNotificationContent.userInfo as [AnyHashable: Any]
-
-        Task {
-          let content = await self.communicationNotificationContent(
-            from: bestAttemptContent,
-            userInfo: improvedNotificationContent.userInfo
-          )
-          self.deliver(content, with: contentHandler)
-          loopRunning = false
-        }
-
-      case .failure(let error):  // TODO(log)
-        self.logger.debug(
-          "IosNotifFlutterApi.didReceivePushNotification failed: \(error.localizedDescription)")
-        self.deliver(bestAttemptContent, with: contentHandler)
-        loopRunning = false
+        bestAttemptContent.userInfo = improvedContent.userInfo as [AnyHashable: Any]
       }
-    }
-
-    // FlutterEngine even in the headless mode assumes that the event loop of
-    // current thread is being polled by the system. Which is not the case in
-    // the NotificationService extension, so here we manually poll the event loop.
-    // See discussion:
-    //   https://chat.zulip.org/#narrow/channel/243-mobile-team/topic/Running.20Dart.20code.20in.20iOS.20Notification.20Service.20Extension/with/2370721
-    // TODO(upstream) let FlutterEngine itself handle this, or expose an API
-    //   that makes this easier, maybe with something like:
-    //     https://github.com/flutter/flutter/pull/181645
-
-    // Adapted from: https://github.com/flutter/flutter/blob/65b1ec407/engine/src/flutter/fml/platform/darwin/message_loop_darwin.mm#L44-L62
-    let kDistantFuture = 1.0e10
-    while loopRunning {
-      let result = CFRunLoopRunInMode(.defaultMode, kDistantFuture, true)
-
-      switch result {
-      case .timedOut:
-        // This should never be reachable because the timeout is 1e10 seconds
-        // (~316 years). But continue looping here, matching the upstream
-        // implementation.
-        continue
-
-      case .handledSource:
-        // Keep polling until there are events in the event loop.
-        continue
-
-      case .finished, .stopped:
-        loopRunning = false
-
-      @unknown default:  // TODO(log)
-        logger.debug("Unknown result from CFRunLoopRunInMode: \(String(describing: result))")
-        continue
+      let content: UNNotificationContent
+      if let improvedContent = improvedContent {
+        content = await communicationNotificationContent(
+          from: bestAttemptContent,
+          userInfo: improvedContent.userInfo)
+      } else {
+        content = bestAttemptContent
       }
+      deliver(content, with: contentHandler)
     }
-
-    headlessEngine.destroyContext()
   }
 
   /// Called by iOS when the `didReceive(_:withContentHandler:)` method doesn't
@@ -147,15 +78,17 @@ class NotificationService: UNNotificationServiceExtension {
     }
   }
 
-  /// Delivers content at most once. The notification service extension can
-  /// race a network completion with serviceExtensionTimeWillExpire().
+  /// The network completion and extension timeout can race to deliver content.
   private func deliver(
     _ content: UNNotificationContent,
     with handler: @escaping (UNNotificationContent) -> Void
   ) {
-    guard !hasDeliveredContent else { return }
-    hasDeliveredContent = true
-    handler(content)
+    let shouldDeliver = deliveryLock.withLock {
+      if hasDeliveredContent { return false }
+      hasDeliveredContent = true
+      return true
+    }
+    if shouldDeliver { handler(content) }
   }
 
   /// Converts a normal notification into an iOS Communication Notification.
@@ -222,6 +155,71 @@ class NotificationService: UNNotificationServiceExtension {
     } catch {
       logger.debug("Unable to create Communication Notification: \(error.localizedDescription)")
       return content
+    }
+  }
+}
+
+/// The Dart side of this NotificationService, run in a headless FlutterEngine.
+///
+/// See `IosNotificationService` in lib/notifications/ios_service.dart.
+///
+/// This is isolated to the main actor because a FlutterEngine must be created
+/// and run on the main thread.
+///
+/// See docs: https://api.flutter.dev/ios-embedder/interface_flutter_engine.html
+@MainActor
+enum DartNotificationService {
+  private static let logger = Logger()
+
+  /// Ask the Dart code what content to show for a push notification
+  /// we received, or nil if it didn't give us any.
+  static func didReceivePushNotification(
+    _ content: NotificationContent
+  ) async -> ImprovedNotificationContent? {
+    // Initialise a headless FlutterEngine, and start executing Dart code
+    // using a custom entrypoint.
+    //
+    // See docs:
+    //   https://api.flutter.dev/ios-embedder/interface_flutter_engine.html#a4f74d860f311cb1a6c30a6411ca8e8ff
+    //   https://api.flutter.dev/ios-embedder/interface_flutter_engine.html#a2ae6940c35afbdc5e1088aa9c1b26bbd
+    let headlessEngine = FlutterEngine(
+      name: "zulip_headless",
+      project: nil,
+      allowHeadlessExecution: true
+    )
+    let started = headlessEngine.run(
+      withEntrypoint: "iosNotificationServiceMain",
+      libraryURI: "package:zulip/notifications/ios_service.dart"
+    )
+    if !started {
+      return nil  // TODO(log)
+    }
+
+    defer { headlessEngine.destroyContext() }
+
+    IosNativeHostApiSetup.setUp(
+      binaryMessenger: headlessEngine.binaryMessenger, api: IosNativeHostApiImpl())
+
+    // Register Flutter plugins with the headless engine.
+    GeneratedPluginRegistrant.register(with: headlessEngine)
+
+    let iosNotifFlutterApi = IosNotifFlutterApi(
+      binaryMessenger: headlessEngine.binaryMessenger
+    )
+    let result = await withCheckedContinuation { continuation in
+      iosNotifFlutterApi.didReceivePushNotification(content: content) { result in
+        continuation.resume(returning: result)
+      }
+    }
+
+    switch result {
+    case .success(let improvedNotificationContent):
+      return improvedNotificationContent
+
+    case .failure(let error):  // TODO(log)
+      logger.debug(
+        "IosNotifFlutterApi.didReceivePushNotification failed: \(error.localizedDescription)")
+      return nil
     }
   }
 }
