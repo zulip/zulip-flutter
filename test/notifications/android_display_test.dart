@@ -462,7 +462,7 @@ void main() {
     });
   });
 
-  group('NotificationDisplayManager show', () {
+  group('AndroidNotificationDisplayManager show', () {
     void checkNotification(
       NotifPayloadNewMessage data, {
       Account? account,
@@ -508,7 +508,7 @@ void main() {
             ..text.equals(messageData.content)
             ..timestampMs.equals(messageData.time * 1000)
             ..extras.deepEquals({
-              NotificationDisplayManager.kExtraZulipMessageId:
+              AndroidNotificationDisplayManager.kExtraZulipMessageId:
                 messageData.messageId.toString(),
             })
             ..person.which((it) => it.isNotNull()
@@ -521,7 +521,7 @@ void main() {
       check(testBinding.androidNotificationHost.takeNotifyCalls())
         .deepEquals(<Condition<Object?>>[
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
-            ..id.equals(NotificationDisplayManager.kNotificationId)
+            ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedTag)
             ..channelId.equals(NotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
@@ -539,7 +539,7 @@ void main() {
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.which((it) => it.isNotNull()
               ..deepEquals(<String, String>{
-                NotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
+                AndroidNotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
               }))
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.isNull()
@@ -553,7 +553,7 @@ void main() {
                 ..dataUrl.equals(expectedIntentDataUrl.toString())
                 ..flags.equals(expectedIntentFlags))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
-            ..id.equals(NotificationDisplayManager.kNotificationId)
+            ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedGroupKey)
             ..channelId.equals(NotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
@@ -578,7 +578,7 @@ void main() {
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
     }) async {
-      // We could just call `NotificationDisplayManager.onNotifPayload`.
+      // We could just call `AndroidNotificationDisplayManager.onNotifPayload`.
       // But this way is cheap, and it provides our test coverage of
       // the logic in `NotificationService` that listens for these FCM messages.
 
@@ -614,18 +614,18 @@ void main() {
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedTag = '$expectedGroupKey|$tagComponent';
       return (it) => it.isA<StatusBarNotification>()
-        ..id.equals(NotificationDisplayManager.kNotificationId)
+        ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.deepEquals(<String, String>{
-            NotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
+            AndroidNotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
           }))
         ..tag.equals(expectedTag);
     }
 
     Condition<Object?> conditionSummaryActiveNotif(String expectedGroupKey) {
       return (it) => it.isA<StatusBarNotification>()
-        ..id.equals(NotificationDisplayManager.kNotificationId)
+        ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.isEmpty())
@@ -1325,7 +1325,7 @@ void main() {
       await receiveNotification(async, notifPayloadNewMessage(message));
       check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
 
-      await NotificationDisplayManager.removeNotificationsForAccount(
+      await AndroidNotificationDisplayManager.removeNotificationsForAccount(
         eg.selfAccount.realmUrl, eg.selfAccount.userId);
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
@@ -1348,7 +1348,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications)
         .length.equals(4);
 
-      await NotificationDisplayManager.removeNotificationsForAccount(
+      await AndroidNotificationDisplayManager.removeNotificationsForAccount(
         realmUrl, account1.userId);
       check(testBinding.androidNotificationHost.activeNotifications)
         ..length.equals(2)
@@ -1375,7 +1375,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications)
         .length.equals(4);
 
-      await NotificationDisplayManager.removeNotificationsForAccount(account1.realmUrl, userId);
+      await AndroidNotificationDisplayManager.removeNotificationsForAccount(account1.realmUrl, userId);
       check(testBinding.androidNotificationHost.activeNotifications)
         ..length.equals(2)
         ..first.notification.group.equals('${account2.realmUrl}|$userId');
@@ -1385,7 +1385,7 @@ void main() {
       await init();
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      await NotificationDisplayManager.removeNotificationsForAccount(eg.selfAccount.realmUrl, eg.selfAccount.userId);
+      await AndroidNotificationDisplayManager.removeNotificationsForAccount(eg.selfAccount.realmUrl, eg.selfAccount.userId);
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
   });

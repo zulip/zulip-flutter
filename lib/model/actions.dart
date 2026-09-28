@@ -17,7 +17,7 @@ Future<void> logOutAccount(GlobalStore globalStore, int accountId) async {
   unawaited(unregisterDevice(globalStore, accountId));
 
   if (defaultTargetPlatform == TargetPlatform.android) {
-    unawaited(NotificationDisplayManager.removeNotificationsForAccount(account.realmUrl, account.userId));
+    unawaited(AndroidNotificationDisplayManager.removeNotificationsForAccount(account.realmUrl, account.userId));
   }
 
   await globalStore.removeAccount(accountId);
