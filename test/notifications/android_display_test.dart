@@ -234,18 +234,18 @@ void main() {
     await NotificationService.instance.start();
   }
 
-  group('NotificationChannelManager create channel', () {
+  group('AndroidNotificationChannelManager create channel', () {
     test('smoke', () async {
       await init();
       check(testBinding.androidNotificationHost.takeCreatedChannels()).single
-        ..id.equals(NotificationChannelManager.kChannelId)
+        ..id.equals(AndroidNotificationChannelManager.kChannelId)
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
         ..soundUrl.equals(testBinding.androidNotificationHost.fakeStoredNotificationSoundUrl(
-            NotificationChannelManager.kDefaultNotificationSound.resourceName))
+            AndroidNotificationChannelManager.kDefaultNotificationSound.resourceName))
         ..vibrationPattern.isNotNull().deepEquals(
-            NotificationChannelManager.kVibrationPattern)
+            AndroidNotificationChannelManager.kVibrationPattern)
       ;
     });
 
@@ -255,29 +255,29 @@ void main() {
       // Setup initial channel.
       await testBinding.androidNotificationHost.createNotificationChannel(
         NotificationChannel(
-          id: NotificationChannelManager.kChannelId,
+          id: AndroidNotificationChannelManager.kChannelId,
           name: 'Messages',
           importance: NotificationImportance.high,
           lightsEnabled: true,
-          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+          vibrationPattern: AndroidNotificationChannelManager.kVibrationPattern));
       // Clear the log.
       check(testBinding.androidNotificationHost.takeCreatedChannels())
         .length.equals(1);
 
       // Ensure that no calls were made to the deleteChannel or createChannel
       // functions.
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(testBinding.androidNotificationHost.takeDeletedChannels())
         .isEmpty();
       check(testBinding.androidNotificationHost.takeCreatedChannels())
         .isEmpty();
       check(testBinding.androidNotificationHost.activeChannels).single
-        ..id.equals(NotificationChannelManager.kChannelId)
+        ..id.equals(AndroidNotificationChannelManager.kChannelId)
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
         ..vibrationPattern.isNotNull().deepEquals(
-            NotificationChannelManager.kVibrationPattern);
+            AndroidNotificationChannelManager.kVibrationPattern);
     });
 
     test('obsolete channels are removed', () async {
@@ -290,44 +290,44 @@ void main() {
           name: 'Obsolete 1',
           importance: NotificationImportance.high,
           lightsEnabled: true,
-          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+          vibrationPattern: AndroidNotificationChannelManager.kVibrationPattern));
       await testBinding.androidNotificationHost.createNotificationChannel(
         NotificationChannel(
           id: 'obsolete-2',
           name: 'Obsolete 2',
           importance: NotificationImportance.high,
           lightsEnabled: true,
-          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+          vibrationPattern: AndroidNotificationChannelManager.kVibrationPattern));
       // Clear the log.
       check(testBinding.androidNotificationHost.takeCreatedChannels())
         .length.equals(2);
 
       // Ensure that any channel whose channel-id differs from the desired
-      // channel-id (NotificationChannelManager.kChannelId) is deleted, and a
+      // channel-id (AndroidNotificationChannelManager.kChannelId) is deleted, and a
       // new one with the desired channel-id is created.
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(testBinding.androidNotificationHost.takeDeletedChannels())
         .deepEquals(['obsolete-1', 'obsolete-2']);
       check(testBinding.androidNotificationHost.takeCreatedChannels()).single
-        ..id.equals(NotificationChannelManager.kChannelId)
+        ..id.equals(AndroidNotificationChannelManager.kChannelId)
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
         ..vibrationPattern.isNotNull().deepEquals(
-            NotificationChannelManager.kVibrationPattern);
+            AndroidNotificationChannelManager.kVibrationPattern);
       check(testBinding.androidNotificationHost.activeChannels).single
-        ..id.equals(NotificationChannelManager.kChannelId)
+        ..id.equals(AndroidNotificationChannelManager.kChannelId)
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
         ..vibrationPattern.isNotNull().deepEquals(
-            NotificationChannelManager.kVibrationPattern);
+            AndroidNotificationChannelManager.kVibrationPattern);
     });
   });
 
-  group('NotificationChannelManager sounds', () {
+  group('AndroidNotificationChannelManager sounds', () {
     final defaultSoundResourceName =
-      NotificationChannelManager.kDefaultNotificationSound.resourceName;
+      AndroidNotificationChannelManager.kDefaultNotificationSound.resourceName;
     String fakeStoredUrl(String resourceName) =>
       testBinding.androidNotificationHost.fakeStoredNotificationSoundUrl(resourceName);
     String fakeResourceUrl({required String resourceName, String? packageName}) =>
@@ -342,7 +342,7 @@ void main() {
 
       // Ensure that on Android 10, notification sounds aren't being copied to
       // the media store, and resource file is used directly.
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
@@ -362,7 +362,7 @@ void main() {
       testBinding.deviceInfoResult =
         const AndroidDeviceInfo(sdkInt: 28, release: '9');
 
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
@@ -377,7 +377,7 @@ void main() {
       addTearDown(testBinding.reset);
       final androidNotificationHost = testBinding.androidNotificationHost;
 
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .deepEquals(NotificationSound.values.map((e) => (
           sourceResourceName: e.resourceName,
@@ -404,7 +404,7 @@ void main() {
         ).toList(),
       );
 
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
@@ -426,7 +426,7 @@ void main() {
         ).toList()
       );
 
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       final firstSound = NotificationSound.values.first;
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .single
@@ -453,7 +453,7 @@ void main() {
       // in the media store, but it wasn't copied by us, no recopying should
       // happen. Additionally, the default sound URL should point to the
       // resource file, not the version in the media store.
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
@@ -523,7 +523,7 @@ void main() {
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedTag)
-            ..channelId.equals(NotificationChannelManager.kChannelId)
+            ..channelId.equals(AndroidNotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
             ..contentText.isNull()
             ..messagingStyle.which((it) => it.isNotNull()
@@ -555,7 +555,7 @@ void main() {
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
             ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedGroupKey)
-            ..channelId.equals(NotificationChannelManager.kChannelId)
+            ..channelId.equals(AndroidNotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
             ..contentText.isNull()
             ..color.equals(kZulipBrandColor.argbInt)
