@@ -12,7 +12,6 @@ import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/localizations.dart';
-import '../model/narrow.dart';
 import '../model/store.dart';
 import '../widgets/color.dart';
 import '../widgets/theme.dart';
@@ -296,7 +295,8 @@ class NotificationDisplayManager {
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl)),
       extras: {kExtraZulipMessageId: data.messageId.toString()}));
 
-    final intentDataUrl = notificationUrlForNotifPayload(data, messageId: firstMessageId);
+    final intentDataUrl = NotificationOpenPayload.fromNotifPayload(data,
+      messageId: firstMessageId).buildNotificationUrl();
 
     await _androidHost.notify(
       id: kNotificationId,
@@ -456,21 +456,6 @@ class NotificationDisplayManager {
       // The title indicates the sender's name in both 1-1 and group DMs.
       NotifPayloadDmRecipient() => '',
     };
-  }
-
-  static Uri notificationUrlForNotifPayload(NotifPayloadNewMessage data, {
-    required int? messageId,
-  }) {
-    return NotificationOpenPayload(
-      realmUrl: data.realmUrl,
-      userId: data.userId,
-      narrow: switch (data.recipient) {
-        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
-          TopicNarrow(channelId, topic),
-        NotifPayloadDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      },
-      messageId: messageId).buildNotificationUrl();
   }
 
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
