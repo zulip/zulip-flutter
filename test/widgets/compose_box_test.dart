@@ -1561,6 +1561,35 @@ void main() {
           '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt)\n');
     });
 
+    testWidgets('no extra newline before the link when already at start of a line', (tester) async {
+      TypingNotifier.debugEnable = false;
+      addTearDown(TypingNotifier.debugReset);
+
+      final channel = eg.stream();
+      final narrow = eg.topicNarrow(channel.streamId, 'a topic');
+      await prepareComposeBox(tester,
+        narrow: narrow, subscriptions: [eg.subscription(channel)]);
+      await enterContent(tester, 'first line\n');
+      await tester.pump();
+
+      testBinding.pickFilesResult = FilePickerResult([PlatformFile(
+        readStream: Stream.fromIterable(['asdf'.codeUnits]),
+        path: '/some/path/file.txt',
+        name: 'file.txt',
+        size: 4,
+      )]);
+      connection.prepare(json: UploadFileResult(url:
+        '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/file.txt').toJson());
+      await tester.tap(find.byIcon(ZulipIcons.attach_file));
+      await tester.pump();
+      check(controller!.content.text)
+        .equals('first line\n[Uploading file.txt…]()\n');
+
+      await tester.pump(Duration.zero);
+      check(controller!.content.text)
+        .equals('first line\n[file.txt](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/file.txt)\n');
+    });
+
     group('attach from keyboard', () {
       // This is adapted from:
       //   https://github.com/flutter/flutter/blob/0ffc4ce00/packages/flutter/test/widgets/editable_text_test.dart#L724-L740
