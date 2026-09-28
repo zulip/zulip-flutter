@@ -379,7 +379,7 @@ void main() {
 
       await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
-        .deepEquals(NotificationSound.values.map((e) => (
+        .deepEquals(AndroidNotificationSound.values.map((e) => (
           sourceResourceName: e.resourceName,
           targetFileDisplayName: e.fileDisplayName),
         ));
@@ -397,7 +397,7 @@ void main() {
 
       // Emulate that all notifications sounds are already in the media store.
       androidNotificationHost.setupStoredNotificationSounds(
-        NotificationSound.values.map((e) => StoredNotificationSound(
+        AndroidNotificationSound.values.map((e) => StoredNotificationSound(
           fileName: e.fileDisplayName,
           isOwned: true,
           contentUrl: fakeStoredUrl(e.resourceName)),
@@ -419,7 +419,7 @@ void main() {
       // Emulate that except one sound, all other sounds are already in
       // media store.
       androidNotificationHost.setupStoredNotificationSounds(
-        NotificationSound.values.skip(1).map((e) => StoredNotificationSound(
+        AndroidNotificationSound.values.skip(1).map((e) => StoredNotificationSound(
           fileName: e.fileDisplayName,
           isOwned: true,
           contentUrl: fakeStoredUrl(e.resourceName)),
@@ -427,7 +427,7 @@ void main() {
       );
 
       await AndroidNotificationChannelManager.ensureChannel();
-      final firstSound = NotificationSound.values.first;
+      final firstSound = AndroidNotificationSound.values.first;
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .single
         ..sourceResourceName.equals(firstSound.resourceName)
@@ -442,7 +442,7 @@ void main() {
       final androidNotificationHost = testBinding.androidNotificationHost;
 
       androidNotificationHost.setupStoredNotificationSounds(
-        NotificationSound.values.map((e) => StoredNotificationSound(
+        AndroidNotificationSound.values.map((e) => StoredNotificationSound(
           fileName: e.fileDisplayName,
           isOwned: false,
           contentUrl: fakeStoredUrl(e.resourceName)),
