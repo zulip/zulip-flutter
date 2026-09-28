@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../api/core.dart';
 import '../api/route/account.dart';
-import '../notifications/display.dart';
+import '../notifications/android_display.dart';
 import '../notifications/receive.dart';
 import 'store.dart';
 

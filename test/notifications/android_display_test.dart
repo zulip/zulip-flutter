@@ -18,7 +18,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/push_key.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/notifications/display.dart';
+import 'package:zulip/notifications/android_display.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/color.dart';
