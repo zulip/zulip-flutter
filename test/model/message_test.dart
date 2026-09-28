@@ -159,7 +159,7 @@ void main() {
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
-          'type': 'stream',
+          'type': 'channel',
           'to': stream.streamId.toString(),
           'topic': 'world',
           'content': 'hello',
@@ -195,14 +195,16 @@ void main() {
       bool isChannelSubscribed = true,
       int? zulipFeatureLevel,
     }) async {
-      message = eg.streamMessage(stream: stream);
       await prepare(
         narrow: narrow,
         stream: stream,
         isChannelSubscribed: isChannelSubscribed,
         zulipFeatureLevel: zulipFeatureLevel);
       await prepareMessages([eg.streamMessage(stream: stream)]);
-      connection.prepare(json: SendMessageResult(id: 1).toJson());
+      // Create this after the fixture message above,
+      // so its ID is newer, as a just-sent message's would be.
+      message = eg.streamMessage(stream: stream);
+      connection.prepare(json: SendMessageResult(id: message.id).toJson());
       await store.sendMessage(
         destination: destination ?? streamDestination, content: 'content');
     }
@@ -214,6 +216,19 @@ void main() {
       await prepareMessages([eg.streamMessage(stream: stream)]);
       connection.prepare(httpException: SocketException('failed'), delay: delay);
       outboxMessageFailFuture = store.sendMessage(
+        destination: streamDestination, content: 'content');
+    }
+
+    late Future<void> outboxMessageSucceedFuture;
+    Future<void> prepareOutboxMessageToSucceedAfterDelay(Duration delay) async {
+      await prepare(stream: stream);
+      await prepareMessages([eg.streamMessage(stream: stream)]);
+      // Create this after the fixture message above,
+      // so its ID is newer, as a just-sent message's would be.
+      message = eg.streamMessage(stream: stream);
+      connection.prepare(json: SendMessageResult(id: message.id).toJson(),
+        delay: delay);
+      outboxMessageSucceedFuture = store.sendMessage(
         destination: streamDestination, content: 'content');
     }
 
@@ -252,6 +267,11 @@ void main() {
       checkNotifiedOnce();
     }));
 
+    test('record message ID from send response', () => awaitFakeAsync((async) async {
+      await prepareOutboxMessage();
+      check(store.outboxMessages).values.single.messageId.equals(message.id);
+    }));
+
     test('hidden -> waiting and never transition to waitPeriodExpired', () => awaitFakeAsync((async) async {
       await prepareOutboxMessage();
       checkState().equals(OutboxMessageState.hidden);
@@ -287,22 +307,16 @@ void main() {
     }));
 
     test('waiting -> waitPeriodExpired -> waiting and never return to waitPeriodExpired', () => awaitFakeAsync((async) async {
-      await prepare(stream: stream);
-      await prepareMessages([eg.streamMessage(stream: stream)]);
       // Set up a [sendMessage] request that succeeds after enough delay,
       // for the outbox message to reach the waitPeriodExpired state.
-      // TODO extract helper to add prepare an outbox message with a delayed
-      //   successful [sendMessage] request if we have more tests like this
-      connection.prepare(json: SendMessageResult(id: 1).toJson(),
-        delay: kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
-      final future = store.sendMessage(
-        destination: streamDestination, content: 'content');
+      await prepareOutboxMessageToSucceedAfterDelay(
+        kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
       async.elapse(kSendMessageOfferRestoreWaitPeriod);
       checkState().equals(OutboxMessageState.waitPeriodExpired);
       checkNotified(count: 2);
 
       // Wait till the [sendMessage] request succeeds.
-      await future;
+      await outboxMessageSucceedFuture;
       checkState().equals(OutboxMessageState.waiting);
       checkNotifiedOnce();
 
@@ -453,6 +467,113 @@ void main() {
         async.elapse(Duration(seconds: 1));
         await check(future).completes();
         check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
+      }));
+
+      test('hidden -> (delete) when message found in fetch before send request succeeds', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessageToSucceedAfterDelay(
+          const Duration(milliseconds: 100));
+        checkState().equals(OutboxMessageState.hidden);
+        checkNotNotified();
+
+        // The message arrives in a fetch while the send request is in flight
+        // and the outbox message is still hidden.
+        store.reconcileMessages([message]);
+        checkState().equals(OutboxMessageState.hidden);
+        // The view was notified only because the newer message
+        // invalidated [MessageListView.haveNewest].
+        checkNotifiedOnce();
+
+        // The send response arrives; the outbox message is deleted
+        // without ever being shown.
+        async.elapse(const Duration(milliseconds: 100));
+        await check(outboxMessageSucceedFuture).completes();
+        check(store.outboxMessages).isEmpty();
+        checkNotNotified();
+
+        // The debounce timer was canceled when the outbox message
+        // was deleted.
+        async.elapse(kLocalEchoDebounceDuration);
+        checkNotNotified();
+      }));
+
+      test('waiting -> (delete) because message found in fetch', () => awaitFakeAsync((async) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/2397
+        await prepareOutboxMessage();
+        async.elapse(kLocalEchoDebounceDuration);
+        checkState().equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
+
+        store.reconcileMessages([message]);
+        check(store.outboxMessages).isEmpty();
+        checkNotifiedOnce();
+      }));
+
+      test('waiting -> (delete) when message found in fetch before send request succeeds', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessageToSucceedAfterDelay(
+          kLocalEchoDebounceDuration + Duration(seconds: 1));
+        async.elapse(kLocalEchoDebounceDuration);
+        checkState().equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
+
+        // The message arrives in a fetch while the send request is in flight.
+        // It can't be recognized as this outbox message's message yet;
+        // that needs the ID from the send response.
+        store.reconcileMessages([message]);
+        checkState().equals(OutboxMessageState.waiting);
+        check(store.outboxMessages).values.single.messageId.isNull();
+        // The view was notified because the newer message invalidated
+        // [MessageListView.haveNewest], removing the outbox message from it.
+        checkNotifiedOnce();
+
+        // The send response arrives; the message in the store is recognized
+        // as this outbox message's, and the outbox message is deleted.
+        // (The view already removed it, on the invalidation.)
+        async.elapse(const Duration(seconds: 1));
+        await check(outboxMessageSucceedFuture).completes();
+        check(store.outboxMessages).isEmpty();
+        checkNotNotified();
+
+        // The wait-period timer was canceled when the outbox message
+        // was deleted.
+        async.elapse(kSendMessageOfferRestoreWaitPeriod);
+        checkNotNotified();
+      }));
+
+      test('waitPeriodExpired -> (delete) when message found in fetch before send request succeeds', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessageToSucceedAfterDelay(
+          kSendMessageOfferRestoreWaitPeriod + Duration(seconds: 1));
+        async.elapse(kSendMessageOfferRestoreWaitPeriod);
+        checkState().equals(OutboxMessageState.waitPeriodExpired);
+        checkNotified(count: 2);
+
+        // The message arrives in a fetch while the send request is in flight.
+        store.reconcileMessages([message]);
+        checkState().equals(OutboxMessageState.waitPeriodExpired);
+        // The view was notified because the newer message invalidated
+        // [MessageListView.haveNewest], removing the outbox message from it.
+        checkNotifiedOnce();
+
+        // The send response arrives; the outbox message is deleted,
+        // without flickering back to the waiting state first.
+        // (The view already removed it, on the invalidation.)
+        async.elapse(const Duration(seconds: 1));
+        await check(outboxMessageSucceedFuture).completes();
+        check(store.outboxMessages).isEmpty();
+        checkNotNotified();
+      }));
+
+      test('no delete when unrelated message found in fetch', () => awaitFakeAsync((async) async {
+        await prepareOutboxMessage();
+        async.elapse(kLocalEchoDebounceDuration);
+        checkState().equals(OutboxMessageState.waiting);
+        checkNotifiedOnce();
+
+        store.reconcileMessages([eg.streamMessage(stream: stream)]);
+        checkState().equals(OutboxMessageState.waiting);
+        // The view was notified, but only because the newer message
+        // invalidated [MessageListView.haveNewest];
+        // the outbox message remains in the store.
         checkNotifiedOnce();
       }));
 
@@ -1687,7 +1808,7 @@ void main() {
         await store.handleEvent(eg.updateMessageEventMoveFrom(
           origMessages: origMessages,
           newStreamId: 20));
-        checkNotified(count: 2);
+        checkNotifiedOnce();
         check(store).messages.values.every(((message) =>
           message.isA<StreamMessage>()
             ..editState.equals(MessageEditState.moved)
@@ -1700,7 +1821,7 @@ void main() {
           origMessages: origMessages,
           newStreamId: 20,
           newContent: 'new content'));
-        checkNotified(count: 2);
+        checkNotifiedOnce();
         check(store).messages[origMessages[0].id].editState.equals(MessageEditState.edited);
         check(store).messages[origMessages[1].id].editState.equals(MessageEditState.moved);
       });

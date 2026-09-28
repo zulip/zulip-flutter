@@ -338,6 +338,7 @@ void main() {
   });
 
   testWidgets('PerAccountStoreAwareStateMixin', (tester) async {
+    addTearDown(testBinding.reset);
     final widgetWithMixinKey = GlobalKey<_MyWidgetWithMixinState>();
     final accountId = eg.selfAccount.id;
 

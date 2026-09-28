@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
 import '../../model/algorithms.dart';
 import 'model.dart';
@@ -23,6 +23,11 @@ class InitialSnapshot {
   final List<String> alertWords;
 
   final List<CustomProfileField> customProfileFields;
+
+  /// The UNIX timestamp (UTC) for when the organization was created.
+  ///
+  /// Search for "realm_date_created" in https://zulip.com/api/register-queue.
+  final int realmDateCreated;
 
   @JsonKey(name: 'max_stream_name_length')
   final int maxChannelNameLength;
@@ -178,6 +183,7 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.realmDateCreated,
     required this.maxChannelNameLength,
     required this.maxTopicLength,
     required this.serverPresencePingIntervalSeconds,

@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -17,10 +20,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+      'Die Versionsinformation der App wurde nicht gefunden.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes => 'Versionshinweise';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Open-Source-Lizenzen';
@@ -421,7 +424,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'Datei konnte nicht gelesen werden: $filename';
   }
 
   @override
@@ -513,7 +516,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Konnte Nachricht nicht bearbeiten';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied => 'App-Version kopiert';
 
   @override
   String get successLinkCopied => 'Link kopiert';
@@ -830,10 +833,10 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'Dies ist die Adresse, über die du Zulip im Browser öffnest.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Hilfe';
 
   @override
   String get loginHidePassword => 'Passwort verstecken';
@@ -869,7 +872,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Themen sind in dieser Organisation erforderlich.';
+      'Themen sind in diesem Kanal||Kanals erforderlich.';
 
   @override
   String get errorContentNotInsertedTitle => 'Inhalt nicht eingefügt';

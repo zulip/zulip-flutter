@@ -109,11 +109,19 @@ class MessagingStyleMessage {
     required this.text,
     required this.timestampMs,
     required this.person,
+    required this.extras,
   });
 
   final String text;
   final int timestampMs;
   final Person person;
+
+  /// Entries from this message's own extras bundle, like [Notification.extras].
+  ///
+  /// These round-trip through
+  /// [AndroidNotificationHostApi.getActiveNotifications], filtered to the keys
+  /// in its `desiredMessageExtras`.
+  final Map<String, String> extras;
 }
 
 /// Corresponds to `androidx.core.app.NotificationCompat.MessagingStyle`
@@ -137,10 +145,14 @@ class MessagingStyle {
 ///
 /// See: https://developer.android.com/reference/kotlin/android/app/Notification
 class Notification {
-  Notification({required this.group, required this.extras});
+  Notification({required this.group, required this.extras, required this.messagingStyle});
 
   final String group;
   final Map<String, String> extras;
+
+  /// The notification's messaging style, if any, via
+  /// `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
+  final MessagingStyle? messagingStyle;
   // Various other properties too; add them if needed.
 }
 
@@ -276,28 +288,29 @@ abstract class AndroidNotificationHostApi {
     // Keep them alphabetized, for easy comparison with that class's docs.
   });
 
-  /// Wraps `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
-  /// combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`.
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
+  /// optionally combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`
+  /// for each notification's [Notification.messagingStyle].
   ///
-  /// Returns the messaging style, if any, of an active notification
-  /// that has tag `tag`.  If there are several such notifications,
-  /// an arbitrary one of them is used.
-  /// Returns null if there are no such notifications.
+  /// The keys of entries to fetch from each notification's own extras bundle
+  /// ([Notification.extras]) must be specified in [desiredNotificationExtras],
+  /// and those to fetch from each MessagingStyle message's extras bundle
+  /// ([MessagingStyleMessage.extras]) in [desiredMessageExtras]. For an empty
+  /// list, the corresponding map will also be empty. If the value of a matched
+  /// entry is not of type string or is null, then that entry will be skipped.
+  ///
+  /// Each notification's [Notification.messagingStyle] is populated only when
+  /// [includeMessagingStyle] is true; otherwise it is null, and
+  /// [desiredMessageExtras] has no effect.
   ///
   /// See:
-  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#getActiveNotifications()
+  ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
   ///   https://developer.android.com/reference/kotlin/androidx/core/app/NotificationCompat.MessagingStyle#extractMessagingStyleFromNotification(android.app.Notification)
-  MessagingStyle? getActiveNotificationMessagingStyleByTag(String tag);
-
-  /// Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`.
-  ///
-  /// The keys of entries to fetch from notification's extras bundle must be
-  /// specified in the [desiredExtras] list. If this list is empty, then
-  /// [Notifications.extras] will also be empty. If value of the matched entry
-  /// is not of type string or is null, then that entry will be skipped.
-  ///
-  /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat?hl=en#getActiveNotifications()
-  List<StatusBarNotification> getActiveNotifications({required List<String> desiredExtras});
+  List<StatusBarNotification> getActiveNotifications({
+    required List<String> desiredNotificationExtras,
+    required List<String> desiredMessageExtras,
+    required bool includeMessagingStyle,
+  });
 
   /// Corresponds to `androidx.core.app.NotificationManagerCompat.cancel`.
   ///

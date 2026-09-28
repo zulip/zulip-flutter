@@ -122,6 +122,48 @@ void main() {
     });
   });
 
+  test('BackoffMachine wait aborts early when abortTrigger fires', () => awaitFakeAsync((async) async {
+    BackoffMachine.debugDuration = const Duration(seconds: 10);
+    addTearDown(() => BackoffMachine.debugDuration = null);
+    final backoffMachine = BackoffMachine();
+    final abortTrigger = Completer<void>();
+    final futureDuration = measureWait(
+      backoffMachine.wait(abortTrigger: abortTrigger.future));
+    async.elapse(const Duration(seconds: 1));
+    abortTrigger.complete();
+    async.flushMicrotasks();
+    check(async.pendingTimers).isEmpty();
+    check(await futureDuration).equals(const Duration(seconds: 1));
+    check(backoffMachine.waitsCompleted).equals(1);
+
+    // The machine remains usable for further waits.
+    final nextWait = measureWait(backoffMachine.wait());
+    async.elapse(const Duration(seconds: 10));
+    check(await nextWait).equals(const Duration(seconds: 10));
+    check(backoffMachine.waitsCompleted).equals(2);
+  }));
+
+  test('BackoffMachine wait runs full duration when abortTrigger never fires', () => awaitFakeAsync((async) async {
+    BackoffMachine.debugDuration = const Duration(seconds: 10);
+    addTearDown(() => BackoffMachine.debugDuration = null);
+    final abortTrigger = Completer<void>();
+    final futureDuration = measureWait(
+      BackoffMachine().wait(abortTrigger: abortTrigger.future));
+    async.elapse(const Duration(seconds: 10));
+    check(await futureDuration).equals(const Duration(seconds: 10));
+    check(async.pendingTimers).isEmpty();
+  }));
+
+  test('BackoffMachine wait aborts immediately when abortTrigger already fired', () => awaitFakeAsync((async) async {
+    BackoffMachine.debugDuration = const Duration(seconds: 10);
+    addTearDown(() => BackoffMachine.debugDuration = null);
+    final futureDuration = measureWait(
+      BackoffMachine().wait(abortTrigger: Future.value()));
+    async.flushMicrotasks();
+    check(async.pendingTimers).isEmpty();
+    check(await futureDuration).equals(Duration.zero);
+  }));
+
   test('BackoffMachine handles long backoff safely', () => awaitFakeAsync(
     flushTimeout: Duration(hours: 12),
     (async) async {

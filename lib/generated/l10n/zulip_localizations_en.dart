@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -1443,6 +1446,12 @@ class ZulipLocalizationsEnGb extends ZulipLocalizationsEn {
 
   @override
   String get aboutPageAppVersion => 'App Version';
+
+  @override
+  String get aboutPageOpenSourceLicenses => 'Open-source licences';
+
+  @override
+  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>

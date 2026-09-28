@@ -1,4 +1,31 @@
 
+/// Whether the app was compiled in release mode.
+///
+/// Same as Flutter's kReleaseMode, with the same definition:
+///   <https://api.flutter.dev/flutter/foundation/kReleaseMode-constant.html>
+///
+/// Having our own copy lets code that can't depend on Flutter use it,
+/// in particular lib/api (#2335).
+const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
+
+/// Whether the app was compiled in profile mode.
+///
+/// Same as Flutter's kProfileMode, with the same definition:
+///   <https://api.flutter.dev/flutter/foundation/kProfileMode-constant.html>
+///
+/// Having our own copy lets code that can't depend on Flutter use it,
+/// in particular lib/api (#2335).
+const bool kProfileMode = bool.fromEnvironment('dart.vm.profile');
+
+/// Whether the app was compiled in debug mode.
+///
+/// Same as Flutter's kDebugMode, with the same definition:
+///   <https://api.flutter.dev/flutter/foundation/kDebugMode-constant.html>
+///
+/// Having our own copy lets code that can't depend on Flutter use it,
+/// in particular lib/api (#2335).
+const bool kDebugMode = !kReleaseMode && !kProfileMode;
+
 /// Either a value, or the absence of a value.
 ///
 /// An `Option<T>` is either an `OptionSome` representing a `T` value,

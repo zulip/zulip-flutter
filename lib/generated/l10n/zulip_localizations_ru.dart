@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -17,10 +20,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+      'Информация о версии приложения не найдена.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes => 'Примечания к релизу';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Лицензии открытого исходного кода';
@@ -413,7 +416,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'Не удалось прочитать файл: $filename';
   }
 
   @override
@@ -505,7 +508,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Сбой редактирования';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied => 'Версия приложения скопирована';
 
   @override
   String get successLinkCopied => 'Ссылка скопирована';
@@ -819,10 +822,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'Адрес для использования Zulip в браузере.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Помощь';
 
   @override
   String get loginHidePassword => 'Скрыть пароль';

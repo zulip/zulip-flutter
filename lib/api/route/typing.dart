@@ -20,10 +20,9 @@ Future<void> setTypingStatus(ApiConnection connection, {
         'topic': RawParameter(destination.topic.apiName),
       });
     case DmDestination():
-      final supportsDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
       return connection.post('setTypingStatus', (_) {}, 'typing', {
         'op':   RawParameter(op.toJson()),
-        'type': RawParameter(supportsDirect ? 'direct' : 'private'),
+        'type': RawParameter('direct'),
         'to':   destination.userIds,
       });
   }

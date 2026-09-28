@@ -382,7 +382,6 @@ void main() {
       });
 
       // TODO test validators on the TextFormField widgets
-      // TODO test _getUserId case
       // TODO test handling failure in fetchApiKey request
       // TODO test _inProgress logic
     });

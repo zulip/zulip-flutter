@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -430,7 +427,6 @@
   },
   "aboutPageAppVersion": "Verzia apliḱácie",
   "aboutPageOpenSourceLicenses": "Licencia open-source",
-  "aboutPageTapToView": "Klepnutím zobraziť",
   "aboutPageTitle": "O Zulipe",
   "actionSheetOptionCopyMessageLink": "Skopírovať odkaz do správy",
   "actionSheetOptionCopyMessageText": "Skopírovať text správy",

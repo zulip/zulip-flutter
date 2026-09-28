@@ -413,13 +413,15 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
   fullName: RealmUserUpdateEvent._readFromPerson(json, 'full_name') as String?,
   avatarUrl:
       RealmUserUpdateEvent._readFromPerson(json, 'avatar_url') as String?,
-  avatarVersion:
-      (RealmUserUpdateEvent._readFromPerson(json, 'avatar_version') as num?)
-          ?.toInt(),
+  avatarVersion: (RealmUserUpdateEvent._readFromPerson(
+    json,
+    'avatar_version',
+  ) as num?)?.toInt(),
   timezone: RealmUserUpdateEvent._readFromPerson(json, 'timezone') as String?,
-  botOwnerId:
-      (RealmUserUpdateEvent._readFromPerson(json, 'bot_owner_id') as num?)
-          ?.toInt(),
+  botOwnerId: (RealmUserUpdateEvent._readFromPerson(
+    json,
+    'bot_owner_id',
+  ) as num?)?.toInt(),
   role: $enumDecodeNullable(
     _$UserRoleEnumMap,
     RealmUserUpdateEvent._readFromPerson(json, 'role'),
@@ -544,11 +546,10 @@ Map<String, dynamic> _$ChannelCreateEventToJson(ChannelCreateEvent instance) =>
 ChannelDeleteEvent _$ChannelDeleteEventFromJson(Map<String, dynamic> json) =>
     ChannelDeleteEvent(
       id: (json['id'] as num).toInt(),
-      channelIds:
-          (ChannelDeleteEvent._readChannelIds(json, 'stream_ids')
-                  as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
+      channelIds: (ChannelDeleteEvent._readChannelIds(
+        json,
+        'stream_ids',
+      ) as List<dynamic>).map((e) => (e as num).toInt()).toList(),
     );
 
 Map<String, dynamic> _$ChannelDeleteEventToJson(ChannelDeleteEvent instance) =>
@@ -631,11 +632,10 @@ SubscriptionRemoveEvent _$SubscriptionRemoveEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionRemoveEvent(
   id: (json['id'] as num).toInt(),
-  channelIds:
-      (SubscriptionRemoveEvent._readChannelIds(json, 'channel_ids')
-              as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  channelIds: (SubscriptionRemoveEvent._readChannelIds(
+    json,
+    'channel_ids',
+  ) as List<dynamic>).map((e) => (e as num).toInt()).toList(),
 );
 
 Map<String, dynamic> _$SubscriptionRemoveEventToJson(
