@@ -71,7 +71,7 @@ class NotificationService {
         await ZulipBinding.instance.firebaseInitializeApp(
           options: kFirebaseOptionsAndroid);
 
-        await NotificationDisplayManager.init();
+        await AndroidNotificationDisplayManager.init();
         ZulipBinding.instance.firebaseMessagingOnMessage
           .listen(_onForegroundMessage);
         ZulipBinding.instance.firebaseMessagingOnBackgroundMessage(
@@ -211,7 +211,7 @@ class NotificationService {
       return true;
     }());
     LiveZulipBinding.ensureInitialized();
-    NotificationDisplayManager.init(); // TODO call this just once per isolate
+    AndroidNotificationDisplayManager.init(); // TODO call this just once per isolate
   }
 
   static void _onRemoteMessage(FirebaseRemoteMessage message) async {
@@ -231,7 +231,7 @@ class NotificationService {
     if (result == null) return;
 
     final (data, account) = result;
-    NotificationDisplayManager.onNotifPayload(data, account);
+    AndroidNotificationDisplayManager.onNotifPayload(data, account);
   }
 
   static Future<void> _onPlaintextRemoteMessage(Map<String, dynamic> rawData) async {
@@ -269,7 +269,7 @@ class NotificationService {
       return;
     }
 
-    NotificationDisplayManager.onNotifPayload(data, account);
+    AndroidNotificationDisplayManager.onNotifPayload(data, account);
   }
 
   /// Decrypt an E2EE notification content.
