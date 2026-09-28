@@ -19,14 +19,14 @@ import 'presentation.dart';
 
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 
-enum NotificationSound {
+enum AndroidNotificationSound {
   // TODO(i18n): translate these file display names
   chime2(resourceName: 'chime2', fileDisplayName: 'Zulip - Low Chime.m4a'),
   chime3(resourceName: 'chime3', fileDisplayName: 'Zulip - Chime.m4a'),
   chime4(resourceName: 'chime4', fileDisplayName: 'Zulip - High Chime.m4a');
   // Any new entry here must appear in `keep.xml` too, see #528.
 
-  const NotificationSound({
+  const AndroidNotificationSound({
     required this.resourceName,
     required this.fileDisplayName,
   });
@@ -46,7 +46,7 @@ class AndroidNotificationChannelManager {
   static const kChannelId = 'messages-4';
 
   @visibleForTesting
-  static const kDefaultNotificationSound = NotificationSound.chime3;
+  static const kDefaultNotificationSound = AndroidNotificationSound.chime3;
 
   /// The vibration pattern we set for notifications.
   // We try to set a vibration pattern that, with the phone in one's pocket,
@@ -103,7 +103,7 @@ class AndroidNotificationChannelManager {
 
     // First, look to see what notification sounds we've already stored,
     // and check against our list of sounds we have.
-    final soundsToAdd = NotificationSound.values.toList();
+    final soundsToAdd = AndroidNotificationSound.values.toList();
 
     final List<StoredNotificationSound> storedSounds;
     try {
