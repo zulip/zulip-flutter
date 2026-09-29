@@ -19,6 +19,7 @@ import '../widgets/home.dart';
 import '../widgets/message_list.dart';
 import '../widgets/page.dart';
 import '../widgets/store.dart';
+import 'conversation_key.dart' as notif_conversation_key;
 
 NotificationPigeonApi get _notifPigeonApi => ZulipBinding.instance.notificationPigeonApi;
 
@@ -438,6 +439,22 @@ class NotificationOpenPayload {
       throw const FormatException();
     }
   }
+
+  /// See top-level [conversationKeyForNotifSuppression].
+  static String? conversationKeyForNotifSuppression({
+    required Uri realmUrl,
+    required int userId,
+    required Narrow narrow,
+  }) =>
+    notif_conversation_key.conversationKeyForNotifSuppression(
+      realmUrl: realmUrl, userId: userId, narrow: narrow);
+
+  /// The conversation key for this payload; see [conversationKeyForNotifSuppression].
+  String? get conversationKey => conversationKeyForNotifSuppression(
+    realmUrl: realmUrl,
+    userId: userId,
+    narrow: narrow,
+  );
 
   Uri buildNotificationUrl() {
     return Uri(

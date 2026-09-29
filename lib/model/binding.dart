@@ -419,6 +419,10 @@ class NotificationPigeonApi {
   /// For details, see [notif_pigeon.notificationTapEvents].
   Stream<notif_pigeon.NotificationTapEvent> notificationTapEventsStream() =>
     notif_pigeon.notificationTapEvents();
+
+  /// See [notif_pigeon.NotificationHostApi.setOpenConversationKeyForNotifSuppression].
+  Future<void> setOpenConversationKeyForNotifSuppression(String? conversationKey) =>
+    _hostApi.setOpenConversationKeyForNotifSuppression(conversationKey);
 }
 
 /// A concrete binding for use in the live application.
