@@ -375,6 +375,20 @@ protocol NotificationHostApi {
   /// else null. See Apple doc:
   ///   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
   func getNotificationDataFromLaunch() throws -> NotificationDataFromLaunch?
+  /// Tells the iOS host which conversation is currently open in the UI.
+  ///
+  /// When non-null, [conversationKey] identifies the open stream+topic or DM
+  /// conversation. The iOS app uses this in
+  /// `userNotificationCenter(_:willPresent:)` to suppress the foreground
+  /// banner/sound for push notifications that are for that same conversation,
+  /// while still presenting notifications for other conversations (#408).
+  ///
+  /// Pass null when no message-list conversation is open (or when leaving one).
+  ///
+  /// No-op on Android; the host API is only registered on iOS.
+  ///
+  /// See conversationKeyForNotifSuppression in lib/notifications/conversation_key.dart.
+  func setOpenConversationKeyForNotifSuppression(conversationKey: String?) throws
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -402,6 +416,34 @@ class NotificationHostApiSetup {
       }
     } else {
       getNotificationDataFromLaunchChannel.setMessageHandler(nil)
+    }
+    /// Tells the iOS host which conversation is currently open in the UI.
+    ///
+    /// When non-null, [conversationKey] identifies the open stream+topic or DM
+    /// conversation. The iOS app uses this in
+    /// `userNotificationCenter(_:willPresent:)` to suppress the foreground
+    /// banner/sound for push notifications that are for that same conversation,
+    /// while still presenting notifications for other conversations (#408).
+    ///
+    /// Pass null when no message-list conversation is open (or when leaving one).
+    ///
+    /// No-op on Android; the host API is only registered on iOS.
+    ///
+    /// See conversationKeyForNotifSuppression in lib/notifications/conversation_key.dart.
+    let setOpenConversationKeyForNotifSuppressionChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.zulip.NotificationHostApi.setOpenConversationKeyForNotifSuppression\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      setOpenConversationKeyForNotifSuppressionChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let conversationKeyArg: String? = nilOrValue(args[0])
+        do {
+          try api.setOpenConversationKeyForNotifSuppression(conversationKey: conversationKeyArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      setOpenConversationKeyForNotifSuppressionChannel.setMessageHandler(nil)
     }
   }
 }

@@ -9,6 +9,7 @@ import '../log.dart';
 import '../model/actions.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
+import '../notifications/foreground.dart';
 import '../notifications/open.dart';
 import 'about_zulip.dart';
 import 'dialog.dart';
@@ -259,6 +260,8 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
               ...widget.navigatorObservers!,
             _PreventEmptyStack(),
             _navStackTracker,
+            // After _navStackTracker so ZulipApp.navigationStack is current.
+            SyncOpenConversationForNotifSuppression(GlobalStoreWidget.of(context)),
             _UpdateLastVisitedAccount(GlobalStoreWidget.of(context)),
           ],
           builder: (BuildContext context, Widget? child) {

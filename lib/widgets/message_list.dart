@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
@@ -16,6 +17,7 @@ import '../model/narrow.dart';
 import '../model/store.dart';
 import '../model/typing_status.dart';
 import '../model/unreads.dart';
+import '../notifications/conversation_key.dart';
 import 'action_sheet.dart';
 import 'actions.dart';
 import 'app_bar.dart';
@@ -376,6 +378,20 @@ class _MessageListPageState extends State<MessageListPage> implements MessageLis
     setState(() {
       narrow = newNarrow;
     });
+    // Keep iOS foreground-notification suppression in sync when the
+    // conversation changes without a navigator push/pop (e.g. topic move).
+    // Avoid importing notifications/foreground.dart here (it imports this file).
+    if (!mounted) return;
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    final store = PerAccountStoreWidget.of(context);
+    unawaited(
+      ZulipBinding.instance.notificationPigeonApi
+        .setOpenConversationKeyForNotifSuppression(
+          conversationKeyForNotifSuppression(
+            realmUrl: store.account.realmUrl,
+            userId: store.selfUserId,
+            narrow: narrow,
+          )));
   }
 
   @override
