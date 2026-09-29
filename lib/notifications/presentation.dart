@@ -26,3 +26,17 @@ String subtitleForNotifPayloadOnIos(NotifPayloadNewMessage data) {
     NotifPayloadDmRecipient() => '',
   };
 }
+
+String conversationKeyForNotifPayload(NotifPayloadNewMessage data) {
+  final conversation = switch (data.recipient) {
+    NotifPayloadChannelRecipient(:var channelId, :var topic) => 'stream:$channelId:${topic.canonicalize()}',
+    NotifPayloadDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',
+  };
+  return '${accountKeyForNotif(data.realmUrl, data.userId)}|$conversation';
+}
+
+String accountKeyForNotif(Uri realmUrl, int userId) {
+  // The realm URL can't contain a `|`, because `|` is not a URL code point:
+  //   https://url.spec.whatwg.org/#url-code-points
+  return "$realmUrl|$userId";
+}
