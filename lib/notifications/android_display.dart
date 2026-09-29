@@ -231,8 +231,8 @@ class AndroidNotificationDisplayManager {
         && account.userId == data.userId);
 
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final groupKey = _groupKey(data.realmUrl, data.userId);
-    final conversationKey = _conversationKey(data, groupKey);
+    final groupKey = accountKeyForNotif(data.realmUrl, data.userId);
+    final conversationKey = conversationKeyForNotifPayload(data);
 
     final activeNotifications = await _androidHost.getActiveNotifications(
       desiredNotificationExtras: const [],
@@ -374,7 +374,7 @@ class AndroidNotificationDisplayManager {
     // There may be a lot of messages mentioned here, across a lot of
     // conversations.  But they'll all be for one account, so they'll
     // fall under one notification group.
-    final groupKey = _groupKey(data.realmUrl, data.userId);
+    final groupKey = accountKeyForNotif(data.realmUrl, data.userId);
 
     // Find any conversations we can cancel the notification for.
     // The API doesn't lend itself to removing individual messages as
@@ -435,7 +435,7 @@ class AndroidNotificationDisplayManager {
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
     assert(defaultTargetPlatform == TargetPlatform.android);
 
-    final groupKey = _groupKey(realmUrl, userId);
+    final groupKey = accountKeyForNotif(realmUrl, userId);
     final activeNotifications = await _androidHost.getActiveNotifications(
       desiredNotificationExtras: const [],
       desiredMessageExtras: const [],
@@ -470,20 +470,6 @@ class AndroidNotificationDisplayManager {
   /// We use this to open the notification at a specific message (#1565).
   @visibleForTesting
   static const kExtraZulipMessageId = 'zulipMessageId';
-
-  static String _conversationKey(NotifPayloadNewMessage data, String groupKey) {
-    final conversation = switch (data.recipient) {
-      NotifPayloadChannelRecipient(:var channelId, :var topic) => 'stream:$channelId:${topic.canonicalize()}',
-      NotifPayloadDmRecipient(:var allRecipientIds) => 'dm:${allRecipientIds.join(',')}',
-    };
-    return '$groupKey|$conversation';
-  }
-
-  static String _groupKey(Uri realmUrl, int userId) {
-    // The realm URL can't contain a `|`, because `|` is not a URL code point:
-    //   https://url.spec.whatwg.org/#url-code-points
-    return "$realmUrl|$userId";
-  }
 
   static String _personKey(Uri realmUrl, int userId) => "$realmUrl|$userId";
 
