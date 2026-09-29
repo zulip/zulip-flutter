@@ -1080,6 +1080,15 @@ class FakeNotificationPigeonApi implements NotificationPigeonApi {
   Stream<NotificationTapEvent> notificationTapEventsStream() {
     return _notificationTapEventsStreamController.stream;
   }
+
+  /// The most recent conversation key passed to
+  /// [setOpenConversationKeyForNotifSuppression], for tests.
+  String? lastOpenConversationKeyForNotifSuppression;
+
+  @override
+  Future<void> setOpenConversationKeyForNotifSuppression(String? conversationKey) async {
+    lastOpenConversationKeyForNotifSuppression = conversationKey;
+  }
 }
 
 typedef AndroidNotificationHostApiNotifyCall = ({
