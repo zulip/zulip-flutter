@@ -393,6 +393,22 @@ interface NotificationHostApi {
    *   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
    */
   fun getNotificationDataFromLaunch(): NotificationDataFromLaunch?
+  /**
+   * Tells the iOS host which conversation is currently open in the UI.
+   *
+   * When non-null, [conversationKey] identifies the open stream+topic or DM
+   * conversation. The iOS app uses this in
+   * `userNotificationCenter(_:willPresent:)` to suppress the foreground
+   * banner/sound for push notifications that are for that same conversation,
+   * while still presenting notifications for other conversations (#408).
+   *
+   * Pass null when no message-list conversation is open (or when leaving one).
+   *
+   * No-op on Android; the host API is only registered on iOS.
+   *
+   * See conversationKeyForNotifSuppression in lib/notifications/conversation_key.dart.
+   */
+  fun setOpenConversationKeyForNotifSuppression(conversationKey: String?)
 
   companion object {
     /** The codec used by NotificationHostApi. */
@@ -409,6 +425,24 @@ interface NotificationHostApi {
           channel.setMessageHandler { _, reply ->
             val wrapped: List<Any?> = try {
               listOf(api.getNotificationDataFromLaunch())
+            } catch (exception: Throwable) {
+              NotificationsPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.NotificationHostApi.setOpenConversationKeyForNotifSuppression$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val conversationKeyArg = args[0] as String?
+            val wrapped: List<Any?> = try {
+              api.setOpenConversationKeyForNotifSuppression(conversationKeyArg)
+              listOf(null)
             } catch (exception: Throwable) {
               NotificationsPigeonUtils.wrapError(exception)
             }

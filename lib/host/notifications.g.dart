@@ -332,6 +332,37 @@ class NotificationHostApi {
     ;
     return pigeonVar_replyValue as NotificationDataFromLaunch?;
   }
+
+  /// Tells the iOS host which conversation is currently open in the UI.
+  ///
+  /// When non-null, [conversationKey] identifies the open stream+topic or DM
+  /// conversation. The iOS app uses this in
+  /// `userNotificationCenter(_:willPresent:)` to suppress the foreground
+  /// banner/sound for push notifications that are for that same conversation,
+  /// while still presenting notifications for other conversations (#408).
+  ///
+  /// Pass null when no message-list conversation is open (or when leaving one).
+  ///
+  /// No-op on Android; the host API is only registered on iOS.
+  ///
+  /// See conversationKeyForNotifSuppression in lib/notifications/conversation_key.dart.
+  Future<void> setOpenConversationKeyForNotifSuppression(String? conversationKey) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.NotificationHostApi.setOpenConversationKeyForNotifSuppression$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[conversationKey]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
 }
 
 /// An event stream that emits a notification payload

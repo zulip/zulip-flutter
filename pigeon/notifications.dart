@@ -61,6 +61,21 @@ abstract class NotificationHostApi {
   /// else null. See Apple doc:
   ///   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
   NotificationDataFromLaunch? getNotificationDataFromLaunch();
+
+  /// Tells the iOS host which conversation is currently open in the UI.
+  ///
+  /// When non-null, [conversationKey] identifies the open stream+topic or DM
+  /// conversation. The iOS app uses this in
+  /// `userNotificationCenter(_:willPresent:)` to suppress the foreground
+  /// banner/sound for push notifications that are for that same conversation,
+  /// while still presenting notifications for other conversations (#408).
+  ///
+  /// Pass null when no message-list conversation is open (or when leaving one).
+  ///
+  /// No-op on Android; the host API is only registered on iOS.
+  ///
+  /// See conversationKeyForNotifSuppression in lib/notifications/conversation_key.dart.
+  void setOpenConversationKeyForNotifSuppression(String? conversationKey);
 }
 
 /// An event stream that emits a notification payload
