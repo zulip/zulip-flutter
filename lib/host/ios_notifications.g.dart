@@ -144,6 +144,7 @@ class ImprovedNotificationContent {
     required this.title,
     required this.subtitle,
     required this.body,
+    required this.threadIdentifier,
     required this.sound,
     required this.userInfo,
   });
@@ -156,6 +157,11 @@ class ImprovedNotificationContent {
 
   /// The new body to use for the notification.
   String body;
+
+  /// The new thread identifier to use for the notification.
+  ///
+  /// See docs: https://developer.apple.com/documentation/usernotifications/unmutablenotificationcontent/threadidentifier
+  String threadIdentifier;
 
   /// The new sound to use for the notification.
   IosNotificationSound sound;
@@ -171,6 +177,7 @@ class ImprovedNotificationContent {
       title,
       subtitle,
       body,
+      threadIdentifier,
       sound,
       userInfo,
     ];
@@ -185,8 +192,9 @@ class ImprovedNotificationContent {
       title: result[0]! as String,
       subtitle: result[1]! as String,
       body: result[2]! as String,
-      sound: result[3]! as IosNotificationSound,
-      userInfo: (result[4]! as Map<Object?, Object?>).cast<String, Object?>(),
+      threadIdentifier: result[3]! as String,
+      sound: result[4]! as IosNotificationSound,
+      userInfo: (result[5]! as Map<Object?, Object?>).cast<String, Object?>(),
     );
   }
 
@@ -199,7 +207,7 @@ class ImprovedNotificationContent {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(title, other.title) && _deepEquals(subtitle, other.subtitle) && _deepEquals(body, other.body) && _deepEquals(sound, other.sound) && _deepEquals(userInfo, other.userInfo);
+    return _deepEquals(title, other.title) && _deepEquals(subtitle, other.subtitle) && _deepEquals(body, other.body) && _deepEquals(threadIdentifier, other.threadIdentifier) && _deepEquals(sound, other.sound) && _deepEquals(userInfo, other.userInfo);
   }
 
   @override
@@ -208,7 +216,7 @@ class ImprovedNotificationContent {
 
   @override
   String toString() {
-    return 'ImprovedNotificationContent(title: $title, subtitle: $subtitle, body: $body, sound: $sound, userInfo: $userInfo)';
+    return 'ImprovedNotificationContent(title: $title, subtitle: $subtitle, body: $body, threadIdentifier: $threadIdentifier, sound: $sound, userInfo: $userInfo)';
   }
 }
 

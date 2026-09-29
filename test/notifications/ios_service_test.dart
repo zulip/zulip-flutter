@@ -59,6 +59,7 @@ void main() {
     Account? account,
     required String expectedTitle,
     required String expectedSubtitle,
+    required String expectedThreadIdentifierComponent,
   }) async {
     account ??= eg.selfAccount;
     assert(account.userId == data.userId && account.realmUrl == data.realmUrl);
@@ -67,6 +68,8 @@ void main() {
     final result = await testBinding.iosNotifFlutterApi.didReceivePushNotification(
       NotificationContent(payload: payload));
 
+    final expectedThreadIdentifier =
+      '${data.realmUrl}|${data.userId}|$expectedThreadIdentifierComponent';
     final expectedNotificationUrl = NotificationOpenPayload(
       realmUrl: data.realmUrl,
       userId: data.userId,
@@ -83,6 +86,7 @@ void main() {
       ..title.equals(expectedTitle)
       ..subtitle.equals(expectedSubtitle)
       ..body.equals(data.content)
+      ..threadIdentifier.equals(expectedThreadIdentifier)
       ..sound.equals(IosNotificationSound.systemDefault)
       ..userInfo.deepEquals({
         NotificationOpenPayload.kIosNotificationUrlKey: expectedNotificationUrl.toString(),
@@ -97,7 +101,8 @@ void main() {
     await checkNotification(
       notifPayloadNewMessage(message, streamName: stream.name),
       expectedTitle: '#${stream.name} > ${message.topic}',
-      expectedSubtitle: '${sender.fullName}:');
+      expectedSubtitle: '${sender.fullName}:',
+      expectedThreadIdentifierComponent: 'stream:${stream.streamId}:${message.topic}');
   });
 
   test('group DM: 3 users', () async {
@@ -105,7 +110,8 @@ void main() {
     final message = eg.dmMessage(from: eg.thirdUser, to: [eg.otherUser, eg.selfUser]);
     await checkNotification(notifPayloadNewMessage(message),
       expectedTitle: "${eg.thirdUser.fullName} to you and 1 other",
-      expectedSubtitle: '');
+      expectedSubtitle: '',
+      expectedThreadIdentifierComponent: 'dm:${message.allRecipientIds.join(",")}');
   });
 
   test('1:1 DM', () async {
@@ -113,7 +119,8 @@ void main() {
     final message = eg.dmMessage(from: eg.otherUser, to: [eg.selfUser]);
     await checkNotification(notifPayloadNewMessage(message),
       expectedTitle: eg.otherUser.fullName,
-      expectedSubtitle: '');
+      expectedSubtitle: '',
+      expectedThreadIdentifierComponent: 'dm:${message.allRecipientIds.join(",")}');
   });
 
   test('self-DM', () async {
@@ -121,7 +128,8 @@ void main() {
     final message = eg.dmMessage(from: eg.selfUser, to: []);
     await checkNotification(notifPayloadNewMessage(message),
       expectedTitle: eg.selfUser.fullName,
-      expectedSubtitle: '');
+      expectedSubtitle: '',
+      expectedThreadIdentifierComponent: 'dm:${message.allRecipientIds.join(",")}');
   });
 }
 
@@ -129,6 +137,7 @@ extension on Subject<ImprovedNotificationContent> {
   Subject<String> get title => has((x) => x.title, 'title');
   Subject<String> get subtitle => has((x) => x.subtitle, 'subtitle');
   Subject<String> get body => has((x) => x.body, 'body');
+  Subject<String> get threadIdentifier => has((x) => x.threadIdentifier, 'threadIdentifier');
   Subject<IosNotificationSound> get sound => has((x) => x.sound, 'sound');
   Subject<Map<Object?, Object?>> get userInfo => has((x) => x.userInfo, 'userInfo');
 }
