@@ -21,6 +21,7 @@
 		B3D425322F6D40C200F9AE69 /* IosNative.g.swift in Sources */ = {isa = PBXBuildFile; fileRef = B340EB372F5B092B007AD309 /* IosNative.g.swift */; };
 		B3D425332F6D40C200F9AE69 /* IosNativeHostApi.swift in Sources */ = {isa = PBXBuildFile; fileRef = B32717682F6C49E5007682B1 /* IosNativeHostApi.swift */; };
 		F311C174AF9C005CE4AADD72 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EAE3F3F518B95B7BFEB4FE7 /* Pods_Runner.framework */; };
+		C7A9E9E80000000000000001 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7A9E9E70000000000000001 /* Intents.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +93,7 @@
 		B34E9F082D776BEB0009AED2 /* Notifications.g.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.g.swift; sourceTree = "<group>"; };
 		B378A4FA2F45B08F0031EFA1 /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3AF53A72CA20BD10039801D /* Zulip.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Zulip.xcconfig; path = Flutter/Zulip.xcconfig; sourceTree = "<group>"; };
+		C7A9E9E70000000000000001 /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -151,6 +153,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7A9E9E80000000000000001 /* Intents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,6 +229,7 @@
 		DE33BFABA662D9225C39B5E5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C7A9E9E70000000000000001 /* Intents.framework */,
 				3EAE3F3F518B95B7BFEB4FE7 /* Pods_Runner.framework */,
 				4818026434A88F9DB6808745 /* Pods_Runner_RunnerUITests.framework */,
 			);
