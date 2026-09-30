@@ -35,6 +35,7 @@ class NotificationService: UNNotificationServiceExtension {
         bestAttemptContent.title = improvedContent.title
         bestAttemptContent.subtitle = improvedContent.subtitle
         bestAttemptContent.body = improvedContent.body
+        bestAttemptContent.threadIdentifier = improvedContent.threadIdentifier
         switch improvedContent.sound {
         case .systemDefault:
           bestAttemptContent.sound = UNNotificationSound.default
