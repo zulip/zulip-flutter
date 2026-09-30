@@ -15,6 +15,7 @@ class EmojiWidget extends StatelessWidget {
     this.imagePlaceholderStyle = EmojiImagePlaceholderStyle.square,
     this.imageAnimationMode = ImageAnimationMode.animateConditionally,
     this.buildCustomTextEmoji,
+    this.onImageError,
   });
 
   final EmojiDisplay emojiDisplay;
@@ -48,6 +49,14 @@ class EmojiWidget extends StatelessWidget {
   /// is used.
   final Widget Function()? buildCustomTextEmoji;
 
+  /// Called when this is an image emoji and the image failed to load,
+  /// so the placeholder in [imagePlaceholderStyle] is shown instead.
+  ///
+  /// Called during build.
+  /// If the caller rebuilds in response (e.g. with [State.setState]),
+  /// it must schedule that for after the current frame.
+  final VoidCallback? onImageError;
+
   Widget _buildTextEmoji() {
     return buildCustomTextEmoji?.call()
       ?? Text(textEmojiForEmojiName(emojiDisplay.emojiName));
@@ -61,11 +70,14 @@ class EmojiWidget extends StatelessWidget {
         emojiDisplay: emojiDisplay,
         size: squareDimension,
         textScaler: squareDimensionScaler,
-        errorBuilder: (_, _, _) => switch (imagePlaceholderStyle) {
-          EmojiImagePlaceholderStyle.square =>
-            SizedBox.square(dimension: squareDimensionScaler.scale(squareDimension)),
-          EmojiImagePlaceholderStyle.nothing => SizedBox.shrink(),
-          EmojiImagePlaceholderStyle.text => _buildTextEmoji(),
+        errorBuilder: (_, _, _) {
+          onImageError?.call();
+          return switch (imagePlaceholderStyle) {
+            EmojiImagePlaceholderStyle.square =>
+              SizedBox.square(dimension: squareDimensionScaler.scale(squareDimension)),
+            EmojiImagePlaceholderStyle.nothing => SizedBox.shrink(),
+            EmojiImagePlaceholderStyle.text => _buildTextEmoji(),
+          };
         },
         animationMode: imageAnimationMode),
       UnicodeEmojiDisplay() => UnicodeEmojiWidget(
