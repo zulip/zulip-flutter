@@ -429,6 +429,13 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get errorCouldNotConnectTitle => 'Kunne ikkje kopla til';
 
   @override
+  String get errorCouldNotLoadAppTitle => 'Could not load Zulip';
+
+  @override
+  String get errorCouldNotLoadApp =>
+      'Zulip could not load data saved on this device. Please restart the app and try again.';
+
+  @override
   String get errorMessageDoesNotSeemToExist =>
       'Det ser ikkje ut til at meldinga finst.';
 

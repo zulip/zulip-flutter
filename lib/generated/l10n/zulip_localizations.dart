@@ -847,6 +847,18 @@ abstract class ZulipLocalizations {
   /// **'Could not connect'**
   String get errorCouldNotConnectTitle;
 
+  /// Error title shown when the app cannot load its local data at startup.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load Zulip'**
+  String get errorCouldNotLoadAppTitle;
+
+  /// Error message shown when the app cannot load its local data at startup.
+  ///
+  /// In en, this message translates to:
+  /// **'Zulip could not load data saved on this device. Please restart the app and try again.'**
+  String get errorCouldNotLoadApp;
+
   /// Error message when loading a message that does not exist.
   ///
   /// In en, this message translates to:

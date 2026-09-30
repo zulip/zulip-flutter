@@ -442,6 +442,13 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get errorCouldNotConnectTitle => 'Impossibile connettersi';
 
   @override
+  String get errorCouldNotLoadAppTitle => 'Could not load Zulip';
+
+  @override
+  String get errorCouldNotLoadApp =>
+      'Zulip could not load data saved on this device. Please restart the app and try again.';
+
+  @override
   String get errorMessageDoesNotSeemToExist =>
       'Quel messaggio sembra non esistere.';
 
