@@ -176,28 +176,20 @@ void main() {
       }
     }
 
-    Future<void> openNotification(
-      WidgetTester tester,
-      Account account,
-      Message message, {
+    void scheduleNotificationTapEvent(Account account, Message message, {
       bool encrypted = true,
-    }) async {
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-          final intentDataUrl = notificationUrlForMessage(account, message);
-          testBinding.notificationPigeonApi.addNotificationTapEvent(
-            AndroidNotificationTapEvent(dataUrl: intentDataUrl.toString()));
-          await tester.idle(); // let navigateForNotification find navigator
+    }) {
+      final event = switch (defaultTargetPlatform) {
+        TargetPlatform.android => AndroidNotificationTapEvent(
+          dataUrl: notificationUrlForMessage(account, message).toString()),
+        TargetPlatform.iOS => IosNotificationTapEvent(
+          payload: messageApnsPayload(account, message, encrypted: encrypted)),
+        _ => throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"'),
+      };
 
-        case TargetPlatform.iOS:
-          final payload = messageApnsPayload(account, message, encrypted: encrypted);
-          testBinding.notificationPigeonApi.addNotificationTapEvent(
-            IosNotificationTapEvent(payload: payload));
-          await tester.idle(); // let navigateForNotification find navigator
-
-        default:
-          throw UnsupportedError('Unsupported target platform: "$defaultTargetPlatform"');
-      }
+      // Set up an event to be emitted from
+      // `notificationPigeonApi.notificationTapEventsStream`.
+      testBinding.notificationPigeonApi.addNotificationTapEvent(event);
     }
 
     void setupNotificationDataForLaunch(
@@ -252,7 +244,8 @@ void main() {
       bool expectHomePageReplaced = false,
       bool encrypted = true,
     }) async {
-      await openNotification(tester, account, message, encrypted: encrypted);
+      scheduleNotificationTapEvent(account, message, encrypted: encrypted);
+      await tester.idle(); // let navigateForNotification find navigator
       if (expectHomePageReplaced) {
         takeHomePageReplacement(account.id);
       } else {
@@ -314,7 +307,8 @@ void main() {
         await prepare(tester);
         // (just to make sure the test is working)
         check(testBinding.globalStore.accountIds).isEmpty();
-        await openNotification(tester, eg.selfAccount, eg.streamMessage());
+        scheduleNotificationTapEvent(eg.selfAccount, eg.streamMessage());
+        await tester.idle(); // let navigateForNotification find navigator
         await tester.pump();
         check(pushedRoutes.single).isA<DialogRoute<void>>();
         await tester.tap(find.byWidget(checkErrorDialog(tester,
@@ -326,7 +320,8 @@ void main() {
         addTearDown(testBinding.reset);
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
         await prepare(tester);
-        await openNotification(tester, eg.otherAccount, eg.streamMessage());
+        scheduleNotificationTapEvent(eg.otherAccount, eg.streamMessage());
+        await tester.idle(); // let navigateForNotification find navigator
         await tester.pump();
         check(pushedRoutes.single).isA<DialogRoute<void>>();
         await tester.tap(find.byWidget(checkErrorDialog(tester,
@@ -370,11 +365,12 @@ void main() {
         await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
         await prepare(tester, early: true);
         final message = eg.streamMessage();
-        await openNotification(tester, eg.selfAccount, message);
+        scheduleNotificationTapEvent(eg.selfAccount, message);
+        await tester.idle(); // let navigateForNotification find navigator
         // The app should still not be ready (or else this test won't work right).
         check(ZulipApp.ready.value).isFalse();
         check(ZulipApp.navigatorKey.currentState).isNull();
-        // And the openNotification hasn't caused any navigation yet.
+        // And the notification tap hasn't caused any navigation yet.
         check(pushedRoutes).isEmpty();
 
         // Now let the GlobalStore get loaded and the app's main UI get mounted.
@@ -426,13 +422,15 @@ void main() {
 
           final message2 = eg.streamMessage(stream: stream, topic: 'a');
           prepareFetchAtMessage(message2.id, messages: [message1, message2]);
-          await openNotification(tester, eg.selfAccount, message2);
+          scheduleNotificationTapEvent(eg.selfAccount, message2);
+          await tester.idle(); // let navigateForNotification find navigator
           check(lastPoppedRoute).isNull();
           check(pushedRoutes).isEmpty();
 
           final message3 = eg.streamMessage(stream: stream, topic: 'A');
           prepareFetchAtMessage(message3.id, messages: [message1, message2, message3]);
-          await openNotification(tester, eg.selfAccount, message3);
+          scheduleNotificationTapEvent(eg.selfAccount, message3);
+          await tester.idle(); // let navigateForNotification find navigator
           check(lastPoppedRoute).isNull();
           check(pushedRoutes).isEmpty();
         });
@@ -453,7 +451,8 @@ void main() {
           // … until the notification is opened, which brings it into view
           // on the same page, without pushing another one.
           prepareFetchAtMessage(message2.id, messages: [message1, message2]);
-          await openNotification(tester, eg.selfAccount, message2);
+          scheduleNotificationTapEvent(eg.selfAccount, message2);
+          await tester.idle(); // let navigateForNotification find navigator
           await tester.pump();
           check(pushedRoutes).isEmpty();
           check(find.text('message 2')).findsOne();
@@ -467,7 +466,8 @@ void main() {
             messages: [message1]);
 
           final message2 = eg.streamMessage(stream: stream, topic: 'b');
-          await openNotification(tester, eg.selfAccount, message2);
+          scheduleNotificationTapEvent(eg.selfAccount, message2);
+          await tester.idle(); // let navigateForNotification find navigator
           check(lastPoppedRoute).isNull();
           matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message2);
         });
@@ -486,7 +486,8 @@ void main() {
           pushedRoutes.clear();
 
           final message2 = eg.streamMessage(stream: stream, topic: 'a');
-          await openNotification(tester, eg.selfAccount, message2);
+          scheduleNotificationTapEvent(eg.selfAccount, message2);
+          await tester.idle(); // let navigateForNotification find navigator
           check(lastPoppedRoute).isNull();
           matchesNavigation(check(pushedRoutes).single, eg.selfAccount, message2);
         });
@@ -510,7 +511,8 @@ void main() {
 
           final message2 = eg.streamMessage(stream: stream, topic: 'a');
           prepareFetchAtMessage(message2.id, messages: [message1, message2]);
-          await openNotification(tester, eg.selfAccount, message2);
+          scheduleNotificationTapEvent(eg.selfAccount, message2);
+          await tester.idle(); // let navigateForNotification find navigator
           // The dialog was popped (and nothing was pushed).
           check(lastPoppedRoute).equals(pushed);
           check(pushedRoutes).isEmpty();
