@@ -1261,12 +1261,33 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
 
   @override
   Future<List<TopicAutocompleteResult>?> computeResults() async {
-    final results = <TopicAutocompleteResult>[];
+    final existingResults = <TopicAutocompleteResult>[];
     if (await filterCandidates(filter: _testTopic,
-          candidates: _topics, results: results)) {
+          candidates: _topics, results: existingResults)) {
       return null;
     }
-    return results;
+
+    if (existingResults.isEmpty || query.raw.trim().isEmpty) {
+      return existingResults;
+    }
+
+    final queryTopic = store.processTopicLikeServer(TopicName(query.raw.trim()));
+    final topicsPolicy = store.effectiveTopicsPolicy(channelId);
+    if (queryTopic.displayName == null
+          ? topicsPolicy == ChannelTopicsPolicy.disableEmptyTopic
+          : topicsPolicy == ChannelTopicsPolicy.emptyTopicOnly) {
+      return existingResults;
+    }
+
+    final queryTopicExists = _topics.any((topic) => topic == queryTopic);
+    if (queryTopicExists) {
+      return existingResults;
+    }
+
+    return [
+      TopicAutocompleteResult(topic: queryTopic, isNew: true),
+      ...existingResults,
+    ];
   }
 
   TopicAutocompleteResult? _testTopic(TopicAutocompleteQuery query, TopicName topic) {
@@ -1289,8 +1310,8 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
       return AutocompleteQuery.lowercaseAndStripDiacritics(store.realmEmptyTopicDisplayName)
         .contains(_normalized);
     }
-    return topic.displayName != raw
-      && AutocompleteQuery.lowercaseAndStripDiacritics(topic.displayName!).contains(_normalized);
+    return AutocompleteQuery.lowercaseAndStripDiacritics(topic.displayName!)
+      .contains(_normalized);
   }
 
   @override
@@ -1311,7 +1332,11 @@ class TopicAutocompleteQuery extends AutocompleteQuery {
 class TopicAutocompleteResult extends AutocompleteResult {
   final TopicName topic;
 
-  TopicAutocompleteResult({required this.topic});
+  /// Whether this result represents a new topic taken from the query,
+  /// rather than an existing topic.
+  final bool isNew;
+
+  TopicAutocompleteResult({required this.topic, this.isNew = false});
 }
 
 /// An [AutocompleteView] for a #channel autocomplete interaction,
