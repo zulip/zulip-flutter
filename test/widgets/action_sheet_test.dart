@@ -1206,7 +1206,7 @@ void main() {
             )]));
         await showFromInbox(tester, topic: 'zulip');
         check(store.messages).not((it) => it.containsKey(message.id));
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await tester.tap(findButtonForLabel('Mark as resolved'));
         await tester.pumpAndSettle();
 
@@ -1221,7 +1221,7 @@ void main() {
         await showFromInbox(tester, topic: 'zulip');
         check(store.unreads.isUnread(message.id)).isNotNull().isTrue();
         check(store.messages)[message.id].isNotNull();
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await tester.tap(findButtonForLabel('Mark as resolved'));
         await tester.pumpAndSettle();
 
@@ -1235,7 +1235,7 @@ void main() {
         await showFromAppBar(tester,
           topic: TopicName('✔ zulip'), messages: [message]);
         connection.takeRequests();
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await tester.tap(findButtonForLabel('Mark as unresolved'));
         await tester.pumpAndSettle();
 
@@ -1249,7 +1249,7 @@ void main() {
         await showFromAppBar(tester,
           topic: TopicName('✔ ✔ zulip'), messages: [message]);
         connection.takeRequests();
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await tester.tap(findButtonForLabel('Mark as unresolved'));
         await tester.pumpAndSettle();
 
@@ -2688,7 +2688,7 @@ void main() {
               // We're testing the request-in-progress state. Prepare a delay,
               // tap Save, and wait through only part of the delay.
               connection.prepare(
-                json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+                json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
               await tester.tap(find.widgetWithText(ZulipWebUiKitButton, 'Save'));
               await tester.pump(Duration(milliseconds: 500));
             } else {

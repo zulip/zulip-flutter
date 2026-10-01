@@ -8,6 +8,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/scaffolding.dart';
 import 'package:zulip/api/exception.dart';
+import 'package:zulip/api/model/attachment.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -19,8 +20,10 @@ import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 
 import '../api/fake_api.dart';
+import '../api/model/attachment_checks.dart';
 import '../api/model/model_checks.dart';
 import '../api/model/submessage_checks.dart';
+import '../api/route/route_checks.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../fake_async_checks.dart';
@@ -906,6 +909,16 @@ void main() {
 
   group('edit-message methods', () {
     late StreamMessage message;
+    final apiResult = UpdateMessageResult(detachedUploads: [
+      Attachment(id: 10, name: 'notes.txt'),
+    ]);
+
+    void checkResult(UpdateMessageResult? result) {
+      check(result).isNotNull().detachedUploads.isNotNull().single
+        ..id.equals(10)
+        ..name.equals('notes.txt');
+    }
+
     Future<void> prepareEditMessage() async {
       await prepare();
       message = eg.streamMessage();
@@ -932,9 +945,9 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+        json: apiResult.toJson(), delay: Duration(seconds: 1));
+      final resultFuture = store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content');
       checkRequest(message.id,
         prevContent: 'old content',
         content: 'new content');
@@ -945,6 +958,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
 
       async.elapse(Duration(milliseconds: 500));
+      checkResult(await resultFuture);
       // Request has succeeded; event hasn't arrived
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
       checkNotNotified();
@@ -953,6 +967,45 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotifiedOnce();
     }));
+
+    test('event arrives, then request succeeds', () => awaitFakeAsync((async) async {
+      await prepareEditMessage();
+      connection.prepare(json: apiResult.toJson(), delay: Duration(seconds: 1));
+      final resultFuture = store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      await store.handleEvent(eg.updateMessageEditEvent(message,
+        renderedContent: '<p>new content</p>'));
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      check(store.messages[message.id]).isNotNull().content.equals('<p>new content</p>');
+      checkNotifiedOnce();
+
+      async.elapse(Duration(milliseconds: 500));
+      checkResult(await resultFuture);
+      check(store.getEditMessageErrorStatus(message.id)).isNull();
+      checkNotNotified();
+    }));
+
+    for (final succeeds in [true, false]) {
+      test('store disposed during request; succeeds: $succeeds', () => awaitFakeAsync((async) async {
+        final store = eg.store();
+        final connection = store.connection as FakeApiConnection;
+        if (succeeds) {
+          connection.prepare(json: apiResult.toJson(), delay: Duration(seconds: 1));
+        } else {
+          connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
+        }
+        final resultFuture = store.editMessage(messageId: eg.streamMessage().id,
+          originalRawContent: 'old content', newContent: 'new content');
+
+        async.elapse(Duration(milliseconds: 500));
+        store.dispose();
+        async.elapse(Duration(milliseconds: 500));
+        check(await resultFuture).isNull();
+      }));
+    }
 
     test('concurrent edits on different messages', () => awaitFakeAsync((async) async {
       await prepareEditMessage();
@@ -963,7 +1016,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'old content', newContent: 'new content'));
       checkRequest(message.id,
@@ -976,7 +1029,7 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNotNull().isFalse();
       check(store.getEditMessageErrorStatus(otherMessage.id)).isNull();
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: otherMessage.id,
         originalRawContent: 'other message old content', newContent: 'other message new content'));
       checkRequest(otherMessage.id,
@@ -1047,7 +1100,7 @@ void main() {
       await prepareEditMessage();
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
+        json: UpdateMessageResult(detachedUploads: []).toJson(), delay: Duration(seconds: 1));
       unawaited(store.editMessage(messageId: message.id,
         originalRawContent: 'old content', newContent: 'new content'));
       async.elapse(Duration(milliseconds: 500));
@@ -1056,7 +1109,7 @@ void main() {
 
       await check(store.editMessage(messageId: message.id,
           originalRawContent: 'old content', newContent: 'newer content'))
-        .isA<Future<void>>().throws<StateError>();
+        .throws<StateError>();
       check(connection.takeRequests()).isEmpty();
     }));
 
@@ -1068,8 +1121,8 @@ void main() {
 
       connection.prepare(
         httpException: const SocketException('failed'), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+      final resultFuture = store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content');
       checkNotifiedOnce();
 
       async.elapse(Duration(milliseconds: 500));
@@ -1080,6 +1133,7 @@ void main() {
       async.flushTimers();
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotNotified();
+      check(await resultFuture).isNull();
     }));
 
     test('request fails, then event arrives', () => awaitFakeAsync((async) async {
@@ -1148,8 +1202,8 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(apiException: eg.apiBadRequest(), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+      final resultFuture = store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content');
       checkNotifiedOnce();
 
       async.elapse(Duration(milliseconds: 500));
@@ -1165,6 +1219,7 @@ void main() {
       // Request failure, but status has already been cleared
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotNotified();
+      check(await resultFuture).isNull();
     }));
 
     test('message deleted while request in progress but we get success response', () => awaitFakeAsync((async) async {
@@ -1172,9 +1227,9 @@ void main() {
       check(store.getEditMessageErrorStatus(message.id)).isNull();
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+        json: apiResult.toJson(), delay: Duration(seconds: 1));
+      final resultFuture = store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content');
       checkNotifiedOnce();
 
       async.elapse(Duration(milliseconds: 500));
@@ -1190,6 +1245,7 @@ void main() {
       // Request success
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotNotified();
+      checkResult(await resultFuture);
     }));
 
     test('request succeeds, in unsubscribed channel', () => awaitFakeAsync((async) async {
@@ -1204,9 +1260,9 @@ void main() {
       check(connection.takeRequests()).length.equals(1); // message-list fetchInitial
 
       connection.prepare(
-        json: UpdateMessageResult().toJson(), delay: Duration(seconds: 1));
-      unawaited(store.editMessage(messageId: message.id,
-        originalRawContent: 'old content', newContent: 'new content'));
+        json: apiResult.toJson(), delay: Duration(seconds: 1));
+      final resultFuture = store.editMessage(messageId: message.id,
+        originalRawContent: 'old content', newContent: 'new content');
       checkRequest(message.id, prevContent: 'old content', content: 'new content');
       checkNotifiedOnce();
 
@@ -1214,6 +1270,7 @@ void main() {
       // Outbox status cleared already (we don't expect an edit-message event).
       check(store.getEditMessageErrorStatus(message.id)).isNull();
       checkNotifiedOnce();
+      checkResult(await resultFuture);
     }));
   });
 

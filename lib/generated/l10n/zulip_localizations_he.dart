@@ -277,6 +277,23 @@ class ZulipLocalizationsHe extends ZulipLocalizations {
   String get actionSheetOptionReportMessage => 'Report message';
 
   @override
+  String get deleteUploadedFilesDialogTitle => 'Delete uploaded files?';
+
+  @override
+  String get deleteUploadedFilesDialogMessage =>
+      'These files are no longer attached to your message. Deleting them permanently removes them for everyone.';
+
+  @override
+  String get deleteUploadedFilesDialogCancel => 'Don\'t delete';
+
+  @override
+  String get deleteUploadedFilesDialogConfirm => 'Delete';
+
+  @override
+  String get errorDeleteUploadedFilesFailedTitle =>
+      'Failed to delete uploaded files';
+
+  @override
   String get reportMessageDialogTitle => 'Report message';
 
   @override

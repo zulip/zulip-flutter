@@ -72,14 +72,16 @@ mixin MessageStore on ChannelStore {
   /// i.e., [getEditMessageErrorStatus] returns null for [messageId].
   ///
   /// The returned [Future] settles when the edit-message response is received.
-  /// The [Future] resolves if the request succeeded and rejects if it failed,
-  /// unless the event already arrived or the message was deleted,
-  /// in which case it resolves.
+  /// The [Future] resolves with the API result if the request succeeded,
+  /// and rejects if it failed, unless the event already arrived
+  /// or the message was deleted, in which case it resolves with null.
+  /// If the store was disposed while the request was in progress,
+  /// it resolves with null regardless of whether the request succeeded.
   ///
   /// See also:
   ///   * [getEditMessageErrorStatus]
   ///   * [takeFailedMessageEdit]
-  Future<void> editMessage({
+  Future<UpdateMessageResult?> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -236,7 +238,7 @@ mixin ProxyMessageStore on MessageStore {
     return messageStore.getEditMessageErrorStatus(messageId);
   }
   @override
-  Future<void> editMessage({
+  Future<UpdateMessageResult?> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -534,7 +536,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
   final Map<int, _EditMessageRequestStatus> _editMessageRequests = {};
 
   @override
-  Future<void> editMessage({
+  Future<UpdateMessageResult?> editMessage({
     required int messageId,
     required String originalRawContent,
     required String newContent,
@@ -547,25 +549,26 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     _editMessageRequests[messageId] = _EditMessageRequestStatus(
       hasError: false, originalRawContent: originalRawContent, newContent: newContent);
     _notifyMessageListViewsForOneMessage(messageId);
+    final UpdateMessageResult result;
     try {
-      await updateMessage(connection,
+      result = await updateMessage(connection,
         messageId: messageId,
         content: newContent,
         prevContentSha256: sha256.convert(utf8.encode(originalRawContent)).toString());
       // On success, we'll clear the status from _editMessageRequests
       // when we get the event (or below, if in an unsubscribed channel).
-      if (_disposed) return;
+      if (_disposed) return null;
     } catch (e) {
       // TODO(log) if e is something unexpected
 
-      if (_disposed) return;
+      if (_disposed) return null;
 
       final status = _editMessageRequests[messageId];
       if (status == null) {
         // The event actually arrived before this request failed
         // (can happen with network issues).
         // Or, the message was deleted.
-        return;
+        return null;
       }
       status.hasError = true;
       _notifyMessageListViewsForOneMessage(messageId);
@@ -584,6 +587,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
       _editMessageRequests.remove(messageId);
       _notifyMessageListViewsForOneMessage(messageId);
     }
+    return result;
   }
 
   @override
