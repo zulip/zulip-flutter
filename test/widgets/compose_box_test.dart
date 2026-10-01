@@ -15,7 +15,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
-import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/log.dart';
@@ -1181,8 +1180,7 @@ void main() {
         ..method.equals('GET')
         ..url.path.equals('/api/v1/messages')
         ..url.queryParameters.deepEquals({
-          'narrow': jsonEncode(resolveApiNarrowForServer(
-            narrow.apiEncode(), connection.zulipFeatureLevel!)),
+          'narrow': jsonEncode(narrow.apiEncode()),
           'anchor': 'newest',
           'num_before': '100',
           'num_after': '100',
@@ -2906,8 +2904,7 @@ void main() {
         ..method.equals('GET')
         ..url.path.equals('/api/v1/messages')
         ..url.queryParameters.deepEquals({
-          'narrow': jsonEncode(resolveApiNarrowForServer(
-            narrow.apiEncode(), connection.zulipFeatureLevel!)),
+          'narrow': jsonEncode(narrow.apiEncode()),
           'anchor': '${message.id}',
           'num_before': '100',
           'num_after': '100',
