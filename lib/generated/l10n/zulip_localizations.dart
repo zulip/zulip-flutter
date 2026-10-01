@@ -213,6 +213,36 @@ abstract class ZulipLocalizations {
   /// **'Let\'s go'**
   String get upgradeWelcomeDialogDismiss;
 
+  /// Label for button dismissing an intro dialog, shown on first visiting the inbox page or the combined feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get introDialogDismiss;
+
+  /// Title for the intro dialog shown on first visiting the inbox page.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your inbox!'**
+  String get inboxIntroDialogTitle;
+
+  /// Message for the intro dialog shown on first visiting the inbox page.
+  ///
+  /// In en, this message translates to:
+  /// **'You’ll see a list of conversations where you have unread messages, organized by channel. Each conversation is labeled with a topic by the person who started it.'**
+  String get inboxIntroDialogMessage;
+
+  /// Title for the intro dialog shown on first visiting the combined feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your combined feed!'**
+  String get combinedFeedIntroDialogTitle;
+
+  /// Message for the intro dialog shown on first visiting the combined feed.
+  ///
+  /// In en, this message translates to:
+  /// **'You’ll see a feed of all the unmuted messages you’ve received. You can click on a colored header bar to view a conversation.'**
+  String get combinedFeedIntroDialogMessage;
+
   /// Title for the page to choose between Zulip accounts.
   ///
   /// In en, this message translates to:
