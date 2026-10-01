@@ -407,10 +407,19 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   Iterable<ResultT> get results => _results;
   List<ResultT> _results = [];
 
+  /// A sequence number for invalidating stale searches.
+  ///
+  /// This is incremented when a search starts.
+  /// A search that finds it has changed since the search started
+  /// is stale, and should stop.
+  int _generation = 0;
+
   Future<void> _startSearch() async {
+    assert(!_disposed);
+    final generation = ++_generation;
     final newResults = await computeResults();
-    if (newResults == null) {
-      // Query was old; new search is in progress. Or, no listeners to notify.
+    if (_disposed || generation != _generation || newResults == null) {
+      // A null result means the search aborted early; see [computeResults].
       return;
     }
 
@@ -435,17 +444,10 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
   /// (e.g. every 1000 iterations) so that the UI remains responsive.
   @protected
   Future<bool> shouldStop() async {
-    final query = _query;
+    final generation = _generation;
     await Future(() {});
 
-    // If the query has changed, stop work on the old query.
-    if (query != _query) return true;
-
-    // If there are no listeners to get the result, stop work.
-    // This happens in particular if [dispose] was called.
-    if (!hasListeners) return true;
-
-    return false;
+    return _disposed || generation != _generation;
   }
 
   /// Examine the given candidates against `query`, adding matches to `results`.
@@ -458,13 +460,14 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     required Iterable<T> candidates,
     required List<ResultT> results,
   }) async {
+    final generation = _generation;
     final query = _query;
 
     final iterator = candidates.iterator;
     outer: while (true) {
-      assert(_query == query);
+      assert(_generation == generation);
       if (await shouldStop()) return true;
-      assert(_query == query);
+      assert(_generation == generation);
 
       for (int i = 0; i < 1000; i++) {
         if (!iterator.moveNext()) break outer;
@@ -476,12 +479,14 @@ abstract class AutocompleteView<QueryT extends AutocompleteQuery, ResultT extend
     return false;
   }
 
+  bool _disposed = false;
+
   @override
   void dispose() {
     store.autocompleteViewManager.unregisterAutocomplete(this);
-    // We cancel in-progress computations by checking [hasListeners] between tasks.
-    // After [super.dispose] is called, [hasListeners] returns false.
-    // TODO test that logic (may involve detecting an unhandled Future rejection; how?)
+    // Stop any search in progress, so that it doesn't call
+    // [notifyListeners] on this disposed object.
+    _disposed = true;
     super.dispose();
   }
 }
@@ -1255,7 +1260,9 @@ class TopicAutocompleteView extends AutocompleteView<TopicAutocompleteQuery, Top
   /// fetched topics.
   Future<void> _fetch() async {
     // TODO: handle fetch failure
-    _topics = (await store.topics.getChannelTopics(channelId)).map((e) => e.name);
+    final result = await store.topics.getChannelTopics(channelId);
+    if (_disposed) return;
+    _topics = result.map((e) => e.name);
     return _startSearch();
   }
 
