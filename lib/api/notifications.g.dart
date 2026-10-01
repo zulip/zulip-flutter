@@ -39,7 +39,7 @@ NotifPayloadNewMessage _$NotifPayloadNewMessageFromJson(
   Map<String, dynamic> json,
 ) => NotifPayloadNewMessage(
   realmUrl: Uri.parse(json['realm_url'] as String),
-  realmName: json['realm_name'] as String?,
+  realmName: json['realm_name'] as String,
   userId: (json['user_id'] as num).toInt(),
   senderId: (json['sender_id'] as num).toInt(),
   senderAvatarUrl: Uri.parse(json['sender_avatar_url'] as String),
@@ -87,7 +87,7 @@ NotifPayloadDmRecipient _$NotifPayloadDmRecipientFromJson(
 NotifPayloadRemove _$NotifPayloadRemoveFromJson(Map<String, dynamic> json) =>
     NotifPayloadRemove(
       realmUrl: Uri.parse(json['realm_url'] as String),
-      realmName: json['realm_name'] as String?,
+      realmName: json['realm_name'] as String,
       userId: (json['user_id'] as num).toInt(),
       messageIds: (json['message_ids'] as List<dynamic>)
           .map((e) => (e as num).toInt())
@@ -109,7 +109,7 @@ MessageLegacyFcmMessage _$MessageLegacyFcmMessageFromJson(
   realmUrl: Uri.parse(
     LegacyFcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
   ),
-  realmName: json['realm_name'] as String?,
+  realmName: json['realm_name'] as String,
   userId: const _IntConverter().fromJson(json['user_id'] as String),
   senderId: const _IntConverter().fromJson(json['sender_id'] as String),
   senderAvatarUrl: Uri.parse(json['sender_avatar_url'] as String),
@@ -152,7 +152,7 @@ RemoveLegacyFcmMessage _$RemoveLegacyFcmMessageFromJson(
   realmUrl: Uri.parse(
     LegacyFcmMessageWithIdentity._readRealmUrl(json, 'realm_url') as String,
   ),
-  realmName: json['realm_name'] as String?,
+  realmName: json['realm_name'] as String,
   userId: const _IntConverter().fromJson(json['user_id'] as String),
   messageIds: const _IntListConverter().fromJson(
     json['zulip_message_ids'] as String,
