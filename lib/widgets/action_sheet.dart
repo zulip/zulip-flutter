@@ -1664,7 +1664,7 @@ class UnrevealMutedMessageButton extends MessageActionSheetMenuItemButton {
   @override
   void onPressed() {
     // The message should have been revealed in order to reach this action sheet.
-    assert(MessageListPage.maybeRevealedMutedMessagesOf(pageContext)!
+    assert(MessageListPage.maybeLocalMessagesOf(pageContext)!
       .isMutedMessageRevealed(message.id));
     findMessageListPage().unrevealMutedMessage(message.id);
   }
