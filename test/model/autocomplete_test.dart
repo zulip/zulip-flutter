@@ -18,6 +18,7 @@ import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/compose_box.dart';
 
 import '../api/fake_api.dart';
+import '../api/route/route_checks.dart';
 import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
@@ -1339,105 +1340,167 @@ void main() {
     doTest('a^bc^', TopicAutocompleteQuery('abc'));
   });
 
-  Condition<Object?> isTopic(TopicName topic) {
-    return (it) => it.isA<TopicAutocompleteResult>().topic.equals(topic);
-  }
+  group('TopicAutocompleteView', () {
+    Condition<Object?> isTopic(TopicName topic) {
+      return (it) => it.isA<TopicAutocompleteResult>().topic.name.equals(topic);
+    }
 
-  test('TopicAutocompleteView misc', () async {
-    final store = eg.store();
-    final connection = store.connection as FakeApiConnection;
-    final first = eg.getChannelTopicsEntry(maxId: 1, name: 'First Topic');
-    final second = eg.getChannelTopicsEntry(maxId: 2, name: 'Second Topic');
-    final third = eg.getChannelTopicsEntry(maxId: 3, name: 'Third Topic');
-    connection.prepare(json: GetChannelTopicsResult(
-      topics: [first, second, third]).toJson());
+    test('misc', () async {
+      final store = eg.store();
+      final connection = store.connection as FakeApiConnection;
+      final first = eg.getChannelTopicsEntry(maxId: 1, name: 'First Topic');
+      final second = eg.getChannelTopicsEntry(maxId: 2, name: 'Second Topic');
+      final third = eg.getChannelTopicsEntry(maxId: 3, name: 'Third Topic');
+      connection.prepare(json: GetChannelTopicsResult(
+        topics: [first, second, third]).toJson());
 
-    final view = TopicAutocompleteView.init(
-      store: store,
-      channelId: eg.stream().streamId,
-      query: TopicAutocompleteQuery('Third'));
-    bool done = false;
-    view.addListener(() { done = true; });
+      final view = TopicAutocompleteView.init(
+        store: store,
+        channelId: eg.stream().streamId,
+        query: TopicAutocompleteQuery('Third'));
+      bool done = false;
+      view.addListener(() { done = true; });
 
-    // those are here to wait for topics to be loaded
-    await Future(() {});
-    await Future(() {});
-    check(done).isTrue();
-    check(view.results).single.which(isTopic(third.name));
-  });
+      // those are here to wait for topics to be loaded
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).single.which(isTopic(third.name));
+    });
 
-  test('TopicAutocompleteView updates results when topics are loaded', () async {
-    final store = eg.store();
-    final connection = store.connection as FakeApiConnection;
-    connection.prepare(json: GetChannelTopicsResult(
-      topics: [eg.getChannelTopicsEntry(name: 'test')]
-    ).toJson());
+    test('updates results when topics are loaded', () async {
+      final store = eg.store();
+      final connection = store.connection as FakeApiConnection;
+      connection.prepare(json: GetChannelTopicsResult(
+        topics: [eg.getChannelTopicsEntry(name: 'test')]
+      ).toJson());
 
-    final view = TopicAutocompleteView.init(
-      store: store,
-      channelId: eg.stream().streamId,
-      query: TopicAutocompleteQuery('te'));
-    bool done = false;
-    view.addListener(() { done = true; });
+      final view = TopicAutocompleteView.init(
+        store: store,
+        channelId: eg.stream().streamId,
+        query: TopicAutocompleteQuery('te'));
+      bool done = false;
+      view.addListener(() { done = true; });
 
-    check(done).isFalse();
-    await Future(() {});
-    check(done).isTrue();
-  });
+      check(done).isFalse();
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+    });
 
-  test('TopicAutocompleteView fetches topics once for a channel', () async {
-    final store = eg.store();
-    final connection = store.connection as FakeApiConnection;
+    test('fetches topics once for a channel', () async {
+      final store = eg.store();
+      final connection = store.connection as FakeApiConnection;
 
-    final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'server releases');
-    final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'mobile releases');
+      final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'server releases');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'mobile releases');
 
-    connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
-    final view1 = TopicAutocompleteView.init(store: store, channelId: 1000,
-      query: TopicAutocompleteQuery(''));
-    bool done = false;
-    view1.addListener(() { done = true; });
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+      final view1 = TopicAutocompleteView.init(store: store, channelId: 1000,
+        query: TopicAutocompleteQuery(''));
+      bool done = false;
+      view1.addListener(() { done = true; });
 
-    check(connection.takeRequests()).last.isA<http.Request>()
-      ..method.equals('GET')
-      ..url.path.equals('/api/v1/users/me/1000/topics')
-      ..url.queryParameters['allow_empty_topic_name'].equals('true');
+      check(connection.takeRequests()).last.isA<http.Request>()
+        ..method.equals('GET')
+        ..url.path.equals('/api/v1/users/me/1000/topics')
+        ..url.queryParameters['allow_empty_topic_name'].equals('true');
 
-    await Future(() {});
-    await Future(() {});
-    check(done).isTrue();
-    check(view1.results).deepEquals([isTopic(topic1.name), isTopic(topic2.name)]);
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+      check(view1.results).deepEquals([isTopic(topic1.name), isTopic(topic2.name)]);
 
-    view1.query = TopicAutocompleteQuery('server');
-    check(connection.takeRequests()).isEmpty();
-    await Future(() {});
-    check(view1.results).single.which(isTopic(topic1.name));
-    view1.dispose();
+      view1.query = TopicAutocompleteQuery('server');
+      check(connection.takeRequests()).isEmpty();
+      await Future(() {});
+      await Future(() {});
+      check(view1.results).single.which(isTopic(topic1.name));
+      view1.dispose();
 
-    // No need to prepare a response as there will be no request made.
-    final view2 = TopicAutocompleteView.init(store: store, channelId: 1000,
-      query: TopicAutocompleteQuery('mobile'));
-    done = false;
-    view2.addListener(() { done = true; });
+      // No need to prepare a response as there will be no request made.
+      final view2 = TopicAutocompleteView.init(store: store, channelId: 1000,
+        query: TopicAutocompleteQuery('mobile'));
+      done = false;
+      view2.addListener(() { done = true; });
 
-    check(connection.takeRequests()).isEmpty();
+      check(connection.takeRequests()).isEmpty();
 
-    await Future(() {});
-    await Future(() {});
-    check(done).isTrue();
-    check(view2.results).single.which(isTopic(topic2.name));
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+      check(view2.results).single.which(isTopic(topic2.name));
+    });
+
+    test('fetch can be re-triggered on query change, if failed', () async {
+      final store = eg.store();
+      final connection = store.connection as FakeApiConnection;
+
+      connection.prepare(httpException: Exception('failed'));
+      final view = TopicAutocompleteView.init(store: store, channelId: 1000,
+        query: TopicAutocompleteQuery(''));
+      bool done = false;
+      view.addListener(() { done = true; });
+
+      await Future(() {});
+      await Future(() {});
+      check(done).isFalse();
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 20, name: 'server releases');
+      final topic2 = eg.getChannelTopicsEntry(maxId: 10, name: 'mobile releases');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1, topic2]).toJson());
+      view.query = TopicAutocompleteQuery('release');
+
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).deepEquals([
+        isTopic(topic1.name),
+        isTopic(topic2.name),
+      ]);
+      view.dispose();
+    });
+
+    test('updates results when topics change', () async {
+      final store = eg.store();
+      final connection = store.connection as FakeApiConnection;
+      final channel = eg.stream();
+
+      final topic1 = eg.getChannelTopicsEntry(maxId: 10, name: 'server releases');
+      connection.prepare(json: GetChannelTopicsResult(topics: [topic1]).toJson());
+      final view = TopicAutocompleteView.init(store: store, channelId: channel.streamId,
+        query: TopicAutocompleteQuery('release'));
+      bool done = false;
+      view.addListener(() { done = true; });
+
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).single.which(isTopic(topic1.name));
+
+      done = false;
+      await store.addMessage(eg.streamMessage(stream: channel, topic: 'mobile releases'));
+      await Future(() {});
+      await Future(() {});
+      check(done).isTrue();
+      check(view.results).deepEquals([
+        isTopic(eg.t('mobile releases')),
+        isTopic(topic1.name),
+      ]);
+      view.dispose();
+    });
   });
 
   group('TopicAutocompleteQuery.testTopic', () {
     final store = eg.store();
     void doCheck(String rawQuery, String topic, bool expected) {
-      final result = TopicAutocompleteQuery(rawQuery).testTopic(eg.t(topic), store);
+      final result = TopicAutocompleteQuery(rawQuery).testTopic(TopicName(topic), store);
       expected ? check(result).isTrue() : check(result).isFalse();
     }
 
     test('topic is included if it matches the query', () {
       doCheck('', 'Top Name', true);
-      doCheck('Name', 'Name', false);
+      doCheck('Name', 'Name', true);
       doCheck('name', 'Name', true);
       doCheck('name', 'Nam', false);
       doCheck('nam', 'Name', true);
