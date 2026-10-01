@@ -385,11 +385,20 @@ void main() {
     checkRequest(const TlsException('Oops'),
       (it) => it.kind.equals(.other));
 
-    // On an HTTP error status, though, that status is the more useful
-    // signal; the network error doesn't obscure it.
+    // On a 5xx, though, that status is the more useful signal;
+    // the network error doesn't obscure it.
     unawaited(check(tryRequest(httpStatus: 500, body: '{"resu',
         bodyException: const SocketException('Connection reset by peer')))
       .throws<Server5xxException>());
+
+    // A 4xx can't be interpreted without its body, which has the error code.
+    // So the network error is what we throw; the response wasn't malformed.
+    unawaited(check(tryRequest(httpStatus: 400, body: '{"resu',
+        bodyException: const SocketException('Connection reset by peer')))
+      .throws<NetworkException>());
+    unawaited(check(tryRequest(httpStatus: 400, body: '{"resu',
+        bodyException: http.ClientException('Connection closed before full body was received')))
+      .throws<NetworkException>());
   });
 
   /// Test that a request aborted by [ApiConnection.get]'s `timeout`
@@ -426,13 +435,26 @@ void main() {
     timeout: const Duration(seconds: 90),
     expectedElapsed: const Duration(seconds: 90));
 
-  test('HTTP status wins over a timeout while reading the response body', () => awaitFakeAsync((async) async {
+  test('5xx status wins over a timeout while reading the response body', () => awaitFakeAsync((async) async {
     await FakeApiConnection.with_((connection) async {
       connection.prepare(httpStatus: 500, body: 'splat',
         bodyDelay: const Duration(seconds: 300));
       await check(connection.get(kExampleRouteName, (json) => json,
           'example/route', {}, timeout: const Duration(seconds: 90)))
         .throws<Server5xxException>();
+    });
+  }));
+
+  test('timeout wins over a 4xx status while reading the response body', () => awaitFakeAsync((async) async {
+    await FakeApiConnection.with_((connection) async {
+      connection.prepare(httpStatus: 400,
+        json: {'result': 'error', 'code': 'BAD_EVENT_QUEUE_ID', 'msg': 'Bad event queue ID'},
+        bodyDelay: const Duration(seconds: 300));
+      await check(connection.get(kExampleRouteName, (json) => json,
+          'example/route', {}, timeout: const Duration(seconds: 90)))
+        .throws<NetworkException>((it) => it
+          ..kind.equals(.connectionFailed)
+          ..cause.isA<http.RequestAbortedException>());
     });
   }));
 
