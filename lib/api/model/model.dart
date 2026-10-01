@@ -501,6 +501,12 @@ class User {
   String? avatarUrl; // TODO(#255) distinguish null from missing, as a `JsonNullable<String>?`
   int avatarVersion;
 
+  // Recent servers omit this when it would be false,
+  // and false captures the behavior on older servers without this feature.
+  // So, `defaultValue: false`, letting consumers skip a null-check.
+  @JsonKey(defaultValue: false) // TODO(server-12) cut mention of older servers
+  bool isDeleted;
+
   // null for bots, which don't have custom profile fields.
   // If null for a non-bot, equivalent to `{}` (null just written for efficiency.)
   // TODO(json_serializable): keys use plain `int.parse`, permitting hexadecimal
@@ -535,6 +541,7 @@ class User {
     required this.timezone,
     required this.avatarUrl,
     required this.avatarVersion,
+    required this.isDeleted,
     required this.profileData,
     required this.isSystemBot,
   });
