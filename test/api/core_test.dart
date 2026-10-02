@@ -392,29 +392,34 @@ void main() {
       .throws<Server5xxException>());
   });
 
-  test('API request timeout', () => awaitFakeAsync((async) async {
-    await FakeApiConnection.with_((connection) async {
-      connection.prepare(delay: const Duration(seconds: 300), json: {});
-      await check(connection.get(kExampleRouteName, (json) => json,
-          'example/route', {}, timeout: const Duration(seconds: 90)))
-        .throws<NetworkException>((it) => it
+  /// Test that a request aborted by [ApiConnection.get]'s `timeout`
+  /// fails with a [NetworkException] of kind [NetworkExceptionKind.connectionFailed]
+  /// whose cause is an [http.RequestAbortedException].
+  void testAbortedRequest(String description, {
+    Duration delay = Duration.zero,
+    Duration bodyDelay = Duration.zero,
+    required Duration timeout,
+  }) {
+    test(description, () => awaitFakeAsync((async) async {
+      await FakeApiConnection.with_((connection) async {
+        connection.prepare(delay: delay, bodyDelay: bodyDelay, json: {});
+        final future = connection.get(kExampleRouteName, (json) => json,
+          'example/route', {}, timeout: timeout);
+        await check(future).throws<NetworkException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..kind.equals(.connectionFailed)
           ..cause.isA<http.RequestAbortedException>());
-    });
-  }));
+      });
+    }));
+  }
 
-  test('API request timeout while reading response body', () => awaitFakeAsync((async) async {
-    await FakeApiConnection.with_((connection) async {
-      connection.prepare(bodyDelay: const Duration(seconds: 300), json: {});
-      await check(connection.get(kExampleRouteName, (json) => json,
-          'example/route', {}, timeout: const Duration(seconds: 90)))
-        .throws<NetworkException>((it) => it
-          ..routeName.equals(kExampleRouteName)
-          ..kind.equals(.connectionFailed)
-          ..cause.isA<http.RequestAbortedException>());
-    });
-  }));
+  testAbortedRequest('API request timeout',
+    delay: const Duration(seconds: 300),
+    timeout: const Duration(seconds: 90));
+
+  testAbortedRequest('API request timeout while reading response body',
+    bodyDelay: const Duration(seconds: 300),
+    timeout: const Duration(seconds: 90));
 
   test('HTTP status wins over a timeout while reading the response body', () => awaitFakeAsync((async) async {
     await FakeApiConnection.with_((connection) async {
