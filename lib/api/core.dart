@@ -241,6 +241,15 @@ class ApiConnection {
   /// with kind [NetworkExceptionKind.connectionFailed].
   /// (But if an error response's headers had already arrived,
   /// the exception reflects that HTTP status instead.)
+  ///
+  /// With the HTTP client the live app uses
+  /// (`package:http`'s `IOClient`; see [ApiConnection.live]),
+  /// the [timeout] can't cut short
+  /// connecting to the server:
+  /// the DNS lookup, TCP connection, and TLS handshake
+  /// for a new network connection, if there's no idle one to reuse.
+  /// An abort that comes while connecting takes effect only once connected.
+  /// See #2476.
   Future<T> get<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
       String path, Map<String, dynamic>? params, {Duration? timeout}) async {
     final url = realmUrl.replace(
