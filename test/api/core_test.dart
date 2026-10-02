@@ -393,12 +393,14 @@ void main() {
   });
 
   /// Test that a request aborted by [ApiConnection.get]'s `timeout`
-  /// fails with a [NetworkException] of kind [NetworkExceptionKind.connectionFailed]
+  /// fails after [expectedElapsed],
+  /// with a [NetworkException] of kind [NetworkExceptionKind.connectionFailed]
   /// whose cause is an [http.RequestAbortedException].
   void testAbortedRequest(String description, {
     Duration delay = Duration.zero,
     Duration bodyDelay = Duration.zero,
     required Duration timeout,
+    required Duration expectedElapsed,
   }) {
     test(description, () => awaitFakeAsync((async) async {
       await FakeApiConnection.with_((connection) async {
@@ -409,17 +411,20 @@ void main() {
           ..routeName.equals(kExampleRouteName)
           ..kind.equals(.connectionFailed)
           ..cause.isA<http.RequestAbortedException>());
+        check(async.elapsed).equals(expectedElapsed);
       });
     }));
   }
 
   testAbortedRequest('API request timeout',
     delay: const Duration(seconds: 300),
-    timeout: const Duration(seconds: 90));
+    timeout: const Duration(seconds: 90),
+    expectedElapsed: const Duration(seconds: 90));
 
   testAbortedRequest('API request timeout while reading response body',
     bodyDelay: const Duration(seconds: 300),
-    timeout: const Duration(seconds: 90));
+    timeout: const Duration(seconds: 90),
+    expectedElapsed: const Duration(seconds: 90));
 
   test('HTTP status wins over a timeout while reading the response body', () => awaitFakeAsync((async) async {
     await FakeApiConnection.with_((connection) async {
