@@ -829,14 +829,25 @@ void main() {
         });
     }
 
+    void prepareHeartbeat(int eventId) {
+      connection.prepare(json: GetEventsResult(events: [
+        HeartbeatEvent(id: eventId),
+      ], queueId: null).toJson());
+    }
+
+    /// Prepare a response delayed past the poll request's timeout,
+    /// as if the connection had died silently (see #514).
+    void prepareStuckPollResponse() {
+      connection.prepare(delay: const Duration(seconds: 300),
+        json: GetEventsResult(events: [], queueId: null).toJson());
+    }
+
     test('loops on success', () => awaitFakeAsync((async) async {
       await preparePoll(lastEventId: 1);
       check(updateMachine.lastEventId).equals(1);
 
       // Loop makes first request, and processes result.
-      connection.prepare(json: GetEventsResult(events: [
-        HeartbeatEvent(id: 2),
-      ], queueId: null).toJson());
+      prepareHeartbeat(2);
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       checkLastRequest(lastEventId: 1);
@@ -844,9 +855,7 @@ void main() {
       check(updateMachine.lastEventId).equals(2);
 
       // Loop makes second request, and processes result.
-      connection.prepare(json: GetEventsResult(events: [
-        HeartbeatEvent(id: 3),
-      ], queueId: null).toJson());
+      prepareHeartbeat(3);
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       checkLastRequest(lastEventId: 2);
@@ -943,9 +952,7 @@ void main() {
         check(async.pendingTimers).length.equals(pendingTimers);
 
         // Polling continues after a timer.
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
+        prepareHeartbeat(2);
         async.flushTimers();
         checkLastRequest(lastEventId: 1, expectDontBlock: true);
         check(updateMachine.lastEventId).equals(2);
@@ -1044,8 +1051,7 @@ void main() {
       checkRetry(
         eventQueueLongpollTimeoutSeconds: 85,
         elapse: const Duration(seconds: 85),
-        () => connection.prepare(delay: const Duration(seconds: 300),
-          json: GetEventsResult(events: [], queueId: null).toJson()));
+        prepareStuckPollResponse);
     });
 
     test('retries on NetworkException with NetworkExceptionKind.other', () {
@@ -1103,9 +1109,7 @@ void main() {
         // well before the backoff duration has elapsed.
         // (The second, redundant resume event checks that
         // a duplicate doesn't complete the abort trigger twice.)
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
+        prepareHeartbeat(2);
         updateMachine.debugAdvanceLoop();
         testBinding.notifyAppLifecycleStateChanged(.resumed);
         testBinding.notifyAppLifecycleStateChanged(.resumed);
@@ -1161,9 +1165,7 @@ void main() {
         check(updateMachine.debugPollBackoffMachine).isNotNull();
 
         // Polling continues after the backoff.
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
+        prepareHeartbeat(2);
         async.flushTimers();
         checkLastRequest(lastEventId: 1, expectDontBlock: true);
         check(updateMachine.lastEventId).equals(2);
