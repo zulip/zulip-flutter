@@ -959,14 +959,20 @@ void main() {
       updateMachine.debugPrepareLoopError(eg.nullCheckError());
     }
 
-    // [ApiConnection] classifies a [SocketException]
-    // as [NetworkExceptionKind.connectionFailed].
+    /// Prepare an exception that [ApiConnection] will classify
+    /// as [NetworkExceptionKind.connectionFailed].
+    ///
+    /// See also [prepareNetworkExceptionOther].
     void prepareNetworkExceptionConnectionFailed() {
       connection.prepare(httpException: const SocketException('failed'));
     }
 
-    void prepareNetworkException() {
-      connection.prepare(httpException: Exception("failed"));
+    /// Prepare an exception that [ApiConnection] will classify
+    /// as [NetworkExceptionKind.other].
+    ///
+    /// See also [prepareNetworkExceptionConnectionFailed].
+    void prepareNetworkExceptionOther() {
+      connection.prepare(httpException: const HandshakeException('handshake failed'));
     }
 
     void prepareServer5xxException() {
@@ -1042,8 +1048,8 @@ void main() {
           json: GetEventsResult(events: [], queueId: null).toJson()));
     });
 
-    test('retries on generic NetworkException', () {
-      checkRetry(prepareNetworkException);
+    test('retries on NetworkException with NetworkExceptionKind.other', () {
+      checkRetry(prepareNetworkExceptionOther);
     });
 
     test('retries on Server5xxException', () {
@@ -1286,8 +1292,8 @@ void main() {
         checkNotReported(prepareNetworkExceptionConnectionFailed);
       });
 
-      test('eventually report generic NetworkException', () {
-        checkLateReported(prepareNetworkException).startsWith(
+      test('eventually report NetworkException with NetworkExceptionKind.other', () {
+        checkLateReported(prepareNetworkExceptionOther).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
       });
