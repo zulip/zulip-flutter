@@ -62,7 +62,7 @@ Uses Pigeon for type-safe platform channels (Android intents, notifications).
 ### Key conventions
 
 - **All API type constructor params are `required`**, even nullable ones — no default values. Use `test/example_data.dart` for test defaults.
-- **Server compatibility**: minimum Zulip Server 7.0 (feature level 185). Use `TODO(server-N)` comments for newer features.
+- **Server compatibility**: the minimum supported server version is `kMinAllowedZulipVersion` in `lib/api/core.dart`. Use `TODO(server-N)` comments for newer features.
 - **Tests use `package:checks`** (not `expect`/`matcher`).
 - **No `dart format`** — follow existing code style manually. Auto-format is disabled in VS Code settings.
 - **Prefer relative imports** within the package.
@@ -109,6 +109,8 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Exception: for questions about server behavior that the API docs
   don't answer, and for work on API documentation or design itself,
   do read the server code, in `../zulip` if present.
+- Code comments often cite zulip-mobile, the legacy React Native app,
+  by path or commit. Read it in `../zulip-mobile` if present.
 
 
 ## Writing clear code
@@ -119,6 +121,16 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Use comments only for context not obvious from the code itself
   (e.g., "// A device-update event acks the new key." before a `handleEvent` call).
 
+- **Use semantic line breaks in dartdocs.**
+  Break lines at natural prose boundaries
+  — commas, end of a clause, end of a sentence —
+  not at a fixed column width.
+  This keeps diffs minimal when dartdocs change:
+  edits to one sentence don't reflow neighboring lines.
+  See:
+    https://github.com/dart-lang/site-shared/blob/3408a7468/doc/writing-for-dart-and-flutter-websites.md#semantic-line-breaks
+    https://rhodesmill.org/brandon/2012/one-sentence-per-line/
+
 
 ## Zulip chat links
 
@@ -126,6 +138,53 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   user message), use the fetch-zulip-messages skill to read the
   conversation. Don't use WebFetch; it can't access Zulip message
   content.
+
+
+## Cloud sessions (Claude Code on the web)
+
+- **Before running tests on Claude Code on the web**, add this
+  to `pubspec.yaml` (the proxy blocks `package:sqlite3`'s
+  prebuilt-library download, anthropics/claude-code#78330):
+
+  ```yaml
+  # Cloud-session workaround; do not commit.
+  hooks:
+    user_defines:
+      sqlite3:
+        source: system
+  ```
+
+  Never commit that hunk. Take it back out before committing
+  any change to `pubspec.yaml`, and discard it
+  (`git checkout pubspec.yaml`) before finishing.
+  TODO(upstream): when that issue is fixed, drop this item, the
+  libsqlite3-dev line in tools/provision-cloud, and the bullet
+  in docs/howto/claude-web.md.
+
+- **Don't commit `pubspec.lock` churn on Claude Code on the web.**
+  The cached Flutter SDK drifts off the pin, and `flutter pub get`
+  rewrites the lockfile to match; that isn't part of your change.
+  Discard it (`git checkout pubspec.lock`) before committing.
+
+- **On Claude Code on the web, the GitHub API reaches only the
+  session's own repo**, which is a fork of zulip/zulip-flutter.
+  So to read issues and PRs on zulip/zulip-flutter itself, or on
+  any other repo such as flutter/flutter, use the built-in GitHub
+  search tools with a `repo:` qualifier in the query (e.g.
+  `repo:zulip/zulip-flutter`), or fetch the item's github.com URL
+  with WebFetch. Issue comments are reachable by neither route
+  (PR comments are); when an issue's comment thread matters, ask
+  the user to paste it. (Limitation tracked as
+  anthropics/claude-code#78277.)
+
+- **Open pull requests only as drafts.**
+  A PR is created on behalf of the user's own GitHub account,
+  and a session's commits are authored as Claude, with no
+  responsible human author. A draft says so: it's a handoff,
+  not a submission. After opening one, tell the user the rest
+  is theirs — teleport the session (`claude --teleport`), revise
+  and take authorship (with `--reset-author`), and mark the PR ready
+  for review. See docs/howto/claude-web.md ("Trust model").
 
 
 ## Using Git
@@ -157,3 +216,11 @@ UI designs come from Figma (linked in issues). Match colors, padding, and font s
   Instead, use `git cherry-pick`
   (with `--no-commit` when modifications are needed)
   to replay commits.
+
+- **Don't commit files that aren't meant for the repo** —
+  reports, reviews, drafts, and other output addressed to the
+  person you're working with rather than to the codebase.
+  Leave these uncommitted unless explicitly asked.
+  This matters most on Claude Code on the web, which pushes
+  commits to GitHub automatically: a committed security review
+  would go public before any human had looked at it.

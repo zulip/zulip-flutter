@@ -35,6 +35,7 @@ import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
 import 'package:zulip/widgets/store.dart';
+import 'package:zulip/widgets/text.dart';
 import 'package:zulip/widgets/channel_colors.dart';
 import 'package:zulip/widgets/theme.dart';
 import 'package:zulip/widgets/topic_list.dart';
@@ -135,8 +136,14 @@ void main() {
     return findScrollView(tester).controller;
   }
 
+  int? messageListItemCount(WidgetTester tester) =>
+    findScrollView(tester).semanticChildCount;
+
   final contentInputFinder = find.byWidgetPredicate(
     (widget) => widget is TextField && widget.controller is ComposeContentController);
+
+  final findPlaceholder = find.byType(PageBodyEmptyContentPlaceholder);
+  final findLoadingIndicator = find.byType(CircularProgressIndicator);
 
   group('MessageListPage', () {
     testWidgets('ancestorOf finds page state from message', (tester) async {
@@ -249,6 +256,22 @@ void main() {
         messages: [eg.streamMessage(stream: channel, topic: '')]);
       checkAppBarChannelTopic(
         channel.name, eg.defaultRealmEmptyTopicDisplayName);
+    });
+
+    testWidgets('show resolved-topic check icon in topic narrow', (tester) async {
+      final channel = eg.stream();
+      await setupMessageListPage(tester,
+        narrow: eg.topicNarrow(channel.streamId, '✔ some topic'),
+        subscriptions: [eg.subscription(channel)],
+        messages: [eg.streamMessage(stream: channel, topic: '✔ some topic')]);
+      final appBarFinder = find.byType(MessageListAppBarTitle);
+      check(find.descendant(of: appBarFinder,
+        matching: find.byWidgetPredicate(
+          (w) => w is InlineIcon && w.icon == ZulipIcons.check))).findsOne();
+      check(find.descendant(of: appBarFinder,
+        matching: find.textContaining('some topic', findRichText: true))).findsOne();
+      check(find.descendant(of: appBarFinder,
+        matching: find.textContaining('✔', findRichText: true))).findsNothing();
     });
 
     void testChannelIconInChannelRow(IconData expectedIcon, {
@@ -406,8 +429,6 @@ void main() {
   });
 
   group('no-messages placeholder', () {
-    final findPlaceholder = find.byType(PageBodyEmptyContentPlaceholder);
-
     Finder findTextInPlaceholder(String text) =>
       find.descendant(of: findPlaceholder, matching: find.textContaining(text));
 
@@ -819,13 +840,10 @@ void main() {
     //   in particular test it happens even when near top as well as bottom
     //   (because may have haveOldest true but haveNewest false)
 
-    int? itemCount(WidgetTester tester) =>
-      findScrollView(tester).semanticChildCount;
-
     testWidgets('basic', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
-      check(itemCount(tester)).equals(301);
+      check(messageListItemCount(tester)).equals(301);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -838,14 +856,14 @@ void main() {
       await tester.pump(Duration.zero); // Allow a frame for the response to arrive.
 
       // Now we have more messages.
-      check(itemCount(tester)).equals(401);
+      check(messageListItemCount(tester)).equals(401);
     });
 
     testWidgets('no double-fetch glitch', (tester) async {
       await setupMessageListPage(tester, foundOldest: false,
         messages: List.generate(300, (i) => eg.streamMessage(id: 950 + i, sender: eg.selfUser)));
       connection.takeRequests();
-      check(itemCount(tester)).equals(301);
+      check(messageListItemCount(tester)).equals(301);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -869,7 +887,7 @@ void main() {
 
       // Allow a delayed frame for the response to arrive.
       await tester.pump(Duration(milliseconds: 1));
-      check(itemCount(tester)).equals(401);
+      check(messageListItemCount(tester)).equals(401);
       await tester.pumpAndSettle();
       // Check there is no additional request made to cause double-fetch glitch.
       check(connection.takeRequests()).isEmpty();
@@ -883,7 +901,7 @@ void main() {
         ...List.generate(100, (i) => eg.streamMessage(id: 1302 + i)),
       ]);
       final lastRequest = connection.lastRequest;
-      check(itemCount(tester)).equals(402);
+      check(messageListItemCount(tester)).equals(402);
 
       // Fling-scroll upward...
       await tester.fling(find.byType(MessageListPage), const Offset(0, 300), 8000);
@@ -904,6 +922,108 @@ void main() {
       // necessary; a request would have thrown, as we prepared no response.)
       await tester.pump();
       check(connection.lastRequest).identicalTo(lastRequest);
+    });
+  });
+
+  group('muted messages', () {
+    final mutedUser = eg.user();
+    // Two-line content; with ~100 messages, this keeps us
+    // from reaching `kFetchMessagesBufferPixels` and triggering
+    // another message fetch.
+    const messageContent = '<p>first line</p>\n<p>second line</p>';
+
+    Message channelMessage({required int id}) =>
+      eg.streamMessage(id: id, sender: eg.selfUser, content: messageContent);
+
+    List<Message> channelMessages({required int fromId, required int count}) =>
+      List.generate(count, (i) => channelMessage(id: fromId + i));
+
+    List<Message> mutedDmMessages({required int fromId, required int count}) =>
+      List.generate(count, (i) =>
+        eg.dmMessage(id: fromId + i, from: eg.selfUser, to: [mutedUser], content: messageContent));
+
+    testWidgets('multiple fetch-older requests are made until there are enough messages', (tester) async {
+      await setupMessageListPage(tester, foundOldest: false,
+        mutedUserIds: [mutedUser.userId],
+        messages: [
+          channelMessage(id: 1000),
+          ...mutedDmMessages(fromId: 1001, count: 99),
+        ],
+        skipPumpAndSettle: true);
+
+      await tester.pump(); // global store loaded
+      await tester.pump(); // per-account store loaded
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(anchor: 1000, foundOldest: false,
+          messages: [
+            ...channelMessages(fromId: 900, count: 2),
+            ...mutedDmMessages(fromId: 902, count: 98),
+          ]).toJson());
+      await tester.pump(Duration.zero); // initial message fetch request
+      // (one item for the message and one for the recipient header)
+      check(messageListItemCount(tester)).equals(2);
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(anchor: 900, foundOldest: false,
+          messages: [
+            ...channelMessages(fromId: 800, count: 98),
+            ...mutedDmMessages(fromId: 898, count: 2),
+          ]).toJson());
+      await tester.pump(Duration(milliseconds: 1));
+      // The two newly-fetched messages don't trigger a scroll-metrics
+      // notification to fetch more messages, but the model listener will
+      // trigger fetching more messages.
+      check(messageListItemCount(tester)).equals(2 + 2);
+
+      // Although there are more messages in the history (`foundOldest: false`
+      // in the last response), another request is not made as there are
+      // enough messages for now.
+      await tester.pump(Duration(milliseconds: 1));
+      check(messageListItemCount(tester)).equals(2 + 2 + 98);
+    });
+
+    testWidgets('mid-history, fetch-initial and fetch-older with too few messages -> fetch-newer request gets made', (tester) async {
+      // Test for a potential regression: https://github.com/zulip/zulip-flutter/pull/1989#discussion_r2677697050
+
+      await setupMessageListPage(tester,
+        mutedUserIds: [mutedUser.userId],
+        fetchResult: eg.nearGetMessagesResult(
+          anchor: 1000, foundOldest: false, foundNewest: false,
+          messages: [
+            ...mutedDmMessages(fromId: 900, count: 100),
+            channelMessage(id: 1000),
+            ...mutedDmMessages(fromId: 1001, count: 99),
+          ]),
+        skipPumpAndSettle: true);
+
+      await tester.pump(); // global store loaded
+      await tester.pump(); // per-account store loaded
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(anchor: 900, foundOldest: true,
+          messages: [
+            ...channelMessages(fromId: 800, count: 2),
+            ...mutedDmMessages(fromId: 802, count: 98),
+          ]).toJson());
+      await tester.pump(Duration.zero); // initial message fetch request
+      // (one item for the message and one for the recipient header)
+      check(messageListItemCount(tester)).equals(2);
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.newerGetMessagesResult(anchor: 1099, foundNewest: true,
+          messages: [
+            ...channelMessages(fromId: 1100, count: 2),
+            ...mutedDmMessages(fromId: 1102, count: 98),
+          ]).toJson());
+      await tester.pump(Duration(milliseconds: 1)); // older message fetch request
+      // The two newly-fetched (older) messages don't trigger a scroll-metrics
+      // notification to fetch newer messages, but the model listener will
+      // trigger fetching newer messages.
+      check(messageListItemCount(tester)).equals(2 + 2);
+
+      await tester.pump(Duration(milliseconds: 1)); // newer message fetch request
+      check(messageListItemCount(tester)).equals(2 + 2 + 2);
     });
   });
 
@@ -1075,8 +1195,6 @@ void main() {
   // TODO test markers at start of list (`_buildStartCap`)
 
   group('markers at end of list', () {
-    final findLoadingIndicator = find.byType(CircularProgressIndicator);
-
     testWidgets('spacer when have newest', (tester) async {
       final messages = List.generate(10,
         (i) => eg.streamMessage(content: '<p>message $i</p>'));
@@ -1649,7 +1767,12 @@ void main() {
         ..decoration.isNotNull().hintText.equals('Message #${channel.name} > $topic')
         ..controller.isNotNull().text.equals('Some text');
 
-      prepareGetMessageResponse([message]);
+      prepareGetMessageResponse(
+        // `foundOldest: true` just to avoid having to prepare a fetch-older
+        // response; the message list would otherwise refetch when it notices
+        // it doesn't have a screenful of messages.
+        foundOldest: true,
+        [message]);
       await handleMessageMoveEvent([message], 'new topic', newChannelId: otherChannel.streamId);
       await tester.pump(const Duration(seconds: 1));
       check(tester.widget<TextField>(channelContentInputFinder))
@@ -1664,7 +1787,7 @@ void main() {
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
-          'type': 'stream',
+          'type': 'channel',
           'to': '${otherChannel.streamId}',
           'topic': 'new topic',
           'content': 'Some text',
@@ -1711,7 +1834,12 @@ void main() {
       await setupMessageListPage(tester,
         narrow: narrow, messages: [message], subscriptions: [subscription]);
 
-      prepareGetMessageResponse([message]);
+      prepareGetMessageResponse(
+        // `foundOldest: true` just to avoid having to prepare a fetch-older
+        // response; the message list would otherwise refetch when it notices
+        // it doesn't have a screenful of messages.
+        foundOldest: true,
+        [message]);
       await handleMessageMoveEvent([message], 'new topic');
       await tester.pump(const Duration(seconds: 1));
 
@@ -1801,6 +1929,23 @@ void main() {
         await tester.pump();
         check(findInMessageList('stream name')).isEmpty();
         check(findInMessageList(eg.defaultRealmEmptyTopicDisplayName)).single;
+      });
+
+      testWidgets('show resolved-topic check icon', (tester) async {
+        final message = eg.streamMessage(
+          stream: stream, topic: '✔ some topic');
+        await setupMessageListPage(tester,
+          narrow: const CombinedFeedNarrow(),
+          messages: [message], subscriptions: [eg.subscription(stream)]);
+        await tester.pump();
+        final headerFinder = find.byType(StreamMessageRecipientHeader);
+        check(find.descendant(of: headerFinder,
+          matching: find.byWidgetPredicate(
+            (w) => w is InlineIcon && w.icon == ZulipIcons.check))).findsOne();
+        check(find.descendant(of: headerFinder,
+          matching: find.textContaining('some topic', findRichText: true))).findsOne();
+        check(find.descendant(of: headerFinder,
+          matching: find.textContaining('✔', findRichText: true))).findsNothing();
       });
 
       testWidgets('show topic visibility icon when followed', (tester) async {
@@ -2233,16 +2378,14 @@ void main() {
             matching: find.byType(RealmContentNetworkImage))).firstOrNull;
       }
 
-      void checkResultForSender(String? avatarUrl) {
-        if (avatarUrl == null) {
-          check(findAvatarImageWidget(tester)).isNull();
-        } else {
-          check(findAvatarImageWidget(tester)).isNotNull()
-            .src.equals(eg.selfAccount.realmUrl.resolve(avatarUrl));
-        }
-      }
-
       final user = eg.user();
+
+      void checkResultForSender(String? avatarUrl) {
+        final expectedUrl = eg.selfAccount.realmUrl.resolve(
+          avatarUrl ?? '/avatar/${user.userId}');
+        check(findAvatarImageWidget(tester)).isNotNull()
+          .src.equals(expectedUrl);
+      }
 
       Future<void> handleNewAvatarEventAndPump(WidgetTester tester, String avatarUrl) async {
         await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId, avatarUrl: avatarUrl));

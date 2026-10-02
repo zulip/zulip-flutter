@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../model/binding.dart';
+import 'actions.dart';
+import 'banner.dart';
+import 'button.dart';
+import 'icons.dart';
 import 'page.dart';
 
-class AboutZulipPage extends StatefulWidget {
+Uri _releaseNotesUrl(String version) =>
+  Uri.parse('https://github.com/zulip/zulip-flutter/releases/tag/v$version');
+
+class AboutZulipPage extends StatelessWidget {
   const AboutZulipPage({super.key});
 
   static Route<void> buildRoute(BuildContext context) {
@@ -12,26 +20,9 @@ class AboutZulipPage extends StatefulWidget {
   }
 
   @override
-  State<AboutZulipPage> createState() => _AboutZulipPageState();
-}
-
-class _AboutZulipPageState extends State<AboutZulipPage> {
-  PackageInfo? _packageInfo;
-
-  @override
-  void initState() {
-    super.initState();
-    (() async {
-      final result = await ZulipBinding.instance.packageInfo;
-      setState(() {
-        _packageInfo = result;
-      });
-    })();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
+    final version = ZulipBinding.instance.syncPackageInfo?.version;
     return Scaffold(
       appBar: AppBar(title: Text(zulipLocalizations.aboutPageTitle)),
       body: SingleChildScrollView(
@@ -40,22 +31,41 @@ class _AboutZulipPageState extends State<AboutZulipPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                ListTile(
-                  title: Text(zulipLocalizations.aboutPageAppVersion),
-                  subtitle: Text(_packageInfo?.version
-                    ?? zulipLocalizations.appVersionUnknownPlaceholder)),
-                ListTile(
-                  title: Text(zulipLocalizations.aboutPageOpenSourceLicenses),
-                  subtitle: Text(zulipLocalizations.aboutPageTapToView),
-                  onTap: () {
-                    // TODO(upstream?): This route and its child routes (pushed
-                    //   when you tap a package to view its licenses) can't be
-                    //   popped on iOS with the swipe-away gesture; you have to
-                    //   tap the "Back" button. Debug/fix.
-                    showLicensePage(context: context);
-                  }),
-              ])))),
+              child: Column(
+                mainAxisAlignment: .center,
+                crossAxisAlignment: .stretch,
+                spacing: 8,
+                children: [
+                  // The version is null if the prefetch at startup failed.
+                  if (version == null)
+                    FloatingBanner(
+                      intent: .warning,
+                      label: zulipLocalizations.aboutPageAppVersionUnknown)
+                  else
+                    MenuButtonsShape(buttons: [
+                      ZulipMenuItemButton(
+                        style: .list,
+                        label: zulipLocalizations.aboutPageAppVersion,
+                        subLabel: TextSpan(text: version),
+                        icon: ZulipIcons.copy,
+                        onPressed: () => PlatformActions.copyWithPopup(context: context,
+                          data: ClipboardData(text: version),
+                          successContent: Text(zulipLocalizations.successAppVersionCopied))),
+                      ZulipMenuItemButton(
+                        style: .list,
+                        label: zulipLocalizations.aboutPageReleaseNotes,
+                        icon: ZulipIcons.external_link,
+                        onPressed: () =>
+                          PlatformActions.launchUrl(context, _releaseNotesUrl(version))),
+                    ]),
+                  MenuButtonsShape(buttons: [
+                    ZulipMenuItemButton(
+                      style: .list,
+                      label: zulipLocalizations.aboutPageOpenSourceLicenses,
+                      icon: ZulipIcons.chevron_right,
+                      onPressed: () => showLicensePage(context: context)),
+                  ]),
+                ])))),
       ));
   }
 }

@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -16,10 +19,15 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get aboutPageAppVersion => 'Versión de la App';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Licencias de Código Abierto';
+  String get aboutPageAppVersionUnknown =>
+      'Texto del banner de la página «Acerca de Zulip», que aparece en lugar del elemento de la versión de la aplicación cuando se desconoce la versión.';
 
   @override
-  String get aboutPageTapToView => 'Toca para ver';
+  String get aboutPageReleaseNotes =>
+      'Título del elemento en la página «Acerca de Zulip» para abrir las notas de la versión actual en GitHub';
+
+  @override
+  String get aboutPageOpenSourceLicenses => 'Licencias de Código Abierto';
 
   @override
   String get upgradeWelcomeDialogTitle =>
@@ -406,6 +414,11 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'No se ha podido leer el archivo: $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => 'Entrada inválida';
 
   @override
@@ -492,6 +505,10 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   @override
   String get errorCouldNotEditMessageTitle =>
       'No se ha podido editar el mensaje';
+
+  @override
+  String get successAppVersionCopied =>
+      'Mensaje de éxito tras copiar la versión de la aplicación al portapapeles del sistema del usuario.';
 
   @override
   String get successLinkCopied => 'Enlace copiado';
@@ -803,6 +820,13 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlLabel => 'URL de tu organización de Zulip';
+
+  @override
+  String get loginRealmUrlHelperText =>
+      'Esta es la dirección que debes utilizar para abrir Zulip en un navegador.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Ayuda';
 
   @override
   String get loginHidePassword => 'Ocultar contraseña';
@@ -1429,9 +1453,6 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Deslizar hasta abajo';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(…)';
 
   @override
   String get zulipAppTitle => 'Zulip';

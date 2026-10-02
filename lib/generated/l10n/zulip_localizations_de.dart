@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -16,10 +19,14 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get aboutPageAppVersion => 'App-Version';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Open-Source-Lizenzen';
+  String get aboutPageAppVersionUnknown =>
+      'Die Versionsinformation der App wurde nicht gefunden.';
 
   @override
-  String get aboutPageTapToView => 'Antippen zum Ansehen';
+  String get aboutPageReleaseNotes => 'Versionshinweise';
+
+  @override
+  String get aboutPageOpenSourceLicenses => 'Open-Source-Lizenzen';
 
   @override
   String get upgradeWelcomeDialogTitle => 'Willkommen in der neuen Zulip-App!';
@@ -416,6 +423,11 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Datei konnte nicht gelesen werden: $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => 'Ungültige Eingabe';
 
   @override
@@ -502,6 +514,9 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   @override
   String get errorCouldNotEditMessageTitle =>
       'Konnte Nachricht nicht bearbeiten';
+
+  @override
+  String get successAppVersionCopied => 'App-Version kopiert';
 
   @override
   String get successLinkCopied => 'Link kopiert';
@@ -817,6 +832,13 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get loginRealmUrlLabel => 'URL deiner Zulip-Organisation';
 
   @override
+  String get loginRealmUrlHelperText =>
+      'Dies ist die Adresse, über die du Zulip im Browser öffnest.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Hilfe';
+
+  @override
   String get loginHidePassword => 'Passwort verstecken';
 
   @override
@@ -850,7 +872,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Themen sind in dieser Organisation erforderlich.';
+      'Themen sind in diesem Kanal||Kanals erforderlich.';
 
   @override
   String get errorContentNotInsertedTitle => 'Inhalt nicht eingefügt';
@@ -1446,9 +1468,6 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Nach unten Scrollen';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(…)';
 
   @override
   String get zulipAppTitle => 'Zulip';

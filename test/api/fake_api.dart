@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
@@ -25,8 +26,16 @@ class _PreparedException extends _PreparedResponse {
 class _PreparedSuccess extends _PreparedResponse {
   final int httpStatus;
   final List<int> bytes;
+  final Duration bodyDelay;
+  final Object? bodyException;
 
-  _PreparedSuccess({super.delay, required this.httpStatus, required this.bytes});
+  _PreparedSuccess({
+    super.delay,
+    required this.httpStatus,
+    required this.bytes,
+    this.bodyDelay = Duration.zero,
+    this.bodyException,
+  });
 }
 
 /// An [http.Client] that accepts and replays canned responses, for testing.
@@ -54,17 +63,31 @@ class FakeHttpClient extends http.BaseClient {
   ///
   /// If `exception` is non-null, then `httpStatus`, `body`, and `json` must
   /// all be null, and the next request will throw the given exception.
+  ///
+  /// In each case, the next request will complete a duration of `delay`
+  /// after being started.
+  /// On success, the response body arrives a further `bodyDelay`
+  /// after the response's headers.
+  ///
+  /// If `bodyException` is non-null, then `exception` must be null,
+  /// and the response's body stream will throw the given exception
+  /// after emitting the body's bytes,
+  /// like when a network connection fails partway through
+  /// receiving the response body.
   void prepare({
     Object? exception,
     int? httpStatus,
     Map<String, dynamic>? json,
     String? body,
+    Object? bodyException,
     Duration delay = Duration.zero,
+    Duration bodyDelay = Duration.zero,
   }) {
     // TODO: Prevent a source of bugs by ensuring that there are no outstanding
     //   prepared responses when the test ends.
     if (exception != null) {
-      assert(httpStatus == null && json == null && body == null);
+      assert(httpStatus == null && json == null && body == null
+        && bodyException == null && bodyDelay == Duration.zero);
       _preparedResponses.addLast(_PreparedException(exception: exception, delay: delay));
     } else {
       assert((json == null) || (body == null));
@@ -76,7 +99,9 @@ class FakeHttpClient extends http.BaseClient {
       _preparedResponses.addLast(_PreparedSuccess(
         httpStatus: httpStatus ?? 200,
         bytes: utf8.encode(resolvedBody),
+        bodyException: bodyException,
         delay: delay,
+        bodyDelay: bodyDelay,
       ));
     }
   }
@@ -100,16 +125,58 @@ class FakeHttpClient extends http.BaseClient {
     }
     final response = _preparedResponses.removeFirst();
 
+    final abortTrigger =
+      (request is http.Abortable) ? request.abortTrigger : null;
+
     final http.StreamedResponse Function() computation;
     switch (response) {
       case _PreparedException(:var exception):
         computation = () => throw exception;
-      case _PreparedSuccess(:var bytes, :var httpStatus):
-        final byteStream = http.ByteStream.fromBytes(bytes);
+      case _PreparedSuccess(:var bytes, :var httpStatus, :var bodyDelay,
+                            :var bodyException):
         computation = () => http.StreamedResponse(
-          byteStream, httpStatus, request: request);
+          _bodyStream(request, bytes: bytes, bodyDelay: bodyDelay,
+            bodyException: bodyException, abortTrigger: abortTrigger),
+          httpStatus, request: request);
     }
-    return Future.delayed(response.delay, computation);
+    final result = Future.delayed(response.delay, computation);
+    if (abortTrigger == null) return result;
+    // Mimic [IOClient]: if the trigger fires before the response headers
+    // are delivered, [send]'s future throws instead.
+    return Future.any([
+      result,
+      abortTrigger.then((_) => throw http.RequestAbortedException(request.url)),
+    ]);
+  }
+
+  /// The response body, mimicking [IOClient]'s abort behavior:
+  /// if [abortTrigger] fires before the body has been delivered,
+  /// inject an [http.RequestAbortedException] and close the stream.
+  ///
+  /// If [bodyException] is non-null, it is delivered as an error
+  /// on the stream, after the body's bytes.
+  http.ByteStream _bodyStream(http.BaseRequest request, {
+    required List<int> bytes,
+    required Duration bodyDelay,
+    required Object? bodyException,
+    required Future<void>? abortTrigger,
+  }) {
+    if (abortTrigger == null && bodyDelay == Duration.zero
+        && bodyException == null) {
+      return http.ByteStream.fromBytes(bytes);
+    }
+    final controller = StreamController<List<int>>();
+    Timer(bodyDelay, () {
+      if (controller.isClosed) return;
+      controller.add(bytes);
+      if (bodyException != null) controller.addError(bodyException);
+      controller.close();
+    });
+    abortTrigger?.whenComplete(() {
+      if (controller.isClosed) return;
+      controller..addError(http.RequestAbortedException(request.url))..close();
+    });
+    return http.ByteStream(controller.stream);
   }
 }
 
@@ -236,13 +303,23 @@ class FakeApiConnection extends ApiConnection {
   ///
   /// In each case, the next request will complete a duration of `delay`
   /// after being started.
+  /// On success, the response body arrives a further `bodyDelay`
+  /// after the response's headers.
+  ///
+  /// If `bodyException` is non-null, then `httpException` and `apiException`
+  /// must be null, and the response's body stream will throw
+  /// the given exception after emitting the body's bytes,
+  /// like when a network connection fails partway through
+  /// receiving the response body.
   void prepare({
     Object? httpException,
     ZulipApiException? apiException,
     int? httpStatus,
     Map<String, dynamic>? json,
     String? body,
+    Object? bodyException,
     Duration delay = Duration.zero,
+    Duration bodyDelay = Duration.zero,
   }) {
     assert(isOpen);
 
@@ -265,7 +342,7 @@ class FakeApiConnection extends ApiConnection {
     }
 
     if (apiException != null) {
-      assert(httpException == null
+      assert(httpException == null && bodyException == null
         && httpStatus == null && json == null && body == null);
       httpStatus = apiException.httpStatus;
       json = {
@@ -279,7 +356,8 @@ class FakeApiConnection extends ApiConnection {
     client.prepare(
       exception: httpException,
       httpStatus: httpStatus, json: json, body: body,
-      delay: delay,
+      bodyException: bodyException,
+      delay: delay, bodyDelay: bodyDelay,
     );
   }
 

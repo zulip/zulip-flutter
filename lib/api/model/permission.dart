@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../generated/l10n/zulip_localizations.dart';
-
 part 'permission.g.dart';
 
 /// Metadata about how to interpret the various group-based permission settings.
@@ -353,27 +351,4 @@ enum SystemGroupName implements DefaultGroupName {
 
   @override
   String toJson() => _$SystemGroupNameEnumMap[this]!;
-
-  /// Get the display name to use in the UI for this system group.
-  ///
-  /// Display names mirror the web app's display name strings.
-  /// See `system_user_groups_list` in web/src/settings_config.ts.
-  String displayName(ZulipLocalizations zulipLocalizations) => switch (this) {
-    SystemGroupName.everyoneOnInternet =>
-      zulipLocalizations.systemGroupNameEveryoneOnInternet,
-    SystemGroupName.everyone =>
-      zulipLocalizations.systemGroupNameEveryone,
-    SystemGroupName.members =>
-      zulipLocalizations.systemGroupNameMembers,
-    SystemGroupName.fullMembers =>
-      zulipLocalizations.systemGroupNameFullMembers,
-    SystemGroupName.moderators =>
-      zulipLocalizations.systemGroupNameModerators,
-    SystemGroupName.administrators =>
-      zulipLocalizations.systemGroupNameAdministrators,
-    SystemGroupName.owners =>
-      zulipLocalizations.systemGroupNameOwners,
-    SystemGroupName.nobody =>
-      zulipLocalizations.systemGroupNameNobody,
-  };
 }

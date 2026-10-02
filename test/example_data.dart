@@ -1389,6 +1389,7 @@ UserSettings userSettings({
   TwentyFourHourTimeMode? twentyFourHourTime,
   bool? displayEmojiReactionUsers,
   Emojiset? emojiset,
+  bool? webInboxShowChannelFolders,
   bool? presenceEnabled,
 }) {
   return UserSettings(
@@ -1396,6 +1397,7 @@ UserSettings userSettings({
     starredMessageCounts: true,
     displayEmojiReactionUsers: displayEmojiReactionUsers ?? true,
     emojiset: emojiset ?? Emojiset.google,
+    webInboxShowChannelFolders: webInboxShowChannelFolders ?? true,
     presenceEnabled: presenceEnabled ?? true,
   );
 }
@@ -1409,6 +1411,7 @@ InitialSnapshot initialSnapshot({
   String? zulipMergeBase,
   List<String>? alertWords,
   List<CustomProfileField>? customProfileFields,
+  int? realmDateCreated,
   int? maxChannelNameLength,
   int? maxTopicLength,
   int? serverPresencePingIntervalSeconds,
@@ -1449,6 +1452,7 @@ InitialSnapshot initialSnapshot({
   int? maxFileUploadSizeMib,
   List<ThumbnailFormat>? serverThumbnailFormats,
   Uri? serverEmojiDataUrl,
+  int? eventQueueLongpollTimeoutSeconds,
   int? realmModerationRequestChannelId = -1,
   String? realmEmptyTopicDisplayName,
   List<User>? realmUsers,
@@ -1471,6 +1475,7 @@ InitialSnapshot initialSnapshot({
     zulipMergeBase: zulipMergeBase ?? recentZulipVersion,
     alertWords: alertWords ?? ['klaxon'],
     customProfileFields: customProfileFields ?? [],
+    realmDateCreated: realmDateCreated ?? utcTimestamp(DateTime.utc(2020, 1, 15)),
     maxChannelNameLength: maxChannelNameLength ?? 60,
     maxTopicLength: maxTopicLength ?? 60,
     serverPresencePingIntervalSeconds: serverPresencePingIntervalSeconds ?? 60,
@@ -1517,6 +1522,7 @@ InitialSnapshot initialSnapshot({
     serverThumbnailFormats: serverThumbnailFormats ?? [],
     serverEmojiDataUrl: serverEmojiDataUrl
       ?? realmUrl.replace(path: '/static/emoji.json'),
+    eventQueueLongpollTimeoutSeconds: eventQueueLongpollTimeoutSeconds ?? 90,
     realmModerationRequestChannelId: realmModerationRequestChannelId,
     realmEmptyTopicDisplayName: realmEmptyTopicDisplayName ?? defaultRealmEmptyTopicDisplayName,
     realmUsers: realmUsers ?? [selfUser],

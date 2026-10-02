@@ -2,11 +2,14 @@
   "@aboutPageAppVersion": {
     "description": "Label for Zulip app version in About Zulip page"
   },
+  "@aboutPageAppVersionUnknown": {
+    "description": "Banner text in About Zulip page, shown in place of the app-version item when the version is unknown."
+  },
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
+  "@aboutPageReleaseNotes": {
+    "description": "Item title in About Zulip page to open the current version's release notes on GitHub"
   },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
@@ -142,9 +145,6 @@
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
-  },
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
@@ -480,6 +480,15 @@
   },
   "@errorCouldNotOpenLinkTitle": {
     "description": "Error title when opening a link failed."
+  },
+  "@errorCouldNotReadFile": {
+    "description": "Error message when an attached file could not be read.",
+    "placeholders": {
+      "filename": {
+        "example": "foo.txt",
+        "type": "String"
+      }
+    }
   },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
@@ -818,6 +827,12 @@
   },
   "@loginPasswordLabel": {
     "description": "Label for password input field."
+  },
+  "@loginRealmUrlHelpButton": {
+    "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
+  },
+  "@loginRealmUrlHelperText": {
+    "description": "Helper text below the Zulip organization URL entry field on the login page."
   },
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
@@ -1251,6 +1266,9 @@
   "@subscribeFailedTitle": {
     "description": "Error title when subscribing to a channel failed."
   },
+  "@successAppVersionCopied": {
+    "description": "Success message after the app version was copied to the user's system clipboard."
+  },
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
   },
@@ -1512,8 +1530,9 @@
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
   "aboutPageAppVersion": "App-Version",
+  "aboutPageAppVersionUnknown": "Die Versionsinformation der App wurde nicht gefunden.",
   "aboutPageOpenSourceLicenses": "Open-Source-Lizenzen",
-  "aboutPageTapToView": "Antippen zum Ansehen",
+  "aboutPageReleaseNotes": "Versionshinweise",
   "aboutPageTitle": "Über Zulip",
   "actionSheetOptionChannelFeed": "Kanal-Feed",
   "actionSheetOptionCopyChannelLink": "Link zum Kanal kopieren",
@@ -1555,7 +1574,6 @@
   "actionSheetTitleSelfDm": "DMs mit dir selbst",
   "allChannelsEmptyPlaceholderHeader": "Es gibt keine Kanäle, die du in dieser Organisation anzeigen könntest.",
   "allChannelsPageTitle": "Alle Kanäle",
-  "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Kanal-Feed",
   "channelsEmptyPlaceholderHeader": "Du hast noch keine Kanäle abonniert.",
   "channelsEmptyPlaceholderMessage": "Versuche, nach <z-link>{allChannelsPageTitle}</z-link> zu gehen und einigen davon beizutreten.",
@@ -1639,6 +1657,7 @@
   "errorCouldNotFetchMessageSource": "Konnte Nachrichtenquelle nicht abrufen.",
   "errorCouldNotOpenLink": "Link konnte nicht geöffnet werden: {url}",
   "errorCouldNotOpenLinkTitle": "Link kann nicht geöffnet werden",
+  "errorCouldNotReadFile": "Datei konnte nicht gelesen werden: {filename}",
   "errorCouldNotShowUserProfile": "Nutzerprofil kann nicht angezeigt werden.",
   "errorDeleteMessageFailedTitle": "Löschen der Nachricht fehlgeschlagen",
   "errorDialogContinue": "OK",
@@ -1717,6 +1736,8 @@
   "loginMethodDividerSemanticLabel": "Alternative Möglichkeiten zum Einloggen",
   "loginPageTitle": "Anmelden",
   "loginPasswordLabel": "Passwort",
+  "loginRealmUrlHelpButton": "Hilfe",
+  "loginRealmUrlHelperText": "Dies ist die Adresse, über die du Zulip im Browser öffnest.",
   "loginRealmUrlLabel": "URL deiner Zulip-Organisation",
   "loginUsernameLabel": "Benutzername",
   "mainMenuMyProfile": "Mein Profil",
@@ -1823,6 +1844,7 @@
   "statusSaveButtonLabel": "Speichern",
   "statusTextHint": "Dein Status",
   "subscribeFailedTitle": "Konnte nicht abonnieren",
+  "successAppVersionCopied": "App-Version kopiert",
   "successChannelLinkCopied": "Kanallink kopiert",
   "successLinkCopied": "Link kopiert",
   "successMessageLinkCopied": "Nachrichtenlink kopiert",
@@ -1843,7 +1865,7 @@
   "themeSettingTitle": "THEMA",
   "today": "Heute",
   "topicListEmptyPlaceholderHeader": "Es gibt noch keine Themen.",
-  "topicValidationErrorMandatoryButEmpty": "Themen sind in dieser Organisation erforderlich.",
+  "topicValidationErrorMandatoryButEmpty": "Themen sind in diesem Kanal||Kanals erforderlich.",
   "topicValidationErrorTooLong": "Länge des Themas sollte {maxLength, plural, =1{1 Zeichen} other{{maxLength} Zeichen}} nicht überschreiten.",
   "topicsButtonTooltip": "Themen",
   "tryAnotherAccountButton": "Anderen Account ausprobieren",

@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -16,10 +19,14 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get aboutPageAppVersion => 'アプリのバージョン';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'オープンソースライセンス';
+  String get aboutPageAppVersionUnknown =>
+      'The app’s version information was not found.';
 
   @override
-  String get aboutPageTapToView => 'タップして表示';
+  String get aboutPageReleaseNotes => 'Release notes';
+
+  @override
+  String get aboutPageOpenSourceLicenses => 'オープンソースライセンス';
 
   @override
   String get upgradeWelcomeDialogTitle => '新しいZulipアプリへようこそ！';
@@ -389,6 +396,11 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Could not read file: $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => '入力が正しくありません';
 
   @override
@@ -470,6 +482,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get errorCouldNotEditMessageTitle => 'メッセージを編集できませんでした';
+
+  @override
+  String get successAppVersionCopied => 'App version copied';
 
   @override
   String get successLinkCopied => 'リンクをコピーしました';
@@ -771,6 +786,13 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlLabel => 'あなたのZulip組織のURL';
+
+  @override
+  String get loginRealmUrlHelperText =>
+      'This is the address you would use to open Zulip in a browser.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Help';
 
   @override
   String get loginHidePassword => 'パスワードを非表示';
@@ -1377,9 +1399,6 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => '最下部へ移動';
-
-  @override
-  String get appVersionUnknownPlaceholder => '（…）';
 
   @override
   String get zulipAppTitle => 'Zulip';

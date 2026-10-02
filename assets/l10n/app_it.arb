@@ -5,9 +5,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
-  },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
   },
@@ -131,14 +128,17 @@
       }
     }
   },
+  "@actionSheetTitleGroupDm": {
+    "description": "The title of an action sheet for a group DM conversation."
+  },
+  "@actionSheetTitleSelfDm": {
+    "description": "The title of an action sheet for the 1:1 DM conversation with yourself."
+  },
   "@allChannelsEmptyPlaceholderHeader": {
     "description": "Centered text on the 'All channels' page saying that there is no content to show."
   },
   "@allChannelsPageTitle": {
     "description": "Title for the 'All channels' page."
-  },
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "@channelFeedButtonTooltip": {
     "description": "Tooltip for button to navigate to a given channel's feed"
@@ -707,6 +707,9 @@
   "@errorVideoPlayerFailed": {
     "description": "Error message when a video fails to play."
   },
+  "@errorVideoPlayerFailedTryBrowser": {
+    "description": "Body of a dialog suggesting the user open a video in the browser, after the app's video player failed to play it."
+  },
   "@errorWebAuthOperationalError": {
     "description": "Error message when third-party authentication has an operational error (not necessarily caused by invalid credentials)."
   },
@@ -809,6 +812,9 @@
   },
   "@loginPasswordLabel": {
     "description": "Label for password input field."
+  },
+  "@loginRealmUrlHelpButton": {
+    "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
   },
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
@@ -1495,7 +1501,6 @@
   },
   "aboutPageAppVersion": "Versione app",
   "aboutPageOpenSourceLicenses": "Licenze open-source",
-  "aboutPageTapToView": "Tap per visualizzare",
   "aboutPageTitle": "Su Zulip",
   "actionSheetOptionChannelFeed": "Feed del canale",
   "actionSheetOptionCopyChannelLink": "Copia il collegamento al canale",
@@ -1533,9 +1538,10 @@
   "actionSheetReadReceiptsReadCount": "{count, plural, =1{Questo messaggio è stato <z-link>letto</z-link> da {count} persona:} other{Questo messaggio è stato <z-link>letto</z-link> da {count} persone:}}",
   "actionSheetReadReceiptsZeroReadCount": "Nessuno ha ancora letto questo messaggio.",
   "actionSheetTitleDm": "Conversazione privata con {user}",
+  "actionSheetTitleGroupDm": "Gruppo DM",
+  "actionSheetTitleSelfDm": "DM con te stesso",
   "allChannelsEmptyPlaceholderHeader": "Non ci sono canali che puoi visualizzare in questa organizzazione.",
   "allChannelsPageTitle": "Tutti i canali",
-  "appVersionUnknownPlaceholder": "(…)",
   "channelFeedButtonTooltip": "Feed del canale",
   "channelsEmptyPlaceholderHeader": "Non sei ancora iscritto a nessun canale.",
   "channelsEmptyPlaceholderMessage": "Prova and andare a <z-link>{allChannelsPageTitle}</z-link> e unirti a qualche canale.",
@@ -1665,6 +1671,7 @@
   "errorUnresolveTopicFailedTitle": "Impossibile contrassegnare l'argomento come irrisolto",
   "errorUnstarMessageFailedTitle": "Impossibile contrassegnare il messaggio come normale",
   "errorVideoPlayerFailed": "Impossibile riprodurre il video.",
+  "errorVideoPlayerFailedTryBrowser": "Prova invece ad aprirlo nel tuo browser.",
   "errorWebAuthOperationalError": "Si è verificato un errore imprevisto.",
   "errorWebAuthOperationalErrorTitle": "Qualcosa è andato storto",
   "experimentalFeatureSettingsPageTitle": "Caratteristiche sperimentali",
@@ -1696,6 +1703,7 @@
   "loginMethodDividerSemanticLabel": "Alternative per l'accesso",
   "loginPageTitle": "Accesso",
   "loginPasswordLabel": "Password",
+  "loginRealmUrlHelpButton": "Aiuto",
   "loginRealmUrlLabel": "URL della tua organizzazione Zulip",
   "loginUsernameLabel": "Nomeutente",
   "mainMenuMyProfile": "Il mio profilo",

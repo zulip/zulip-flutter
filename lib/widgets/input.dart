@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'button.dart';
 import 'inset_shadow.dart';
 import 'theme.dart';
 
@@ -12,12 +13,25 @@ import 'theme.dart';
 /// [filledInputTextStyle] is recommended for styling the text-input's value,
 /// i.e., the text the user has typed. That's not a job of [InputDecoration].
 ///
+/// If using [InputDecoration.suffixIcon], pass [ZulipIconButton]:
+/// - Set false for [ZulipIconButton.backgroundWhenPressed].
+///   (Otherwise [InputDecorator] puts the touch-feedback surface
+///   flush with the trailing edge of the input,
+///   and there doesn't seem to be an easy fix.)
+/// - Pass [ZulipIconButton.size] explicitly:
+///   - Use [ZulipIconButtonSize.large] if this is a form item with label text.
+///     It looks better with the larger height that comes with the floating-label effect.
+///   - Otherwise use [ZulipIconButtonSize.medium].
+/// - Set tight [InputDecoration.suffixIconConstraints] correspondingly,
+///   e.g. `BoxConstraints.tight(ZulipIconButtonSize.large.surface)`.
+///
 /// For label text, use [InputDecoration.label] with a plain [Text] widget,
 /// to work around [InputDecoration.labelText]
 /// truncating the text at one line instead of letting it wrap,
 /// in the label's non-floating position i.e. when the input is unfocused.
 /// (The label is ellipsized to one line in the floating i.e. focused state.)
-// TODO(#2183) revisit [InputDecoration.label] suggestion in dartdoc
+// TODO(#2183) revisit [InputDecoration.label] and [ZulipIconButtonSize]
+//   suggestions in dartdoc
 InputDecoration baseFilledInputDecoration(DesignVariables designVariables) {
   return InputDecoration(
     hintStyle: TextStyle(color: designVariables.labelSearchPrompt),

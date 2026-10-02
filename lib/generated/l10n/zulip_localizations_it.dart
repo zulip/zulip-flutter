@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -16,10 +19,14 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get aboutPageAppVersion => 'Versione app';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Licenze open-source';
+  String get aboutPageAppVersionUnknown =>
+      'The app’s version information was not found.';
 
   @override
-  String get aboutPageTapToView => 'Tap per visualizzare';
+  String get aboutPageReleaseNotes => 'Release notes';
+
+  @override
+  String get aboutPageOpenSourceLicenses => 'Licenze open-source';
 
   @override
   String get upgradeWelcomeDialogTitle => 'Benvenuti alla nuova app Zulip!';
@@ -335,10 +342,10 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   }
 
   @override
-  String get actionSheetTitleSelfDm => 'DMs with yourself';
+  String get actionSheetTitleSelfDm => 'DM con te stesso';
 
   @override
-  String get actionSheetTitleGroupDm => 'Group DM';
+  String get actionSheetTitleGroupDm => 'Gruppo DM';
 
   @override
   String get actionSheetOptionViewProfile => 'Vedi profilo';
@@ -407,6 +414,11 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       one: 'File',
     );
     return '$_temp0 troppo grande/i';
+  }
+
+  @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Could not read file: $filename';
   }
 
   @override
@@ -498,6 +510,9 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   @override
   String get errorCouldNotEditMessageTitle =>
       'Impossibile modificare il messaggio';
+
+  @override
+  String get successAppVersionCopied => 'App version copied';
 
   @override
   String get successLinkCopied => 'Collegamento copiato';
@@ -812,6 +827,13 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get loginRealmUrlLabel => 'URL della tua organizzazione Zulip';
 
   @override
+  String get loginRealmUrlHelperText =>
+      'This is the address you would use to open Zulip in a browser.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Aiuto';
+
+  @override
   String get loginHidePassword => 'Nascondi password';
 
   @override
@@ -911,7 +933,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get errorVideoPlayerFailedTryBrowser =>
-      'Try opening it in your browser instead.';
+      'Prova invece ad aprirlo nel tuo browser.';
 
   @override
   String get dialogOpenInBrowser => 'Apri nel browser';
@@ -1440,9 +1462,6 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Scorri fino in fondo';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(…)';
 
   @override
   String get zulipAppTitle => 'Zulip';

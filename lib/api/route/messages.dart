@@ -134,17 +134,17 @@ Future<SendMessageResult> sendMessage(
   String? localId,
   bool? readBySender,
 }) {
-  final supportsTypeDirect = connection.zulipFeatureLevel! >= 174; // TODO(server-7)
+  final supportsTypeChannel = connection.zulipFeatureLevel! >= 248; // TODO(server-9)
   final supportsReadBySender = connection.zulipFeatureLevel! >= 236; // TODO(server-8)
   return connection.post('sendMessage', SendMessageResult.fromJson, 'messages', {
     ...(switch (destination) {
       StreamDestination() => {
-        'type': RawParameter('stream'),
+        'type': supportsTypeChannel ? RawParameter('channel') : RawParameter('stream'),
         'to': destination.streamId,
         'topic': RawParameter(destination.topic.apiName),
       },
       DmDestination() => {
-        'type': supportsTypeDirect ? RawParameter('direct') : RawParameter('private'),
+        'type': RawParameter('direct'),
         'to': destination.userIds,
       }}),
     'content': RawParameter(content),

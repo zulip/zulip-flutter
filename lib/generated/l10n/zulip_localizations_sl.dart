@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -16,10 +19,14 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   String get aboutPageAppVersion => 'Različica aplikacije';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Odprtokodne licence';
+  String get aboutPageAppVersionUnknown =>
+      'The app’s version information was not found.';
 
   @override
-  String get aboutPageTapToView => 'Dotaknite se za ogled';
+  String get aboutPageReleaseNotes => 'Release notes';
+
+  @override
+  String get aboutPageOpenSourceLicenses => 'Odprtokodne licence';
 
   @override
   String get upgradeWelcomeDialogTitle => 'Dobrodošli v novi aplikaciji Zulip!';
@@ -417,6 +424,11 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Could not read file: $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => 'Neveljaven vnos';
 
   @override
@@ -503,6 +515,9 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get errorCouldNotEditMessageTitle => 'Sporočila ni mogoče urediti';
+
+  @override
+  String get successAppVersionCopied => 'App version copied';
 
   @override
   String get successLinkCopied => 'Povezava je bila kopirana';
@@ -815,6 +830,13 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlLabel => 'Your Zulip organization URL';
+
+  @override
+  String get loginRealmUrlHelperText =>
+      'This is the address you would use to open Zulip in a browser.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Help';
 
   @override
   String get loginHidePassword => 'Skrij geslo';
@@ -1448,9 +1470,6 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Premakni se na konec';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(...)';
 
   @override
   String get zulipAppTitle => 'Zulip';

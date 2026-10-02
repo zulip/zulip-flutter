@@ -100,7 +100,7 @@ Check extensions for result types go in `route_checks.dart`.
 - In general, group class fields logically, following the approach of existing items.
 - Where the same list of parameters or fields appears in multiple places, they should have the exact same order as each other.
 - All constructor parameters in API types use `required`, even for nullable fields (see README "Require all parameters in API constructors")
-- Minimum supported server is Zulip Server 7.0 (feature level 185)
+- Minimum supported server: see `kMinAllowedZulipVersion` and `kMinAllowedZulipFeatureLevel` in `lib/api/core.dart`
 - Use `TODO(server-N)` comments for version-gated code paths
 - Generated files (`.g.dart`) must be kept up to date via `build_runner`
 - When interpreting data from the server, prefer checking what's in the data rather than explicit version checks. For example, if a field isn't present that new servers always send, interpret the data accordingly (the server is too old to have that field) rather than checking the server version explicitly. Explicit version checks are very rarely needed on the response-handling side.

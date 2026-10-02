@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:checks/checks.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:legacy_checks/legacy_checks.dart';
@@ -175,19 +176,60 @@ void main() {
   });
 
   group('ZulipIconButton', () {
-    testWidgets('occupies a 40px square', (tester) async {
+    testWidgets('default (medium): occupies a 40px square', (tester) async {
       addTearDown(testBinding.reset);
 
       await tester.pumpWidget(TestZulipApp(
         child: UnconstrainedBox(
           child: ZulipIconButton(
             icon: ZulipIcons.follow,
+            tooltip: 'Follow',
             onPressed: () {}))));
       await tester.pump();
 
       final element = tester.element(find.byType(ZulipIconButton));
       final renderObject = element.renderObject as RenderBox;
       check(renderObject).size.equals(Size.square(40));
+    });
+
+    testWidgets('large: occupies a 48px square', (tester) async {
+      addTearDown(testBinding.reset);
+
+      await tester.pumpWidget(TestZulipApp(
+        child: UnconstrainedBox(
+          child: ZulipIconButton(
+            icon: ZulipIcons.follow,
+            tooltip: 'Follow',
+            onPressed: () {},
+            size: ZulipIconButtonSize.large))));
+      await tester.pump();
+
+      final element = tester.element(find.byType(ZulipIconButton));
+      final renderObject = element.renderObject as RenderBox;
+      check(renderObject).size.equals(Size.square(48));
+    });
+
+    testWidgets('isSelected swaps icon for selectedIcon', (tester) async {
+      addTearDown(testBinding.reset);
+
+      Widget buildButton({required bool isSelected}) => TestZulipApp(
+        child: UnconstrainedBox(
+          child: ZulipIconButton(
+            icon: ZulipIcons.follow,
+            selectedIcon: ZulipIcons.check,
+            isSelected: isSelected,
+            tooltip: 'Toggle',
+            onPressed: () {})));
+
+      await tester.pumpWidget(buildButton(isSelected: false));
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.follow)).findsOne();
+      check(find.byIcon(ZulipIcons.check)).findsNothing();
+
+      await tester.pumpWidget(buildButton(isSelected: true));
+      await tester.pump();
+      check(find.byIcon(ZulipIcons.follow)).findsNothing();
+      check(find.byIcon(ZulipIcons.check)).findsOne();
     });
 
     // TODO test that the touch feedback fills the whole square
@@ -203,6 +245,7 @@ void main() {
           duration: Duration(milliseconds: 100),
           child: ZulipIconButton(
             icon: ZulipIcons.follow,
+            tooltip: 'Follow',
             onPressed: () {}))));
       await tester.pump();
     }

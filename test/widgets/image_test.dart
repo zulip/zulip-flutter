@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -19,9 +21,9 @@ import 'test_app.dart';
 void main() {
   TestZulipBinding.ensureInitialized();
 
-  group('RealmContentNetworkImage', () {
-    final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
+  final authHeaders = authHeader(email: eg.selfAccount.email, apiKey: eg.selfAccount.apiKey);
 
+  group('RealmContentNetworkImage', () {
     Future<Map<String, List<String>>> actualHeaders(WidgetTester tester, Uri src) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
@@ -56,6 +58,86 @@ void main() {
       await tester.pumpWidget(
         RealmContentNetworkImage(Uri.parse('https://zulip.invalid/path/to/image.png'), filterQuality: FilterQuality.medium));
       check(tester.takeException()).isA<AssertionError>();
+    });
+  });
+
+  group('dart:io HttpClient auth headers on redirect', () {
+    // These tests exercise no code of ours; they pin dart:io HttpClient
+    // behavior we rely on for security.
+    // An on-realm request carries the user's API key in the
+    // Authorization header (RealmContentNetworkImage tests above),
+    // and the response can be a redirect pointing off-realm:
+    // for example, the /avatar/{user_id} fallback (see [FallbackAvatarUrl])
+    // redirects to Gravatar or S3-style storage.
+    // The API key must not be forwarded there.
+    //
+    // The behavior is deliberate on Dart's part: dropping sensitive
+    // headers on cross-origin redirects was the fix for CVE-2022-0451,
+    // in Dart 2.16:
+    //   https://github.com/dart-lang/sdk/security/advisories/GHSA-c8mh-jj22-xg5h
+    // These tests are a tripwire in case that ever regresses upstream,
+    // which matters because we track Flutter's main channel.
+
+    final authHeaderValue = authHeaders['Authorization']!;
+
+    /// The Authorization header received at the redirect's destination.
+    Future<String?> authHeaderAfterRedirect({required bool sameOrigin}) async {
+      String? result;
+      Future<void> handleDestination(HttpRequest request) async {
+        result = request.headers.value('authorization');
+        await request.response.close();
+      }
+
+      final destServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      final redirectServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      Uri urlOf(HttpServer server, String path) => Uri(
+        scheme: 'http',
+        host: server.address.address, port: server.port, path: path);
+
+      destServer.listen(handleDestination);
+      redirectServer.listen((request) async {
+        if (request.uri.path == '/redirect') {
+          // A cross-origin URL differs in port, hence in origin.
+          final destination = urlOf(sameOrigin ? redirectServer : destServer,
+            '/destination');
+          request.response
+            ..statusCode = HttpStatus.found
+            ..headers.set('location', destination.toString());
+          await request.response.close();
+        } else {
+          await handleDestination(request);
+        }
+      });
+
+      // Escape flutter_test's global [HttpOverrides], which stubs out
+      // all HTTP; the [HttpOverrides] base class creates real clients.
+      final client = HttpOverrides.runWithHttpOverrides(
+        () => HttpClient(), _RealHttpOverrides());
+      try {
+        final request = await client.getUrl(urlOf(redirectServer, '/redirect'));
+        request.headers.set('authorization', authHeaderValue);
+        final response = await request.close();
+        await response.drain<void>();
+        // If the client didn't follow the redirect, this would be
+        // the 302 itself; guard against a null `result` meaning
+        // the destination was never contacted at all.
+        check(response.statusCode).equals(HttpStatus.ok);
+      } finally {
+        client.close(force: true);
+        await destServer.close(force: true);
+        await redirectServer.close(force: true);
+      }
+      return result;
+    }
+
+    test('forward auth header on same-origin redirect', () async {
+      check(await authHeaderAfterRedirect(sameOrigin: true))
+        .equals(authHeaderValue);
+    });
+
+    test('no forward auth header on cross-origin redirect', () async {
+      check(await authHeaderAfterRedirect(sameOrigin: false))
+        .isNull();
     });
   });
 
@@ -310,3 +392,6 @@ void main() {
     });
   });
 }
+
+/// Real networking, via the [HttpOverrides] base class's real [HttpClient].
+class _RealHttpOverrides extends HttpOverrides {}

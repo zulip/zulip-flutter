@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:path_provider_foundation/path_provider_foundation.dart';
@@ -22,6 +23,7 @@ import '../log.dart';
 import '../notifications/ios_service.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
+import 'binding.dart';
 import 'database.dart';
 import 'emoji.dart';
 import 'localizations.dart';
@@ -893,9 +895,9 @@ class PerAccountStore extends PerAccountStoreBase with
       case HeartbeatEvent():
         assert(debugLog("server event: heartbeat"));
 
-      case RealmEmojiUpdateEvent():
-        assert(debugLog("server event: realm_emoji/update"));
-        _emoji.handleRealmEmojiUpdateEvent(event);
+      case RealmEmojiEvent():
+        assert(debugLog("server event: realm_emoji/${event.op}"));
+        _emoji.handleRealmEmojiEvent(event);
         notifyListeners();
 
       case AlertWordsEvent():
@@ -910,15 +912,17 @@ class PerAccountStore extends PerAccountStoreBase with
         }
         switch (event.property!) {
           case UserSettingName.twentyFourHourTime:
-            userSettings.twentyFourHourTime        = event.value as TwentyFourHourTimeMode;
+            userSettings.twentyFourHourTime         = event.value as TwentyFourHourTimeMode;
           case UserSettingName.starredMessageCounts:
-            userSettings.starredMessageCounts      = event.value as bool;
+            userSettings.starredMessageCounts       = event.value as bool;
           case UserSettingName.displayEmojiReactionUsers:
-            userSettings.displayEmojiReactionUsers = event.value as bool;
+            userSettings.displayEmojiReactionUsers  = event.value as bool;
           case UserSettingName.emojiset:
-            userSettings.emojiset                  = event.value as Emojiset;
+            userSettings.emojiset                   = event.value as Emojiset;
+          case UserSettingName.webInboxShowChannelFolders:
+            userSettings.webInboxShowChannelFolders = event.value as bool;
           case UserSettingName.presenceEnabled:
-            userSettings.presenceEnabled           = event.value as bool;
+            userSettings.presenceEnabled            = event.value as bool;
         }
         notifyListeners();
 
@@ -1180,40 +1184,47 @@ class LiveGlobalStore extends GlobalStore {
     final stopwatch = Stopwatch()..start();
     final file = await _dbFile();
     final db = AppDatabase(NativeDatabase.createInBackground(file));
-    final t1 = stopwatch.elapsed;
-    final globalSettings = await db.getGlobalSettings();
-    final t2 = stopwatch.elapsed;
-    final boolGlobalSettings = await db.getBoolGlobalSettings();
-    final t3 = stopwatch.elapsed;
-    final intGlobalSettings = await db.getIntGlobalSettings();
-    final t4 = stopwatch.elapsed;
-    final accounts = await db.select(db.accounts).get();
-    final t5 = stopwatch.elapsed;
-    final pushKeys = await db.select(db.pushKeys).get();
-    final t6 = stopwatch.elapsed;
-    if (kProfileMode) {
-      String format(Duration d) =>
-        "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
-      profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
-        "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
-        "${format(t4 - t3)} int-settings, "
-        "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys");
+    try {
+      final t1 = stopwatch.elapsed;
+      final globalSettings = await db.getGlobalSettings();
+      final t2 = stopwatch.elapsed;
+      final boolGlobalSettings = await db.getBoolGlobalSettings();
+      final t3 = stopwatch.elapsed;
+      final intGlobalSettings = await db.getIntGlobalSettings();
+      final t4 = stopwatch.elapsed;
+      final accounts = await db.select(db.accounts).get();
+      final t5 = stopwatch.elapsed;
+      final pushKeys = await db.select(db.pushKeys).get();
+      final t6 = stopwatch.elapsed;
+      if (kProfileMode) {
+        String format(Duration d) =>
+          "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
+        profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
+          "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
+          "${format(t4 - t3)} int-settings, "
+          "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys");
+      }
+
+      // Disable OS backups for the database file, see:
+      //   https://github.com/zulip/zulip-flutter/issues/2158
+      // This comes after the queries above, because it must come after
+      // the database file has been created on disk.
+      unawaited(_maybeDisableOsBackup(file)); // TODO(log) on error
+
+      return LiveGlobalStore._(
+        backend: LiveGlobalStoreBackend._(db: db),
+        globalSettings: globalSettings,
+        boolGlobalSettings: boolGlobalSettings,
+        intGlobalSettings: intGlobalSettings,
+        accounts: accounts,
+        pushKeys: pushKeys,
+      );
+    } catch (_) {
+      // A later load may follow, so don't leak this connection and its isolate.
+      // Ignore any error from closing, so that the original error propagates.
+      await db.close().catchError((_) {}); // TODO(log) on error
+      rethrow;
     }
-
-    // Disable OS backups for the database file, see:
-    //   https://github.com/zulip/zulip-flutter/issues/2158
-    // This comes after the queries above, because it must come after
-    // the database file has been created on disk.
-    unawaited(_maybeDisableOsBackup(file)); // TODO(log) on error
-
-    return LiveGlobalStore._(
-      backend: LiveGlobalStoreBackend._(db: db),
-      globalSettings: globalSettings,
-      boolGlobalSettings: boolGlobalSettings,
-      intGlobalSettings: intGlobalSettings,
-      accounts: accounts,
-      pushKeys: pushKeys,
-    );
   }
 
   /// The file path to use for the app database.
@@ -1502,8 +1513,8 @@ class UpdateMachine {
             // Print stack trace in its own log entry; log entries are truncated
             // at 1 kiB (at least on Android), and stack can be longer than that.
             assert(debugLog('Stack:\n$stackTrace'));
-            if (e case NetworkException(cause: SocketException())) {
-              // A [SocketException] is common when the device is asleep.
+            if (e case NetworkException(kind: .connectionFailed)) {
+              // A failed connection is common when the device is asleep.
             } else {
               // TODO: When the error seems transient, do keep retrying but
               //   don't spam this feedback.
@@ -1620,6 +1631,9 @@ class UpdateMachine {
 
   void poll() async {
     assert(!_disposed);
+    assert(_appLifecycleSubscription == null);
+    _appLifecycleSubscription = ZulipBinding.instance.appLifecycleStateChanges
+      .listen(_handleAppLifecycleStateChange);
     try {
       while (true) {
         if (_debugLoopSignal != null) {
@@ -1636,7 +1650,10 @@ class UpdateMachine {
             // ask the server to tell us immediately that it's working again,
             // rather than waiting for an event, which could take up to a minute
             // in the case of a heartbeat event. See #979.
-            dontBlock: store.isRecoveringEventStream ? true : null);
+            dontBlock: store.isRecoveringEventStream ? true : null,
+            // If the request outlives this, assume the connection is dead
+            // even if it still looks open; give up on it and retry.  See #514.
+            timeout: store.eventQueueLongpollTimeout);
           if (_disposed) return;
         } catch (e, stackTrace) {
           if (_disposed) return;
@@ -1683,6 +1700,32 @@ class UpdateMachine {
 
   BackoffMachine? _pollBackoffMachine;
 
+  @visibleForTesting
+  BackoffMachine? get debugPollBackoffMachine => _pollBackoffMachine;
+
+  StreamSubscription<AppLifecycleState>? _appLifecycleSubscription;
+
+  /// Non-null just when the most recent poll failure suggests
+  /// the device was asleep or the app was in the background,
+  /// so that waking should discard the accumulated backoff state.
+  ///
+  /// Completing it aborts the backoff wait in progress, if any.
+  /// See [_handleAppLifecycleStateChange].
+  Completer<void>? _pollBackoffAbortTrigger;
+
+  void _handleAppLifecycleStateChange(AppLifecycleState state) {
+    assert(!_disposed); // The subscription is canceled in [dispose].
+    if (state != .resumed) return;
+    if (_pollBackoffAbortTrigger case final trigger?) {
+      // Retry immediately, and if the network still isn't back
+      // (it can take a moment after waking), let backoff start over small.
+      assert(debugLog('App returned to foreground; aborting poll backoff.'));
+      _pollBackoffMachine = null;
+      _pollBackoffAbortTrigger = null;
+      trigger.complete();
+    }
+  }
+
   /// This controls when we start to report transient errors to the user when
   /// polling.
   ///
@@ -1709,6 +1752,7 @@ class UpdateMachine {
     // (See comments on that code for why this behavior is helpful.)
     // If server logs show pressure from too many requests, we can investigate.
     _pollBackoffMachine = null;
+    _pollBackoffAbortTrigger = null;
 
     store.isRecoveringEventStream = false;
     _accumulatedTransientFailureCount = 0;
@@ -1738,10 +1782,14 @@ class UpdateMachine {
     }
 
     bool shouldReportToUser;
+    bool abortBackoffOnWake = false;
     switch (error) {
-      case NetworkException(cause: SocketException()):
-        // A [SocketException] is common when the app returns from sleep.
+      case NetworkException(kind: .connectionFailed):
+        // A failed connection is common when the app returns from sleep.
         shouldReportToUser = false;
+        // Probably the OS cut off network access while the app was in
+        // the background; see #1884.
+        abortBackoffOnWake = true;
 
       case NetworkException():
       case Server5xxException():
@@ -1769,7 +1817,9 @@ class UpdateMachine {
     if (shouldReportToUser) {
       _maybeReportToUserTransientError(error);
     }
-    await (_pollBackoffMachine ??= BackoffMachine()).wait();
+    _pollBackoffAbortTrigger = abortBackoffOnWake ? Completer() : null;
+    await (_pollBackoffMachine ??= BackoffMachine())
+      .wait(abortTrigger: _pollBackoffAbortTrigger?.future);
     if (_disposed) return;
     assert(debugLog('… Backoff wait complete, retrying poll.'));
   }
@@ -1887,6 +1937,7 @@ class UpdateMachine {
   /// requests to error. [PerAccountStore.dispose] does that.
   void dispose() {
     assert(!_disposed);
+    _appLifecycleSubscription?.cancel();
     _disposed = true;
   }
 

@@ -372,7 +372,7 @@ hello
 
       check(channelLink(channels[1 - 1], store: store)).equals('[#&#96;code&#96;](#narrow/channel/1-.60code.60)');
       check(channelLink(channels[2 - 1], store: store)).equals('[#score &gt; 90](#narrow/channel/2-score-.3E-90)');
-      check(channelLink(channels[3 - 1], store: store)).equals('[#A&#42;](#narrow/channel/3-A*)');
+      check(channelLink(channels[3 - 1], store: store)).equals('[#A&#42;](#narrow/channel/3-A.2A)');
       check(channelLink(channels[4 - 1], store: store)).equals('[#R&amp;D](#narrow/channel/4-R.26D)');
       check(channelLink(channels[5 - 1], store: store)).equals('[#UI &#91;v2&#93;](#narrow/channel/5-UI-.5Bv2.5D)');
       check(channelLink(channels[6 - 1], store: store)).equals('[#Save &#36;&#36;](#narrow/channel/6-Save-.24.24)');

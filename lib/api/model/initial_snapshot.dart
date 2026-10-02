@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meta/meta.dart';
 
 import '../../model/algorithms.dart';
 import 'model.dart';
@@ -23,6 +23,11 @@ class InitialSnapshot {
   final List<String> alertWords;
 
   final List<CustomProfileField> customProfileFields;
+
+  /// The UNIX timestamp (UTC) for when the organization was created.
+  ///
+  /// Search for "realm_date_created" in https://zulip.com/api/register-queue.
+  final int realmDateCreated;
 
   @JsonKey(name: 'max_stream_name_length')
   final int maxChannelNameLength;
@@ -131,6 +136,8 @@ class InitialSnapshot {
 
   final Uri serverEmojiDataUrl;
 
+  final int eventQueueLongpollTimeoutSeconds;
+
   final int? realmModerationRequestChannelId; // TODO(server-10)
 
   final String? realmEmptyTopicDisplayName; // TODO(server-10)
@@ -176,6 +183,7 @@ class InitialSnapshot {
     required this.zulipMergeBase,
     required this.alertWords,
     required this.customProfileFields,
+    required this.realmDateCreated,
     required this.maxChannelNameLength,
     required this.maxTopicLength,
     required this.serverPresencePingIntervalSeconds,
@@ -216,6 +224,7 @@ class InitialSnapshot {
     required this.maxFileUploadSizeMib,
     required this.serverThumbnailFormats,
     required this.serverEmojiDataUrl,
+    required this.eventQueueLongpollTimeoutSeconds,
     required this.realmModerationRequestChannelId,
     required this.realmEmptyTopicDisplayName,
     required this.realmUsers,
@@ -378,6 +387,8 @@ class UserSettings {
   bool displayEmojiReactionUsers;
   @JsonKey(unknownEnumValue: Emojiset.unknown)
   Emojiset emojiset;
+  @JsonKey(defaultValue: true)
+  bool webInboxShowChannelFolders; // TODO(server-12) remove default value
   bool presenceEnabled;
 
   // TODO more, as needed. When adding a setting here, please also:
@@ -391,6 +402,7 @@ class UserSettings {
     required this.starredMessageCounts,
     required this.displayEmojiReactionUsers,
     required this.emojiset,
+    required this.webInboxShowChannelFolders,
     required this.presenceEnabled,
   });
 

@@ -616,16 +616,21 @@ class MessageListAppBarTitle extends StatelessWidget {
   }) {
     final store = PerAccountStoreWidget.of(context);
     final designVariables = DesignVariables.of(context);
+    // (We customize titleTextStyle for Zulip; see zulipThemeData.)
+    final titleTextStyle = Theme.of(context).appBarTheme.titleTextStyle!;
     final icon = stream == null ? null
       : iconDataForTopicVisibilityPolicy(
           store.topicVisibilityPolicy(stream.streamId, topic));
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Flexible(child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName, style: TextStyle(
-          fontSize: 13,
-          fontStyle: topic.displayName == null ? FontStyle.italic : null,
-        ).merge(weightVariableTextStyle(context)))),
+        Flexible(child: Text.rich(
+          topicLabelSpan(
+            context: context,
+            topic: topic,
+            fontSize: 13,
+            color: titleTextStyle.color!),
+          style: TextStyle(fontSize: 13).merge(weightVariableTextStyle(context)))),
         if (icon != null)
           Padding(
             padding: const EdgeInsetsDirectional.only(start: 4),
@@ -790,20 +795,14 @@ class _SearchBarState extends State<_SearchBar> {
             child: Icon(size: 24, ZulipIcons.search)),
           prefixIconColor: designVariables.labelSearchPrompt,
           prefixIconConstraints: BoxConstraints(),
-          suffixIcon: IconButton(
+          suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.medium.surface),
+          suffixIcon: ZulipIconButton(
+            icon: ZulipIcons.remove,
             tooltip: zulipLocalizations.searchMessagesClearButtonTooltip,
             onPressed: _clearInput,
-            // This and `suffixIconConstraints` allow 42px square touch target.
-            visualDensity: VisualDensity.compact,
-            highlightColor: Colors.transparent,
-            style: ButtonStyle(
-              padding: WidgetStatePropertyAll(EdgeInsets.zero),
-              splashFactory: NoSplash.splashFactory,
-            ),
-            iconSize: 24,
-            icon: Icon(ZulipIcons.remove)),
-          suffixIconColor: designVariables.textMessageMuted,
-          suffixIconConstraints: BoxConstraints(minWidth: 42, minHeight: 42)));
+            size: .medium,
+            backgroundWhenPressed: false,
+            intent: .neutral)));
   }
 }
 
@@ -895,7 +894,7 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
     model.fetchInitial();
   }
 
-  bool _prevFetched = false;
+  bool _autofocusDecided = false;
 
   void _modelChanged() {
     // When you're scrolling quickly, our mark-as-read requests include the
@@ -923,14 +922,39 @@ class _MessageListState extends State<MessageList> with PerAccountStoreAwareStat
       // This method was called because that just changed.
     });
 
-    if (!_prevFetched && model.fetched && model.messages.isEmpty) {
-      // If the fetch came up empty, there's nothing to read,
-      // so opening the keyboard won't be bothersome and could be helpful.
-      // It's definitely helpful if we got here from the new-DM page.
-      MessageListPage.ancestorOf(context)
-        .composeBoxState?.controller.requestFocusIfUnfocused();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!model.fetched || !scrollController.hasClients) {
+        return;
+      }
+
+      // If fetchInitial or fetchOlder/fetchNewer
+      // haven't filled model.messages with any visible (i.e. unmuted) messages,
+      // or anyway not enough to fill the screen, fetch again.
+      // If we're in a long run of muted messages, this has the effect of
+      // fetching in a loop until we've either fetched the narrow's whole history
+      // or we've filled the screen with visible messages,
+      // without needing user scroll input between iterations.
+      //
+      // The right time for the "if-needed" check is
+      // after the current model change has been laid out
+      // and the scroll metrics have been updated,
+      // so that when we receive and lay out a screenful of messages,
+      // we don't fetch again unnecessarily.
+      // That's why we do it in a post-frame callback.
+      _fetchMoreIfNeeded(scrollController.position);
+    });
+
+    if (!_autofocusDecided && model.fetched
+        && (model.messages.isNotEmpty || (model.haveOldest && model.haveNewest))) {
+      _autofocusDecided = true;
+      if (model.messages.isEmpty) {
+        // If there are no messages to show in the whole history,
+        // opening the keyboard won't be bothersome and could be helpful.
+        // It's definitely helpful if we got here from the new-DM page.
+        MessageListPage.ancestorOf(context)
+          .composeBoxState?.controller.requestFocusIfUnfocused();
+      }
     }
-    _prevFetched = model.fetched;
   }
 
   /// Find the range of message IDs on screen, as a (first, last) tuple,
@@ -1919,18 +1943,22 @@ class StreamMessageRecipientHeader extends StatelessWidget {
           ]));
     }
 
+    final topicStyle = recipientHeaderTextStyle(context);
     final topicWidget = Padding(
       padding: const EdgeInsets.symmetric(vertical: 11),
       child: Row(
         children: [
           Flexible(
-            child: Text(topic.displayName ?? store.realmEmptyTopicDisplayName,
+            child: Text.rich(
+              topicLabelSpan(
+                context: context,
+                topic: topic,
+                fontSize: topicStyle.fontSize!,
+                color: topicStyle.color!),
               // TODO: Give a way to see the whole topic (maybe a
               //   long-press interaction?)
               overflow: TextOverflow.ellipsis,
-              style: recipientHeaderTextStyle(context,
-                fontStyle: topic.displayName == null ? FontStyle.italic : null,
-              ))),
+              style: topicStyle)),
           const SizedBox(width: 4),
           Icon(size: 14, color: designVariables.title.withFadedAlpha(0.5),
             // A null [Icon.icon] makes a blank space.
@@ -2028,13 +2056,12 @@ class DmRecipientHeader extends StatelessWidget {
   }
 }
 
-TextStyle recipientHeaderTextStyle(BuildContext context, {FontStyle? fontStyle}) {
+TextStyle recipientHeaderTextStyle(BuildContext context) {
   return TextStyle(
     color: DesignVariables.of(context).title,
     fontSize: 16,
     letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
     height: (18 / 16),
-    fontStyle: fontStyle,
   ).merge(weightVariableTextStyle(context, wght: 600));
 }
 

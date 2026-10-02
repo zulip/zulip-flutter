@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -13,8 +14,10 @@ import '../api/exception.dart';
 import '../api/model/model.dart';
 import '../api/route/messages.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../log.dart';
 import '../model/binding.dart';
 import '../model/compose.dart';
+import '../model/localizations.dart';
 import '../model/message.dart';
 import '../model/narrow.dart';
 import '../model/store.dart';
@@ -168,6 +171,8 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
   // TODO(#668): listen to [PerAccountStore] once we subscribe to topic policies.
   bool get mandatory => store.effectiveTopicsPolicy(channelId) == .disableEmptyTopic;
 
+  bool get emptyTopicOnly => store.effectiveTopicsPolicy(channelId) == .emptyTopicOnly;
+
   @override int get maxLengthUnicodeCodePoints => store.maxTopicLength;
 
   @override
@@ -215,7 +220,12 @@ class ComposeTopicController extends ComposeController<TopicValidationError> {
     ];
   }
 
+  /// Set the input's text to [newTopic].
+  ///
+  /// Does nothing when the topic isn't the user's to choose
+  /// (see [emptyTopicOnly]).
   void setTopic(TopicName newTopic) {
+    if (emptyTopicOnly) return;
     value = TextEditingValue(text: newTopic.displayName ?? '');
   }
 }
@@ -700,6 +710,10 @@ class _StreamContentInputState extends State<_StreamContentInput> {
 
   /// The topic name to show in the hint text, or null to show no topic.
   TopicName? _hintTopic() {
+    if (widget.controller.topic.emptyTopicOnly) {
+      // The topic input is disabled; messages go to the empty topic.
+      return TopicName('');
+    }
     if (widget.controller.topic.isTopicVacuous) {
       if (widget.controller.topic.mandatory) {
         // The chosen topic can't be sent to, so don't show it.
@@ -755,27 +769,25 @@ class _TopicInput extends StatefulWidget {
 }
 
 class _TopicInputState extends State<_TopicInput> {
-  void _topicOrContentFocusChanged() {
-    setState(() {
-      final status = widget.controller.topicInteractionStatus;
-      if (widget.controller.topicFocusNode.hasFocus) {
-        // topic input gains focus
-        status.value = ComposeTopicInteractionStatus.isEditing;
-      } else if (widget.controller.contentFocusNode.hasFocus) {
-        // content input gains focus
-        status.value = ComposeTopicInteractionStatus.hasChosen;
-      } else {
-        // neither input has focus, the new value of topicInteractionStatus
-        // depends on its previous value
-        if (status.value == ComposeTopicInteractionStatus.isEditing) {
-          // topic input loses focus
-          status.value = ComposeTopicInteractionStatus.notEditingNotChosen;
-        } else {
-          // content input loses focus; stay in hasChosen
-          assert(status.value == ComposeTopicInteractionStatus.hasChosen);
-        }
-      }
-    });
+  void _updateTopicInteractionStatus() {
+    // A notification from a [FocusNode] doesn't mean its focus changed;
+    // it fires for other state too, like [FocusNode.canRequestFocus]
+    // when its TextField is disabled or re-enabled.
+    // So don't assume there was a focus change: choose the new status
+    // from the current focus state and the previous status,
+    // making a notification with no focus change a no-op.
+    final status = widget.controller.topicInteractionStatus;
+    if (widget.controller.topicFocusNode.hasFocus) {
+      status.value = ComposeTopicInteractionStatus.isEditing;
+    } else if (widget.controller.contentFocusNode.hasFocus) {
+      status.value = ComposeTopicInteractionStatus.hasChosen;
+    } else if (status.value == ComposeTopicInteractionStatus.isEditing) {
+      // topic input lost focus, without content input gaining it
+      status.value = ComposeTopicInteractionStatus.notEditingNotChosen;
+    } else {
+      // neither input has focus and the status is already
+      // notEditingNotChosen or hasChosen; leave it
+    }
   }
 
   void _topicInteractionStatusChanged() {
@@ -787,8 +799,8 @@ class _TopicInputState extends State<_TopicInput> {
   @override
   void initState() {
     super.initState();
-    widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
-    widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
+    widget.controller.topicFocusNode.addListener(_updateTopicInteractionStatus);
+    widget.controller.contentFocusNode.addListener(_updateTopicInteractionStatus);
     widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
   }
 
@@ -796,10 +808,10 @@ class _TopicInputState extends State<_TopicInput> {
   void didUpdateWidget(covariant _TopicInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.topicFocusNode.removeListener(_topicOrContentFocusChanged);
-      widget.controller.topicFocusNode.addListener(_topicOrContentFocusChanged);
-      oldWidget.controller.contentFocusNode.removeListener(_topicOrContentFocusChanged);
-      widget.controller.contentFocusNode.addListener(_topicOrContentFocusChanged);
+      oldWidget.controller.topicFocusNode.removeListener(_updateTopicInteractionStatus);
+      widget.controller.topicFocusNode.addListener(_updateTopicInteractionStatus);
+      oldWidget.controller.contentFocusNode.removeListener(_updateTopicInteractionStatus);
+      widget.controller.contentFocusNode.addListener(_updateTopicInteractionStatus);
       oldWidget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
       widget.controller.topicInteractionStatus.addListener(_topicInteractionStatusChanged);
     }
@@ -807,8 +819,8 @@ class _TopicInputState extends State<_TopicInput> {
 
   @override
   void dispose() {
-    widget.controller.topicFocusNode.removeListener(_topicOrContentFocusChanged);
-    widget.controller.contentFocusNode.removeListener(_topicOrContentFocusChanged);
+    widget.controller.topicFocusNode.removeListener(_updateTopicInteractionStatus);
+    widget.controller.contentFocusNode.removeListener(_updateTopicInteractionStatus);
     widget.controller.topicInteractionStatus.removeListener(_topicInteractionStatusChanged);
     super.dispose();
   }
@@ -832,7 +844,10 @@ class _TopicInputState extends State<_TopicInput> {
     TextStyle hintStyle = topicTextStyle.copyWith(
       color: designVariables.textInput.withFadedAlpha(0.5));
 
-    if (widget.controller.topic.mandatory) {
+    if (widget.controller.topic.emptyTopicOnly) {
+      hintText = store.realmEmptyTopicDisplayName;
+      hintStyle = topicTextStyle.copyWith(fontStyle: FontStyle.italic);
+    } else if (widget.controller.topic.mandatory) {
       // Something short and not distracting.
       hintText = zulipLocalizations.composeBoxTopicHintText;
     } else {
@@ -875,6 +890,7 @@ class _TopicInputState extends State<_TopicInput> {
         focusNode: widget.controller.topicFocusNode,
         contentFocusNode: widget.controller.contentFocusNode,
         fieldViewBuilder: (context) => TextField(
+          enabled: !widget.controller.topic.emptyTopicOnly,
           controller: widget.controller.topic,
           focusNode: widget.controller.topicFocusNode,
           textInputAction: TextInputAction.next,
@@ -1070,8 +1086,6 @@ abstract class _AttachUploadsButton extends StatelessWidget {
       return; // Nothing to do (getFiles handles user feedback)
     }
 
-    // https://github.com/dart-lang/linter/issues/4007
-    // ignore: use_build_context_synchronously
     if (!context.mounted) {
       return;
     }
@@ -1165,6 +1179,42 @@ class _AttachFileButton extends _AttachUploadsButton {
   }
 }
 
+/// Make a [FileToUpload] from an [XFile],
+/// or null (with a brief error message shown to the user)
+/// if the file can't be read, e.g. because it's gone missing.
+Future<FileToUpload?> _fileFromXFile(XFile xFile) async {
+  final int length;
+  try {
+    length = await xFile.length();
+  } catch (e) {
+    // TODO(log)
+    reportErrorToUserBriefly(GlobalLocalizations.zulipLocalizations
+      .errorCouldNotReadFile(xFile.name));
+    return null;
+  }
+
+  List<int>? headerBytes;
+  try {
+    headerBytes = await xFile.openRead(
+      0,
+      // Despite its dartdoc, [XFile.openRead] can throw if `end` is greater
+      // than the file's length. We can *probably* trust our `length` to be
+      // accurate, but it's nontrivial to verify. If it's inaccurate, we'd
+      // rather sacrifice this part of the MIME lookup than throw the whole
+      // upload. So, the try/catch.
+      min(defaultMagicNumbersMaxLength, length),
+    ).expand((l) => l).toList();
+  } catch (e) {
+    // TODO(log)
+  }
+  return FileToUpload(
+    content: xFile.openRead(),
+    length: length,
+    filename: xFile.name,
+    mimeType: xFile.mimeType
+      ?? lookupMimeType(xFile.path, headerBytes: headerBytes));
+}
+
 class _AttachMediaButton extends _AttachUploadsButton {
   const _AttachMediaButton({required super.controller, required super.enabled});
 
@@ -1177,8 +1227,26 @@ class _AttachMediaButton extends _AttachUploadsButton {
 
   @override
   Future<Iterable<FileToUpload>> getFiles(BuildContext context) async {
-    // TODO(#114): This doesn't give quite the right UI on Android.
-    return _getFilePickerFiles(context, FileType.media);
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      // On iOS, this gives the native media picker. Switching to
+      // `image_picker` would be a regression: it re-encodes picked images
+      // to JPEG instead of giving the original files. See:
+      //   https://github.com/zulip/zulip-flutter/pull/2331#pullrequestreview-4604793479
+      return _getFilePickerFiles(context, FileType.media);
+    }
+
+    final List<XFile> results;
+    try {
+      results = await ZulipBinding.instance.pickMultipleMedia(
+        requestFullMetadata: false);
+    } catch (e) {
+      if (!context.mounted) return [];
+      showErrorDialog(context: context,
+        title: ZulipLocalizations.of(context).errorDialogTitle,
+        message: e.toString());
+      return [];
+    }
+    return (await Future.wait(results.map(_fileFromXFile))).nonNulls;
   }
 }
 
@@ -1228,29 +1296,7 @@ class _AttachFromCameraButton extends _AttachUploadsButton {
     if (result == null) {
       return []; // User cancelled; do nothing
     }
-    final length = await result.length();
-
-    List<int>? headerBytes;
-    try {
-      headerBytes = await result.openRead(
-        0,
-        // Despite its dartdoc, [XFile.openRead] can throw if `end` is greater
-        // than the file's length. We can *probably* trust our `length` to be
-        // accurate, but it's nontrivial to verify. If it's inaccurate, we'd
-        // rather sacrifice this part of the MIME lookup than throw the whole
-        // upload. So, the try/catch.
-        min(defaultMagicNumbersMaxLength, length)
-      ).expand((l) => l).toList();
-    } catch (e) {
-      // TODO(log)
-    }
-    return [FileToUpload(
-      content: result.openRead(),
-      length: length,
-      filename: result.name,
-      mimeType: result.mimeType
-        ?? lookupMimeType(result.path, headerBytes: headerBytes),
-    )];
+    return [?await _fileFromXFile(result)];
   }
 }
 
@@ -1713,6 +1759,10 @@ class StreamComposeBoxController extends ComposeBoxController {
 
   @override void requestFocusIfUnfocused() {
     if (topicFocusNode.hasFocus || contentFocusNode.hasFocus) return;
+    if (topic.emptyTopicOnly) {
+      contentFocusNode.requestFocus();
+      return;
+    }
     switch (topicInteractionStatus.value) {
       case ComposeTopicInteractionStatus.notEditingNotChosen:
         topicFocusNode.requestFocus();
@@ -2062,6 +2112,8 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
   @override ComposeBoxController get controller => _controller!;
   ComposeBoxController? _controller;
 
+  PerAccountStore? _store;
+
   @override
   void restoreMessageNotSent(int localMessageId) async {
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -2208,17 +2260,26 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
     });
   }
 
+  void _storeChanged() {
+    final controller = _controller;
+    if (controller is! StreamComposeBoxController) return;
+    final topic = controller.topic;
+    if (topic.emptyTopicOnly && topic.text.isNotEmpty) {
+      topic.clear();
+    }
+  }
+
   @override
   void onNewStore() {
     final newStore = PerAccountStoreWidget.of(context);
+    _store?.removeListener(_storeChanged);
+    _store = newStore;
+    _store!.addListener(_storeChanged);
 
     final controller = _controller;
-    if (controller == null) {
-      _setNewController(newStore);
-      return;
-    }
-
     switch (controller) {
+      case null:
+        _setNewController(newStore);
       case StreamComposeBoxController():
         controller.content.store = newStore;
         controller.topic.store = newStore;
@@ -2226,6 +2287,9 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
       case EditMessageComposeBoxController():
         controller.content.store = newStore;
     }
+    // The policy may have changed while disconnected; run the check immediately
+    // instead of waiting for the next store notification.
+    _storeChanged();
   }
 
   void _setNewController(PerAccountStore store) {
@@ -2246,6 +2310,7 @@ class _ComposeBoxState extends State<ComposeBox> with PerAccountStoreAwareStateM
 
   @override
   void dispose() {
+    _store?.removeListener(_storeChanged);
     controller.dispose();
     super.dispose();
   }

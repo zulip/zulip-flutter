@@ -175,6 +175,18 @@ void main() {
       check(takePushedRoutes()).single.isA<DialogRoute<void>>();
     });
 
+    testWidgets('help icon button launches the server-URL doc', (tester) async {
+      await prepare(tester);
+
+      final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+      await tester.tap(find.byTooltip(zulipLocalizations.loginRealmUrlHelpButton));
+      await tester.pump();
+
+      check(testBinding.takeLaunchUrlCalls()).deepEquals([(
+        url: Uri.parse('https://zulip.com/help/logging-in#find-the-zulip-log-in-url'),
+        mode: UrlLaunchMode.inAppBrowserView)]);
+    });
+
     // TODO other errors
   });
 
@@ -370,7 +382,6 @@ void main() {
       });
 
       // TODO test validators on the TextFormField widgets
-      // TODO test _getUserId case
       // TODO test handling failure in fetchApiKey request
       // TODO test _inProgress logic
     });

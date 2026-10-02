@@ -50,19 +50,11 @@ class ZulipBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    final (labelColor, backgroundColor, semanticsRole) = switch (intent) {
-      ZulipBannerIntent.info => (
-        designVariables.bannerTextIntInfo,
-        designVariables.bannerBgIntInfo,
-        SemanticsRole.status),
-      ZulipBannerIntent.warning => (
-        designVariables.btnLabelAttMediumIntWarning,
-        designVariables.bannerBgIntWarning,
-        SemanticsRole.alert),
-      ZulipBannerIntent.danger => (
-        designVariables.btnLabelAttMediumIntDanger,
-        designVariables.bannerBgIntDanger,
-        SemanticsRole.alert),
+    final (labelColor, backgroundColor) = _intentColors(designVariables, intent);
+
+    final semanticsRole = switch (intent) {
+      .info => SemanticsRole.status,
+      .warning || .danger => SemanticsRole.alert,
     };
 
     Widget result = DecoratedBox(
@@ -105,4 +97,70 @@ enum ZulipBannerIntent {
   info,
   warning,
   danger,
+}
+
+/// The label color and background color for [intent].
+(Color, Color) _intentColors(
+  DesignVariables designVariables,
+  ZulipBannerIntent intent,
+) {
+  return switch (intent) {
+    .info => (
+      designVariables.bannerTextIntInfo,
+      designVariables.bannerBgIntInfo),
+    .warning => (
+      designVariables.btnLabelAttMediumIntWarning,
+      designVariables.bannerBgIntWarning),
+    .danger => (
+      designVariables.btnLabelAttMediumIntDanger,
+      designVariables.bannerBgIntDanger),
+  };
+}
+
+/// A banner that floats free of the app bar and the compose box,
+/// sized to the width available where it's placed.
+///
+/// Unlike [ZulipBanner], which sits below the app bar,
+/// and the compose box's own banner, which attaches to the compose box,
+/// this one is a rounded surface meant to sit inline in a page's content.
+///
+/// See Figma:
+///   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=13185-40768&m=dev
+class FloatingBanner extends StatelessWidget {
+  const FloatingBanner({
+    super.key,
+    required this.intent,
+    required this.label,
+  });
+
+  final ZulipBannerIntent intent;
+  final String label;
+
+  // TODO(design) Support the action buttons in the design,
+  //   like [ZulipBanner.actions].
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
+    final (labelColor, backgroundColor) = _intentColors(designVariables, intent);
+
+    // No SemanticsRole here, unlike [ZulipBanner]: the status and alert roles
+    // are for announcing content that appears or changes, and this sits in a
+    // page's content, read in the usual order.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(6)),
+      child: SizedBox(width: double.infinity,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 5, 8, 5),
+          child: Text(
+            style: TextStyle(
+              fontSize: 17,
+              height: 1.30,
+              color: labelColor,
+            ).merge(weightVariableTextStyle(context, wght: 500)),
+            label))));
+  }
 }

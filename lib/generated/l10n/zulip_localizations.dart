@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -14,6 +17,7 @@ import 'zulip_localizations_et.dart';
 import 'zulip_localizations_fr.dart';
 import 'zulip_localizations_he.dart';
 import 'zulip_localizations_hu.dart';
+import 'zulip_localizations_hy.dart';
 import 'zulip_localizations_it.dart';
 import 'zulip_localizations_ja.dart';
 import 'zulip_localizations_kk.dart';
@@ -126,6 +130,7 @@ abstract class ZulipLocalizations {
     Locale('fr'),
     Locale('he'),
     Locale('hu'),
+    Locale('hy'),
     Locale('it'),
     Locale('ja'),
     Locale('kk'),
@@ -166,17 +171,23 @@ abstract class ZulipLocalizations {
   /// **'App version'**
   String get aboutPageAppVersion;
 
+  /// Banner text in About Zulip page, shown in place of the app-version item when the version is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'The app’s version information was not found.'**
+  String get aboutPageAppVersionUnknown;
+
+  /// Item title in About Zulip page to open the current version's release notes on GitHub
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get aboutPageReleaseNotes;
+
   /// Item title in About Zulip page to navigate to Licenses page
   ///
   /// In en, this message translates to:
   /// **'Open-source licenses'**
   String get aboutPageOpenSourceLicenses;
-
-  /// Item subtitle in About Zulip page to navigate to Licenses page
-  ///
-  /// In en, this message translates to:
-  /// **'Tap to view'**
-  String get aboutPageTapToView;
 
   /// Title for dialog shown on first upgrade from the legacy Zulip app.
   ///
@@ -794,6 +805,12 @@ abstract class ZulipLocalizations {
   /// **'{num, plural, =1{File} other{Files}} too large'**
   String errorFilesTooLargeTitle(int num);
 
+  /// Error message when an attached file could not be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read file: {filename}'**
+  String errorCouldNotReadFile(String filename);
+
   /// Error title for login when input is invalid.
   ///
   /// In en, this message translates to:
@@ -935,6 +952,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Could not edit message'**
   String get errorCouldNotEditMessageTitle;
+
+  /// Success message after the app version was copied to the user's system clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'App version copied'**
+  String get successAppVersionCopied;
 
   /// Success message after copy link action completed.
   ///
@@ -1463,6 +1486,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Your Zulip organization URL'**
   String get loginRealmUrlLabel;
+
+  /// Helper text below the Zulip organization URL entry field on the login page.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the address you would use to open Zulip in a browser.'**
+  String get loginRealmUrlHelperText;
+
+  /// Tooltip for the 'help' icon button for the org-URL input in the login flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get loginRealmUrlHelpButton;
 
   /// Icon label for button to hide password in input form.
   ///
@@ -2454,12 +2489,6 @@ abstract class ZulipLocalizations {
   /// **'Scroll to bottom'**
   String get scrollToBottomTooltip;
 
-  /// Placeholder to show in place of the app version when it is unknown.
-  ///
-  /// In en, this message translates to:
-  /// **'(…)'**
-  String get appVersionUnknownPlaceholder;
-
   /// The name of Zulip. This should be either 'Zulip' or a transliteration.
   ///
   /// In en, this message translates to:
@@ -2495,6 +2524,7 @@ class _ZulipLocalizationsDelegate
     'fr',
     'he',
     'hu',
+    'hy',
     'it',
     'ja',
     'kk',
@@ -2565,6 +2595,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsHe();
     case 'hu':
       return ZulipLocalizationsHu();
+    case 'hy':
+      return ZulipLocalizationsHy();
     case 'it':
       return ZulipLocalizationsIt();
     case 'ja':

@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:sodium/sodium.dart' as sodium;
 import 'package:test/fake.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -77,12 +78,15 @@ class TestZulipBinding extends ZulipBinding {
     _resetCanLaunchUrl();
     _resetLaunchUrl();
     _resetCloseInAppWebView();
+    _resetAppLifecycleStateChanges();
+    _resetConnectivity();
     _resetDeviceInfo();
     _resetPackageInfo();
     _resetFirebase();
     _resetNotifications();
     _resetPickFiles();
     _resetPickImage();
+    _resetPickMultipleMedia();
     _resetWakelock();
   }
 
@@ -255,6 +259,80 @@ class TestZulipBinding extends ZulipBinding {
   @override
   Stopwatch stopwatch() => clock.stopwatch();
 
+  void _resetAppLifecycleStateChanges() {
+    _appLifecycleStateChanges = null;
+  }
+
+  /// Simulate an app-lifecycle-state change,
+  /// causing [appLifecycleStateChanges] to fire.
+  void notifyAppLifecycleStateChanged(AppLifecycleState state) {
+    _appLifecycleStateChangesController.add(state);
+  }
+
+  StreamController<AppLifecycleState> get _appLifecycleStateChangesController =>
+    _appLifecycleStateChanges ??= StreamController.broadcast();
+  StreamController<AppLifecycleState>? _appLifecycleStateChanges;
+
+  @override
+  Stream<AppLifecycleState> get appLifecycleStateChanges =>
+    _appLifecycleStateChangesController.stream;
+
+  void _resetConnectivity() {
+    _connectivityChanges = null;
+    connectivityResult = _defaultConnectivityResult;
+    connectivityCheckDelay = Duration.zero;
+    connectivityCheckError = null;
+  }
+
+  /// The value that `ZulipBinding.instance.checkConnectivity` should return.
+  ///
+  /// Also updated by [notifyConnectivityChanged], to keep the fake
+  /// self-consistent.
+  List<ConnectivityResult> connectivityResult = _defaultConnectivityResult;
+  static const _defaultConnectivityResult = [ConnectivityResult.wifi];
+
+  /// How long [checkConnectivity] takes to complete.
+  ///
+  /// The result reflects [connectivityResult] as of when the call was made,
+  /// like a real check's result reflects the state when the platform
+  /// sampled it.
+  Duration connectivityCheckDelay = Duration.zero;
+
+  /// If non-null, [checkConnectivity] throws this instead of returning.
+  Object? connectivityCheckError;
+
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() async {
+    final result = connectivityResult;
+    final error = connectivityCheckError;
+    if (connectivityCheckDelay != Duration.zero) {
+      await Future<void>.delayed(connectivityCheckDelay);
+    }
+    if (error != null) throw error;
+    return result;
+  }
+
+  /// Simulate a network-connectivity change,
+  /// causing [connectivityChanges] to fire
+  /// and updating [connectivityResult] to match.
+  void notifyConnectivityChanged(List<ConnectivityResult> result) {
+    connectivityResult = result;
+    _connectivityChangesController.add(result);
+  }
+
+  /// Simulate an error event on [connectivityChanges].
+  void notifyConnectivityError(Object error) {
+    _connectivityChangesController.addError(error);
+  }
+
+  StreamController<List<ConnectivityResult>> get _connectivityChangesController =>
+    _connectivityChanges ??= StreamController.broadcast();
+  StreamController<List<ConnectivityResult>>? _connectivityChanges;
+
+  @override
+  Stream<List<ConnectivityResult>> get connectivityChanges =>
+    _connectivityChangesController.stream;
+
   /// The value that `ZulipBinding.instance.deviceInfo` should return.
   BaseDeviceInfo deviceInfoResult = _defaultDeviceInfoResult;
   static const _defaultDeviceInfoResult = AndroidDeviceInfo(sdkInt: 33, release: '13');
@@ -270,7 +348,9 @@ class TestZulipBinding extends ZulipBinding {
   BaseDeviceInfo? get syncDeviceInfo => deviceInfoResult;
 
   /// The value that `ZulipBinding.instance.packageInfo` should return.
-  PackageInfo packageInfoResult = _defaultPackageInfo;
+  ///
+  /// Null simulates the prefetch at startup having failed.
+  PackageInfo? packageInfoResult = _defaultPackageInfo;
   static final _defaultPackageInfo = eg.packageInfo();
 
   void _resetPackageInfo() {
@@ -424,6 +504,42 @@ class TestZulipBinding extends ZulipBinding {
   }) async {
     (_pickImageCalls ??= []).add((source: source, requestFullMetadata: requestFullMetadata));
     return pickImageResult;
+  }
+
+  /// The value that `ZulipBinding.instance.pickMultipleMedia()` should return.
+  ///
+  /// See also [takePickMultipleMediaCalls].
+  List<XFile> pickMultipleMediaResult = const [];
+
+  void _resetPickMultipleMedia() {
+    pickMultipleMediaResult = const [];
+    _pickMultipleMediaCalls = null;
+  }
+
+  /// Consume the log of calls made to `ZulipBinding.instance.pickMultipleMedia()`.
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to `ZulipBinding.instance.pickMultipleMedia()` since the last call to
+  /// either this method or [reset].
+  ///
+  /// See also [pickMultipleMediaResult].
+  List<({
+    bool requestFullMetadata,
+  })> takePickMultipleMediaCalls() {
+    final result = _pickMultipleMediaCalls;
+    _pickMultipleMediaCalls = null;
+    return result ?? [];
+  }
+  List<({
+    bool requestFullMetadata,
+  })>? _pickMultipleMediaCalls;
+
+  @override
+  Future<List<XFile>> pickMultipleMedia({
+    bool requestFullMetadata = true,
+  }) async {
+    (_pickMultipleMediaCalls ??= []).add((requestFullMetadata: requestFullMetadata));
+    return pickMultipleMediaResult;
   }
 
   /// Returns the current status of wakelock, which can be
@@ -817,12 +933,20 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   Iterable<StatusBarNotification> get activeNotifications => _activeNotifications.values;
   final Map<(int, String?), StatusBarNotification> _activeNotifications = {};
 
-  final Map<String, MessagingStyle?> _activeNotificationsMessagingStyle = {};
-
   /// Clears all active notifications that have been created via [notify].
   void clearActiveNotifications() {
     _activeNotifications.clear();
-    _activeNotificationsMessagingStyle.clear();
+  }
+
+  /// Clears the [MessagingStyleMessage.extras] on all active notifications.
+  void clearActiveNotificationMessageExtras() {
+    for (final statusNotif in _activeNotifications.values) {
+      final messagingStyle = statusNotif.notification.messagingStyle;
+      if (messagingStyle == null) continue;
+      for (final message in messagingStyle.messages) {
+        message.extras.clear();
+      }
+    }
   }
 
   @override
@@ -862,12 +986,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     ));
 
     if (tag != null) {
-      _activeNotifications[(id, tag)] = StatusBarNotification(
-        id: id,
-        notification: Notification(group: groupKey ?? '', extras: extras ?? {}),
-        tag: tag);
-
-      _activeNotificationsMessagingStyle[tag] = messagingStyle == null
+      final storedMessagingStyle = messagingStyle == null
         ? null
         : MessagingStyle(
             user: messagingStyle.user,
@@ -880,25 +999,54 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
                 person: Person(
                   key: message.person.key,
                   name: message.person.name,
-                  iconBitmap: null)),
+                  iconBitmap: null),
+                extras: message.extras),
             ).toList(growable: false));
+      _activeNotifications[(id, tag)] = StatusBarNotification(
+        id: id,
+        notification: Notification(
+          group: groupKey ?? '',
+          extras: extras ?? {},
+          messagingStyle: storedMessagingStyle),
+        tag: tag);
     }
   }
 
   @override
-  Future<MessagingStyle?> getActiveNotificationMessagingStyleByTag(String tag) async =>
-    _activeNotificationsMessagingStyle[tag];
-
-  @override
-  Future<List<StatusBarNotification>> getActiveNotifications({required List<String> desiredExtras}) async {
+  Future<List<StatusBarNotification>> getActiveNotifications({
+    required List<String> desiredNotificationExtras,
+    required List<String> desiredMessageExtras,
+    required bool includeMessagingStyle,
+  }) async {
     return _activeNotifications.values.map((statusNotif) {
       final notificationExtras = statusNotif.notification.extras;
-      statusNotif.notification.extras = {
-        for (final key in desiredExtras)
-          if (notificationExtras[key] != null)
-            key: notificationExtras[key]!,
-      };
-      return statusNotif;
+      final storedMessagingStyle = statusNotif.notification.messagingStyle;
+      return StatusBarNotification(
+        id: statusNotif.id,
+        tag: statusNotif.tag,
+        notification: Notification(
+          group: statusNotif.notification.group,
+          extras: {
+            for (final key in desiredNotificationExtras)
+              if (notificationExtras[key] != null)
+                key: notificationExtras[key]!,
+          },
+          messagingStyle: !includeMessagingStyle || storedMessagingStyle == null
+            ? null
+            : MessagingStyle(
+                user: storedMessagingStyle.user,
+                conversationTitle: storedMessagingStyle.conversationTitle,
+                isGroupConversation: storedMessagingStyle.isGroupConversation,
+                messages: storedMessagingStyle.messages.map((message) =>
+                  MessagingStyleMessage(
+                    text: message.text,
+                    timestampMs: message.timestampMs,
+                    person: message.person,
+                    extras: {
+                      for (final key in desiredMessageExtras)
+                        if (message.extras[key] != null)
+                          key: message.extras[key]!,
+                    })).toList(growable: false))));
     }).toList(growable: false);
   }
 

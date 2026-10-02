@@ -160,6 +160,11 @@ Future<ServerEmojiData> fetchServerEmojiData(ApiConnection connection, {
 /// in <https://zulip.com/api/register-queue>.
 @JsonSerializable(fieldRename: FieldRename.snake)
 class ServerEmojiData {
+  /// A map from each Unicode emoji's "emoji code" to its list of names.
+  ///
+  /// The emoji codes are "unqualified": they omit the emoji-presentation
+  /// variation selector (U+FE0F).
+  /// See unqualify_emoji in the server's zerver/lib/emoji_utils.py.
   final Map<String, List<String>> codeToNames;
 
   ServerEmojiData({required this.codeToNames});

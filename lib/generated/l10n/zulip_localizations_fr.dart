@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -16,10 +19,14 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   String get aboutPageAppVersion => 'Version de l\'application';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Licences de logiciel libre';
+  String get aboutPageAppVersionUnknown =>
+      'The app’s version information was not found.';
 
   @override
-  String get aboutPageTapToView => 'Tapotez pour voir';
+  String get aboutPageReleaseNotes => 'Release notes';
+
+  @override
+  String get aboutPageOpenSourceLicenses => 'Licences de logiciel libre';
 
   @override
   String get upgradeWelcomeDialogTitle =>
@@ -415,6 +422,11 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Échec de la lecture du fichier : $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => 'Saisie non valide';
 
   @override
@@ -505,6 +517,9 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   @override
   String get errorCouldNotEditMessageTitle =>
       'Le message n\'a pas pu être modifié';
+
+  @override
+  String get successAppVersionCopied => 'App version copied';
 
   @override
   String get successLinkCopied => 'Lien copié';
@@ -820,6 +835,13 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   @override
   String get loginRealmUrlLabel =>
       'L\'adresse (URL) de Zulip pour votre organisation';
+
+  @override
+  String get loginRealmUrlHelperText =>
+      'Ceci est l\'adresse que vous utiliseriez pour ouvrir Zulip dans un navigateur.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Aide';
 
   @override
   String get loginHidePassword => 'Cacher le mot de passe';
@@ -1454,9 +1476,6 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Défiler jusqu\'en bas';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(…)';
 
   @override
   String get zulipAppTitle => 'Zulip';

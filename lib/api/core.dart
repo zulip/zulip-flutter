@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:meta/meta.dart';
 
 import '../log.dart';
 import '../model/binding.dart';
@@ -14,14 +15,15 @@ import 'exception.dart';
 ///
 /// When updating this, also update [kMinAllowedZulipFeatureLevel]
 /// and the README.
-// TODO(#1838) address all TODO(server-7)
-const kMinAllowedZulipVersion = '7.0';
+// TODO(#2362) address all TODO(server-8)
+// TODO(#2363) address all TODO(server-9)
+const kMinAllowedZulipVersion = '9.0';
 
 /// The Zulip feature level reserved for the [kMinAllowedZulipVersion] release.
 ///
 /// For this value, see the API changelog:
 ///   https://zulip.com/api/changelog
-const kMinAllowedZulipFeatureLevel = 185;
+const kMinAllowedZulipFeatureLevel = 277;
 
 /// The oldest Zulip Server version we currently support.
 ///
@@ -30,13 +32,13 @@ const kMinAllowedZulipFeatureLevel = 185;
 ///
 /// See also [kMinAllowedZulipVersion], for the version below
 /// which we just refuse to connect.
-const kMinSupportedZulipVersion = '9.2';
+const kMinSupportedZulipVersion = '10.0';
 
 /// The Zulip feature level reserved for the [kMinSupportedZulipVersion] release.
 ///
 /// For this value, see the API changelog:
 ///   https://zulip.com/api/changelog
-const kMinSupportedZulipFeatureLevel = 278;
+const kMinSupportedZulipFeatureLevel = 371;
 
 /// The doc stating our oldest supported server version.
 // TODO: Instead, link to new Help Center doc once we have it:
@@ -177,16 +179,7 @@ class ApiConnection {
     try {
       response = await _client.send(request);
     } catch (e) {
-      final String message;
-      if (e is http.ClientException) {
-        message = e.message;
-      } else if (e is TlsException) {
-        message = e.message;
-      } else {
-        final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-        message = zulipLocalizations.errorNetworkRequestFailed;
-      }
-      throw NetworkException(routeName: routeName, cause: e, message: message);
+      _throwNetworkException(routeName, e);
     }
 
     final int httpStatus = response.statusCode;
@@ -196,8 +189,26 @@ class ApiConnection {
       // while the response is still being downloaded, improving latency.
       final jsonStream = jsonUtf8Decoder.bind(response.stream);
       json = await jsonStream.single as Map<String, dynamic>?;
-    } catch (e) {
+    } on http.ClientException catch (e) {
+      // A network error, like the connection being interrupted
+      // partway through receiving the response body; or the timeout
+      // in [_withTimeout] firing while we were reading it, which
+      // arrives here as an [http.RequestAbortedException].
+      // On an HTTP error status, though, that status is the more useful
+      // signal: fall through, and throw from it below.
+      if (httpStatus == 200) _throwNetworkException(routeName, e);
+    } on IOException catch (e) {
+      // As above: a network error, arriving with its original type.
+      if (httpStatus == 200) _throwNetworkException(routeName, e);
+    } on FormatException {
+      // The response body arrived but wasn't valid UTF-8-encoded JSON.
       // We'll throw something below, seeing `json` is null.
+    } on TypeError {
+      // The body was valid JSON, but not a JSON object.  As above.
+    } catch (e) { // TODO(log)
+      // Unexpected.  In debug mode, fail loudly; in a release build,
+      // fall through and throw below, seeing `json` is null.
+      assert(false, 'unexpected error reading response body: $e');
     }
 
     if (httpStatus != 200 || json == null) {
@@ -221,12 +232,24 @@ class ApiConnection {
     _isOpen = false;
   }
 
+  /// Make a GET request to the given path with the given params.
+  ///
+  /// If [timeout] is non-null and the request hasn't completed within it,
+  /// including reading the response body,
+  /// then the request is aborted, tearing down the connection,
+  /// and this throws a [NetworkException]
+  /// with kind [NetworkExceptionKind.connectionFailed].
+  /// (But if an error response's headers had already arrived,
+  /// the exception reflects that HTTP status instead.)
   Future<T> get<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      String path, Map<String, dynamic>? params) async {
+      String path, Map<String, dynamic>? params, {Duration? timeout}) async {
     final url = realmUrl.replace(
       path: "/api/v1/$path", queryParameters: encodeParameters(params));
-    final request = http.Request('GET', url);
-    return send(routeName, fromJson, request);
+    if (timeout == null) {
+      return send(routeName, fromJson, http.Request('GET', url));
+    }
+    return _withTimeout(timeout, (abortTrigger) => send(routeName, fromJson,
+      http.AbortableRequest('GET', url, abortTrigger: abortTrigger)));
   }
 
   Future<T> post<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
@@ -276,6 +299,86 @@ class ApiConnection {
     }
     return send(routeName, fromJson, request);
   }
+
+  /// Run [body] with a trigger that fires after [timeout],
+  /// for constructing an [http.Abortable] request.
+  ///
+  /// The timer is canceled when the returned future completes,
+  /// so a request that finishes in time leaves no timer behind.
+  Future<T> _withTimeout<T>(Duration timeout,
+      Future<T> Function(Future<void> abortTrigger) body) async {
+    final abortCompleter = Completer<void>();
+    final abortTimer = Timer(timeout, abortCompleter.complete);
+    try {
+      return await body(abortCompleter.future);
+    } finally {
+      abortTimer.cancel();
+    }
+  }
+}
+
+/// OS-level socket error texts that can arrive as the whole message of a
+/// bare [http.ClientException], the exception type erased on the way
+/// (see #2417).
+///
+/// (The pipeline, as of Dart 3.14 / package:http 1.6.0, August 2026:
+/// dart:io wraps the OS error text in a [SocketException];
+/// `_HttpClientConnection`'s socket-error handler flattens that to
+/// `HttpException(message)`; and `IOClient` rethrows it as a
+/// `ClientException`.)
+///
+/// These are strerror(3) texts, so the set is inherently best-effort:
+/// this covers the common POSIX texts (shared by Android, iOS, and Linux,
+/// except as noted); texts from other platforms can be added as observed.
+// TODO(#461): moot once we use the platform-native HTTP clients,
+//   which classify these errors natively.
+const _erasedSocketErrorMessages = {
+  'Software caused connection abort', // ECONNABORTED
+  'Connection reset by peer', // ECONNRESET
+  'Connection timed out', // ETIMEDOUT
+  'Operation timed out', // ETIMEDOUT (Darwin)
+  'No route to host', // EHOSTUNREACH
+  'Network is unreachable', // ENETUNREACH
+  'Network is down', // ENETDOWN
+  'Broken pipe', // EPIPE
+};
+
+/// Throw a [NetworkException] wrapping the given exception
+/// from the underlying HTTP client.
+Never _throwNetworkException(String routeName, Object cause) {
+  final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
+  final (NetworkExceptionKind kind, String message) = switch (cause) {
+    // Our own timeout, from [ApiConnection._withTimeout].  Skip the
+    // exception's message: it names a package-internal mechanism
+    // ("Request aborted by `abortTrigger`"), which wouldn't mean much to a user.
+    http.RequestAbortedException() =>
+      (.connectionFailed, zulipLocalizations.errorNetworkRequestFailed),
+    // A wrapped SocketException, like package:http's IOClient throws
+    // for a connection failure.
+    SocketException() && http.ClientException(:final message) =>
+      (.connectionFailed, message),
+    SocketException() => (.connectionFailed, zulipLocalizations.errorNetworkRequestFailed),
+    // A connection that died mid-request, its type erased to a bare
+    // ClientException on the way to us, so that only the message
+    // identifies it.  See #2417 for how these arise and why we match
+    // on the message; take care not to match persistent failures,
+    // like redirect loops, which would falsely classify as routine.
+    // TODO(upstream): have IOClient preserve the type instead, as it
+    //   already does for SocketException.
+    http.ClientException(:final message)
+        // dart:io's orderly-close messages, from _HttpParser
+        // and _HttpClientConnection…
+        when message.startsWith('Connection closed')
+          // …and their one stray, from _HttpClientConnection.send:
+          || message == 'Socket closed before request was sent'
+          || _erasedSocketErrorMessages.contains(message) =>
+      (.connectionFailed, zulipLocalizations.errorNetworkRequestFailed),
+    http.ClientException(:final message) => (.other, message),
+    TlsException(:final message) => (.other, message),
+    _ => (.other, zulipLocalizations.errorNetworkRequestFailed),
+  };
+  throw NetworkException(routeName: routeName,
+    kind: kind, cause: cause, message: message);
 }
 
 ApiRequestException _makeApiException(String routeName, int httpStatus, Map<String, dynamic>? json) {

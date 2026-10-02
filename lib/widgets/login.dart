@@ -10,14 +10,16 @@ import '../api/exception.dart';
 import '../api/model/web_auth.dart';
 import '../api/route/account.dart';
 import '../api/route/realm.dart';
-import '../api/route/users.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/server_support.dart';
 import '../model/store.dart';
+import 'actions.dart';
+import 'button.dart';
 import 'dialog.dart';
 import 'home.dart';
+import 'icons.dart';
 import 'input.dart';
 import 'page.dart';
 import 'store.dart';
@@ -241,7 +243,6 @@ class _AddAccountPageState extends State<AddAccountPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              // TODO(#109) Link to doc about what a "server URL" is and how to find it
               // TODO(#111) Perhaps give tappable realm URL suggestions based on text typed so far
               TextField(
                 controller: _controller,
@@ -261,7 +262,18 @@ class _AddAccountPageState extends State<AddAccountPage> {
                     //   (or don't use it here?)
                     label: Text(zulipLocalizations.loginRealmUrlLabel),
                     errorText: errorText,
-                    helperText: kLayoutPinningHelperText,
+                    helperText: zulipLocalizations.loginRealmUrlHelperText,
+                    helperMaxLines: 4,
+
+                    suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.large.surface),
+                    suffixIcon: ZulipIconButton(
+                      icon: ZulipIcons.help,
+                      tooltip: zulipLocalizations.loginRealmUrlHelpButton,
+                      onPressed: () => PlatformActions.launchUrl(context,
+                        Uri.parse('https://zulip.com/help/logging-in#find-the-zulip-log-in-url')),
+                      size: .large,
+                      backgroundWhenPressed: false,
+                    ),
                     hintText: AddAccountPage._serverUrlHint,
                   )),
               const SizedBox(height: 8),
@@ -433,19 +445,6 @@ class _LoginPageState extends State<LoginPage> {
     HomePage.navigate(context, accountId: accountId);
   }
 
-  Future<int> _getUserId(String email, String apiKey) async {
-    final globalStore = GlobalStoreWidget.of(context);
-    final connection = globalStore.apiConnection(
-      realmUrl: widget.serverSettings.realmUrl,
-      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-      email: email, apiKey: apiKey);
-    try {
-      return (await getOwnUser(connection)).userId;
-    } finally {
-      connection.close();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
@@ -568,11 +567,6 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         return;
       }
 
-      // TODO(server-7): Rely on user_id from fetchApiKey.
-      final int userId = result.userId
-        ?? await widget.loginPageState._getUserId(result.email, result.apiKey);
-      // https://github.com/dart-lang/linter/issues/4007
-      // ignore: use_build_context_synchronously
       if (!context.mounted) {
         return;
       }
@@ -580,7 +574,7 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       await widget.loginPageState._tryInsertAccountAndNavigate(
         email: result.email,
         apiKey: result.apiKey,
-        userId: userId,
+        userId: result.userId,
       );
     } finally {
       widget.loginPageState.setState(() {
@@ -645,13 +639,15 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
       decoration: baseFilledInputDecoration(designVariables).copyWith(
         label: Text(zulipLocalizations.loginPasswordLabel),
         helperText: kLayoutPinningHelperText,
-        suffixIcon: IconButton(
+        suffixIconConstraints: BoxConstraints.tight(ZulipIconButtonSize.large.surface),
+        suffixIcon: ZulipIconButton(
+          icon: Icons.visibility,
+          isSelected: _obscurePassword,
+          selectedIcon: Icons.visibility_off,
           tooltip: zulipLocalizations.loginHidePassword,
           onPressed: _handlePasswordVisibilityPress,
-          icon: const Icon(Icons.visibility),
-          isSelected: _obscurePassword,
-          selectedIcon: const Icon(Icons.visibility_off),
-        )));
+          size: .large,
+          backgroundWhenPressed: false)));
 
     return Form(
       // TODO(#110) Try to highlight CZO / Zulip Cloud realms in autofill

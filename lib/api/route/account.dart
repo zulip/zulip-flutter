@@ -19,7 +19,7 @@ Future<FetchApiKeyResult> fetchApiKey(ApiConnection connection, {
 class FetchApiKeyResult {
   final String apiKey;
   final String email;
-  final int? userId; // TODO(server-7)
+  final int userId;
 
   FetchApiKeyResult({
     required this.apiKey,

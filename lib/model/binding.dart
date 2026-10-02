@@ -1,11 +1,15 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart' as connectivity_plus;
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:firebase_messaging/firebase_messaging.dart' as firebase_messaging;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart' as image_picker;
+import 'package:image_picker_android/image_picker_android.dart' as image_picker_android;
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart' as image_picker_platform;
 import 'package:package_info_plus/package_info_plus.dart' as package_info_plus;
 import 'package:sodium/sodium.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
@@ -18,6 +22,7 @@ import '../host/notifications.dart' as notif_pigeon;
 import '../log.dart';
 import 'store.dart';
 
+export 'package:connectivity_plus/connectivity_plus.dart' show ConnectivityResult;
 export 'package:file_picker/file_picker.dart' show FilePickerResult, FileType, PlatformFile;
 export 'package:image_picker/image_picker.dart' show ImageSource, XFile;
 
@@ -81,6 +86,9 @@ abstract class ZulipBinding {
   /// Get the app's singleton [GlobalStore],
   /// loading it asynchronously if not already loaded.
   ///
+  /// If the load fails, the returned future completes with the error,
+  /// and a later call will try loading again.
+  ///
   /// Where possible, use [GlobalStoreWidget.of] to get access to a [GlobalStore].
   /// Use this method only in contexts like notifications where
   /// a widget tree may not exist.
@@ -135,6 +143,42 @@ abstract class ZulipBinding {
   ///
   /// Outside tests, this just calls the [Stopwatch] constructor.
   Stopwatch stopwatch();
+
+  /// A broadcast stream of the app's lifecycle-state changes,
+  /// via [AppLifecycleListener.onStateChange].
+  Stream<AppLifecycleState> get appLifecycleStateChanges;
+
+  /// A broadcast stream of updates on the device's network connectivity,
+  /// via package:connectivity_plus.
+  ///
+  /// An event describes the connectivity state as a whole, not a delta.
+  ///
+  /// While the app is in the background, updates may be dropped
+  /// rather than delivered on returning to the foreground;
+  /// to learn of a change that happened in the background,
+  /// use [checkConnectivity].
+  /// For the Android behavior, see the plugin README:
+  ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/README.md#android
+  /// For iOS, see the guard in the plugin implementation:
+  ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/ios/connectivity_plus/Sources/connectivity_plus/ConnectivityPlusPlugin.swift#L87-L92
+  ///
+  /// A subscriber's first event may describe the current state
+  /// rather than a change:
+  /// both platform implementations emit the current state
+  /// when the underlying platform channel gains its first listener,
+  /// while a subscriber that joins an already-listening channel
+  /// just sees the next change.  For the initial emissions, see:
+  ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/android/src/main/java/dev/fluttercommunity/plus/connectivity/ConnectivityBroadcastReceiver.java#L87-L89
+  ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/ios/connectivity_plus/Sources/connectivity_plus/ConnectivityPlusPlugin.swift#L73-L80
+  ///
+  /// This wraps [connectivity_plus.Connectivity.onConnectivityChanged].
+  Stream<List<connectivity_plus.ConnectivityResult>> get connectivityChanges;
+
+  /// The device's current network connectivity,
+  /// via package:connectivity_plus.
+  ///
+  /// This wraps [connectivity_plus.Connectivity.checkConnectivity].
+  Future<List<connectivity_plus.ConnectivityResult>> checkConnectivity();
 
   /// Provides device and operating system information,
   /// via package:device_info_plus.
@@ -214,6 +258,14 @@ abstract class ZulipBinding {
   /// This wraps [image_picker.pickImage].
   Future<image_picker.XFile?> pickImage({
     required image_picker.ImageSource source,
+    bool requestFullMetadata,
+  });
+
+  /// Pick multiple images and/or videos from the media library,
+  /// via package:image_picker.
+  ///
+  /// This wraps [image_picker.ImagePicker.pickMultipleMedia].
+  Future<List<image_picker.XFile>> pickMultipleMedia({
     bool requestFullMetadata,
   });
 
@@ -384,6 +436,15 @@ class LiveZulipBinding extends ZulipBinding {
   LiveZulipBinding() {
     _deviceInfo = _prefetchDeviceInfo();
     _packageInfo = _prefetchPackageInfo();
+
+    final imagePickerPlatform = image_picker_platform.ImagePickerPlatform.instance;
+    if (imagePickerPlatform is image_picker_android.ImagePickerAndroid) {
+      // Use Android Photo Picker, so that pickMultipleMedia gives a photo and
+      // video-only gallery instead of a general file browser. The package leaves this
+      // off by default. See:
+      //   https://pub.dev/documentation/image_picker_android/latest/image_picker_android/ImagePickerAndroid/useAndroidPhotoPicker.html
+      imagePickerPlatform.useAndroidPhotoPicker = true;
+    }
   }
 
   /// Initialize the binding if necessary, and ensure it is a [LiveZulipBinding].
@@ -395,17 +456,42 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<GlobalStore> getGlobalStore() {
-    return _globalStoreFuture ??= LiveGlobalStore.load().then((store) {
-      return _globalStore = store;
-    });
+  Future<GlobalStore> getGlobalStore() async {
+    // First, see if we have the store already.
+    final store = _globalStore;
+    if (store != null) {
+      return store;
+    }
+
+    // Next, see if another call has already started loading one.
+    Future<GlobalStore>? future = _globalStoreLoading;
+    if (future != null) {
+      return future;
+    }
+
+    // It's up to us. Start loading.
+    future = doLoadGlobalStore();
+    _globalStoreLoading = future;
+    try {
+      return _globalStore = await future;
+    } catch (_) {
+      // TODO(log) the load failure
+      rethrow;
+    } finally {
+      _globalStoreLoading = null;
+    }
   }
+
+  /// Load the [GlobalStore], reading the app's database.
+  ///
+  /// This method should be called only by [getGlobalStore].
+  Future<GlobalStore> doLoadGlobalStore() => LiveGlobalStore.load();
 
   @override
   GlobalStore? getGlobalStoreSync() => _globalStore;
 
-  Future<GlobalStore>? _globalStoreFuture;
   GlobalStore? _globalStore;
+  Future<GlobalStore>? _globalStoreLoading;
 
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
@@ -447,6 +533,32 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Stopwatch stopwatch() => Stopwatch();
+
+  @override
+  Stream<AppLifecycleState> get appLifecycleStateChanges {
+    // Created lazily, because [AppLifecycleListener] requires
+    // [WidgetsBinding], and this binding is also initialized in a context
+    // that lacks one: the FCM background isolate
+    // (see _initBackgroundIsolate in lib/notifications/receive.dart).
+    return _appLifecycleStateChanges ??= _createAppLifecycleStateChanges();
+  }
+  Stream<AppLifecycleState>? _appLifecycleStateChanges;
+
+  Stream<AppLifecycleState> _createAppLifecycleStateChanges() {
+    final controller = StreamController<AppLifecycleState>.broadcast();
+    // The listener registers itself with [WidgetsBinding];
+    // it's never disposed, because the stream is for the life of the app.
+    AppLifecycleListener(onStateChange: controller.add);
+    return controller.stream;
+  }
+
+  @override
+  Stream<List<connectivity_plus.ConnectivityResult>> get connectivityChanges =>
+    connectivity_plus.Connectivity().onConnectivityChanged;
+
+  @override
+  Future<List<connectivity_plus.ConnectivityResult>> checkConnectivity() =>
+    connectivity_plus.Connectivity().checkConnectivity();
 
   @override
   Future<BaseDeviceInfo?> get deviceInfo => _deviceInfo;
@@ -555,6 +667,14 @@ class LiveZulipBinding extends ZulipBinding {
   }) async {
     return image_picker.ImagePicker()
       .pickImage(source: source, requestFullMetadata: requestFullMetadata);
+  }
+
+  @override
+  Future<List<image_picker.XFile>> pickMultipleMedia({
+    bool requestFullMetadata = true,
+  }) async {
+    return image_picker.ImagePicker()
+      .pickMultipleMedia(requestFullMetadata: requestFullMetadata);
   }
 
   @override

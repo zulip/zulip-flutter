@@ -28,19 +28,62 @@ sealed class ApiRequestException implements Exception {
   String toString() => message;
 }
 
-/// A network-level error that prevented even getting an HTTP response
-/// to some Zulip API network request.
+/// What sort of underlying problem caused a [NetworkException].
+///
+/// The classification is made in [ApiConnection.send],
+/// which is the one place that sees the raw exception
+/// from the underlying HTTP client.
+/// Consumers should switch on this
+/// rather than inspecting [NetworkException.cause],
+/// because the cause's concrete type depends on
+/// which HTTP client implementation is in use.
+enum NetworkExceptionKind {
+  /// The connection couldn't be established,
+  /// or was lost before or while receiving the response.
+  ///
+  /// This includes a request timing out,
+  /// which we treat as the connection having died
+  /// even if it still looks open.
+  ///
+  /// This is routine rather than a sign of a bug:
+  /// it's what happens when the device is offline,
+  /// and commonly when the app returns from sleep
+  /// or the device switches networks.
+  connectionFailed,
+
+  /// Any other network-level failure.
+  other,
+}
+
+/// A network-level error that prevented getting a usable HTTP response
+/// to some Zulip API network request:
+/// either no response at all,
+/// or a success response cut off partway through the body.
 ///
 /// This is the antonym of [HttpException].
 class NetworkException extends ApiRequestException {
+  /// What sort of problem this is.
+  final NetworkExceptionKind kind;
+
   /// The exception describing the underlying error.
   ///
-  /// This can be any exception value that [http.Client.send] throws.
+  /// This can be any exception value that [http.Client.send] throws,
+  /// or one thrown while reading the response body.
   /// Ideally that would always be an [http.ClientException],
-  /// but empirically it can be [TlsException] and possibly others.
+  /// but empirically it can be [TlsException], [IOException],
+  /// and possibly others.
+  ///
+  /// The concrete type depends on which HTTP client implementation
+  /// the app is using, so prefer [kind] for making decisions;
+  /// this is most useful for logging.
   final Object cause;
 
-  NetworkException({required super.routeName, required super.message, required this.cause});
+  NetworkException({
+    required super.routeName,
+    required super.message,
+    required this.kind,
+    required this.cause,
+  });
 
   @override
   String toString() {

@@ -42,7 +42,8 @@ done
 if [ "$(uname)" != Linux ] || ! systemd-detect-virt -q; then
     echo >&2 "error: This script is meant for a Linux VM, not the host"
     echo >&2 "  or another non-VM machine (it edits /etc/fstab)."
-    echo >&2 "  See docs/howto/lima.md ."
+    echo >&2 "  See docs/howto/lima.md . (For a Claude Code on the web"
+    echo >&2 "  environment, see tools/provision-cloud instead.)"
     exit 1
 fi
 
@@ -50,14 +51,15 @@ fi
 
 # curl, git, unzip, xz-utils, zip: needed by the Flutter tool:
 #   https://docs.flutter.dev/get-started/install/linux#development-tools
-# libsqlite3-dev: needed for running our tests; see README.md.
 # build-essential: for native-assets builds in `flutter test`;
 #   package:sodium's build hook compiles libsodium.
 # gh: GitHub CLI, for reading issues and PRs and for
 #   authenticating `git fetch`; see docs/howto/lima.md.
+# ShellCheck: for the `shellcheck` suite in tools/check, which CI runs.
+#   (Capitalized because a comment starting `# shellcheck` is a directive.)
 run_visibly sudo apt-get update
 run_visibly sudo apt-get install -y \
-    curl git unzip xz-utils zip libsqlite3-dev build-essential gh
+    curl git unzip xz-utils zip build-essential gh shellcheck
 
 rootdir=$(cd "$this_dir"/.. && pwd -P)
 cd "$rootdir"

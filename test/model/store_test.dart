@@ -625,25 +625,25 @@ void main() {
       final account = eg.account(user: eg.selfUser,
         realmName: 'Organization A',
         realmIcon: Uri.parse('/image-a.png'),
-        zulipVersion: '6.0+gabcd',
-        zulipMergeBase: '6.0',
-        zulipFeatureLevel: 123,
+        zulipVersion: '9.0+gabcd',
+        zulipMergeBase: '9.0',
+        zulipFeatureLevel: 277,
       );
       await prepareStore(account: account);
       check(globalStore.getAccount(account.id)).isNotNull()
         ..realmName.equals('Organization A')
         ..realmIcon.equals(Uri.parse('/image-a.png'))
-        ..zulipVersion.equals('6.0+gabcd')
-        ..zulipMergeBase.equals('6.0')
-        ..zulipFeatureLevel.equals(123);
+        ..zulipVersion.equals('9.0+gabcd')
+        ..zulipMergeBase.equals('9.0')
+        ..zulipFeatureLevel.equals(277);
 
       globalStore.useCachedApiConnections = true;
       connection.prepare(json: eg.initialSnapshot(
         realmName: 'Organization B',
         realmIconUrl: Uri.parse('/image-b.png'),
-        zulipVersion: '8.0+g9876',
-        zulipMergeBase: '8.0',
-        zulipFeatureLevel: 234,
+        zulipVersion: '10.0+g9876',
+        zulipMergeBase: '10.0',
+        zulipFeatureLevel: 371,
       ).toJson());
       final updateMachine = await UpdateMachine.load(globalStore, account.id);
       updateMachine.debugPauseLoop();
@@ -651,9 +651,9 @@ void main() {
         ..identicalTo(updateMachine.store.account)
         ..realmName.equals('Organization B')
         ..realmIcon.equals(Uri.parse('/image-b.png'))
-        ..zulipVersion.equals('8.0+g9876')
-        ..zulipMergeBase.equals('8.0')
-        ..zulipFeatureLevel.equals(234);
+        ..zulipVersion.equals('10.0+g9876')
+        ..zulipMergeBase.equals('10.0')
+        ..zulipFeatureLevel.equals(371);
     }));
 
     test('retries registerQueue on NetworkError', () => awaitFakeAsync((async) async {
@@ -685,6 +685,44 @@ void main() {
       check(updateMachine.store.allUsers).unorderedMatches(
         users.map((expected) => (it) => it.fullName.equals(expected.fullName)));
     }));
+
+    group('registerQueue error reporting', () {
+      String? lastReportedError;
+
+      Future<void> prepare() async {
+        lastReportedError = null;
+        reportErrorToUserBriefly = (message, {details}) async {
+          if (message == null) return;
+          lastReportedError = message;
+        };
+        addTearDown(() =>
+          reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+        await prepareStore();
+        globalStore.useCachedApiConnections = true;
+      }
+
+      /// Load, with the first registerQueue attempt failing with [exception]
+      /// and the retry succeeding.
+      Future<void> loadWithFirstAttemptFailing(Object exception) async {
+        connection.prepare(httpException: exception);
+        connection.prepare(json: eg.initialSnapshot().toJson());
+        final updateMachine = await UpdateMachine.load(
+          globalStore, eg.selfAccount.id);
+        updateMachine.debugPauseLoop();
+      }
+
+      test('no report on failed connection', () => awaitFakeAsync((async) async {
+        await prepare();
+        await loadWithFirstAttemptFailing(const SocketException('failed'));
+        check(lastReportedError).isNull();
+      }));
+
+      test('report other network error', () => awaitFakeAsync((async) async {
+        await prepare();
+        await loadWithFirstAttemptFailing(Exception('failed'));
+        check(lastReportedError).isNotNull();
+      }));
+    });
 
     // TODO test UpdateMachine.load starts polling loop
   });
@@ -764,10 +802,16 @@ void main() {
       connection = store.connection as FakeApiConnection;
     }
 
-    Future<void> preparePoll({int? lastEventId}) async {
+    Future<void> preparePoll({
+      int? lastEventId,
+      int? eventQueueLongpollTimeoutSeconds,
+    }) async {
+      // The poll loop subscribes to testBinding.appLifecycleStateChanges.
+      addTearDown(testBinding.reset);
       globalStore = eg.globalStore();
       await globalStore.add(eg.selfAccount, eg.initialSnapshot(
-        lastEventId: lastEventId));
+        lastEventId: lastEventId,
+        eventQueueLongpollTimeoutSeconds: eventQueueLongpollTimeoutSeconds));
       await globalStore.perAccount(eg.selfAccount.id);
       updateFromGlobalStore();
       updateMachine.debugPauseLoop();
@@ -866,24 +910,37 @@ void main() {
       });
     }
 
-    void checkRetry(void Function() prepareError) {
+    /// Check the poll loop quietly retries when [prepareError]
+    /// causes the request to fail.
+    ///
+    /// [elapse] is how long the request takes to fail:
+    /// zero for an immediate error,
+    /// or the poll timeout for a request that times out.
+    void checkRetry(void Function() prepareError, {
+      Duration elapse = Duration.zero,
+      int? eventQueueLongpollTimeoutSeconds,
+    }) {
       awaitFakeAsync((async) async {
-        await preparePoll(lastEventId: 1);
+        await preparePoll(lastEventId: 1,
+          eventQueueLongpollTimeoutSeconds: eventQueueLongpollTimeoutSeconds);
         check(async.pendingTimers).length.equals(0);
 
         // Make the request, inducing an error in it.
         prepareError();
         updateMachine.debugAdvanceLoop();
-        async.elapse(Duration.zero);
+        async.elapse(elapse);
         checkLastRequest(lastEventId: 1, expectDontBlock: false);
         check(store).isRecoveringEventStream.isTrue();
 
         // Polling doesn't resume immediately; there's a timer.
-        check(async.pendingTimers).length.equals(1);
+        // (On a timed-out request, the fake's timer for the response
+        // that never arrived is also still pending.)
+        final pendingTimers = elapse == Duration.zero ? 1 : 2;
+        check(async.pendingTimers).length.equals(pendingTimers);
         updateMachine.debugAdvanceLoop();
         async.flushMicrotasks();
         check(connection.lastRequest).isNull();
-        check(async.pendingTimers).length.equals(1);
+        check(async.pendingTimers).length.equals(pendingTimers);
 
         // Polling continues after a timer.
         connection.prepare(json: GetEventsResult(events: [
@@ -902,7 +959,9 @@ void main() {
       updateMachine.debugPrepareLoopError(eg.nullCheckError());
     }
 
-    void prepareNetworkExceptionSocketException() {
+    // [ApiConnection] classifies a [SocketException]
+    // as [NetworkExceptionKind.connectionFailed].
+    void prepareNetworkExceptionConnectionFailed() {
       connection.prepare(httpException: const SocketException('failed'));
     }
 
@@ -969,9 +1028,18 @@ void main() {
       checkReload(prepareUnexpectedLoopError);
     });
 
-    test('retries on NetworkException from SocketException', () {
+    test('retries on NetworkException from failed connection', () {
       // We skip reporting errors on these; check we retry them all the same.
-      checkRetry(prepareNetworkExceptionSocketException);
+      checkRetry(prepareNetworkExceptionConnectionFailed);
+    });
+
+    test('retries when request outlives the server-recommended timeout', () {
+      // In the wild, this is a connection that died without erroring; see #514.
+      checkRetry(
+        eventQueueLongpollTimeoutSeconds: 85,
+        elapse: const Duration(seconds: 85),
+        () => connection.prepare(delay: const Duration(seconds: 300),
+          json: GetEventsResult(events: [], queueId: null).toJson()));
     });
 
     test('retries on generic NetworkException', () {
@@ -1008,6 +1076,109 @@ void main() {
 
     test('reloads on handleEvent error', () {
       checkReload(prepareHandleEventError);
+    });
+
+    group('abort backoff on app wake', () {
+      test('abort wait in progress', () => awaitFakeAsync((async) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/1884
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Make the request, inducing a network failure in it.
+        prepareNetworkExceptionConnectionFailed();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(store).isRecoveringEventStream.isTrue();
+        check(async.pendingTimers).length.equals(1);
+
+        // On coming to the foreground, polling resumes immediately,
+        // well before the backoff duration has elapsed.
+        // (The second, redundant resume event checks that
+        // a duplicate doesn't complete the abort trigger twice.)
+        connection.prepare(json: GetEventsResult(events: [
+          HeartbeatEvent(id: 2),
+        ], queueId: null).toJson());
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        // The wake also discarded the accumulated backoff state.
+        check(updateMachine.debugPollBackoffMachine).isNull();
+        async.elapse(Duration.zero);
+        check(updateMachine.lastEventId).equals(2);
+        check(store).isRecoveringEventStream.isFalse();
+      }));
+
+      test('reset backoff state on resume with no wait in progress', () => awaitFakeAsync((async) async {
+        // A resume means the preceding connection failures were probably
+        // sleep-induced, so the grown backoff state is discarded even when
+        // there's no wait in progress to abort: if polling fails again
+        // after the wake (the network can take a moment to come back),
+        // backoff should start over small.
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail, and wait out the backoff normally.
+        prepareNetworkExceptionConnectionFailed();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        async.flushTimers();
+        check(updateMachine.debugPollBackoffMachine).isNotNull();
+
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(updateMachine.debugPollBackoffMachine).isNull();
+      }));
+
+      test('no abort when backoff is from non-network error', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        prepareServer5xxException();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(async.pendingTimers).length.equals(1);
+
+        // Coming to the foreground doesn't cut the backoff short,
+        // and doesn't discard the accumulated backoff state either.
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+        check(async.pendingTimers).length.equals(1);
+        check(updateMachine.debugPollBackoffMachine).isNotNull();
+
+        // Polling continues after the backoff.
+        connection.prepare(json: GetEventsResult(events: [
+          HeartbeatEvent(id: 2),
+        ], queueId: null).toJson());
+        async.flushTimers();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      test('no effect when no backoff in progress', () => awaitFakeAsync((async) async {
+        await preparePoll(lastEventId: 1);
+
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+        check(async.pendingTimers).isEmpty();
+      }));
+
+      test('no effect after dispose', () => awaitFakeAsync((async) async {
+        await preparePoll(lastEventId: 1);
+
+        updateMachine.dispose();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+      }));
     });
 
     group('report error', () {
@@ -1111,8 +1282,8 @@ void main() {
         checkReported(prepareUnexpectedLoopError);
       });
 
-      test('ignore NetworkException from SocketException', () {
-        checkNotReported(prepareNetworkExceptionSocketException);
+      test('ignore NetworkException from failed connection', () {
+        checkNotReported(prepareNetworkExceptionConnectionFailed);
       });
 
       test('eventually report generic NetworkException', () {

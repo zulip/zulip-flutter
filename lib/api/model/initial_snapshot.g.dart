@@ -22,6 +22,7 @@ InitialSnapshot _$InitialSnapshotFromJson(
   customProfileFields: (json['custom_profile_fields'] as List<dynamic>)
       .map((e) => CustomProfileField.fromJson(e as Map<String, dynamic>))
       .toList(),
+  realmDateCreated: (json['realm_date_created'] as num).toInt(),
   maxChannelNameLength: (json['max_stream_name_length'] as num).toInt(),
   maxTopicLength: (json['max_topic_length'] as num).toInt(),
   serverPresencePingIntervalSeconds:
@@ -142,6 +143,8 @@ InitialSnapshot _$InitialSnapshotFromJson(
           .toList() ??
       [],
   serverEmojiDataUrl: Uri.parse(json['server_emoji_data_url'] as String),
+  eventQueueLongpollTimeoutSeconds:
+      (json['event_queue_longpoll_timeout_seconds'] as num).toInt(),
   realmModerationRequestChannelId:
       (json['realm_moderation_request_channel_id'] as num?)?.toInt(),
   realmEmptyTopicDisplayName: json['realm_empty_topic_display_name'] as String?,
@@ -152,10 +155,9 @@ InitialSnapshot _$InitialSnapshotFromJson(
           .toList(),
   realmNonActiveUsers:
       (InitialSnapshot._readUsersIsActiveFallbackFalse(
-                json,
-                'realm_non_active_users',
-              )
-              as List<dynamic>)
+            json,
+            'realm_non_active_users',
+          ) as List<dynamic>)
           .map((e) => User.fromJson(e as Map<String, dynamic>))
           .toList(),
   crossRealmBots:
@@ -179,6 +181,7 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'zulip_merge_base': instance.zulipMergeBase,
   'alert_words': instance.alertWords,
   'custom_profile_fields': instance.customProfileFields,
+  'realm_date_created': instance.realmDateCreated,
   'max_stream_name_length': instance.maxChannelNameLength,
   'max_topic_length': instance.maxTopicLength,
   'server_presence_ping_interval_seconds':
@@ -226,6 +229,8 @@ Map<String, dynamic> _$InitialSnapshotToJson(
   'max_file_upload_size_mib': instance.maxFileUploadSizeMib,
   'server_thumbnail_formats': instance.serverThumbnailFormats,
   'server_emoji_data_url': instance.serverEmojiDataUrl.toString(),
+  'event_queue_longpoll_timeout_seconds':
+      instance.eventQueueLongpollTimeoutSeconds,
   'realm_moderation_request_channel_id':
       instance.realmModerationRequestChannelId,
   'realm_empty_topic_display_name': instance.realmEmptyTopicDisplayName,
@@ -327,6 +332,8 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
     json['emojiset'],
     unknownValue: Emojiset.unknown,
   ),
+  webInboxShowChannelFolders:
+      json['web_inbox_show_channel_folders'] as bool? ?? true,
   presenceEnabled: json['presence_enabled'] as bool,
 );
 
@@ -335,6 +342,7 @@ const _$UserSettingsFieldMap = <String, String>{
   'starredMessageCounts': 'starred_message_counts',
   'displayEmojiReactionUsers': 'display_emoji_reaction_users',
   'emojiset': 'emojiset',
+  'webInboxShowChannelFolders': 'web_inbox_show_channel_folders',
   'presenceEnabled': 'presence_enabled',
 };
 
@@ -346,6 +354,7 @@ Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
       'starred_message_counts': instance.starredMessageCounts,
       'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
       'emojiset': instance.emojiset,
+      'web_inbox_show_channel_folders': instance.webInboxShowChannelFolders,
       'presence_enabled': instance.presenceEnabled,
     };
 

@@ -852,14 +852,15 @@ void main() {
         ]);
       }
 
+      transitionDurationObserver = TransitionDurationObserver();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const HomePage()));
       await tester.pump();
       check(find.byType(InboxPageBody)).findsOne();
 
       await tester.longPress(find.text(topic));
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromAppBar(WidgetTester tester, {
@@ -872,9 +873,11 @@ void main() {
       final effectiveMessages = messages ?? [someMessage];
       assert(effectiveMessages.every((m) => m.topic.apiName == effectiveTopic.apiName));
 
+      transitionDurationObserver = TransitionDurationObserver();
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: effectiveMessages).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: MessageListPage(
           initNarrow: TopicNarrow(effectiveChannel.streamId, effectiveTopic))));
       // global store, per-account store, and message list get loaded
@@ -882,11 +885,11 @@ void main() {
 
       final topicRow = find.descendant(
         of: find.byType(ZulipAppBar),
-        matching: find.text(
-          effectiveTopic.displayName ?? eg.defaultRealmEmptyTopicDisplayName));
+        matching: find.textContaining(
+          effectiveTopic.unresolve().displayName ?? eg.defaultRealmEmptyTopicDisplayName,
+          findRichText: true));
       await tester.longPress(topicRow);
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromRecipientHeader(WidgetTester tester, {
@@ -894,18 +897,21 @@ void main() {
     }) async {
       final effectiveMessage = message ?? someMessage;
 
+      transitionDurationObserver = TransitionDurationObserver();
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [effectiveMessage]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
       // global store, per-account store, and message list get loaded
       await tester.pumpAndSettle();
 
       await tester.longPress(find.descendant(
         of: find.byType(RecipientHeader),
-        matching: find.text(effectiveMessage.topic.displayName!)));
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
+        matching: find.textContaining(
+          effectiveMessage.topic.unresolve().displayName!,
+          findRichText: true)));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     final actionSheetFinder = find.byType(BottomSheet);
@@ -1169,33 +1175,6 @@ void main() {
               isChannelMuted: isChannelMuted,
               visibilityPolicy: visibilityPolicy,
               zulipFeatureLevel: 218);
-            checkButtons(buttons);
-          });
-        }
-      });
-
-      group('legacy: unmute is unsupported when FL < 170', () {
-        final testCases = [
-          (false, UserTopicVisibilityPolicy.muted,    [unmute]),
-          (false, UserTopicVisibilityPolicy.none,     [mute]),
-          (false, UserTopicVisibilityPolicy.unmuted,  [mute]),
-          (false, UserTopicVisibilityPolicy.followed, [mute]),
-
-          (true,  UserTopicVisibilityPolicy.muted,    <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.unmuted,  <Finder>[]),
-          (true,  UserTopicVisibilityPolicy.followed, <Finder>[]),
-
-          (null,  UserTopicVisibilityPolicy.none,     <Finder>[]),
-        ];
-
-        for (final (isChannelMuted, visibilityPolicy, buttons) in testCases) {
-          final description = 'isChannelMuted: ${isChannelMuted ?? "(not subscribed)"}, $visibilityPolicy';
-          testWidgets(description, (tester) async {
-            await setupToTopicActionSheet(tester,
-              isChannelMuted: isChannelMuted,
-              visibilityPolicy: visibilityPolicy,
-              zulipFeatureLevel: 169);
             checkButtons(buttons);
           });
         }

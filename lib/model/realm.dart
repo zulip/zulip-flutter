@@ -20,6 +20,9 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   //|//////////////////////////////////////////////////////////////
   // Server settings, explicitly so named.
 
+  Duration get eventQueueLongpollTimeout => Duration(seconds: eventQueueLongpollTimeoutSeconds);
+  int get eventQueueLongpollTimeoutSeconds;
+
   Duration get serverPresencePingInterval => Duration(seconds: serverPresencePingIntervalSeconds);
   int get serverPresencePingIntervalSeconds;
   Duration get serverPresenceOfflineThreshold => Duration(seconds: serverPresenceOfflineThresholdSeconds);
@@ -93,6 +96,14 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
 
   int get maxChannelNameLength;
   int get maxTopicLength;
+
+  //|//////////////////////////////
+  // Realm data that never changes.
+
+  /// When the organization was created, in UTC.
+  DateTime get realmDateCreated =>
+    dateTimeFromTimestamp(realmDateCreatedTimestamp).toUtc();
+  int get realmDateCreatedTimestamp;
 
   //|//////////////////////////////
   // Realm settings with their own events.
@@ -172,6 +183,8 @@ mixin ProxyRealmStore on RealmStore {
   RealmStore get realmStore;
 
   @override
+  int get eventQueueLongpollTimeoutSeconds => realmStore.eventQueueLongpollTimeoutSeconds;
+  @override
   int get serverPresencePingIntervalSeconds => realmStore.serverPresencePingIntervalSeconds;
   @override
   int get serverPresenceOfflineThresholdSeconds => realmStore.serverPresenceOfflineThresholdSeconds;
@@ -226,6 +239,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get maxTopicLength => realmStore.maxTopicLength;
   @override
+  int get realmDateCreatedTimestamp => realmStore.realmDateCreatedTimestamp;
+  @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
   @override
   bool selfHasPassedWaitingPeriod({required DateTime byDate}) =>
@@ -255,6 +270,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   }) :
     _selfUserRole = selfUser.role,
     _selfUserDateJoined = selfUser.dateJoined,
+    eventQueueLongpollTimeoutSeconds = initialSnapshot.eventQueueLongpollTimeoutSeconds,
     serverPresencePingIntervalSeconds = initialSnapshot.serverPresencePingIntervalSeconds,
     serverPresenceOfflineThresholdSeconds = initialSnapshot.serverPresenceOfflineThresholdSeconds,
     serverTypingStartedExpiryPeriodMilliseconds = initialSnapshot.serverTypingStartedExpiryPeriodMilliseconds,
@@ -284,6 +300,7 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
+    realmDateCreatedTimestamp = initialSnapshot.realmDateCreated,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
   @override
@@ -402,6 +419,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final String _selfUserDateJoined;
 
   @override
+  final int eventQueueLongpollTimeoutSeconds;
+
+  @override
   final int serverPresencePingIntervalSeconds;
   @override
   final int serverPresenceOfflineThresholdSeconds;
@@ -471,6 +491,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int maxChannelNameLength;
   @override
   final int maxTopicLength;
+
+  @override
+  final int realmDateCreatedTimestamp;
 
   @override
   List<CustomProfileField> customProfileFields;

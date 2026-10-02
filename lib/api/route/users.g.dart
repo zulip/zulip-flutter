@@ -8,12 +8,6 @@ part of 'users.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-GetOwnUserResult _$GetOwnUserResultFromJson(Map<String, dynamic> json) =>
-    GetOwnUserResult(userId: (json['user_id'] as num).toInt());
-
-Map<String, dynamic> _$GetOwnUserResultToJson(GetOwnUserResult instance) =>
-    <String, dynamic>{'user_id': instance.userId};
-
 UpdatePresenceResult _$UpdatePresenceResultFromJson(
   Map<String, dynamic> json,
 ) => UpdatePresenceResult(

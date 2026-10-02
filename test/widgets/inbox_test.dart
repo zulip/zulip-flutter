@@ -66,12 +66,15 @@ void main() {
     List<Subscription>? subscriptions,
     List<ChannelFolder>? channelFolders,
     List<User>? users,
+    bool webInboxShowChannelFolders = true,
     required List<Message> unreadMessages,
     List<Message>? otherMessages,
     NavigatorObserver? navigatorObserver,
   }) async {
     addTearDown(testBinding.reset);
-    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+    await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+      userSettings: eg.userSettings(
+        webInboxShowChannelFolders: webInboxShowChannelFolders)));
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
     await store.addChannelFolders(channelFolders ?? []);
@@ -430,6 +433,27 @@ void main() {
           'Alpha',
           'Other channels',
         ]);
+      });
+
+      testWidgets('respect webInboxShowChannelFolders', (tester) async {
+        final folder = eg.channelFolder(name: 'Engineering');
+        final pinned = eg.stream();
+        final inFolder = eg.stream(folderId: folder.id);
+        await setupPage(tester,
+          webInboxShowChannelFolders: false,
+          streams: [pinned, inFolder],
+          subscriptions: [
+            eg.subscription(pinned, pinToTop: true),
+            eg.subscription(inFolder),
+          ],
+          channelFolders: [folder],
+          unreadMessages: [
+            eg.streamMessage(stream: pinned),
+            eg.streamMessage(stream: inFolder),
+          ]);
+        checkFolderHeader('Pinned channels');
+        checkNoFolderHeader('Engineering');
+        checkFolderHeader('Other channels');
       });
     });
 

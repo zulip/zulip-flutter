@@ -321,7 +321,7 @@ void main() {
         await tester.pump();
         check(position.pixels - position.maxScrollExtent).equals(offset2);
         check(position).activity.isA<BallisticScrollActivity>()
-          .velocity.equals(0);
+          .velocity.isCloseTo(0, position.physics.toleranceFor(position).velocity);
 
         // … and resume drifting from there…
         await tester.pump(Duration(milliseconds: 10));

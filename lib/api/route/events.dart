@@ -36,11 +36,12 @@ Future<InitialSnapshot> registerQueue(ApiConnection connection, {
     'client_capabilities': {
       'notification_settings_null': true,
       'bulk_message_deletion': true,
-      'user_avatar_url_field_optional': false, // TODO(#254): turn on
+      'user_avatar_url_field_optional': true,
       'stream_typing_notifications': true,
       'user_settings_object': true,
       'include_deactivated_groups': true,
       'empty_topic_name': true,
+      'individual_emoji_changes': true,
     },
   });
 }
@@ -69,14 +70,20 @@ enum _IdleQueueTimeout {
 }
 
 /// https://zulip.com/api/get-events
+///
+/// Long-lived clients should pass [timeout],
+/// using the value the server recommends
+/// in [InitialSnapshot.eventQueueLongpollTimeoutSeconds];
+/// see the discussion in the API docs for this endpoint.
 Future<GetEventsResult> getEvents(ApiConnection connection, {
   required String queueId, int? lastEventId, bool? dontBlock,
+  Duration? timeout,
 }) {
   return connection.get('getEvents', GetEventsResult.fromJson, 'events', {
     'queue_id': RawParameter(queueId),
     'last_event_id': ?lastEventId,
     'dont_block': ?dontBlock,
-  });
+  }, timeout: timeout);
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)

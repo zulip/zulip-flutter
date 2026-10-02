@@ -8,6 +8,46 @@ part of 'events.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+RealmEmojiAddEvent _$RealmEmojiAddEventFromJson(Map<String, dynamic> json) =>
+    RealmEmojiAddEvent(
+      id: (json['id'] as num).toInt(),
+      emoji: RealmEmojiItem.fromJson(json['emoji'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$RealmEmojiAddEventToJson(RealmEmojiAddEvent instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'type': instance.type,
+      'op': instance.op,
+      'emoji': instance.emoji,
+    };
+
+RealmEmojiUpdateOneEvent _$RealmEmojiUpdateOneEventFromJson(
+  Map<String, dynamic> json,
+) => RealmEmojiUpdateOneEvent(
+  id: (json['id'] as num).toInt(),
+  emojiCode: json['emoji_id'] as String,
+  data: RealmEmojiUpdateData.fromJson(json['data'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$RealmEmojiUpdateOneEventToJson(
+  RealmEmojiUpdateOneEvent instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'type': instance.type,
+  'op': instance.op,
+  'emoji_id': instance.emojiCode,
+  'data': instance.data,
+};
+
+RealmEmojiUpdateData _$RealmEmojiUpdateDataFromJson(
+  Map<String, dynamic> json,
+) => RealmEmojiUpdateData(deactivated: json['deactivated'] as bool?);
+
+Map<String, dynamic> _$RealmEmojiUpdateDataToJson(
+  RealmEmojiUpdateData instance,
+) => <String, dynamic>{'deactivated': instance.deactivated};
+
 RealmEmojiUpdateEvent _$RealmEmojiUpdateEventFromJson(
   Map<String, dynamic> json,
 ) => RealmEmojiUpdateEvent(
@@ -68,6 +108,7 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.starredMessageCounts: 'starred_message_counts',
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
   UserSettingName.emojiset: 'emojiset',
+  UserSettingName.webInboxShowChannelFolders: 'web_inbox_show_channel_folders',
   UserSettingName.presenceEnabled: 'presence_enabled',
 };
 
@@ -372,13 +413,15 @@ RealmUserUpdateEvent _$RealmUserUpdateEventFromJson(
   fullName: RealmUserUpdateEvent._readFromPerson(json, 'full_name') as String?,
   avatarUrl:
       RealmUserUpdateEvent._readFromPerson(json, 'avatar_url') as String?,
-  avatarVersion:
-      (RealmUserUpdateEvent._readFromPerson(json, 'avatar_version') as num?)
-          ?.toInt(),
+  avatarVersion: (RealmUserUpdateEvent._readFromPerson(
+    json,
+    'avatar_version',
+  ) as num?)?.toInt(),
   timezone: RealmUserUpdateEvent._readFromPerson(json, 'timezone') as String?,
-  botOwnerId:
-      (RealmUserUpdateEvent._readFromPerson(json, 'bot_owner_id') as num?)
-          ?.toInt(),
+  botOwnerId: (RealmUserUpdateEvent._readFromPerson(
+    json,
+    'bot_owner_id',
+  ) as num?)?.toInt(),
   role: $enumDecodeNullable(
     _$UserRoleEnumMap,
     RealmUserUpdateEvent._readFromPerson(json, 'role'),
@@ -503,11 +546,10 @@ Map<String, dynamic> _$ChannelCreateEventToJson(ChannelCreateEvent instance) =>
 ChannelDeleteEvent _$ChannelDeleteEventFromJson(Map<String, dynamic> json) =>
     ChannelDeleteEvent(
       id: (json['id'] as num).toInt(),
-      channelIds:
-          (ChannelDeleteEvent._readChannelIds(json, 'stream_ids')
-                  as List<dynamic>)
-              .map((e) => (e as num).toInt())
-              .toList(),
+      channelIds: (ChannelDeleteEvent._readChannelIds(
+        json,
+        'stream_ids',
+      ) as List<dynamic>).map((e) => (e as num).toInt()).toList(),
     );
 
 Map<String, dynamic> _$ChannelDeleteEventToJson(ChannelDeleteEvent instance) =>
@@ -590,11 +632,10 @@ SubscriptionRemoveEvent _$SubscriptionRemoveEventFromJson(
   Map<String, dynamic> json,
 ) => SubscriptionRemoveEvent(
   id: (json['id'] as num).toInt(),
-  channelIds:
-      (SubscriptionRemoveEvent._readChannelIds(json, 'channel_ids')
-              as List<dynamic>)
-          .map((e) => (e as num).toInt())
-          .toList(),
+  channelIds: (SubscriptionRemoveEvent._readChannelIds(
+    json,
+    'channel_ids',
+  ) as List<dynamic>).map((e) => (e as num).toInt()).toList(),
 );
 
 Map<String, dynamic> _$SubscriptionRemoveEventToJson(

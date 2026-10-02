@@ -88,6 +88,7 @@ void main() {
         checkNarrow(channelId: 415, name: 'chat.zulip.org', '#narrow/channel/415-chat.2Ezulip.2Eorg');
         checkNarrow(channelId: 419, name: 'français',       '#narrow/channel/419-fran.C3.A7ais');
         checkNarrow(channelId: 403, name: 'Hshs[™~}(.',     '#narrow/channel/403-Hshs.5B.E2.84.A2~.7D.28.2E');
+        checkNarrow(channelId: 404, name: "a'b*c!d",        '#narrow/channel/404-a.27b.2Ac.21d');
         checkNarrow(channelId: 60,  name: 'twitter', nearMessageId: 1570686, '#narrow/channel/60-twitter/near/1570686');
 
         checkNarrow(channelId: 48,  name: 'mobile', topic: 'Welcome screen UI',
@@ -107,10 +108,55 @@ void main() {
                     zulipFeatureLevel: 249,
                     '#narrow/stream/48-mobile-team/topic/Welcome.20screen.20UI');
       });
+
+      // Mirrors Zulip web's shared encodeHashComponent fixture,
+      // driven through a topic operand:
+      //   https://github.com/zulip/zulip/blob/9c6bbba27/zerver/tests/fixtures/url_encoding_test_cases.json
+      test('encode each character like Zulip web', () {
+        void checkTopic(String topic, String expectedEncoded) {
+          checkNarrow(channelId: 1, name: 'general', topic: topic,
+            '#narrow/channel/1-general/topic/$expectedEncoded');
+        }
+        checkTopic('-', '-');
+        checkTopic('_', '_');
+        checkTopic('~', '~');
+        checkTopic(' ', '.20');
+        checkTopic('!', '.21');
+        checkTopic('"', '.22');
+        checkTopic('#', '.23');
+        checkTopic(r'$', '.24');
+        checkTopic('%', '.25');
+        checkTopic('&', '.26');
+        checkTopic("'", '.27');
+        checkTopic('(', '.28');
+        checkTopic(')', '.29');
+        checkTopic('*', '.2A');
+        checkTopic('+', '.2B');
+        checkTopic(',', '.2C');
+        checkTopic('.', '.2E');
+        checkTopic('/', '.2F');
+        checkTopic(':', '.3A');
+        checkTopic(';', '.3B');
+        checkTopic('<', '.3C');
+        checkTopic('=', '.3D');
+        checkTopic('>', '.3E');
+        checkTopic('?', '.3F');
+        checkTopic('@', '.40');
+        checkTopic('[', '.5B');
+        checkTopic(r'\', '.5C');
+        checkTopic(']', '.5D');
+        checkTopic('^', '.5E');
+        checkTopic('`', '.60');
+        checkTopic('{', '.7B');
+        checkTopic('|', '.7C');
+        checkTopic('}', '.7D');
+        checkTopic('https://zulip.example',
+                   'https.3A.2F.2Fzulip.2Eexample');
+      });
     });
 
     test('DmNarrow', () {
-      void checkNarrow(String expectedFragment, String legacyExpectedFragment, {
+      void checkNarrow(String expectedFragment, {
         required List<int> allRecipientIds,
         required int selfUserId,
         int? nearMessageId,
@@ -120,26 +166,18 @@ void main() {
         final narrow = DmNarrow(allRecipientIds: allRecipientIds, selfUserId: selfUserId);
         check(narrowLink(store, narrow, nearMessageId: nearMessageId))
           .equals(store.realmUrl.resolve(expectedFragment));
-        store.connection.zulipFeatureLevel = 176;
-        check(narrowLink(store, narrow, nearMessageId: nearMessageId))
-          .equals(store.realmUrl.resolve(legacyExpectedFragment));
       }
 
       checkNarrow(allRecipientIds: [1], selfUserId: 1,
-        '#narrow/dm/1-dm',
-        '#narrow/pm-with/1-pm');
+        '#narrow/dm/1-dm');
       checkNarrow(allRecipientIds: [1, 2], selfUserId: 1,
-        '#narrow/dm/1,2-dm',
-        '#narrow/pm-with/1,2-pm');
+        '#narrow/dm/1,2-dm');
       checkNarrow(allRecipientIds: [1, 2, 3], selfUserId: 1,
-        '#narrow/dm/1,2,3-group',
-        '#narrow/pm-with/1,2,3-group');
+        '#narrow/dm/1,2,3-group');
       checkNarrow(allRecipientIds: [1, 2, 3, 4], selfUserId: 4,
-        '#narrow/dm/1,2,3,4-group',
-        '#narrow/pm-with/1,2,3,4-group');
+        '#narrow/dm/1,2,3,4-group');
       checkNarrow(allRecipientIds: [1, 2], selfUserId: 1, nearMessageId: 12345,
-        '#narrow/dm/1,2-dm/near/12345',
-        '#narrow/pm-with/1,2-pm/near/12345');
+        '#narrow/dm/1,2-dm/near/12345');
     });
 
     test('normalize links to always include a "/" after hostname', () {

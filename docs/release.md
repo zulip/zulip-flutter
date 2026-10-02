@@ -21,7 +21,8 @@ If you're reading this page for the first time, see the sections on
     something in our Weblate setup), run `tools/check` on it yourself.
   * Merge the PR.
 
-* Write an entry in `docs/changelog.md`, under "Unreleased".
+* Write an entry in `docs/changelog.md`, under "Unreleased",
+  as described in [howto/changelog-entry.md](howto/changelog-entry.md).
   Commit that change.
 
 * Run `tools/bump-version` to update the version number.
@@ -268,6 +269,11 @@ Steps specific to this type of release are:
 
 * After the new release is uploaded, the changelog and version number
   in main should be updated to match the new release.
+
+  This is coherent even though main lacks the experimental changes:
+  the changelog records the releases we've published, not the history
+  of main itself, and the entry's "experimental" annotations (see
+  previous step) identify exactly which changes aren't yet in main.
 
   Try `git checkout -p v12.34.567 docs/changelog.md pubspec.yaml`.
   Use the `-p` prompt to skip any other pubspec updates, such as

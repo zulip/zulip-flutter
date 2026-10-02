@@ -18,6 +18,7 @@ import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/model/narrow.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
+import 'package:zulip/log.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/message.dart';
 import 'package:zulip/model/narrow.dart';
@@ -64,11 +65,14 @@ void main() {
     List<User> otherUsers = const [],
     List<ZulipStream>? streams,
     List<Subscription> subscriptions = const [],
+    List<UserTopicItem>? userTopics,
     List<Message>? messages,
+    bool foundOldest = true,
     bool? mandatoryTopics,
     RealmTopicsPolicy? realmTopicsPolicy,
     int? zulipFeatureLevel,
     int? maxTopicLength,
+    bool skipPumpAndSettle = false,
   }) async {
     streams ??= subscriptions;
 
@@ -92,6 +96,7 @@ void main() {
       realmUsers: [selfUser, ...otherUsers],
       streams: streams,
       subscriptions: subscriptions,
+      userTopics: userTopics,
       zulipFeatureLevel: zulipFeatureLevel,
       realmTopicsPolicy: realmTopicsPolicy,
       realmMandatoryTopics: mandatoryTopics,
@@ -105,15 +110,20 @@ void main() {
     connection = store.connection as FakeApiConnection;
 
     connection.prepare(json:
-      eg.newestGetMessagesResult(foundOldest: true, messages: messages).toJson());
+      eg.newestGetMessagesResult(foundOldest: foundOldest, messages: messages).toJson());
     if (narrow is ChannelNarrow && messages.isEmpty) {
       // The topic input will autofocus, triggering a getChannelTopics request.
       connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
     }
     await tester.pumpWidget(TestZulipApp(accountId: selfAccount.id,
       child: MessageListPage(initNarrow: narrow)));
-    await tester.pumpAndSettle();
-    connection.takeRequests();
+    if (skipPumpAndSettle) {
+      await tester.pump(); // global store loaded
+      await tester.pump(); // per-account store loaded
+    } else {
+      await tester.pumpAndSettle();
+      connection.takeRequests();
+    }
 
     state = tester.state<ComposeBoxState>(find.byType(ComposeBox));
     controller = state.controller;
@@ -182,6 +192,98 @@ void main() {
         messages: []);
       check(controller).isA<StreamComposeBoxController>()
         .topicFocusNode.hasFocus.isTrue();
+    });
+
+    testWidgets('ChannelNarrow with emptyTopicOnly, empty fetch', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/pull/1984#discussion_r2614979580
+      final channel = eg.stream(topicsPolicy: .emptyTopicOnly);
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)],
+        messages: []);
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isTrue();
+    });
+
+    testWidgets('ChannelNarrow, non-empty fetch, all muted, more unmuted history', (tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)],
+        userTopics: [eg.userTopicItem(channel, 'topic', .muted)],
+        messages: [eg.streamMessage(id: 100, stream: channel, topic: 'topic')],
+        foundOldest: false,
+        skipPumpAndSettle: true);
+
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(
+          anchor: 100, foundOldest: true,
+          messages: [eg.streamMessage(id: 99, stream: channel, topic: 'another')],
+        ).toJson());
+      await tester.pump(Duration.zero); // initial message fetch request
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      await tester.pump(Duration(milliseconds: 1)); // older message fetch request
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+    });
+
+    testWidgets('ChannelNarrow, non-empty fetch, all muted, remaining history muted', (tester) async {
+      final channel = eg.stream();
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)],
+        userTopics: [eg.userTopicItem(channel, 'topic', .muted)],
+        messages: [eg.streamMessage(id: 100, stream: channel, topic: 'topic')],
+        foundOldest: false,
+        skipPumpAndSettle: true);
+
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      connection.prepare(delay: Duration(milliseconds: 1),
+        json: eg.olderGetMessagesResult(
+          anchor: 100, foundOldest: true,
+          messages: [eg.streamMessage(id: 99, stream: channel, topic: 'topic')],
+        ).toJson());
+      await tester.pump(Duration.zero); // initial message fetch request
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      // The topic input will autofocus, triggering a getChannelTopics request.
+      connection.prepare(json: GetChannelTopicsResult(topics: []).toJson());
+      await tester.pump(Duration(milliseconds: 1)); // older message fetch request
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isTrue()
+        ..contentFocusNode.hasFocus.isFalse();
+    });
+
+    testWidgets('ChannelNarrow, non-empty fetch, then messages deleted', (tester) async {
+      final channel = eg.stream();
+      final message = eg.streamMessage(stream: channel);
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)],
+        messages: [message]);
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
+
+      await store.handleEvent(eg.deleteMessageEvent([message]));
+      await tester.pump();
+      check(controller).isA<StreamComposeBoxController>()
+        ..topicFocusNode.hasFocus.isFalse()
+        ..contentFocusNode.hasFocus.isFalse();
     });
 
     testWidgets('TopicNarrow, non-empty fetch', (tester) async {
@@ -688,74 +790,17 @@ void main() {
       });
     });
 
-    group('to ChannelNarrow, topic policy resolution', () {
-      void doTest(String description, {
-        ChannelTopicsPolicy? channelTopicsPolicy,
-        RealmTopicsPolicy? realmTopicsPolicy,
-        bool? mandatoryTopics,
-        required bool expectAllowsEmpty,
-      }) {
-        assert(
-          (mandatoryTopics == null && channelTopicsPolicy != null && realmTopicsPolicy != null)
-          || (mandatoryTopics != null && channelTopicsPolicy == null && realmTopicsPolicy == null),
-          'Pass either channel and realm policies or mandatoryTopics.');
-
-        testWidgets(description, (tester) async {
-          final channel = eg.stream(topicsPolicy: channelTopicsPolicy);
-          final narrow = ChannelNarrow(channel.streamId);
-          await prepareComposeBox(tester,
-            narrow: narrow,
-            subscriptions: [eg.subscription(channel)],
-            realmTopicsPolicy: realmTopicsPolicy,
-            mandatoryTopics: mandatoryTopics);
-
-          await enterTopic(tester, narrow: narrow, topic: '');
-          await tester.pump();
-          checkComposeBoxHintTexts(tester,
-            topicHintText: expectAllowsEmpty
-              ? 'Enter a topic (skip for “${eg.defaultRealmEmptyTopicDisplayName}”)'
-              : 'Topic',
-            contentHintText: 'Message #${channel.name}');
-        });
-      }
-
-      doTest('channel setting allows empty, realm setting allows empty',
-        channelTopicsPolicy: .allowEmptyTopic,
-        realmTopicsPolicy: .allowEmptyTopic,
-        expectAllowsEmpty: true);
-
-      doTest('channel setting allows empty, realm setting disables empty',
-        channelTopicsPolicy: .allowEmptyTopic,
-        realmTopicsPolicy: .disableEmptyTopic,
-        expectAllowsEmpty: true);
-
-      doTest('channel setting disables empty, realm setting allows empty',
-        channelTopicsPolicy: .disableEmptyTopic,
-        realmTopicsPolicy: .allowEmptyTopic,
-        expectAllowsEmpty: false);
-
-      doTest('channel setting disables empty, realm setting disables empty',
-        channelTopicsPolicy: .disableEmptyTopic,
-        realmTopicsPolicy: .disableEmptyTopic,
-        expectAllowsEmpty: false);
-
-      doTest('channel setting inherits, realm setting allows empty',
-        channelTopicsPolicy: .inherit,
-        realmTopicsPolicy: .allowEmptyTopic,
-        expectAllowsEmpty: true);
-
-      doTest('channel setting inherits, realm setting disables empty',
-        channelTopicsPolicy: .inherit,
-        realmTopicsPolicy: .disableEmptyTopic,
-        expectAllowsEmpty: false);
-
-      doTest('legacy: mandatoryTopics disables empty',
-        mandatoryTopics: true,
-        expectAllowsEmpty: false);
-
-      doTest('legacy: mandatoryTopics allows empty',
-        mandatoryTopics: false,
-        expectAllowsEmpty: true);
+    testWidgets('to ChannelNarrow, empty topic only', (tester) async {
+      final channel = eg.stream(topicsPolicy: .emptyTopicOnly);
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)]);
+      checkComposeBoxHintTexts(tester,
+        topicHintText: eg.defaultRealmEmptyTopicDisplayName,
+        contentHintText: 'Message #${channel.name} > '
+                         '${eg.defaultRealmEmptyTopicDisplayName}');
+      check(tester.widget<TextField>(topicInputFinder)).decoration.isNotNull()
+        .hintStyle.isNotNull().fontStyle.equals(FontStyle.italic);
     });
 
     group('to TopicNarrow', () {
@@ -794,6 +839,50 @@ void main() {
         selfUserId: eg.selfUser.userId));
       checkComposeBoxHintTexts(tester,
         contentHintText: 'Message group');
+    });
+  });
+
+  group('topic input', () {
+    testWidgets('disable/enable on emptyTopicOnly policy changes', (tester) async {
+      final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
+
+      Future<void> changePolicy(ChannelTopicsPolicy value) async {
+        await store.handleEvent(eg.channelUpdateEvent(store.streams[channel.streamId]!,
+          property: ChannelPropertyName.topicsPolicy, value: value));
+        await tester.pump();
+      }
+
+      await prepareComposeBox(tester,
+        narrow: ChannelNarrow(channel.streamId),
+        subscriptions: [eg.subscription(channel)]);
+      check(tester.widget<TextField>(topicInputFinder)).enabled.equals(true);
+
+      // Toggling [TextField.enabled] changes [FocusNode.canRequestFocus],
+      // which notifies focus listeners without an actual focus change;
+      // the policy changes below cover handling that.
+      await changePolicy(ChannelTopicsPolicy.emptyTopicOnly);
+      check(tester.widget<TextField>(topicInputFinder)).enabled.equals(false);
+
+      await changePolicy(ChannelTopicsPolicy.allowEmptyTopic);
+      check(tester.widget<TextField>(topicInputFinder)).enabled.equals(true);
+    });
+
+    testWidgets('clear topic input on policy change to emptyTopicOnly', (tester) async {
+      final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        subscriptions: [eg.subscription(channel)]);
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('some topic');
+
+      await store.handleEvent(eg.channelUpdateEvent(store.streams[channel.streamId]!,
+        property: ChannelPropertyName.topicsPolicy,
+        value: ChannelTopicsPolicy.emptyTopicOnly));
+      await tester.pump(Duration.zero);
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('');
     });
   });
 
@@ -1027,7 +1116,7 @@ void main() {
         ..method.equals('POST')
         ..url.path.equals('/api/v1/messages')
         ..bodyFields.deepEquals({
-            'type': 'stream',
+            'type': 'channel',
             'to': '123',
             'topic': 'some topic',
             'content': 'hello world',
@@ -1219,7 +1308,134 @@ void main() {
     }
 
     group('attach from media library', () {
-      testWidgets('success', (tester) async {
+      group('Android (uses image_picker)', () {
+        testWidgets('success', (tester) async {
+          await prepare(tester);
+          checkAppearsLoading(tester, false);
+
+          testBinding.pickMultipleMediaResult = [XFile.fromData(
+            // TODO test inference of MIME type when it's missing here
+            mimeType: 'image/jpeg',
+            utf8.encode('asdf'),
+            name: 'image.jpg',
+            length: 12345,
+            path: '/data/user/0/com.zulipmobile/cache/image.jpg',
+          )];
+          connection.prepare(delay: const Duration(seconds: 1), json:
+            UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+          await tester.tap(find.byIcon(ZulipIcons.image));
+          await tester.pump();
+          final call = testBinding.takePickMultipleMediaCalls().single;
+          check(call.requestFullMetadata).equals(false);
+
+          checkNoDialog(tester);
+
+          check(controller!.content.text)
+            .equals('see image: [Uploading image.jpg…]()\n\n');
+          // (the request is checked more thoroughly in API tests)
+          check(connection.lastRequest!).isA<http.MultipartRequest>()
+            ..method.equals('POST')
+            ..files.single.which((it) => it
+              ..field.equals('file')
+              ..length.equals(12345)
+              ..filename.equals('image.jpg')
+              ..contentType.asString.equals('image/jpeg')
+              ..has<Future<List<int>>>((f) => f.finalize().toBytes(), 'contents')
+                .completes((it) => it.deepEquals(['asdf'.codeUnits].expand((l) => l)))
+            );
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(seconds: 1));
+          check(controller!.content.text)
+            .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          checkAppearsLoading(tester, false);
+        }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+
+        testWidgets('multiple files', (tester) async {
+          await prepare(tester);
+          checkAppearsLoading(tester, false);
+
+          testBinding.pickMultipleMediaResult = [
+            XFile.fromData(
+              mimeType: 'image/jpeg',
+              utf8.encode('asdf'),
+              name: 'image.jpg',
+              length: 12345,
+              path: '/data/user/0/com.zulipmobile/cache/image.jpg'),
+            XFile.fromData(
+              mimeType: 'image/gif',
+              utf8.encode('asdf'),
+              name: 'test.gif',
+              length: 12345,
+              path: '/data/user/0/com.zulipmobile/cache/test.gif'),
+          ];
+          connection.prepare(delay: const Duration(seconds: 1), json:
+            UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+          connection.prepare(delay: const Duration(seconds: 1), json:
+            UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif').toJson());
+
+          await tester.tap(find.byIcon(ZulipIcons.image));
+          await tester.pump();
+          final call = testBinding.takePickMultipleMediaCalls().single;
+          check(call.requestFullMetadata).equals(false);
+
+          checkNoDialog(tester);
+
+          check(controller!.content.text).equals(
+            'see image: [Uploading image.jpg…]()\n\n[Uploading test.gif…]()\n\n');
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(seconds: 1));
+          check(controller!.content.text).equals(
+            'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[Uploading test.gif…]()\n\n');
+          checkAppearsLoading(tester, true);
+
+          await tester.pump(const Duration(seconds: 1));
+          check(controller!.content.text).equals(
+            'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[test.gif](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif)\n\n');
+          checkAppearsLoading(tester, false);
+        }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+
+        testWidgets('unreadable file skipped with message; other file uploads', (tester) async {
+          await prepare(tester);
+
+          final reportedErrors = <String?>[];
+          reportErrorToUserBriefly = (message, {details}) => reportedErrors.add(message);
+          addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+
+          testBinding.pickMultipleMediaResult = [
+            XFile.fromData(
+              mimeType: 'image/jpeg',
+              utf8.encode('asdf'),
+              name: 'image.jpg',
+              length: 12345,
+              path: '/data/user/0/com.zulipmobile/cache/image.jpg'),
+            _UnreadableXFile('/data/user/0/com.zulipmobile/cache/missing.jpg'),
+          ];
+          connection.prepare(json:
+            UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+          await tester.tap(find.byIcon(ZulipIcons.image));
+          await tester.pump();
+          check(reportedErrors).single.equals('Could not read file: missing.jpg');
+
+          check(controller!.content.text)
+            .equals('see image: [Uploading image.jpg…]()\n\n');
+
+          await tester.pump(const Duration(seconds: 1));
+          check(controller!.content.text)
+            .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+        }, variant: const TargetPlatformVariant({TargetPlatform.android}));
+      },
+      // These tests fail on Windows because [XFile.name] splits on
+      // [Platform.pathSeparator], corresponding to the actual host platform
+      // the test is running on, instead of the path separator for the
+      // target platform the test is simulating.
+      // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+      skip: Platform.isWindows);
+
+      testWidgets('iOS (uses file_picker): success', (tester) async {
         await prepare(tester);
         checkAppearsLoading(tester, false);
 
@@ -1261,7 +1477,7 @@ void main() {
         check(controller!.content.text)
           .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
-      });
+      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
 
       // TODO test what happens when selecting/uploading fails
     });
@@ -1313,10 +1529,6 @@ void main() {
 
       // TODO test what happens when capturing/uploading fails
     },
-    // This test fails on Windows because [XFile.name] splits on
-    // [Platform.pathSeparator], corresponding to the actual host platform
-    // the test is running on, instead of the path separator for the
-    // target platform the test is simulating.
     // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
     skip: Platform.isWindows);
 
@@ -1338,7 +1550,7 @@ void main() {
       )]);
       connection.prepare(json: UploadFileResult(url:
         '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt').toJson());
-      await tester.tap(find.byIcon(ZulipIcons.image));
+      await tester.tap(find.byIcon(ZulipIcons.attach_file));
       await tester.pump();
       check(controller!.content.text)
         .equals('[Uploading 한국어 파일.txt…]()\n\n');
@@ -1859,6 +2071,25 @@ void main() {
   });
 
   group('ComposeBoxState new-event-queue transition', () {
+    void prepareNewConnection(List<Map<String, dynamic>> responses) {
+      final connection = (testBinding.globalStore
+          ..clearCachedApiConnections()
+          ..useCachedApiConnections = true)
+        .apiConnectionFromAccount(store.account) as FakeApiConnection;
+      for (final json in responses) {
+        connection.prepare(json: json);
+      }
+    }
+
+    void expireEventQueue() {
+      store.updateMachine!
+        ..debugPauseLoop()
+        ..poll()
+        ..debugPrepareLoopError(
+            eg.apiExceptionBadEventQueueId(queueId: store.queueId))
+        ..debugAdvanceLoop();
+    }
+
     testWidgets('content input not cleared when store changes', (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/1470
 
@@ -1873,20 +2104,12 @@ void main() {
       await enterContent(tester, 'some content');
       checkContentInputValue(tester, 'some content');
 
-      // Encache a new connection; prepare it for the message-list fetch
-      final newConnection = (testBinding.globalStore
-          ..clearCachedApiConnections()
-          ..useCachedApiConnections = true)
-        .apiConnectionFromAccount(store.account) as FakeApiConnection;
-      newConnection.prepare(json:
-        eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson());
+      // For the message-list fetch.
+      prepareNewConnection([
+        eg.newestGetMessagesResult(foundOldest: true, messages: []).toJson(),
+      ]);
 
-      store.updateMachine!
-        ..debugPauseLoop()
-        ..poll()
-        ..debugPrepareLoopError(
-            eg.apiExceptionBadEventQueueId(queueId: store.queueId))
-        ..debugAdvanceLoop();
+      expireEventQueue();
       await tester.pump();
       await tester.pump(Duration.zero);
 
@@ -1900,6 +2123,74 @@ void main() {
         ..streams.containsKey(channel.streamId);
 
       checkContentInputValue(tester, 'some content');
+    });
+
+    testWidgets('topic input cleared if empty topic only policy set after store changes', (tester) async {
+      final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        subscriptions: [eg.subscription(channel)]);
+
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+
+      // For the message-list fetch and the topic-autocomplete refetch.
+      prepareNewConnection([
+        eg.newestGetMessagesResult(foundOldest: true,
+          messages: [eg.streamMessage(stream: channel)]).toJson(),
+        GetChannelTopicsResult(topics: []).toJson(),
+      ]);
+
+      expireEventQueue();
+      await tester.pump();
+      await tester.pump(Duration.zero);
+
+      final newStore = testBinding.globalStore.perAccountSync(store.accountId)!;
+      check(newStore).not((it) => it.identicalTo(store));
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('some topic');
+
+      await newStore.handleEvent(eg.channelUpdateEvent(newStore.streams[channel.streamId]!,
+        property: ChannelPropertyName.topicsPolicy,
+        value: ChannelTopicsPolicy.emptyTopicOnly));
+      await tester.pump(Duration.zero);
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('');
+    });
+
+    testWidgets('topic input cleared if empty topic only policy set while disconnected', (tester) async {
+      final channel = eg.stream(topicsPolicy: .allowEmptyTopic);
+      final subscription = eg.subscription(channel);
+      final narrow = ChannelNarrow(channel.streamId);
+      await prepareComposeBox(tester,
+        narrow: narrow,
+        subscriptions: [subscription]);
+
+      await enterTopic(tester, narrow: narrow, topic: 'some topic');
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('some topic');
+
+      // For the message-list fetch and the topic-autocomplete refetch.
+      prepareNewConnection([
+        eg.newestGetMessagesResult(foundOldest: true,
+          messages: [eg.streamMessage(stream: channel, topic: '')]).toJson(),
+        GetChannelTopicsResult(topics: []).toJson(),
+      ]);
+
+      testBinding.globalStore.loadPerAccountDuration = const Duration(seconds: 1);
+      expireEventQueue();
+      await tester.pump();
+
+      // The policy changes while disconnected, mid-reload. The reload's snapshot
+      // will already reflect it, and no event about it will ever arrive.
+      subscription.topicsPolicy = ChannelTopicsPolicy.emptyTopicOnly;
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(Duration.zero);
+
+      final newStore = testBinding.globalStore.perAccountSync(store.accountId)!;
+      check(newStore).not((it) => it.identicalTo(store));
+      check(state).controller.isA<StreamComposeBoxController>()
+        .topic.text.equals('');
     });
   });
 
@@ -2021,6 +2312,29 @@ void main() {
       await tester.pump();
       check(state).controller.isA<StreamComposeBoxController>()
         ..topic.text.equals(topic)
+        ..content.text.equals(failedMessageContent)
+        ..contentFocusNode.hasFocus.isTrue();
+    });
+
+    testWidgets('restore content but not topic in channel narrow with emptyTopicOnly policy', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/pull/2340#pullrequestreview-4666573105
+      final channelNarrow = ChannelNarrow(channel.streamId);
+      await prepareMessageNotSent(tester, narrow: channelNarrow);
+
+      await tester.enterText(topicInputFinder, 'topic before restoring');
+      check(state).controller.isA<StreamComposeBoxController>()
+        ..topic.text.equals('topic before restoring')
+        ..content.text.isNotNull().isEmpty();
+
+      await store.handleEvent(eg.channelUpdateEvent(store.streams[channel.streamId]!,
+        property: ChannelPropertyName.topicsPolicy,
+        value: ChannelTopicsPolicy.emptyTopicOnly));
+      await tester.pump(Duration.zero);
+
+      await tester.tap(failedMessageFinder);
+      await tester.pump();
+      check(state).controller.isA<StreamComposeBoxController>()
+        ..topic.text.equals('')
         ..content.text.equals(failedMessageContent)
         ..contentFocusNode.hasFocus.isTrue();
     });
@@ -2622,4 +2936,14 @@ enum _EditInteractionStart {
       _EditInteractionStart.restoreFailedEdit => 'from restoring a failed edit',
     };
   }
+}
+
+/// An [XFile] whose contents can't be read, as when the underlying file
+/// has gone missing from the filesystem.
+class _UnreadableXFile extends XFile {
+  _UnreadableXFile(super.path);
+
+  @override
+  Future<int> length() async =>
+    throw PathNotFoundException(path, const OSError());
 }

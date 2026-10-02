@@ -1,3 +1,6 @@
+// TODO(#2463) stop using the deprecated members
+// ignore_for_file: deprecated_member_use
+
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
@@ -16,10 +19,14 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get aboutPageAppVersion => 'Версия приложения';
 
   @override
-  String get aboutPageOpenSourceLicenses => 'Лицензии открытого исходного кода';
+  String get aboutPageAppVersionUnknown =>
+      'Информация о версии приложения не найдена.';
 
   @override
-  String get aboutPageTapToView => 'Нажмите для просмотра';
+  String get aboutPageReleaseNotes => 'Примечания к релизу';
+
+  @override
+  String get aboutPageOpenSourceLicenses => 'Лицензии открытого исходного кода';
 
   @override
   String get upgradeWelcomeDialogTitle =>
@@ -408,6 +415,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
+  String errorCouldNotReadFile(String filename) {
+    return 'Не удалось прочитать файл: $filename';
+  }
+
+  @override
   String get errorLoginInvalidInputTitle => 'Неверный ввод';
 
   @override
@@ -494,6 +506,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorCouldNotEditMessageTitle => 'Сбой редактирования';
+
+  @override
+  String get successAppVersionCopied => 'Версия приложения скопирована';
 
   @override
   String get successLinkCopied => 'Ссылка скопирована';
@@ -804,6 +819,13 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlLabel => 'URL вашей организации Zulip';
+
+  @override
+  String get loginRealmUrlHelperText =>
+      'Адрес для использования Zulip в браузере.';
+
+  @override
+  String get loginRealmUrlHelpButton => 'Помощь';
 
   @override
   String get loginHidePassword => 'Скрыть пароль';
@@ -1440,9 +1462,6 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get scrollToBottomTooltip => 'Прокрутить вниз';
-
-  @override
-  String get appVersionUnknownPlaceholder => '(…)';
 
   @override
   String get zulipAppTitle => 'Zulip';

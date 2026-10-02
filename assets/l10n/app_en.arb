@@ -7,13 +7,17 @@
   "@aboutPageAppVersion": {
     "description": "Label for Zulip app version in About Zulip page"
   },
+  "aboutPageAppVersionUnknown": "The app’s version information was not found.",
+  "@aboutPageAppVersionUnknown": {
+    "description": "Banner text in About Zulip page, shown in place of the app-version item when the version is unknown."
+  },
+  "aboutPageReleaseNotes": "Release notes",
+  "@aboutPageReleaseNotes": {
+    "description": "Item title in About Zulip page to open the current version's release notes on GitHub"
+  },
   "aboutPageOpenSourceLicenses": "Open-source licenses",
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
-  },
-  "aboutPageTapToView": "Tap to view",
-  "@aboutPageTapToView": {
-    "description": "Item subtitle in About Zulip page to navigate to Licenses page"
   },
   "upgradeWelcomeDialogTitle": "Welcome to the new Zulip app!",
   "@upgradeWelcomeDialogTitle": {
@@ -463,6 +467,13 @@
       "num": {"type": "int", "example": "4"}
     }
   },
+  "errorCouldNotReadFile": "Could not read file: {filename}",
+  "@errorCouldNotReadFile": {
+    "description": "Error message when an attached file could not be read.",
+    "placeholders": {
+      "filename": {"type": "String", "example": "foo.txt"}
+    }
+  },
   "errorLoginInvalidInputTitle": "Invalid input",
   "@errorLoginInvalidInputTitle": {
     "description": "Error title for login when input is invalid."
@@ -572,6 +583,10 @@
   "errorCouldNotEditMessageTitle": "Could not edit message",
   "@errorCouldNotEditMessageTitle": {
     "description": "Error title when an exception prevented us from opening the compose box for editing a message."
+  },
+  "successAppVersionCopied": "App version copied",
+  "@successAppVersionCopied": {
+    "description": "Success message after the app version was copied to the user's system clipboard."
   },
   "successLinkCopied": "Link copied",
   "@successLinkCopied": {
@@ -957,6 +972,14 @@
   "loginRealmUrlLabel": "Your Zulip organization URL",
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
+  },
+  "loginRealmUrlHelperText": "This is the address you would use to open Zulip in a browser.",
+  "@loginRealmUrlHelperText": {
+    "description": "Helper text below the Zulip organization URL entry field on the login page."
+  },
+  "loginRealmUrlHelpButton": "Help",
+  "@loginRealmUrlHelpButton": {
+    "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
   },
   "loginHidePassword": "Hide password",
   "@loginHidePassword": {
@@ -1693,10 +1716,6 @@
   "scrollToBottomTooltip": "Scroll to bottom",
   "@scrollToBottomTooltip": {
     "description": "Tooltip for button to scroll to bottom."
-  },
-  "appVersionUnknownPlaceholder": "(…)",
-  "@appVersionUnknownPlaceholder": {
-    "description": "Placeholder to show in place of the app version when it is unknown."
   },
   "zulipAppTitle": "Zulip",
   "@zulipAppTitle": {
