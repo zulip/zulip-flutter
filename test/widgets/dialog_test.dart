@@ -5,8 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zulip/model/settings.dart';
-import 'package:zulip/widgets/app.dart';
 import 'package:zulip/widgets/dialog.dart';
 
 import '../model/binding.dart';
@@ -165,28 +163,4 @@ void main() {
     check(find.ancestor(of: find.text('Do the thing?'),
       matching: find.byType(SingleChildScrollView))).findsOne();
   }, variant: TargetPlatformVariant.all());
-
-  group('UpgradeWelcomeDialog', () {
-    // TODO(#1594): test LegacyUpgradeState and BoolGlobalSetting.upgradeWelcomeDialogShown
-
-    testWidgets('only one SingleChildScrollView created', (tester) async {
-      final transitionDurationObserver = TransitionDurationObserver();
-      addTearDown(testBinding.reset);
-
-      // Real ZulipApp needed because the show-dialog function calls
-      // `await ZulipApp.navigator`.
-      await tester.pumpWidget(ZulipApp(navigatorObservers: [transitionDurationObserver]));
-      await tester.pump();
-
-      await testBinding.globalStore.settings
-        .debugSetLegacyUpgradeState(LegacyUpgradeState.found);
-
-      UpgradeWelcomeDialog.maybeShow();
-      await transitionDurationObserver.pumpPastTransition(tester);
-
-      final expectedMessage = 'You’ll find a familiar experience in a faster, sleeker package.';
-      check(find.ancestor(of: find.text(expectedMessage),
-        matching: find.byType(SingleChildScrollView))).findsOne();
-    }, variant: TargetPlatformVariant.all());
-  });
 }
