@@ -1783,6 +1783,9 @@ class UpdateMachine {
   ///    and errors this method rethrows.
   Future<void> _handlePollRequestError(Object error, StackTrace stackTrace) async {
     store.isRecoveringEventStream = true;
+    // First, so that even a failure we don't retry
+    // clears any trigger left over from an earlier failure.
+    _pollBackoffAbortTrigger = null;
 
     if (error is! ApiRequestException) {
       // Some unexpected error, outside even making the HTTP request.
