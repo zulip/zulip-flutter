@@ -222,15 +222,30 @@ class ParagraphNode extends BlockInlineContainerNode {
     this.wasImplicit = false,
     required super.links,
     required super.nodes,
+    this.isEmojiParagraph = false,
   });
 
   /// True when there was no corresponding `p` element in the original HTML.
   final bool wasImplicit;
 
+
+  /// Whether this paragraph consists entirely of emojis (and whitespace),
+  /// and should therefore be rendering all emojis within at a larger size.
+  final bool isEmojiParagraph;
+
+  ParagraphNode copyWith({required bool isEmojiParagraph}) => ParagraphNode(
+    debugHtmlNode: debugHtmlNode,
+    wasImplicit: wasImplicit,
+    links: links,
+    nodes: nodes,
+    isEmojiParagraph: isEmojiParagraph,
+  );
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(FlagProperty('wasImplicit', value: wasImplicit, ifTrue: 'was implicit'));
+    properties.add(FlagProperty('isEmojiParagraph', value: isEmojiParagraph, ifTrue: 'is emoji paragraph'));
   }
 }
 
@@ -2303,6 +2318,19 @@ class _ZulipContentParser {
   ZulipContent parse(String html) {
     final fragment = HtmlParser(html, parseMeta: false).parseFragment();
     final nodes = parseBlockContentList(fragment.nodes);
+
+    if (nodes.length == 1 && nodes.first is ParagraphNode) {
+      final paraNode = nodes.first as ParagraphNode;
+
+      final isOnlyEmoji = paraNode.nodes.every((node) =>
+        node is EmojiNode
+        || (node is TextNode && node.text.trim().isEmpty));
+
+      if (isOnlyEmoji) {
+        nodes[0] = paraNode.copyWith(isEmojiParagraph: isOnlyEmoji);
+      }
+    }
+
     return ZulipContent(nodes: nodes, debugHtmlNode: kDebugMode ? fragment : null);
   }
 }
