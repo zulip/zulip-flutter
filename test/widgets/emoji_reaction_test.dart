@@ -279,6 +279,128 @@ void main() {
       }
     }
 
+    group('chip label width', () {
+      // The width [setupChipsInBox] gives the list, and the chip's own
+      // horizontal padding; see [ReactionChip.build].
+      const maxRowWidth = 245.0 - (4 + 5);
+      // The padding around the emoji and around the label, within the chip's
+      // row; see [ReactionChip.build].
+      const rowPadding = (3 + 3) + (3 + 3);
+      // [_squareEmojiSize], unscaled.
+      const squareEmojiWidth = 17.0;
+
+      final user1 = eg.user(fullName: 'Long Name With Many Words In It');
+      final user2 = eg.user(fullName: 'longnamelongnamelongnamelongname');
+      final user3 = eg.user(fullName: 'Another Quite Long Name Here');
+      final voters = [user1, user2, user3];
+
+      // Long enough that the chip's max label width actually constrains it.
+      final label = voters.map((user) => user.fullName).join(', ');
+
+      /// Pump the chip with [voters] reacting with [jsonEmoji].
+      ///
+      /// Pumping again reuses the chip's [State], as happens when a
+      /// message's reactions change.
+      Future<void> pumpChipWith(WidgetTester tester,
+          Map<String, String> jsonEmoji) async {
+        await setupChipsInBox(tester, reactions: [
+          for (final user in voters)
+            Reaction.fromJson({ ...jsonEmoji, 'user_id': user.userId}),
+        ]);
+        // Let an image emoji's load failure, and the relayout it prompts,
+        // settle before we measure.
+        await tester.pump();
+        await tester.pump();
+      }
+
+      /// Set up the store and pump one chip, with [voters] reacting
+      /// with [jsonEmoji].
+      ///
+      /// Serves the emoji's image with [imageStatus], so that passing
+      /// something other than [HttpStatus.ok] makes the image fail to load.
+      Future<void> pumpChip(WidgetTester tester, {
+        required Map<String, String> jsonEmoji,
+        Emojiset emojiset = Emojiset.google,
+        int imageStatus = HttpStatus.ok,
+      }) async {
+        await prepare();
+        await store.addUsers(voters);
+        await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
+          '181': eg.realmEmojiItem(emojiCode: '181', emojiName: 'twocents'),
+        }));
+        await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+          property: UserSettingName.displayEmojiReactionUsers, value: true));
+        await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+          property: UserSettingName.emojiset, value: emojiset));
+
+        // Otherwise a load in an earlier test is reused here, and a test
+        // that wants the load to fail never sees it fail.
+        imageCache.clear();
+        imageCache.clearLiveImages();
+
+        final httpClient = FakeImageHttpClient();
+        debugNetworkImageHttpClientProvider = () => httpClient;
+        httpClient.request.response
+          ..statusCode = imageStatus
+          ..content = kSolidBlueAvatar;
+
+        await pumpChipWith(tester, jsonEmoji);
+      }
+
+      // TODO(upstream) Do this in an addTearDown, once we can:
+      //   https://github.com/flutter/flutter/issues/123189
+      void resetImageHttpClient() {
+        debugNetworkImageHttpClientProvider = null;
+      }
+
+      /// The max width the chip allows its label.
+      double labelMaxWidth(WidgetTester tester) {
+        final container = tester.widget<Container>(find.ancestor(
+          of: find.text(label), matching: find.byType(Container)).first);
+        return container.constraints!.maxWidth;
+      }
+
+      testWidgets('square emoji: label gets the width the emoji does not use',
+          (tester) async {
+        await pumpChip(tester, jsonEmoji: u1); // a Unicode emoji, so square
+        check(labelMaxWidth(tester))
+          .equals(maxRowWidth - squareEmojiWidth - rowPadding);
+        resetImageHttpClient();
+      });
+
+      testWidgets('text emoji: label leaves the emoji a quarter of the width',
+          (tester) async {
+        await pumpChip(tester, jsonEmoji: u1, emojiset: Emojiset.text);
+        check(labelMaxWidth(tester)).equals((maxRowWidth - 6) * 0.75);
+        resetImageHttpClient();
+      });
+
+      testWidgets('image emoji that loads: treated as a square emoji',
+          (tester) async {
+        await pumpChip(tester, jsonEmoji: i1);
+        check(labelMaxWidth(tester))
+          .equals(maxRowWidth - squareEmojiWidth - rowPadding);
+        resetImageHttpClient();
+      });
+
+      testWidgets('image emoji that fails to load: treated as a text emoji',
+          (tester) async {
+        await pumpChip(tester, jsonEmoji: i1, imageStatus: HttpStatus.notFound);
+        check(labelMaxWidth(tester)).equals((maxRowWidth - 6) * 0.75);
+        resetImageHttpClient();
+      });
+
+      testWidgets('image emoji that failed, then a different emoji: '
+          'square again', (tester) async {
+        await pumpChip(tester, jsonEmoji: i1, imageStatus: HttpStatus.notFound);
+        check(labelMaxWidth(tester)).equals((maxRowWidth - 6) * 0.75);
+        await pumpChipWith(tester, u1); // a Unicode emoji, so square
+        check(labelMaxWidth(tester))
+          .equals(maxRowWidth - squareEmojiWidth - rowPadding);
+        resetImageHttpClient();
+      });
+    });
+
     testWidgets('show "Muted user" label for muted reactors', (tester) async {
       final user1 = eg.user(userId: 1, fullName: 'User 1');
       final user2 = eg.user(userId: 2, fullName: 'User 2');
