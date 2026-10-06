@@ -1,9 +1,9 @@
 import 'package:checks/checks.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zulip/widgets/dialog.dart';
 
 /// In a widget test, check that [showErrorDialog] was called with the right text.

@@ -3,9 +3,9 @@ library;
 
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 //|//////////////////////////////////////////////////////////////
 // From the Flutter engine, i.e. from dart:ui.
@@ -193,7 +193,7 @@ extension PageRouteChecks<T> on Subject<PageRoute<T>> {
 }
 
 //|//////////////////////////////////////////////////////////////
-// From 'package:flutter/material.dart'.
+// From 'package:material_ui/material_ui.dart'.
 //
 
 extension MaterialChecks on Subject<Material> {

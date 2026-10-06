@@ -1,8 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:checks/checks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legacy_checks/legacy_checks.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zulip/widgets/inset_shadow.dart';
 
 import '../flutter_checks.dart';

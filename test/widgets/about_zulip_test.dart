@@ -1,8 +1,8 @@
 import 'package:checks/checks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zulip/widgets/about_zulip.dart';
 
 import '../example_data.dart' as eg;

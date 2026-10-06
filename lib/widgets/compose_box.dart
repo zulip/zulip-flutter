@@ -4,9 +4,9 @@ import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 

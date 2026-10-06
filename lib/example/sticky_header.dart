@@ -17,7 +17,7 @@
 /// so as to set the app ID differently.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../widgets/sticky_header.dart';
 

@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../generated/l10n/zulip_localizations.dart';
 import '../log.dart';
@@ -247,7 +247,13 @@ class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
           onGenerateTitle: (BuildContext context) {
             return ZulipLocalizations.of(context).zulipAppTitle;
           },
-          localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+          // TODO(upstream): use ZulipLocalizations.localizationsDelegates
+          //   once gen-l10n supports material_ui:
+          //     https://github.com/flutter/flutter/issues/191072
+          localizationsDelegates: const [
+            ZulipLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
           supportedLocales: ZulipLocalizations.supportedLocales,
           // The context has to be taken from the [Builder] because
           // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.
