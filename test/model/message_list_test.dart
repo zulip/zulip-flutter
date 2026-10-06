@@ -3895,17 +3895,14 @@ void main() {
     doTest(narrow: MentionsNarrow(),                    expected: true);
   });
 
-  test('showSender is maintained correctly', () => awaitFakeAsync((async) async {
+  test('showSender is maintained correctly', () => awaitFakeAsync(
+      // Pin the clock, to avoid flakes that depend on the local time of day.
+      initialTime: DateTime(2035, 8, 21), (async) async {
     // TODO(#150): This will get more complicated with message moves.
     // Until then, we always compute this sequentially from oldest to newest.
     // So we just need to exercise the different cases of the logic for
     // whether the sender should be shown, but the difference between
     // fetchInitial and handleMessageEvent etc. doesn't matter.
-
-    // Elapse test's clock to a specific time, to avoid any flaky-ness
-    // that may be caused by a specific local time of the day.
-    final initialTime = DateTime(2035, 8, 21);
-    async.elapse(initialTime.difference(clock.now()));
 
     final now = clock.now();
     final t1 = eg.utcTimestamp(now.subtract(Duration(days: 1)));
