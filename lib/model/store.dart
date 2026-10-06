@@ -1764,12 +1764,24 @@ class UpdateMachine {
   /// See [_handleConnectivityRetrySignal].
   Completer<void>? _pollAbortTrigger;
 
-  /// Non-null just when the most recent poll failure suggests
-  /// the device was asleep or the app was in the background,
-  /// so that waking should discard the accumulated backoff state.
+  /// Non-null just when the most recent poll failure was a failed connection
+  /// ([NetworkExceptionKind.connectionFailed]).
+  ///
+  /// That's the failure we get when the network is unavailable,
+  /// as when the OS cuts off a sleeping or backgrounded app's network
+  /// (see #1884).
+  /// After it, the app resuming
+  /// may mean there's a working network again,
+  /// so resuming should discard the accumulated backoff state;
+  /// see [_handleAppLifecycleStateChange].
+  /// (The app resumes when its lifecycle state becomes
+  /// [AppLifecycleState.resumed],
+  /// as when the user returns to it or unlocks the device.)
+  ///
+  /// After other failures, like a TLS failure or a 5xx response,
+  /// the backoff wait runs its course.
   ///
   /// Completing it aborts the backoff wait in progress, if any.
-  /// See [_handleAppLifecycleStateChange].
   Completer<void>? _pollBackoffAbortTrigger;
 
   /// Discard the accumulated backoff state,
@@ -1883,14 +1895,14 @@ class UpdateMachine {
     }
 
     bool shouldReportToUser;
-    bool abortBackoffOnWake = false;
+    bool backoffAbortable = false;
     switch (error) {
       case NetworkException(kind: .connectionFailed):
         // A failed connection is common when the app returns from sleep.
         shouldReportToUser = false;
         // Probably the OS cut off network access while the app was in
         // the background; see #1884.
-        abortBackoffOnWake = true;
+        backoffAbortable = true;
 
       case NetworkException():
       case Server5xxException():
@@ -1918,7 +1930,7 @@ class UpdateMachine {
     if (shouldReportToUser) {
       _maybeReportToUserTransientError(error);
     }
-    _pollBackoffAbortTrigger = abortBackoffOnWake ? Completer() : null;
+    _pollBackoffAbortTrigger = backoffAbortable ? Completer() : null;
     await (_pollBackoffMachine ??= BackoffMachine())
       .wait(abortTrigger: _pollBackoffAbortTrigger?.future);
     if (_disposed) return;
