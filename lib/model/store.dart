@@ -1713,16 +1713,26 @@ class UpdateMachine {
   /// See [_handleAppLifecycleStateChange].
   Completer<void>? _pollBackoffAbortTrigger;
 
+  /// Discard the accumulated backoff state,
+  /// so that after any further failure, backoff starts over small.
+  ///
+  /// Also cut short the backoff wait in progress, if any;
+  /// see [_pollBackoffAbortTrigger].
+  void _resetPollBackoff() {
+    final trigger = _pollBackoffAbortTrigger;
+    _pollBackoffMachine = null;
+    _pollBackoffAbortTrigger = null;
+    trigger?.complete();
+  }
+
   void _handleAppLifecycleStateChange(AppLifecycleState state) {
     assert(!_disposed); // The subscription is canceled in [dispose].
     if (state != .resumed) return;
-    if (_pollBackoffAbortTrigger case final trigger?) {
+    if (_pollBackoffAbortTrigger != null) {
       // Retry immediately, and if the network still isn't back
       // (it can take a moment after waking), let backoff start over small.
       assert(debugLog('App returned to foreground; aborting poll backoff.'));
-      _pollBackoffMachine = null;
-      _pollBackoffAbortTrigger = null;
-      trigger.complete();
+      _resetPollBackoff();
     }
   }
 
@@ -1751,8 +1761,7 @@ class UpdateMachine {
     // immediately instead of waiting through the long-poll period.
     // (See comments on that code for why this behavior is helpful.)
     // If server logs show pressure from too many requests, we can investigate.
-    _pollBackoffMachine = null;
-    _pollBackoffAbortTrigger = null;
+    _resetPollBackoff();
 
     store.isRecoveringEventStream = false;
     _accumulatedTransientFailureCount = 0;
