@@ -1297,6 +1297,76 @@ void main() {
           ..not((it) => it.identicalTo(machineBefore));
       }));
 
+      test('abort backoff wait from a failed connection', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail to connect, entering a backoff wait.
+        prepareNetworkExceptionConnectionFailed();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        check(async.pendingTimers).length.equals(1);
+
+        // A connectivity change cuts the wait short: the network
+        // the request failed on may be gone, so retry on the new one.
+        prepareHeartbeat(2);
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyConnectivityChanged([.mobile]);
+        async.flushMicrotasks();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        // The change also discarded the accumulated backoff state.
+        check(updateMachine.debugPollBackoffMachine).isNull();
+        async.elapse(Duration.zero);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      void checkNoAbortOfBackoffWait(void Function() prepareError) {
+        awaitFakeAsync((async) async {
+          BackoffMachine.debugDuration = const Duration(seconds: 10);
+          addTearDown(() => BackoffMachine.debugDuration = null);
+          await preparePoll(lastEventId: 1);
+
+          // Make the request, inducing an error in it,
+          // and entering a backoff wait.
+          prepareError();
+          updateMachine.debugAdvanceLoop();
+          async.elapse(Duration.zero);
+          checkLastRequest(lastEventId: 1);
+          check(async.pendingTimers).length.equals(1);
+          final machineBefore = updateMachine.debugPollBackoffMachine;
+          check(machineBefore).isNotNull();
+
+          // A connectivity change neither cuts the wait short
+          // nor discards the accumulated backoff state.
+          updateMachine.debugAdvanceLoop();
+          testBinding.notifyConnectivityChanged([.mobile]);
+          async.flushMicrotasks();
+          check(connection.lastRequest).isNull();
+          check(updateMachine.debugPollBackoffMachine).identicalTo(machineBefore);
+
+          // Polling continues after the backoff.
+          prepareHeartbeat(2);
+          async.flushTimers();
+          checkLastRequest(lastEventId: 1, expectDontBlock: true);
+          check(updateMachine.lastEventId).equals(2);
+        });
+      }
+
+      test('no abort of backoff wait from a non-connectionFailed transport failure', () {
+        // A transport error that isn't a failed connection
+        // (a TLS failure, of kind [NetworkExceptionKind.other]).
+        // As on app resume, a connectivity change leaves its wait alone.
+        checkNoAbortOfBackoffWait(prepareNetworkExceptionOther);
+      });
+
+      test('no abort of backoff wait from a server error', () {
+        // The server itself failed: the network demonstrably worked,
+        // so a connectivity change is no reason to retry sooner.
+        checkNoAbortOfBackoffWait(prepareServer5xxException);
+      });
+
       test('deferred retry signal: abort a retry that predates the change', () => awaitFakeAsync((async) async {
         BackoffMachine.debugDuration = const Duration(seconds: 1);
         addTearDown(() => BackoffMachine.debugDuration = null);
