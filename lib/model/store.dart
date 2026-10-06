@@ -1770,10 +1770,11 @@ class UpdateMachine {
   /// That's the failure we get when the network is unavailable,
   /// as when the OS cuts off a sleeping or backgrounded app's network
   /// (see #1884).
-  /// After it, the app resuming
+  /// After it, the app resuming or a network-connectivity change
   /// may mean there's a working network again,
-  /// so resuming should discard the accumulated backoff state;
-  /// see [_handleAppLifecycleStateChange].
+  /// so either one should discard the accumulated backoff state;
+  /// see [_handleAppLifecycleStateChange]
+  /// and [_handleConnectivityRetrySignal].
   /// (The app resumes when its lifecycle state becomes
   /// [AppLifecycleState.resumed],
   /// as when the user returns to it or unlocks the device.)
@@ -1800,9 +1801,12 @@ class UpdateMachine {
   /// the network changed.
   ///
   /// A poll request from before the change
-  /// may be stuck on a dead connection.
-  /// Abort the request (see [_pollAbortTrigger]),
-  /// so that polling retries promptly on the new network.
+  /// may be stuck on a dead connection,
+  /// and a backoff wait after such a request failed
+  /// only delays a retry on the new network.
+  /// Abort the request (see [_pollAbortTrigger])
+  /// or the backoff wait (see [_pollBackoffAbortTrigger]),
+  /// so that polling retries promptly.
   void _handleConnectivityRetrySignal(void _) {
     assert(!_disposed); // The subscription is canceled in [dispose].
     if (_pollConnectivityCount == _connectivityMonitor.updateCount) {
@@ -1818,7 +1822,15 @@ class UpdateMachine {
       _pollAbortTrigger = null;
       _resetPollBackoff();
       trigger.complete();
+    } else if (_pollBackoffAbortTrigger != null) {
+      // A poll backoff is in progress, after a failed connection;
+      // abort that, and retry immediately on the new network.
+      assert(debugLog('Network connectivity changed; aborting poll backoff.'));
+      _resetPollBackoff();
     }
+    // Otherwise there's nothing to cut short: there's no request or
+    // backoff at all (as while handling events, or reloading), or the
+    // backoff is after some other failure; see [_pollBackoffAbortTrigger].
   }
 
   void _handleAppLifecycleStateChange(AppLifecycleState state) {
