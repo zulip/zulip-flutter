@@ -44,17 +44,22 @@ void main() {
   late FakeApiConnection connection;
   late TransitionDurationObserver transitionDurationObserver;
 
+  // Load fonts once, outside any test. Fonts persist across tests anyway,
+  // and loading one inside a testWidgets body leaves a frame callback
+  // pending at the end of the test, which fails the test.
+  setUpAll(() async {
+    // TODO do this more centrally, or put in reusable helper
+    final Future<ByteData> font = rootBundle.load('assets/Source_Sans_3/SourceSans3VF-Upright.otf');
+    final fontLoader = FontLoader('Source Sans 3')..addFont(font);
+    await fontLoader.load();
+  });
+
   Future<void> prepare() async {
     addTearDown(testBinding.reset);
     await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
     store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
     await store.addUser(eg.selfUser);
-
-    // TODO do this more centrally, or put in reusable helper
-    final Future<ByteData> font = rootBundle.load('assets/Source_Sans_3/SourceSans3VF-Upright.otf');
-    final fontLoader = FontLoader('Source Sans 3')..addFont(font);
-    await fontLoader.load();
   }
 
   // Base JSON for various unicode emoji reactions. Just missing user_id.
