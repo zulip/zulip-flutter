@@ -19,11 +19,17 @@ pluginManagement {
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-    id("com.android.application") version "8.12.0" apply false
+    // Above the 9.3.1 in Flutter's app template
+    // (`templateAndroidGradlePluginVersion` in the gradle_utils.dart
+    // linked below), because lint in AGP 9.3.1 crashes when Gradle runs
+    // on JDK 17, as it does in our CI. AGP 9.3.2 fixed that:
+    //   https://issuetracker.google.com/issues/522845800
+    // Once the template has 9.3.2 or later, go back to its version.
+    id("com.android.application") version "9.3.3" apply false
     // Generally keep this at the version in Flutter's app template,
     // which is `templateKotlinGradlePluginVersion` in:
     //   https://github.com/flutter/flutter/blob/main/packages/flutter_tools/lib/src/android/gradle_utils.dart
-    id("org.jetbrains.kotlin.android") version "2.2.20" apply false
+    id("org.jetbrains.kotlin.android") version "2.4.20" apply false
 }
 
 include(":app")
