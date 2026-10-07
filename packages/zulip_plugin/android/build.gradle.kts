@@ -3,7 +3,9 @@ plugins {
 }
 
 android {
-    namespace = "com.zulip.flutter"
+    // This must differ from the app's namespace, com.zulip.flutter.
+    // It doesn't need to match the package of ZulipShimPlugin.
+    namespace = "com.zulip.flutter.zulip_plugin"
 
     // This Gradle project holds only ZulipShimPlugin, which forwards to the
     // app's ZulipPlugin. For why, see this package's pubspec.yaml.
