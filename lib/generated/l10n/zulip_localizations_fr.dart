@@ -21,10 +21,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+      'L\'information de version de l\'application n\'a pas été trouvée.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes => 'Notes de publication';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Licences de logiciel libre';
@@ -520,7 +520,7 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Le message n\'a pas pu être modifié';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied => 'Version de l\'application copiée';
 
   @override
   String get successLinkCopied => 'Lien copié';
