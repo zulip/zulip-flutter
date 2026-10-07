@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../core.dart';
+import '../model/attachment.dart';
 import '../model/initial_snapshot.dart';
 import '../model/model.dart';
 import '../model/narrow.dart';
@@ -238,9 +239,13 @@ Future<UpdateMessageResult> updateMessage(
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class UpdateMessageResult {
-  // final List<DetachedUpload> detachedUploads; // TODO handle
+  /// Null on servers before feature level 285 (Zulip 10).
+  // TODO(server-10): Make non-nullable.
+  final List<Attachment>? detachedUploads;
 
-  UpdateMessageResult();
+  UpdateMessageResult({
+    required this.detachedUploads,
+  });
 
   factory UpdateMessageResult.fromJson(Map<String, dynamic> json) =>
     _$UpdateMessageResultFromJson(json);

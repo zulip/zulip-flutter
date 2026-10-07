@@ -615,6 +615,36 @@ abstract class ZulipLocalizations {
   /// **'Report message'**
   String get actionSheetOptionReportMessage;
 
+  /// Title of the confirmation dialog for deleting uploads detached from an edited message.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete uploaded files?'**
+  String get deleteUploadedFilesDialogTitle;
+
+  /// Explanation in the detached uploads deletion dialog, above the filenames. After a partial deletion, only files still awaiting deletion are listed.
+  ///
+  /// In en, this message translates to:
+  /// **'These files are no longer attached to your message. Deleting them permanently removes them for everyone.'**
+  String get deleteUploadedFilesDialogMessage;
+
+  /// Button dismissing the uploaded files deletion dialog without deleting any more files.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t delete'**
+  String get deleteUploadedFilesDialogCancel;
+
+  /// Button deleting the files listed in the uploaded files deletion dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteUploadedFilesDialogConfirm;
+
+  /// Error title when deleting detached uploads fails. The user can retry deleting the remaining files.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete uploaded files'**
+  String get errorDeleteUploadedFilesFailedTitle;
+
   /// Title for the report message dialog.
   ///
   /// In en, this message translates to:

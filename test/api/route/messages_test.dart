@@ -12,6 +12,7 @@ import 'package:zulip/model/narrow.dart';
 import '../../example_data.dart' as eg;
 import '../../stdlib_checks.dart';
 import '../fake_api.dart';
+import '../model/attachment_checks.dart';
 import 'route_checks.dart';
 
 void main() {
@@ -362,6 +363,57 @@ void main() {
   });
 
   group('updateMessage', () {
+    test('detached_uploads absent on older servers', () {
+      return FakeApiConnection.with_(zulipFeatureLevel: 284, (connection) async {
+        connection.prepare(json: {'result': 'success', 'msg': ''});
+        final result = await updateMessage(connection, messageId: 123, content: 'text');
+        check(result).detachedUploads.isNull();
+      });
+    });
+
+    test('detached_uploads empty', () {
+      return FakeApiConnection.with_((connection) async {
+        connection.prepare(json: {
+          'result': 'success', 'msg': '', 'detached_uploads': <Object?>[],
+        });
+        final result = await updateMessage(connection, messageId: 123, content: 'text');
+        check(result).detachedUploads.isNotNull().isEmpty();
+      });
+    });
+
+    for (final count in [1, 2]) {
+      test('detached_uploads contains $count uploads', () {
+        return FakeApiConnection.with_((connection) async {
+          final uploads = [
+            {
+              'id': 10, 'name': 'notes.txt',
+              'path_id': '2/ab/first/notes.txt', 'size': 90,
+              'create_time': 1790434261951, 'messages': <Object?>[],
+            },
+            {
+              'id': 11, 'name': 'photo.png',
+              'path_id': '2/cd/second/photo.png', 'size': 2048,
+              'create_time': 1790434261, 'message_ids': <int>[],
+            },
+          ].take(count).toList();
+          connection.prepare(json: {
+            'result': 'success', 'msg': '', 'detached_uploads': uploads,
+          });
+          final result = await updateMessage(connection, messageId: 123, content: 'text');
+          final detachedUploads = check(result).detachedUploads.isNotNull();
+          detachedUploads.length.equals(count);
+          detachedUploads[0]
+            ..id.equals(10)
+            ..name.equals('notes.txt');
+          if (count == 2) {
+            detachedUploads[1]
+              ..id.equals(11)
+              ..name.equals('photo.png');
+          }
+        });
+      });
+    }
+
     Future<UpdateMessageResult> checkUpdateMessage(
       FakeApiConnection connection, {
       required int messageId,
@@ -393,7 +445,7 @@ void main() {
 
     test('pure content change', () {
       return FakeApiConnection.with_((connection) async {
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await checkUpdateMessage(connection,
           messageId: eg.streamMessage().id,
           content: 'asdf',
@@ -409,7 +461,7 @@ void main() {
       // A separate test exercises `streamId`;
       // the API doesn't allow changing channel and content at the same time.
       return FakeApiConnection.with_((connection) async {
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await checkUpdateMessage(connection,
           messageId: eg.streamMessage().id,
           topic: eg.t('new topic'),
@@ -429,7 +481,7 @@ void main() {
 
     test('channel change', () {
       return FakeApiConnection.with_((connection) async {
-        connection.prepare(json: UpdateMessageResult().toJson());
+        connection.prepare(json: UpdateMessageResult(detachedUploads: []).toJson());
         await checkUpdateMessage(connection,
           messageId: eg.streamMessage().id,
           streamId: 1,

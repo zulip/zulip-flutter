@@ -1,4 +1,5 @@
 import 'package:checks/checks.dart';
+import 'package:zulip/api/model/attachment.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/channels.dart';
 import 'package:zulip/api/route/messages.dart';
@@ -7,6 +8,10 @@ import 'package:zulip/api/route/saved_snippets.dart';
 
 extension SendMessageResultChecks on Subject<SendMessageResult> {
   Subject<int> get id => has((e) => e.id, 'id');
+}
+
+extension UpdateMessageResultChecks on Subject<UpdateMessageResult> {
+  Subject<List<Attachment>?> get detachedUploads => has((e) => e.detachedUploads, 'detachedUploads');
 }
 
 extension CreateSavedSnippetResultChecks on Subject<CreateSavedSnippetResult> {

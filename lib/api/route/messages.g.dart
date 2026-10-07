@@ -43,11 +43,15 @@ Map<String, dynamic> _$SendMessageResultToJson(SendMessageResult instance) =>
     <String, dynamic>{'id': instance.id};
 
 UpdateMessageResult _$UpdateMessageResultFromJson(Map<String, dynamic> json) =>
-    UpdateMessageResult();
+    UpdateMessageResult(
+      detachedUploads: (json['detached_uploads'] as List<dynamic>?)
+          ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$UpdateMessageResultToJson(
   UpdateMessageResult instance,
-) => <String, dynamic>{};
+) => <String, dynamic>{'detached_uploads': instance.detachedUploads};
 
 UploadFileResult _$UploadFileResultFromJson(Map<String, dynamic> json) =>
     UploadFileResult(url: json['uri'] as String);

@@ -25,6 +25,7 @@ import 'actions.dart';
 import 'autocomplete.dart';
 import 'button.dart';
 import 'color.dart';
+import 'delete_uploaded_files.dart';
 import 'dialog.dart';
 import 'icons.dart';
 import 'inset_shadow.dart';
@@ -1986,13 +1987,15 @@ class _EditMessageBannerTrailing extends StatelessWidget {
       return;
     }
 
+    final pageRoute = ModalRoute.of(pageContext);
     final messageId = controller.messageId;
     final newContent = controller.content.textNormalized;
     composeBoxState.endEditInteraction();
 
+    final UpdateMessageResult? result;
     try {
       final store = PerAccountStoreWidget.of(pageContext);
-      await store.editMessage(
+      result = await store.editMessage(
         messageId: messageId,
         originalRawContent: originalRawContent,
         newContent: newContent);
@@ -2027,6 +2030,16 @@ class _EditMessageBannerTrailing extends StatelessWidget {
       // exit and re-enter. See the "first buggy behavior" in
       //   https://github.com/zulip/zulip-flutter/issues/1798 .
       messageListPageState.refresh(NumericAnchor(messageId));
+    }
+
+    // The edit banner disappears on Save, so use the page context. But don't
+    // open a dialog if the compose box was removed or the user left this route,
+    // including while the route is still mounted during its exit animation.
+    if (!composeBoxState.mounted || pageRoute?.isCurrent != true) return;
+    final detachedUploads = result?.detachedUploads;
+    if (detachedUploads != null && detachedUploads.isNotEmpty) {
+      DeleteUploadedFilesDialog.show(
+        pageContext: pageContext, attachments: detachedUploads);
     }
   }
 
