@@ -11,7 +11,7 @@ import 'package:zulip/notifications/open.dart';
 
 import '../example_data.dart' as eg;
 import '../model/binding.dart';
-import 'display_test.dart' show encryptNotification, notifPayloadNewMessage;
+import 'android_display_test.dart' show encryptNotification, notifPayloadNewMessage;
 
 /// Encode a notification payload into the form APNs would supply it in.
 ///
