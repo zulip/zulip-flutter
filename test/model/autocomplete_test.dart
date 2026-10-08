@@ -1144,18 +1144,6 @@ void main() {
           narrow: channelNarrow, zulipFeatureLevel: 246))
         .deepEquals([]);
     });
-
-    test('${WildcardMentionOption.topic} is available FL-224 onwards', () {
-      check(getWildcardOptionsFor('topic',
-          narrow: channelNarrow, zulipFeatureLevel: 224))
-        .deepEquals([WildcardMentionOption.topic]);
-    });
-
-    test('${WildcardMentionOption.topic} is not available before FL-224', () {
-      check(getWildcardOptionsFor('topic',
-          narrow: channelNarrow, zulipFeatureLevel: 223))
-        .deepEquals([]);
-    });
   });
 
   group('MentionAutocompleteQuery.testUser', () {

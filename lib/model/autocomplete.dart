@@ -755,8 +755,7 @@ class MentionAutocompleteView extends AutocompleteView<MentionAutocompleteQuery,
       }
     }
 
-    final isTopicWildcardAvailable = store.zulipFeatureLevel >= 224; // TODO(server-8)
-    if (isComposingChannelMessage && isTopicWildcardAvailable) {
+    if (isComposingChannelMessage) {
       tryOption(WildcardMentionOption.topic);
     }
   }
