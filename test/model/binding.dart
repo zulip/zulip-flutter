@@ -430,7 +430,7 @@ class TestZulipBinding extends ZulipBinding {
   /// See also:
   ///   * [pickFilesException]
   ///   * [takePickFilesCalls]
-  FilePickerResult? pickFilesResult;
+  List<PlatformFile> pickFilesResult = [];
 
   /// The [PlatformException] that `ZulipBinding.instance.pickFiles()` should throw.
   ///
@@ -440,7 +440,7 @@ class TestZulipBinding extends ZulipBinding {
   PlatformException? pickFilesException;
 
   void _resetPickFiles() {
-    pickFilesResult = null;
+    pickFilesResult = [];
     pickFilesException = null;
     _pickFilesCalls = null;
   }
@@ -453,33 +453,30 @@ class TestZulipBinding extends ZulipBinding {
   ///
   /// See also [pickFilesResult].
   List<({
-    bool? allowMultiple,
-    bool? withReadStream,
     FileType? type,
+    DarwinOptions darwinOptions,
   })> takePickFilesCalls() {
     final result = _pickFilesCalls;
     _pickFilesCalls = null;
     return result ?? [];
   }
   List<({
-    bool? allowMultiple,
-    bool? withReadStream,
     FileType? type,
+    DarwinOptions darwinOptions,
   })>? _pickFilesCalls;
 
   @override
-  Future<FilePickerResult?> pickFiles({
-    bool? allowMultiple,
-    bool? withReadStream,
+  Future<List<PlatformFile>> pickFiles({
     FileType? type,
+    DarwinOptions darwinOptions = const DarwinOptions(),
   }) async {
-    (_pickFilesCalls ??= []).add((allowMultiple: allowMultiple, withReadStream: withReadStream, type: type));
+    (_pickFilesCalls ??= []).add((type: type, darwinOptions: darwinOptions));
 
-    if (pickFilesResult != null && pickFilesException != null) {
+    if (pickFilesResult.isNotEmpty && pickFilesException != null) {
       throw FlutterError.fromParts([
         ErrorSummary(
           'TestZulipBinding.pickFiles called '
-          'with non-null pickFilesResult and non-null pickFilesException'),
+          'with non-empty pickFilesResult and non-null pickFilesException'),
         ErrorHint(
           'Tests should either set pickFilesResult or pickFilesException, '
           'but not both.'),

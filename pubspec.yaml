@@ -35,6 +35,10 @@ dependencies:
              # https://github.com/dart-lang/i18n/issues/759#issuecomment-1864316701
              # https://github.com/flutter/flutter/issues/117163
 
+  # Listed for its minimum version: before 2.1.1, when the user picks
+  # several files and none can be read, it returns an empty list,
+  # as if the user cancelled, instead of throwing.
+  android_file_picker: ^2.1.1
   app_settings: ^7.0.0
   collection: ^1.17.2
   connectivity_plus: ^7.3.1
@@ -42,9 +46,13 @@ dependencies:
   crypto: ^3.0.3
   csslib: ^1.0.2
   cupertino_ui: ^1.1.1
-  device_info_plus: ^12.0.0
+  device_info_plus: ^13.3.0
   drift: ^2.23.0
-  file_picker: ^11.0.2
+  file_picker: ^13.1.0
+  # Listed for its minimum version: earlier versions ignore the
+  # `orderedSelection: false` we pass (before 2.2.0), or have iOS bugs
+  # fixed in 2.3.1 and 2.3.2.
+  file_picker_darwin: ^2.3.2
   # TODO(#2257) Capped below firebase_messaging 16.5.0, where the plugin's
   #   launch-time APNs registration became conditional on an auto-init
   #   setting that's off while we configure Firebase from Dart, so
@@ -65,19 +73,19 @@ dependencies:
   material_ui: ^1.5.0
   meta: ^1.18.3
   mime: ^2.0.0
-  package_info_plus: ^9.0.0
+  package_info_plus: ^10.2.2
   path: ^1.8.3
   path_provider: ^2.0.13
   path_provider_foundation: ^2.6.0
-  share_plus: ^12.0.0
-  share_plus_platform_interface: ^6.0.0
+  share_plus: ^13.3.1
+  share_plus_platform_interface: ^7.2.0
   sodium: ^4.0.2+1
   sqlite3: ^3.3.1
   unorm_dart: ^0.3.1+1
   url_launcher: ^6.1.11
   url_launcher_android: ">=6.1.0"
   video_player: ^2.10.0
-  wakelock_plus: ^1.2.8
+  wakelock_plus: ^1.8.0
   zulip_plugin:
     path: ./packages/zulip_plugin
   # Keep list sorted when adding dependencies; it helps prevent merge conflicts.

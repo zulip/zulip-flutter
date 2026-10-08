@@ -37,6 +37,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/binding_checks.dart';
 import '../model/content_test.dart';
 import '../model/message_list_test.dart';
 import '../model/store_checks.dart';
@@ -1439,21 +1440,23 @@ void main() {
         await prepare(tester);
         checkAppearsLoading(tester, false);
 
-        testBinding.pickFilesResult = FilePickerResult([_FakePlatformFile(XFile.fromData(
+        testBinding.pickFilesResult = [_FakePlatformFile(XFile.fromData(
           utf8.encode('asdf'),
           // TODO test inference of MIME type from initial bytes, when
           //   it can't be inferred from path
           path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
           length: 12345,
-        ))]);
+        ))];
         connection.prepare(delay: const Duration(seconds: 1), json:
           UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
         await tester.tap(find.byIcon(ZulipIcons.image));
         await tester.pump();
         final call = testBinding.takePickFilesCalls().single;
-        check(call.allowMultiple).equals(true);
         check(call.type).equals(FileType.media);
+        check(call.darwinOptions)
+          ..assetRepresentationMode.equals(.current)
+          ..orderedSelection.isFalse();
 
         checkNoDialog(tester);
 
@@ -1487,13 +1490,13 @@ void main() {
         reportErrorToUserBriefly = (message, {details}) => reportedErrors.add(message);
         addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
 
-        testBinding.pickFilesResult = FilePickerResult([
+        testBinding.pickFilesResult = [
           _FakePlatformFile(XFile.fromData(
             utf8.encode('asdf'),
             path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg')),
           _FakePlatformFile(_UnreadableXFile(
             '/private/var/mobile/Containers/Data/Application/foo/tmp/missing.jpg')),
-        ]);
+        ];
         connection.prepare(json:
           UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
@@ -1636,8 +1639,8 @@ void main() {
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)]);
 
-      testBinding.pickFilesResult = FilePickerResult([
-        _FakePlatformFile(XFile.fromData(utf8.encode('asdf'), path: '한국어 파일.txt'))]);
+      testBinding.pickFilesResult = [
+        _FakePlatformFile(XFile.fromData(utf8.encode('asdf'), path: '한국어 파일.txt'))];
       connection.prepare(json: UploadFileResult(url:
         '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt').toJson());
       await tester.tap(find.byIcon(ZulipIcons.attach_file));
@@ -2679,8 +2682,8 @@ void main() {
         check(connection.takeRequests()).isEmpty();
 
         // …and the upload buttons work.
-        testBinding.pickFilesResult = FilePickerResult([
-          _FakePlatformFile(XFile.fromData(utf8.encode('asdf'), path: 'file.jpg'))]);
+        testBinding.pickFilesResult = [
+          _FakePlatformFile(XFile.fromData(utf8.encode('asdf'), path: 'file.jpg'))];
         connection.prepare(json:
           UploadFileResult(url: '/path/file.jpg').toJson());
         await tester.tap(find.byIcon(ZulipIcons.attach_file), warnIfMissed: false);
@@ -3041,9 +3044,27 @@ class _UnreadableXFile extends XFile {
 /// A [PlatformFile] whose [xFile] is the given [XFile].
 ///
 /// The code under test reads files only through [xFile].
-class _FakePlatformFile extends PlatformFile {
-  _FakePlatformFile(this.xFile) : super(name: xFile.name, size: 0);
+base class _FakePlatformFile extends PlatformFile {
+  _FakePlatformFile(this.xFile);
 
   @override
   final XFile xFile;
+
+  @override
+  String get name => xFile.name;
+
+  @override
+  Uri get uri => Uri.file(xFile.path);
+
+  @override
+  int? lengthSync() => throw UnimplementedError();
+
+  @override
+  Future<int?> length() => throw UnimplementedError();
+
+  @override
+  Future<Uint8List> readAsBytes() => throw UnimplementedError();
+
+  @override
+  Stream<Uint8List> readAsByteStream() => throw UnimplementedError();
 }

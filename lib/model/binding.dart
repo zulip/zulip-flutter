@@ -23,7 +23,7 @@ import '../log.dart';
 import 'store.dart';
 
 export 'package:connectivity_plus/connectivity_plus.dart' show ConnectivityResult;
-export 'package:file_picker/file_picker.dart' show FilePickerResult, FileType, PlatformFile;
+export 'package:file_picker/file_picker.dart' show DarwinOptions, FileType, PlatformFile;
 export 'package:image_picker/image_picker.dart' show ImageSource, XFile;
 
 /// Alias for [url_launcher.LaunchMode].
@@ -247,10 +247,12 @@ abstract class ZulipBinding {
   /// Pick files, via package:file_picker.
   ///
   /// This wraps [file_picker.FilePicker.pickFiles].
-  Future<file_picker.FilePickerResult?> pickFiles({
-    bool allowMultiple,
-    bool withReadStream,
+  ///
+  /// The result is empty if the user cancelled.
+  /// If none of the picked files could be read, the call throws.
+  Future<List<file_picker.PlatformFile>> pickFiles({
     file_picker.FileType type,
+    file_picker.DarwinOptions darwinOptions,
   });
 
   /// Pick files from the camera or media library, via package:image_picker.
@@ -648,16 +650,11 @@ class LiveZulipBinding extends ZulipBinding {
   void setupIosNotifFlutterApi(IosNotifFlutterApi api) => IosNotifFlutterApi.setUp(api);
 
   @override
-  Future<file_picker.FilePickerResult?> pickFiles({
-    bool allowMultiple = false,
-    bool withReadStream = false,
+  Future<List<file_picker.PlatformFile>> pickFiles({
     file_picker.FileType type = file_picker.FileType.any,
+    file_picker.DarwinOptions darwinOptions = const file_picker.DarwinOptions(),
   }) async {
-    return file_picker.FilePicker.pickFiles(
-      allowMultiple: allowMultiple,
-      withReadStream: withReadStream,
-      type: type,
-    );
+    return file_picker.FilePicker.pickFiles(type: type, darwinOptions: darwinOptions);
   }
 
   @override

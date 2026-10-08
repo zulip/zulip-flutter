@@ -1110,10 +1110,21 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 }
 
 Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileType type) async {
-  FilePickerResult? result;
+  final List<PlatformFile> files;
   try {
-    result = await ZulipBinding.instance
-      .pickFiles(allowMultiple: true, type: type);
+    files = await ZulipBinding.instance.pickFiles(type: type,
+      darwinOptions: const DarwinOptions(
+        // On iOS, ask the system not to transcode photos and videos
+        // from the library, as file_picker 11 did with the default
+        // `compressionQuality` of 0. Apple says it avoids that "if possible":
+        //   https://developer.apple.com/documentation/photosui/phpickerconfiguration-swift.struct/assetrepresentationmode/current
+        assetRepresentationMode: .current,
+        // Keep the photo picker's selection mode as it was
+        // with file_picker 11:
+        //   https://developer.apple.com/documentation/photosui/phpickerconfiguration-swift.struct/selection-swift.enum
+        // (Also: ordered selection would stop the user from selecting
+        // several photos by dragging across the grid.)
+        orderedSelection: false));
   } catch (e) {
     if (!context.mounted) return [];
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -1122,12 +1133,8 @@ Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileTyp
       message: e.toString());
     return [];
   }
-  if (result == null) {
-    return []; // User cancelled; do nothing
-  }
-
   return (await Future.wait(
-    result.files.map((f) => _fileFromXFile(f.xFile)))).nonNulls;
+    files.map((f) => _fileFromXFile(f.xFile)))).nonNulls;
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
