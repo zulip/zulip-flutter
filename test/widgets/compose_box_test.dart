@@ -1397,7 +1397,7 @@ void main() {
           checkAppearsLoading(tester, false);
         }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
-        testWidgets('unreadable file skipped with message; other file uploads', (tester) async {
+        testWidgets('unreadable file skipped with message; other file uploaded', (tester) async {
           await prepare(tester);
 
           final reportedErrors = <String?>[];
