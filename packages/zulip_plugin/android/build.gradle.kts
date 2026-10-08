@@ -5,9 +5,8 @@ plugins {
 android {
     namespace = "com.zulip.flutter"
 
-    // This Gradle project is an empty placeholder that contains no actual code,
-    // so the settings below have no real effect.  The Gradle project exists only
-    // because the Flutter Gradle plugin expects every Flutter plugin to have one.
+    // This Gradle project holds only ZulipShimPlugin, which forwards to the
+    // app's ZulipPlugin. For why, see this package's pubspec.yaml.
 
     compileSdk = flutter.compileSdkVersion
 
