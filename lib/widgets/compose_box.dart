@@ -376,7 +376,15 @@ class ComposeContentController extends ComposeController<ContentValidationError>
     final placeholder = inlineLink(linkText, '');
     _uploads[tag] = (filename: filename, placeholder: placeholder);
     notifyListeners(); // _uploads change could affect validationErrors
-    value = value.replaced(insertionIndex(), '$placeholder\n\n');
+    // Match zulip-web: put the link on its own line, with a single trailing
+    // newline. If the insertion point isn't already at the start of a line,
+    // prepend a newline so the link doesn't run into the preceding text.
+    final i = insertionIndex();
+    final textBefore = text.substring(0, i.start);
+    final paddingBefore = (textBefore.isEmpty || textBefore.endsWith('\n'))
+      ? ''
+      : '\n';
+    value = value.replaced(i, '$paddingBefore$placeholder\n');
     return tag;
   }
 
