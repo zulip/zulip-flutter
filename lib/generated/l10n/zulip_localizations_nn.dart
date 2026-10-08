@@ -102,10 +102,6 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
       'Gje Zulip ekstra løyve i Innstillingane for å lasta opp eit bilete.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Gje Zulip ekstra løyve i Innstillingane for å lasta opp filer.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Abonner';
 
   @override

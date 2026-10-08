@@ -102,10 +102,6 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
       '画像をアップロードするには、[設定] でZulipに追加の権限を付与してください。';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'ファイルをアップロードするには、[設定] でZulipに追加の権限を付与してください。';
-
-  @override
   String get actionSheetOptionSubscribe => 'チャンネルに参加';
 
   @override

@@ -104,10 +104,6 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Для загрузки изображения, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Подписаться';
 
   @override

@@ -106,10 +106,6 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'Para subir una imagen, concede a Zulip permisos adicionales en Ajustes.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Para subir archivos, concede a Zulip permisos adicionales en Ajustes.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Suscribirse';
 
   @override

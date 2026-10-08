@@ -103,10 +103,6 @@ class ZulipLocalizationsAr extends ZulipLocalizations {
       'To upload an image, please grant Zulip additional permissions in Settings.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'To upload files, please grant Zulip additional permissions in Settings.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Subscribe';
 
   @override

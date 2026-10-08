@@ -106,10 +106,6 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
       'Pildi üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Failide üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Telli';
 
   @override

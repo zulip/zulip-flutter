@@ -103,10 +103,6 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Za nalaganje slik v nastavitvah omogočite Zulipu dostop do kamere.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Za nalaganje datotek v nastavitvah omogočite Zulipu dostop do shrambe datotek.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Naroči se';
 
   @override

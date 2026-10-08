@@ -108,10 +108,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "permissionsDeniedReadExternalStorage": "To upload files, please grant Zulip additional permissions in Settings.",
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "actionSheetOptionSubscribe": "Subscribe",
   "@actionSheetOptionSubscribe": {
     "description": "Label in the channel action sheet for subscribing to the channel."

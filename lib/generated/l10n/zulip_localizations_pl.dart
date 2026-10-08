@@ -104,10 +104,6 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Aby odebrać obraz Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Aby odebrać pliki Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Subskrybuj';
 
   @override

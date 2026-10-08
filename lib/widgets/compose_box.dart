@@ -1117,25 +1117,9 @@ Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileTyp
   } catch (e) {
     if (!context.mounted) return [];
     final zulipLocalizations = ZulipLocalizations.of(context);
-    if (e is PlatformException && e.code == 'read_external_storage_denied') {
-      // Observed on Android. If Android's error message tells us whether the
-      // user has checked "Don't ask again", it seems the library doesn't pass
-      // that on to us. So just always prompt to check permissions in settings.
-      // If the user hasn't checked "Don't ask again", they can always dismiss
-      // our prompt and retry, and the permissions request will reappear,
-      // letting them grant permissions and complete the upload.
-      final dialog = showSuggestedActionDialog(context: context,
-        title: zulipLocalizations.permissionsNeededTitle,
-        message: zulipLocalizations.permissionsDeniedReadExternalStorage,
-        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
-      if (await dialog.result == true) {
-        unawaited(AppSettings.openAppSettings());
-      }
-    } else {
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorDialogTitle,
-        message: e.toString());
-    }
+    showErrorDialog(context: context,
+      title: zulipLocalizations.errorDialogTitle,
+      message: e.toString());
     return [];
   }
   if (result == null) {

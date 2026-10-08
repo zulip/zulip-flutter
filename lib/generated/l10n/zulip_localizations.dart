@@ -322,12 +322,6 @@ abstract class ZulipLocalizations {
   /// **'To upload an image, please grant Zulip additional permissions in Settings.'**
   String get permissionsDeniedCameraAccess;
 
-  /// Message for dialog asking the user to grant permissions for external storage read access.
-  ///
-  /// In en, this message translates to:
-  /// **'To upload files, please grant Zulip additional permissions in Settings.'**
-  String get permissionsDeniedReadExternalStorage;
-
   /// Label in the channel action sheet for subscribing to the channel.
   ///
   /// In en, this message translates to:

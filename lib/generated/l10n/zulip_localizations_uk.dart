@@ -105,10 +105,6 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Щоб завантажити зображення, надайте Zulip додаткові дозволи в налаштуваннях.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Щоб завантажувати файли, надайте Zulip додаткові дозволи в налаштуваннях.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Підписатися';
 
   @override

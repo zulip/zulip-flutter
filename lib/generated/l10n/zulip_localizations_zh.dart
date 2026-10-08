@@ -103,10 +103,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
       'To upload an image, please grant Zulip additional permissions in Settings.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'To upload files, please grant Zulip additional permissions in Settings.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Subscribe';
 
   @override
@@ -1520,10 +1516,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get permissionsDeniedCameraAccess => '上传图片前，请在设置中授予 Zulip 相应的权限。';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      '上传文件前，请在设置中授予 Zulip 相应的权限。';
-
-  @override
   String get actionSheetOptionSubscribe => '订阅';
 
   @override
@@ -2649,10 +2641,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get permissionsDeniedCameraAccess => '要上傳圖片，請在設定中授予 Zulip 額外權限。';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      '要上傳檔案，請在設定中授予 Zulip 額外權限。';
 
   @override
   String get actionSheetOptionSubscribe => '訂閱';
