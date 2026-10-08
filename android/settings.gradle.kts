@@ -20,11 +20,9 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "8.12.0" apply false
-    // Generally update this to the version found in recent releases
-    // of Android Studio, as listed in this table:
-    //   https://kotlinlang.org/docs/releases.html#release-details
-    // A helpful discussion is at:
-    //   https://stackoverflow.com/a/74425347
+    // Generally keep this at the version in Flutter's app template,
+    // which is `templateKotlinGradlePluginVersion` in:
+    //   https://github.com/flutter/flutter/blob/main/packages/flutter_tools/lib/src/android/gradle_utils.dart
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
 }
 
