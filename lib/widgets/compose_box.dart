@@ -1144,16 +1144,8 @@ Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileTyp
 
   return result.files.map((f) {
     assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
-    final mimeType = lookupMimeType(
-      // Seems like the path shouldn't be required; we still want to look for
-      // matches on `headerBytes`. Thankfully we can still do that, by calling
-      // lookupMimeType with the empty string as the path. That's a value that
-      // doesn't map to any particular type, so the path will be effectively
-      // ignored, as desired. Upstream comment:
-      //   https://github.com/dart-lang/mime/issues/11#issuecomment-2246824452
-      f.path ?? '',
-      headerBytes: f.bytes?.take(defaultMagicNumbersMaxLength).toList(),
-    );
+    // TODO also look up MIME type from the file's header bytes
+    final mimeType = f.path == null ? null : lookupMimeType(f.path!);
     return FileToUpload(
       content: f.readStream!,
       length: f.size,
