@@ -1765,10 +1765,13 @@ class ShareButton extends MessageActionSheetMenuItemButton {
 
     if (!pageContext.mounted) return;
 
-    // TODO: to support iPads, we're asked to give a
-    //   `sharePositionOrigin` param, or risk crashing / hanging:
+    // TODO: on iPads, pass `sharePositionOrigin`, so the share sheet's
+    //   popover points at the message. Without it, share_plus anchors
+    //   the popover at the center of the screen:
     //     https://pub.dev/packages/share_plus#ipad
-    //   Perhaps a wart in the API; discussion:
+    //   (Before share_plus 13.3.0, leaving it out made sharing fail
+    //   on iPads.)
+    //   Discussion:
     //     https://github.com/zulip/zulip-flutter/pull/12#discussion_r1130146231
     final result =
       await SharePlus.instance.share(ShareParams(text: rawContent));
