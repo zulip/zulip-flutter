@@ -244,9 +244,9 @@ abstract class ZulipBinding {
   /// Wraps the [IosNotifFlutterApi.setUp] method.
   void setupIosNotifFlutterApi(IosNotifFlutterApi api);
 
-  /// Pick files from the media library, via package:file_picker.
+  /// Pick files, via package:file_picker.
   ///
-  /// This wraps [file_picker.pickFiles].
+  /// This wraps [file_picker.FilePicker.pickFiles].
   Future<file_picker.FilePickerResult?> pickFiles({
     bool allowMultiple,
     bool withReadStream,
