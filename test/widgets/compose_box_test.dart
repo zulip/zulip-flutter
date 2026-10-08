@@ -1439,14 +1439,13 @@ void main() {
         await prepare(tester);
         checkAppearsLoading(tester, false);
 
-        testBinding.pickFilesResult = FilePickerResult([PlatformFile(
-          readStream: Stream.fromIterable(['asdf'.codeUnits]),
+        testBinding.pickFilesResult = FilePickerResult([_FakePlatformFile(XFile.fromData(
+          utf8.encode('asdf'),
           // TODO test inference of MIME type from initial bytes, when
           //   it can't be inferred from path
           path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
-          name: 'image.jpg',
-          size: 12345,
-        )]);
+          length: 12345,
+        ))]);
         connection.prepare(delay: const Duration(seconds: 1), json:
           UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
@@ -1477,7 +1476,40 @@ void main() {
         check(controller!.content.text)
           .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
-      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}),
+      // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+      skip: Platform.isWindows);
+
+      testWidgets('iOS (uses file_picker): unreadable file skipped with message; other file uploaded', (tester) async {
+        await prepare(tester);
+
+        final reportedErrors = <String?>[];
+        reportErrorToUserBriefly = (message, {details}) => reportedErrors.add(message);
+        addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+
+        testBinding.pickFilesResult = FilePickerResult([
+          _FakePlatformFile(XFile.fromData(
+            utf8.encode('asdf'),
+            path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg')),
+          _FakePlatformFile(_UnreadableXFile(
+            '/private/var/mobile/Containers/Data/Application/foo/tmp/missing.jpg')),
+        ]);
+        connection.prepare(json:
+          UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        check(reportedErrors).single.equals('Could not read file: missing.jpg');
+
+        check(controller!.content.text)
+          .equals('see image: [Uploading image.jpg…]()\n\n');
+
+        await tester.pump(const Duration(seconds: 1));
+        check(controller!.content.text)
+          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}),
+      // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+      skip: Platform.isWindows);
 
       // TODO test what happens when selecting/uploading fails
     });
@@ -1542,12 +1574,8 @@ void main() {
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)]);
 
-      testBinding.pickFilesResult = FilePickerResult([PlatformFile(
-        readStream: Stream.fromIterable(['asdf'.codeUnits]),
-        path: '/some/path/한국어 파일.txt',
-        name: '한국어 파일.txt',
-        size: 4,
-      )]);
+      testBinding.pickFilesResult = FilePickerResult([
+        _FakePlatformFile(XFile.fromData(utf8.encode('asdf'), path: '한국어 파일.txt'))]);
       connection.prepare(json: UploadFileResult(url:
         '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt').toJson());
       await tester.tap(find.byIcon(ZulipIcons.attach_file));
@@ -2590,7 +2618,7 @@ void main() {
 
         // …and the upload buttons work.
         testBinding.pickFilesResult = FilePickerResult([
-          PlatformFile(name: 'file.jpg', size: 1000, readStream: Stream.fromIterable(['asdf'.codeUnits]))]);
+          _FakePlatformFile(XFile.fromData(utf8.encode('asdf'), path: 'file.jpg'))]);
         connection.prepare(json:
           UploadFileResult(url: '/path/file.jpg').toJson());
         await tester.tap(find.byIcon(ZulipIcons.attach_file), warnIfMissed: false);
@@ -2946,4 +2974,14 @@ class _UnreadableXFile extends XFile {
   @override
   Future<int> length() async =>
     throw PathNotFoundException(path, const OSError());
+}
+
+/// A [PlatformFile] whose [xFile] is the given [XFile].
+///
+/// The code under test reads files only through [xFile].
+class _FakePlatformFile extends PlatformFile {
+  _FakePlatformFile(this.xFile) : super(name: xFile.name, size: 0);
+
+  @override
+  final XFile xFile;
 }

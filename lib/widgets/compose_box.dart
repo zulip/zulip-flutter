@@ -1113,7 +1113,7 @@ Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileTyp
   FilePickerResult? result;
   try {
     result = await ZulipBinding.instance
-      .pickFiles(allowMultiple: true, withReadStream: true, type: type);
+      .pickFiles(allowMultiple: true, type: type);
   } catch (e) {
     if (!context.mounted) return [];
     final zulipLocalizations = ZulipLocalizations.of(context);
@@ -1142,17 +1142,8 @@ Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileTyp
     return []; // User cancelled; do nothing
   }
 
-  return result.files.map((f) {
-    assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
-    // TODO also look up MIME type from the file's header bytes
-    final mimeType = f.path == null ? null : lookupMimeType(f.path!);
-    return FileToUpload(
-      content: f.readStream!,
-      length: f.size,
-      filename: f.name,
-      mimeType: mimeType,
-    );
-  });
+  return (await Future.wait(
+    result.files.map((f) => _fileFromXFile(f.xFile)))).nonNulls;
 }
 
 class _AttachFileButton extends _AttachUploadsButton {
