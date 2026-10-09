@@ -22,6 +22,10 @@ extension ContentNodeChecks on Subject<ContentNode> {
   }
 }
 
+extension ZulipContentChecks on Subject<ZulipContent> {
+  Subject<Set<int>> get mentionedUserIds => has((c) => c.mentionedUserIds, 'mentionedUserIds');
+}
+
 Iterable<String>? _compareDiagnosticsNodes(DiagnosticsNode actual, DiagnosticsNode expected) {
   assert(actual is DiagnosticableTreeNode && expected is DiagnosticableTreeNode);
 
