@@ -501,6 +501,14 @@
   "@errorCouldNotConnectTitle": {
     "description": "Error title when the app could not connect to the server."
   },
+  "errorCouldNotLoadAppTitle": "Could not load Zulip",
+  "@errorCouldNotLoadAppTitle": {
+    "description": "Error title shown when the app cannot load its local data at startup."
+  },
+  "errorCouldNotLoadApp": "Zulip could not load data saved on this device. Please restart the app and try again.",
+  "@errorCouldNotLoadApp": {
+    "description": "Error message shown when the app cannot load its local data at startup."
+  },
   "errorMessageDoesNotSeemToExist": "That message does not seem to exist.",
   "@errorMessageDoesNotSeemToExist": {
     "description": "Error message when loading a message that does not exist."
