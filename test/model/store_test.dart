@@ -829,14 +829,25 @@ void main() {
         });
     }
 
+    void prepareHeartbeat(int eventId) {
+      connection.prepare(json: GetEventsResult(events: [
+        HeartbeatEvent(id: eventId),
+      ], queueId: null).toJson());
+    }
+
+    /// Prepare a response delayed past the poll request's timeout,
+    /// as if the connection had died silently (see #514).
+    void prepareStuckPollResponse() {
+      connection.prepare(delay: const Duration(seconds: 300),
+        json: GetEventsResult(events: [], queueId: null).toJson());
+    }
+
     test('loops on success', () => awaitFakeAsync((async) async {
       await preparePoll(lastEventId: 1);
       check(updateMachine.lastEventId).equals(1);
 
       // Loop makes first request, and processes result.
-      connection.prepare(json: GetEventsResult(events: [
-        HeartbeatEvent(id: 2),
-      ], queueId: null).toJson());
+      prepareHeartbeat(2);
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       checkLastRequest(lastEventId: 1);
@@ -844,9 +855,7 @@ void main() {
       check(updateMachine.lastEventId).equals(2);
 
       // Loop makes second request, and processes result.
-      connection.prepare(json: GetEventsResult(events: [
-        HeartbeatEvent(id: 3),
-      ], queueId: null).toJson());
+      prepareHeartbeat(3);
       updateMachine.debugAdvanceLoop();
       async.flushMicrotasks();
       checkLastRequest(lastEventId: 2);
@@ -943,9 +952,7 @@ void main() {
         check(async.pendingTimers).length.equals(pendingTimers);
 
         // Polling continues after a timer.
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
+        prepareHeartbeat(2);
         async.flushTimers();
         checkLastRequest(lastEventId: 1, expectDontBlock: true);
         check(updateMachine.lastEventId).equals(2);
@@ -959,14 +966,20 @@ void main() {
       updateMachine.debugPrepareLoopError(eg.nullCheckError());
     }
 
-    // [ApiConnection] classifies a [SocketException]
-    // as [NetworkExceptionKind.connectionFailed].
+    /// Prepare an exception that [ApiConnection] will classify
+    /// as [NetworkExceptionKind.connectionFailed].
+    ///
+    /// See also [prepareNetworkExceptionOther].
     void prepareNetworkExceptionConnectionFailed() {
       connection.prepare(httpException: const SocketException('failed'));
     }
 
-    void prepareNetworkException() {
-      connection.prepare(httpException: Exception("failed"));
+    /// Prepare an exception that [ApiConnection] will classify
+    /// as [NetworkExceptionKind.other].
+    ///
+    /// See also [prepareNetworkExceptionConnectionFailed].
+    void prepareNetworkExceptionOther() {
+      connection.prepare(httpException: const HandshakeException('handshake failed'));
     }
 
     void prepareServer5xxException() {
@@ -1038,12 +1051,11 @@ void main() {
       checkRetry(
         eventQueueLongpollTimeoutSeconds: 85,
         elapse: const Duration(seconds: 85),
-        () => connection.prepare(delay: const Duration(seconds: 300),
-          json: GetEventsResult(events: [], queueId: null).toJson()));
+        prepareStuckPollResponse);
     });
 
-    test('retries on generic NetworkException', () {
-      checkRetry(prepareNetworkException);
+    test('retries on NetworkException with NetworkExceptionKind.other', () {
+      checkRetry(prepareNetworkExceptionOther);
     });
 
     test('retries on Server5xxException', () {
@@ -1097,9 +1109,7 @@ void main() {
         // well before the backoff duration has elapsed.
         // (The second, redundant resume event checks that
         // a duplicate doesn't complete the abort trigger twice.)
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
+        prepareHeartbeat(2);
         updateMachine.debugAdvanceLoop();
         testBinding.notifyAppLifecycleStateChanged(.resumed);
         testBinding.notifyAppLifecycleStateChanged(.resumed);
@@ -1155,9 +1165,38 @@ void main() {
         check(updateMachine.debugPollBackoffMachine).isNotNull();
 
         // Polling continues after the backoff.
-        connection.prepare(json: GetEventsResult(events: [
-          HeartbeatEvent(id: 2),
-        ], queueId: null).toJson());
+        prepareHeartbeat(2);
+        async.flushTimers();
+        checkLastRequest(lastEventId: 1, expectDontBlock: true);
+        check(updateMachine.lastEventId).equals(2);
+      }));
+
+      test('no abort when backoff is from a non-connectionFailed network error', () => awaitFakeAsync((async) async {
+        BackoffMachine.debugDuration = const Duration(seconds: 10);
+        addTearDown(() => BackoffMachine.debugDuration = null);
+        await preparePoll(lastEventId: 1);
+
+        // Fail with a transport error that isn't a failed connection:
+        // a TLS failure, as from an expired server certificate.
+        // See #1884 for why an app resume should cut short only
+        // failed-connection backoffs.
+        prepareNetworkExceptionOther();
+        updateMachine.debugAdvanceLoop();
+        async.elapse(Duration.zero);
+        checkLastRequest(lastEventId: 1);
+        final machineBefore = updateMachine.debugPollBackoffMachine;
+        check(machineBefore).isNotNull();
+
+        // The app resuming doesn't cut the backoff short,
+        // and doesn't discard the accumulated backoff state either.
+        updateMachine.debugAdvanceLoop();
+        testBinding.notifyAppLifecycleStateChanged(.resumed);
+        async.flushMicrotasks();
+        check(connection.lastRequest).isNull();
+        check(updateMachine.debugPollBackoffMachine).identicalTo(machineBefore);
+
+        // Polling continues after the backoff.
+        prepareHeartbeat(2);
         async.flushTimers();
         checkLastRequest(lastEventId: 1, expectDontBlock: true);
         check(updateMachine.lastEventId).equals(2);
@@ -1286,8 +1325,8 @@ void main() {
         checkNotReported(prepareNetworkExceptionConnectionFailed);
       });
 
-      test('eventually report generic NetworkException', () {
-        checkLateReported(prepareNetworkException).startsWith(
+      test('eventually report NetworkException with NetworkExceptionKind.other', () {
+        checkLateReported(prepareNetworkExceptionOther).startsWith(
           "Error connecting to Zulip. Retrying…\n"
           "Error connecting to Zulip at");
       });
