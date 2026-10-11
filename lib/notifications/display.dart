@@ -351,10 +351,7 @@ class NotificationDisplayManager {
       color: kZulipBrandColor.argbInt,
       // TODO vary notification icon for debug
       smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
-      inboxStyle: InboxStyle(
-        summaryText: account.realmName
-          ?? data.realmName
-          ?? data.realmUrl.toString()),
+      inboxStyle: InboxStyle(summaryText: account.realmName ?? data.realmName),
 
       // On Android 11 and lower, if autoCancel is not specified,
       // the summary notification may linger even after all child
