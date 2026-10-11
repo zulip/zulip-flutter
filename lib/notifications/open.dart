@@ -282,9 +282,8 @@ class NotificationOpenPayload {
   /// this is the earliest of them,
   /// so that opening the notification shows the whole batch (#1565).
   ///
-  /// Null when the notification doesn't identify a message:
-  /// from iOS (TODO(#1565)),
-  /// or from a notification created before this field existed.
+  /// Null when the notification doesn't identify a message,
+  /// as with a notification created before this field existed.
   final int? messageId;
 
   NotificationOpenPayload({
@@ -373,11 +372,19 @@ class NotificationOpenPayload {
         _ => throw const FormatException(),
       };
 
+      // The server sends a single message ID, in a one-element list;
+      // see `get_message_payload_apns` in
+      // zulip/zulip:zerver/lib/push_notifications.py .
+      final messageId = switch (zulipData) {
+        {'message_ids': [final int messageId]} => messageId,
+        _ => throw const FormatException(),
+      };
+
       return NotificationOpenPayload(
         realmUrl: Uri.parse(realmUrl),
         userId: userId,
         narrow: narrow,
-        messageId: null);
+        messageId: messageId);
     } else {
       // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
       throw const FormatException();

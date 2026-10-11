@@ -94,9 +94,11 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
       NotificationDisplayManager.titleForNotifPayload(data, zulipLocalizations);
     final subtitle =
       NotificationDisplayManager.subtitleForNotifPayloadOnIos(data);
+    // A notification on iOS shows a single message.
+    // See [NotificationOpenPayload.messageId].
     final notificationUrl =
-      // TODO(#1565): Open at specific message on iOS too.
-      NotificationDisplayManager.notificationUrlForNotifPayload(data, messageId: null);
+      NotificationDisplayManager.notificationUrlForNotifPayload(
+        data, messageId: data.messageId);
 
     return ImprovedNotificationContent(
       title: title,
@@ -107,7 +109,7 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
         // Pass the notification URL to this custom data map, so when a
         // notification is opened we can read this custom map to decide
         // which conversation to open.
-        // See NotificationOpenService (in lib/notifications/ios_service.dart).
+        // See NotificationOpenService (in lib/notifications/open.dart).
         NotificationOpenPayload.kIosNotificationUrlKey: notificationUrl.toString(),
       });
   }
