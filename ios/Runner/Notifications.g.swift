@@ -29,32 +29,6 @@ final class PigeonError: Error {
   }
 }
 
-private func wrapResult(_ result: Any?) -> [Any?] {
-  return [result]
-}
-
-private func wrapError(_ error: Any) -> [Any?] {
-  if let pigeonError = error as? PigeonError {
-    return [
-      pigeonError.code,
-      pigeonError.message,
-      pigeonError.details,
-    ]
-  }
-  if let flutterError = error as? FlutterError {
-    return [
-      flutterError.code,
-      flutterError.message,
-      flutterError.details,
-    ]
-  }
-  return [
-    "\(error)",
-    "\(Swift.type(of: error))",
-    "Stacktrace: \(Thread.callStackSymbols)",
-  ]
-}
-
 enum NotificationsPigeonInternal {
   static func isNullish(_ value: Any?) -> Bool {
     guard let innerValue = value else {
@@ -185,45 +159,6 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
 
 
 /// Generated class from Pigeon that represents data sent in messages.
-struct NotificationDataFromLaunch: Hashable, CustomStringConvertible {
-  /// The raw payload that is attached to the notification,
-  /// holding the information required to carry out the navigation.
-  ///
-  /// See [NotificationHostApi.getNotificationDataFromLaunch].
-  var payload: [AnyHashable?: Any?]
-
-
-  // swift-format-ignore: AlwaysUseLowerCamelCase
-  static func fromList(_ pigeonVar_list: [Any?]) -> NotificationDataFromLaunch? {
-    let payload = pigeonVar_list[0] as! [AnyHashable?: Any?]
-
-    return NotificationDataFromLaunch(
-      payload: payload
-    )
-  }
-  func toList() -> [Any?] {
-    return [
-      payload
-    ]
-  }
-  static func == (lhs: NotificationDataFromLaunch, rhs: NotificationDataFromLaunch) -> Bool {
-    if Swift.type(of: lhs) != Swift.type(of: rhs) {
-      return false
-    }
-    return NotificationsPigeonInternal.deepEquals(lhs.payload, rhs.payload)
-  }
-
-  func hash(into hasher: inout Hasher) {
-    hasher.combine("NotificationDataFromLaunch")
-    NotificationsPigeonInternal.deepHash(value: payload, hasher: &hasher)
-  }
-
-  public var description: String {
-    return "NotificationDataFromLaunch(payload: \(String(describing: payload)))"
-  }
-}
-
-/// Generated class from Pigeon that represents data sent in messages.
 /// This protocol should not be extended by any user class outside of the generated file.
 protocol NotificationTapEvent {
 
@@ -321,10 +256,8 @@ private class NotificationsPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
     case 129:
-      return NotificationDataFromLaunch.fromList(self.readValue() as! [Any?])
-    case 130:
       return IosNotificationTapEvent.fromList(self.readValue() as! [Any?])
-    case 131:
+    case 130:
       return AndroidNotificationTapEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
@@ -334,14 +267,11 @@ private class NotificationsPigeonCodecReader: FlutterStandardReader {
 
 private class NotificationsPigeonCodecWriter: FlutterStandardWriter {
   override func writeValue(_ value: Any) {
-    if let value = value as? NotificationDataFromLaunch {
+    if let value = value as? IosNotificationTapEvent {
       super.writeByte(129)
       super.writeValue(value.toList())
-    } else if let value = value as? IosNotificationTapEvent {
-      super.writeByte(130)
-      super.writeValue(value.toList())
     } else if let value = value as? AndroidNotificationTapEvent {
-      super.writeByte(131)
+      super.writeByte(130)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -365,46 +295,6 @@ class NotificationsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable
 
 var notificationsPigeonMethodCodec = FlutterStandardMethodCodec(readerWriter: NotificationsPigeonCodecReaderWriter());
 
-/// Generated protocol from Pigeon that represents a handler of messages from Flutter.
-protocol NotificationHostApi {
-  /// Retrieves notification data if the app was launched by tapping on a notification.
-  ///
-  /// Returns `launchOptions.remoteNotification`,
-  /// which is the raw APNs data dictionary
-  /// if the app launch was opened by a notification tap,
-  /// else null. See Apple doc:
-  ///   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
-  func getNotificationDataFromLaunch() throws -> NotificationDataFromLaunch?
-}
-
-/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
-class NotificationHostApiSetup {
-  static var codec: FlutterStandardMessageCodec { NotificationsPigeonCodec.shared }
-  /// Sets up an instance of `NotificationHostApi` to handle messages through the `binaryMessenger`.
-  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: NotificationHostApi?, messageChannelSuffix: String = "") {
-    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
-    /// Retrieves notification data if the app was launched by tapping on a notification.
-    ///
-    /// Returns `launchOptions.remoteNotification`,
-    /// which is the raw APNs data dictionary
-    /// if the app launch was opened by a notification tap,
-    /// else null. See Apple doc:
-    ///   https://developer.apple.com/documentation/uikit/uiapplication/launchoptionskey/remotenotification
-    let getNotificationDataFromLaunchChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.zulip.NotificationHostApi.getNotificationDataFromLaunch\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-    if let api = api {
-      getNotificationDataFromLaunchChannel.setMessageHandler { _, reply in
-        do {
-          let result = try api.getNotificationDataFromLaunch()
-          reply(wrapResult(result))
-        } catch {
-          reply(wrapError(error))
-        }
-      }
-    } else {
-      getNotificationDataFromLaunchChannel.setMessageHandler(nil)
-    }
-  }
-}
 
 private class PigeonStreamHandler<ReturnType>: NSObject, FlutterStreamHandler {
   private let wrapper: PigeonEventChannelWrapper<ReturnType>
