@@ -1275,9 +1275,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'Notify channel';
 
   @override
-  String get wildcardMentionStreamDescription => 'Notify stream';
-
-  @override
   String get wildcardMentionAllDmDescription => 'Notify recipients';
 
   @override
@@ -2441,9 +2438,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get wildcardMentionChannelDescription => '通知频道';
-
-  @override
-  String get wildcardMentionStreamDescription => '通知频道';
 
   @override
   String get wildcardMentionAllDmDescription => '通知收件人';
@@ -3671,9 +3665,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get wildcardMentionChannelDescription => '通知頻道';
-
-  @override
-  String get wildcardMentionStreamDescription => '通知串流';
 
   @override
   String get wildcardMentionAllDmDescription => '通知收件人';

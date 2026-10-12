@@ -92,7 +92,8 @@ void main() {
     final otherConnection = makeOtherConnection();
     await sendMessage(otherConnection,
       destination: DmDestination(userIds: [store.userId]),
-      content: content);
+      content: content,
+      readBySender: true);
 
     await $.platform.mobile.openNotifications();
 
