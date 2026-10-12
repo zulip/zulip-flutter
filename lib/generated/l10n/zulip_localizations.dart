@@ -31,6 +31,9 @@ import 'zulip_localizations_ru.dart';
 import 'zulip_localizations_sk.dart';
 import 'zulip_localizations_sl.dart';
 import 'zulip_localizations_so.dart';
+import 'zulip_localizations_sv.dart';
+import 'zulip_localizations_th.dart';
+import 'zulip_localizations_tr.dart';
 import 'zulip_localizations_uk.dart';
 import 'zulip_localizations_vi.dart';
 import 'zulip_localizations_zh.dart';
@@ -145,6 +148,9 @@ abstract class ZulipLocalizations {
     Locale('sk'),
     Locale('sl'),
     Locale('so'),
+    Locale('sv'),
+    Locale('th'),
+    Locale('tr'),
     Locale('uk'),
     Locale('vi'),
     Locale('zh'),
@@ -2538,6 +2544,9 @@ class _ZulipLocalizationsDelegate
     'sk',
     'sl',
     'so',
+    'sv',
+    'th',
+    'tr',
     'uk',
     'vi',
     'zh',
@@ -2622,6 +2631,12 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsSl();
     case 'so':
       return ZulipLocalizationsSo();
+    case 'sv':
+      return ZulipLocalizationsSv();
+    case 'th':
+      return ZulipLocalizationsTh();
+    case 'tr':
+      return ZulipLocalizationsTr();
     case 'uk':
       return ZulipLocalizationsUk();
     case 'vi':
