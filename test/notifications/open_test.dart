@@ -637,6 +637,60 @@ void main() {
   });
 
   group('NotificationOpenPayload', () {
+    group('conversationKeyForNotifSuppression', () {
+      test('topic narrow is case-insensitive on topic', () {
+        final a = NotificationOpenPayload.conversationKeyForNotifSuppression(
+          realmUrl: Uri.parse('https://chat.example/'),
+          userId: 7,
+          narrow: TopicNarrow(12, TopicName('Hello')),
+        );
+        final b = NotificationOpenPayload.conversationKeyForNotifSuppression(
+          realmUrl: Uri.parse('https://chat.example'),
+          userId: 7,
+          narrow: TopicNarrow(12, TopicName('hello')),
+        );
+        check(a).equals('https://chat.example|7|topic:12:hello');
+        check(b).equals(a);
+      });
+
+      test('dm narrow uses sorted recipient ids', () {
+        final key = NotificationOpenPayload.conversationKeyForNotifSuppression(
+          realmUrl: Uri.parse('https://chat.example'),
+          userId: 1,
+          narrow: DmNarrow(allRecipientIds: [1, 2, 3], selfUserId: 1),
+        );
+        check(key).equals('https://chat.example|1|dm:1,2,3');
+      });
+
+      test('channel / combined-feed narrows are not suppressible', () {
+        check(NotificationOpenPayload.conversationKeyForNotifSuppression(
+          realmUrl: Uri.parse('https://chat.example'),
+          userId: 1,
+          narrow: const ChannelNarrow(12),
+        )).isNull();
+        check(NotificationOpenPayload.conversationKeyForNotifSuppression(
+          realmUrl: Uri.parse('https://chat.example'),
+          userId: 1,
+          narrow: const CombinedFeedNarrow(),
+        )).isNull();
+      });
+
+      test('payload.conversationKey matches static helper', () {
+        final payload = NotificationOpenPayload(
+          realmUrl: Uri.parse('https://chat.example'),
+          userId: 5,
+          narrow: eg.topicNarrow(9, 'Zulip'),
+          messageId: 100,
+        );
+        check(payload.conversationKey).equals(
+          NotificationOpenPayload.conversationKeyForNotifSuppression(
+            realmUrl: payload.realmUrl,
+            userId: payload.userId,
+            narrow: payload.narrow,
+          ));
+      });
+    });
+
     test('android: smoke round-trip', () {
       // DM narrow
       var payload = NotificationOpenPayload(
