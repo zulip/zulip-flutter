@@ -1508,4 +1508,4 @@ packages:
     version: "0.0.1"
 sdks:
   dart: ">=3.14.0-267.0.dev <4.0.0"
-  flutter: ">=3.49.0-1.0.pre-146"
+  flutter: ">=3.49.0-1.0.pre"
