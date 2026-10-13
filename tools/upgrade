@@ -184,9 +184,16 @@ upgrade_flutter_local() {
     flutter_version="${versions[0]}"
     dart_sdk_version="${versions[1]}"
 
+    # The bound omits the version name's trailing commit count;
+    # see the comment in pubspec.yaml.
+    local flutter_version_bound
+    flutter_version_bound=$(
+        echo -n "${flutter_version}" | perl -pe 's/-\d+$//'
+    )
+
     yaml_fragment="\
   sdk: '>=${dart_sdk_version} <4.0.0'
-  flutter: '>=${flutter_version}'  # ${flutter_commit}
+  flutter: '>=${flutter_version_bound}'  # ${flutter_commit}
 " \
       perl -i -0pe 's/^  sdk: .*\n  flutter: .*\n/$ENV{yaml_fragment}/m' \
         pubspec.yaml

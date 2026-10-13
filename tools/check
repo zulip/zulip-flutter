@@ -353,7 +353,7 @@ EOF
         return 1
     fi
 
-    if_verbose echo "OK Flutter ${flutter_version} aka ${flutter_commit}"
+    if_verbose echo "OK Flutter ${flutter_version} (${flutter_commit})"
 
     return 0
 }
