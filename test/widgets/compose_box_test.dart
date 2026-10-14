@@ -1544,6 +1544,23 @@ void main() {
         check(connection.lastRequest).equals(lastRequest);
       }, variant: const TargetPlatformVariant({.iOS}));
 
+      testWidgets('iOS (uses file_picker): nothing could be loaded; translated message', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'load_failed', message: 'None of the picked items could be loaded.');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.media);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'The selected files could not be loaded.');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS}));
+
       // TODO test what happens when selecting (on Android) or uploading fails
     });
 
@@ -1577,6 +1594,40 @@ void main() {
         check(controller!.content.text).equals('see image: ');
         check(connection.lastRequest).equals(lastRequest);
       }, variant: const TargetPlatformVariant({.iOS, .android}));
+
+      testWidgets('iOS: nothing could be loaded; translated message', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'load_failed', message: 'None of the picked items could be loaded.');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.any);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'The selected files could not be loaded.');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS}));
+
+      testWidgets('Android: nothing could be loaded; translated message', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'unknown_path', message: 'Failed to retrieve path.');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.any);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'The selected files could not be loaded.');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.android}));
     });
 
     group('attach from camera', () {

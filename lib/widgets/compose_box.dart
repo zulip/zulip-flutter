@@ -1128,9 +1128,20 @@ Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileTyp
   } catch (e) {
     if (!context.mounted) return [];
     final zulipLocalizations = ZulipLocalizations.of(context);
+    // file_picker throws these when the user picked one or more items but none
+    // could be loaded: `load_failed` on iOS, `unknown_path` on Android.
+    //   https://github.com/vicajilau/flutter_file_picker/blob/2817844ed/packages/file_picker_darwin/darwin/file_picker_darwin/Sources/file_picker_darwin/IOSFilePickerHandler.swift#L309-L318
+    //   https://github.com/vicajilau/flutter_file_picker/blob/2817844ed/packages/file_picker_android/android/src/main/kotlin/com/mr/flutter/plugin/filepicker/FileUtils.kt#L176-L182
+    // TODO(upstream): match a typed error code instead, if file_picker
+    //   gets those: https://github.com/vicajilau/flutter_file_picker/issues/2262
+    final message = switch (e) {
+      PlatformException(code: 'load_failed' || 'unknown_path') =>
+        zulipLocalizations.errorCouldNotLoadSelectedFiles,
+      _ => e.toString(),
+    };
     showErrorDialog(context: context,
       title: zulipLocalizations.errorDialogTitle,
-      message: e.toString());
+      message: message);
     return [];
   }
   return (await Future.wait(

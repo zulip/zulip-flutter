@@ -800,6 +800,12 @@ abstract class ZulipLocalizations {
   /// **'{num, plural, =1{File} other{Files}} too large'**
   String errorFilesTooLargeTitle(int num);
 
+  /// Error message when the user selected files, photos, or videos to attach, but none of them could be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected files could not be loaded.'**
+  String get errorCouldNotLoadSelectedFiles;
+
   /// Error message when an attached file could not be read.
   ///
   /// In en, this message translates to:

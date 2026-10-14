@@ -412,6 +412,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'The selected files could not be loaded.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
     return 'Не удалось прочитать файл: $filename';
   }

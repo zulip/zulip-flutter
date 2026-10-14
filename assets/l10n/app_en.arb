@@ -463,6 +463,10 @@
       "num": {"type": "int", "example": "4"}
     }
   },
+  "errorCouldNotLoadSelectedFiles": "The selected files could not be loaded.",
+  "@errorCouldNotLoadSelectedFiles": {
+    "description": "Error message when the user selected files, photos, or videos to attach, but none of them could be loaded."
+  },
   "errorCouldNotReadFile": "Could not read file: {filename}",
   "@errorCouldNotReadFile": {
     "description": "Error message when an attached file could not be read.",
