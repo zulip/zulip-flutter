@@ -427,11 +427,21 @@ class TestZulipBinding extends ZulipBinding {
 
   /// The value that `ZulipBinding.instance.pickFiles()` should return.
   ///
-  /// See also [takePickFilesCalls].
+  /// See also:
+  ///   * [pickFilesException]
+  ///   * [takePickFilesCalls]
   FilePickerResult? pickFilesResult;
+
+  /// The [PlatformException] that `ZulipBinding.instance.pickFiles()` should throw.
+  ///
+  /// See also:
+  ///   * [pickFilesResult]
+  ///   * [takePickFilesCalls]
+  PlatformException? pickFilesException;
 
   void _resetPickFiles() {
     pickFilesResult = null;
+    pickFilesException = null;
     _pickFilesCalls = null;
   }
 
@@ -464,6 +474,22 @@ class TestZulipBinding extends ZulipBinding {
     FileType? type,
   }) async {
     (_pickFilesCalls ??= []).add((allowMultiple: allowMultiple, withReadStream: withReadStream, type: type));
+
+    if (pickFilesResult != null && pickFilesException != null) {
+      throw FlutterError.fromParts([
+        ErrorSummary(
+          'TestZulipBinding.pickFiles called '
+          'with non-null pickFilesResult and non-null pickFilesException'),
+        ErrorHint(
+          'Tests should either set pickFilesResult or pickFilesException, '
+          'but not both.'),
+      ]);
+    }
+
+    if (pickFilesException != null) {
+      throw pickFilesException!;
+    }
+
     return pickFilesResult;
   }
 

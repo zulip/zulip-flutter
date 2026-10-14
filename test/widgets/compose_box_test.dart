@@ -1511,7 +1511,43 @@ void main() {
       // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
       skip: Platform.isWindows);
 
-      // TODO test what happens when selecting/uploading fails
+      testWidgets('iOS (uses file_picker): error from picker shown in dialog', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'some_error', message: 'Something went wrong');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.media);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'PlatformException(some_error, Something went wrong, null, null)');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS}));
+
+      // TODO test what happens when selecting (on Android) or uploading fails
+    });
+
+    group('attach files', () {
+      testWidgets('error from picker shown in dialog', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'some_error', message: 'Something went wrong');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.any);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'PlatformException(some_error, Something went wrong, null, null)');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS, .android}));
     });
 
     group('attach from camera', () {
