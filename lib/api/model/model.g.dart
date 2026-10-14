@@ -173,6 +173,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   timezone: json['timezone'] as String,
   avatarUrl: json['avatar_url'] as String?,
   avatarVersion: (json['avatar_version'] as num).toInt(),
+  isDeleted: json['is_deleted'] as bool? ?? false,
   profileData:
       (User._readProfileData(json, 'profile_data') as Map<String, dynamic>?)
           ?.map(
@@ -198,6 +199,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'timezone': instance.timezone,
   'avatar_url': instance.avatarUrl,
   'avatar_version': instance.avatarVersion,
+  'is_deleted': instance.isDeleted,
   'profile_data': instance.profileData?.map(
     (k, e) => MapEntry(k.toString(), e),
   ),

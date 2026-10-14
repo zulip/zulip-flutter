@@ -298,6 +298,18 @@ void main() {
             final narrow = DmNarrow.ofMessage(message, selfUserId: eg.selfUser.userId);
             check(findConversationItem(narrow)).findsNothing();
           });
+
+          testWidgets('deactivated user: block badge, no presence circle', (tester) async {
+            final user = eg.user(userId: 1, isActive: false);
+            final message = eg.dmMessage(from: eg.selfUser, to: [user]);
+            await setupPage(tester, users: [user], dmMessages: [message]);
+
+            final itemFinder = find.byType(RecentDmConversationsItem);
+            check(find.descendant(of: itemFinder,
+              matching: find.byIcon(Icons.block))).findsOne();
+            check(find.descendant(of: itemFinder,
+              matching: find.byType(PresenceCircle))).findsNothing();
+          });
         });
 
         testWidgets('no error when user somehow missing from user store', (tester) async {
