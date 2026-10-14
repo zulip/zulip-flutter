@@ -1286,6 +1286,9 @@ class ZulipLocalizationsSk extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'Notify topic';
 
   @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get systemGroupNameEveryoneOnInternet => 'Everyone on the internet';
 
   @override

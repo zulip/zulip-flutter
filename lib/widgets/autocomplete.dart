@@ -499,6 +499,7 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
     // See Figma:
     //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=7953-30436&m=dev
 
+    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     final style = TextStyle(
@@ -521,14 +522,26 @@ class TopicAutocomplete extends AutocompleteField<TopicAutocompleteQuery, TopicA
           padding: const EdgeInsetsDirectional.fromSTEB(12, 2, 10, 2),
           child: Align(
             alignment: AlignmentDirectional.centerStart,
-            child: Text.rich(
-              topicLabelSpan(
-                context: context,
-                topic: option.topic,
-                fontSize: style.fontSize!,
-                color: style.color!),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: style)))));
+            child: Row(
+              spacing: 10,
+              children: [
+                Expanded(
+                  child: Text.rich(
+                    topicLabelSpan(
+                      context: context,
+                      topic: option.topic,
+                      fontSize: style.fontSize!,
+                      color: style.color!),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: style)),
+                if (option.isNew)
+                  Text(zulipLocalizations.topicAutocompleteNewOptionLabel,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 16 / 14,
+                      fontStyle: FontStyle.italic,
+                      color: designVariables.contextMenuItemMeta)),
+              ])))));
   }
 }

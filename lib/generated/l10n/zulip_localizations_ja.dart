@@ -1255,6 +1255,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get wildcardMentionTopicDescription => 'トピック参加者に通知';
 
   @override
+  String get topicAutocompleteNewOptionLabel => 'New';
+
+  @override
   String get systemGroupNameEveryoneOnInternet => 'インターネット上の全員';
 
   @override
