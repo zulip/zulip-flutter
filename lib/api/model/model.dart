@@ -1221,10 +1221,9 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   @JsonKey(name: 'submessages', readValue: _readPoll, fromJson: Poll.fromJson, toJson: Poll.toJson)
   Poll? poll;
 
-  String get type;
+  MessageType get type;
 
   // final List<TopicLink> topicLinks; // TODO handle
-  // final string type; // handled by runtime type of object
   @JsonKey(fromJson: _flagsFromJson)
   List<MessageFlag> flags; // Unrecognized flags won't roundtrip through {to,from}Json.
   String? matchContent;
@@ -1280,13 +1279,59 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   // TODO(dart): This has to be a static method, because factories/constructors
   //   do not support type parameters: https://github.com/dart-lang/language/issues/647
   static Message fromJson(Map<String, dynamic> json) {
-    final type = json['type'] as String;
-    if (type == 'stream') return StreamMessage.fromJson(json);
-    if (type == 'private') return DmMessage.fromJson(json);
-    throw Exception("Message.fromJson: unexpected message type $type");
+    // The server never actually sends "channel" or "direct" here yet
+    // (as of 2026-09, it's "stream" or "private" instead),
+    // but we accept the new forms for forward-compatibility.
+    return switch (MessageType.fromJson(json['type'] as String)) {
+      .channel => StreamMessage.fromJson(json),
+      .direct => DmMessage.fromJson(json),
+    };
   }
 
   Map<String, dynamic> toJson();
+}
+
+/// As in [Message.type],
+/// [DeleteMessageEvent.messageType],
+/// [UpdateMessageFlagsMessageDetail.type],
+/// or [TypingEvent.messageType].
+@JsonEnum(alwaysCreate: true)
+enum MessageType {
+  channel,
+  direct,
+
+  // No `unknown` value: the message type is so fundamental to
+  // interpreting the rest of the data that there's no reasonable
+  // fallback behavior for an unknown value. In particular
+  // [Message.fromJson] would have no way to choose which subclass
+  // to instantiate, [StreamMessage] or [DmMessage]. So instead we
+  // treat a message with an unknown type as malformed.
+  // See discussion:
+  //   https://github.com/zulip/zulip-flutter/issues/1982
+  // unknown,
+  ;
+
+  factory MessageType.fromJson(String json) {
+    switch (json) {
+      case 'stream': json = 'channel'; // TODO(server-future)
+      case 'private': json = 'direct'; // TODO(server-future)
+    }
+    return $enumDecode(_$MessageTypeEnumMap, json);
+  }
+}
+
+class MessageTypeConverter extends JsonConverter<MessageType, String> {
+  const MessageTypeConverter();
+
+  @override
+  MessageType fromJson(String json) {
+    return MessageType.fromJson(json);
+  }
+
+  @override
+  String toJson(MessageType object) {
+    return _$MessageTypeEnumMap[object]!;
+  }
 }
 
 /// https://zulip.com/api/update-message-flags#available-flags
@@ -1339,7 +1384,7 @@ enum MessageFlag {
 class StreamMessage extends Message<StreamConversation> {
   @override
   @JsonKey(includeToJson: true)
-  String get type => 'stream';
+  MessageType get type => .channel;
 
   @JsonKey(includeToJson: true)
   int get streamId => conversation.streamId;
@@ -1393,7 +1438,7 @@ class StreamMessage extends Message<StreamConversation> {
 class DmMessage extends Message<DmConversation> {
   @override
   @JsonKey(includeToJson: true)
-  String get type => 'private';
+  MessageType get type => .direct;
 
   /// The user IDs of all users in the thread, sorted numerically, as in
   /// `display_recipient` from the server.
