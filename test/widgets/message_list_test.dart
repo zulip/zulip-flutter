@@ -720,6 +720,62 @@ void main() {
       final padding = MediaQuery.of(element).padding;
       check(padding).equals(EdgeInsets.zero);
     });
+
+    String spoilerHtml(String contentHtml) =>
+      '<div class="spoiler-block"><div class="spoiler-header">\n'
+      '<p>the header</p>\n'
+      '</div><div class="spoiler-content" aria-hidden="true">\n'
+      '$contentHtml'
+      '</div></div>';
+
+    Animation<double> spoilerSizeFactor(WidgetTester tester) =>
+      tester.widget<SizeTransition>(find.descendant(
+        of: find.byType(Spoiler),
+        matching: find.byType(SizeTransition))).sizeFactor;
+
+    testWidgets('long spoiler at end of list stays expanded when opened', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/2488
+      final spoilerContent = List.generate(500, (i) => '<p>line $i</p>\n').join();
+      await setupMessageListPage(tester, messages: [
+        eg.streamMessage(content: spoilerHtml(spoilerContent)),
+      ]);
+      final controller = findMessageListScrollController(tester)!;
+      check(controller.position).extentAfter.equals(0);
+
+      await tester.tap(find.text('the header'));
+      // Run the expand animation at a realistic frame rate.
+      for (int i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      check(spoilerSizeFactor(tester))
+        ..value.equals(1)
+        ..status.equals(AnimationStatus.completed);
+    });
+
+    testWidgets('spoiler stays expanded after scrolling far away and back', (tester) async {
+      await setupMessageListPage(tester, messages: [
+        eg.streamMessage(content: spoilerHtml('<p>hidden content</p>\n')),
+        ...List.generate(60, (i) => eg.streamMessage(content: '<p>message $i</p>')),
+      ]);
+      final controller = findMessageListScrollController(tester)!;
+
+      controller.jumpTo(controller.position.minScrollExtent);
+      await tester.pump();
+      await tester.tap(find.text('the header'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      check(spoilerSizeFactor(tester)).value.equals(1);
+
+      // Scroll the message far out of view, past the list's cache extent…
+      controller.jumpTo(controller.position.maxScrollExtent);
+      await tester.pump();
+      check(find.byType(Spoiler)).findsNothing();
+
+      // … and back.
+      controller.jumpTo(controller.position.minScrollExtent);
+      await tester.pump();
+      check(spoilerSizeFactor(tester)).value.equals(1);
+    });
   });
 
   testWidgets('smoke test for light/dark/lerped', (tester) async {
