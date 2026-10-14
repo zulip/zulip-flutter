@@ -720,6 +720,75 @@ void main() {
       final padding = MediaQuery.of(element).padding;
       check(padding).equals(EdgeInsets.zero);
     });
+
+    testWidgets('long spoiler at end of list stays expanded when opened', (tester) async {
+      // Regression test for: https://github.com/zulip/zulip-flutter/issues/2488
+      final spoilerContent = List.generate(500, (i) => '<p>line $i</p>\n').join();
+      await setupMessageListPage(tester, messages: [
+        eg.streamMessage(content:
+          '<div class="spoiler-block"><div class="spoiler-header">\n'
+          '<p>the header</p>\n'
+          '</div><div class="spoiler-content" aria-hidden="true">\n'
+          '$spoilerContent'
+          '</div></div>'),
+      ]);
+      final controller = findMessageListScrollController(tester)!;
+      check(controller.position).extentAfter.equals(0);
+
+      await tester.tap(find.text('the header'));
+      // Run the expand animation at a realistic frame rate.
+      for (int i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      final sizeTransition = tester.widget<SizeTransition>(find.descendant(
+        of: find.byType(Spoiler, skipOffstage: false),
+        matching: find.byType(SizeTransition, skipOffstage: false)));
+      check(sizeTransition.sizeFactor)
+        ..value.equals(1)
+        ..status.equals(AnimationStatus.completed);
+      check(controller.position).extentAfter.equals(0);
+    });
+
+    testWidgets('spoiler stays expanded through message edit and scrolling far away', (tester) async {
+      String spoilerHtml(String content) =>
+        '<div class="spoiler-block"><div class="spoiler-header">\n'
+        '<p>the header</p>\n'
+        '</div><div class="spoiler-content" aria-hidden="true">\n'
+        '<p>$content</p>\n'
+        '</div></div>';
+      final message = eg.streamMessage(content: spoilerHtml('original'));
+      await setupMessageListPage(tester, messages: [
+        message,
+        ...List.generate(60, (i) => eg.streamMessage(content: '<p>message $i</p>')),
+      ]);
+      final controller = findMessageListScrollController(tester)!;
+      Animation<double> sizeFactor() => tester.widget<SizeTransition>(
+        find.descendant(of: find.byType(Spoiler),
+          matching: find.byType(SizeTransition))).sizeFactor;
+
+      controller.jumpTo(controller.position.minScrollExtent);
+      await tester.pump();
+      await tester.tap(find.text('the header'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      check(sizeFactor()).value.equals(1);
+
+      await store.handleEvent(eg.updateMessageEditEvent(message,
+        renderedContent: spoilerHtml('edited')));
+      await tester.pump();
+      check(find.text('edited')).findsOne();
+      check(sizeFactor()).value.equals(1);
+
+      // Scroll the message far out of view, past the list's cache extent…
+      controller.jumpTo(controller.position.maxScrollExtent);
+      await tester.pump();
+      check(find.byType(Spoiler)).findsNothing();
+
+      // … and back.
+      controller.jumpTo(controller.position.minScrollExtent);
+      await tester.pump();
+      check(sizeFactor()).value.equals(1);
+    });
   });
 
   testWidgets('smoke test for light/dark/lerped', (tester) async {
