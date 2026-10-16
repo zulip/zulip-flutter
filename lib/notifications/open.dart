@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../api/model/model.dart';
+import '../api/notifications.dart';
 import '../api/route/messages.dart' show NumericAnchor;
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/notifications.dart';
@@ -293,6 +294,22 @@ class NotificationOpenPayload {
     required this.narrow,
     required this.messageId,
   });
+
+  /// The payload for a notification about the message described by [data].
+  factory NotificationOpenPayload.fromNotifPayload(NotifPayloadNewMessage data, {
+    required int? messageId,
+  }) {
+    return NotificationOpenPayload(
+      realmUrl: data.realmUrl,
+      userId: data.userId,
+      narrow: switch (data.recipient) {
+        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
+          TopicNarrow(channelId, topic),
+        NotifPayloadDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      },
+      messageId: messageId);
+  }
 
   /// A key to set the notification URL (created via [buildNotificationUrl]) in
   /// [ImprovedNotificationContent.userInfo] map, on iOS.

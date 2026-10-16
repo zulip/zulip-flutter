@@ -32,7 +32,7 @@ import '../stdlib_checks.dart';
 import '../test_navigation.dart';
 import '../widgets/checks.dart';
 import '../widgets/dialog_checks.dart';
-import 'display_test.dart';
+import 'android_display_test.dart';
 
 Map<String, Object?> messageLegacyApnsPayload(
   Message zulipMessage, {

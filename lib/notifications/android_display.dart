@@ -7,27 +7,26 @@ import 'package:http/http.dart' as http;
 
 import '../api/model/model.dart';
 import '../api/notifications.dart';
-import '../generated/l10n/zulip_localizations.dart';
 import '../host/android_notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
 import '../model/localizations.dart';
-import '../model/narrow.dart';
 import '../model/store.dart';
 import '../widgets/color.dart';
 import '../widgets/theme.dart';
 import 'open.dart';
+import 'presentation.dart';
 
 AndroidNotificationHostApi get _androidHost => ZulipBinding.instance.androidNotificationHost;
 
-enum NotificationSound {
+enum AndroidNotificationSound {
   // TODO(i18n): translate these file display names
   chime2(resourceName: 'chime2', fileDisplayName: 'Zulip - Low Chime.m4a'),
   chime3(resourceName: 'chime3', fileDisplayName: 'Zulip - Chime.m4a'),
   chime4(resourceName: 'chime4', fileDisplayName: 'Zulip - High Chime.m4a');
   // Any new entry here must appear in `keep.xml` too, see #528.
 
-  const NotificationSound({
+  const AndroidNotificationSound({
     required this.resourceName,
     required this.fileDisplayName,
   });
@@ -36,7 +35,7 @@ enum NotificationSound {
 }
 
 /// Service for configuring our Android "notification channel".
-class NotificationChannelManager {
+class AndroidNotificationChannelManager {
   /// The channel ID we use for our one notification channel, which we use for
   /// all notifications.
   // Previous values from Zulip Flutter Beta:
@@ -47,7 +46,7 @@ class NotificationChannelManager {
   static const kChannelId = 'messages-4';
 
   @visibleForTesting
-  static const kDefaultNotificationSound = NotificationSound.chime3;
+  static const kDefaultNotificationSound = AndroidNotificationSound.chime3;
 
   /// The vibration pattern we set for notifications.
   // We try to set a vibration pattern that, with the phone in one's pocket,
@@ -104,7 +103,7 @@ class NotificationChannelManager {
 
     // First, look to see what notification sounds we've already stored,
     // and check against our list of sounds we have.
-    final soundsToAdd = NotificationSound.values.toList();
+    final soundsToAdd = AndroidNotificationSound.values.toList();
 
     final List<StoredNotificationSound> storedSounds;
     try {
@@ -212,10 +211,10 @@ class NotificationChannelManager {
 }
 
 /// Service for managing the notifications shown to the user.
-class NotificationDisplayManager {
+class AndroidNotificationDisplayManager {
   static Future<void> init() async {
     assert(defaultTargetPlatform == TargetPlatform.android);
-    await NotificationChannelManager.ensureChannel();
+    await AndroidNotificationChannelManager.ensureChannel();
   }
 
   static void onNotifPayload(NotifPayloadWithIdentity data, Account account) async {
@@ -296,12 +295,13 @@ class NotificationDisplayManager {
         iconBitmap: await _fetchBitmap(data.senderAvatarUrl)),
       extras: {kExtraZulipMessageId: data.messageId.toString()}));
 
-    final intentDataUrl = notificationUrlForNotifPayload(data, messageId: firstMessageId);
+    final intentDataUrl = NotificationOpenPayload.fromNotifPayload(data,
+      messageId: firstMessageId).buildNotificationUrl();
 
     await _androidHost.notify(
       id: kNotificationId,
       tag: conversationKey,
-      channelId: NotificationChannelManager.kChannelId,
+      channelId: AndroidNotificationChannelManager.kChannelId,
       groupKey: groupKey,
 
       color: kZulipBrandColor.argbInt,
@@ -344,7 +344,7 @@ class NotificationDisplayManager {
     await _androidHost.notify(
       id: kNotificationId,
       tag: groupKey,
-      channelId: NotificationChannelManager.kChannelId,
+      channelId: AndroidNotificationChannelManager.kChannelId,
       groupKey: groupKey,
       isGroupSummary: true,
 
@@ -430,47 +430,6 @@ class NotificationDisplayManager {
       // child notifications are canceled programmatically as done above.
       await _androidHost.cancel(tag: groupKey, id: kNotificationId);
     }
-  }
-
-  static String titleForNotifPayload(NotifPayloadNewMessage data, ZulipLocalizations zulipLocalizations) {
-    return switch (data.recipient) {
-      NotifPayloadChannelRecipient(:var channelName?, :var topic) =>
-        '#$channelName > ${topic.displayName}',
-      NotifPayloadChannelRecipient(:var topic) =>
-        '#${zulipLocalizations.unknownChannelName} > ${topic.displayName}', // TODO get stream name from data
-      NotifPayloadDmRecipient(:var allRecipientIds) when allRecipientIds.length > 2 =>
-        zulipLocalizations.notifGroupDmConversationLabel(
-          data.senderFullName, allRecipientIds.length - 2), // TODO use others' names, from data
-      NotifPayloadDmRecipient() =>
-        data.senderFullName,
-    };
-  }
-
-  static String subtitleForNotifPayloadOnIos(NotifPayloadNewMessage data) {
-    // Adapted from server implementation:
-    //   https://github.com/zulip/zulip/blob/11bf985d1/zerver/lib/push_notifications.py#L1087-L1124
-    // TODO handle subtitle for user/group/wildcard mentions
-    return switch (data.recipient) {
-      NotifPayloadChannelRecipient() => '${data.senderFullName}:',
-
-      // The title indicates the sender's name in both 1-1 and group DMs.
-      NotifPayloadDmRecipient() => '',
-    };
-  }
-
-  static Uri notificationUrlForNotifPayload(NotifPayloadNewMessage data, {
-    required int? messageId,
-  }) {
-    return NotificationOpenPayload(
-      realmUrl: data.realmUrl,
-      userId: data.userId,
-      narrow: switch (data.recipient) {
-        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
-          TopicNarrow(channelId, topic),
-        NotifPayloadDmRecipient(:var allRecipientIds) =>
-          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
-      },
-      messageId: messageId).buildNotificationUrl();
   }
 
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
