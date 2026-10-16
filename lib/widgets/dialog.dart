@@ -289,3 +289,77 @@ class UpgradeWelcomeDialog extends StatelessWidget {
       ]);
   }
 }
+
+/// A brief dialog box introducing one of the app's main screens,
+/// shown the first time the user visits that screen.
+///
+/// Currently shown for the inbox page and the combined feed;
+/// see [IntroDialogDestination].
+class IntroDialog extends StatelessWidget {
+  const IntroDialog._({
+    required this.title,
+    required this.message,
+  });
+
+  final String title;
+  final String message;
+
+  /// Show the intro dialog for [destination],
+  /// unless it has already been shown on this install.
+  ///
+  /// Once the dialog is dismissed, records that it was shown,
+  /// so that later calls do nothing.
+  static void maybeShowIn(IntroDialogDestination destination) async {
+    final navigator = await ZulipApp.navigator;
+    final context = navigator.context;
+    assert(context.mounted);
+    if (!context.mounted) {
+      // TODO(linter): This is impossible as there's no actual async gap,
+      //   but the use_build_context_synchronously lint doesn't see that.
+      return;
+    }
+
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final (BoolGlobalSetting setting, String title, String message) =
+      switch (destination) {
+        .inbox => (
+          .inboxIntroDialogShown,
+          zulipLocalizations.inboxIntroDialogTitle,
+          zulipLocalizations.inboxIntroDialogMessage),
+        .combinedFeed => (
+          .combinedFeedIntroDialogShown,
+          zulipLocalizations.combinedFeedIntroDialogTitle,
+          zulipLocalizations.combinedFeedIntroDialogMessage),
+      };
+
+    final globalSettings = GlobalStoreWidget.settingsOf(context);
+    // Skip if the dialog has already been shown.
+    if (globalSettings.getBool(setting)) return;
+
+    final future = showDialog<void>(
+      context: context,
+      builder: (context) => IntroDialog._(title: title, message: message));
+
+    await future; // Wait for the dialog to be dismissed.
+
+    await globalSettings.setBool(setting, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return AlertDialog.adaptive(
+      title: Text(title),
+      content: _adaptiveContent(Text(message)),
+      actions: [
+        _adaptiveAction(
+          onPressed: () => Navigator.pop(context),
+          isDefaultAction: true,
+          text: zulipLocalizations.introDialogDismiss)
+      ]);
+  }
+}
+
+/// A main screen of the app where an [IntroDialog] is shown
+/// on the user's first visit.
+enum IntroDialogDestination { inbox, combinedFeed }

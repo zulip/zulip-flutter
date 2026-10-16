@@ -35,6 +35,26 @@
   "@upgradeWelcomeDialogDismiss":  {
     "description":  "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
   },
+  "introDialogDismiss": "Got it",
+  "@introDialogDismiss": {
+    "description": "Label for button dismissing an intro dialog, shown on first visiting the inbox page or the combined feed."
+  },
+  "inboxIntroDialogTitle": "Welcome to your inbox!",
+  "@inboxIntroDialogTitle": {
+    "description": "Title for the intro dialog shown on first visiting the inbox page."
+  },
+  "inboxIntroDialogMessage": "You’ll see a list of conversations where you have unread messages, organized by channel. Each conversation is labeled with a topic by the person who started it.",
+  "@inboxIntroDialogMessage": {
+    "description": "Message for the intro dialog shown on first visiting the inbox page."
+  },
+  "combinedFeedIntroDialogTitle": "Welcome to your combined feed!",
+  "@combinedFeedIntroDialogTitle": {
+    "description": "Title for the intro dialog shown on first visiting the combined feed."
+  },
+  "combinedFeedIntroDialogMessage": "You’ll see a feed of all the unmuted messages you’ve received. You can click on a colored header bar to view a conversation.",
+  "@combinedFeedIntroDialogMessage": {
+    "description": "Message for the intro dialog shown on first visiting the combined feed."
+  },
   "chooseAccountPageTitle": "Choose account",
   "@chooseAccountPageTitle": {
     "description": "Title for the page to choose between Zulip accounts."
