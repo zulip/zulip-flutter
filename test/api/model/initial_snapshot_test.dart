@@ -72,4 +72,11 @@ void main() {
       check(settings.emojiset).equals(Emojiset.unknown);
     }
   });
+
+  test('UserSettings from json recognizes channel push notifications as stream', () {
+    final json = eg.userSettings(enableChannelPushNotifications: false).toJson()
+      ..['enable_stream_push_notifications'] = true;
+    final settings = UserSettings.fromJson(json);
+    check(settings.enableChannelPushNotifications).isTrue();
+  });
 }
