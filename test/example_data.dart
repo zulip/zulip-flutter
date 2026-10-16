@@ -1390,6 +1390,9 @@ UserSettings userSettings({
   bool? displayEmojiReactionUsers,
   Emojiset? emojiset,
   bool? webInboxShowChannelFolders,
+  bool? enableChannelPushNotifications,
+  bool? enableOfflinePushNotifications,
+  bool? enableOnlinePushNotifications,
   bool? presenceEnabled,
 }) {
   return UserSettings(
@@ -1398,6 +1401,9 @@ UserSettings userSettings({
     displayEmojiReactionUsers: displayEmojiReactionUsers ?? true,
     emojiset: emojiset ?? Emojiset.google,
     webInboxShowChannelFolders: webInboxShowChannelFolders ?? true,
+    enableChannelPushNotifications: enableChannelPushNotifications ?? false,
+    enableOfflinePushNotifications: enableOfflinePushNotifications ?? true,
+    enableOnlinePushNotifications: enableOnlinePushNotifications ?? true,
     presenceEnabled: presenceEnabled ?? true,
   );
 }

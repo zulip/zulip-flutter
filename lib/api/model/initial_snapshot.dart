@@ -389,6 +389,10 @@ class UserSettings {
   Emojiset emojiset;
   @JsonKey(defaultValue: true)
   bool webInboxShowChannelFolders; // TODO(server-12) remove default value
+  @JsonKey(name: 'enable_stream_push_notifications')
+  bool enableChannelPushNotifications;
+  bool enableOfflinePushNotifications;
+  bool enableOnlinePushNotifications;
   bool presenceEnabled;
 
   // TODO more, as needed. When adding a setting here, please also:
@@ -403,6 +407,9 @@ class UserSettings {
     required this.displayEmojiReactionUsers,
     required this.emojiset,
     required this.webInboxShowChannelFolders,
+    required this.enableChannelPushNotifications,
+    required this.enableOfflinePushNotifications,
+    required this.enableOnlinePushNotifications,
     required this.presenceEnabled,
   });
 

@@ -340,6 +340,10 @@ enum UserSettingName {
   displayEmojiReactionUsers,
   emojiset,
   webInboxShowChannelFolders,
+  @JsonValue('enable_stream_push_notifications')
+  enableChannelPushNotifications,
+  enableOfflinePushNotifications,
+  enableOnlinePushNotifications,
   presenceEnabled,
   ;
 
