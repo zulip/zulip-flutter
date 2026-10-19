@@ -1661,6 +1661,26 @@
   "@markReadOnScrollSettingConversationsDescription":  {
     "description": "Description for a value of setting controlling which message-list views should mark read on scroll."
   },
+  "notificationSettingsPageTitle": "Notifications",
+  "@notificationSettingsPageTitle": {
+    "description": "Title of settings page for notifications."
+  },
+  "offlineNotificationsSettingTitle": "Notifications when offline",
+  "@offlineNotificationsSettingTitle": {
+    "description": "Label for toggling mobile notifications for direct messages and mentions received while offline."
+  },
+  "onlineNotificationsSettingTitle": "Notifications when online",
+  "@onlineNotificationsSettingTitle": {
+    "description": "Label for toggling mobile notifications for direct messages and mentions received while online."
+  },
+  "channelNotificationsSettingTitle": "Channel notifications",
+  "@channelNotificationsSettingTitle": {
+    "description": "Label for toggling mobile notifications for channel messages."
+  },
+  "notificationSettingUpdateFailedTitle": "Failed to update notification setting",
+  "@notificationSettingUpdateFailedTitle": {
+    "description": "Error title when changing a notification setting failed."
+  },
   "experimentalFeatureSettingsPageTitle": "Experimental features",
   "@experimentalFeatureSettingsPageTitle": {
     "description": "Title of settings page for experimental, in-development features"
