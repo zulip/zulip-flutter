@@ -1511,6 +1511,19 @@ void main() {
       // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
       skip: Platform.isWindows);
 
+      testWidgets('iOS (uses file_picker): user cancels picker', (tester) async {
+        await prepare(tester);
+
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.media);
+        checkNoDialog(tester);
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS}));
+
       testWidgets('iOS (uses file_picker): error from picker shown in dialog', (tester) async {
         await prepare(tester);
 
@@ -1532,6 +1545,19 @@ void main() {
     });
 
     group('attach files', () {
+      testWidgets('user cancels picker', (tester) async {
+        await prepare(tester);
+
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.any);
+        checkNoDialog(tester);
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS, .android}));
+
       testWidgets('error from picker shown in dialog', (tester) async {
         await prepare(tester);
 
