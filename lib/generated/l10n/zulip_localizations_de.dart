@@ -1422,6 +1422,22 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Nachrichten werden nur beim Ansehen einzelner Themen oder Direktnachrichten automatisch als gelesen markiert.';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle =>
       'Experimentelle Funktionen';
 

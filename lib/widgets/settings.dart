@@ -1,9 +1,14 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../api/model/model.dart';
+import '../api/route/settings.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../log.dart';
 import '../model/settings.dart';
+import '../model/store.dart';
 import 'app_bar.dart';
 import 'page.dart';
+import 'remote_settings.dart';
 import 'store.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -25,6 +30,10 @@ class SettingsPage extends StatelessWidget {
         const _BrowserPreferenceSetting(),
         const _VisitFirstUnreadSetting(),
         const _MarkReadOnScrollSetting(),
+        ListTile(
+          title: Text(zulipLocalizations.notificationSettingsPageTitle),
+          onTap: () => Navigator.push(context,
+            NotificationSettingsPage.buildRoute(context: context))),
         if (GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty)
           ListTile(
             title: Text(zulipLocalizations.experimentalFeatureSettingsPageTitle),
@@ -222,6 +231,69 @@ class MarkReadOnScrollSettingPage extends StatelessWidget {
               }(),
               value: value),
         ])));
+  }
+}
+
+class NotificationSettingsPage extends StatelessWidget {
+  const NotificationSettingsPage({super.key});
+
+  static AccountRoute<void> buildRoute({required BuildContext context}) {
+    return MaterialAccountWidgetRoute(
+      context: context, page: const NotificationSettingsPage());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    return Scaffold(
+      appBar: ZulipAppBar(
+        title: Text(zulipLocalizations.notificationSettingsPageTitle)),
+      body: ListView(children: [
+        _NotificationSettingToggle(
+          title: zulipLocalizations.notificationsWhenOffline,
+          settingName: UserSettingName.enableOfflinePushNotifications,
+          findValueInStore: (store) =>
+            store.userSettings.enableOfflinePushNotifications),
+        _NotificationSettingToggle(
+          title: zulipLocalizations.notificationsWhenOnline,
+          settingName: UserSettingName.enableOnlinePushNotifications,
+          findValueInStore: (store) =>
+            store.userSettings.enableOnlinePushNotifications),
+        _NotificationSettingToggle(
+          title: zulipLocalizations.channelNotifications,
+          settingName: UserSettingName.enableChannelPushNotifications,
+          findValueInStore: (store) =>
+            store.userSettings.enableChannelPushNotifications),
+      ]));
+  }
+}
+
+class _NotificationSettingToggle extends StatelessWidget {
+  const _NotificationSettingToggle({
+    required this.title,
+    required this.settingName,
+    required this.findValueInStore,
+  });
+
+  final String title;
+  final UserSettingName settingName;
+  final bool Function(PerAccountStore) findValueInStore;
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    return RemoteSettingBuilder<bool>(
+      findValueInStore: findValueInStore,
+      sendValueToServer: (value) => updateSettings(store.connection,
+        newSettings: {settingName: value}),
+      // TODO(#741) interpret API errors for user
+      onError: (e, requestedValue) => reportErrorToUserBriefly(
+        zulipLocalizations.notificationSettingUpdateFailedTitle),
+      builder: (value, handleRequestNewValue) => SwitchListTile.adaptive(
+        title: Text(title),
+        value: value,
+        onChanged: handleRequestNewValue));
   }
 }
 

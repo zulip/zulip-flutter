@@ -1427,6 +1427,22 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
       'Sporočila bodo samodejno označena kot prebrana samo pri ogledu ene teme ali zasebnega pogovora.';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => 'Eksperimentalne funkcije';
 
   @override
