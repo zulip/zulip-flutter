@@ -1110,7 +1110,7 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 }
 
 Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileType type) async {
-  final List<PlatformFile> files;
+  final List<XFile> files;
   try {
     files = await ZulipBinding.instance.pickFiles(type: type,
       darwinOptions: const DarwinOptions(
@@ -1144,8 +1144,7 @@ Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileTyp
       message: message);
     return [];
   }
-  return (await Future.wait(
-    files.map((f) => _fileFromXFile(f.xFile)))).nonNulls;
+  return (await Future.wait(files.map(_fileFromXFile))).nonNulls;
 }
 
 class _AttachFileButton extends _AttachUploadsButton {

@@ -430,7 +430,7 @@ class TestZulipBinding extends ZulipBinding {
   /// See also:
   ///   * [pickFilesException]
   ///   * [takePickFilesCalls]
-  List<PlatformFile> pickFilesResult = [];
+  List<XFile> pickFilesResult = [];
 
   /// The [PlatformException] that `ZulipBinding.instance.pickFiles()` should throw.
   ///
@@ -466,7 +466,7 @@ class TestZulipBinding extends ZulipBinding {
   })>? _pickFilesCalls;
 
   @override
-  Future<List<PlatformFile>> pickFiles({
+  Future<List<XFile>> pickFiles({
     FileType? type,
     DarwinOptions darwinOptions = const DarwinOptions(),
   }) async {
