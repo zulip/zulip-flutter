@@ -321,12 +321,12 @@ class MessageContent extends StatelessWidget {
 class ZulipContentBackgroundData {
   const ZulipContentBackgroundData({required this.message});
 
-  final Message message;
+  final Message? message;
 }
 
 /// Provides [ZulipContentBackgroundData] to the content widgets below it.
 ///
-/// Content widgets read the data through static methods like [messageOf].
+/// Content widgets read the data through static methods like [maybeMessageOf].
 class ZulipContentBackgroundDataProvider extends InheritedWidget {
   const ZulipContentBackgroundDataProvider({
     super.key,
@@ -342,11 +342,12 @@ class ZulipContentBackgroundDataProvider extends InheritedWidget {
     return widget!.data;
   }
 
-  /// The [Message] whose content this is.
+  /// The [Message] whose content this is,
+  /// or null if the content isn't from a message.
   ///
   /// Uses the efficient [BuildContext.dependOnInheritedWidgetOfExactType],
   /// so this is safe to call in a build method.
-  static Message messageOf(BuildContext context) => _dataOf(context).message;
+  static Message? maybeMessageOf(BuildContext context) => _dataOf(context).message;
 
   @override
   bool updateShouldNotify(covariant ZulipContentBackgroundDataProvider oldWidget) =>
@@ -679,12 +680,12 @@ class MessageInlineVideo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = ZulipContentBackgroundDataProvider.messageOf(context);
+    final message = ZulipContentBackgroundDataProvider.maybeMessageOf(context);
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.srcUrl);
 
     return MessageMediaContainer(
-      onTap: resolvedSrc == null ? null : () { // TODO(log)
+      onTap: message == null || resolvedSrc == null ? null : () { // TODO(log)
         Navigator.of(context).push(getVideoLightboxRoute(
           context: context,
           message: message,
@@ -695,7 +696,7 @@ class MessageInlineVideo extends StatelessWidget {
         alignment: Alignment.center,
         // To avoid potentially confusing UX, do not show play icon as
         // we also disable onTap above.
-        child: resolvedSrc == null ? null : const Icon( // TODO(log)
+        child: message == null || resolvedSrc == null ? null : const Icon( // TODO(log)
           Icons.play_arrow_rounded,
           color: Colors.white, // Web has the same color in light and dark mode.
           size: 32)));
@@ -1601,7 +1602,7 @@ class _Image extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final message = ZulipContentBackgroundDataProvider.messageOf(context);
+    final message = ZulipContentBackgroundDataProvider.maybeMessageOf(context);
 
     final resolvedSrc = switch (node.src) {
       ImageNodeSrcThumbnail(:final value) => value.resolve(context,
@@ -1636,6 +1637,10 @@ class _Image extends StatelessWidget {
         // we give the alt text to [RealmContentNetworkImage].)
         excludeFromSemantics: true,
         child: child);
+    }
+
+    if (message == null) {
+      return buildContainer(null, child);
     }
 
     final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
