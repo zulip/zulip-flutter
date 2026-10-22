@@ -93,9 +93,6 @@ void main() {
       });
 
       test('optional fields missing cause no error', () {
-        check(parse({ ...streamJson }..remove('realm_name')))
-          .realmName.isNull();
-
         check(parse({ ...streamJson }..remove('channel_name')))
           .recipient.isA<NotifPayloadChannelRecipient>().which((it) => it
             ..channelId.equals(42)
@@ -138,6 +135,7 @@ void main() {
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('realm_name')));
 
         test("${n++}", () => checkParseFails({ ...streamJson, 'channel_id': 'abc' }));
         test("${n++}", () => checkParseFails({ ...streamJson }..remove('topic')));
@@ -199,6 +197,7 @@ void main() {
             "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...baseJson }..remove('realm_name')));
       });
     });
   });
@@ -206,7 +205,6 @@ void main() {
   // TODO(server-12) remove legacy non-E2EE notification tests.
   group('Legacy plaintext types', () {
     final baseBaseJson = {
-      "realm_uri": "https://zulip.example.com/",  // TODO(server-9)
       "realm_url": "https://zulip.example.com/",
       "realm_name": "Example Organization",
       "user_id": "234",
@@ -269,7 +267,6 @@ void main() {
       test("fields get parsed right in happy path", () {
         check(parse(streamJson))
           ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
-          ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
           ..realmName.equals(baseBaseJson['realm_name'] as String)
           ..userId.equals(234)
           ..senderId.equals(123)
@@ -293,9 +290,6 @@ void main() {
       });
 
       test('optional fields missing cause no error', () {
-        check(parse({ ...streamJson }..remove('realm_name')))
-          .realmName.isNull();
-
         check(parse({ ...streamJson }..remove('stream')))
           .recipient.isA<LegacyFcmMessageChannelRecipient>().which((it) => it
             ..channelId.equals(42)
@@ -340,25 +334,15 @@ void main() {
         checkInert({ 'awesome_feature': 'enabled' });
       });
 
-      test('uses deprecated fields when newer fields are missing', () {
-        final baseline = parse(dmJson);
-
-        // FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
-        final jsonSansRealm =
-          { ...dmJson }..remove('realm_url')..remove('realm_uri');
-        check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' }))
-          .jsonEquals(baseline);
-      });
-
       group("parse failures on malformed 'message'", () {
         int n = 1;
         test("${n++}", () => checkParseFails({ ...dmJson }
-                                              ..remove('realm_url')
-                                              ..remove('realm_uri'))); // TODO(server-9)
+                                              ..remove('realm_url')));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('realm_name')));
 
         test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': 'abc' }));
         test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': '12,34' }));
@@ -400,7 +384,6 @@ void main() {
       test('fields get parsed right in happy path', () {
         check(parse(baseJson))
           ..realmUrl.equals(Uri.parse(baseJson['realm_url'] as String))
-          ..realmUrl.equals(Uri.parse(baseJson['realm_uri'] as String)) // TODO(server-9)
           ..realmName.equals(baseJson['realm_name'] as String)
           ..userId.equals(234)
           ..messageIds.deepEquals([123, 234]);
@@ -421,26 +404,16 @@ void main() {
         check(parse({ ...baseJson, 'awesome_feature': 'enabled' })).jsonEquals(baseline);
       });
 
-      test('uses deprecated fields when newer fields are missing', () {
-        final baseline = parse(baseJson);
-
-        // FL 257 deprecated 'realm_uri' in favor of 'realm_url'.
-        final jsonSansRealm =
-          { ...baseJson }..remove('realm_url')..remove('realm_uri');
-        check(parse({ ...jsonSansRealm, 'realm_url': 'https://zulip.example.com/' }))
-          .jsonEquals(baseline);
-      });
-
       group('parse failures on malformed data', () {
         int n = 1;
 
         test("${n++}", () => checkParseFails({ ...baseJson }
-                                              ..remove('realm_url')
-                                              ..remove('realm_uri'))); // TODO(server-9)
+                                              ..remove('realm_url')));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...baseJson }..remove('realm_name')));
 
         for (final badIntList in ["abc,34", "12,abc", "12,", ""]) {
           test("${n++}", () => checkParseFails({ ...baseJson, 'zulip_message_ids': badIntList }));
@@ -456,7 +429,7 @@ extension UnexpectedNotifPayloadChecks on Subject<UnexpectedNotifPayload> {
 
 extension NotifPayloadWithIdentityChecks on Subject<NotifPayloadWithIdentity> {
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
-  Subject<String?> get realmName => has((x) => x.realmName, 'realmName');
+  Subject<String> get realmName => has((x) => x.realmName, 'realmName');
   Subject<int> get userId => has((x) => x.userId, 'userId');
 }
 
