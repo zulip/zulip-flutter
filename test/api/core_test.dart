@@ -402,20 +402,25 @@ void main() {
   });
 
   /// Test that a request aborted by [ApiConnection.get]'s `timeout`
-  /// fails after [expectedElapsed],
+  /// or by its `abortTrigger` fails after [expectedElapsed],
   /// with a [NetworkException] of kind [NetworkExceptionKind.connectionFailed]
   /// whose cause is an [http.RequestAbortedException].
+  ///
+  /// The request gets an `abortTrigger` just if [abortAfter] is non-null;
+  /// the trigger completes after that long.
   void testAbortedRequest(String description, {
     Duration delay = Duration.zero,
     Duration bodyDelay = Duration.zero,
-    required Duration timeout,
+    Duration? timeout,
+    Duration? abortAfter,
     required Duration expectedElapsed,
   }) {
     test(description, () => awaitFakeAsync((async) async {
       await FakeApiConnection.with_((connection) async {
         connection.prepare(delay: delay, bodyDelay: bodyDelay, json: {});
         final future = connection.get(kExampleRouteName, (json) => json,
-          'example/route', {}, timeout: timeout);
+          'example/route', {}, timeout: timeout,
+          abortTrigger: abortAfter == null ? null : Future.delayed(abortAfter));
         await check(future).throws<NetworkException>((it) => it
           ..routeName.equals(kExampleRouteName)
           ..kind.equals(.connectionFailed)
@@ -433,6 +438,28 @@ void main() {
   testAbortedRequest('API request timeout while reading response body',
     bodyDelay: const Duration(seconds: 300),
     timeout: const Duration(seconds: 90),
+    expectedElapsed: const Duration(seconds: 90));
+
+  testAbortedRequest('API request aborted by abortTrigger',
+    delay: const Duration(seconds: 300),
+    abortAfter: const Duration(seconds: 30),
+    expectedElapsed: const Duration(seconds: 30));
+
+  testAbortedRequest('API request aborted by abortTrigger while reading response body',
+    bodyDelay: const Duration(seconds: 300),
+    abortAfter: const Duration(seconds: 30),
+    expectedElapsed: const Duration(seconds: 30));
+
+  testAbortedRequest('API request aborted by abortTrigger before its timeout',
+    delay: const Duration(seconds: 300),
+    timeout: const Duration(seconds: 90),
+    abortAfter: const Duration(seconds: 30),
+    expectedElapsed: const Duration(seconds: 30));
+
+  testAbortedRequest('API request aborted by timeout before its abortTrigger',
+    delay: const Duration(seconds: 300),
+    timeout: const Duration(seconds: 90),
+    abortAfter: const Duration(seconds: 120),
     expectedElapsed: const Duration(seconds: 90));
 
   test('5xx status wins over a timeout while reading the response body', () => awaitFakeAsync((async) async {
