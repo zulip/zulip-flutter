@@ -112,9 +112,11 @@ typedef TargetFontSizeFinder = double Function(InlineSpan rootSpan);
 
 Widget plainContent(String html) {
   return Builder(builder: (context) =>
-    DefaultTextStyle(
-      style: ContentTheme.of(context).textStylePlainParagraph,
-      child: BlockContentList(nodes: parseContent(html).nodes)));
+    ZulipContentBackgroundDataProvider(
+      data: const ZulipContentBackgroundData(message: null),
+      child: DefaultTextStyle(
+        style: ContentTheme.of(context).textStylePlainParagraph,
+        child: BlockContentList(nodes: parseContent(html).nodes))));
 }
 
 // TODO(#488) For content that we need to show outside a per-message context
@@ -367,11 +369,12 @@ void main() {
   group('MessageImagePreview, MessageImagePreviewList', () {
     Future<void> prepare(WidgetTester tester, String html, {
       List<NavigatorObserver> navObservers = const [],
+      bool withMessage = true,
     }) async {
       await prepareContent(tester,
         navObservers: navObservers,
         // Message is needed for an image's lightbox.
-        messageContent(html),
+        withMessage ? messageContent(html) : plainContent(html),
         // We try to resolve image URLs on the self-account's realm.
         // For URLs on the self-account's realm, we include the auth credential.
         wrapWithPerAccountStoreWidget: true);
@@ -702,16 +705,36 @@ void main() {
       check(images.map((i) => i.src).toList())
         .deepEquals(expectedImages.map((n) => otherSrc(n.src)));
     });
+
+    testWidgets('no lightbox without a message', (tester) async {
+      final pushedRoutes = <Route<dynamic>>[];
+      final testNavObserver = TestNavigatorObserver()
+        ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
+      await prepare(tester, ContentExample.imagePreviewSingle.html,
+        navObservers: [testNavObserver],
+        withMessage: false);
+      // `tester.pumpWidget` in prepareContent introduces an initial route;
+      // remove it so we only have newly pushed routes.
+      assert(pushedRoutes.length == 1);
+      pushedRoutes.removeLast();
+      check(find.byType(RealmContentNetworkImage)).findsOne();
+      check(find.byType(LightboxHero)).findsNothing();
+
+      await tester.tap(find.byType(MessageImagePreview));
+      check(pushedRoutes).isEmpty(); // no lightbox
+    });
   });
 
   group("MessageInlineVideo", () {
-    Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html) async {
+    Future<List<Route<dynamic>>> prepare(WidgetTester tester, String html, {
+      bool withMessage = true,
+    }) async {
       final pushedRoutes = <Route<dynamic>>[];
       final testNavObserver = TestNavigatorObserver()
         ..onPushed = (route, prevRoute) => pushedRoutes.add(route);
       await prepareContent(tester,
         // Message is needed for a video's lightbox.
-        messageContent(html),
+        withMessage ? messageContent(html) : plainContent(html),
         navObservers: [testNavObserver],
         // We try to resolve video URLs on the self-account's realm.
         // With #656, we'll show a preview image. We'll try to resolve this
@@ -733,6 +756,16 @@ void main() {
       await tester.tap(find.byIcon(Icons.play_arrow_rounded));
       check(pushedRoutes).single.isA<AccountPageRouteBuilder>()
         .fullscreenDialog.isTrue(); // opened lightbox
+    });
+
+    testWidgets('no lightbox without a message', (tester) async {
+      const example = ContentExample.videoInline;
+      final pushedRoutes = await prepare(tester, example.html, withMessage: false);
+      check(find.byIcon(Icons.play_arrow_rounded)).findsNothing();
+
+      await tester.tap(find.descendant(
+        of: find.byType(MessageInlineVideo), matching: find.byType(Container)));
+      check(pushedRoutes).isEmpty(); // no lightbox
     });
   });
 
