@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart' as connectivity_plus;
+import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart' as connectivity_plus_platform;
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
@@ -171,7 +172,9 @@ abstract class ZulipBinding {
   ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/android/src/main/java/dev/fluttercommunity/plus/connectivity/ConnectivityBroadcastReceiver.java#L87-L89
   ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/ios/connectivity_plus/Sources/connectivity_plus/ConnectivityPlusPlugin.swift#L73-L80
   ///
-  /// This wraps [connectivity_plus.Connectivity.onConnectivityChanged].
+  /// Consecutive events may describe the same state.
+  ///
+  /// This wraps [connectivity_plus_platform.ConnectivityPlatform.onConnectivityChanged].
   Stream<List<connectivity_plus.ConnectivityResult>> get connectivityChanges;
 
   /// The device's current network connectivity,
@@ -552,7 +555,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Stream<List<connectivity_plus.ConnectivityResult>> get connectivityChanges =>
-    connectivity_plus.Connectivity().onConnectivityChanged;
+    // Not [connectivity_plus.Connectivity.onConnectivityChanged],
+    // whose filter for repeats can swallow a real change.
+    connectivity_plus_platform.ConnectivityPlatform.instance.onConnectivityChanged;
 
   @override
   Future<List<connectivity_plus.ConnectivityResult>> checkConnectivity() =>

@@ -183,6 +183,10 @@ class ApiConnection {
     }
 
     final int httpStatus = response.statusCode;
+    // A 200 response has its result in the body, and a 4xx has its error
+    // code and message there. For any other status, the status alone
+    // decides which exception we throw. See [_makeApiException].
+    final bodyNeeded = httpStatus == 200 || (400 <= httpStatus && httpStatus <= 499);
     Map<String, dynamic>? json;
     try {
       // The stream-oriented `bind` method allows decoding to happen in chunks
@@ -191,15 +195,16 @@ class ApiConnection {
       json = await jsonStream.single as Map<String, dynamic>?;
     } on http.ClientException catch (e) {
       // A network error, like the connection being interrupted
-      // partway through receiving the response body; or the timeout
-      // in [_withTimeout] firing while we were reading it, which
-      // arrives here as an [http.RequestAbortedException].
-      // On an HTTP error status, though, that status is the more useful
-      // signal: fall through, and throw from it below.
-      if (httpStatus == 200) _throwNetworkException(routeName, e);
+      // partway through receiving the response body; or the request
+      // being aborted while we were reading it, by the timeout in
+      // [_withTimeout] or by a caller's abort trigger (see [get]).
+      // Either abort arrives here as an [http.RequestAbortedException].
+      // When the status alone determines the error, though (like a 5xx),
+      // it's the more useful signal: fall through, and throw from it below.
+      if (bodyNeeded) _throwNetworkException(routeName, e);
     } on IOException catch (e) {
       // As above: a network error, arriving with its original type.
-      if (httpStatus == 200) _throwNetworkException(routeName, e);
+      if (bodyNeeded) _throwNetworkException(routeName, e);
     } on FormatException {
       // The response body arrived but wasn't valid UTF-8-encoded JSON.
       // We'll throw something below, seeing `json` is null.
@@ -239,26 +244,43 @@ class ApiConnection {
   /// then the request is aborted, tearing down the connection,
   /// and this throws a [NetworkException]
   /// with kind [NetworkExceptionKind.connectionFailed].
-  /// (But if an error response's headers had already arrived,
+  /// (But if a 5xx response's headers had already arrived,
   /// the exception reflects that HTTP status instead.)
+  ///
+  /// If [abortTrigger] completes before the request has completed,
+  /// including reading the response body,
+  /// the request is aborted in the same way.
+  /// The [abortTrigger] future must not complete with an error.
+  /// Pass a fresh future for each request:
+  /// each request adds listeners to it,
+  /// which hold onto the request's state until the future completes.
   ///
   /// With the HTTP client the live app uses
   /// (`package:http`'s `IOClient`; see [ApiConnection.live]),
-  /// the [timeout] can't cut short
+  /// neither [timeout] nor [abortTrigger] can cut short
   /// connecting to the server:
   /// the DNS lookup, TCP connection, and TLS handshake
   /// for a new network connection, if there's no idle one to reuse.
   /// An abort that comes while connecting takes effect only once connected.
   /// See #2476.
   Future<T> get<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
-      String path, Map<String, dynamic>? params, {Duration? timeout}) async {
+      String path, Map<String, dynamic>? params, {
+    Duration? timeout,
+    Future<void>? abortTrigger,
+  }) async {
     final url = realmUrl.replace(
       path: "/api/v1/$path", queryParameters: encodeParameters(params));
-    if (timeout == null) {
-      return send(routeName, fromJson, http.Request('GET', url));
+    Future<T> doSend(Future<void>? abortTrigger) {
+      return send(routeName, fromJson, switch (abortTrigger) {
+        null => http.Request('GET', url),
+        _    => http.AbortableRequest('GET', url, abortTrigger: abortTrigger),
+      });
     }
-    return _withTimeout(timeout, (abortTrigger) => send(routeName, fromJson,
-      http.AbortableRequest('GET', url, abortTrigger: abortTrigger)));
+    if (timeout == null) return doSend(abortTrigger);
+    return _withTimeout(timeout, (timeoutTrigger) => doSend(
+      abortTrigger == null
+        ? timeoutTrigger
+        : Future.any([timeoutTrigger, abortTrigger])));
   }
 
   Future<T> post<T>(String routeName, T Function(Map<String, dynamic>) fromJson,
@@ -357,7 +379,8 @@ const _erasedSocketErrorMessages = {
 Never _throwNetworkException(String routeName, Object cause) {
   final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
   final (NetworkExceptionKind kind, String message) = switch (cause) {
-    // Our own timeout, from [ApiConnection._withTimeout].  Skip the
+    // Our own abort: the timeout from [ApiConnection._withTimeout],
+    // or a caller's abort trigger (see [ApiConnection.get]).  Skip the
     // exception's message: it names a package-internal mechanism
     // ("Request aborted by `abortTrigger`"), which wouldn't mean much to a user.
     http.RequestAbortedException() =>
