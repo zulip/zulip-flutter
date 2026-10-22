@@ -31,6 +31,15 @@ void main() {
           case UserSettingName.webInboxShowChannelFolders:
             newSettings[name] = false;
             expectedBodyFields['web_inbox_show_channel_folders'] = 'false';
+          case UserSettingName.enableChannelPushNotifications:
+            newSettings[name] = true;
+            expectedBodyFields['enable_stream_push_notifications'] = 'true';
+          case UserSettingName.enableOfflinePushNotifications:
+            newSettings[name] = false;
+            expectedBodyFields['enable_offline_push_notifications'] = 'false';
+          case UserSettingName.enableOnlinePushNotifications:
+            newSettings[name] = false;
+            expectedBodyFields['enable_online_push_notifications'] = 'false';
           case UserSettingName.presenceEnabled:
             newSettings[name] = true;
             expectedBodyFields['presence_enabled'] = 'true';

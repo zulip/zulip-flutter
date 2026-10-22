@@ -1,17 +1,27 @@
+import 'dart:io';
+
 import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:material_ui/material_ui.dart';
+import 'package:zulip/api/model/events.dart';
+import 'package:zulip/api/model/model.dart';
+import 'package:zulip/log.dart';
 import 'package:zulip/model/settings.dart';
+import 'package:zulip/model/store.dart';
 import 'package:zulip/widgets/page.dart';
+import 'package:zulip/widgets/remote_settings.dart';
 import 'package:zulip/widgets/settings.dart';
 import 'package:zulip/widgets/store.dart';
 
+import '../api/fake_api.dart';
 import '../flutter_checks.dart';
 import '../model/binding.dart';
 import '../model/store_checks.dart';
 import '../example_data.dart' as eg;
+import '../stdlib_checks.dart';
 import '../test_navigation.dart';
 import 'checks.dart';
 import 'test_app.dart';
@@ -72,7 +82,7 @@ void main() {
 
     final lastElementFinder = GlobalSettingsStore.experimentalFeatureFlags.isNotEmpty
       ? find.text("Experimental features")
-      : find.text("Mark messages as read on scroll");
+      : find.text("Notifications");
     check(lastElementFinder).findsNothing();
 
     await tester.scrollUntilVisible(lastElementFinder, 100);
@@ -307,6 +317,92 @@ void main() {
       checkTileOnSettingsPage(tester,
         expectedTitle: 'Mark messages as read on scroll',
         expectedSubtitle: settingTitle(MarkReadOnScrollSetting.never));
+    });
+  });
+
+  group('NotificationSettingsPage', () {
+    late PerAccountStore store;
+    late FakeApiConnection connection;
+
+    Future<void> prepareNotificationSettingsPage(WidgetTester tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot(
+        userSettings: eg.userSettings(
+          enableChannelPushNotifications: true,
+          enableOfflinePushNotifications: true,
+          enableOnlinePushNotifications: false)));
+      store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      connection = store.connection as FakeApiConnection;
+      await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        child: NotificationSettingsPage()));
+      await tester.pump();
+    }
+
+    Finder findToggle(String title) =>
+      find.widgetWithText(SwitchListTile, title);
+
+    bool getValue(WidgetTester tester, String title) =>
+      tester.widget<SwitchListTile>(findToggle(title)).value;
+
+    testWidgets('navigate from SettingsPage', (tester) async {
+      await prepare(tester);
+      await tester.tap(find.text('Notifications'));
+      await tester.pump();
+      check(lastPushedRoute).isA<MaterialAccountWidgetRoute>()
+        .page.isA<NotificationSettingsPage>();
+      await tester.pump((lastPushedRoute as TransitionRoute).transitionDuration);
+      check(find.byType(NotificationSettingsPage)).findsOne();
+    });
+
+    void testToggle(String title, {
+      required UserSettingName settingName,
+      required String apiName,
+      required bool initialValue,
+    }) {
+      testWidgets('toggle "$title"', (tester) async {
+        await prepareNotificationSettingsPage(tester);
+        check(getValue(tester, title)).equals(initialValue);
+
+        await store.handleEvent(UserSettingsUpdateEvent(id: 1,
+          property: settingName, value: !initialValue));
+        await tester.pump();
+        check(getValue(tester, title)).equals(!initialValue);
+
+        connection.prepare(json: {});
+        await tester.tap(findToggle(title));
+        await tester.pump(Duration.zero);
+        check(connection.takeRequests()).single.isA<http.Request>()
+          ..method.equals('PATCH')
+          ..url.path.equals('/api/v1/settings')
+          ..bodyFields.deepEquals({apiName: '$initialValue'});
+      });
+    }
+
+    testToggle('Notifications when offline', initialValue: true,
+      settingName: UserSettingName.enableOfflinePushNotifications,
+      apiName: 'enable_offline_push_notifications');
+    testToggle('Notifications when online', initialValue: false,
+      settingName: UserSettingName.enableOnlinePushNotifications,
+      apiName: 'enable_online_push_notifications');
+    testToggle('Channel notifications', initialValue: true,
+      settingName: UserSettingName.enableChannelPushNotifications,
+      apiName: 'enable_stream_push_notifications');
+
+    testWidgets('request has an error', (tester) async {
+      const title = 'Notifications when offline';
+      await prepareNotificationSettingsPage(tester);
+      String? reportedError;
+      reportErrorToUserBriefly = (message, {details}) => reportedError = message;
+      check(getValue(tester, title)).isTrue();
+
+      connection.prepare(httpException: SocketException('failed'));
+      await tester.tap(findToggle(title));
+      await tester.pump(Duration.zero);
+      check(getValue(tester, title)).isFalse();
+
+      await tester.pump(RemoteSettingBuilder.localEchoMinimum);
+      check(getValue(tester, title)).isTrue();
+      check(reportedError).equals('Failed to update notification setting');
     });
   });
 

@@ -1410,6 +1410,22 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Повідомлення будуть автоматично помічатися як прочитані тільки при перегляді окремої теми або особистої бесіди.';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => 'Експериментальні функції';
 
   @override
