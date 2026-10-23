@@ -1295,6 +1295,7 @@ enum MessageFlag {
   read,
   starred,
   collapsed,
+  hideLinkPreviews,
   mentioned,
   topicWildcardMentioned,
   streamWildcardMentioned,
@@ -1327,6 +1328,7 @@ enum MessageFlag {
       case MessageFlag.read:
       case MessageFlag.starred:
       case MessageFlag.collapsed:
+      case MessageFlag.hideLinkPreviews:
       case MessageFlag.hasAlertWord:
       case MessageFlag.historical:
       case MessageFlag.unknown:

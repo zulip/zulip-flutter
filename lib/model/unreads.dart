@@ -433,6 +433,7 @@ class Unreads extends PerAccountStoreBase with ChangeNotifier {
     switch (event.flag) {
       case MessageFlag.starred:
       case MessageFlag.collapsed:
+      case MessageFlag.hideLinkPreviews:
       case MessageFlag.hasAlertWord:
       case MessageFlag.historical:
       case MessageFlag.unknown:
