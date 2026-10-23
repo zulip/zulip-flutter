@@ -612,6 +612,9 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get newDmSheetNoUsersFound => 'Ühtegi kasutajat ei leidu';
 
   @override
+  String get you => 'you';
+
+  @override
   String composeBoxDmContentHint(String user) {
     return 'Sõnum kasutajale @$user';
   }
