@@ -520,6 +520,18 @@ abstract class ZulipLocalizations {
   /// **'Hide muted message again'**
   String get actionSheetOptionHideMutedMessage;
 
+  /// Label for the 'Hide link previews' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide link previews'**
+  String get actionSheetOptionHideLinkPreviews;
+
+  /// Label for the 'Show link previews' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Show link previews'**
+  String get actionSheetOptionShowLinkPreviews;
+
   /// Label for share button on action sheet.
   ///
   /// In en, this message translates to:
@@ -923,6 +935,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Failed to unstar message'**
   String get errorUnstarMessageFailedTitle;
+
+  /// Error title when hiding the link previews on a message failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to hide link previews'**
+  String get errorHideLinkPreviewsFailedTitle;
+
+  /// Error title when showing the link previews on a message failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to show link previews'**
+  String get errorShowLinkPreviewsFailedTitle;
 
   /// Error title when an exception prevented us from opening the compose box for editing a message.
   ///

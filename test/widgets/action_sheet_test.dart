@@ -2429,6 +2429,109 @@ void main() {
       });
     });
 
+    group('HideShowLinkPreviewsButton', () {
+      Future<Message> prepare(WidgetTester tester, {
+        String? content,
+        bool hidden = false,
+        int zulipFeatureLevel = 510,
+      }) async {
+        prepareBoringImageHttpClient();
+        final message = eg.streamMessage(
+          content: content ?? ContentExample.videoEmbedYoutube.html,
+          flags: [if (hidden) MessageFlag.hideLinkPreviews]);
+        await setupToMessageActionSheet(tester,
+          message: message,
+          narrow: TopicNarrow.ofMessage(message),
+          zulipFeatureLevel: zulipFeatureLevel);
+        return message;
+      }
+
+      Finder findButton(String label) => find.descendant(
+        of: actionSheetFinder,
+        matching: find.text(label, skipOffstage: false),
+        skipOffstage: false);
+
+      Future<void> tapButton(WidgetTester tester, String label) async {
+        await tester.ensureVisible(findButton(label));
+        await tester.tap(findButton(label));
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+      }
+
+      testWidgets('no button when message has no link previews', (tester) async {
+        await prepare(tester, content: '<p>A message</p>');
+        check(findButton('Hide link previews')).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('no button before FL 510', (tester) async {
+        await prepare(tester, zulipFeatureLevel: 509);
+        check(findButton('Hide link previews')).findsNothing();
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('hide success', (tester) async {
+        final message = await prepare(tester, hidden: false);
+
+        connection.prepare(json: {});
+        await tapButton(tester, 'Hide link previews');
+        await tester.pump(Duration.zero);
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags')
+          ..bodyFields.deepEquals({
+            'messages': jsonEncode([message.id]),
+            'op': 'add',
+            'flag': 'hide_link_previews',
+          });
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('show success', (tester) async {
+        final message = await prepare(tester, hidden: true);
+
+        connection.prepare(json: {});
+        await tapButton(tester, 'Show link previews');
+        await tester.pump(Duration.zero);
+        check(connection.lastRequest).isA<http.Request>()
+          ..method.equals('POST')
+          ..url.path.equals('/api/v1/messages/flags')
+          ..bodyFields.deepEquals({
+            'messages': jsonEncode([message.id]),
+            'op': 'remove',
+            'flag': 'hide_link_previews',
+          });
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('hide request has an error', (tester) async {
+        await prepare(tester, hidden: false);
+
+        connection.prepare(
+          apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
+        await tapButton(tester, 'Hide link previews');
+        await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+        await tester.tap(find.byWidget(checkErrorDialog(tester,
+          expectedTitle: 'Failed to hide link previews',
+          expectedMessage: 'Invalid message(s)')));
+        debugNetworkImageHttpClientProvider = null;
+      });
+
+      testWidgets('show request has an error', (tester) async {
+        await prepare(tester, hidden: true);
+
+        connection.prepare(
+          apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
+        await tapButton(tester, 'Show link previews');
+        await tester.pump(Duration.zero); // error arrives; error dialog shows
+
+        await tester.tap(find.byWidget(checkErrorDialog(tester,
+          expectedTitle: 'Failed to show link previews',
+          expectedMessage: 'Invalid message(s)')));
+        debugNetworkImageHttpClientProvider = null;
+      });
+    });
+
     group('CopyMessageTextButton', () {
       setUp(() async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(

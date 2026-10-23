@@ -2839,6 +2839,32 @@ void main() {
     });
   });
 
+  group('Link previews', () {
+    testWidgets('live-update on hideLinkPreviews flag events', (tester) async {
+      prepareBoringImageHttpClient();
+      final message = eg.streamMessage(
+        content: ContentExample.videoEmbedYoutube.html, flags: []);
+      await setupMessageListPage(tester, messages: [message]);
+      check(find.byType(MessageEmbedVideo)).findsOne();
+
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
+        id: 1,
+        flag: MessageFlag.hideLinkPreviews,
+        messages: [message.id],
+        all: false,
+      ));
+      await tester.pump();
+      check(find.byType(MessageEmbedVideo)).findsNothing();
+
+      await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
+        MessageFlag.hideLinkPreviews, [message]));
+      await tester.pump();
+      check(find.byType(MessageEmbedVideo)).findsOne();
+
+      debugNetworkImageHttpClientProvider = null;
+    });
+  });
+
   group('EDITED/MOVED label and edit-message error status', () {
     void checkMarkersCount({required int edited, required int moved}) {
       check(find.text('EDITED').evaluate()).length.equals(edited);

@@ -958,6 +958,7 @@ void main() {
       switch (flag) {
         MessageFlag.starred => true,
         MessageFlag.collapsed => true,
+        MessageFlag.hideLinkPreviews => true,
         MessageFlag.hasAlertWord => true,
         MessageFlag.historical => true,
         MessageFlag.unknown => true,

@@ -366,6 +366,9 @@ class BlockContentList extends StatelessWidget {
             return MessageImagePreview(node: node);
           }(),
           InlineVideoNode() => MessageInlineVideo(node: node),
+          EmbedVideoNode() || WebsitePreviewNode()
+              when InheritedMessage.of(context).flags.contains(MessageFlag.hideLinkPreviews) =>
+            const SizedBox.shrink(),
           EmbedVideoNode() => MessageEmbedVideo(node: node),
           TableNode() => MessageTable(node: node),
           TableRowNode() => () {

@@ -229,6 +229,12 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get actionSheetOptionHideMutedMessage => 'Gøym dempa melding på nytt';
 
   @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+
+  @override
   String get actionSheetOptionShare => 'Del';
 
   @override
@@ -479,6 +485,12 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Kunne ikkje fjerna stjerne på meldinga';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Kunne ikkje redigera meldinga';

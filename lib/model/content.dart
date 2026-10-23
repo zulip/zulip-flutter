@@ -96,9 +96,17 @@ class PollContent implements ZulipMessageContent {
 /// [Stream.renderedDescription], or other text from a Zulip server that comes
 /// in the same Zulip HTML format.
 class ZulipContent extends ContentNode implements ZulipMessageContent {
-  const ZulipContent({super.debugHtmlNode, required this.nodes});
+  const ZulipContent({
+    super.debugHtmlNode,
+    required this.nodes,
+    this.hasLinkPreviews = false,
+  });
 
   final List<BlockContentNode> nodes;
+
+  /// Whether [nodes] or their descendants include any of the link previews
+  /// that [MessageFlag.hideLinkPreviews] hides.
+  final bool hasLinkPreviews;
 
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
@@ -1570,6 +1578,9 @@ class _ZulipContentParser {
   /// so we can allocate just one up front.
   final inlineParser = _ZulipInlineContentParser();
 
+  /// Whether the content parsed so far has any link previews.
+  bool _hasLinkPreviews = false;
+
   ({List<InlineContentNode> nodes, List<LinkNode>? links}) parseBlockInline(List<dom.Node> nodes) {
     return inlineParser.parseBlockInline(nodes);
   }
@@ -1807,6 +1818,7 @@ class _ZulipContentParser {
       return UnimplementedBlockContentNode(htmlNode: divElement);
     }
 
+    _hasLinkPreviews = true;
     return EmbedVideoNode(hrefUrl: href, previewImageSrcUrl: imgSrc, debugHtmlNode: debugHtmlNode);
   }
 
@@ -1903,6 +1915,7 @@ class _ZulipContentParser {
             return null;
         }
 
+        _hasLinkPreviews = true;
         return WebsitePreviewNode(
           hrefUrl: imageHref,
           imageSrcUrl: imageSrcUrl,
@@ -2303,7 +2316,8 @@ class _ZulipContentParser {
   ZulipContent parse(String html) {
     final fragment = HtmlParser(html, parseMeta: false).parseFragment();
     final nodes = parseBlockContentList(fragment.nodes);
-    return ZulipContent(nodes: nodes, debugHtmlNode: kDebugMode ? fragment : null);
+    return ZulipContent(nodes: nodes, hasLinkPreviews: _hasLinkPreviews,
+      debugHtmlNode: kDebugMode ? fragment : null);
   }
 }
 

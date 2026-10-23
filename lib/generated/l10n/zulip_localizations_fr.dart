@@ -232,6 +232,12 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Cacher à nouveau le message en sourdine';
 
   @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+
+  @override
   String get actionSheetOptionShare => 'Partager';
 
   @override
@@ -499,6 +505,12 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Échec de la suppression du message des favoris';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle =>

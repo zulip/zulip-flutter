@@ -226,6 +226,12 @@ class ZulipLocalizationsHy extends ZulipLocalizations {
   String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
 
   @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+
+  @override
   String get actionSheetOptionShare => 'Share';
 
   @override
@@ -476,6 +482,12 @@ class ZulipLocalizationsHy extends ZulipLocalizations {
 
   @override
   String get errorUnstarMessageFailedTitle => 'Failed to unstar message';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Could not edit message';
