@@ -235,6 +235,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Ukryj ponownie wyciszone wiadomości';
 
   @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+
+  @override
   String get actionSheetOptionShare => 'Udostępnij';
 
   @override
@@ -488,6 +494,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Odebranie gwiazdki bez powodzenia';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Nie można zmienić wiadomości';

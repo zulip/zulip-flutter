@@ -2183,6 +2183,44 @@ void main() async {
       ]]),
     ]);
 
+  group('ZulipContent.hasLinkPreviews', () {
+    bool hasLinkPreviews(String html) => parseContent(html).hasLinkPreviews;
+
+    test('website preview', () {
+      check(hasLinkPreviews(ContentExample.websitePreviewSmoke.html)).isTrue();
+    });
+
+    test('video embed', () {
+      check(hasLinkPreviews(ContentExample.videoEmbedYoutube.html)).isTrue();
+    });
+
+    test('video embed in list item', () {
+      // "* https://www.youtube.com/watch?v=aqz-KE-bpKQ"
+      check(hasLinkPreviews(
+        '<ul>\n<li>'
+          '<a href="https://www.youtube.com/watch?v=aqz-KE-bpKQ">https://www.youtube.com/watch?v=aqz-KE-bpKQ</a>'
+          '<div class="youtube-video message_inline_image">'
+            '<a data-id="aqz-KE-bpKQ" href="https://www.youtube.com/watch?v=aqz-KE-bpKQ">'
+              '<img src="/external_content/ecb96e8f884f481c4bc0179287a44ab9014aa78f/68747470733a2f2f692e7974696d672e636f6d2f76692f61717a2d4b452d62704b512f64656661756c742e6a7067"></a></div>'
+        '</li>\n</ul>')).isTrue();
+    });
+
+    test('video embed in spoiler', () {
+      // "```spoiler\nhttps://www.youtube.com/watch?v=aqz-KE-bpKQ\n```"
+      check(hasLinkPreviews(
+        '<div class="spoiler-block"><div class="spoiler-header">\n'
+          '</div><div class="spoiler-content" aria-hidden="true">\n'
+          '${ContentExample.videoEmbedYoutube.html}'
+          '</div></div>')).isTrue();
+    });
+
+    test('no link previews in image preview or uploaded video', () {
+      check(hasLinkPreviews(
+        ContentExample.imagePreviewSingle.html + ContentExample.videoInline.html,
+      )).isFalse();
+    });
+  });
+
   test('all content examples are tested', () {
     // Check that every ContentExample defined above has a corresponding
     // actual test case that runs on it.  If you've added a new example

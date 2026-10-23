@@ -234,6 +234,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
       'Stummgeschaltete Nachricht wieder ausblenden';
 
   @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+
+  @override
   String get actionSheetOptionShare => 'Teilen';
 
   @override
@@ -497,6 +503,12 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Konnte Markierung nicht von der Nachricht entfernen';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle =>

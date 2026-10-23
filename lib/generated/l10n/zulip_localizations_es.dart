@@ -234,6 +234,12 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'Ocultar mensaje silenciado de nuevo';
 
   @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+
+  @override
   String get actionSheetOptionShare => 'Compartir';
 
   @override
@@ -487,6 +493,12 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Error al dejar de destacar el mensaje';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle =>

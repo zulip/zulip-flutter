@@ -237,6 +237,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Скрыть заглушенное сообщение';
 
   @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+
+  @override
   String get actionSheetOptionShare => 'Поделиться';
 
   @override
@@ -490,6 +496,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Не удалось снять отметку с сообщения';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Сбой редактирования';

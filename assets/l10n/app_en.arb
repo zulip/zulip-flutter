@@ -257,6 +257,14 @@
   "@actionSheetOptionHideMutedMessage":  {
     "description": "Label for hide muted message again button on action sheet."
   },
+  "actionSheetOptionHideLinkPreviews": "Hide link previews",
+  "@actionSheetOptionHideLinkPreviews": {
+    "description": "Label for the 'Hide link previews' button in the message action sheet."
+  },
+  "actionSheetOptionShowLinkPreviews": "Show link previews",
+  "@actionSheetOptionShowLinkPreviews": {
+    "description": "Label for the 'Show link previews' button in the message action sheet."
+  },
   "actionSheetOptionShare": "Share",
   "@actionSheetOptionShare":  {
     "description": "Label for share button on action sheet."
@@ -563,6 +571,14 @@
   "errorUnstarMessageFailedTitle": "Failed to unstar message",
   "@errorUnstarMessageFailedTitle": {
     "description": "Error title when unstarring a message failed."
+  },
+  "errorHideLinkPreviewsFailedTitle": "Failed to hide link previews",
+  "@errorHideLinkPreviewsFailedTitle": {
+    "description": "Error title when hiding the link previews on a message failed."
+  },
+  "errorShowLinkPreviewsFailedTitle": "Failed to show link previews",
+  "@errorShowLinkPreviewsFailedTitle": {
+    "description": "Error title when showing the link previews on a message failed."
   },
   "errorCouldNotEditMessageTitle": "Could not edit message",
   "@errorCouldNotEditMessageTitle": {

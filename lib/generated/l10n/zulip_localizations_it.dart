@@ -236,6 +236,12 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Nascondi nuovamente il messaggio disattivato';
 
   @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+
+  @override
   String get actionSheetOptionShare => 'Condividi';
 
   @override
@@ -493,6 +499,12 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Impossibile contrassegnare il messaggio come normale';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle =>
