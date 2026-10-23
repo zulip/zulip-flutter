@@ -1805,7 +1805,7 @@ void main() {
 
   group('WebsitePreview', () {
     Future<void> prepare(WidgetTester tester, String html) async {
-      await prepareContent(tester, plainContent(html),
+      await prepareContent(tester, messageContent(html),
         wrapWithPerAccountStoreWidget: true);
     }
 
