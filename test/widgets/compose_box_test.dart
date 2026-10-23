@@ -1349,7 +1349,7 @@ void main() {
 
           await tester.pump(const Duration(seconds: 1));
           check(controller!.content.text)
-            .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+            .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
           checkAppearsLoading(tester, false);
         }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
@@ -1389,12 +1389,12 @@ void main() {
 
           await tester.pump(const Duration(seconds: 1));
           check(controller!.content.text).equals(
-            'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[Uploading test.gif…]()\n\n');
+            'see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[Uploading test.gif…]()\n\n');
           checkAppearsLoading(tester, true);
 
           await tester.pump(const Duration(seconds: 1));
           check(controller!.content.text).equals(
-            'see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n[test.gif](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif)\n\n');
+            'see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n![test.gif](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/test.gif)\n\n');
           checkAppearsLoading(tester, false);
         }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
@@ -1426,7 +1426,7 @@ void main() {
 
           await tester.pump(const Duration(seconds: 1));
           check(controller!.content.text)
-            .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+            .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         }, variant: const TargetPlatformVariant({TargetPlatform.android}));
       },
       // These tests fail on Windows because [XFile.name] splits on
@@ -1477,7 +1477,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       }, variant: const TargetPlatformVariant({TargetPlatform.iOS}),
       // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
@@ -1671,7 +1671,7 @@ void main() {
 
         await tester.pump(const Duration(seconds: 1));
         check(controller!.content.text)
-          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+          .equals('see image: ![image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
       });
 
@@ -1764,7 +1764,7 @@ void main() {
 
         await tester.pump(Duration.zero);
         check(controller!.content.text)
-          .equals('see image: [test.gif]($uploadUrl)\n\n');
+          .equals('see image: ![test.gif]($uploadUrl)\n\n');
         checkAppearsLoading(tester, false);
       });
 
