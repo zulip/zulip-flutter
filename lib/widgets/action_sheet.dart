@@ -1224,6 +1224,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
 
+  final content = parseMessageContent(message);
+
   final popularEmojiLoaded = store.popularEmojiCandidates().isNotEmpty;
 
   final reactions = message.reactions;
@@ -1276,13 +1278,14 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   _showActionSheet(pageContext,
     buttonSections: buttonSections,
-    header: _MessageActionSheetHeader(message: message));
+    header: _MessageActionSheetHeader(message: message, content: content));
 }
 
 class _MessageActionSheetHeader extends StatelessWidget {
-  const _MessageActionSheetHeader({required this.message});
+  const _MessageActionSheetHeader({required this.message, required this.content});
 
   final Message message;
+  final ZulipMessageContent content;
 
   @override
   Widget build(BuildContext context) {
@@ -1307,7 +1310,7 @@ class _MessageActionSheetHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             // TODO(#10) offer text selection; the Figma asks for it here:
             //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3483-30210&m=dev
-            child: MessageContent(message: message, content: parseMessageContent(message))),
+            child: MessageContent(message: message, content: content)),
         ]));
   }
 }
