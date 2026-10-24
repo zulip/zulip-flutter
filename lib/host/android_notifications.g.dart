@@ -105,6 +105,7 @@ class NotificationChannel {
     required this.id,
     required this.importance,
     this.name,
+    this.groupId,
     this.lightsEnabled,
     this.soundUrl,
     this.vibrationPattern,
@@ -120,6 +121,9 @@ class NotificationChannel {
 
   String? name;
 
+  /// The ID of the [NotificationChannelGroup] this channel belongs to, if any.
+  String? groupId;
+
   bool? lightsEnabled;
 
   String? soundUrl;
@@ -131,6 +135,7 @@ class NotificationChannel {
       id,
       importance,
       name,
+      groupId,
       lightsEnabled,
       soundUrl,
       vibrationPattern,
@@ -146,9 +151,10 @@ class NotificationChannel {
       id: result[0]! as String,
       importance: result[1]! as int,
       name: result[2] as String?,
-      lightsEnabled: result[3] as bool?,
-      soundUrl: result[4] as String?,
-      vibrationPattern: result[5] as Int64List?,
+      groupId: result[3] as String?,
+      lightsEnabled: result[4] as bool?,
+      soundUrl: result[5] as String?,
+      vibrationPattern: result[6] as Int64List?,
     );
   }
 
@@ -161,7 +167,7 @@ class NotificationChannel {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(id, other.id) && _deepEquals(importance, other.importance) && _deepEquals(name, other.name) && _deepEquals(lightsEnabled, other.lightsEnabled) && _deepEquals(soundUrl, other.soundUrl) && _deepEquals(vibrationPattern, other.vibrationPattern);
+    return _deepEquals(id, other.id) && _deepEquals(importance, other.importance) && _deepEquals(name, other.name) && _deepEquals(groupId, other.groupId) && _deepEquals(lightsEnabled, other.lightsEnabled) && _deepEquals(soundUrl, other.soundUrl) && _deepEquals(vibrationPattern, other.vibrationPattern);
   }
 
   @override
@@ -170,7 +176,60 @@ class NotificationChannel {
 
   @override
   String toString() {
-    return 'NotificationChannel(id: $id, importance: $importance, name: $name, lightsEnabled: $lightsEnabled, soundUrl: $soundUrl, vibrationPattern: $vibrationPattern)';
+    return 'NotificationChannel(id: $id, importance: $importance, name: $name, groupId: $groupId, lightsEnabled: $lightsEnabled, soundUrl: $soundUrl, vibrationPattern: $vibrationPattern)';
+  }
+}
+
+/// Corresponds to `androidx.core.app.NotificationChannelGroupCompat`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationChannelGroupCompat
+class NotificationChannelGroup {
+  NotificationChannelGroup({
+    required this.id,
+    required this.name,
+  });
+
+  String id;
+
+  String name;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      id,
+      name,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static NotificationChannelGroup decode(Object result) {
+    result as List<Object?>;
+    return NotificationChannelGroup(
+      id: result[0]! as String,
+      name: result[1]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! NotificationChannelGroup || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(id, other.id) && _deepEquals(name, other.name);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'NotificationChannelGroup(id: $id, name: $name)';
   }
 }
 
@@ -735,32 +794,35 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is NotificationChannel) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    }    else if (value is AndroidIntent) {
+    }    else if (value is NotificationChannelGroup) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is PendingIntent) {
+    }    else if (value is AndroidIntent) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is InboxStyle) {
+    }    else if (value is PendingIntent) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is Person) {
+    }    else if (value is InboxStyle) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is MessagingStyleMessage) {
+    }    else if (value is Person) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is MessagingStyle) {
+    }    else if (value is MessagingStyleMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is Notification) {
+    }    else if (value is MessagingStyle) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is StatusBarNotification) {
+    }    else if (value is Notification) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    }    else if (value is StoredNotificationSound) {
+    }    else if (value is StatusBarNotification) {
       buffer.putUint8(138);
+      writeValue(buffer, value.encode());
+    }    else if (value is StoredNotificationSound) {
+      buffer.putUint8(139);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -773,22 +835,24 @@ class _PigeonCodec extends StandardMessageCodec {
       case 129:
         return NotificationChannel.decode(readValue(buffer)!);
       case 130:
-        return AndroidIntent.decode(readValue(buffer)!);
+        return NotificationChannelGroup.decode(readValue(buffer)!);
       case 131:
-        return PendingIntent.decode(readValue(buffer)!);
+        return AndroidIntent.decode(readValue(buffer)!);
       case 132:
-        return InboxStyle.decode(readValue(buffer)!);
+        return PendingIntent.decode(readValue(buffer)!);
       case 133:
-        return Person.decode(readValue(buffer)!);
+        return InboxStyle.decode(readValue(buffer)!);
       case 134:
-        return MessagingStyleMessage.decode(readValue(buffer)!);
+        return Person.decode(readValue(buffer)!);
       case 135:
-        return MessagingStyle.decode(readValue(buffer)!);
+        return MessagingStyleMessage.decode(readValue(buffer)!);
       case 136:
-        return Notification.decode(readValue(buffer)!);
+        return MessagingStyle.decode(readValue(buffer)!);
       case 137:
-        return StatusBarNotification.decode(readValue(buffer)!);
+        return Notification.decode(readValue(buffer)!);
       case 138:
+        return StatusBarNotification.decode(readValue(buffer)!);
+      case 139:
         return StoredNotificationSound.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -857,6 +921,112 @@ class AndroidNotificationHostApi {
   /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
   Future<void> deleteNotificationChannel(String channelId) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.deleteNotificationChannel$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[channelId]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Create a notification channel with the given [id], [name], and [groupId],
+  /// and other settings copied from the existing channel [sourceChannelId].
+  ///
+  /// The copied settings are those the source channel currently has,
+  /// including any changes the user made to it:
+  /// importance, sound, vibration, lights, and badge.
+  /// Some settings the user can change can't be set by an app,
+  /// so aren't copied: lock-screen visibility, and overriding Do Not Disturb.
+  ///
+  /// If a channel with [id] already exists,
+  /// this only updates its name, and its group if it had none;
+  /// it keeps its other settings.
+  ///
+  /// Throws if there is neither a channel [id] nor a channel [sourceChannelId].
+  ///
+  /// This is an ad-hoc method combining
+  /// `androidx.core.app.NotificationManagerCompat.getNotificationChannelCompat`
+  /// with [createNotificationChannel].
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#getNotificationChannelCompat(java.lang.String)
+  Future<void> createNotificationChannelFrom({required String sourceChannelId, required String id, required String name, String? groupId, }) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.createNotificationChannelFrom$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[sourceChannelId, id, name, groupId]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannelGroup`.
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannelGroup(androidx.core.app.NotificationChannelGroupCompat)
+  Future<void> createNotificationChannelGroup(NotificationChannelGroup group) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.createNotificationChannelGroup$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[group]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.deleteNotificationChannelGroup`.
+  ///
+  /// This also deletes all the notification channels in the group.
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#deleteNotificationChannelGroup(java.lang.String)
+  Future<void> deleteNotificationChannelGroup(String groupId) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.deleteNotificationChannelGroup$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[groupId]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: true,
+    )
+    ;
+  }
+
+  /// Open the system settings page for the given notification channel,
+  /// where the user can choose its sound and other settings.
+  ///
+  /// Starts an activity with `android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS`.
+  ///
+  /// See: https://developer.android.com/reference/android/provider/Settings#ACTION_CHANNEL_NOTIFICATION_SETTINGS
+  Future<void> openNotificationChannelSettings(String channelId) async {
+    final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.openNotificationChannelSettings$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -944,6 +1114,9 @@ class AndroidNotificationHostApi {
   /// The `color` should be in the form 0xAARRGGBB.
   /// See [ColorExtension.argbInt].
   ///
+  /// The `groupAlertBehavior` must be a valid constant from
+  /// [NotificationGroupAlertBehavior].
+  ///
   /// The `smallIconResourceName` is passed to `android.content.res.Resources.getIdentifier`
   /// to get a resource ID to pass to `Builder.setSmallIcon`.
   /// Whatever name is passed there must appear in keep.xml too:
@@ -952,14 +1125,14 @@ class AndroidNotificationHostApi {
   /// See:
   ///   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
   ///   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
-  Future<void> notify({String? tag, required int id, bool? autoCancel, required String channelId, int? color, PendingIntent? contentIntent, String? contentText, String? contentTitle, Map<String, String>? extras, String? groupKey, InboxStyle? inboxStyle, bool? isGroupSummary, MessagingStyle? messagingStyle, int? number, String? smallIconResourceName, }) async {
+  Future<void> notify({String? tag, required int id, bool? autoCancel, required String channelId, int? color, PendingIntent? contentIntent, String? contentText, String? contentTitle, Map<String, String>? extras, int? groupAlertBehavior, String? groupKey, InboxStyle? inboxStyle, bool? isGroupSummary, MessagingStyle? messagingStyle, int? number, String? smallIconResourceName, }) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.zulip.AndroidNotificationHostApi.notify$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[tag, id, autoCancel, channelId, color, contentIntent, contentText, contentTitle, extras, groupKey, inboxStyle, isGroupSummary, messagingStyle, number, smallIconResourceName]);
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[tag, id, autoCancel, channelId, color, contentIntent, contentText, contentTitle, extras, groupAlertBehavior, groupKey, inboxStyle, isGroupSummary, messagingStyle, number, smallIconResourceName]);
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     _extractReplyValueOrThrow(

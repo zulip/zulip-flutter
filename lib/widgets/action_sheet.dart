@@ -17,6 +17,7 @@ import '../model/content.dart';
 import '../model/emoji.dart';
 import '../model/internal_link.dart';
 import '../model/narrow.dart';
+import '../notifications/display.dart';
 import 'actions.dart';
 import 'button.dart';
 import 'color.dart';
@@ -534,6 +535,8 @@ void showChannelActionSheet(BuildContext context, {
       if (isSubscribed)
         PinUnpinButton(pageContext: pageContext, channelId: channelId,
           isPinned: channel.pinToTop),
+      if (defaultTargetPlatform == TargetPlatform.android && channel != null)
+        ChannelNotificationSoundButton(pageContext: pageContext, channelId: channelId),
       // (It's harmless that this section can be empty; in that case
       // it ends up rendering to nothing.)
     ],
@@ -729,6 +732,33 @@ class PinUnpinButton extends ActionSheetMenuItemButton {
           : zulipLocalizations.errorPinChannelFailedTitle,
         message: errorMessage);
     }
+  }
+}
+
+class ChannelNotificationSoundButton extends ActionSheetMenuItemButton {
+  const ChannelNotificationSoundButton({
+    super.key,
+    required this.channelId,
+    required super.pageContext,
+  });
+
+  final int channelId;
+
+  @override
+  IconData get icon => Icons.notifications_outlined;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return zulipLocalizations.actionSheetOptionChannelNotificationSound;
+  }
+
+  @override
+  void onPressed() {
+    final store = PerAccountStoreWidget.of(pageContext);
+    final channel = store.streams[channelId];
+    if (channel == null) return;
+    NotificationChannelManager.openCustomChannelSettingsForChannel(store.account,
+      channelId: channelId, channelName: channel.name);
   }
 }
 

@@ -21,6 +21,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
 import 'package:zulip/model/typing_status.dart';
+import 'package:zulip/notifications/display.dart';
 import 'package:zulip/widgets/action_sheet.dart';
 import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/button.dart';
@@ -636,6 +637,30 @@ void main() {
         final expectedLink = narrowLink(store, narrow).toString();
         check(await Clipboard.getData('text/plain')).isNotNull().text.equals(expectedLink);
       });
+    });
+
+    group('ChannelNotificationSoundButton', () {
+      testWidgets('smoke', (tester) async {
+        await prepare();
+        await NotificationChannelManager.ensureChannel();
+        await showFromInbox(tester);
+        await tester.ensureVisible(findButtonForLabel('Notification sound'));
+        await tester.tap(findButtonForLabel('Notification sound'));
+        await tester.pump(); // [MenuItemButton.onPressed] called in a post-frame callback: flutter/flutter@e4a39fa2e
+
+        final expectedChannelId = NotificationChannelManager
+          .customChannelIdForChannel(eg.selfAccount, someChannel.streamId);
+        final host = testBinding.androidNotificationHost;
+        check(host.takeOpenedChannelSettings()).single.equals(expectedChannelId);
+        check(host.activeChannels.singleWhere((c) => c.id == expectedChannelId))
+          .has((c) => c.name, 'name').equals('#${someChannel.name}');
+      });
+
+      testWidgets('absent on iOS', (tester) async {
+        await prepare();
+        await showFromInbox(tester);
+        checkNoButton('Notification sound');
+      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
     });
 
     group('PinUnpinButton', () {

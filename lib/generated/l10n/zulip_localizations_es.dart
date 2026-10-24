@@ -77,6 +77,9 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Enviar mensaje directo';
 
   @override
+  String get profileButtonNotificationSound => 'Notification sound';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'No se pudo mostrar el perfil de usuario.';
 
@@ -132,6 +135,9 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnpinChannel => 'Desfijar canal';
+
+  @override
+  String get actionSheetOptionChannelNotificationSound => 'Notification sound';
 
   @override
   String get errorPinChannelFailedTitle => 'Error al fijar el canal';

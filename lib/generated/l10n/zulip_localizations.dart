@@ -274,6 +274,12 @@ abstract class ZulipLocalizations {
   /// **'Send direct message'**
   String get profileButtonSendDirectMessage;
 
+  /// Label for button in profile screen to open the system settings for notifications from the shown user, where one can choose a sound for them.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification sound'**
+  String get profileButtonNotificationSound;
+
   /// Message that appears on the user profile page when the profile cannot be shown.
   ///
   /// In en, this message translates to:
@@ -375,6 +381,12 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Unpin from top'**
   String get actionSheetOptionUnpinChannel;
+
+  /// Label in the channel action sheet for opening the system settings for notifications from the channel, where one can choose a sound for them.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification sound'**
+  String get actionSheetOptionChannelNotificationSound;
 
   /// Error title when pinning a channel to the top fails.
   ///

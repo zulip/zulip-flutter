@@ -8,6 +8,7 @@ import 'package:http/testing.dart' as http_testing;
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/push_device.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/notifications/display.dart';
 import 'package:zulip/notifications/receive.dart';
 
 import '../api/fake_api.dart';
@@ -215,6 +216,24 @@ void main() {
 
       await logOutAccount(testBinding.globalStore, eg.selfAccount.id);
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    }));
+
+    test('custom notification channels are removed after logout', () => awaitFakeAsync((async) async {
+      await prepare();
+      await NotificationChannelManager.ensureChannel();
+      await NotificationChannelManager.openCustomChannelSettingsForSender(
+        eg.selfAccount, senderId: eg.otherUser.userId, senderFullName: eg.otherUser.fullName);
+      final host = testBinding.androidNotificationHost;
+      check(host.activeChannels).length.equals(2);
+      check(host.activeChannelGroups).length.equals(1);
+
+      await logOutAccount(testBinding.globalStore, eg.selfAccount.id);
+      async.flushMicrotasks();
+      check(host.takeDeletedChannelGroups()).single
+        .equals('${eg.selfAccount.realmUrl}|${eg.selfAccount.userId}');
+      check(host.activeChannels.map((c) => c.id))
+        .deepEquals([NotificationChannelManager.kChannelId]);
+      check(host.activeChannelGroups).isEmpty();
     }));
   });
 

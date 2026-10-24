@@ -11,10 +11,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.Settings
 import android.provider.MediaStore.Audio.Media as AudioStore
 import android.util.Log
 import androidx.annotation.Keep
 import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationChannelGroupCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
@@ -63,6 +65,7 @@ private class AndroidNotificationHost(val context: Context)
         val notificationChannel = NotificationChannelCompat
             .Builder(channel.id, channel.importance.toInt()).apply {
                 channel.name?.let { setName(it) }
+                channel.groupId?.let { setGroup(it) }
                 channel.lightsEnabled?.let { setLightsEnabled(it) }
                 channel.soundUrl?.let {
                     setSound(it.toUri(),
@@ -80,12 +83,67 @@ private class AndroidNotificationHost(val context: Context)
                 id = it.id,
                 importance =  it.importance.toLong(),
                 name = it.name?.toString(),
+                groupId = it.group,
                 lightsEnabled = it.shouldShowLights()
             ) }
     }
 
     override fun deleteNotificationChannel(channelId: String) {
         NotificationManagerCompat.from(context).deleteNotificationChannel(channelId)
+    }
+
+    override fun createNotificationChannelFrom(
+        sourceChannelId: String,
+        id: String,
+        name: String,
+        groupId: String?
+    ) {
+        val manager = NotificationManagerCompat.from(context)
+        val existing = manager.getNotificationChannelCompat(id)
+        if (existing != null) {
+            // Android ignores the other settings for an existing channel,
+            // except that it would take a lower importance; so pass its own.
+            manager.createNotificationChannel(NotificationChannelCompat
+                .Builder(id, existing.importance).apply {
+                    setName(name)
+                    groupId?.let { setGroup(it) }
+                }.build())
+            return
+        }
+
+        val source = manager.getNotificationChannelCompat(sourceChannelId)
+            ?: throw IllegalArgumentException("No notification channel: $sourceChannelId")
+        val notificationChannel = NotificationChannelCompat
+            .Builder(id, source.importance).apply {
+                setName(name)
+                groupId?.let { setGroup(it) }
+                setSound(source.sound, source.audioAttributes)
+                setVibrationPattern(source.vibrationPattern)
+                // After setVibrationPattern, which also sets this.
+                setVibrationEnabled(source.shouldVibrate())
+                setLightsEnabled(source.shouldShowLights())
+                setLightColor(source.lightColor)
+                setShowBadge(source.canShowBadge())
+            }.build()
+        manager.createNotificationChannel(notificationChannel)
+    }
+
+    override fun createNotificationChannelGroup(group: NotificationChannelGroup) {
+        NotificationManagerCompat.from(context).createNotificationChannelGroup(
+            NotificationChannelGroupCompat.Builder(group.id).setName(group.name).build())
+    }
+
+    override fun deleteNotificationChannelGroup(groupId: String) {
+        NotificationManagerCompat.from(context).deleteNotificationChannelGroup(groupId)
+    }
+
+    override fun openNotificationChannelSettings(channelId: String) {
+        context.startActivity(Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+            // Needed because `context` is the application context, not an activity.
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
     }
 
     override fun listStoredSoundsInNotificationsDirectory(): List<StoredNotificationSound> {
@@ -185,6 +243,7 @@ private class AndroidNotificationHost(val context: Context)
         contentText: String?,
         contentTitle: String?,
         extras: Map<String, String>?,
+        groupAlertBehavior: Long?,
         groupKey: String?,
         inboxStyle: InboxStyle?,
         isGroupSummary: Boolean?,
@@ -212,6 +271,7 @@ private class AndroidNotificationHost(val context: Context)
             contentTitle?.let { setContentTitle(it) }
             extras?.let { setExtras(
                 Bundle().apply { it.forEach { (k, v) -> putString(k, v) } } ) }
+            groupAlertBehavior?.let { setGroupAlertBehavior(it.toInt()) }
             groupKey?.let { setGroup(it) }
             inboxStyle?.let { setStyle(
                 NotificationCompat.InboxStyle()

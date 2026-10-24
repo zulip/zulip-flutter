@@ -851,9 +851,10 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   // ignore: non_constant_identifier_names
   final String pigeonVar_messageChannelSuffix = '';
 
-  /// Lists currently active channels, result is aggregated from calls made to
-  /// [createNotificationChannel] and [deleteNotificationChannel],
-  /// order of creation is preserved.
+  /// Lists currently active channels,
+  /// as created by [createNotificationChannel] and [createNotificationChannelFrom]
+  /// and deleted by [deleteNotificationChannel] and [deleteNotificationChannelGroup],
+  /// in order of creation.
   Iterable<NotificationChannel> get activeChannels => _activeChannels.values;
   final Map<String, NotificationChannel> _activeChannels = {};
 
@@ -870,8 +871,17 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
 
   @override
   Future<void> createNotificationChannel(NotificationChannel channel) async {
+    _checkGroupExists(channel.groupId);
     _createdChannels.add(channel);
     _activeChannels[channel.id] = channel;
+  }
+
+  void _checkGroupExists(String? groupId) {
+    // Android throws IllegalArgumentException in this case.
+    if (groupId != null && !_activeChannelGroups.containsKey(groupId)) {
+      throw PlatformException(code: 'IllegalArgumentException',
+        message: 'NotificationChannelGroup does not exist');
+    }
   }
 
   @override
@@ -894,6 +904,88 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
   Future<void> deleteNotificationChannel(String channelId) async {
     _deletedChannels.add(channelId);
     _activeChannels.remove(channelId);
+  }
+
+  @override
+  Future<void> createNotificationChannelFrom({
+    required String sourceChannelId,
+    required String id,
+    required String name,
+    String? groupId,
+  }) async {
+    _copiedChannels.add(id);
+    _checkGroupExists(groupId);
+    final existing = _activeChannels[id];
+    final settings = existing ?? _activeChannels[sourceChannelId];
+    if (settings == null) {
+      throw PlatformException(code: 'IllegalArgumentException',
+        message: 'No notification channel: $sourceChannelId');
+    }
+    _activeChannels[id] = NotificationChannel(
+      id: id,
+      importance: settings.importance,
+      name: name,
+      groupId: existing?.groupId ?? groupId,
+      lightsEnabled: settings.lightsEnabled,
+      soundUrl: settings.soundUrl,
+      vibrationPattern: settings.vibrationPattern);
+  }
+
+  /// Consume the log of calls made to [createNotificationChannelFrom].
+  ///
+  /// This returns a list of the `id` arguments to all calls made
+  /// to [createNotificationChannelFrom] since the last call to this method.
+  List<String> takeCopiedChannels() {
+    final result = _copiedChannels;
+    _copiedChannels = [];
+    return result;
+  }
+  List<String> _copiedChannels = [];
+
+  /// Lists currently active channel groups,
+  /// as created by [createNotificationChannelGroup]
+  /// and deleted by [deleteNotificationChannelGroup],
+  /// in order of creation.
+  Iterable<NotificationChannelGroup> get activeChannelGroups => _activeChannelGroups.values;
+  final Map<String, NotificationChannelGroup> _activeChannelGroups = {};
+
+  @override
+  Future<void> createNotificationChannelGroup(NotificationChannelGroup group) async {
+    _activeChannelGroups[group.id] = group;
+  }
+
+  /// Consume the log of calls made to [deleteNotificationChannelGroup].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [deleteNotificationChannelGroup] since the last call to this method.
+  List<String> takeDeletedChannelGroups() {
+    final result = _deletedChannelGroups;
+    _deletedChannelGroups = [];
+    return result;
+  }
+  List<String> _deletedChannelGroups = [];
+
+  @override
+  Future<void> deleteNotificationChannelGroup(String groupId) async {
+    _deletedChannelGroups.add(groupId);
+    _activeChannelGroups.remove(groupId);
+    _activeChannels.removeWhere((_, channel) => channel.groupId == groupId);
+  }
+
+  /// Consume the log of calls made to [openNotificationChannelSettings].
+  ///
+  /// This returns a list of the arguments to all calls made
+  /// to [openNotificationChannelSettings] since the last call to this method.
+  List<String> takeOpenedChannelSettings() {
+    final result = _openedChannelSettings;
+    _openedChannelSettings = [];
+    return result;
+  }
+  List<String> _openedChannelSettings = [];
+
+  @override
+  Future<void> openNotificationChannelSettings(String channelId) async {
+    _openedChannelSettings.add(channelId);
   }
 
   /// A URL that the fake [copySoundResourceToMediaStore] would produce
@@ -983,6 +1075,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     String? contentText,
     String? contentTitle,
     Map<String, String>? extras,
+    int? groupAlertBehavior,
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,
@@ -1000,6 +1093,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
       contentText: contentText,
       contentTitle: contentTitle,
       extras: extras,
+      groupAlertBehavior: groupAlertBehavior,
       groupKey: groupKey,
       inboxStyle: inboxStyle,
       isGroupSummary: isGroupSummary,
@@ -1103,6 +1197,7 @@ typedef AndroidNotificationHostApiNotifyCall = ({
   String? contentText,
   String? contentTitle,
   Map<String?, String?>? extras,
+  int? groupAlertBehavior,
   String? groupKey,
   InboxStyle? inboxStyle,
   bool? isGroupSummary,

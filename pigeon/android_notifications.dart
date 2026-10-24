@@ -19,6 +19,7 @@ class NotificationChannel {
     required this.id,
     required this.importance,
     this.name,
+    this.groupId,
     this.lightsEnabled,
     this.soundUrl,
     this.vibrationPattern,
@@ -33,9 +34,26 @@ class NotificationChannel {
   final int importance;
 
   final String? name;
+
+  /// The ID of the [NotificationChannelGroup] this channel belongs to, if any.
+  final String? groupId;
+
   final bool? lightsEnabled;
   final String? soundUrl;
   final Int64List? vibrationPattern;
+}
+
+/// Corresponds to `androidx.core.app.NotificationChannelGroupCompat`
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationChannelGroupCompat
+class NotificationChannelGroup {
+  /// Corresponds to `androidx.core.app.NotificationChannelGroupCompat.Builder`
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationChannelGroupCompat.Builder
+  NotificationChannelGroup({required this.id, required this.name});
+
+  final String id;
+  final String name;
 }
 
 /// Corresponds to `android.content.Intent`
@@ -218,6 +236,53 @@ abstract class AndroidNotificationHostApi {
   /// See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
   void deleteNotificationChannel(String channelId);
 
+  /// Create a notification channel with the given [id], [name], and [groupId],
+  /// and other settings copied from the existing channel [sourceChannelId].
+  ///
+  /// The copied settings are those the source channel currently has,
+  /// including any changes the user made to it:
+  /// importance, sound, vibration, lights, and badge.
+  /// Some settings the user can change can't be set by an app,
+  /// so aren't copied: lock-screen visibility, and overriding Do Not Disturb.
+  ///
+  /// If a channel with [id] already exists,
+  /// this only updates its name, and its group if it had none;
+  /// it keeps its other settings.
+  ///
+  /// Throws if there is neither a channel [id] nor a channel [sourceChannelId].
+  ///
+  /// This is an ad-hoc method combining
+  /// `androidx.core.app.NotificationManagerCompat.getNotificationChannelCompat`
+  /// with [createNotificationChannel].
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#getNotificationChannelCompat(java.lang.String)
+  void createNotificationChannelFrom({
+    required String sourceChannelId,
+    required String id,
+    required String name,
+    String? groupId,
+  });
+
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannelGroup`.
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannelGroup(androidx.core.app.NotificationChannelGroupCompat)
+  void createNotificationChannelGroup(NotificationChannelGroup group);
+
+  /// Corresponds to `androidx.core.app.NotificationManagerCompat.deleteNotificationChannelGroup`.
+  ///
+  /// This also deletes all the notification channels in the group.
+  ///
+  /// See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#deleteNotificationChannelGroup(java.lang.String)
+  void deleteNotificationChannelGroup(String groupId);
+
+  /// Open the system settings page for the given notification channel,
+  /// where the user can choose its sound and other settings.
+  ///
+  /// Starts an activity with `android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS`.
+  ///
+  /// See: https://developer.android.com/reference/android/provider/Settings#ACTION_CHANNEL_NOTIFICATION_SETTINGS
+  void openNotificationChannelSettings(String channelId);
+
   /// The list of notification sound files present under `Notifications/Zulip/`
   /// in the device's shared media storage,
   /// found with `android.content.ContentResolver.query`.
@@ -255,6 +320,9 @@ abstract class AndroidNotificationHostApi {
   /// The `color` should be in the form 0xAARRGGBB.
   /// See [ColorExtension.argbInt].
   ///
+  /// The `groupAlertBehavior` must be a valid constant from
+  /// [NotificationGroupAlertBehavior].
+  ///
   /// The `smallIconResourceName` is passed to `android.content.res.Resources.getIdentifier`
   /// to get a resource ID to pass to `Builder.setSmallIcon`.
   /// Whatever name is passed there must appear in keep.xml too:
@@ -278,6 +346,7 @@ abstract class AndroidNotificationHostApi {
     String? contentText,
     String? contentTitle,
     Map<String, String>? extras,
+    int? groupAlertBehavior,
     String? groupKey,
     InboxStyle? inboxStyle,
     bool? isGroupSummary,

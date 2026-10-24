@@ -76,6 +76,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'ダイレクトメッセージを送信';
 
   @override
+  String get profileButtonNotificationSound => 'Notification sound';
+
+  @override
   String get errorCouldNotShowUserProfile => 'ユーザープロフィールを表示できませんでした。';
 
   @override
@@ -129,6 +132,9 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnpinChannel => '上部に固定を解除';
+
+  @override
+  String get actionSheetOptionChannelNotificationSound => 'Notification sound';
 
   @override
   String get errorPinChannelFailedTitle => 'チャンネルの固定に失敗しました';

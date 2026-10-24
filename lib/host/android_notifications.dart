@@ -35,6 +35,23 @@ abstract class NotificationImportance {
   static const max = 5;
 }
 
+/// For use in [AndroidNotificationHostApi.notify]'s `groupAlertBehavior`.
+///
+/// See: https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder#setGroupAlertBehavior(int)
+abstract class NotificationGroupAlertBehavior {
+  /// Corresponds to `GROUP_ALERT_ALL`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationCompat#GROUP_ALERT_ALL()
+  static const all = 0;
+
+  /// Corresponds to `GROUP_ALERT_SUMMARY`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationCompat#GROUP_ALERT_SUMMARY()
+  static const summary = 1;
+
+  /// Corresponds to `GROUP_ALERT_CHILDREN`:
+  ///   https://developer.android.com/reference/androidx/core/app/NotificationCompat#GROUP_ALERT_CHILDREN()
+  static const children = 2;
+}
+
 /// For use in [PendingIntent.flags].
 ///
 /// See: https://developer.android.com/reference/android/app/PendingIntent#constants_1
