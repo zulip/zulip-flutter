@@ -397,7 +397,7 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get errorCouldNotLoadSelectedFiles =>
-      'The selected files could not be loaded.';
+      'Mensaje de error cuando el usuario ha seleccionado archivos, fotos o vídeos para adjuntar, pero no se ha podido cargar ninguno de ellos.';
 
   @override
   String errorCouldNotReadFile(String filename) {

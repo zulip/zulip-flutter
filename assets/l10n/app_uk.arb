@@ -928,9 +928,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1220,18 +1217,6 @@
   },
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
-  },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
@@ -1584,7 +1569,6 @@
   "onePersonTyping": "{typist} друкує…",
   "openLinksWithInAppBrowser": "Відкривати посилання за допомогою браузера додатку",
   "permissionsDeniedCameraAccess": "Щоб завантажити зображення, надайте Zulip додаткові дозволи в налаштуваннях.",
-  "permissionsDeniedReadExternalStorage": "Щоб завантажувати файли, надайте Zulip додаткові дозволи в налаштуваннях.",
   "permissionsNeededOpenSettings": "Відкрити налаштування",
   "permissionsNeededTitle": "Потрібні дозволи",
   "pinnedSubscriptionsLabel": "Закріплені",
@@ -1657,10 +1641,6 @@
   "unsubscribeConfirmationDialogTitle": "Відписатися від {channelName}?",
   "unsubscribeFailedTitle": "Не вдалося скасувати підписку",
   "updateStatusErrorTitle": "Помилка оновлення статусу користувача. Спробуйте ще раз.",
-  "upgradeWelcomeDialogDismiss": "Ходімо",
-  "upgradeWelcomeDialogLinkText": "Ознайомтесь з анонсом у блозі!",
-  "upgradeWelcomeDialogMessage": "Ви знайдете звичні можливості у більш швидкому і легкому додатку.",
-  "upgradeWelcomeDialogTitle": "Ласкаво просимо у новий додаток Zulip!",
   "userActiveDate": "Активний {date}",
   "userActiveDaysAgo": "Активний {days, plural, =1{1 день} other{{days} дні}} тому",
   "userActiveHoursAgo": "Активний {hours, plural, =1{1 година} other{{hours} години}} тому",

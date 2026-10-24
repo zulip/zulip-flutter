@@ -997,9 +997,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1379,18 +1376,6 @@
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
     "placeholders": {
@@ -1763,7 +1748,6 @@
   "openLinksWithInAppBrowser": "Opne lenkjer med den innebygde nettlesaren",
   "otherChannelsFolderName": "Andre kanalar",
   "permissionsDeniedCameraAccess": "Gje Zulip ekstra løyve i Innstillingane for å lasta opp eit bilete.",
-  "permissionsDeniedReadExternalStorage": "Gje Zulip ekstra løyve i Innstillingane for å lasta opp filer.",
   "permissionsNeededOpenSettings": "Opne innstillingane",
   "permissionsNeededTitle": "Treng løyve",
   "pinnedChannelsFolderName": "Festa kanalar",
@@ -1857,10 +1841,6 @@
   "unsubscribeConfirmationDialogTitle": "Slutt å abonnera på {channelName}?",
   "unsubscribeFailedTitle": "Kunne ikkje avslutta abonnementet",
   "updateStatusErrorTitle": "Kunne ikkje oppdatera brukarstatus. Prøv på nytt.",
-  "upgradeWelcomeDialogDismiss": "La oss starta",
-  "upgradeWelcomeDialogLinkText": "Sjekk kunngjeringsbloggposten!",
-  "upgradeWelcomeDialogMessage": "Du finn eit kjent miljø i ei raskare og meir straumlineforma pakke.",
-  "upgradeWelcomeDialogTitle": "Velkomen til den nye Zulip-appen!",
   "userActiveDate": "Aktiv {date}",
   "userActiveDaysAgo": "Aktiv for {days, plural, =1{1 dag} other{{days} dagar}} sidan",
   "userActiveHoursAgo": "Aktiv for {hours, plural, =1{1 time} other{{hours} timar}} sidan",

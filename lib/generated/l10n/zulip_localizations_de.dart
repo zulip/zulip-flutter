@@ -407,7 +407,7 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
 
   @override
   String get errorCouldNotLoadSelectedFiles =>
-      'The selected files could not be loaded.';
+      'Die ausgewählten Dateien konnten nicht geladen werden.';
 
   @override
   String errorCouldNotReadFile(String filename) {

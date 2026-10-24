@@ -2,8 +2,14 @@
   "@aboutPageAppVersion": {
     "description": "Label for Zulip app version in About Zulip page"
   },
+  "@aboutPageAppVersionUnknown": {
+    "description": "Banner text in About Zulip page, shown in place of the app-version item when the version is unknown."
+  },
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageReleaseNotes": {
+    "description": "Item title in About Zulip page to open the current version's release notes on GitHub"
   },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
@@ -1012,9 +1018,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1260,6 +1263,9 @@
   "@subscribeFailedTitle": {
     "description": "Error title when subscribing to a channel failed."
   },
+  "@successAppVersionCopied": {
+    "description": "Success message after the app version was copied to the user's system clipboard."
+  },
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
   },
@@ -1394,18 +1400,6 @@
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
     "placeholders": {
@@ -1527,7 +1521,9 @@
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
   "aboutPageAppVersion": "Version de l'application",
+  "aboutPageAppVersionUnknown": "L'information de version de l'application n'a pas été trouvée.",
   "aboutPageOpenSourceLicenses": "Licences de logiciel libre",
+  "aboutPageReleaseNotes": "Notes de publication",
   "aboutPageTitle": "À propos de Zulip",
   "actionSheetOptionChannelFeed": "Fil du canal",
   "actionSheetOptionCopyChannelLink": "Copier le lien du canal",
@@ -1781,7 +1777,6 @@
   "openLinksWithInAppBrowser": "Ouvre les liens avec le navigateur intégré à l'application",
   "otherChannelsFolderName": "Autres canaux",
   "permissionsDeniedCameraAccess": "Pour charger une image, merci d'accorder des autorisations supplémentaires à Zulip, dans les Paramètres.",
-  "permissionsDeniedReadExternalStorage": "Pour téléverser des fichiers, merci d'accorder des autorisations supplémentaires à Zulip, dans les Paramètres.",
   "permissionsNeededOpenSettings": "Ouvrir les paramètres",
   "permissionsNeededTitle": "Permissions requises",
   "pinnedChannelsFolderName": "Canaux épinglés",
@@ -1839,6 +1834,7 @@
   "statusSaveButtonLabel": "Enregistrer",
   "statusTextHint": "Votre statut",
   "subscribeFailedTitle": "Échec de l’abonnement",
+  "successAppVersionCopied": "Version de l'application copiée",
   "successChannelLinkCopied": "Lien vers le canal copié",
   "successLinkCopied": "Lien copié",
   "successMessageLinkCopied": "Lien vers le message copié",
@@ -1875,10 +1871,6 @@
   "unsubscribeConfirmationDialogTitle": "Se désabonner de {channelName} ?",
   "unsubscribeFailedTitle": "Échec du désabonnement",
   "updateStatusErrorTitle": "Erreur lors de la mise à jour du statut de l'utilisateur. Merci de réessayer.",
-  "upgradeWelcomeDialogDismiss": "Allons-y",
-  "upgradeWelcomeDialogLinkText": "Allez voir l'article de blog de l'annonce !",
-  "upgradeWelcomeDialogMessage": "Vous retrouverez une expérience familière dans un logiciel plus rapide et plus élégant.",
-  "upgradeWelcomeDialogTitle": "Bienvenue dans la nouvelle application Zulip !",
   "userActiveDate": "Dernière activité : {date}",
   "userActiveDaysAgo": "Actif il y a {days, plural, =1{1 jour} other{{days} jours}}",
   "userActiveHoursAgo": "Actif il y a {hours, plural, =1{1 heure} other{{hours} heures}}",

@@ -17,20 +17,12 @@
   "@switchAccountButtonTooltip": {
     "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "aboutPageAppVersion": "نسخة التطبيق",
   "aboutPageOpenSourceLicenses": "10.0.151.1",
   "aboutPageTitle": "عن زوليب",
   "chooseAccountPageTitle": "اختر حساب",
   "settingsPageTitle": "الإعدادات",
   "switchAccountButtonTooltip": "تبديل الحساب",
-  "upgradeWelcomeDialogDismiss": "هيا بنا",
-  "upgradeWelcomeDialogTitle": "أهلا بك في تطبيق زوليب الجديد !",
   "wildcardMentionAll": "الجميع",
   "wildcardMentionAllDmDescription": "إخطار المستلمين",
   "wildcardMentionChannel": "القناة",

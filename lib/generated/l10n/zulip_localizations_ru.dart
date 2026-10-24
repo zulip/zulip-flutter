@@ -399,7 +399,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorCouldNotLoadSelectedFiles =>
-      'The selected files could not be loaded.';
+      'Не удалось загрузить выбранные файлы.';
 
   @override
   String errorCouldNotReadFile(String filename) {

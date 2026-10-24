@@ -469,6 +469,9 @@
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
+  "@errorCouldNotLoadSelectedFiles": {
+    "description": "Error message when the user selected files, photos, or videos to attach, but none of them could be loaded."
+  },
   "@errorCouldNotOpenLink": {
     "description": "Error message when opening a link failed.",
     "placeholders": {
@@ -1018,9 +1021,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1397,18 +1397,6 @@
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
     "placeholders": {
@@ -1655,6 +1643,7 @@
   "errorCouldNotConnectTitle": "Нет связи с сервером",
   "errorCouldNotEditMessageTitle": "Сбой редактирования",
   "errorCouldNotFetchMessageSource": "Не удалось извлечь источник сообщения.",
+  "errorCouldNotLoadSelectedFiles": "Не удалось загрузить выбранные файлы.",
   "errorCouldNotOpenLink": "Не удалось открыть ссылку: {url}",
   "errorCouldNotOpenLinkTitle": "Не удалось открыть ссылку",
   "errorCouldNotReadFile": "Не удалось прочитать файл: {filename}",
@@ -1786,7 +1775,6 @@
   "openLinksWithInAppBrowser": "Открывать ссылки внутри приложения",
   "otherChannelsFolderName": "Другие каналы",
   "permissionsDeniedCameraAccess": "Для загрузки изображения, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.",
-  "permissionsDeniedReadExternalStorage": "Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.",
   "permissionsNeededOpenSettings": "Открыть настройки",
   "permissionsNeededTitle": "Требуются разрешения",
   "pinnedChannelsFolderName": "Закрепленные каналы",
@@ -1881,10 +1869,6 @@
   "unsubscribeConfirmationDialogTitle": "Отменить подписку на {channelName}?",
   "unsubscribeFailedTitle": "Не удалось отписаться",
   "updateStatusErrorTitle": "Ошибка обновления статуса пользователя. Попробуйте ещё раз.",
-  "upgradeWelcomeDialogDismiss": "Приступим",
-  "upgradeWelcomeDialogLinkText": "Ознакомьтесь с анонсом в блоге!",
-  "upgradeWelcomeDialogMessage": "Вы найдете привычные возможности в более быстром и легком приложении.",
-  "upgradeWelcomeDialogTitle": "Добро пожаловать в новое приложение Zulip!",
   "userActiveDate": "Был/а на связи {date}",
   "userActiveDaysAgo": "Был/а на связи {days, plural, one{{days} день} few{{days} дня} many{{days} дней} other{{days} дней}} назад",
   "userActiveHoursAgo": "Был/а на связи {hours, plural, one{{hours} час} few{{hours} часа} many{{hours} часов} other{{hours} часов}} назад",

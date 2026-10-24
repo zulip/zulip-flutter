@@ -847,9 +847,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1124,18 +1121,6 @@
   },
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
-  },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
@@ -1469,7 +1454,6 @@
   "onePersonTyping": "{typist}正在输入…",
   "openLinksWithInAppBrowser": "使用内置浏览器打开链接",
   "permissionsDeniedCameraAccess": "上传图片前，请在设置中授予 Zulip 相应的权限。",
-  "permissionsDeniedReadExternalStorage": "上传文件前，请在设置中授予 Zulip 相应的权限。",
   "permissionsNeededOpenSettings": "打开设置",
   "permissionsNeededTitle": "需要额外权限",
   "pinnedSubscriptionsLabel": "置顶",
@@ -1538,10 +1522,6 @@
   "unsubscribeConfirmationDialogTitle": "确定取消订阅{channelName}么?",
   "unsubscribeFailedTitle": "取消订阅失败",
   "updateStatusErrorTitle": "更新用户状态时发生错误。请再试一次。",
-  "upgradeWelcomeDialogDismiss": "开始吧",
-  "upgradeWelcomeDialogLinkText": "来看看最新的公告博客吧！",
-  "upgradeWelcomeDialogMessage": "您将在更快、更流畅的版本中享受熟悉的体验。",
-  "upgradeWelcomeDialogTitle": "欢迎来到新的 Zulip 应用程序！",
   "userActiveDate": "上次活跃于 {date}",
   "userActiveDaysAgo": "上次活跃于 {days, plural, =1{1 天前} other{{days} 天前}}",
   "userActiveHoursAgo": "上次活跃于 {hours, plural, =1{1 小时前} other{{hours} 小时前}}",
