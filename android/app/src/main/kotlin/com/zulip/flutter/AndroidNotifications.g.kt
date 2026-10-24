@@ -209,6 +209,8 @@ data class NotificationChannel (
    */
   val importance: Long,
   val name: String? = null,
+  /** The ID of the [NotificationChannelGroup] this channel belongs to, if any. */
+  val groupId: String? = null,
   val lightsEnabled: Boolean? = null,
   val soundUrl: String? = null,
   val vibrationPattern: LongArray? = null
@@ -219,10 +221,11 @@ data class NotificationChannel (
       val id = pigeonVar_list[0] as String
       val importance = pigeonVar_list[1] as Long
       val name = pigeonVar_list[2] as String?
-      val lightsEnabled = pigeonVar_list[3] as Boolean?
-      val soundUrl = pigeonVar_list[4] as String?
-      val vibrationPattern = pigeonVar_list[5] as LongArray?
-      return NotificationChannel(id, importance, name, lightsEnabled, soundUrl, vibrationPattern)
+      val groupId = pigeonVar_list[3] as String?
+      val lightsEnabled = pigeonVar_list[4] as Boolean?
+      val soundUrl = pigeonVar_list[5] as String?
+      val vibrationPattern = pigeonVar_list[6] as LongArray?
+      return NotificationChannel(id, importance, name, groupId, lightsEnabled, soundUrl, vibrationPattern)
     }
   }
   fun toList(): List<Any?> {
@@ -230,6 +233,7 @@ data class NotificationChannel (
       id,
       importance,
       name,
+      groupId,
       lightsEnabled,
       soundUrl,
       vibrationPattern,
@@ -243,7 +247,7 @@ data class NotificationChannel (
       return true
     }
     val other = other as NotificationChannel
-    return AndroidNotificationsPigeonUtils.deepEquals(this.id, other.id) && AndroidNotificationsPigeonUtils.deepEquals(this.importance, other.importance) && AndroidNotificationsPigeonUtils.deepEquals(this.name, other.name) && AndroidNotificationsPigeonUtils.deepEquals(this.lightsEnabled, other.lightsEnabled) && AndroidNotificationsPigeonUtils.deepEquals(this.soundUrl, other.soundUrl) && AndroidNotificationsPigeonUtils.deepEquals(this.vibrationPattern, other.vibrationPattern)
+    return AndroidNotificationsPigeonUtils.deepEquals(this.id, other.id) && AndroidNotificationsPigeonUtils.deepEquals(this.importance, other.importance) && AndroidNotificationsPigeonUtils.deepEquals(this.name, other.name) && AndroidNotificationsPigeonUtils.deepEquals(this.groupId, other.groupId) && AndroidNotificationsPigeonUtils.deepEquals(this.lightsEnabled, other.lightsEnabled) && AndroidNotificationsPigeonUtils.deepEquals(this.soundUrl, other.soundUrl) && AndroidNotificationsPigeonUtils.deepEquals(this.vibrationPattern, other.vibrationPattern)
   }
 
   override fun hashCode(): Int {
@@ -251,13 +255,61 @@ data class NotificationChannel (
     result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.id)
     result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.importance)
     result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.name)
+    result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.groupId)
     result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.lightsEnabled)
     result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.soundUrl)
     result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.vibrationPattern)
     return result
   }
   override fun toString(): String {
-    return "NotificationChannel(id=$id, importance=$importance, name=$name, lightsEnabled=$lightsEnabled, soundUrl=$soundUrl, vibrationPattern=${vibrationPattern?.contentToString()})"
+    return "NotificationChannel(id=$id, importance=$importance, name=$name, groupId=$groupId, lightsEnabled=$lightsEnabled, soundUrl=$soundUrl, vibrationPattern=${vibrationPattern?.contentToString()})"
+  }
+}
+
+/**
+ * Corresponds to `androidx.core.app.NotificationChannelGroupCompat`
+ *
+ * See: https://developer.android.com/reference/androidx/core/app/NotificationChannelGroupCompat
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class NotificationChannelGroup (
+  val id: String,
+  val name: String
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): NotificationChannelGroup {
+      val id = pigeonVar_list[0] as String
+      val name = pigeonVar_list[1] as String
+      return NotificationChannelGroup(id, name)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      id,
+      name,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other == null || other.javaClass != javaClass) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    val other = other as NotificationChannelGroup
+    return AndroidNotificationsPigeonUtils.deepEquals(this.id, other.id) && AndroidNotificationsPigeonUtils.deepEquals(this.name, other.name)
+  }
+
+  override fun hashCode(): Int {
+    var result = javaClass.hashCode()
+    result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.id)
+    result = 31 * result + AndroidNotificationsPigeonUtils.deepHash(this.name)
+    return result
+  }
+  override fun toString(): String {
+    return "NotificationChannelGroup(id=$id, name=$name)"
   }
 }
 
@@ -767,45 +819,50 @@ private open class AndroidNotificationsPigeonCodec : StandardMessageCodec() {
       }
       130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          AndroidIntent.fromList(it)
+          NotificationChannelGroup.fromList(it)
         }
       }
       131.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          PendingIntent.fromList(it)
+          AndroidIntent.fromList(it)
         }
       }
       132.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          InboxStyle.fromList(it)
+          PendingIntent.fromList(it)
         }
       }
       133.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          Person.fromList(it)
+          InboxStyle.fromList(it)
         }
       }
       134.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          MessagingStyleMessage.fromList(it)
+          Person.fromList(it)
         }
       }
       135.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          MessagingStyle.fromList(it)
+          MessagingStyleMessage.fromList(it)
         }
       }
       136.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          Notification.fromList(it)
+          MessagingStyle.fromList(it)
         }
       }
       137.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
-          StatusBarNotification.fromList(it)
+          Notification.fromList(it)
         }
       }
       138.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          StatusBarNotification.fromList(it)
+        }
+      }
+      139.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           StoredNotificationSound.fromList(it)
         }
@@ -819,40 +876,44 @@ private open class AndroidNotificationsPigeonCodec : StandardMessageCodec() {
         stream.write(129)
         writeValue(stream, value.toList())
       }
-      is AndroidIntent -> {
+      is NotificationChannelGroup -> {
         stream.write(130)
         writeValue(stream, value.toList())
       }
-      is PendingIntent -> {
+      is AndroidIntent -> {
         stream.write(131)
         writeValue(stream, value.toList())
       }
-      is InboxStyle -> {
+      is PendingIntent -> {
         stream.write(132)
         writeValue(stream, value.toList())
       }
-      is Person -> {
+      is InboxStyle -> {
         stream.write(133)
         writeValue(stream, value.toList())
       }
-      is MessagingStyleMessage -> {
+      is Person -> {
         stream.write(134)
         writeValue(stream, value.toList())
       }
-      is MessagingStyle -> {
+      is MessagingStyleMessage -> {
         stream.write(135)
         writeValue(stream, value.toList())
       }
-      is Notification -> {
+      is MessagingStyle -> {
         stream.write(136)
         writeValue(stream, value.toList())
       }
-      is StatusBarNotification -> {
+      is Notification -> {
         stream.write(137)
         writeValue(stream, value.toList())
       }
-      is StoredNotificationSound -> {
+      is StatusBarNotification -> {
         stream.write(138)
+        writeValue(stream, value.toList())
+      }
+      is StoredNotificationSound -> {
+        stream.write(139)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -880,6 +941,52 @@ interface AndroidNotificationHostApi {
    * See: https://developer.android.com/reference/kotlin/androidx/core/app/NotificationManagerCompat#deleteNotificationChannel(java.lang.String)
    */
   fun deleteNotificationChannel(channelId: String)
+  /**
+   * Create a notification channel with the given [id], [name], and [groupId],
+   * and other settings copied from the existing channel [sourceChannelId].
+   *
+   * The copied settings are those the source channel currently has,
+   * including any changes the user made to it:
+   * importance, sound, vibration, lights, and badge.
+   * Some settings the user can change can't be set by an app,
+   * so aren't copied: lock-screen visibility, and overriding Do Not Disturb.
+   *
+   * If a channel with [id] already exists,
+   * this only updates its name, and its group if it had none;
+   * it keeps its other settings.
+   *
+   * Throws if there is neither a channel [id] nor a channel [sourceChannelId].
+   *
+   * This is an ad-hoc method combining
+   * `androidx.core.app.NotificationManagerCompat.getNotificationChannelCompat`
+   * with [createNotificationChannel].
+   *
+   * See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#getNotificationChannelCompat(java.lang.String)
+   */
+  fun createNotificationChannelFrom(sourceChannelId: String, id: String, name: String, groupId: String?)
+  /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.createNotificationChannelGroup`.
+   *
+   * See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#createNotificationChannelGroup(androidx.core.app.NotificationChannelGroupCompat)
+   */
+  fun createNotificationChannelGroup(group: NotificationChannelGroup)
+  /**
+   * Corresponds to `androidx.core.app.NotificationManagerCompat.deleteNotificationChannelGroup`.
+   *
+   * This also deletes all the notification channels in the group.
+   *
+   * See: https://developer.android.com/reference/androidx/core/app/NotificationManagerCompat#deleteNotificationChannelGroup(java.lang.String)
+   */
+  fun deleteNotificationChannelGroup(groupId: String)
+  /**
+   * Open the system settings page for the given notification channel,
+   * where the user can choose its sound and other settings.
+   *
+   * Starts an activity with `android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS`.
+   *
+   * See: https://developer.android.com/reference/android/provider/Settings#ACTION_CHANNEL_NOTIFICATION_SETTINGS
+   */
+  fun openNotificationChannelSettings(channelId: String)
   /**
    * The list of notification sound files present under `Notifications/Zulip/`
    * in the device's shared media storage,
@@ -920,6 +1027,9 @@ interface AndroidNotificationHostApi {
    * The `color` should be in the form 0xAARRGGBB.
    * See [ColorExtension.argbInt].
    *
+   * The `groupAlertBehavior` must be a valid constant from
+   * [NotificationGroupAlertBehavior].
+   *
    * The `smallIconResourceName` is passed to `android.content.res.Resources.getIdentifier`
    * to get a resource ID to pass to `Builder.setSmallIcon`.
    * Whatever name is passed there must appear in keep.xml too:
@@ -929,7 +1039,7 @@ interface AndroidNotificationHostApi {
    *   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
    *   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
    */
-  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String, String>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, messagingStyle: MessagingStyle?, number: Long?, smallIconResourceName: String?)
+  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String, String>?, groupAlertBehavior: Long?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, messagingStyle: MessagingStyle?, number: Long?, smallIconResourceName: String?)
   /**
    * Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
    * optionally combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`
@@ -1019,6 +1129,81 @@ interface AndroidNotificationHostApi {
         }
       }
       run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.createNotificationChannelFrom$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val sourceChannelIdArg = args[0] as String
+            val idArg = args[1] as String
+            val nameArg = args[2] as String
+            val groupIdArg = args[3] as String?
+            val wrapped: List<Any?> = try {
+              api.createNotificationChannelFrom(sourceChannelIdArg, idArg, nameArg, groupIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              AndroidNotificationsPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.createNotificationChannelGroup$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val groupArg = args[0] as NotificationChannelGroup
+            val wrapped: List<Any?> = try {
+              api.createNotificationChannelGroup(groupArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              AndroidNotificationsPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.deleteNotificationChannelGroup$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val groupIdArg = args[0] as String
+            val wrapped: List<Any?> = try {
+              api.deleteNotificationChannelGroup(groupIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              AndroidNotificationsPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.openNotificationChannelSettings$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val channelIdArg = args[0] as String
+            val wrapped: List<Any?> = try {
+              api.openNotificationChannelSettings(channelIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              AndroidNotificationsPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.zulip.AndroidNotificationHostApi.listStoredSoundsInNotificationsDirectory$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { _, reply ->
@@ -1065,14 +1250,15 @@ interface AndroidNotificationHostApi {
             val contentTextArg = args[6] as String?
             val contentTitleArg = args[7] as String?
             val extrasArg = args[8] as Map<String, String>?
-            val groupKeyArg = args[9] as String?
-            val inboxStyleArg = args[10] as InboxStyle?
-            val isGroupSummaryArg = args[11] as Boolean?
-            val messagingStyleArg = args[12] as MessagingStyle?
-            val numberArg = args[13] as Long?
-            val smallIconResourceNameArg = args[14] as String?
+            val groupAlertBehaviorArg = args[9] as Long?
+            val groupKeyArg = args[10] as String?
+            val inboxStyleArg = args[11] as InboxStyle?
+            val isGroupSummaryArg = args[12] as Boolean?
+            val messagingStyleArg = args[13] as MessagingStyle?
+            val numberArg = args[14] as Long?
+            val smallIconResourceNameArg = args[15] as String?
             val wrapped: List<Any?> = try {
-              api.notify(tagArg, idArg, autoCancelArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, groupKeyArg, inboxStyleArg, isGroupSummaryArg, messagingStyleArg, numberArg, smallIconResourceNameArg)
+              api.notify(tagArg, idArg, autoCancelArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, groupAlertBehaviorArg, groupKeyArg, inboxStyleArg, isGroupSummaryArg, messagingStyleArg, numberArg, smallIconResourceNameArg)
               listOf(null)
             } catch (exception: Throwable) {
               AndroidNotificationsPigeonUtils.wrapError(exception)

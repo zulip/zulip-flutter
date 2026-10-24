@@ -76,6 +76,10 @@
   "@profileButtonSendDirectMessage": {
     "description": "Label for button in profile screen to navigate to DMs with the shown user."
   },
+  "profileButtonNotificationSound": "Notification sound",
+  "@profileButtonNotificationSound": {
+    "description": "Label for button in profile screen to open the system settings for notifications from the shown user, where one can choose a sound for them."
+  },
   "errorCouldNotShowUserProfile": "Could not show user profile.",
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
@@ -146,6 +150,10 @@
   "actionSheetOptionUnpinChannel": "Unpin from top",
   "@actionSheetOptionUnpinChannel": {
     "description": "Label in the channel action sheet for unpinning the channel."
+  },
+  "actionSheetOptionChannelNotificationSound": "Notification sound",
+  "@actionSheetOptionChannelNotificationSound": {
+    "description": "Label in the channel action sheet for opening the system settings for notifications from the channel, where one can choose a sound for them."
   },
   "errorPinChannelFailedTitle": "Failed to pin channel",
   "@errorPinChannelFailedTitle": {

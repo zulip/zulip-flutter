@@ -177,6 +177,16 @@ enum BoolGlobalSetting {
   /// errors are encountered.
   forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
 
+  /// An experimental flag to give each Zulip channel its own
+  /// Android notification channel ("category" in the Android settings UI),
+  /// created when the first notification for that channel arrives,
+  /// so that the user can choose a sound and other settings for it.
+  ///
+  /// A change to this may not affect notifications that arrive
+  /// while the app is in the background, until the app's process restarts.
+  // That's because the background isolate keeps its own GlobalStore.
+  notificationCategoryPerChannel(GlobalSettingType.experimentalFeatureFlag, false),
+
   // Former settings which might exist in the database,
   // whose names should therefore not be reused:
   //   openFirstUnread            // v0.0.30

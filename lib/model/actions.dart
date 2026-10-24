@@ -18,6 +18,7 @@ Future<void> logOutAccount(GlobalStore globalStore, int accountId) async {
 
   if (defaultTargetPlatform == TargetPlatform.android) {
     unawaited(NotificationDisplayManager.removeNotificationsForAccount(account.realmUrl, account.userId));
+    unawaited(NotificationChannelManager.deleteCustomChannelsForAccount(account));
   }
 
   await globalStore.removeAccount(accountId);

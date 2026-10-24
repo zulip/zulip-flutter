@@ -77,6 +77,9 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Saada otsesõnum';
 
   @override
+  String get profileButtonNotificationSound => 'Notification sound';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'Kasutajaprofiili kuvamine ei õnnestunud.';
 
@@ -132,6 +135,9 @@ class ZulipLocalizationsEt extends ZulipLocalizations {
   @override
   String get actionSheetOptionUnpinChannel =>
       'Eemalda ülalt äärest esiletõstmine';
+
+  @override
+  String get actionSheetOptionChannelNotificationSound => 'Notification sound';
 
   @override
   String get errorPinChannelFailedTitle => 'Kanali esiletõstmine ei õnnestunud';

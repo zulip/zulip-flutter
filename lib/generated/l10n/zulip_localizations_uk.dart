@@ -77,6 +77,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
       'Надіслати особисте повідомлення';
 
   @override
+  String get profileButtonNotificationSound => 'Notification sound';
+
+  @override
   String get errorCouldNotShowUserProfile =>
       'Не вдалося показати профіль користувача.';
 
@@ -132,6 +135,9 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionUnpinChannel => 'Unpin from top';
+
+  @override
+  String get actionSheetOptionChannelNotificationSound => 'Notification sound';
 
   @override
   String get errorPinChannelFailedTitle => 'Failed to pin channel';

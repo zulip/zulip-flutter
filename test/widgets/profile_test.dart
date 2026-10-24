@@ -14,6 +14,7 @@ import 'package:zulip/basic.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/store.dart';
+import 'package:zulip/notifications/display.dart';
 import 'package:zulip/widgets/button.dart';
 import 'package:zulip/widgets/icons.dart';
 import 'package:zulip/widgets/image.dart';
@@ -118,6 +119,33 @@ void main() {
     final user = eg.user(userId: 1, fullName: longString);
     await setupPage(tester, users: [user], pageUserId: user.userId);
     check(find.text(longString).evaluate()).isNotEmpty();
+  });
+
+  group('notification sound button', () {
+    testWidgets('smoke', (tester) async {
+      await setupPage(tester, users: [eg.otherUser], pageUserId: eg.otherUser.userId);
+      await NotificationChannelManager.ensureChannel();
+      await tester.ensureVisible(find.text('Notification sound'));
+      await tester.tap(find.text('Notification sound'));
+      await tester.pump();
+
+      final expectedChannelId = NotificationChannelManager
+        .customChannelIdForSender(eg.selfAccount, eg.otherUser.userId);
+      final host = testBinding.androidNotificationHost;
+      check(host.takeOpenedChannelSettings()).single.equals(expectedChannelId);
+      check(host.activeChannels.singleWhere((c) => c.id == expectedChannelId))
+        .has((c) => c.name, 'name').equals(eg.otherUser.fullName);
+    });
+
+    testWidgets('absent on self-profile', (tester) async {
+      await setupPage(tester, pageUserId: eg.selfUser.userId);
+      check(find.text('Notification sound')).findsNothing();
+    });
+
+    testWidgets('absent on iOS', (tester) async {
+      await setupPage(tester, users: [eg.otherUser], pageUserId: eg.otherUser.userId);
+      check(find.text('Notification sound')).findsNothing();
+    }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
   });
 
   group('_LastActiveTime', () {

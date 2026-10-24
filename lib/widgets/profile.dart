@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -11,6 +12,7 @@ import '../model/binding.dart';
 import '../model/content.dart';
 import '../model/narrow.dart';
 import '../model/presence.dart';
+import '../notifications/display.dart';
 import 'app_bar.dart';
 import 'button.dart';
 import 'content.dart';
@@ -130,6 +132,15 @@ class ProfilePage extends StatelessWidget {
             narrow: DmNarrow.withUser(userId, selfUserId: store.selfUserId))),
         icon: const Icon(Icons.email),
         label: Text(zulipLocalizations.profileButtonSendDirectMessage)),
+      if (defaultTargetPlatform == TargetPlatform.android
+          && userId != store.selfUserId) ...[
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () => NotificationChannelManager.openCustomChannelSettingsForSender(
+            store.account, senderId: userId, senderFullName: user.fullName),
+          icon: const Icon(Icons.notifications_outlined),
+          label: Text(zulipLocalizations.profileButtonNotificationSound)),
+      ],
     ];
 
     return Scaffold(
