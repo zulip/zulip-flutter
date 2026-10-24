@@ -17,7 +17,7 @@ void main() {
   }
 
   // The calls to firebaseMessagingOnMessage and firebaseMessagingOnBackgroundMessage
-  // are tested end-to-end in `display_test.dart`, by posting FCM messages
+  // are tested end-to-end in `android_display_test.dart`, by posting FCM messages
   // to the respective streams and checking that the right logic then runs.
 
   // The token logic is tested end-to-end in `test/model/push_device_test.dart`.
