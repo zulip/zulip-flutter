@@ -304,7 +304,8 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = this.content;
-    return InheritedMessage(message: message,
+    return ZulipContentBackgroundDataProvider(
+      data: ZulipContentBackgroundData(message: message),
       child: DefaultTextStyle(
         style: ContentTheme.of(context).textStylePlainParagraph,
         child: switch (content) {
@@ -314,20 +315,43 @@ class MessageContent extends StatelessWidget {
   }
 }
 
-class InheritedMessage extends InheritedWidget {
-  const InheritedMessage({super.key, required this.message, required super.child});
+/// Data from outside some Zulip content that its widgets depend on.
+///
+/// Content widgets get this data through [ZulipContentBackgroundDataProvider].
+class ZulipContentBackgroundData {
+  const ZulipContentBackgroundData({required this.message});
 
-  final Message message;
+  final Message? message;
+}
+
+/// Provides [ZulipContentBackgroundData] to the content widgets below it.
+///
+/// Content widgets read the data through static methods like [maybeMessageOf].
+class ZulipContentBackgroundDataProvider extends InheritedWidget {
+  const ZulipContentBackgroundDataProvider({
+    super.key,
+    required this.data,
+    required super.child,
+  });
+
+  final ZulipContentBackgroundData data;
+
+  static ZulipContentBackgroundData _dataOf(BuildContext context) {
+    final widget = context.dependOnInheritedWidgetOfExactType<ZulipContentBackgroundDataProvider>();
+    assert(widget != null, 'No ZulipContentBackgroundDataProvider ancestor');
+    return widget!.data;
+  }
+
+  /// The [Message] whose content this is,
+  /// or null if the content isn't from a message.
+  ///
+  /// Uses the efficient [BuildContext.dependOnInheritedWidgetOfExactType],
+  /// so this is safe to call in a build method.
+  static Message? maybeMessageOf(BuildContext context) => _dataOf(context).message;
 
   @override
-  bool updateShouldNotify(covariant InheritedMessage oldWidget) =>
-    !identical(oldWidget.message, message);
-
-  static Message of(BuildContext context) {
-    final widget = context.dependOnInheritedWidgetOfExactType<InheritedMessage>();
-    assert(widget != null, 'No InheritedMessage ancestor');
-    return widget!.message;
-  }
+  bool updateShouldNotify(covariant ZulipContentBackgroundDataProvider oldWidget) =>
+    !identical(oldWidget.data.message, data.message);
 }
 
 //
@@ -656,12 +680,12 @@ class MessageInlineVideo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = InheritedMessage.of(context);
+    final message = ZulipContentBackgroundDataProvider.maybeMessageOf(context);
     final store = PerAccountStoreWidget.of(context);
     final resolvedSrc = store.tryResolveUrl(node.srcUrl);
 
     return MessageMediaContainer(
-      onTap: resolvedSrc == null ? null : () { // TODO(log)
+      onTap: message == null || resolvedSrc == null ? null : () { // TODO(log)
         Navigator.of(context).push(getVideoLightboxRoute(
           context: context,
           message: message,
@@ -672,7 +696,7 @@ class MessageInlineVideo extends StatelessWidget {
         alignment: Alignment.center,
         // To avoid potentially confusing UX, do not show play icon as
         // we also disable onTap above.
-        child: resolvedSrc == null ? null : const Icon( // TODO(log)
+        child: message == null || resolvedSrc == null ? null : const Icon( // TODO(log)
           Icons.play_arrow_rounded,
           color: Colors.white, // Web has the same color in light and dark mode.
           size: 32)));
@@ -1578,7 +1602,7 @@ class _Image extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
-    final message = InheritedMessage.of(context);
+    final message = ZulipContentBackgroundDataProvider.maybeMessageOf(context);
 
     final resolvedSrc = switch (node.src) {
       ImageNodeSrcThumbnail(:final value) => value.resolve(context,
@@ -1613,6 +1637,10 @@ class _Image extends StatelessWidget {
         // we give the alt text to [RealmContentNetworkImage].)
         excludeFromSemantics: true,
         child: child);
+    }
+
+    if (message == null) {
+      return buildContainer(null, child);
     }
 
     final lightboxDisplayUrl = (node.loading || node.src is ImageNodeSrcThumbnail)
