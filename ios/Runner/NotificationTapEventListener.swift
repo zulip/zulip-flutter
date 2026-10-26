@@ -22,6 +22,11 @@ class NotificationTapEventListener: NotificationTapEventsStreamHandler {
 
   override func onCancel(withArguments arguments: Any?) {
     eventSink?.endOfStream()
+    reset()
+  }
+
+  /// Forget the current sink, so events buffer until the next `onListen`.
+  private func reset() {
     eventSink = nil
   }
 
