@@ -21,10 +21,8 @@ class NotificationTapEventListener: NotificationTapEventsStreamHandler {
   }
 
   override func onCancel(withArguments arguments: Any?) {
-    if let eventSink = self.eventSink {
-      eventSink.endOfStream()
-      self.eventSink = nil
-    }
+    eventSink?.endOfStream()
+    eventSink = nil
   }
 
   func onNotificationTapEvent(payload: [AnyHashable: Any]) {
