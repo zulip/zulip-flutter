@@ -69,12 +69,39 @@ void main() {
     expectErrorFromText('email@example.com', ServerUrlValidationError.noUseEmail);
   });
 
+  late List<Route<void>> pushedRoutes;
+  late List<Route<void>> poppedRoutes;
+
+  /// Start the app, recording route changes in [pushedRoutes] and [poppedRoutes].
+  Future<TestNavigatorObserver> pumpApp(WidgetTester tester) async {
+    pushedRoutes = [];
+    poppedRoutes = [];
+    final testNavObserver = TestNavigatorObserver();
+    testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
+    testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
+    testNavObserver.onReplaced = (route, prevRoute) {
+      poppedRoutes.add(prevRoute!);
+      pushedRoutes.add(route!);
+    };
+    await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
+    await tester.pump();
+    return testNavObserver;
+  }
+
+  /// [pumpApp], then push [route] atop the choose-account page.
+  ///
+  /// On return, [pushedRoutes] holds those two routes.
+  Future<void> pumpAppAndPush(WidgetTester tester, Route<void> route) async {
+    final testNavObserver = await pumpApp(tester);
+    final navigator = await ZulipApp.navigator;
+    unawaited(navigator.push(route));
+    await testNavObserver.pumpPastTransition(tester);
+  }
+
   group('AddAccountPage', () {
     late FakeApiConnection connection;
-    List<Route<dynamic>> pushedRoutes = [];
-    List<Route<dynamic>> poppedRoutes = [];
 
-    List<Route<dynamic>> takePushedRoutes() {
+    List<Route<void>> takePushedRoutes() {
       final routes = pushedRoutes.toList();
       pushedRoutes.clear();
       return routes;
@@ -83,18 +110,7 @@ void main() {
     Future<void> prepare(WidgetTester tester) async {
       addTearDown(testBinding.reset);
 
-      pushedRoutes = [];
-      poppedRoutes = [];
-      final testNavObserver = TestNavigatorObserver();
-      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
-      testNavObserver.onReplaced = (route, prevRoute) {
-        poppedRoutes.add(prevRoute!);
-        pushedRoutes.add(route!);
-      };
-
-      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
-      await tester.pump();
+      final testNavObserver = await pumpApp(tester);
       check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<ChooseAccountPage>();
       await tester.tap(find.text('Add an account'));
       check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<AddAccountPage>();
@@ -192,8 +208,6 @@ void main() {
 
   group('LoginPage', () {
     late FakeApiConnection connection;
-    late List<Route<void>> pushedRoutes;
-    late List<Route<void>> poppedRoutes;
 
     void takeStartingRoutes() {
       final expected = <Condition<Object?>>[
@@ -212,20 +226,8 @@ void main() {
         realmUrl: serverSettings.realmUrl,
         zulipFeatureLevel: serverSettings.zulipFeatureLevel);
 
-      pushedRoutes = [];
-      poppedRoutes = [];
-      final testNavObserver = TestNavigatorObserver();
-      testNavObserver.onPushed = (route, prevRoute) => pushedRoutes.add(route);
-      testNavObserver.onPopped = (route, prevRoute) => poppedRoutes.add(route);
-      testNavObserver.onReplaced = (route, prevRoute) {
-        poppedRoutes.add(prevRoute!);
-        pushedRoutes.add(route!);
-      };
-      await tester.pumpWidget(ZulipApp(navigatorObservers: [testNavObserver]));
-      await tester.pump();
-      final navigator = await ZulipApp.navigator;
-      unawaited(navigator.push(LoginPage.buildRoute(serverSettings: serverSettings)));
-      await tester.pumpAndSettle();
+      await pumpAppAndPush(tester,
+        LoginPage.buildRoute(serverSettings: serverSettings));
     }
 
     final googleAuthMethod = ExternalAuthenticationMethod(
