@@ -485,7 +485,9 @@ class _LoginPageState extends State<LoginPage> {
         _UsernamePasswordForm(loginPageState: this),
       if (externalAuthenticationMethods.isNotEmpty) ...[
         if (showPasswordForm)
-          _AlternativeAuthDivider(),
+          _LabeledDivider(
+            label: zulipLocalizations.loginMethodDivider,
+            semanticsLabel: zulipLocalizations.loginMethodDividerSemanticLabel),
         ...externalAuthenticationMethods.map((method) {
           final icon = method.displayIcon;
           return _LoginMethodButton(
@@ -704,11 +706,19 @@ class _LoginMethodButton extends StatelessWidget {
   }
 }
 
+/// A horizontal divider with a label in the middle,
+/// like the "OR" between the login methods.
 // Loosely based on the corresponding element in the web app.
-class _AlternativeAuthDivider extends StatelessWidget {
+class _LabeledDivider extends StatelessWidget {
+  const _LabeledDivider({required this.label, this.semanticsLabel});
+
+  final String label;
+
+  /// What to call this in the semantics tree, instead of [label].
+  final String? semanticsLabel;
+
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
     final designVariables = DesignVariables.of(context);
 
     final divider = Expanded(
@@ -718,12 +728,12 @@ class _AlternativeAuthDivider extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Semantics(
         excludeSemantics: true,
-        label: zulipLocalizations.loginMethodDividerSemanticLabel,
+        label: semanticsLabel ?? label,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           divider,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Text(zulipLocalizations.loginMethodDivider,
+            child: Text(label,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: designVariables.loginOrDividerText,
