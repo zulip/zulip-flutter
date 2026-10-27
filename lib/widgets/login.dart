@@ -215,9 +215,11 @@ class _AddAccountPageState extends State<AddAccountPage> {
       unawaited(Navigator.push(context,
         LoginPage.buildRoute(serverSettings: serverSettings)));
     } finally {
-      setState(() {
-        _inProgress = false;
-      });
+      if (mounted) {
+        setState(() {
+          _inProgress = false;
+        });
+      }
     }
   }
 
