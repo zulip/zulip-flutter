@@ -163,6 +163,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 
   void _onSubmitted(BuildContext context) async {
+    if (_inProgress) return;
     final zulipLocalizations = ZulipLocalizations.of(context);
     final url = _parseResult.url;
     final error = _parseResult.error;
