@@ -473,7 +473,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
-    final colorScheme = Theme.of(context).colorScheme;
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
@@ -489,18 +488,14 @@ class _LoginPageState extends State<LoginPage> {
           _AlternativeAuthDivider(),
         ...externalAuthenticationMethods.map((method) {
           final icon = method.displayIcon;
-          return OutlinedButton.icon(
-            style: ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
-              foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer)),
+          return _LoginMethodButton(
             icon: icon != null
               ? Image.network(icon, width: 24, height: 24)
               : null,
             onPressed: !_inProgress
               ? () => _beginWebAuth(method)
               : null,
-            label: Text(
-              zulipLocalizations.signInWithFoo(method.displayName)));
+            label: zulipLocalizations.signInWithFoo(method.displayName));
         }),
       ],
     ]);
@@ -681,6 +676,31 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
             onPressed: widget.loginPageState._inProgress ? null : _submit,
             child: Text(zulipLocalizations.loginFormSubmitLabel)),
         ])));
+  }
+}
+
+/// A button offering a way to log in, like "Sign in with Google".
+class _LoginMethodButton extends StatelessWidget {
+  const _LoginMethodButton({
+    this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final Widget? icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return OutlinedButton.icon(
+      style: ButtonStyle(
+        backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+        foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer)),
+      icon: icon,
+      onPressed: onPressed,
+      label: Text(label));
   }
 }
 
