@@ -340,6 +340,9 @@ class BlockContentList extends StatelessWidget {
 
   final List<BlockContentNode> nodes;
 
+  bool _areLinkPreviewsHidden(BuildContext context) =>
+    InheritedMessage.of(context).flags.contains(MessageFlag.hideLinkPreviews);
+
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -366,10 +369,9 @@ class BlockContentList extends StatelessWidget {
             return MessageImagePreview(node: node);
           }(),
           InlineVideoNode() => MessageInlineVideo(node: node),
-          EmbedVideoNode() || WebsitePreviewNode()
-              when InheritedMessage.of(context).flags.contains(MessageFlag.hideLinkPreviews) =>
-            const SizedBox.shrink(),
-          EmbedVideoNode() => MessageEmbedVideo(node: node),
+          EmbedVideoNode() => _areLinkPreviewsHidden(context)
+            ? const SizedBox.shrink()
+            : MessageEmbedVideo(node: node),
           TableNode() => MessageTable(node: node),
           TableRowNode() => () {
             assert(false,
@@ -385,7 +387,9 @@ class BlockContentList extends StatelessWidget {
             );
             return const SizedBox.shrink();
           }(),
-          WebsitePreviewNode() => WebsitePreview(node: node),
+          WebsitePreviewNode() => _areLinkPreviewsHidden(context)
+            ? const SizedBox.shrink()
+            : WebsitePreview(node: node),
           UnimplementedBlockContentNode() =>
             Text.rich(_errorUnimplemented(node, context: context)),
         };
