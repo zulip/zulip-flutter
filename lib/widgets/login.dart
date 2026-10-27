@@ -289,6 +289,21 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 }
 
+/// Show an error dialog for a failed API request,
+/// with the server's message if it gave one.
+void _showApiErrorDialog(BuildContext context, ApiRequestException e, {
+  required String title,
+}) {
+  // TODO(#105) give more helpful feedback. The RN app is
+  //   unhelpful here; we should at least recognize invalid auth errors, and
+  //   errors for deactivated user or realm (see zulip-mobile#4571).
+  final zulipLocalizations = ZulipLocalizations.of(context);
+  final message = (e is ZulipApiException)
+    ? zulipLocalizations.errorServerMessage(e.message)
+    : e.message;
+  showErrorDialog(context: context, title: title, message: message);
+}
+
 /// Add the account to the global store and navigate to its home page,
 /// or show an error dialog if the account already exists.
 Future<void> _tryInsertAccountAndNavigate(BuildContext context, {
@@ -564,16 +579,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         }
       } on ApiRequestException catch (e) {
         if (!context.mounted) return;
-        // TODO(#105) give more helpful feedback. The RN app is
-        //   unhelpful here; we should at least recognize invalid auth errors, and
-        //   errors for deactivated user or realm (see zulip-mobile#4571).
-        final zulipLocalizations = ZulipLocalizations.of(context);
-        final message = (e is ZulipApiException)
-          ? zulipLocalizations.errorServerMessage(e.message)
-          : e.message;
-        showErrorDialog(context: context,
-          title: zulipLocalizations.errorLoginFailedTitle,
-          message: message);
+        _showApiErrorDialog(context, e,
+          title: ZulipLocalizations.of(context).errorLoginFailedTitle);
         return;
       }
 
