@@ -41,6 +41,7 @@ extension UserChecks on Subject<User> {
   Subject<String> get timezone => has((x) => x.timezone, 'timezone');
   Subject<String?> get avatarUrl => has((x) => x.avatarUrl, 'avatarUrl');
   Subject<int> get avatarVersion => has((x) => x.avatarVersion, 'avatarVersion');
+  Subject<bool> get isDeleted => has((x) => x.isDeleted, 'isDeleted');
   Subject<Map<int, ProfileFieldUserData>?> get profileData => has((x) => x.profileData, 'profileData');
   Subject<bool> get isSystemBot => has((x) => x.isSystemBot, 'isSystemBot');
 }
