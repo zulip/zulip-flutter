@@ -213,8 +213,13 @@ class _AddAccountPageState extends State<AddAccountPage> {
       }
       if (!context.mounted) return;
 
-      unawaited(Navigator.push(context,
-        LoginPage.buildRoute(serverSettings: serverSettings)));
+      if (serverSettings.authenticationMethods.dev) {
+        await DevLoginPage.fetchUsersAndPush(context,
+          serverSettings: serverSettings);
+      } else {
+        unawaited(Navigator.push(context,
+          LoginPage.buildRoute(serverSettings: serverSettings)));
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -506,6 +511,143 @@ class _LoginPageState extends State<LoginPage> {
       title: zulipLocalizations.loginPageTitle,
       inProgress: _inProgress,
       child: loginContent);
+  }
+}
+
+/// A page for logging in as any user without a password,
+/// as a Zulip development server allows.
+///
+/// Modeled on the dev server's own /devlogin/ page.
+class DevLoginPage extends StatefulWidget {
+  const DevLoginPage({
+    super.key,
+    required this.serverSettings,
+    required this.users,
+  });
+
+  static Route<void> buildRoute({
+    required GetServerSettingsResult serverSettings,
+    required DevListUsersResult users,
+  }) {
+    return _LoginSequenceRoute(
+      page: DevLoginPage(serverSettings: serverSettings, users: users));
+  }
+
+  /// Fetch the server's users, then push a page listing them,
+  /// or show an error dialog if that fails.
+  static Future<void> fetchUsersAndPush(BuildContext context, {
+    required GetServerSettingsResult serverSettings,
+  }) async {
+    final DevListUsersResult users;
+    try {
+      final globalStore = GlobalStoreWidget.of(context);
+      final connection = globalStore.apiConnection(
+        realmUrl: serverSettings.realmUrl,
+        zulipFeatureLevel: serverSettings.zulipFeatureLevel);
+      try {
+        users = await devListUsers(connection);
+      } finally {
+        connection.close();
+      }
+    } on ApiRequestException catch (e) {
+      if (!context.mounted) return;
+      _showApiErrorDialog(context, e,
+        title: ZulipLocalizations.of(context).errorDevLoginFetchUsersFailedTitle);
+      return;
+    }
+    if (!context.mounted) return;
+
+    unawaited(Navigator.push(context,
+      buildRoute(serverSettings: serverSettings, users: users)));
+  }
+
+  final GetServerSettingsResult serverSettings;
+
+  /// The server's users, from [devListUsers].
+  final DevListUsersResult users;
+
+  @override
+  State<DevLoginPage> createState() => _DevLoginPageState();
+}
+
+class _DevLoginPageState extends State<DevLoginPage> {
+  bool _inProgress = false;
+
+  Future<void> _logIn(String email) async {
+    final globalStore = GlobalStoreWidget.of(context);
+    final connection = globalStore.apiConnection(
+      realmUrl: widget.serverSettings.realmUrl,
+      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel);
+    setState(() {
+      _inProgress = true;
+    });
+    try {
+      final FetchApiKeyResult result;
+      try {
+        try {
+          result = await devFetchApiKey(connection, username: email);
+        } finally {
+          connection.close();
+        }
+      } on ApiRequestException catch (e) {
+        if (!mounted) return;
+        _showApiErrorDialog(context, e,
+          title: ZulipLocalizations.of(context).errorLoginFailedTitle);
+        return;
+      }
+      if (!mounted) return;
+      await _tryInsertAccountAndNavigate(context,
+        serverSettings: widget.serverSettings,
+        email: result.email,
+        apiKey: result.apiKey,
+        userId: result.userId);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _inProgress = false;
+        });
+      }
+    }
+  }
+
+  List<Widget> _buildSection(ZulipLocalizations zulipLocalizations,
+      String label, List<DevListUsersEntry> users) {
+    // The endpoint lists users from all the server's realms.
+    final emails = users
+      .where((user) => user.realmUrl == widget.serverSettings.realmUrl)
+      .map((user) => user.email)
+      .toList();
+    return [
+      _LabeledDivider(label: label),
+      if (emails.isEmpty)
+        Text(zulipLocalizations.devLoginNoUsers, textAlign: TextAlign.center),
+      for (final email in emails)
+        _LoginMethodButton(
+          label: email,
+          onPressed: !_inProgress ? () => _logIn(email) : null),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return _LoginPageScaffold(
+      title: zulipLocalizations.devLoginPageTitle,
+      inProgress: _inProgress,
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        TextButton(
+          onPressed: !_inProgress
+            ? () => Navigator.push(context,
+                LoginPage.buildRoute(serverSettings: widget.serverSettings))
+            : null,
+          child: Text(zulipLocalizations.devLoginNormalLoginPageButton)),
+        ..._buildSection(zulipLocalizations,
+          zulipLocalizations.devLoginAdministratorsLabel, widget.users.directAdmins),
+        ..._buildSection(zulipLocalizations,
+          zulipLocalizations.devLoginNormalUsersLabel, widget.users.directUsers),
+      ]));
   }
 }
 

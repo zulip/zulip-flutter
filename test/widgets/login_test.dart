@@ -140,6 +140,51 @@ void main() {
         .serverSettings.realmUrl.equals(serverSettings.realmUrl);
     });
 
+    group('server offers dev login', () {
+      final serverSettings = eg.serverSettings(
+        authenticationMethods: eg.authMethods(dev: true));
+      final users = DevListUsersResult(
+        directAdmins: [DevListUsersEntry(
+          email: 'iago@zulip.com', realmUrl: serverSettings.realmUrl)],
+        directUsers: []);
+
+      /// The connection for listing users, after fetching the server settings.
+      FakeApiConnection usersConnection() {
+        testBinding.globalStore.useCachedApiConnections = true;
+        return testBinding.globalStore.apiConnection(
+          realmUrl: serverSettings.realmUrl,
+          zulipFeatureLevel: serverSettings.zulipFeatureLevel);
+      }
+
+      testWidgets('happy path', (tester) async {
+        await prepare(tester);
+        final listUsersConnection = usersConnection()
+          ..prepare(json: users.toJson());
+        await attempt(tester, serverSettings.realmUrl, serverSettings.toJson());
+        await tester.pump(Duration.zero); // let the user-list request finish
+        check(listUsersConnection.lastRequest).isA<http.Request>()
+          ..method.equals('GET')
+          ..url.path.equals('/api/v1/dev_list_users');
+        checkNoDialog(tester);
+        check(takePushedRoutes()).single.isA<WidgetRoute>().page.isA<DevLoginPage>()
+          ..serverSettings.realmUrl.equals(serverSettings.realmUrl)
+          ..users.jsonEquals(users);
+      });
+
+      testWidgets('error listing users', (tester) async {
+        await prepare(tester);
+        usersConnection().prepare(
+          apiException: eg.apiBadRequest(message: 'DevAuthBackend not enabled.'));
+        await attempt(tester, serverSettings.realmUrl, serverSettings.toJson());
+        await tester.pump(Duration.zero); // let the user-list request finish
+        checkErrorDialog(tester,
+          expectedTitle: 'Could not fetch users',
+          expectedMessage: 'The server said:\n\nDevAuthBackend not enabled.');
+        // i.e., not the dev-login route
+        check(takePushedRoutes()).single.isA<DialogRoute<void>>();
+      });
+    });
+
     testWidgets('Server too old, well-formed response', (tester) async {
       await prepare(tester);
 
@@ -206,6 +251,19 @@ void main() {
     // TODO other errors
   });
 
+  /// Check the account is as expected, ignoring fields that are
+  /// freshly generated at login time.
+  void checkMatchesAccount(Account actual, Account expected) {
+    check(actual).equals(expected.copyWith(
+      id: actual.id,
+      // The example accounts have non-null deviceId because that's how
+      // an account will typically look in the app after fully set up.
+      // But it doesn't happen at login time, so expect null at this stage.
+      deviceId: drift.Value(null),
+      possibleLegacyPushToken: false,
+    ));
+  }
+
   group('LoginPage', () {
     late FakeApiConnection connection;
 
@@ -244,19 +302,6 @@ void main() {
       widget is TextField
       && (widget.autofillHints ?? []).contains(AutofillHints.password));
     final findSubmitButton = find.widgetWithText(ElevatedButton, 'Log in');
-
-    /// Check the account is as expected, ignoring fields that are
-    /// freshly generated at login time.
-    void checkMatchesAccount(Account actual, Account expected) {
-      check(actual).equals(expected.copyWith(
-        id: actual.id,
-        // The example accounts have non-null deviceId because that's how
-        // an account will typically look in the app after fully set up.
-        // But it doesn't happen at login time, so expect null at this stage.
-        deviceId: drift.Value(null),
-        possibleLegacyPushToken: false,
-      ));
-    }
 
     group('username/password login', () {
       void checkFetchApiKey({required String username, required String password}) {
@@ -488,6 +533,120 @@ void main() {
 
       // TODO failures, such as: invalid loginUrl; URL can't be launched;
       //   WebAuthPayload.realm doesn't match the realm the UI is about
+    });
+  });
+
+  group('DevLoginPage', () {
+    late FakeApiConnection connection;
+
+    final serverSettings = eg.serverSettings(
+      authenticationMethods: eg.authMethods(dev: true));
+
+    DevListUsersEntry entry(String email, {Uri? realmUrl}) =>
+      DevListUsersEntry(email: email,
+        realmUrl: realmUrl ?? serverSettings.realmUrl);
+
+    final users = DevListUsersResult(
+      directAdmins: [entry('iago@zulip.com')],
+      directUsers: [
+        entry(eg.selfAccount.email),
+        entry('king@lear.org', realmUrl: Uri.parse('https://lear.example/')),
+      ]);
+
+    Future<void> prepare(WidgetTester tester, {
+      required DevListUsersResult users,
+    }) async {
+      addTearDown(testBinding.reset);
+
+      testBinding.globalStore.useCachedApiConnections = true;
+      connection = testBinding.globalStore.apiConnection(
+        realmUrl: serverSettings.realmUrl,
+        zulipFeatureLevel: serverSettings.zulipFeatureLevel);
+
+      await pumpAppAndPush(tester,
+        DevLoginPage.buildRoute(serverSettings: serverSettings, users: users));
+      check(pushedRoutes).deepEquals(<Condition<Object?>>[
+        (it) => it.isA<WidgetRoute>().page.isA<ChooseAccountPage>(),
+        (it) => it.isA<WidgetRoute>().page.isA<DevLoginPage>(),
+      ]);
+      pushedRoutes.clear();
+    }
+
+    testWidgets('list users of this realm, by role', (tester) async {
+      await prepare(tester, users: users);
+      check(find.text('Administrators')).findsOne();
+      check(find.text('iago@zulip.com')).findsOne();
+      check(find.text('Normal users')).findsOne();
+      check(find.text(eg.selfAccount.email)).findsOne();
+      check(find.text('king@lear.org')).findsNothing();
+      check(find.text('No users found')).findsNothing();
+    });
+
+    testWidgets('no users in a section', (tester) async {
+      await prepare(tester, users: DevListUsersResult(
+        directAdmins: [], directUsers: [entry(eg.selfAccount.email)]));
+      check(find.text('No users found')).findsOne();
+    });
+
+    testWidgets('log in as a user', (tester) async {
+      await prepare(tester, users: users);
+      check(testBinding.globalStore.accounts).isEmpty();
+
+      connection.prepare(json: FetchApiKeyResult(
+        apiKey: eg.selfAccount.apiKey,
+        email: eg.selfAccount.email,
+        userId: eg.selfAccount.userId,
+      ).toJson());
+      await tester.tap(find.text(eg.selfAccount.email));
+      check(connection.lastRequest).isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/dev_fetch_api_key')
+        ..bodyFields.deepEquals({
+          'username': eg.selfAccount.email,
+        });
+      await tester.idle();
+
+      final account = testBinding.globalStore.accounts.single;
+      checkMatchesAccount(account, eg.selfAccount);
+      check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
+        ..accountId.equals(account.id)
+        ..page.isA<HomePage>();
+    });
+
+    testWidgets('go to the normal login page', (tester) async {
+      await prepare(tester, users: users);
+      await tester.tap(find.text('Use the normal login page'));
+      await tester.pump();
+      check(pushedRoutes).single.isA<WidgetRoute>().page.isA<LoginPage>()
+        .serverSettings.realmUrl.equals(serverSettings.realmUrl);
+    });
+
+    testWidgets('buttons disabled while logging in', (tester) async {
+      await prepare(tester, users: users);
+      connection.prepare(delay: const Duration(seconds: 1),
+        apiException: eg.apiBadRequest());
+      await tester.tap(find.text(eg.selfAccount.email));
+      await tester.pump();
+      check(tester.widget<TextButton>(
+        find.widgetWithText(TextButton, 'Use the normal login page')).onPressed).isNull();
+      check(tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'iago@zulip.com')).onPressed).isNull();
+      await tester.pump(const Duration(seconds: 1)); // let the request finish
+      await tester.pump();
+      checkErrorDialog(tester, expectedTitle: 'Login failed');
+    });
+
+    testWidgets('error logging in', (tester) async {
+      await prepare(tester, users: users);
+      connection.prepare(
+        apiException: eg.apiBadRequest(message: 'Your username or password is incorrect.'));
+      await tester.tap(find.text(eg.selfAccount.email));
+      await tester.pump(Duration.zero); // let the request finish
+      await tester.pump();
+      checkErrorDialog(tester,
+        expectedTitle: 'Login failed',
+        expectedMessage: 'The server said:\n\nYour username or password is incorrect.');
+      check(testBinding.globalStore.accounts).isEmpty();
     });
   });
 }
