@@ -289,6 +289,51 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 }
 
+/// Add the account to the global store and navigate to its home page,
+/// or show an error dialog if the account already exists.
+Future<void> _tryInsertAccountAndNavigate(BuildContext context, {
+  required GetServerSettingsResult serverSettings,
+  required String email,
+  required String apiKey,
+  required int userId,
+}) async {
+  final globalStore = GlobalStoreWidget.of(context);
+  final realmUrl = serverSettings.realmUrl;
+  final int accountId;
+  try {
+    accountId = await globalStore.insertAccount(AccountsCompanion.insert(
+      realmUrl: realmUrl,
+      realmName: Value(serverSettings.realmName),
+      realmIcon: Value(serverSettings.realmIcon),
+      email: email,
+      apiKey: apiKey,
+      userId: userId,
+      zulipFeatureLevel: serverSettings.zulipFeatureLevel,
+      zulipVersion: serverSettings.zulipVersion,
+      zulipMergeBase: Value(serverSettings.zulipMergeBase),
+      possibleLegacyPushToken: const Value(false),
+    ));
+    // TODO give feedback to user on other SQL exceptions
+  } on AccountAlreadyExistsException {
+    if (!context.mounted) {
+      return;
+    }
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    showErrorDialog(
+      context: context,
+      title: zulipLocalizations.errorAccountLoggedInTitle,
+      message: zulipLocalizations.errorAccountLoggedIn(
+        email, realmUrl.toString()));
+    return;
+  }
+
+  if (!context.mounted) {
+    return;
+  }
+
+  HomePage.navigate(context, accountId: accountId);
+}
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.serverSettings});
 
@@ -340,7 +385,8 @@ class _LoginPageState extends State<LoginPage> {
       final payload = WebAuthPayload.parse(url);
       if (payload.realm.origin != widget.serverSettings.realmUrl.origin) throw Error();
       final apiKey = payload.decodeApiKey(_otp!);
-      await _tryInsertAccountAndNavigate(
+      await _tryInsertAccountAndNavigate(context,
+        serverSettings: widget.serverSettings,
         userId: payload.userId,
         email: payload.email,
         apiKey: apiKey,
@@ -407,48 +453,6 @@ class _LoginPageState extends State<LoginPage> {
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
         message: message);
     }
-  }
-
-  Future<void> _tryInsertAccountAndNavigate({
-    required String email,
-    required String apiKey,
-    required int userId,
-  }) async {
-    final globalStore = GlobalStoreWidget.of(context);
-    final realmUrl = widget.serverSettings.realmUrl;
-    final int accountId;
-    try {
-      accountId = await globalStore.insertAccount(AccountsCompanion.insert(
-        realmUrl: realmUrl,
-        realmName: Value(widget.serverSettings.realmName),
-        realmIcon: Value(widget.serverSettings.realmIcon),
-        email: email,
-        apiKey: apiKey,
-        userId: userId,
-        zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-        zulipVersion: widget.serverSettings.zulipVersion,
-        zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
-        possibleLegacyPushToken: const Value(false),
-      ));
-      // TODO give feedback to user on other SQL exceptions
-    } on AccountAlreadyExistsException {
-      if (!mounted) {
-        return;
-      }
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(
-        context: context,
-        title: zulipLocalizations.errorAccountLoggedInTitle,
-        message: zulipLocalizations.errorAccountLoggedIn(
-          email, realmUrl.toString()));
-      return;
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    HomePage.navigate(context, accountId: accountId);
   }
 
   @override
@@ -577,7 +581,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         return;
       }
 
-      await widget.loginPageState._tryInsertAccountAndNavigate(
+      await _tryInsertAccountAndNavigate(context,
+        serverSettings: serverSettings,
         email: result.email,
         apiKey: result.apiKey,
         userId: result.userId,
