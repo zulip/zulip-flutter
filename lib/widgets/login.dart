@@ -502,9 +502,30 @@ class _LoginPageState extends State<LoginPage> {
       ],
     ]);
 
+    return _LoginPageScaffold(
+      title: zulipLocalizations.loginPageTitle,
+      inProgress: _inProgress,
+      child: loginContent);
+  }
+}
+
+/// The page scaffold for [LoginPage] and similar pages.
+class _LoginPageScaffold extends StatelessWidget {
+  const _LoginPageScaffold({
+    required this.title,
+    required this.inProgress,
+    required this.child,
+  });
+
+  final String title;
+  final bool inProgress;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),
-        bottom: _inProgress
+      appBar: AppBar(title: Text(title),
+        bottom: inProgress
           ? const PreferredSize(preferredSize: Size.fromHeight(4),
               child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
           : null),
@@ -520,7 +541,7 @@ class _LoginPageState extends State<LoginPage> {
               //   left or the right of this box
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
-                child: loginContent))))));
+                child: child))))));
   }
 }
 
