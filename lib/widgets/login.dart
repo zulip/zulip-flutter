@@ -331,6 +331,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       await ZulipBinding.instance.closeInAppWebView();
+      if (!mounted) return;
 
       if (_otp == null) throw Error();
       final payload = WebAuthPayload.parse(url);
@@ -354,10 +355,12 @@ class _LoginPageState extends State<LoginPage> {
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
         message: message);
     } finally {
-      setState(() {
-        _inProgress = false;
-        __otp = null;
-      });
+      if (mounted) {
+        setState(() {
+          _inProgress = false;
+          __otp = null;
+        });
+      }
     }
   }
 
