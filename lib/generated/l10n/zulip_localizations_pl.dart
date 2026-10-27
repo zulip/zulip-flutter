@@ -1392,6 +1392,22 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
       'Wiadomości zostaną z automatu oznaczone jako przeczytane tylko w pojedyczym wątku lub w wymianie wiadomości bezpośrednich.';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => 'Funkcje eksperymentalne';
 
   @override

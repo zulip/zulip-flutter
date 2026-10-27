@@ -2382,6 +2382,36 @@ abstract class ZulipLocalizations {
   /// **'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.'**
   String get markReadOnScrollSettingConversationsDescription;
 
+  /// Title of settings page for notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notificationSettingsPageTitle;
+
+  /// Label for toggling mobile notifications for direct messages and mentions received while offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications when offline'**
+  String get notificationsWhenOffline;
+
+  /// Label for toggling mobile notifications for direct messages and mentions received while online.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications when online'**
+  String get notificationsWhenOnline;
+
+  /// Label for toggling mobile notifications for channel messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel notifications'**
+  String get channelNotifications;
+
+  /// Error title when changing a notification setting failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update notification setting'**
+  String get notificationSettingUpdateFailedTitle;
+
   /// Title of settings page for experimental, in-development features
   ///
   /// In en, this message translates to:

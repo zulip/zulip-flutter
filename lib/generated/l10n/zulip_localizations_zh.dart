@@ -1373,6 +1373,22 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
       'Messages will be automatically marked as read only when viewing a single topic or direct message conversation.';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => 'Experimental features';
 
   @override

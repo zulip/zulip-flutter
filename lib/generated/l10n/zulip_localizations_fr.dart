@@ -1415,6 +1415,22 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Les messages ne seront automatiquement marqués comme lus que si une seule conversation est affichée.';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle =>
       'Fonctionnalités expérimentales';
 

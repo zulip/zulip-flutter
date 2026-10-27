@@ -334,6 +334,12 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
   ),
   webInboxShowChannelFolders:
       json['web_inbox_show_channel_folders'] as bool? ?? true,
+  enableChannelPushNotifications:
+      json['enable_stream_push_notifications'] as bool,
+  enableOfflinePushNotifications:
+      json['enable_offline_push_notifications'] as bool,
+  enableOnlinePushNotifications:
+      json['enable_online_push_notifications'] as bool,
   presenceEnabled: json['presence_enabled'] as bool,
 );
 
@@ -343,20 +349,27 @@ const _$UserSettingsFieldMap = <String, String>{
   'displayEmojiReactionUsers': 'display_emoji_reaction_users',
   'emojiset': 'emojiset',
   'webInboxShowChannelFolders': 'web_inbox_show_channel_folders',
+  'enableChannelPushNotifications': 'enable_stream_push_notifications',
+  'enableOfflinePushNotifications': 'enable_offline_push_notifications',
+  'enableOnlinePushNotifications': 'enable_online_push_notifications',
   'presenceEnabled': 'presence_enabled',
 };
 
-Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
-    <String, dynamic>{
-      'twenty_four_hour_time': TwentyFourHourTimeMode.staticToJson(
-        instance.twentyFourHourTime,
-      ),
-      'starred_message_counts': instance.starredMessageCounts,
-      'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
-      'emojiset': instance.emojiset,
-      'web_inbox_show_channel_folders': instance.webInboxShowChannelFolders,
-      'presence_enabled': instance.presenceEnabled,
-    };
+Map<String, dynamic> _$UserSettingsToJson(
+  UserSettings instance,
+) => <String, dynamic>{
+  'twenty_four_hour_time': TwentyFourHourTimeMode.staticToJson(
+    instance.twentyFourHourTime,
+  ),
+  'starred_message_counts': instance.starredMessageCounts,
+  'display_emoji_reaction_users': instance.displayEmojiReactionUsers,
+  'emojiset': instance.emojiset,
+  'web_inbox_show_channel_folders': instance.webInboxShowChannelFolders,
+  'enable_stream_push_notifications': instance.enableChannelPushNotifications,
+  'enable_offline_push_notifications': instance.enableOfflinePushNotifications,
+  'enable_online_push_notifications': instance.enableOnlinePushNotifications,
+  'presence_enabled': instance.presenceEnabled,
+};
 
 const _$EmojisetEnumMap = {
   Emojiset.google: 'google',

@@ -1344,6 +1344,22 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
       'メッセージは、単一のトピックまたはダイレクトメッセージの会話を表示しているときのみ、自動的に既読になります。';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle => '実験的機能';
 
   @override

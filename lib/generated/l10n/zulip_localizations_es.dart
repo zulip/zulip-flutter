@@ -1394,6 +1394,22 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'Los mensajes se marcarán automáticamente como solo lectura al ver un solo tema o una conversación por mensaje directo.';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle =>
       'Funcionalidades experimentales';
 

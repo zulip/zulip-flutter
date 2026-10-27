@@ -1380,6 +1380,22 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
       'Meldingar vil berre bli automatisk merkte som lesne når du ser på eit enkelt emne eller ei direktemeldingssamtale.';
 
   @override
+  String get notificationSettingsPageTitle => 'Notifications';
+
+  @override
+  String get notificationsWhenOffline => 'Notifications when offline';
+
+  @override
+  String get notificationsWhenOnline => 'Notifications when online';
+
+  @override
+  String get channelNotifications => 'Channel notifications';
+
+  @override
+  String get notificationSettingUpdateFailedTitle =>
+      'Failed to update notification setting';
+
+  @override
   String get experimentalFeatureSettingsPageTitle =>
       'Eksperimentelle funksjonar';
 
