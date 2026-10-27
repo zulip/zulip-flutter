@@ -582,9 +582,11 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         userId: result.userId,
       );
     } finally {
-      widget.loginPageState.setState(() {
-        widget.loginPageState._inProgress = false;
-      });
+      if (widget.loginPageState.mounted) {
+        widget.loginPageState.setState(() {
+          widget.loginPageState._inProgress = false;
+        });
+      }
     }
   }
 
