@@ -220,7 +220,7 @@ class _KatexParser {
     assert(element.localName == 'span');
     // TODO maybe check if the sequence of ancestors matter for spans.
 
-    if (element.className == 'strut') {
+    if (_modernizeSpanClass(element.className) == 'katex-strut') {
       return _parseStrut(element);
     }
 
@@ -234,7 +234,7 @@ class _KatexParser {
 
   KatexNode _parseStrut(dom.Element element) {
     assert(element.localName == 'span');
-    assert(element.className == 'strut');
+    assert(_modernizeSpanClass(element.className) == 'katex-strut');
     if (element.nodes.isNotEmpty) throw _KatexHtmlParseError();
 
     final styles = _parseInlineStyles(element);
@@ -391,6 +391,31 @@ class _KatexParser {
   static final _resetSizeClassRegExp = RegExp(r'^reset-size(\d\d?)$');
   static final _sizeClassRegExp = RegExp(r'^size(\d\d?)$');
 
+  /// The CSS class names that KaTeX 0.18.0 renamed by adding a `katex-` prefix,
+  /// in their legacy, unprefixed form.
+  ///
+  /// The rename: https://github.com/KaTeX/KaTeX/pull/4229
+  ///
+  /// The server stores message content as rendered HTML
+  /// and doesn't re-render it when upgrading KaTeX,
+  /// so content with these unprefixed names will keep appearing indefinitely.
+  /// We treat the prefixed form as normal and translate the legacy form to it;
+  /// see [_modernizeSpanClass].
+  static const _legacyClassesRenamedInKatex0180 = {
+    'newline', 'base', 'strut', 'vbox', 'overline', 'underline', 'thinbox',
+    'rule', 'smash', 'fix', 'inner', 'root', 'hline', 'hdashline', 'sizing',
+    'accent', 'overlay', 'stretchy', 'sout', 'tag',
+  };
+
+  /// The single CSS class [spanClass] in its current spelling:
+  /// with the `katex-` prefix if it's a name KaTeX 0.18.0 renamed,
+  /// and otherwise unchanged.
+  static String _modernizeSpanClass(String spanClass) {
+    return _legacyClassesRenamedInKatex0180.contains(spanClass)
+      ? 'katex-$spanClass'
+      : spanClass;
+  }
+
   KatexNode _parseGenericSpan(dom.Element element) {
     assert(element.localName == 'span');
 
@@ -403,7 +428,8 @@ class _KatexParser {
     // A copy of class definition (where possible) is accompanied in a comment
     // with each case statement to keep track of updates.
     final spanClasses = element.className != ''
-      ? List<String>.unmodifiable(element.className.split(' '))
+      ? List<String>.unmodifiable(
+          element.className.split(' ').map(_modernizeSpanClass))
       : const <String>[];
     double? widthEm;
     String? fontFamily;
@@ -415,14 +441,14 @@ class _KatexParser {
     while (index < spanClasses.length) {
       final spanClass = spanClasses[index++];
       switch (spanClass) {
-        case 'base':
-          // .base { ... }
+        case 'katex-base':
+          // .katex-base { ... }
           // Do nothing, it has properties that don't need special handling.
           break;
 
-        case 'strut':
-          // .strut { ... }
-          // We expect the 'strut' class to be the only class in a span,
+        case 'katex-strut':
+          // .katex-strut { ... }
+          // We expect the `katex-strut` class to be the only class in a span,
           // in which case we handle it separately and emit `KatexStrutNode`.
           throw _KatexHtmlParseError();
 
@@ -559,9 +585,9 @@ class _KatexParser {
         // TODO handle skipped class declarations between .msupsub and
         //   .sizing .
 
-        case 'sizing':
+        case 'katex-sizing':
         case 'fontsize-ensurer':
-          // .sizing,
+          // .katex-sizing,
           // .fontsize-ensurer { ... }
           if (index + 2 > spanClasses.length) throw _KatexHtmlParseError();
           final resetSizeClass = spanClasses[index++];
