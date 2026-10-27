@@ -604,7 +604,7 @@ class ContentExample {
     '<p><span class="katex">'
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
-      '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
+      '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></p>',
     MathInlineNode(texSource: r'\lambda', nodes: [
       KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
@@ -625,8 +625,8 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true">'
-        '<span class="base unknown">' // Server doesn't generate this 'unknown' class.
-        '<span class="strut" style="height:0.6944em;"></span>'
+        '<span class="katex-base unknown">' // Server doesn't generate this 'unknown' class.
+        '<span class="katex-strut" style="height:0.6944em;"></span>'
         '<span class="mord mathnormal">λ</span></span></span></span></p>',
     MathInlineNode(texSource: r'\lambda', nodes: null));
 
@@ -637,7 +637,7 @@ class ContentExample {
     '<p><span class="katex-display"><span class="katex">'
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
-      '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
+      '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span></p>',
     [MathBlockNode(texSource: r'\lambda', nodes: [
       KatexSpanNode(nodes: [
         KatexStrutNode(heightEm: 0.6944, verticalAlignEm: null),
@@ -658,8 +658,8 @@ class ContentExample {
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
       '<span class="katex-html" aria-hidden="true">'
-        '<span class="base unknown">' // Server doesn't generate this 'unknown' class.
-          '<span class="strut" style="height:0.6944em;"></span>'
+        '<span class="katex-base unknown">' // Server doesn't generate this 'unknown' class.
+          '<span class="katex-strut" style="height:0.6944em;"></span>'
           '<span class="mord mathnormal">λ</span></span></span></span></span></p>',
     [MathBlockNode(texSource: r'\lambda', nodes: null)]);
 
@@ -671,11 +671,11 @@ class ContentExample {
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>a</mi></mrow>'
           '<annotation encoding="application/x-tex">a</annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span></span>\n\n'
+        '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span></span>\n\n'
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>b</mi></mrow>'
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
+        '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span></p>', [
       MathBlockNode(texSource: 'a', nodes: [
         KatexSpanNode(nodes: [
           KatexStrutNode(heightEm: 0.4306, verticalAlignEm: null),
@@ -710,7 +710,7 @@ class ContentExample {
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>λ</mi></mrow>'
           '<annotation encoding="application/x-tex">\\lambda</annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: r'\lambda', nodes: [
@@ -733,12 +733,12 @@ class ContentExample {
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>a</mi></mrow>'
           '<annotation encoding="application/x-tex">a</annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span></span>'
       '\n\n'
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>b</mi></mrow>'
           '<annotation encoding="application/x-tex">b</annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord mathnormal">b</span></span></span></span></span>'
       '<br>\n</p>\n</blockquote>',
     [QuotationNode([
       MathBlockNode(texSource: 'a', nodes: [
@@ -774,7 +774,7 @@ class ContentExample {
       '<span class="katex-display"><span class="katex">'
         '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>a</mi></mrow>'
           '<annotation encoding="application/x-tex">a</annotation></semantics></math></span>'
-        '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span></span>'
+        '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal">a</span></span></span></span></span>'
     '</p>\n'
     '<div class="message_inline_image">'
       '<a href="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg/1280px-Zaadpluizen_van_een_Clematis_texensis_%27Princess_Diana%27._18-07-2023_%28actm.%29_02.jpg">'

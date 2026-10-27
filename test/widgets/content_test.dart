@@ -1531,7 +1531,7 @@ void main() {
     final mathInlineHtml = '<span class="katex">'
       '<span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi></mrow>'
         '<annotation encoding="application/x-tex"> \\lambda </annotation></semantics></math></span>'
-      '<span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
+      '<span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord mathnormal">λ</span></span></span></span>';
 
     testWidgets('is link-colored in link span', (tester) async {
       // Regression test for: https://github.com/zulip/zulip-flutter/issues/1823
