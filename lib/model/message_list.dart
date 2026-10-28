@@ -850,7 +850,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  TopicVisibilityEffect _willAffectVisibility(UserTopicEvent event) {
+  TopicVisibilityEffect _willAffectVisibility(Event event) {
     switch (narrow) {
       case CombinedFeedNarrow():
         return store.willAffectIfTopicVisible(event);
