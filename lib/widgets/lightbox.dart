@@ -118,6 +118,7 @@ class _CopyLinkButton extends StatelessWidget {
 class _LightboxPageLayout extends StatefulWidget {
   const _LightboxPageLayout({
     required this.routeEntranceAnimation,
+    required this.backgroundColor,
     required this.message,
     required this.buildAppBarBottom,
     required this.buildBottomAppBar,
@@ -125,6 +126,7 @@ class _LightboxPageLayout extends StatefulWidget {
   });
 
   final Animation<double> routeEntranceAnimation;
+  final Color backgroundColor;
   final Message message;
 
   /// For [AppBar.bottom].
@@ -236,7 +238,7 @@ class _LightboxPageLayoutState extends State<_LightboxPageLayout> {
       data: themeData.copyWith(
         iconTheme: themeData.iconTheme.copyWith(color: appBarForegroundColor)),
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: widget.backgroundColor,
         extendBody: true, // For the BottomAppBar
         extendBodyBehindAppBar: true, // For the AppBar
         appBar: appBar,
@@ -348,6 +350,8 @@ class _ImageLightboxPageState extends State<ImageLightboxPage> {
   Widget build(BuildContext context) {
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
+      // Keep both dark and light details in transparent images visible.
+      backgroundColor: Colors.grey.shade600,
       message: widget.message,
       buildAppBarBottom: _buildAppBarBottom,
       buildBottomAppBar: _buildBottomAppBar,
@@ -607,6 +611,7 @@ class _VideoLightboxPageState extends State<VideoLightboxPage> with PerAccountSt
   Widget build(BuildContext context) {
     return _LightboxPageLayout(
       routeEntranceAnimation: widget.routeEntranceAnimation,
+      backgroundColor: Colors.black,
       message: widget.message,
       buildAppBarBottom: (context) => null,
       buildBottomAppBar: _buildBottomAppBar,
