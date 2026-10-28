@@ -2,6 +2,90 @@
 
 ## Unreleased
 
+### Highlights for users
+
+* Open notifications at the message they're for,
+  not just the conversation. (#1565)
+* (iOS) Group notifications by conversation. (#2169)
+* (Android) Reject TLS certificates from the compromised eMudhra
+  intermediate CA keys. (PR #2501)
+* (Android) Offer other apps' text actions, like "Translate",
+  when you select text. (PR #2506, toward #883)
+* Hide or show link previews on a message, on Zulip Server 13+. (#2449)
+* Too many other improvements and fixes to describe them all here.
+
+
+### Highlights for developers
+
+* Tooling:
+  * Support Claude Code on the web, with a new `authorship` suite
+    in `tools/check` to keep Claude-authored commits out of PRs.
+    (PR #2379)
+
+* Build and dependencies:
+  * Convert the Android Gradle scripts to Kotlin, from Groovy. (#1803)
+  * Upgrade to Android Gradle Plugin 9. (#2483)
+  * Migrate to `package:material_ui` and `package:cupertino_ui`. (#2463)
+
+* Merge log: PRs, with fixed issues and user-visible changes (earliest first).
+  * #2380: fix part of #1565.  Open Android notifications at the
+    message they're for.
+  * #2427
+  * #2433
+  * #2432
+  * #2430
+  * #2428: fix #2397.  Refetch when a fetch reveals a message list
+    is missing newer messages.  (Already in 30.0.274, via its
+    experimental branch.)
+  * #2442
+  * #2398: fix #1838, "Rely on Zulip Server 7 APIs".
+  * #2448.  Package upgrades.
+  * #2379
+  * #2452
+  * #2464
+  * #2457
+  * 45fbdf857 (from #2443, closed unmerged).  On iOS, run the
+    notification service's headless Flutter engine on the main
+    thread, as Flutter requires.
+  * #2458
+  * #2471.  Flutter and package upgrades.
+  * #2470: fix #1803.
+  * #2467
+  * #2454: fix #2453.
+  * #2441
+  * #2455
+  * #2477: fix #2463.
+  * #2478
+  * #2482
+  * #2484
+  * #2485
+  * #2496: fix #2483, fix #2490, fix #2495.  Upgrade to Android
+    Gradle Plugin 9, with package upgrades that fix the iPad "Share"
+    button and the names of attachments picked on iOS.
+  * #2229
+  * #2456: fix #1927.  Cut the welcome dialog for users upgrading
+    from the legacy app.
+  * #2481
+  * #2480
+  * #2479
+  * #2501.  Flutter upgrade.  On Android, reject TLS certificates
+    from the eight compromised eMudhra intermediate CA keys, and on
+    Android 14+, use the system's updatable root store.
+  * #2498
+  * #2499: fix #2415.  Abort and retry a stalled event-polling
+    request when network connectivity changes.  (Replaces #2429,
+    an earlier revision of which was in 30.0.274.)
+  * #2462.  Adopt the UIScene lifecycle on iOS, required for
+    building with the iOS 27 SDK.
+  * #2473: fix #2384.
+  * #2475: fix #2169.  Group iOS notifications by conversation.
+  * #2500: fix #2449.  Hide or show link previews on a message.
+  * #2447: fix #1565.  Open iOS notifications at the message
+    they're for.
+  * #2506.  On Android, offer other apps' text actions, like
+    "Translate", in the text-selection toolbar.
+  * #2416: fix #2362, "Rely on Zulip Server 8 APIs".
+
 
 ## 30.0.274 (2026-08-17)
 
