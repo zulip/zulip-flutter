@@ -169,14 +169,27 @@ mixin ChannelStore on UserStore {
     }
   }
 
+  /// Whether [isTopicVisible] would be true for this topic
+  /// if the channel's mutedness were [channelMuted].
+  bool isTopicVisibleGivenChannelMuted(int channelId, TopicName topic, {
+    required bool channelMuted,
+  }) {
+    return _isTopicVisibleGivenChannelMuted(
+      topicVisibilityPolicy(channelId, topic), channelMuted: channelMuted);
+  }
+
   bool _isTopicVisible(int channelId, UserTopicVisibilityPolicy policy) {
+    return _isTopicVisibleGivenChannelMuted(policy,
+      // If not subscribed, treat like muted.
+      channelMuted: subscriptions[channelId]?.isMuted ?? true);
+  }
+
+  static bool _isTopicVisibleGivenChannelMuted(UserTopicVisibilityPolicy policy, {
+    required bool channelMuted,
+  }) {
     switch (policy) {
       case UserTopicVisibilityPolicy.none:
-        switch (subscriptions[channelId]?.isMuted) {
-          case false: return true;
-          case true:  return false;
-          case null:  return false; // not subscribed; treat like muted
-        }
+        return !channelMuted;
       case UserTopicVisibilityPolicy.muted:
         return false;
       case UserTopicVisibilityPolicy.unmuted:
