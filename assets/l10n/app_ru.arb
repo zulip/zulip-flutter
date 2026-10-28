@@ -38,6 +38,9 @@
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
   },
+  "@actionSheetOptionHideLinkPreviews": {
+    "description": "Label for the 'Hide link previews' button in the message action sheet."
+  },
   "@actionSheetOptionHideMutedMessage": {
     "description": "Label for hide muted message again button on action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
+  },
+  "@actionSheetOptionShowLinkPreviews": {
+    "description": "Label for the 'Show link previews' button in the message action sheet."
   },
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
@@ -469,6 +475,9 @@
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
+  "@errorCouldNotLoadSelectedFiles": {
+    "description": "Error message when the user selected files, photos, or videos to attach, but none of them could be loaded."
+  },
   "@errorCouldNotOpenLink": {
     "description": "Error message when opening a link failed.",
     "placeholders": {
@@ -562,6 +571,9 @@
   },
   "@errorHandlingEventTitle": {
     "description": "Error title on failing to handle a Zulip server event."
+  },
+  "@errorHideLinkPreviewsFailedTitle": {
+    "description": "Error title when hiding the link previews on a message failed."
   },
   "@errorInvalidApiKeyMessage": {
     "description": "Error message in the dialog for invalid API key.",
@@ -700,6 +712,9 @@
   },
   "@errorSharingTitle": {
     "description": "Error title when sharing content received from other apps fails"
+  },
+  "@errorShowLinkPreviewsFailedTitle": {
+    "description": "Error title when showing the link previews on a message failed."
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -1017,9 +1032,6 @@
   },
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
-  },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
@@ -1397,18 +1409,6 @@
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
     "placeholders": {
@@ -1542,6 +1542,7 @@
   "actionSheetOptionDeleteMessage": "Удалить сообщение",
   "actionSheetOptionEditMessage": "Редактировать сообщение",
   "actionSheetOptionFollowTopic": "Отслеживать тему",
+  "actionSheetOptionHideLinkPreviews": "Скрыть предпросмотр ссылок",
   "actionSheetOptionHideMutedMessage": "Скрыть заглушенное сообщение",
   "actionSheetOptionListOfTopics": "Список тем",
   "actionSheetOptionMarkAsUnread": "Отметить как непрочитанные начиная отсюда",
@@ -1555,6 +1556,7 @@
   "actionSheetOptionResolveTopic": "Поставить отметку \"решено\"",
   "actionSheetOptionSeeWhoReacted": "Посмотреть отреагировавших",
   "actionSheetOptionShare": "Поделиться",
+  "actionSheetOptionShowLinkPreviews": "Показать предпросмотр ссылок",
   "actionSheetOptionStarMessage": "Отметить сообщение",
   "actionSheetOptionSubscribe": "Подписаться",
   "actionSheetOptionUnfollowTopic": "Не отслеживать тему",
@@ -1655,6 +1657,7 @@
   "errorCouldNotConnectTitle": "Нет связи с сервером",
   "errorCouldNotEditMessageTitle": "Сбой редактирования",
   "errorCouldNotFetchMessageSource": "Не удалось извлечь источник сообщения.",
+  "errorCouldNotLoadSelectedFiles": "Не удалось загрузить выбранные файлы.",
   "errorCouldNotOpenLink": "Не удалось открыть ссылку: {url}",
   "errorCouldNotOpenLinkTitle": "Не удалось открыть ссылку",
   "errorCouldNotReadFile": "Не удалось прочитать файл: {filename}",
@@ -1669,6 +1672,7 @@
   "errorFollowTopicFailed": "Не удалось начать отслеживать тему",
   "errorHandlingEventDetails": "Ошибка обработки события Zulip от {serverUrl}; повторим попытку.\n\nОшибка: {error}\n\nСобытие: {event}",
   "errorHandlingEventTitle": "Ошибка обработки события Zulip. Повторная попытка соединения…",
+  "errorHideLinkPreviewsFailedTitle": "Не удалось скрыть предпросмотр ссылок",
   "errorInvalidApiKeyMessage": "Не удалось войти в вашу учётную запись {url}. Попробуйте ещё раз или используйте другую учётную запись.",
   "errorInvalidResponse": "Сервер отправил недопустимый ответ.",
   "errorLoginCouldNotConnect": "Не удалось подключиться к серверу:\n{url}",
@@ -1697,6 +1701,7 @@
   "errorSharingAccountNotLoggedIn": "Не выполнен вход с учетной записью. Пожалуйста, войдите в систему и повторите попытку.",
   "errorSharingFailed": "Не удалось поделиться",
   "errorSharingTitle": "Не удалось поделиться содержанием",
+  "errorShowLinkPreviewsFailedTitle": "Не удалось показать предпросмотр ссылок",
   "errorStarMessageFailedTitle": "Не удалось отметить сообщение",
   "errorUnfollowTopicFailed": "Не удалось прекратить отслеживать тему",
   "errorUnmuteTopicFailed": "Не удалось снять глушение темы",
@@ -1786,7 +1791,6 @@
   "openLinksWithInAppBrowser": "Открывать ссылки внутри приложения",
   "otherChannelsFolderName": "Другие каналы",
   "permissionsDeniedCameraAccess": "Для загрузки изображения, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.",
-  "permissionsDeniedReadExternalStorage": "Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.",
   "permissionsNeededOpenSettings": "Открыть настройки",
   "permissionsNeededTitle": "Требуются разрешения",
   "pinnedChannelsFolderName": "Закрепленные каналы",
@@ -1881,10 +1885,6 @@
   "unsubscribeConfirmationDialogTitle": "Отменить подписку на {channelName}?",
   "unsubscribeFailedTitle": "Не удалось отписаться",
   "updateStatusErrorTitle": "Ошибка обновления статуса пользователя. Попробуйте ещё раз.",
-  "upgradeWelcomeDialogDismiss": "Приступим",
-  "upgradeWelcomeDialogLinkText": "Ознакомьтесь с анонсом в блоге!",
-  "upgradeWelcomeDialogMessage": "Вы найдете привычные возможности в более быстром и легком приложении.",
-  "upgradeWelcomeDialogTitle": "Добро пожаловать в новое приложение Zulip!",
   "userActiveDate": "Был/а на связи {date}",
   "userActiveDaysAgo": "Был/а на связи {days, plural, one{{days} день} few{{days} дня} many{{days} дней} other{{days} дней}} назад",
   "userActiveHoursAgo": "Был/а на связи {hours, plural, one{{hours} час} few{{hours} часа} many{{hours} часов} other{{hours} часов}} назад",

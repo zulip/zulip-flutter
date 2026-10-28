@@ -21,11 +21,10 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'Texto del banner de la página «Acerca de Zulip», que aparece en lugar del elemento de la versión de la aplicación cuando se desconoce la versión.';
+      'No se ha encontrado la información sobre la versión de la aplicación.';
 
   @override
-  String get aboutPageReleaseNotes =>
-      'Título del elemento en la página «Acerca de Zulip» para abrir las notas de la versión actual en GitHub';
+  String get aboutPageReleaseNotes => 'Notas de la versión';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Licencias de Código Abierto';
@@ -128,7 +127,7 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Falló la cancelación de suscripción';
 
   @override
-  String get actionSheetOptionPinChannel => 'Fijar canal';
+  String get actionSheetOptionPinChannel => 'Fijar en la parte superior';
 
   @override
   String get actionSheetOptionUnpinChannel => 'Desfijar canal';
@@ -234,10 +233,12 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'Ocultar mensaje silenciado de nuevo';
 
   @override
-  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+  String get actionSheetOptionHideLinkPreviews =>
+      'Ocultar las vistas previas de los enlaces';
 
   @override
-  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+  String get actionSheetOptionShowLinkPreviews =>
+      'Mostrar vistas previas de los enlaces';
 
   @override
   String get actionSheetOptionShare => 'Compartir';
@@ -403,7 +404,7 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get errorCouldNotLoadSelectedFiles =>
-      'The selected files could not be loaded.';
+      'No se han podido cargar los archivos seleccionados.';
 
   @override
   String errorCouldNotReadFile(String filename) {
@@ -495,18 +496,19 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'Error al dejar de destacar el mensaje';
 
   @override
-  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+  String get errorHideLinkPreviewsFailedTitle =>
+      'No se han podido ocultar las vistas previas de los enlaces';
 
   @override
-  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
+  String get errorShowLinkPreviewsFailedTitle =>
+      'No se han podido mostrar las vistas previas de los enlaces';
 
   @override
   String get errorCouldNotEditMessageTitle =>
       'No se ha podido editar el mensaje';
 
   @override
-  String get successAppVersionCopied =>
-      'Mensaje de éxito tras copiar la versión de la aplicación al portapapeles del sistema del usuario.';
+  String get successAppVersionCopied => 'Versión de la aplicación copiada';
 
   @override
   String get successLinkCopied => 'Enlace copiado';

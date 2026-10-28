@@ -527,9 +527,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -743,18 +740,6 @@
   "@unsubscribeFailedTitle": {
     "description": "Error title when unsubscribing from a channel failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "@userIdle": {
     "description": "Indicates a user is currently idle on Zulip (not active, but not offline)"
   },
@@ -951,7 +936,6 @@
   "newDmSheetSearchHintSomeSelected": "Lisa veel üks kasutaja…",
   "notifSelfUser": "Sina",
   "permissionsDeniedCameraAccess": "Pildi üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.",
-  "permissionsDeniedReadExternalStorage": "Failide üleslaadimiseks anna Zulipile seadistustest täiendavad õigused.",
   "permissionsNeededOpenSettings": "Ava seadistused",
   "permissionsNeededTitle": "Vajalikud on õigused",
   "pinnedSubscriptionsLabel": "Esiletõstetud",
@@ -1009,10 +993,6 @@
   "unsubscribeConfirmationDialogMessageCannotResubscribe": "Kui oled sellest kanalist lahkunud, ei saa sa uuesti liituda.",
   "unsubscribeConfirmationDialogTitle": "Kas loobud „{channelName}“ kanali tellimusest?",
   "unsubscribeFailedTitle": "Tellimusest loobumine ei õnnestunud",
-  "upgradeWelcomeDialogDismiss": "Alustame",
-  "upgradeWelcomeDialogLinkText": "Vaata teemakohast teavitust meie ajaveebi postitusest!",
-  "upgradeWelcomeDialogMessage": "Tuttava kogemuse leiad kiiremast ja elegantsemast rakendusest.",
-  "upgradeWelcomeDialogTitle": "Tere tulemast kasutama uut Zulipi rakendust!",
   "userIdle": "Jõude",
   "userRoleAdministrator": "Peakasutaja",
   "userRoleGuest": "Külaline",

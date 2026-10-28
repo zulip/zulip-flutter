@@ -138,18 +138,6 @@
   "@unsubscribeFailedTitle": {
     "description": "Error title when unsubscribing from a channel failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "aboutPageAppVersion": "גרסת ישום",
   "aboutPageOpenSourceLicenses": "רישיונות קוד פתוח",
   "actionSheetOptionDeleteMessage": "מחק הודעה",
@@ -192,9 +180,5 @@
   "unsubscribeConfirmationDialogConfirmButton": "בטל רישום",
   "unsubscribeConfirmationDialogMessageCannotResubscribe": "לאחר היציאה מהערוץ, לא תתאפשר הצטרפות מחדש.",
   "unsubscribeConfirmationDialogTitle": "בטל רישום ל־{channelName}?",
-  "unsubscribeFailedTitle": "ביטול הרישום נכשל",
-  "upgradeWelcomeDialogDismiss": "בא נלך",
-  "upgradeWelcomeDialogLinkText": "עיין בפוסט בבלוג ההכרזה!",
-  "upgradeWelcomeDialogMessage": "תוכלו למצוא חוויה מוכרת בחבילה מהירה וחלקה יותר.",
-  "upgradeWelcomeDialogTitle": "ברוכים הבאים לאפליקציית Zulip החדשה!"
+  "unsubscribeFailedTitle": "ביטול הרישום נכשל"
 }

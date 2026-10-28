@@ -943,9 +943,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1235,18 +1232,6 @@
   },
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
-  },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
@@ -1604,7 +1589,6 @@
   "onePersonTyping": "{typist} 正在輸入…",
   "openLinksWithInAppBrowser": "使用應用程式內建瀏覽器開啟連結",
   "permissionsDeniedCameraAccess": "要上傳圖片，請在設定中授予 Zulip 額外權限。",
-  "permissionsDeniedReadExternalStorage": "要上傳檔案，請在設定中授予 Zulip 額外權限。",
   "permissionsNeededOpenSettings": "開啟設定",
   "permissionsNeededTitle": "需要的權限",
   "pinnedSubscriptionsLabel": "已釘選",
@@ -1678,10 +1662,6 @@
   "unsubscribeConfirmationDialogTitle": "確定要取消訂閱 {channelName} 嗎？",
   "unsubscribeFailedTitle": "取消訂閱失敗",
   "updateStatusErrorTitle": "更新使用者狀態時發生錯誤。請再試一次。",
-  "upgradeWelcomeDialogDismiss": "開始吧",
-  "upgradeWelcomeDialogLinkText": "查看公告部落格文章！",
-  "upgradeWelcomeDialogMessage": "您將在更快、更流暢的版本中享受熟悉的體驗。",
-  "upgradeWelcomeDialogTitle": "歡迎使用新的 Zulip 應用程式！",
   "userActiveDate": "上次活躍於 {date}",
   "userActiveDaysAgo": "上次活躍於 {days, plural, =1{1 天前} other{{days} 天前}}",
   "userActiveHoursAgo": "上次活躍於 {hours, plural, =1{1 小時前} other{{hours} 小時前}}",

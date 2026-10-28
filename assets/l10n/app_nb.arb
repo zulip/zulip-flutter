@@ -38,12 +38,6 @@
   "@settingsPageTitle": {
     "description": "Title for the settings page."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "aboutPageAppVersion": "App versjon",
   "aboutPageOpenSourceLicenses": "Lisenser for åpen kildekode",
   "aboutPageTitle": "Om Zulip",
@@ -56,7 +50,5 @@
   "logOutConfirmationDialogTitle": "Logg ut?",
   "navButtonAllChannels": "Alle kanaler",
   "profileButtonSendDirectMessage": "Send direktemelding",
-  "settingsPageTitle": "Innstillinger",
-  "upgradeWelcomeDialogDismiss": "La oss gå",
-  "upgradeWelcomeDialogTitle": "Velkommen til den nye Zulip-appen!"
+  "settingsPageTitle": "Innstillinger"
 }

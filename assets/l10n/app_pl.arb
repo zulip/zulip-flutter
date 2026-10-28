@@ -940,9 +940,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1232,18 +1229,6 @@
   },
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
-  },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
@@ -1600,7 +1585,6 @@
   "onePersonTyping": "{typist} coś pisze…",
   "openLinksWithInAppBrowser": "Otwieraj odnośniki w aplikacji",
   "permissionsDeniedCameraAccess": "Aby odebrać obraz Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.",
-  "permissionsDeniedReadExternalStorage": "Aby odebrać pliki Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.",
   "permissionsNeededOpenSettings": "Otwórz ustawienia",
   "permissionsNeededTitle": "Wymagane uprawnienia",
   "pinnedSubscriptionsLabel": "Przypięte",
@@ -1673,10 +1657,6 @@
   "unsubscribeConfirmationDialogTitle": "Odsubskrybować z {channelName}?",
   "unsubscribeFailedTitle": "Odsubskrybowanie bez powdzenia",
   "updateStatusErrorTitle": "Błąd aktualizacji stanu. Spróbuj ponownie.",
-  "upgradeWelcomeDialogDismiss": "Zaczynajmy",
-  "upgradeWelcomeDialogLinkText": "Sprawdź blog pod kątem obwieszczenia!",
-  "upgradeWelcomeDialogMessage": "Napotkasz na znane rozwiązania, które upakowaliśmy w szybszy i elegancki pakiet.",
-  "upgradeWelcomeDialogTitle": "Witaj w nowej apce Zulip!",
   "userActiveDate": "Aktywny {date}",
   "userActiveDaysAgo": "Aktywny {days, plural, =1{1 dzień} other{{days} dni}} temu",
   "userActiveHoursAgo": "Aktywny {hours, plural, =1{1 godzinę} other{{hours} godzin}} temu",
