@@ -1817,6 +1817,24 @@ void main() {
       checkHasMessageIds([]);
     });
 
+    test('in ChannelNarrow, ignore other channels', () async {
+      await prepare(narrow: ChannelNarrow(stream.streamId));
+      await prepareMutes();
+      final otherStream = eg.stream();
+      await store.addStream(otherStream);
+      await store.addSubscription(eg.subscription(otherStream));
+      await store.setUserTopic(otherStream, topic, UserTopicVisibilityPolicy.muted);
+      await prepareMessages(foundOldest: true, messages: [
+        eg.streamMessage(id: 1, stream: stream, topic: topic),
+      ]);
+      checkHasMessageIds([1]);
+
+      await store.setUserTopic(otherStream, topic, UserTopicVisibilityPolicy.none);
+      checkNotNotified();
+      check(model).fetched.isTrue();
+      checkHasMessageIds([1]);
+    });
+
     test('in TopicNarrow, stay visible', () async {
       await prepare(narrow: eg.topicNarrow(stream.streamId, topic));
       await prepareMutes();
