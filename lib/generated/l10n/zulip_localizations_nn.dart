@@ -75,6 +75,9 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get profileButtonSendDirectMessage => 'Send direktemelding';
 
   @override
+  String get profileButtonViewMessagesSent => 'View messages sent';
+
+  @override
   String get errorCouldNotShowUserProfile => 'Kunne ikkje visa brukarprofil.';
 
   @override
@@ -735,7 +738,16 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   }
 
   @override
-  String get emptyMessageListSearch => 'Ingen søkjeresultat.';
+  String get emptyMessageListSearchDefault => 'No search results.';
+
+  @override
+  String emptyMessageListSearchFromSender(String sender) {
+    return 'You haven\'t received any messages sent by $sender yet.';
+  }
+
+  @override
+  String get emptyMessageListSearchFromUnknownSender =>
+      'This user doesn\'t exist, or you are not allowed to view any of their messages.';
 
   @override
   String get messageListGroupYouWithYourself => 'Meldingar med deg sjølv';
