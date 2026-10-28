@@ -101,12 +101,20 @@ mixin ChannelStore on UserStore {
 
   /// Whether the given event will change the results of [isTopicVisibleInChannel]
   /// for some possible topic in [channelId], compared to the current state.
-  TopicVisibilityEffect willAffectIfTopicVisibleInChannel(int channelId, UserTopicEvent event) {
-    if (event.streamId != channelId) return TopicVisibilityEffect.none;
-    final topic = event.topicName;
-    return TopicVisibilityEffect._fromBeforeAfter(
-      _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic)),
-      _isTopicVisibleInChannel(event.visibilityPolicy));
+  ///
+  /// This is [TopicVisibilityEffect.none] for most types of events.
+  TopicVisibilityEffect willAffectIfTopicVisibleInChannel(int channelId, Event event) {
+    switch (event) {
+      case UserTopicEvent():
+        if (event.streamId != channelId) return TopicVisibilityEffect.none;
+        final topic = event.topicName;
+        return TopicVisibilityEffect._fromBeforeAfter(
+          _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic)),
+          _isTopicVisibleInChannel(event.visibilityPolicy));
+
+      default:
+        return TopicVisibilityEffect.none;
+    }
   }
 
   static bool _isTopicVisibleInChannel(UserTopicVisibilityPolicy policy) {
@@ -136,14 +144,29 @@ mixin ChannelStore on UserStore {
     return _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic));
   }
 
-  /// Whether the given event will change the result of [isTopicVisible]
-  /// for its channel and topic, compared to the current state.
-  TopicVisibilityEffect willAffectIfTopicVisible(UserTopicEvent event) {
-    final channelId = event.streamId;
-    final topic = event.topicName;
-    return TopicVisibilityEffect._fromBeforeAfter(
-      _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic)),
-      _isTopicVisible(channelId, event.visibilityPolicy));
+  /// Whether the given event will change the results of [isTopicVisible]
+  /// for some possible topic, compared to the current state.
+  ///
+  /// This is [TopicVisibilityEffect.none] for most types of events.
+  TopicVisibilityEffect willAffectIfTopicVisible(Event event) {
+    switch (event) {
+      case UserTopicEvent():
+        final channelId = event.streamId;
+        final topic = event.topicName;
+        return TopicVisibilityEffect._fromBeforeAfter(
+          _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic)),
+          _isTopicVisible(channelId, event.visibilityPolicy));
+
+      case SubscriptionAddEvent():
+      case SubscriptionRemoveEvent():
+      case ChannelDeleteEvent():
+        // These do affect [isTopicVisible]; compute it here if a caller needs it.
+        assert(false);
+        return TopicVisibilityEffect.none;
+
+      default:
+        return TopicVisibilityEffect.none;
+    }
   }
 
   bool _isTopicVisible(int channelId, UserTopicVisibilityPolicy policy) {
