@@ -99,10 +99,10 @@ mixin ChannelStore on UserStore {
     return _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic));
   }
 
-  /// Whether the given event will change the result of [isTopicVisibleInChannel]
-  /// for its channel and topic, compared to the current state.
-  TopicVisibilityEffect willAffectIfTopicVisibleInChannel(UserTopicEvent event) {
-    final channelId = event.streamId;
+  /// Whether the given event will change the results of [isTopicVisibleInChannel]
+  /// for some possible topic in [channelId], compared to the current state.
+  TopicVisibilityEffect willAffectIfTopicVisibleInChannel(int channelId, UserTopicEvent event) {
+    if (event.streamId != channelId) return TopicVisibilityEffect.none;
     final topic = event.topicName;
     return TopicVisibilityEffect._fromBeforeAfter(
       _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic)),
