@@ -856,8 +856,7 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return store.willAffectIfTopicVisible(event);
 
       case ChannelNarrow(:final channelId):
-        if (event.streamId != channelId) return TopicVisibilityEffect.none;
-        return store.willAffectIfTopicVisibleInChannel(event);
+        return store.willAffectIfTopicVisibleInChannel(channelId, event);
 
       case TopicNarrow():
       case DmNarrow():

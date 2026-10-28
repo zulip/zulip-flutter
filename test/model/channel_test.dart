@@ -360,11 +360,11 @@ void main() {
           TopicVisibilityEffect expectedInChannel,
           TopicVisibilityEffect expectedOverall) {
         final event = mkEvent(newPolicy);
-        check(store.willAffectIfTopicVisibleInChannel(event)).equals(expectedInChannel);
+        check(store.willAffectIfTopicVisibleInChannel(stream1.streamId, event)).equals(expectedInChannel);
         check(store.willAffectIfTopicVisible         (event)).equals(expectedOverall);
 
         final event2 = mkEventDifferentlyCased(newPolicy);
-        check(store.willAffectIfTopicVisibleInChannel(event2)).equals(expectedInChannel);
+        check(store.willAffectIfTopicVisibleInChannel(stream1.streamId, event2)).equals(expectedInChannel);
         check(store.willAffectIfTopicVisible         (event2)).equals(expectedOverall);
       }
 
@@ -400,6 +400,14 @@ void main() {
           TopicVisibilityEffect.muted, TopicVisibilityEffect.none);
       });
 
+      test('in-channel effect for other channel, means none', () async {
+        final store = eg.store();
+        await store.addStream(stream1);
+        await store.addSubscription(eg.subscription(stream1));
+        check(store.willAffectIfTopicVisibleInChannel(stream2.streamId,
+          mkEvent(UserTopicVisibilityPolicy.muted))).equals(TopicVisibilityEffect.none);
+      });
+
       final policies = [
         UserTopicVisibilityPolicy.muted,
         UserTopicVisibilityPolicy.none,
@@ -425,7 +433,7 @@ void main() {
               final oldVisible          = store.isTopicVisible(stream1.streamId, eg.t('topic'));
 
               final event = mkEvent(newPolicy);
-              final willAffectInChannel = store.willAffectIfTopicVisibleInChannel(event);
+              final willAffectInChannel = store.willAffectIfTopicVisibleInChannel(stream1.streamId, event);
               final willAffect          = store.willAffectIfTopicVisible(event);
 
               await store.handleEvent(event);
