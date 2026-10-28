@@ -184,7 +184,10 @@ void main() {
     const someTopic = 'my topic';
     late StreamMessage someMessage;
 
-    Future<void> prepare({bool hasUnreadMessages = true}) async {
+    Future<void> prepare({
+      bool hasUnreadMessages = true,
+      bool isChannelPinned = false,
+    }) async {
       someChannel = eg.stream();
       someMessage = eg.streamMessage(
         stream: someChannel, topic: someTopic, sender: eg.otherUser,
@@ -198,7 +201,7 @@ void main() {
       await store.addUser(eg.selfUser);
       await store.addUser(eg.otherUser);
       await store.addStream(someChannel);
-      await store.addSubscription(eg.subscription(someChannel));
+      await store.addSubscription(eg.subscription(someChannel, pinToTop: isChannelPinned));
       await store.addMessage(someMessage);
     }
 
@@ -656,9 +659,7 @@ void main() {
       });
 
       testWidgets('channel subscribed, pinned', (tester) async {
-        await prepare();
-        await store.removeSubscription(someChannel.streamId);
-        await store.addSubscription(eg.subscription(someChannel, pinToTop: true));
+        await prepare(isChannelPinned: true);
         final narrow = ChannelNarrow(someChannel.streamId);
         check(store.subscriptions[narrow.channelId]).isNotNull()
           .pinToTop.isTrue();
@@ -697,9 +698,7 @@ void main() {
       });
 
       testWidgets('smoke: unpin', (tester) async {
-        await prepare();
-        await store.removeSubscription(someChannel.streamId);
-        await store.addSubscription(eg.subscription(someChannel, pinToTop: true));
+        await prepare(isChannelPinned: true);
         final narrow = ChannelNarrow(someChannel.streamId);
         await showFromMsglistAppBar(tester, narrow: narrow);
 
