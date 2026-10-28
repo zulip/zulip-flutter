@@ -173,6 +173,14 @@ enum BoolGlobalSetting {
   /// (Having one stable value in this enum is also handy for tests.)
   placeholderIgnore(GlobalSettingType.placeholder, false),
 
+  /// A pseudo-setting recording whether the user has been shown the
+  /// intro dialog for the inbox page.
+  inboxIntroDialogShown(GlobalSettingType.internal, false),
+
+  /// A pseudo-setting recording whether the user has been shown the
+  /// intro dialog for the combined feed.
+  combinedFeedIntroDialogShown(GlobalSettingType.internal, false),
+
   /// An experimental flag to enable rendering KaTeX even when some
   /// errors are encountered.
   forceRenderKatex(GlobalSettingType.experimentalFeatureFlag, false),
