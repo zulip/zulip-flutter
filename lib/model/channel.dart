@@ -148,6 +148,9 @@ mixin ChannelStore on UserStore {
   /// for some possible topic, compared to the current state.
   ///
   /// This is [TopicVisibilityEffect.none] for most types of events.
+  ///
+  /// (A change to a channel's mutedness can affect [isTopicVisible]
+  /// but never [isTopicVisibleInChannel].)
   TopicVisibilityEffect willAffectIfTopicVisible(Event event) {
     switch (event) {
       case UserTopicEvent():
@@ -156,6 +159,20 @@ mixin ChannelStore on UserStore {
         return TopicVisibilityEffect._fromBeforeAfter(
           _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic)),
           _isTopicVisible(channelId, event.visibilityPolicy));
+
+      case SubscriptionUpdateEvent()
+          when event.property == SubscriptionProperty.isMuted:
+        final subscription = subscriptions[event.channelId];
+        if (subscription == null) return TopicVisibilityEffect.none; // TODO(log)
+        // A change in the channel's mutedness affects [isTopicVisible]
+        // for exactly the topics with visibility policy
+        // [UserTopicVisibilityPolicy.none].  Possible topics with that
+        // policy always exist, so any actual change in mutedness
+        // has an effect; callers consult the per-topic state
+        // when acting on specific messages.
+        return TopicVisibilityEffect._fromBeforeAfter(
+          !subscription.isMuted,
+          !(event.value as bool));
 
       case SubscriptionAddEvent():
       case SubscriptionRemoveEvent():
@@ -661,7 +678,6 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
           case SubscriptionProperty.color:
             subscription.color                  = event.value as int;
           case SubscriptionProperty.isMuted:
-            // TODO(#1255) update [MessageListView] if affected
             subscription.isMuted                = event.value as bool;
           case SubscriptionProperty.pinToTop:
             subscription.pinToTop               = event.value as bool;

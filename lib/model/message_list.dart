@@ -1266,6 +1266,42 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     }
   }
 
+  void handleSubscriptionUpdateEvent(SubscriptionUpdateEvent event) {
+    switch (_willAffectVisibility(event)) {
+      case .none:
+        return;
+
+      case .muted:
+        bool nowHidden(TopicName topic) =>
+          !store.isTopicVisibleGivenChannelMuted(event.channelId, topic,
+            channelMuted: true);
+
+        bool removed = _removeMessagesWhere((message) =>
+          message is StreamMessage
+            && message.streamId == event.channelId
+            && nowHidden(message.topic));
+
+        removed |= _removeOutboxMessagesWhere((message) =>
+          message is StreamOutboxMessage
+            && message.conversation.streamId == event.channelId
+            && nowHidden(message.conversation.topic));
+
+        if (removed) {
+          notifyListeners();
+        }
+
+      case .unmuted:
+        // TODO get the newly-unmuted messages from the message store
+        // For now, we simplify the task by just refetching this message list
+        // from scratch.
+        if (fetched) {
+          _reset();
+          notifyListeners();
+          fetchInitial();
+        }
+    }
+  }
+
   void handleMutedUsersEvent(MutedUsersEvent event) {
     switch (_mutedUsersEventWillAffectVisibility(event)) {
       case MutedUsersVisibilityEffect.none:
