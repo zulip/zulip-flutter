@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+
+## 30.0.275 (2026-10-28)
+
 ### Highlights for users
 
 * Open notifications at the message they're for,
