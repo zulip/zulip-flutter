@@ -20,11 +20,10 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get aboutPageAppVersion => 'Appversjon';
 
   @override
-  String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+  String get aboutPageAppVersionUnknown => 'Fann ikkje versjonsinfo for appen.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes => 'Versjonsinfo';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Lisensar for open kjeldekode';
@@ -395,11 +394,11 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
 
   @override
   String get errorCouldNotLoadSelectedFiles =>
-      'The selected files could not be loaded.';
+      'Dei valde filene kunne ikkje bli lasta opp.';
 
   @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'Kunne ikkje lesa: $filename';
   }
 
   @override
@@ -496,7 +495,7 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get errorCouldNotEditMessageTitle => 'Kunne ikkje redigera meldinga';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied => 'Appversjon kopiert';
 
   @override
   String get successLinkCopied => 'Kopierte lenka';
@@ -811,10 +810,10 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'Dette er adressa for å opna Zulip i ein nettleser.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Hjelp';
 
   @override
   String get loginHidePassword => 'Gøym passordet';
@@ -850,7 +849,7 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Emne er påkravd i denne organisasjonen.';
+      'Emne er påkravd i denne kanalen.';
 
   @override
   String get errorContentNotInsertedTitle => 'Innhaldet ikkje sett inn';

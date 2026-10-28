@@ -997,9 +997,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1366,18 +1363,6 @@
   },
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
-  },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
@@ -1751,7 +1736,6 @@
   "openLinksWithInAppBrowser": "Apri i collegamenti con il browser in-app",
   "otherChannelsFolderName": "Altri canali",
   "permissionsDeniedCameraAccess": "Per caricare un'immagine, bisogna concedere a Zulip autorizzazioni aggiuntive nelle Impostazioni.",
-  "permissionsDeniedReadExternalStorage": "Per caricare file, bisogna concedere a Zulip autorizzazioni aggiuntive nelle Impostazioni.",
   "permissionsNeededOpenSettings": "Apri le impostazioni",
   "permissionsNeededTitle": "Permessi necessari",
   "pinnedSubscriptionsLabel": "Bloccato",
@@ -1843,10 +1827,6 @@
   "unsubscribeConfirmationDialogTitle": "Vuoi annullare l'iscrizione a {channelName}?",
   "unsubscribeFailedTitle": "Disiscrizione fallita",
   "updateStatusErrorTitle": "Sì è verficato un errore durante l'aggiornamento dell stato utente. Per favore riprova.",
-  "upgradeWelcomeDialogDismiss": "Andiamo",
-  "upgradeWelcomeDialogLinkText": "Date un'occhiata al post dell'annuncio sul blog!",
-  "upgradeWelcomeDialogMessage": "Troverai un'esperienza familiare in un pacchetto più veloce ed elegante.",
-  "upgradeWelcomeDialogTitle": "Benvenuti alla nuova app Zulip!",
   "userActiveDate": "Attività più recente: {date}",
   "userActiveDaysAgo": "Attivo {days, plural, =1{1 giorno} other {{days} giorni}} fa",
   "userActiveHoursAgo": "Attivo {hours, plural, =1{1 ora} other{{hours} ore}} fa",

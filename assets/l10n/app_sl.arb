@@ -832,9 +832,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1118,18 +1115,6 @@
   },
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
-  },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
   },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
@@ -1458,7 +1443,6 @@
   "onePersonTyping": "{typist} tipka…",
   "openLinksWithInAppBrowser": "Odpri povezave v brskalniku znotraj aplikacije",
   "permissionsDeniedCameraAccess": "Za nalaganje slik v nastavitvah omogočite Zulipu dostop do kamere.",
-  "permissionsDeniedReadExternalStorage": "Za nalaganje datotek v nastavitvah omogočite Zulipu dostop do shrambe datotek.",
   "permissionsNeededOpenSettings": "Odpri nastavitve",
   "permissionsNeededTitle": "Potrebna so dovoljenja",
   "pinnedSubscriptionsLabel": "Pripeto",
@@ -1529,10 +1513,6 @@
   "unsubscribeConfirmationDialogTitle": "Odjava iz {channelName}?",
   "unsubscribeFailedTitle": "Preklic naročnine ni uspel",
   "updateStatusErrorTitle": "Napaka pri posodabljanju statusa uporabnika. Poskusite znova.",
-  "upgradeWelcomeDialogDismiss": "Začnimo",
-  "upgradeWelcomeDialogLinkText": "Preberite objavo na blogu!",
-  "upgradeWelcomeDialogMessage": "Čaka vas znana izkušnja v hitrejši in bolj elegantni obliki.",
-  "upgradeWelcomeDialogTitle": "Dobrodošli v novi aplikaciji Zulip!",
   "userActiveDate": "Nazadnje aktiven {date}",
   "userActiveDaysAgo": "Aktiven pred {days, plural, one{1 dnevom} two{{days} dnevoma} few{{days} dnevi} other{{days} dnevi}}",
   "userActiveHoursAgo": "Aktiven pred {hours, plural, one{1 uro} two{{hours} urama} few{{hours} urami} other{{hours} urami}}",

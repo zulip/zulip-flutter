@@ -991,9 +991,6 @@
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
   },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
-  },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
   },
@@ -1364,18 +1361,6 @@
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
     "placeholders": {
@@ -1730,7 +1715,6 @@
   "openLinksWithInAppBrowser": "リンクをアプリ内ブラウザで開く",
   "otherChannelsFolderName": "その他のチャンネル",
   "permissionsDeniedCameraAccess": "画像をアップロードするには、[設定] でZulipに追加の権限を付与してください。",
-  "permissionsDeniedReadExternalStorage": "ファイルをアップロードするには、[設定] でZulipに追加の権限を付与してください。",
   "permissionsNeededOpenSettings": "設定を開く",
   "permissionsNeededTitle": "権限が必要です",
   "pinnedChannelsFolderName": "ピン留めされたチャンネル",
@@ -1824,10 +1808,6 @@
   "unsubscribeConfirmationDialogTitle": "{channelName} から退出しますか？",
   "unsubscribeFailedTitle": "チャンネルからの退出に失敗しました",
   "updateStatusErrorTitle": "ステータスの更新に失敗しました。もう一度お試しください。",
-  "upgradeWelcomeDialogDismiss": "はじめよう",
-  "upgradeWelcomeDialogLinkText": "お知らせブログ記事をご確認ください！",
-  "upgradeWelcomeDialogMessage": "より速く、洗練されたデザインで、これまでと同じ使い心地をお楽しみいただけます。",
-  "upgradeWelcomeDialogTitle": "新しいZulipアプリへようこそ！",
   "userActiveDate": "{date}にオンライン",
   "userActiveDaysAgo": "{days, plural, =1{1} other{{days}}}日前にオンライン",
   "userActiveHoursAgo": "{hours, plural, =1{1} other{{hours}}}時間前にオンライン",

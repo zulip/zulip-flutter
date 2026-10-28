@@ -237,10 +237,11 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Скрыть заглушенное сообщение';
 
   @override
-  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+  String get actionSheetOptionHideLinkPreviews => 'Скрыть предпросмотр ссылок';
 
   @override
-  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+  String get actionSheetOptionShowLinkPreviews =>
+      'Показать предпросмотр ссылок';
 
   @override
   String get actionSheetOptionShare => 'Поделиться';
@@ -405,7 +406,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get errorCouldNotLoadSelectedFiles =>
-      'The selected files could not be loaded.';
+      'Не удалось загрузить выбранные файлы.';
 
   @override
   String errorCouldNotReadFile(String filename) {
@@ -498,10 +499,12 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
       'Не удалось снять отметку с сообщения';
 
   @override
-  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+  String get errorHideLinkPreviewsFailedTitle =>
+      'Не удалось скрыть предпросмотр ссылок';
 
   @override
-  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
+  String get errorShowLinkPreviewsFailedTitle =>
+      'Не удалось показать предпросмотр ссылок';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Сбой редактирования';

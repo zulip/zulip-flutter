@@ -38,6 +38,9 @@
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
   },
+  "@actionSheetOptionHideLinkPreviews": {
+    "description": "Label for the 'Hide link previews' button in the message action sheet."
+  },
   "@actionSheetOptionHideMutedMessage": {
     "description": "Label for hide muted message again button on action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
+  },
+  "@actionSheetOptionShowLinkPreviews": {
+    "description": "Label for the 'Show link previews' button in the message action sheet."
   },
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
@@ -469,6 +475,9 @@
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
+  "@errorCouldNotLoadSelectedFiles": {
+    "description": "Error message when the user selected files, photos, or videos to attach, but none of them could be loaded."
+  },
   "@errorCouldNotOpenLink": {
     "description": "Error message when opening a link failed.",
     "placeholders": {
@@ -562,6 +571,9 @@
   },
   "@errorHandlingEventTitle": {
     "description": "Error title on failing to handle a Zulip server event."
+  },
+  "@errorHideLinkPreviewsFailedTitle": {
+    "description": "Error title when hiding the link previews on a message failed."
   },
   "@errorInvalidApiKeyMessage": {
     "description": "Error message in the dialog for invalid API key.",
@@ -700,6 +712,9 @@
   },
   "@errorSharingTitle": {
     "description": "Error title when sharing content received from other apps fails"
+  },
+  "@errorShowLinkPreviewsFailedTitle": {
+    "description": "Error title when showing the link previews on a message failed."
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -1017,9 +1032,6 @@
   },
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
-  },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
@@ -1403,18 +1415,6 @@
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
     "placeholders": {
@@ -1536,9 +1536,9 @@
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
   "aboutPageAppVersion": "Versión de la App",
-  "aboutPageAppVersionUnknown": "Texto del banner de la página «Acerca de Zulip», que aparece en lugar del elemento de la versión de la aplicación cuando se desconoce la versión.",
+  "aboutPageAppVersionUnknown": "No se ha encontrado la información sobre la versión de la aplicación.",
   "aboutPageOpenSourceLicenses": "Licencias de Código Abierto",
-  "aboutPageReleaseNotes": "Título del elemento en la página «Acerca de Zulip» para abrir las notas de la versión actual en GitHub",
+  "aboutPageReleaseNotes": "Notas de la versión",
   "aboutPageTitle": "Acerca de Zulip",
   "actionSheetOptionChannelFeed": "Feed del canal",
   "actionSheetOptionCopyChannelLink": "Copiar enlace al canal",
@@ -1548,6 +1548,7 @@
   "actionSheetOptionDeleteMessage": "Eliminar mensaje",
   "actionSheetOptionEditMessage": "Editar mensaje",
   "actionSheetOptionFollowTopic": "Seguir tema",
+  "actionSheetOptionHideLinkPreviews": "Ocultar las vistas previas de los enlaces",
   "actionSheetOptionHideMutedMessage": "Ocultar mensaje silenciado de nuevo",
   "actionSheetOptionListOfTopics": "Lista de temas",
   "actionSheetOptionMarkAsUnread": "Marcar como no leído desde aquí",
@@ -1555,12 +1556,13 @@
   "actionSheetOptionMarkDmConversationAsRead": "Marcar la conversación como leída",
   "actionSheetOptionMarkTopicAsRead": "Marcar tema como leído",
   "actionSheetOptionMuteTopic": "Silenciar tema",
-  "actionSheetOptionPinChannel": "Fijar canal",
+  "actionSheetOptionPinChannel": "Fijar en la parte superior",
   "actionSheetOptionQuoteMessage": "Citar mensaje",
   "actionSheetOptionReportMessage": "Denunciar mensaje",
   "actionSheetOptionResolveTopic": "Marcar como resuelto",
   "actionSheetOptionSeeWhoReacted": "Ver reacciones",
   "actionSheetOptionShare": "Compartir",
+  "actionSheetOptionShowLinkPreviews": "Mostrar vistas previas de los enlaces",
   "actionSheetOptionStarMessage": "Marcar mensaje",
   "actionSheetOptionSubscribe": "Suscribirse",
   "actionSheetOptionUnfollowTopic": "Dejar de seguir el tema",
@@ -1661,6 +1663,7 @@
   "errorCouldNotConnectTitle": "Error al conectar",
   "errorCouldNotEditMessageTitle": "No se ha podido editar el mensaje",
   "errorCouldNotFetchMessageSource": "No se pudo obtener el origen del mensaje.",
+  "errorCouldNotLoadSelectedFiles": "No se han podido cargar los archivos seleccionados.",
   "errorCouldNotOpenLink": "No se pudo abrir el enlace: {url}",
   "errorCouldNotOpenLinkTitle": "No se puede abrir el enlace",
   "errorCouldNotReadFile": "No se ha podido leer el archivo: {filename}",
@@ -1675,6 +1678,7 @@
   "errorFollowTopicFailed": "Error al seguir el tema",
   "errorHandlingEventDetails": "Error al gestionar un evento de Zulip desde {serverUrl}; se volverá a intentar.\n\nError: {error}\n\nEvento: {event}",
   "errorHandlingEventTitle": "Error al gestionar un evento de Zulip. Reintentando la conexión…",
+  "errorHideLinkPreviewsFailedTitle": "No se han podido ocultar las vistas previas de los enlaces",
   "errorInvalidApiKeyMessage": "No se pudo autenticar su cuenta en {url}. Intenta iniciar sesión de nuevo o usa otra cuenta.",
   "errorInvalidResponse": "El servidor envió una respuesta inválida.",
   "errorLoginCouldNotConnect": "Error al conectar al servidor:\n{url}",
@@ -1703,6 +1707,7 @@
   "errorSharingAccountNotLoggedIn": "No hay ninguna cuenta. Inicia sesión en una cuenta e inténtalo de nuevo.",
   "errorSharingFailed": "Error al compartir",
   "errorSharingTitle": "Falló compartir contenido",
+  "errorShowLinkPreviewsFailedTitle": "No se han podido mostrar las vistas previas de los enlaces",
   "errorStarMessageFailedTitle": "Error al destacar el mensaje",
   "errorUnfollowTopicFailed": "Error al dejar de seguir el tema",
   "errorUnmuteTopicFailed": "No se ha podido dejar de silenciar el tema",
@@ -1792,7 +1797,6 @@
   "openLinksWithInAppBrowser": "Abrir enlaces con el navegador in-app",
   "otherChannelsFolderName": "Otros canales",
   "permissionsDeniedCameraAccess": "Para subir una imagen, concede a Zulip permisos adicionales en Ajustes.",
-  "permissionsDeniedReadExternalStorage": "Para subir archivos, concede a Zulip permisos adicionales en Ajustes.",
   "permissionsNeededOpenSettings": "Abrir ajustes",
   "permissionsNeededTitle": "Permisos necesarios",
   "pinnedChannelsFolderName": "Canales fijados",
@@ -1850,7 +1854,7 @@
   "statusSaveButtonLabel": "Guardar",
   "statusTextHint": "Tu estado",
   "subscribeFailedTitle": "Falló la suscripción",
-  "successAppVersionCopied": "Mensaje de éxito tras copiar la versión de la aplicación al portapapeles del sistema del usuario.",
+  "successAppVersionCopied": "Versión de la aplicación copiada",
   "successChannelLinkCopied": "Enlace al canal copiado",
   "successLinkCopied": "Enlace copiado",
   "successMessageLinkCopied": "Enlace del mensaje copiado",
@@ -1887,10 +1891,6 @@
   "unsubscribeConfirmationDialogTitle": "¿Deseas cancelar tu suscripción a {channelName}?",
   "unsubscribeFailedTitle": "Falló la cancelación de suscripción",
   "updateStatusErrorTitle": "Error al actualizar el estado del usuario. Por favor, vuelve a intentarlo.",
-  "upgradeWelcomeDialogDismiss": "Vamos",
-  "upgradeWelcomeDialogLinkText": "¡Echa un vistazo al post de anuncio en blog!",
-  "upgradeWelcomeDialogMessage": "Encontrarás una experiencia familiar en un paquete más rápido y ligero.",
-  "upgradeWelcomeDialogTitle": "¡Te damos la bienvenida a la nueva app de Zulip!",
   "userActiveDate": "Activo {date}",
   "userActiveDaysAgo": "Activo hace {days, plural, =1{1 día} other{{days} días}}",
   "userActiveHoursAgo": "Active hace {hours, plural, =1{1 hour} other{{hours} horas}}",
