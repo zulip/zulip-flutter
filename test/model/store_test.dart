@@ -14,10 +14,12 @@ import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/route/events.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/api/route/realm.dart';
 import 'package:zulip/log.dart';
 import 'package:zulip/model/actions.dart';
 import 'package:zulip/model/connectivity.dart';
+import 'package:zulip/model/message.dart';
 import 'package:zulip/model/presence.dart';
 import 'package:zulip/model/server_support.dart';
 import 'package:zulip/model/store.dart';
@@ -28,6 +30,7 @@ import '../example_data.dart' as eg;
 import '../fake_async.dart';
 import '../stdlib_checks.dart';
 import 'binding.dart';
+import 'message_checks.dart';
 import 'store_checks.dart';
 import 'test_store.dart';
 
@@ -1103,6 +1106,74 @@ void main() {
     test('reloads on handleEvent error', () {
       checkReload(prepareHandleEventError);
     });
+
+    test('preserves failed outbox messages on reload', () => awaitFakeAsync((async) async {
+      await preparePoll();
+
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+
+      connection.prepare(httpException: const SocketException('failed'));
+      await check(store.sendMessage(
+        destination: StreamDestination(stream.streamId, eg.t('topic')),
+        content: 'unsent message',
+      )).throws();
+      check(store.outboxMessages).values.single
+        ..state.equals(OutboxMessageState.failed)
+        ..contentMarkdown.equals('unsent message');
+
+      prepareExpiredEventQueue();
+      updateMachine.debugAdvanceLoop();
+      async.elapse(Duration.zero);
+      check(store).isRecoveringEventStream.isTrue();
+      check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
+
+      updateFromGlobalStore();
+      check(store).isRecoveringEventStream.isFalse();
+      check(store.outboxMessages).values.single
+        ..state.equals(OutboxMessageState.failed)
+        ..contentMarkdown.equals('unsent message');
+
+      // A new send must not reuse the adopted message's localMessageId.
+      connection.prepare(httpException: const SocketException('failed'));
+      await check(store.sendMessage(
+        destination: StreamDestination(stream.streamId, eg.t('topic')),
+        content: 'another message',
+      )).throws();
+      check(store.outboxMessages).keys.deepEquals([1, 2]);
+    }));
+
+    test('preserves waitPeriodExpired outbox messages on reload', () => awaitFakeAsync((async) async {
+      await preparePoll();
+
+      final stream = eg.stream();
+      await store.addStream(stream);
+      await store.addSubscription(eg.subscription(stream));
+
+      connection.prepare(httpException: const SocketException('failed'),
+        delay: kSendMessageOfferRestoreWaitPeriod + const Duration(seconds: 1));
+      unawaited(store.sendMessage(
+        destination: StreamDestination(stream.streamId, eg.t('topic')),
+        content: 'expired message',
+      ).then((_) {}, onError: (_) {}));
+      async.elapse(kSendMessageOfferRestoreWaitPeriod);
+      check(store.outboxMessages).values.single
+        ..state.equals(OutboxMessageState.waitPeriodExpired)
+        ..contentMarkdown.equals('expired message');
+
+      prepareExpiredEventQueue();
+      updateMachine.debugAdvanceLoop();
+      async.elapse(Duration.zero);
+      check(store).isRecoveringEventStream.isTrue();
+      check(globalStore.perAccountSync(store.accountId)).not((it) => it.identicalTo(store));
+
+      updateFromGlobalStore();
+      check(store).isRecoveringEventStream.isFalse();
+      check(store.outboxMessages).values.single
+        ..state.equals(OutboxMessageState.waitPeriodExpired)
+        ..contentMarkdown.equals('expired message');
+    }));
 
     group('abort backoff on app wake', () {
       test('abort wait in progress', () => awaitFakeAsync((async) async {
