@@ -201,14 +201,12 @@ Now fire up the app on your emulator or device, go to the
 This will be `http://ADDRESS:9991`, where `ADDRESS` is the address you
 identified in step 2.  (Be sure to type the `http://`.)
 
-This should get you the login screen!
+This should get you a "Log in (dev)" screen, listing the users on
+the dev server.  Tap one to log in as that user; no password needed.
 
-To log in, you'll want the password for some user on the dev server.
-You can find that with a command like this:
+To test the normal login flow instead, tap "Use the normal login page".
+For that you'll want the password for some user on the dev server,
+which you can find with a command like this:
 ```
 ./manage.py print_initial_password iago@zulip.com
 ```
-
-(Ideally the app would support the handy dev-only auth method which
-bypasses the need for a password; that's #405.
-Consider implementing that feature.)

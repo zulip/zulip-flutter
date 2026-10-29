@@ -1548,6 +1548,42 @@ abstract class ZulipLocalizations {
   /// **'Please enter your username.'**
   String get loginErrorMissingUsername;
 
+  /// Title for the page for logging in as any user without a password, shown only with a Zulip development server.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in (dev)'**
+  String get devLoginPageTitle;
+
+  /// Label for the button on the dev login page that goes to the normal login page.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the normal login page'**
+  String get devLoginNormalLoginPageButton;
+
+  /// Label for the section of the dev login page listing the organization's administrators.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrators'**
+  String get devLoginAdministratorsLabel;
+
+  /// Label for the section of the dev login page listing the organization's non-administrator users.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal users'**
+  String get devLoginNormalUsersLabel;
+
+  /// Text shown in a section of the dev login page that has no users to list.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get devLoginNoUsers;
+
+  /// Error title when the app failed to get the list of users for the dev login page.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch users'**
+  String get errorDevLoginFetchUsersFailedTitle;
+
   /// Topic validation error when topic is too long.
   ///
   /// In en, this message translates to:

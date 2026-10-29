@@ -834,6 +834,24 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   String get loginErrorMissingUsername => 'Please enter your username.';
 
   @override
+  String get devLoginPageTitle => 'Log in (dev)';
+
+  @override
+  String get devLoginNormalLoginPageButton => 'Use the normal login page';
+
+  @override
+  String get devLoginAdministratorsLabel => 'Administrators';
+
+  @override
+  String get devLoginNormalUsersLabel => 'Normal users';
+
+  @override
+  String get devLoginNoUsers => 'No users found';
+
+  @override
+  String get errorDevLoginFetchUsersFailedTitle => 'Could not fetch users';
+
+  @override
   String topicValidationErrorTooLong(int maxLength) {
     String _temp0 = intl.Intl.pluralLogic(
       maxLength,
