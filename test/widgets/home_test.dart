@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:checks/checks.dart';
@@ -18,6 +19,7 @@ import 'package:zulip/widgets/app_bar.dart';
 import 'package:zulip/widgets/banner.dart';
 import 'package:zulip/widgets/home.dart';
 import 'package:zulip/widgets/icons.dart';
+import 'package:zulip/widgets/image.dart';
 import 'package:zulip/widgets/inbox.dart';
 import 'package:zulip/widgets/message_list.dart';
 import 'package:zulip/widgets/page.dart';
@@ -76,6 +78,9 @@ void main () {
       child: const HomePage()));
     await tester.pump();
   }
+
+  final findRealmIcon = find.byWidgetPredicate((widget) =>
+    widget is RealmContentNetworkImage && widget.src == store.resolvedRealmIcon);
 
   void checkOnLoadingPage() {
     check(find.byType(CircularProgressIndicator).hitTestable()).findsOne();
@@ -393,6 +398,19 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.arrow_left_right));
       check(find.byType(ChooseAccountPage)).findsOne();
+      debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('_MainMenuHeader: realm icon placeholder when image fails to load', (tester) async {
+      // Drop the realm icon if an earlier test loaded it.
+      imageCache.clear();
+      prepareBoringImageHttpClient().request.response
+        .statusCode = HttpStatus.notFound;
+      await prepare(tester);
+      await tapOpenMenuAndAwait(tester);
+      check(find.descendant(
+        of: find.descendant(of: find.byType(BottomSheet), matching: findRealmIcon),
+        matching: find.byType(DecoratedBox))).findsOne();
       debugNetworkImageHttpClientProvider = null;
     });
 

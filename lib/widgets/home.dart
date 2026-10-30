@@ -512,6 +512,7 @@ class _RealmIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
     final store = PerAccountStoreWidget.of(context);
     return AvatarShape(
       size: 28,
@@ -519,7 +520,9 @@ class _RealmIcon extends StatelessWidget {
       child: RealmContentNetworkImage(
         store.resolvedRealmIcon,
         filterQuality: FilterQuality.medium,
-        fit: BoxFit.cover));
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => DecoratedBox(
+          decoration: BoxDecoration(color: designVariables.avatarPlaceholderBg))));
   }
 }
 
