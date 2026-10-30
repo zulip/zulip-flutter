@@ -99,14 +99,22 @@ mixin ChannelStore on UserStore {
     return _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic));
   }
 
-  /// Whether the given event will change the result of [isTopicVisibleInChannel]
-  /// for its channel and topic, compared to the current state.
-  UserTopicVisibilityEffect willAffectIfTopicVisibleInChannel(UserTopicEvent event) {
-    final channelId = event.streamId;
-    final topic = event.topicName;
-    return UserTopicVisibilityEffect._fromBeforeAfter(
-      _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic)),
-      _isTopicVisibleInChannel(event.visibilityPolicy));
+  /// Whether the given event will change the results of [isTopicVisibleInChannel]
+  /// for some possible topic in [channelId], compared to the current state.
+  ///
+  /// This is [TopicVisibilityEffect.none] for most types of events.
+  TopicVisibilityEffect willAffectIfTopicVisibleInChannel(int channelId, Event event) {
+    switch (event) {
+      case UserTopicEvent():
+        if (event.streamId != channelId) return TopicVisibilityEffect.none;
+        final topic = event.topicName;
+        return TopicVisibilityEffect._fromBeforeAfter(
+          _isTopicVisibleInChannel(topicVisibilityPolicy(channelId, topic)),
+          _isTopicVisibleInChannel(event.visibilityPolicy));
+
+      default:
+        return TopicVisibilityEffect.none;
+    }
   }
 
   static bool _isTopicVisibleInChannel(UserTopicVisibilityPolicy policy) {
@@ -136,24 +144,69 @@ mixin ChannelStore on UserStore {
     return _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic));
   }
 
-  /// Whether the given event will change the result of [isTopicVisible]
-  /// for its channel and topic, compared to the current state.
-  UserTopicVisibilityEffect willAffectIfTopicVisible(UserTopicEvent event) {
-    final channelId = event.streamId;
-    final topic = event.topicName;
-    return UserTopicVisibilityEffect._fromBeforeAfter(
-      _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic)),
-      _isTopicVisible(channelId, event.visibilityPolicy));
+  /// Whether the given event will change the results of [isTopicVisible]
+  /// for some possible topic, compared to the current state.
+  ///
+  /// This is [TopicVisibilityEffect.none] for most types of events.
+  ///
+  /// (A change to a channel's mutedness can affect [isTopicVisible]
+  /// but never [isTopicVisibleInChannel].)
+  TopicVisibilityEffect willAffectIfTopicVisible(Event event) {
+    switch (event) {
+      case UserTopicEvent():
+        final channelId = event.streamId;
+        final topic = event.topicName;
+        return TopicVisibilityEffect._fromBeforeAfter(
+          _isTopicVisible(channelId, topicVisibilityPolicy(channelId, topic)),
+          _isTopicVisible(channelId, event.visibilityPolicy));
+
+      case SubscriptionUpdateEvent()
+          when event.property == SubscriptionProperty.isMuted:
+        final subscription = subscriptions[event.channelId];
+        if (subscription == null) return TopicVisibilityEffect.none; // TODO(log)
+        // A change in the channel's mutedness affects [isTopicVisible]
+        // for exactly the topics with visibility policy
+        // [UserTopicVisibilityPolicy.none].  Possible topics with that
+        // policy always exist, so any actual change in mutedness
+        // has an effect; callers consult the per-topic state
+        // when acting on specific messages.
+        return TopicVisibilityEffect._fromBeforeAfter(
+          !subscription.isMuted,
+          !(event.value as bool));
+
+      case SubscriptionAddEvent():
+      case SubscriptionRemoveEvent():
+      case ChannelDeleteEvent():
+        // These do affect [isTopicVisible]; compute it here if a caller needs it.
+        assert(false);
+        return TopicVisibilityEffect.none;
+
+      default:
+        return TopicVisibilityEffect.none;
+    }
+  }
+
+  /// Whether [isTopicVisible] would be true for this topic
+  /// if the channel's mutedness were [channelMuted].
+  bool isTopicVisibleGivenChannelMuted(int channelId, TopicName topic, {
+    required bool channelMuted,
+  }) {
+    return _isTopicVisibleGivenChannelMuted(
+      topicVisibilityPolicy(channelId, topic), channelMuted: channelMuted);
   }
 
   bool _isTopicVisible(int channelId, UserTopicVisibilityPolicy policy) {
+    return _isTopicVisibleGivenChannelMuted(policy,
+      // If not subscribed, treat like muted.
+      channelMuted: subscriptions[channelId]?.isMuted ?? true);
+  }
+
+  static bool _isTopicVisibleGivenChannelMuted(UserTopicVisibilityPolicy policy, {
+    required bool channelMuted,
+  }) {
     switch (policy) {
       case UserTopicVisibilityPolicy.none:
-        switch (subscriptions[channelId]?.isMuted) {
-          case false: return true;
-          case true:  return false;
-          case null:  return false; // not subscribed; treat like muted
-        }
+        return !channelMuted;
       case UserTopicVisibilityPolicy.muted:
         return false;
       case UserTopicVisibilityPolicy.unmuted:
@@ -301,10 +354,10 @@ mixin ChannelStore on UserStore {
   }
 }
 
-/// Whether and how a given [UserTopicEvent] will affect the results
+/// Whether and how a given event will affect the results
 /// that [ChannelStore.isTopicVisible] or [ChannelStore.isTopicVisibleInChannel]
 /// would give for some messages.
-enum UserTopicVisibilityEffect {
+enum TopicVisibilityEffect {
   /// The event will have no effect on the visibility results.
   none,
 
@@ -314,11 +367,11 @@ enum UserTopicVisibilityEffect {
   /// The event will change some visibility results from false to true.
   unmuted;
 
-  factory UserTopicVisibilityEffect._fromBeforeAfter(bool before, bool after) {
+  factory TopicVisibilityEffect._fromBeforeAfter(bool before, bool after) {
     return switch ((before, after)) {
-      (false, true) => UserTopicVisibilityEffect.unmuted,
-      (true, false) => UserTopicVisibilityEffect.muted,
-      _             => UserTopicVisibilityEffect.none,
+      (false, true) => TopicVisibilityEffect.unmuted,
+      (true, false) => TopicVisibilityEffect.muted,
+      _             => TopicVisibilityEffect.none,
     };
   }
 }
@@ -625,7 +678,6 @@ class ChannelStoreImpl extends HasUserStore with ChannelStore {
           case SubscriptionProperty.color:
             subscription.color                  = event.value as int;
           case SubscriptionProperty.isMuted:
-            // TODO(#1255) update [MessageListView] if affected
             subscription.isMuted                = event.value as bool;
           case SubscriptionProperty.pinToTop:
             subscription.pinToTop               = event.value as bool;
