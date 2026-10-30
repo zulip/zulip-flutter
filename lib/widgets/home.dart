@@ -491,13 +491,7 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
               Flexible(child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(spacing: 8, children: [
-                  AvatarShape(
-                    size: 28,
-                    borderRadius: 4,
-                    child: RealmContentNetworkImage(
-                      store.resolvedRealmIcon,
-                      filterQuality: FilterQuality.medium,
-                      fit: BoxFit.cover)),
+                  const _RealmIcon(),
                   Flexible(child: Text(store.realmName,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -510,6 +504,22 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
                 color: designVariables.icon,
                 size: 24),
             ])))));
+  }
+}
+
+class _RealmIcon extends StatelessWidget {
+  const _RealmIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final store = PerAccountStoreWidget.of(context);
+    return AvatarShape(
+      size: 28,
+      borderRadius: 4,
+      child: RealmContentNetworkImage(
+        store.resolvedRealmIcon,
+        filterQuality: FilterQuality.medium,
+        fit: BoxFit.cover));
   }
 }
 
