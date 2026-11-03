@@ -391,8 +391,6 @@ void main() {
       check(find.text('test user3')).findsOne();
       check(mutedAvatarFinder(3)).findsNothing();
       check(nonmutedAvatarFinder(3)).findsOne();
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('page builds; user links render multiple avatars', (tester) async {

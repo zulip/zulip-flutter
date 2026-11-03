@@ -113,16 +113,13 @@ void main() {
       testWidgets(description, (tester) async {
         addTearDown(testBinding.reset);
         debugDefaultTargetPlatformOverride = platform;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
         check(
           await ours(tester, paramValue: paramValue, themeValue: themeValue, actions: actions)
         )..equals(
           await material(tester, paramValue: paramValue, themeValue: themeValue, actions: actions)
         )..equals(expectedWillCenter);
-
-        // TODO(upstream) Do this in an addTearDown, once we can:
-        //   https://github.com/flutter/flutter/issues/123189
-        debugDefaultTargetPlatformOverride = null;
       });
     }
 

@@ -2349,8 +2349,6 @@ void main() {
         check(store.isUserMuted(user.userId)).isFalse();
 
         check(find.byIcon(ZulipIcons.eye_off, skipOffstage: false)).findsNothing();
-
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('visible if message is from muted sender and revealed', (tester) async {
@@ -2370,8 +2368,6 @@ void main() {
         );
 
         check(find.byIcon(ZulipIcons.eye_off, skipOffstage: false)).findsOne();
-
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('when pressed, unreveals the message', (tester) async {
@@ -2395,8 +2391,6 @@ void main() {
 
         check(contentFinder).findsNothing();
         check(revealButtonFinder).findsOne();
-
-        debugNetworkImageHttpClientProvider = null;
       });
     });
 
@@ -2431,13 +2425,11 @@ void main() {
       testWidgets('no button when message has no link previews', (tester) async {
         await prepare(tester, content: '<p>A message</p>');
         check(findButton('Hide link previews')).findsNothing();
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('no button before FL 510', (tester) async {
         await prepare(tester, zulipFeatureLevel: 509);
         check(findButton('Hide link previews')).findsNothing();
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('hide success', (tester) async {
@@ -2454,7 +2446,6 @@ void main() {
             'op': 'add',
             'flag': 'hide_link_previews',
           });
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('show success', (tester) async {
@@ -2471,7 +2462,6 @@ void main() {
             'op': 'remove',
             'flag': 'hide_link_previews',
           });
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('hide request has an error', (tester) async {
@@ -2485,7 +2475,6 @@ void main() {
         await tester.tap(find.byWidget(checkErrorDialog(tester,
           expectedTitle: 'Failed to hide link previews',
           expectedMessage: 'Invalid message(s)')));
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('show request has an error', (tester) async {
@@ -2499,7 +2488,6 @@ void main() {
         await tester.tap(find.byWidget(checkErrorDialog(tester,
           expectedTitle: 'Failed to show link previews',
           expectedMessage: 'Invalid message(s)')));
-        debugNetworkImageHttpClientProvider = null;
       });
     });
 
