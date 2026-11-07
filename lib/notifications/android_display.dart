@@ -298,6 +298,40 @@ class AndroidNotificationDisplayManager {
     final intentDataUrl = NotificationOpenPayload.fromNotifPayload(data,
       messageId: firstMessageId).buildNotificationUrl();
 
+    await _notifyConversation(
+      conversationKey: conversationKey,
+      groupKey: groupKey,
+      messagingStyle: messagingStyle,
+      lastMessageId: data.messageId,
+      intentDataUrl: intentDataUrl);
+
+    await _androidHost.notify(
+      id: kNotificationId,
+      tag: groupKey,
+      channelId: AndroidNotificationChannelManager.kChannelId,
+      groupKey: groupKey,
+      isGroupSummary: true,
+
+      color: kZulipBrandColor.argbInt,
+      // TODO vary notification icon for debug
+      smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
+      inboxStyle: InboxStyle(summaryText: account.realmName ?? data.realmName),
+
+      // On Android 11 and lower, if autoCancel is not specified,
+      // the summary notification may linger even after all child
+      // notifications have been opened and cleared.
+      // TODO(android-12): cut this autoCancel workaround
+      autoCancel: true,
+    );
+  }
+
+  static Future<void> _notifyConversation({
+    required String conversationKey,
+    required String groupKey,
+    required MessagingStyle messagingStyle,
+    required int lastMessageId,
+    required Uri intentDataUrl,
+  }) async {
     await _androidHost.notify(
       id: kNotificationId,
       tag: conversationKey,
@@ -312,7 +346,7 @@ class AndroidNotificationDisplayManager {
       number: messagingStyle.messages.length,
       extras: {
         // Used to decide when a `NotifPayloadRemove` event should clear this notification.
-        kExtraLastMessageId: data.messageId.toString(),
+        kExtraLastMessageId: lastMessageId.toString(),
       },
 
       contentIntent: PendingIntent(
@@ -338,25 +372,6 @@ class AndroidNotificationDisplayManager {
           //   as we only have one activity; but if we add more, it will destroy
           //   all the activities on top of the target one.
           flags: IntentFlag.activityClearTop | IntentFlag.activityNewTask)),
-      autoCancel: true,
-    );
-
-    await _androidHost.notify(
-      id: kNotificationId,
-      tag: groupKey,
-      channelId: AndroidNotificationChannelManager.kChannelId,
-      groupKey: groupKey,
-      isGroupSummary: true,
-
-      color: kZulipBrandColor.argbInt,
-      // TODO vary notification icon for debug
-      smallIconResourceName: 'zulip_notification', // This name must appear in keep.xml too: https://github.com/zulip/zulip-flutter/issues/528
-      inboxStyle: InboxStyle(summaryText: account.realmName ?? data.realmName),
-
-      // On Android 11 and lower, if autoCancel is not specified,
-      // the summary notification may linger even after all child
-      // notifications have been opened and cleared.
-      // TODO(android-12): cut this autoCancel workaround
       autoCancel: true,
     );
   }
