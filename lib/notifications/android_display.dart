@@ -331,6 +331,7 @@ class AndroidNotificationDisplayManager {
     required MessagingStyle messagingStyle,
     required int lastMessageId,
     required Uri intentDataUrl,
+    bool? onlyAlertOnce,
   }) async {
     await _androidHost.notify(
       id: kNotificationId,
@@ -344,6 +345,7 @@ class AndroidNotificationDisplayManager {
 
       messagingStyle: messagingStyle,
       number: messagingStyle.messages.length,
+      onlyAlertOnce: onlyAlertOnce,
       extras: {
         // Used to decide when a `NotifPayloadRemove` event should clear this notification.
         kExtraLastMessageId: lastMessageId.toString(),
@@ -379,26 +381,23 @@ class AndroidNotificationDisplayManager {
 
   static Future<void> _onNotifPayloadRemove(NotifPayloadRemove data) async {
     // We have an FCM message telling us that some Zulip messages were read
-    // and should no longer appear as notifications.  We'll remove their
-    // conversations' notifications, if appropriate, and then the whole
-    // notification group if it's now empty.
+    // and should no longer appear as notifications.  We'll remove them from
+    // their conversations' notifications, cancelling any notification
+    // left with no messages, and then the whole notification group
+    // if it's now empty.
     assert(debugLog('notif remove messageIds: ${data.messageIds}'));
 
     // There may be a lot of messages mentioned here, across a lot of
     // conversations.  But they'll all be for one account, so they'll
     // fall under one notification group.
     final groupKey = accountKeyForNotif(data.realmUrl, data.userId);
+    final removedMessageIds = data.messageIds.toSet();
 
-    // Find any conversations we can cancel the notification for.
-    // The API doesn't lend itself to removing individual messages as
-    // they're read, so we wait until we're ready to remove the whole
-    // conversation's notification.  For background discussion, see:
-    //   https://github.com/zulip/zulip-mobile/pull/4842#pullrequestreview-725817909
     var haveRemaining = false;
     final activeNotifications = await _androidHost.getActiveNotifications(
-      desiredNotificationExtras: const [kExtraLastMessageId],
-      desiredMessageExtras: const [],
-      includeMessagingStyle: false);
+      desiredNotificationExtras: const [kExtraLastMessageId, kExtraIntentDataUrl],
+      desiredMessageExtras: const [kExtraZulipMessageId],
+      includeMessagingStyle: true);
     for (final statusBarNotification in activeNotifications) {
       // The StatusBarNotification object describes an active notification in the UI.
       // Its `.tag`, `.id`, and `.notification` are the same values as we passed to
@@ -417,19 +416,60 @@ class AndroidNotificationDisplayManager {
       // Don't act on the summary notification for the group.
       if (statusBarNotification.tag == groupKey) continue;
 
-      final lastMessageIdStr = notification.extras[kExtraLastMessageId];
-      assert(lastMessageIdStr != null);
-      if (lastMessageIdStr == null) continue; // TODO(log)
-      final lastMessageId = int.parse(lastMessageIdStr, radix: 10);
-      if (data.messageIds.contains(lastMessageId)) {
-        // The latest Zulip message in this conversation was read.
-        // That's our cue to cancel the notification for the conversation.
+      final messagingStyle = notification.messagingStyle;
+      final intentDataUrlStr = notification.extras[kExtraIntentDataUrl];
+      if (messagingStyle == null || intentDataUrlStr == null
+          || messagingStyle.messages.any((message) =>
+               message.extras[kExtraZulipMessageId] == null)) {
+        // This notification was posted by an older version of the app,
+        // which didn't record what we need to remove individual messages.
+        // Fall back to cancelling it once its latest message is read.
+        final lastMessageIdStr = notification.extras[kExtraLastMessageId];
+        assert(lastMessageIdStr != null);
+        if (lastMessageIdStr == null) continue; // TODO(log)
+        final lastMessageId = int.parse(lastMessageIdStr, radix: 10);
+        if (removedMessageIds.contains(lastMessageId)) {
+          await _androidHost.cancel(
+            tag: statusBarNotification.tag, id: statusBarNotification.id);
+          assert(debugLog('  … notif cancelled.'));
+        } else {
+          haveRemaining = true;
+        }
+        continue;
+      }
+
+      final remainingMessages = messagingStyle.messages
+        .where((message) => !removedMessageIds.contains(_zulipMessageIdOf(message)))
+        .toList();
+      if (remainingMessages.length == messagingStyle.messages.length) {
+        // None of this conversation's messages were read.
+        // We won't cancel the summary notification.
+        haveRemaining = true;
+      } else if (remainingMessages.isEmpty) {
+        // All of this conversation's messages were read.
         await _androidHost.cancel(
           tag: statusBarNotification.tag, id: statusBarNotification.id);
         assert(debugLog('  … notif cancelled.'));
       } else {
-        // This notification is for another conversation that's still unread.
-        // We won't cancel the summary notification.
+        // Some of this conversation's messages were read.
+        // Re-post the notification without them, without alerting again.
+        messagingStyle.messages = remainingMessages;
+        final oldOpenPayload = NotificationOpenPayload.parseNotificationUrl(
+          Uri.parse(intentDataUrlStr));
+        final intentDataUrl = NotificationOpenPayload(
+          realmUrl: oldOpenPayload.realmUrl,
+          userId: oldOpenPayload.userId,
+          narrow: oldOpenPayload.narrow,
+          messageId: _zulipMessageIdOf(remainingMessages.first),
+        ).buildNotificationUrl();
+        await _notifyConversation(
+          conversationKey: statusBarNotification.tag,
+          groupKey: groupKey,
+          messagingStyle: messagingStyle,
+          lastMessageId: _zulipMessageIdOf(remainingMessages.last),
+          intentDataUrl: intentDataUrl,
+          onlyAlertOnce: true);
+        assert(debugLog('  … notif updated.'));
         haveRemaining = true;
       }
     }
@@ -443,6 +483,10 @@ class AndroidNotificationDisplayManager {
       // child notifications are canceled programmatically as done above.
       await _androidHost.cancel(tag: groupKey, id: kNotificationId);
     }
+  }
+
+  static int _zulipMessageIdOf(MessagingStyleMessage message) {
+    return int.parse(message.extras[kExtraZulipMessageId]!, radix: 10);
   }
 
   static Future<void> removeNotificationsForAccount(Uri realmUrl, int userId) async {
