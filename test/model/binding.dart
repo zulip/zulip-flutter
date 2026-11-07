@@ -988,6 +988,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
     bool? isGroupSummary,
     MessagingStyle? messagingStyle,
     int? number,
+    bool? onlyAlertOnce,
     String? smallIconResourceName,
   }) async {
     _notifyCalls.add((
@@ -1005,6 +1006,7 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
       isGroupSummary: isGroupSummary,
       messagingStyle: messagingStyle,
       number: number,
+      onlyAlertOnce: onlyAlertOnce,
       smallIconResourceName: smallIconResourceName,
     ));
 
@@ -1108,6 +1110,7 @@ typedef AndroidNotificationHostApiNotifyCall = ({
   bool? isGroupSummary,
   MessagingStyle? messagingStyle,
   int? number,
+  bool? onlyAlertOnce,
   String? smallIconResourceName,
 });
 

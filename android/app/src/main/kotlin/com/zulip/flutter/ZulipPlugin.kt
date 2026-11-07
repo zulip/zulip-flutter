@@ -190,6 +190,7 @@ private class AndroidNotificationHost(val context: Context)
         isGroupSummary: Boolean?,
         messagingStyle: MessagingStyle?,
         number: Long?,
+        onlyAlertOnce: Boolean?,
         smallIconResourceName: String?
     ) {
         val notification = NotificationCompat.Builder(context, channelId).apply {
@@ -236,6 +237,7 @@ private class AndroidNotificationHost(val context: Context)
                 setStyle(style)
             }
             number?.let { setNumber(it.toInt()) }
+            onlyAlertOnce?.let { setOnlyAlertOnce(it) }
             smallIconResourceName?.let { setSmallIcon(context.resources.getIdentifier(
                 it, "drawable", context.packageName)) }
         }.build()
