@@ -539,6 +539,7 @@ void main() {
             ..extras.which((it) => it.isNotNull()
               ..deepEquals(<String, String>{
                 AndroidNotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
+                AndroidNotificationDisplayManager.kExtraIntentDataUrl: expectedIntentDataUrl.toString(),
               }))
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.isNull()
@@ -609,15 +610,20 @@ void main() {
       async.flushMicrotasks();
     }
 
-    Condition<Object?> conditionActiveNotif(NotifPayloadNewMessage data, String tagComponent) {
+    Condition<Object?> conditionActiveNotif(NotifPayloadNewMessage data, String tagComponent, {
+      int? firstMessageId,
+    }) {
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedTag = '$expectedGroupKey|$tagComponent';
+      final expectedIntentDataUrl = NotificationOpenPayload.fromNotifPayload(data,
+        messageId: firstMessageId ?? data.messageId).buildNotificationUrl();
       return (it) => it.isA<StatusBarNotification>()
         ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.deepEquals(<String, String>{
             AndroidNotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
+            AndroidNotificationDisplayManager.kExtraIntentDataUrl: expectedIntentDataUrl.toString(),
           }))
         ..tag.equals(expectedTag);
     }
@@ -1142,14 +1148,14 @@ void main() {
       await receiveNotification(async, data2);
       await receiveNotification(async, data3);
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data3, conversationKey),
+        conditionActiveNotif(data3, conversationKey, firstMessageId: message1.id),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
       // A NotifPayloadRemove for the first two messages; the notification stays.
       await receiveNotification(async, notifPayloadRemove([message1, message2]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data3, conversationKey),
+        conditionActiveNotif(data3, conversationKey, firstMessageId: message1.id),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 

@@ -347,6 +347,7 @@ class AndroidNotificationDisplayManager {
       extras: {
         // Used to decide when a `NotifPayloadRemove` event should clear this notification.
         kExtraLastMessageId: lastMessageId.toString(),
+        kExtraIntentDataUrl: intentDataUrl.toString(),
       },
 
       contentIntent: PendingIntent(
@@ -475,6 +476,14 @@ class AndroidNotificationDisplayManager {
   /// clear that specific notification.
   @visibleForTesting
   static const kExtraLastMessageId = 'lastZulipMessageId';
+
+  /// A key we use in [Notification.extras] for the notification's
+  /// intent data URL, from [NotificationOpenPayload.buildNotificationUrl].
+  ///
+  /// We use this to rebuild the content intent
+  /// when re-posting a notification with some of its messages removed.
+  @visibleForTesting
+  static const kExtraIntentDataUrl = 'zulipIntentDataUrl';
 
   /// A key we use in [MessagingStyleMessage.extras] for the [Message.id] of
   /// the Zulip message that message represents.
