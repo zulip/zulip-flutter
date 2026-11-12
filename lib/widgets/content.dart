@@ -1140,7 +1140,8 @@ class _InlineContentBuilder {
         assert(recognizer != null);
         _pushRecognizer(recognizer);
         final result = _buildNodes(node.nodes,
-          style: TextStyle(color: ContentTheme.of(_context!).colorLink));
+          style: TextStyle(color: ContentTheme.of(_context!).colorLink,
+            decoration: TextDecoration.underline));
         _popRecognizer();
         return result;
 
