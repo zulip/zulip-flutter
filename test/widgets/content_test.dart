@@ -1,11 +1,11 @@
 import 'package:checks/checks.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legacy_checks/legacy_checks.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -162,8 +162,8 @@ void main() {
 
   TestZulipBinding.ensureInitialized();
 
-  Widget messageContent(String html) {
-    return MessageContent(message: eg.streamMessage(content: html),
+  Widget messageContent(String html, {List<MessageFlag>? flags}) {
+    return MessageContent(message: eg.streamMessage(content: html, flags: flags),
        content: parseContent(html));
   }
 
@@ -737,10 +737,12 @@ void main() {
   });
 
   group("MessageEmbedVideo", () {
-    Future<void> prepare(WidgetTester tester, String html) async {
+    Future<void> prepare(WidgetTester tester, String html, {
+      List<MessageFlag>? flags,
+    }) async {
       await prepareContent(tester,
         // Message is needed for a video's lightbox.
-        messageContent(html),
+        messageContent(html, flags: flags),
         // We try to resolve a video preview URL on the self-account's realm.
         wrapWithPerAccountStoreWidget: true);
     }
@@ -773,6 +775,13 @@ void main() {
     testWidgets('video preview for vimeo embed', (tester) async {
       const example = ContentExample.videoEmbedVimeo;
       await checkEmbedVideo(tester, example);
+    });
+
+    testWidgets('hidden by hideLinkPreviews flag', (tester) async {
+      const example = ContentExample.videoEmbedYoutube;
+      await prepare(tester, example.html, flags: [MessageFlag.hideLinkPreviews]);
+      check(find.text(example.markdown!, findRichText: true)).findsOne();
+      check(find.byType(MessageEmbedVideo)).findsNothing();
     });
   });
 
@@ -1804,8 +1813,10 @@ void main() {
   });
 
   group('WebsitePreview', () {
-    Future<void> prepare(WidgetTester tester, String html) async {
-      await prepareContent(tester, plainContent(html),
+    Future<void> prepare(WidgetTester tester, String html, {
+      List<MessageFlag>? flags,
+    }) async {
+      await prepareContent(tester, messageContent(html, flags: flags),
         wrapWithPerAccountStoreWidget: true);
     }
 
@@ -1863,6 +1874,13 @@ void main() {
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: url, mode: LaunchMode.inAppBrowserView));
       debugNetworkImageHttpClientProvider = null;
+    });
+
+    testWidgets('hidden by hideLinkPreviews flag', (tester) async {
+      const example = ContentExample.websitePreviewSmoke;
+      await prepare(tester, example.html, flags: [MessageFlag.hideLinkPreviews]);
+      check(find.text(example.markdown!, findRichText: true)).findsOne();
+      check(find.byType(WebsitePreview)).findsNothing();
     });
   });
 

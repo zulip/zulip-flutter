@@ -3,9 +3,9 @@
 import 'dart:math';
 
 import 'package:checks/checks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:patrol/patrol.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/route/messages.dart';

@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
@@ -30,6 +31,9 @@ import 'zulip_localizations_ru.dart';
 import 'zulip_localizations_sk.dart';
 import 'zulip_localizations_sl.dart';
 import 'zulip_localizations_so.dart';
+import 'zulip_localizations_sv.dart';
+import 'zulip_localizations_th.dart';
+import 'zulip_localizations_tr.dart';
 import 'zulip_localizations_uk.dart';
 import 'zulip_localizations_vi.dart';
 import 'zulip_localizations_zh.dart';
@@ -144,6 +148,9 @@ abstract class ZulipLocalizations {
     Locale('sk'),
     Locale('sl'),
     Locale('so'),
+    Locale('sv'),
+    Locale('th'),
+    Locale('tr'),
     Locale('uk'),
     Locale('vi'),
     Locale('zh'),
@@ -188,30 +195,6 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Open-source licenses'**
   String get aboutPageOpenSourceLicenses;
-
-  /// Title for dialog shown on first upgrade from the legacy Zulip app.
-  ///
-  /// In en, this message translates to:
-  /// **'Welcome to the new Zulip app!'**
-  String get upgradeWelcomeDialogTitle;
-
-  /// Message text for dialog shown on first upgrade from the legacy Zulip app.
-  ///
-  /// In en, this message translates to:
-  /// **'You’ll find a familiar experience in a faster, sleeker package.'**
-  String get upgradeWelcomeDialogMessage;
-
-  /// Text of link in dialog shown on first upgrade from the legacy Zulip app.
-  ///
-  /// In en, this message translates to:
-  /// **'Check out the announcement blog post!'**
-  String get upgradeWelcomeDialogLinkText;
-
-  /// Label for button dismissing dialog shown on first upgrade from the legacy Zulip app.
-  ///
-  /// In en, this message translates to:
-  /// **'Let\'s go'**
-  String get upgradeWelcomeDialogDismiss;
 
   /// Title for the page to choose between Zulip accounts.
   ///
@@ -320,12 +303,6 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'To upload an image, please grant Zulip additional permissions in Settings.'**
   String get permissionsDeniedCameraAccess;
-
-  /// Message for dialog asking the user to grant permissions for external storage read access.
-  ///
-  /// In en, this message translates to:
-  /// **'To upload files, please grant Zulip additional permissions in Settings.'**
-  String get permissionsDeniedReadExternalStorage;
 
   /// Label in the channel action sheet for subscribing to the channel.
   ///
@@ -548,6 +525,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Hide muted message again'**
   String get actionSheetOptionHideMutedMessage;
+
+  /// Label for the 'Hide link previews' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide link previews'**
+  String get actionSheetOptionHideLinkPreviews;
+
+  /// Label for the 'Show link previews' button in the message action sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Show link previews'**
+  String get actionSheetOptionShowLinkPreviews;
 
   /// Label for share button on action sheet.
   ///
@@ -805,6 +794,12 @@ abstract class ZulipLocalizations {
   /// **'{num, plural, =1{File} other{Files}} too large'**
   String errorFilesTooLargeTitle(int num);
 
+  /// Error message when the user selected files, photos, or videos to attach, but none of them could be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected files could not be loaded.'**
+  String get errorCouldNotLoadSelectedFiles;
+
   /// Error message when an attached file could not be read.
   ///
   /// In en, this message translates to:
@@ -946,6 +941,18 @@ abstract class ZulipLocalizations {
   /// In en, this message translates to:
   /// **'Failed to unstar message'**
   String get errorUnstarMessageFailedTitle;
+
+  /// Error title when hiding the link previews on a message failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to hide link previews'**
+  String get errorHideLinkPreviewsFailedTitle;
+
+  /// Error title when showing the link previews on a message failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to show link previews'**
+  String get errorShowLinkPreviewsFailedTitle;
 
   /// Error title when an exception prevented us from opening the compose box for editing a message.
   ///
@@ -2537,6 +2544,9 @@ class _ZulipLocalizationsDelegate
     'sk',
     'sl',
     'so',
+    'sv',
+    'th',
+    'tr',
     'uk',
     'vi',
     'zh',
@@ -2621,6 +2631,12 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsSl();
     case 'so':
       return ZulipLocalizationsSo();
+    case 'sv':
+      return ZulipLocalizationsSv();
+    case 'th':
+      return ZulipLocalizationsTh();
+    case 'tr':
+      return ZulipLocalizationsTr();
     case 'uk':
       return ZulipLocalizationsUk();
     case 'vi':

@@ -220,6 +220,10 @@ struct ImprovedNotificationContent: Hashable, CustomStringConvertible {
   var subtitle: String
   /// The new body to use for the notification.
   var body: String
+  /// The new thread identifier to use for the notification.
+  ///
+  /// See docs: https://developer.apple.com/documentation/usernotifications/unmutablenotificationcontent/threadidentifier
+  var threadIdentifier: String
   /// The new sound to use for the notification.
   var sound: IosNotificationSound
   /// The internal data to attach with the new notification.
@@ -234,13 +238,15 @@ struct ImprovedNotificationContent: Hashable, CustomStringConvertible {
     let title = pigeonVar_list[0] as! String
     let subtitle = pigeonVar_list[1] as! String
     let body = pigeonVar_list[2] as! String
-    let sound = pigeonVar_list[3] as! IosNotificationSound
-    let userInfo = pigeonVar_list[4] as! [String: Any?]
+    let threadIdentifier = pigeonVar_list[3] as! String
+    let sound = pigeonVar_list[4] as! IosNotificationSound
+    let userInfo = pigeonVar_list[5] as! [String: Any?]
 
     return ImprovedNotificationContent(
       title: title,
       subtitle: subtitle,
       body: body,
+      threadIdentifier: threadIdentifier,
       sound: sound,
       userInfo: userInfo
     )
@@ -250,6 +256,7 @@ struct ImprovedNotificationContent: Hashable, CustomStringConvertible {
       title,
       subtitle,
       body,
+      threadIdentifier,
       sound,
       userInfo,
     ]
@@ -258,7 +265,7 @@ struct ImprovedNotificationContent: Hashable, CustomStringConvertible {
     if Swift.type(of: lhs) != Swift.type(of: rhs) {
       return false
     }
-    return IosNotificationsPigeonInternal.deepEquals(lhs.title, rhs.title) && IosNotificationsPigeonInternal.deepEquals(lhs.subtitle, rhs.subtitle) && IosNotificationsPigeonInternal.deepEquals(lhs.body, rhs.body) && IosNotificationsPigeonInternal.deepEquals(lhs.sound, rhs.sound) && IosNotificationsPigeonInternal.deepEquals(lhs.userInfo, rhs.userInfo)
+    return IosNotificationsPigeonInternal.deepEquals(lhs.title, rhs.title) && IosNotificationsPigeonInternal.deepEquals(lhs.subtitle, rhs.subtitle) && IosNotificationsPigeonInternal.deepEquals(lhs.body, rhs.body) && IosNotificationsPigeonInternal.deepEquals(lhs.threadIdentifier, rhs.threadIdentifier) && IosNotificationsPigeonInternal.deepEquals(lhs.sound, rhs.sound) && IosNotificationsPigeonInternal.deepEquals(lhs.userInfo, rhs.userInfo)
   }
 
   func hash(into hasher: inout Hasher) {
@@ -266,12 +273,13 @@ struct ImprovedNotificationContent: Hashable, CustomStringConvertible {
     IosNotificationsPigeonInternal.deepHash(value: title, hasher: &hasher)
     IosNotificationsPigeonInternal.deepHash(value: subtitle, hasher: &hasher)
     IosNotificationsPigeonInternal.deepHash(value: body, hasher: &hasher)
+    IosNotificationsPigeonInternal.deepHash(value: threadIdentifier, hasher: &hasher)
     IosNotificationsPigeonInternal.deepHash(value: sound, hasher: &hasher)
     IosNotificationsPigeonInternal.deepHash(value: userInfo, hasher: &hasher)
   }
 
   public var description: String {
-    return "ImprovedNotificationContent(title: \(String(describing: title)), subtitle: \(String(describing: subtitle)), body: \(String(describing: body)), sound: \(String(describing: sound)), userInfo: \(String(describing: userInfo)))"
+    return "ImprovedNotificationContent(title: \(String(describing: title)), subtitle: \(String(describing: subtitle)), body: \(String(describing: body)), threadIdentifier: \(String(describing: threadIdentifier)), sound: \(String(describing: sound)), userInfo: \(String(describing: userInfo)))"
   }
 }
 

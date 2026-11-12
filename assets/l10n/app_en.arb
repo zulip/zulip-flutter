@@ -19,22 +19,6 @@
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
   },
-  "upgradeWelcomeDialogTitle": "Welcome to the new Zulip app!",
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "upgradeWelcomeDialogMessage": "You’ll find a familiar experience in a faster, sleeker package.",
-  "@upgradeWelcomeDialogMessage":  {
-    "description":  "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "upgradeWelcomeDialogLinkText":  "Check out the announcement blog post!",
-  "@upgradeWelcomeDialogLinkText":  {
-    "description":  "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "upgradeWelcomeDialogDismiss": "Let's go",
-  "@upgradeWelcomeDialogDismiss":  {
-    "description":  "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
   "chooseAccountPageTitle": "Choose account",
   "@chooseAccountPageTitle": {
     "description": "Title for the page to choose between Zulip accounts."
@@ -107,10 +91,6 @@
   "permissionsDeniedCameraAccess": "To upload an image, please grant Zulip additional permissions in Settings.",
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
-  },
-  "permissionsDeniedReadExternalStorage": "To upload files, please grant Zulip additional permissions in Settings.",
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
   "actionSheetOptionSubscribe": "Subscribe",
   "@actionSheetOptionSubscribe": {
@@ -276,6 +256,14 @@
   "actionSheetOptionHideMutedMessage": "Hide muted message again",
   "@actionSheetOptionHideMutedMessage":  {
     "description": "Label for hide muted message again button on action sheet."
+  },
+  "actionSheetOptionHideLinkPreviews": "Hide link previews",
+  "@actionSheetOptionHideLinkPreviews": {
+    "description": "Label for the 'Hide link previews' button in the message action sheet."
+  },
+  "actionSheetOptionShowLinkPreviews": "Show link previews",
+  "@actionSheetOptionShowLinkPreviews": {
+    "description": "Label for the 'Show link previews' button in the message action sheet."
   },
   "actionSheetOptionShare": "Share",
   "@actionSheetOptionShare":  {
@@ -467,6 +455,10 @@
       "num": {"type": "int", "example": "4"}
     }
   },
+  "errorCouldNotLoadSelectedFiles": "The selected files could not be loaded.",
+  "@errorCouldNotLoadSelectedFiles": {
+    "description": "Error message when the user selected files, photos, or videos to attach, but none of them could be loaded."
+  },
   "errorCouldNotReadFile": "Could not read file: {filename}",
   "@errorCouldNotReadFile": {
     "description": "Error message when an attached file could not be read.",
@@ -579,6 +571,14 @@
   "errorUnstarMessageFailedTitle": "Failed to unstar message",
   "@errorUnstarMessageFailedTitle": {
     "description": "Error title when unstarring a message failed."
+  },
+  "errorHideLinkPreviewsFailedTitle": "Failed to hide link previews",
+  "@errorHideLinkPreviewsFailedTitle": {
+    "description": "Error title when hiding the link previews on a message failed."
+  },
+  "errorShowLinkPreviewsFailedTitle": "Failed to show link previews",
+  "@errorShowLinkPreviewsFailedTitle": {
+    "description": "Error title when showing the link previews on a message failed."
   },
   "errorCouldNotEditMessageTitle": "Could not edit message",
   "@errorCouldNotEditMessageTitle": {

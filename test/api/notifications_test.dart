@@ -93,9 +93,6 @@ void main() {
       });
 
       test('optional fields missing cause no error', () {
-        check(parse({ ...streamJson }..remove('realm_name')))
-          .realmName.isNull();
-
         check(parse({ ...streamJson }..remove('channel_name')))
           .recipient.isA<NotifPayloadChannelRecipient>().which((it) => it
             ..channelId.equals(42)
@@ -138,6 +135,7 @@ void main() {
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('realm_name')));
 
         test("${n++}", () => checkParseFails({ ...streamJson, 'channel_id': 'abc' }));
         test("${n++}", () => checkParseFails({ ...streamJson }..remove('topic')));
@@ -199,6 +197,7 @@ void main() {
             "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...baseJson }..remove('realm_name')));
       });
     });
   });
@@ -293,9 +292,6 @@ void main() {
       });
 
       test('optional fields missing cause no error', () {
-        check(parse({ ...streamJson }..remove('realm_name')))
-          .realmName.isNull();
-
         check(parse({ ...streamJson }..remove('stream')))
           .recipient.isA<LegacyFcmMessageChannelRecipient>().which((it) => it
             ..channelId.equals(42)
@@ -359,6 +355,7 @@ void main() {
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...dmJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...dmJson }..remove('realm_name')));
 
         test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': 'abc' }));
         test("${n++}", () => checkParseFails({ ...streamJson, 'stream_id': '12,34' }));
@@ -441,6 +438,7 @@ void main() {
             "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': 'zulip.example.com' }));
         test(skip: true, // Dart's Uri.parse is lax in what it accepts.
             "${n++}", () => checkParseFails({ ...baseJson, 'realm_url': '/examplecorp' }));
+        test("${n++}", () => checkParseFails({ ...baseJson }..remove('realm_name')));
 
         for (final badIntList in ["abc,34", "12,abc", "12,", ""]) {
           test("${n++}", () => checkParseFails({ ...baseJson, 'zulip_message_ids': badIntList }));
@@ -456,7 +454,7 @@ extension UnexpectedNotifPayloadChecks on Subject<UnexpectedNotifPayload> {
 
 extension NotifPayloadWithIdentityChecks on Subject<NotifPayloadWithIdentity> {
   Subject<Uri> get realmUrl => has((x) => x.realmUrl, 'realmUrl');
-  Subject<String?> get realmName => has((x) => x.realmName, 'realmName');
+  Subject<String> get realmName => has((x) => x.realmName, 'realmName');
   Subject<int> get userId => has((x) => x.userId, 'userId');
 }
 

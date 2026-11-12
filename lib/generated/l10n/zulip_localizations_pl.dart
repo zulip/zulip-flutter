@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 // ignore: unused_import
@@ -27,20 +28,6 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
 
   @override
   String get aboutPageOpenSourceLicenses => 'Licencje otwartego źródła';
-
-  @override
-  String get upgradeWelcomeDialogTitle => 'Witaj w nowej apce Zulip!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Napotkasz na znane rozwiązania, które upakowaliśmy w szybszy i elegancki pakiet.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Sprawdź blog pod kątem obwieszczenia!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Zaczynajmy';
 
   @override
   String get chooseAccountPageTitle => 'Wybierz konto';
@@ -101,10 +88,6 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   @override
   String get permissionsDeniedCameraAccess =>
       'Aby odebrać obraz Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Aby odebrać pliki Zulip musi uzyskać dodatkowe uprawnienia w Ustawieniach.';
 
   @override
   String get actionSheetOptionSubscribe => 'Subskrybuj';
@@ -250,6 +233,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   @override
   String get actionSheetOptionHideMutedMessage =>
       'Ukryj ponownie wyciszone wiadomości';
+
+  @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
 
   @override
   String get actionSheetOptionShare => 'Udostępnij';
@@ -414,6 +403,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'The selected files could not be loaded.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
     return 'Could not read file: $filename';
   }
@@ -501,6 +494,12 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Odebranie gwiazdki bez powodzenia';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Nie można zmienić wiadomości';

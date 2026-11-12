@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:zulip/generated/l10n/zulip_localizations.dart';
 import 'package:zulip/widgets/page.dart';
@@ -71,7 +71,13 @@ class TestZulipApp extends StatelessWidget {
 
       return MaterialApp(
         title: 'Zulip',
-        localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+        // TODO(upstream): use ZulipLocalizations.localizationsDelegates
+        //   once gen-l10n supports material_ui:
+        //     https://github.com/flutter/flutter/issues/191072
+        localizationsDelegates: const [
+          ZulipLocalizations.delegate,
+          ...GlobalMaterialLocalizations.delegates,
+        ],
         supportedLocales: ZulipLocalizations.supportedLocales,
         // The context has to be taken from the [Builder] because
         // [zulipThemeData] requires access to [GlobalStoreWidget] in the tree.

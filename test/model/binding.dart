@@ -427,11 +427,21 @@ class TestZulipBinding extends ZulipBinding {
 
   /// The value that `ZulipBinding.instance.pickFiles()` should return.
   ///
-  /// See also [takePickFilesCalls].
-  FilePickerResult? pickFilesResult;
+  /// See also:
+  ///   * [pickFilesException]
+  ///   * [takePickFilesCalls]
+  List<XFile> pickFilesResult = [];
+
+  /// The [PlatformException] that `ZulipBinding.instance.pickFiles()` should throw.
+  ///
+  /// See also:
+  ///   * [pickFilesResult]
+  ///   * [takePickFilesCalls]
+  PlatformException? pickFilesException;
 
   void _resetPickFiles() {
-    pickFilesResult = null;
+    pickFilesResult = [];
+    pickFilesException = null;
     _pickFilesCalls = null;
   }
 
@@ -443,27 +453,40 @@ class TestZulipBinding extends ZulipBinding {
   ///
   /// See also [pickFilesResult].
   List<({
-    bool? allowMultiple,
-    bool? withReadStream,
     FileType? type,
+    DarwinOptions darwinOptions,
   })> takePickFilesCalls() {
     final result = _pickFilesCalls;
     _pickFilesCalls = null;
     return result ?? [];
   }
   List<({
-    bool? allowMultiple,
-    bool? withReadStream,
     FileType? type,
+    DarwinOptions darwinOptions,
   })>? _pickFilesCalls;
 
   @override
-  Future<FilePickerResult?> pickFiles({
-    bool? allowMultiple,
-    bool? withReadStream,
+  Future<List<XFile>> pickFiles({
     FileType? type,
+    DarwinOptions darwinOptions = const DarwinOptions(),
   }) async {
-    (_pickFilesCalls ??= []).add((allowMultiple: allowMultiple, withReadStream: withReadStream, type: type));
+    (_pickFilesCalls ??= []).add((type: type, darwinOptions: darwinOptions));
+
+    if (pickFilesResult.isNotEmpty && pickFilesException != null) {
+      throw FlutterError.fromParts([
+        ErrorSummary(
+          'TestZulipBinding.pickFiles called '
+          'with non-empty pickFilesResult and non-null pickFilesException'),
+        ErrorHint(
+          'Tests should either set pickFilesResult or pickFilesException, '
+          'but not both.'),
+      ]);
+    }
+
+    if (pickFilesException != null) {
+      throw pickFilesException!;
+    }
+
     return pickFilesResult;
   }
 
@@ -1057,18 +1080,6 @@ class FakeAndroidNotificationHostApi implements AndroidNotificationHostApi {
 }
 
 class FakeNotificationPigeonApi implements NotificationPigeonApi {
-  NotificationDataFromLaunch? _notificationDataFromLaunch;
-
-  /// Populates the notification data for launch to be returned
-  /// by [getNotificationDataFromLaunch].
-  void setNotificationDataFromLaunch(NotificationDataFromLaunch? data) {
-    _notificationDataFromLaunch = data;
-  }
-
-  @override
-  Future<NotificationDataFromLaunch?> getNotificationDataFromLaunch() async =>
-    _notificationDataFromLaunch;
-
   final _notificationTapEventsStreamController =
     StreamController<NotificationTapEvent>();
 

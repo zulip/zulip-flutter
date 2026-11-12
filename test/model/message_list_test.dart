@@ -3339,24 +3339,22 @@ void main() {
         eg.streamMessage(id: startingId + 1,
           stream: stream, topic: mutedTopic, flags: [MessageFlag.streamWildcardMentioned]),
         eg.streamMessage(id: startingId + 2,
-          stream: stream, topic: mutedTopic, flags: [MessageFlag.wildcardMentioned]),
-        eg.streamMessage(id: startingId + 3,
           stream: stream, topic: mutedTopic, flags: [MessageFlag.mentioned]),
-        eg.dmMessage(id: startingId + 4,
+        eg.dmMessage(id: startingId + 3,
           from: eg.otherUser, to: [eg.selfUser], flags: [MessageFlag.mentioned]),
       ];
 
       // Check filtering on fetchInitial…
       await prepareMessages(foundOldest: false, messages: getMessages(201));
       final expected = <int>[];
-      checkHasMessageIds(expected..addAll([201, 202, 203, 204, 205]));
+      checkHasMessageIds(expected..addAll([201, 202, 203, 204]));
 
       // … and on fetchOlder…
       connection.prepare(json: olderResult(
         anchor: 201, foundOldest: true, messages: getMessages(101)).toJson());
       await model.fetchOlder();
       checkNotified(count: 2);
-      checkHasMessageIds(expected..insertAll(0, [101, 102, 103, 104, 105]));
+      checkHasMessageIds(expected..insertAll(0, [101, 102, 103, 104]));
 
       // … and on MessageEvent.
       final messages = getMessages(301);
@@ -3681,7 +3679,11 @@ void main() {
   });
 
   group('findItemWithMessageId', () {
-    test('has MessageListDateSeparatorItem with null message ID', () => awaitFakeAsync((async) async {
+    test('has MessageListDateSeparatorItem with null message ID', () => awaitFakeAsync(
+        // Pin the clock, to noon, so the message is definitely dated on the
+        // previous calendar day. (This avoids flakes involving a 25-hour day
+        // when clocks fall back for Daylight Saving Time.)
+        initialTime: DateTime(2035, 8, 21, 12), (async) async {
       final stream = eg.stream();
       final message = eg.streamMessage(stream: stream, topic: 'topic',
         timestamp: eg.utcTimestamp(clock.daysAgo(1)));
@@ -3891,17 +3893,14 @@ void main() {
     doTest(narrow: MentionsNarrow(),                    expected: true);
   });
 
-  test('showSender is maintained correctly', () => awaitFakeAsync((async) async {
+  test('showSender is maintained correctly', () => awaitFakeAsync(
+      // Pin the clock, to avoid flakes that depend on the local time of day.
+      initialTime: DateTime(2035, 8, 21), (async) async {
     // TODO(#150): This will get more complicated with message moves.
     // Until then, we always compute this sequentially from oldest to newest.
     // So we just need to exercise the different cases of the logic for
     // whether the sender should be shown, but the difference between
     // fetchInitial and handleMessageEvent etc. doesn't matter.
-
-    // Elapse test's clock to a specific time, to avoid any flaky-ness
-    // that may be caused by a specific local time of the day.
-    final initialTime = DateTime(2035, 8, 21);
-    async.elapse(initialTime.difference(clock.now()));
 
     final now = clock.now();
     final t1 = eg.utcTimestamp(now.subtract(Duration(days: 1)));

@@ -3,8 +3,8 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../api/exception.dart';
@@ -773,9 +773,6 @@ void showTopicActionSheet(BuildContext context, {
 
   final optionButtons = <ActionSheetMenuItemButton>[];
 
-  // TODO(server-8): simplify this condition away
-  final supportsFollowingTopics = store.zulipFeatureLevel >= 219;
-
   final visibilityOptions = <UserTopicVisibilityPolicy>[];
   final visibilityPolicy = store.topicVisibilityPolicy(channelId, topic);
   if (subscription == null) {
@@ -785,20 +782,14 @@ void showTopicActionSheet(BuildContext context, {
     switch (visibilityPolicy) {
       case UserTopicVisibilityPolicy.muted:
         visibilityOptions.add(UserTopicVisibilityPolicy.none);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.followed);
       case UserTopicVisibilityPolicy.none:
       case UserTopicVisibilityPolicy.unmuted:
         visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.followed);
       case UserTopicVisibilityPolicy.followed:
         visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.none);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.none);
       case UserTopicVisibilityPolicy.unknown:
         // TODO(#1074): This should be unreachable as we keep `unknown` out of
         //   our data structures.
@@ -810,19 +801,13 @@ void showTopicActionSheet(BuildContext context, {
       case UserTopicVisibilityPolicy.none:
       case UserTopicVisibilityPolicy.muted:
         visibilityOptions.add(UserTopicVisibilityPolicy.unmuted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.followed);
       case UserTopicVisibilityPolicy.unmuted:
         visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.followed);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.followed);
       case UserTopicVisibilityPolicy.followed:
         visibilityOptions.add(UserTopicVisibilityPolicy.muted);
-        if (supportsFollowingTopics) {
-          visibilityOptions.add(UserTopicVisibilityPolicy.none);
-        }
+        visibilityOptions.add(UserTopicVisibilityPolicy.none);
       case UserTopicVisibilityPolicy.unknown:
         // TODO(#1074): This should be unreachable as we keep `unknown` out of
         //   our data structures.
@@ -1224,6 +1209,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final pageContext = PageRoot.contextOf(context);
   final store = PerAccountStoreWidget.of(pageContext);
 
+  final content = parseMessageContent(message);
+
   final popularEmojiLoaded = store.popularEmojiCandidates().isNotEmpty;
 
   final reactions = message.reactions;
@@ -1242,6 +1229,9 @@ void showMessageActionSheet({required BuildContext context, required Message mes
   final isMessageRead = message.flags.contains(MessageFlag.read);
 
   final isSenderMuted = store.isUserMuted(message.senderId);
+
+  final canHideShowLinkPreviews = store.zulipFeatureLevel >= 510 // TODO(server-13)
+    && content is ZulipContent && content.hasLinkPreviews;
 
   final reportChannelId = store.realmModerationRequestChannelId;
   final canReport = reportChannelId != null && reportChannelId != -1;
@@ -1262,6 +1252,8 @@ void showMessageActionSheet({required BuildContext context, required Message mes
       if (isSenderMuted)
         // The message must have been revealed in order to open this action sheet.
         UnrevealMutedMessageButton(message: message, pageContext: pageContext),
+      if (canHideShowLinkPreviews)
+        HideShowLinkPreviewsButton(message: message, pageContext: pageContext),
       CopyMessageTextButton(message: message, pageContext: pageContext),
       CopyMessageLinkButton(message: message, pageContext: pageContext),
       ShareButton(message: message, pageContext: pageContext),
@@ -1276,13 +1268,14 @@ void showMessageActionSheet({required BuildContext context, required Message mes
 
   _showActionSheet(pageContext,
     buttonSections: buttonSections,
-    header: _MessageActionSheetHeader(message: message));
+    header: _MessageActionSheetHeader(message: message, content: content));
 }
 
 class _MessageActionSheetHeader extends StatelessWidget {
-  const _MessageActionSheetHeader({required this.message});
+  const _MessageActionSheetHeader({required this.message, required this.content});
 
   final Message message;
+  final ZulipMessageContent content;
 
   @override
   Widget build(BuildContext context) {
@@ -1307,7 +1300,7 @@ class _MessageActionSheetHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             // TODO(#10) offer text selection; the Figma asks for it here:
             //   https://www.figma.com/design/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=3483-30210&m=dev
-            child: MessageContent(message: message, content: parseMessageContent(message))),
+            child: MessageContent(message: message, content: content)),
         ]));
   }
 }
@@ -1670,6 +1663,51 @@ class UnrevealMutedMessageButton extends MessageActionSheetMenuItemButton {
   }
 }
 
+class HideShowLinkPreviewsButton extends MessageActionSheetMenuItemButton {
+  HideShowLinkPreviewsButton({super.key, required super.message, required super.pageContext})
+    : _actionIsHide = !message.flags.contains(MessageFlag.hideLinkPreviews);
+
+  final bool _actionIsHide;
+
+  @override
+  IconData get icon => _actionIsHide ? ZulipIcons.eye_off : ZulipIcons.eye;
+
+  @override
+  String label(ZulipLocalizations zulipLocalizations) {
+    return _actionIsHide
+      ? zulipLocalizations.actionSheetOptionHideLinkPreviews
+      : zulipLocalizations.actionSheetOptionShowLinkPreviews;
+  }
+
+  @override void onPressed() async {
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+
+    try {
+      final connection = PerAccountStoreWidget.of(pageContext).connection;
+      await updateMessageFlags(connection, messages: [message.id],
+        op: _actionIsHide ? UpdateMessageFlagsOp.add : UpdateMessageFlagsOp.remove,
+        flag: MessageFlag.hideLinkPreviews);
+    } catch (e) {
+      if (!pageContext.mounted) return;
+
+      String? errorMessage;
+      switch (e) {
+        case ZulipApiException():
+          errorMessage = e.message;
+          // TODO(#741) specific messages for common errors, like network errors
+          //   (support with reusable code)
+        default:
+      }
+
+      showErrorDialog(context: pageContext,
+        title: _actionIsHide
+          ? zulipLocalizations.errorHideLinkPreviewsFailedTitle
+          : zulipLocalizations.errorShowLinkPreviewsFailedTitle,
+        message: errorMessage);
+    }
+  }
+}
+
 class CopyMessageTextButton extends MessageActionSheetMenuItemButton {
   CopyMessageTextButton({super.key, required super.message, required super.pageContext});
 
@@ -1765,10 +1803,13 @@ class ShareButton extends MessageActionSheetMenuItemButton {
 
     if (!pageContext.mounted) return;
 
-    // TODO: to support iPads, we're asked to give a
-    //   `sharePositionOrigin` param, or risk crashing / hanging:
+    // TODO: on iPads, pass `sharePositionOrigin`, so the share sheet's
+    //   popover points at the message. Without it, share_plus anchors
+    //   the popover at the center of the screen:
     //     https://pub.dev/packages/share_plus#ipad
-    //   Perhaps a wart in the API; discussion:
+    //   (Before share_plus 13.3.0, leaving it out made sharing fail
+    //   on iPads.)
+    //   Discussion:
     //     https://github.com/zulip/zulip-flutter/pull/12#discussion_r1130146231
     final result =
       await SharePlus.instance.share(ShareParams(text: rawContent));

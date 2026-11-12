@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -155,23 +155,29 @@ void main() {
       // exactly the way it currently is.  But save that for a future where
       // we've made a pass over the logic to ensure we're happy with that spec.
 
-      await update(tester, user, activeSeconds: 10 * 60);
-      check(find.text('Active 10 minutes ago')).findsOne();
+      // The cases below count back a whole number of 24-hour days and expect
+      // that many calendar days.  Those don't necessarily agree when a DST
+      // transition falls in the interval, so pin the clock to a date whose
+      // preceding 80 days have none.
+      await withClock(Clock.fixed(DateTime.parse('2025-08-01 12:00')), () async {
+        await update(tester, user, activeSeconds: 10 * 60);
+        check(find.text('Active 10 minutes ago')).findsOne();
 
-      await update(tester, user, activeSeconds: 61 * 60);
-      check(find.text('Active 1 hour ago')).findsOne();
+        await update(tester, user, activeSeconds: 61 * 60);
+        check(find.text('Active 1 hour ago')).findsOne();
 
-      await update(tester, user, activeSeconds: 20 * 60 * 60);
-      check(find.text('Active 20 hours ago')).findsOne();
+        await update(tester, user, activeSeconds: 20 * 60 * 60);
+        check(find.text('Active 20 hours ago')).findsOne();
 
-      await update(tester, user, activeSeconds: 24 * 60 * 60);
-      check(find.text('Active yesterday')).findsOne();
+        await update(tester, user, activeSeconds: 24 * 60 * 60);
+        check(find.text('Active yesterday')).findsOne();
 
-      await update(tester, user, activeSeconds: 2 * 24 * 60 * 60);
-      check(find.text('Active 2 days ago')).findsOne();
+        await update(tester, user, activeSeconds: 2 * 24 * 60 * 60);
+        check(find.text('Active 2 days ago')).findsOne();
 
-      await update(tester, user, activeSeconds: 80 * 24 * 60 * 60);
-      check(find.text('Active 80 days ago')).findsOne();
+        await update(tester, user, activeSeconds: 80 * 24 * 60 * 60);
+        check(find.text('Active 80 days ago')).findsOne();
+      });
     });
 
     testWidgets('dates', (tester) async {

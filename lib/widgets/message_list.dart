@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:material_ui/material_ui.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
@@ -1422,10 +1422,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           headerWithLinkMarkup: zulipLocalizations.emptyMessageListMentionsHeader,
           onTapHeaderLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/mention-a-user-or-group')!),
-          message: store.zulipFeatureLevel >= 224
-            // This string mentions @topic, which is new in Server 8.
-            ? zulipLocalizations.emptyMessageListMentionsMessage
-            : null); // TODO(server-8)
+          message: zulipLocalizations.emptyMessageListMentionsMessage);
 
       case StarredMessagesNarrow():
         return PageBodyEmptyContentPlaceholder(

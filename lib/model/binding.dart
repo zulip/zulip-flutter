@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart' as connectivity_plus;
+import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart' as connectivity_plus_platform;
 import 'package:device_info_plus/device_info_plus.dart' as device_info_plus;
 import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
@@ -23,7 +24,7 @@ import '../log.dart';
 import 'store.dart';
 
 export 'package:connectivity_plus/connectivity_plus.dart' show ConnectivityResult;
-export 'package:file_picker/file_picker.dart' show FilePickerResult, FileType, PlatformFile;
+export 'package:file_picker/file_picker.dart' show DarwinOptions, FileType;
 export 'package:image_picker/image_picker.dart' show ImageSource, XFile;
 
 /// Alias for [url_launcher.LaunchMode].
@@ -85,6 +86,9 @@ abstract class ZulipBinding {
 
   /// Get the app's singleton [GlobalStore],
   /// loading it asynchronously if not already loaded.
+  ///
+  /// If the load fails, the returned future completes with the error,
+  /// and a later call will try loading again.
   ///
   /// Where possible, use [GlobalStoreWidget.of] to get access to a [GlobalStore].
   /// Use this method only in contexts like notifications where
@@ -168,7 +172,9 @@ abstract class ZulipBinding {
   ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/android/src/main/java/dev/fluttercommunity/plus/connectivity/ConnectivityBroadcastReceiver.java#L87-L89
   ///   https://github.com/fluttercommunity/plus_plugins/blob/connectivity_plus-v7.3.1/packages/connectivity_plus/connectivity_plus/ios/connectivity_plus/Sources/connectivity_plus/ConnectivityPlusPlugin.swift#L73-L80
   ///
-  /// This wraps [connectivity_plus.Connectivity.onConnectivityChanged].
+  /// Consecutive events may describe the same state.
+  ///
+  /// This wraps [connectivity_plus_platform.ConnectivityPlatform.onConnectivityChanged].
   Stream<List<connectivity_plus.ConnectivityResult>> get connectivityChanges;
 
   /// The device's current network connectivity,
@@ -233,7 +239,7 @@ abstract class ZulipBinding {
   /// Wraps the [AndroidNotificationHostApi] constructor.
   AndroidNotificationHostApi get androidNotificationHost;
 
-  /// Wraps the [notif_pigeon.NotificationHostApi] class.
+  /// Wraps the [notif_pigeon.notificationTapEvents] function.
   NotificationPigeonApi get notificationPigeonApi;
 
   Stream<android_intents_pigeon.AndroidIntentEvent> get androidIntentEvents;
@@ -241,13 +247,16 @@ abstract class ZulipBinding {
   /// Wraps the [IosNotifFlutterApi.setUp] method.
   void setupIosNotifFlutterApi(IosNotifFlutterApi api);
 
-  /// Pick files from the media library, via package:file_picker.
+  /// Pick files, via package:file_picker.
   ///
-  /// This wraps [file_picker.pickFiles].
-  Future<file_picker.FilePickerResult?> pickFiles({
-    bool allowMultiple,
-    bool withReadStream,
+  /// This wraps [file_picker.FilePicker.pickFiles],
+  /// returning each picked file's [file_picker.PlatformFile.xFile].
+  ///
+  /// The result is empty if the user cancelled.
+  /// If none of the picked files could be read, the call throws.
+  Future<List<image_picker.XFile>> pickFiles({
     file_picker.FileType type,
+    file_picker.DarwinOptions darwinOptions,
   });
 
   /// Pick files from the camera or media library, via package:image_picker.
@@ -408,11 +417,6 @@ class PackageInfo {
 // in global scope of the generated file. This is a helper class to
 // namespace the notification related Pigeon API under a single class.
 class NotificationPigeonApi {
-  final _hostApi = notif_pigeon.NotificationHostApi();
-
-  Future<notif_pigeon.NotificationDataFromLaunch?> getNotificationDataFromLaunch() =>
-    _hostApi.getNotificationDataFromLaunch();
-
   /// An event stream that emits a notification payload
   /// when a notification is tapped.
   ///
@@ -453,17 +457,42 @@ class LiveZulipBinding extends ZulipBinding {
   }
 
   @override
-  Future<GlobalStore> getGlobalStore() {
-    return _globalStoreFuture ??= LiveGlobalStore.load().then((store) {
-      return _globalStore = store;
-    });
+  Future<GlobalStore> getGlobalStore() async {
+    // First, see if we have the store already.
+    final store = _globalStore;
+    if (store != null) {
+      return store;
+    }
+
+    // Next, see if another call has already started loading one.
+    Future<GlobalStore>? future = _globalStoreLoading;
+    if (future != null) {
+      return future;
+    }
+
+    // It's up to us. Start loading.
+    future = doLoadGlobalStore();
+    _globalStoreLoading = future;
+    try {
+      return _globalStore = await future;
+    } catch (_) {
+      // TODO(log) the load failure
+      rethrow;
+    } finally {
+      _globalStoreLoading = null;
+    }
   }
+
+  /// Load the [GlobalStore], reading the app's database.
+  ///
+  /// This method should be called only by [getGlobalStore].
+  Future<GlobalStore> doLoadGlobalStore() => LiveGlobalStore.load();
 
   @override
   GlobalStore? getGlobalStoreSync() => _globalStore;
 
-  Future<GlobalStore>? _globalStoreFuture;
   GlobalStore? _globalStore;
+  Future<GlobalStore>? _globalStoreLoading;
 
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
@@ -526,7 +555,9 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Stream<List<connectivity_plus.ConnectivityResult>> get connectivityChanges =>
-    connectivity_plus.Connectivity().onConnectivityChanged;
+    // Not [connectivity_plus.Connectivity.onConnectivityChanged],
+    // whose filter for repeats can swallow a real change.
+    connectivity_plus_platform.ConnectivityPlatform.instance.onConnectivityChanged;
 
   @override
   Future<List<connectivity_plus.ConnectivityResult>> checkConnectivity() =>
@@ -620,16 +651,13 @@ class LiveZulipBinding extends ZulipBinding {
   void setupIosNotifFlutterApi(IosNotifFlutterApi api) => IosNotifFlutterApi.setUp(api);
 
   @override
-  Future<file_picker.FilePickerResult?> pickFiles({
-    bool allowMultiple = false,
-    bool withReadStream = false,
+  Future<List<image_picker.XFile>> pickFiles({
     file_picker.FileType type = file_picker.FileType.any,
+    file_picker.DarwinOptions darwinOptions = const file_picker.DarwinOptions(),
   }) async {
-    return file_picker.FilePicker.pickFiles(
-      allowMultiple: allowMultiple,
-      withReadStream: withReadStream,
-      type: type,
-    );
+    final files = await file_picker.FilePicker.pickFiles(
+      type: type, darwinOptions: darwinOptions);
+    return files.map((f) => f.xFile).toList();
   }
 
   @override

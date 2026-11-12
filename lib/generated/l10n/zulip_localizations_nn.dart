@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 // ignore: unused_import
@@ -19,27 +20,13 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get aboutPageAppVersion => 'Appversjon';
 
   @override
-  String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+  String get aboutPageAppVersionUnknown => 'Fann ikkje versjonsinfo for appen.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes => 'Versjonsinfo';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Lisensar for open kjeldekode';
-
-  @override
-  String get upgradeWelcomeDialogTitle => 'Velkomen til den nye Zulip-appen!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Du finn eit kjent miljø i ei raskare og meir straumlineforma pakke.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => 'Sjekk kunngjeringsbloggposten!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'La oss starta';
 
   @override
   String get chooseAccountPageTitle => 'Vel konto';
@@ -99,10 +86,6 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   @override
   String get permissionsDeniedCameraAccess =>
       'Gje Zulip ekstra løyve i Innstillingane for å lasta opp eit bilete.';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Gje Zulip ekstra løyve i Innstillingane for å lasta opp filer.';
 
   @override
   String get actionSheetOptionSubscribe => 'Abonner';
@@ -243,6 +226,12 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionHideMutedMessage => 'Gøym dempa melding på nytt';
+
+  @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
 
   @override
   String get actionSheetOptionShare => 'Del';
@@ -404,8 +393,12 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'Dei valde filene kunne ikkje bli lasta opp.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'Kunne ikkje lesa: $filename';
   }
 
   @override
@@ -493,10 +486,16 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
       'Kunne ikkje fjerna stjerne på meldinga';
 
   @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
+
+  @override
   String get errorCouldNotEditMessageTitle => 'Kunne ikkje redigera meldinga';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied => 'Appversjon kopiert';
 
   @override
   String get successLinkCopied => 'Kopierte lenka';
@@ -811,10 +810,10 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'Dette er adressa for å opna Zulip i ein nettleser.';
 
   @override
-  String get loginRealmUrlHelpButton => 'Help';
+  String get loginRealmUrlHelpButton => 'Hjelp';
 
   @override
   String get loginHidePassword => 'Gøym passordet';
@@ -850,7 +849,7 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'Emne er påkravd i denne organisasjonen.';
+      'Emne er påkravd i denne kanalen.';
 
   @override
   String get errorContentNotInsertedTitle => 'Innhaldet ikkje sett inn';

@@ -33,6 +33,7 @@ class ImprovedNotificationContent {
     required this.title,
     required this.subtitle,
     required this.body,
+    required this.threadIdentifier,
     required this.sound,
     required this.userInfo,
   });
@@ -45,6 +46,11 @@ class ImprovedNotificationContent {
 
   /// The new body to use for the notification.
   final String body;
+
+  /// The new thread identifier to use for the notification.
+  ///
+  /// See docs: https://developer.apple.com/documentation/usernotifications/unmutablenotificationcontent/threadidentifier
+  final String threadIdentifier;
 
   /// The new sound to use for the notification.
   final IosNotificationSound sound;

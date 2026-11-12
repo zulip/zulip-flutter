@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:checks/checks.dart';
 import 'package:drift/drift.dart' as drift;
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:material_ui/material_ui.dart';
 import 'package:zulip/api/core.dart';
 import 'package:zulip/api/model/web_auth.dart';
 import 'package:zulip/api/route/account.dart';

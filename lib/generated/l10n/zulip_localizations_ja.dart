@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 // ignore: unused_import
@@ -27,19 +28,6 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get aboutPageOpenSourceLicenses => 'オープンソースライセンス';
-
-  @override
-  String get upgradeWelcomeDialogTitle => '新しいZulipアプリへようこそ！';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'より速く、洗練されたデザインで、これまでと同じ使い心地をお楽しみいただけます。';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => 'お知らせブログ記事をご確認ください！';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'はじめよう';
 
   @override
   String get chooseAccountPageTitle => 'アカウントを選択';
@@ -99,10 +87,6 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   @override
   String get permissionsDeniedCameraAccess =>
       '画像をアップロードするには、[設定] でZulipに追加の権限を付与してください。';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      'ファイルをアップロードするには、[設定] でZulipに追加の権限を付与してください。';
 
   @override
   String get actionSheetOptionSubscribe => 'チャンネルに参加';
@@ -237,6 +221,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionHideMutedMessage => 'ミュートしたメッセージを再び非表示にする';
+
+  @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
 
   @override
   String get actionSheetOptionShare => '共有';
@@ -396,6 +386,10 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'The selected files could not be loaded.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
     return 'Could not read file: $filename';
   }
@@ -479,6 +473,12 @@ class ZulipLocalizationsJa extends ZulipLocalizations {
 
   @override
   String get errorUnstarMessageFailedTitle => 'メッセージのスターを外せませんでした';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle => 'メッセージを編集できませんでした';

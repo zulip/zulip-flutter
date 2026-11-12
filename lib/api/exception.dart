@@ -58,7 +58,8 @@ enum NetworkExceptionKind {
 /// A network-level error that prevented getting a usable HTTP response
 /// to some Zulip API network request:
 /// either no response at all,
-/// or a success response cut off partway through the body.
+/// or a response cut off partway through a body we needed:
+/// a success response's, or a 4xx's, which has the error details.
 ///
 /// This is the antonym of [HttpException].
 class NetworkException extends ApiRequestException {

@@ -4,9 +4,9 @@ import 'dart:ui';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 
@@ -1110,57 +1110,41 @@ abstract class _AttachUploadsButton extends StatelessWidget {
 }
 
 Future<Iterable<FileToUpload>> _getFilePickerFiles(BuildContext context, FileType type) async {
-  FilePickerResult? result;
+  final List<XFile> files;
   try {
-    result = await ZulipBinding.instance
-      .pickFiles(allowMultiple: true, withReadStream: true, type: type);
+    files = await ZulipBinding.instance.pickFiles(type: type,
+      darwinOptions: const DarwinOptions(
+        // On iOS, ask the system not to transcode photos and videos
+        // from the library, as file_picker 11 did with the default
+        // `compressionQuality` of 0. Apple says it avoids that "if possible":
+        //   https://developer.apple.com/documentation/photosui/phpickerconfiguration-swift.struct/assetrepresentationmode/current
+        assetRepresentationMode: .current,
+        // Keep the photo picker's selection mode as it was
+        // with file_picker 11:
+        //   https://developer.apple.com/documentation/photosui/phpickerconfiguration-swift.struct/selection-swift.enum
+        // (Also: ordered selection would stop the user from selecting
+        // several photos by dragging across the grid.)
+        orderedSelection: false));
   } catch (e) {
     if (!context.mounted) return [];
     final zulipLocalizations = ZulipLocalizations.of(context);
-    if (e is PlatformException && e.code == 'read_external_storage_denied') {
-      // Observed on Android. If Android's error message tells us whether the
-      // user has checked "Don't ask again", it seems the library doesn't pass
-      // that on to us. So just always prompt to check permissions in settings.
-      // If the user hasn't checked "Don't ask again", they can always dismiss
-      // our prompt and retry, and the permissions request will reappear,
-      // letting them grant permissions and complete the upload.
-      final dialog = showSuggestedActionDialog(context: context,
-        title: zulipLocalizations.permissionsNeededTitle,
-        message: zulipLocalizations.permissionsDeniedReadExternalStorage,
-        actionButtonText: zulipLocalizations.permissionsNeededOpenSettings);
-      if (await dialog.result == true) {
-        unawaited(AppSettings.openAppSettings());
-      }
-    } else {
-      showErrorDialog(context: context,
-        title: zulipLocalizations.errorDialogTitle,
-        message: e.toString());
-    }
+    // file_picker throws these when the user picked one or more items but none
+    // could be loaded: `load_failed` on iOS, `unknown_path` on Android.
+    //   https://github.com/vicajilau/flutter_file_picker/blob/2817844ed/packages/file_picker_darwin/darwin/file_picker_darwin/Sources/file_picker_darwin/IOSFilePickerHandler.swift#L309-L318
+    //   https://github.com/vicajilau/flutter_file_picker/blob/2817844ed/packages/file_picker_android/android/src/main/kotlin/com/mr/flutter/plugin/filepicker/FileUtils.kt#L176-L182
+    // TODO(upstream): match a typed error code instead, if file_picker
+    //   gets those: https://github.com/vicajilau/flutter_file_picker/issues/2262
+    final message = switch (e) {
+      PlatformException(code: 'load_failed' || 'unknown_path') =>
+        zulipLocalizations.errorCouldNotLoadSelectedFiles,
+      _ => e.toString(),
+    };
+    showErrorDialog(context: context,
+      title: zulipLocalizations.errorDialogTitle,
+      message: message);
     return [];
   }
-  if (result == null) {
-    return []; // User cancelled; do nothing
-  }
-
-  return result.files.map((f) {
-    assert(f.readStream != null);  // We passed `withReadStream: true` to pickFiles.
-    final mimeType = lookupMimeType(
-      // Seems like the path shouldn't be required; we still want to look for
-      // matches on `headerBytes`. Thankfully we can still do that, by calling
-      // lookupMimeType with the empty string as the path. That's a value that
-      // doesn't map to any particular type, so the path will be effectively
-      // ignored, as desired. Upstream comment:
-      //   https://github.com/dart-lang/mime/issues/11#issuecomment-2246824452
-      f.path ?? '',
-      headerBytes: f.bytes?.take(defaultMagicNumbersMaxLength).toList(),
-    );
-    return FileToUpload(
-      content: f.readStream!,
-      length: f.size,
-      filename: f.name,
-      mimeType: mimeType,
-    );
-  });
+  return (await Future.wait(files.map(_fileFromXFile))).nonNulls;
 }
 
 class _AttachFileButton extends _AttachUploadsButton {

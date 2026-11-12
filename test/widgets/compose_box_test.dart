@@ -10,8 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
@@ -37,6 +37,7 @@ import '../api/fake_api.dart';
 import '../example_data.dart' as eg;
 import '../flutter_checks.dart';
 import '../model/binding.dart';
+import '../model/binding_checks.dart';
 import '../model/content_test.dart';
 import '../model/message_list_test.dart';
 import '../model/store_checks.dart';
@@ -1397,7 +1398,7 @@ void main() {
           checkAppearsLoading(tester, false);
         }, variant: const TargetPlatformVariant({TargetPlatform.android}));
 
-        testWidgets('unreadable file skipped with message; other file uploads', (tester) async {
+        testWidgets('unreadable file skipped with message; other file uploaded', (tester) async {
           await prepare(tester);
 
           final reportedErrors = <String?>[];
@@ -1439,22 +1440,23 @@ void main() {
         await prepare(tester);
         checkAppearsLoading(tester, false);
 
-        testBinding.pickFilesResult = FilePickerResult([PlatformFile(
-          readStream: Stream.fromIterable(['asdf'.codeUnits]),
+        testBinding.pickFilesResult = [XFile.fromData(
+          utf8.encode('asdf'),
           // TODO test inference of MIME type from initial bytes, when
           //   it can't be inferred from path
           path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg',
-          name: 'image.jpg',
-          size: 12345,
-        )]);
+          length: 12345,
+        )];
         connection.prepare(delay: const Duration(seconds: 1), json:
           UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
 
         await tester.tap(find.byIcon(ZulipIcons.image));
         await tester.pump();
         final call = testBinding.takePickFilesCalls().single;
-        check(call.allowMultiple).equals(true);
         check(call.type).equals(FileType.media);
+        check(call.darwinOptions)
+          ..assetRepresentationMode.equals(.current)
+          ..orderedSelection.isFalse();
 
         checkNoDialog(tester);
 
@@ -1477,9 +1479,155 @@ void main() {
         check(controller!.content.text)
           .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
         checkAppearsLoading(tester, false);
-      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}));
+      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}),
+      // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+      skip: Platform.isWindows);
 
-      // TODO test what happens when selecting/uploading fails
+      testWidgets('iOS (uses file_picker): unreadable file skipped with message; other file uploaded', (tester) async {
+        await prepare(tester);
+
+        final reportedErrors = <String?>[];
+        reportErrorToUserBriefly = (message, {details}) => reportedErrors.add(message);
+        addTearDown(() => reportErrorToUserBriefly = defaultReportErrorToUserBriefly);
+
+        testBinding.pickFilesResult = [
+          XFile.fromData(
+            utf8.encode('asdf'),
+            path: '/private/var/mobile/Containers/Data/Application/foo/tmp/image.jpg'),
+          _UnreadableXFile(
+            '/private/var/mobile/Containers/Data/Application/foo/tmp/missing.jpg'),
+        ];
+        connection.prepare(json:
+          UploadFileResult(url: '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg').toJson());
+
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        check(reportedErrors).single.equals('Could not read file: missing.jpg');
+
+        check(controller!.content.text)
+          .equals('see image: [Uploading image.jpg…]()\n\n');
+
+        await tester.pump(const Duration(seconds: 1));
+        check(controller!.content.text)
+          .equals('see image: [image.jpg](/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/image.jpg)\n\n');
+      }, variant: const TargetPlatformVariant({TargetPlatform.iOS}),
+      // TODO(upstream): unskip after fix to https://github.com/flutter/flutter/issues/161073
+      skip: Platform.isWindows);
+
+      testWidgets('iOS (uses file_picker): user cancels picker', (tester) async {
+        await prepare(tester);
+
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.media);
+        checkNoDialog(tester);
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS}));
+
+      testWidgets('iOS (uses file_picker): error from picker shown in dialog', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'some_error', message: 'Something went wrong');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.media);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'PlatformException(some_error, Something went wrong, null, null)');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS}));
+
+      testWidgets('iOS (uses file_picker): nothing could be loaded; translated message', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'load_failed', message: 'None of the picked items could be loaded.');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.image));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.media);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'The selected files could not be loaded.');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS}));
+
+      // TODO test what happens when selecting (on Android) or uploading fails
+    });
+
+    group('attach files', () {
+      testWidgets('user cancels picker', (tester) async {
+        await prepare(tester);
+
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.any);
+        checkNoDialog(tester);
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS, .android}));
+
+      testWidgets('error from picker shown in dialog', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'some_error', message: 'Something went wrong');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.any);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'PlatformException(some_error, Something went wrong, null, null)');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS, .android}));
+
+      testWidgets('iOS: nothing could be loaded; translated message', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'load_failed', message: 'None of the picked items could be loaded.');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.any);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'The selected files could not be loaded.');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.iOS}));
+
+      testWidgets('Android: nothing could be loaded; translated message', (tester) async {
+        await prepare(tester);
+
+        testBinding.pickFilesException = PlatformException(
+          code: 'unknown_path', message: 'Failed to retrieve path.');
+        final lastRequest = connection.lastRequest;
+        await tester.tap(find.byIcon(ZulipIcons.attach_file));
+        await tester.pump();
+        final call = testBinding.takePickFilesCalls().single;
+        check(call.type).equals(.any);
+        checkErrorDialog(tester,
+          expectedTitle: 'Error',
+          expectedMessage: 'The selected files could not be loaded.');
+        check(controller!.content.text).equals('see image: ');
+        check(connection.lastRequest).equals(lastRequest);
+      }, variant: const TargetPlatformVariant({.android}));
     });
 
     group('attach from camera', () {
@@ -1542,12 +1690,8 @@ void main() {
       await prepareComposeBox(tester,
         narrow: narrow, subscriptions: [eg.subscription(channel)]);
 
-      testBinding.pickFilesResult = FilePickerResult([PlatformFile(
-        readStream: Stream.fromIterable(['asdf'.codeUnits]),
-        path: '/some/path/한국어 파일.txt',
-        name: '한국어 파일.txt',
-        size: 4,
-      )]);
+      testBinding.pickFilesResult = [
+        XFile.fromData(utf8.encode('asdf'), path: '한국어 파일.txt')];
       connection.prepare(json: UploadFileResult(url:
         '/user_uploads/1/4e/m2A3MSqFnWRLUf9SaPzQ0Up_/한국어 파일.txt').toJson());
       await tester.tap(find.byIcon(ZulipIcons.attach_file));
@@ -2589,8 +2733,8 @@ void main() {
         check(connection.takeRequests()).isEmpty();
 
         // …and the upload buttons work.
-        testBinding.pickFilesResult = FilePickerResult([
-          PlatformFile(name: 'file.jpg', size: 1000, readStream: Stream.fromIterable(['asdf'.codeUnits]))]);
+        testBinding.pickFilesResult = [
+          XFile.fromData(utf8.encode('asdf'), path: 'file.jpg')];
         connection.prepare(json:
           UploadFileResult(url: '/path/file.jpg').toJson());
         await tester.tap(find.byIcon(ZulipIcons.attach_file), warnIfMissed: false);

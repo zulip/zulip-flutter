@@ -5,11 +5,11 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:material_ui/material_ui.dart';
 import 'package:zulip/api/exception.dart';
 import 'package:zulip/api/model/events.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
@@ -2836,6 +2836,32 @@ void main() {
       await setupMessageListPage(tester,
         messages: [message], starredMessages: [message.id]);
       check(find.byIcon(ZulipIcons.star_filled).evaluate()).length.equals(1);
+    });
+  });
+
+  group('Link previews', () {
+    testWidgets('live-update on hideLinkPreviews flag events', (tester) async {
+      prepareBoringImageHttpClient();
+      final message = eg.streamMessage(
+        content: ContentExample.videoEmbedYoutube.html, flags: []);
+      await setupMessageListPage(tester, messages: [message]);
+      check(find.byType(MessageEmbedVideo)).findsOne();
+
+      await store.handleEvent(UpdateMessageFlagsAddEvent(
+        id: 1,
+        flag: MessageFlag.hideLinkPreviews,
+        messages: [message.id],
+        all: false,
+      ));
+      await tester.pump();
+      check(find.byType(MessageEmbedVideo)).findsNothing();
+
+      await store.handleEvent(eg.updateMessageFlagsRemoveEvent(
+        MessageFlag.hideLinkPreviews, [message]));
+      await tester.pump();
+      check(find.byType(MessageEmbedVideo)).findsOne();
+
+      debugNetworkImageHttpClientProvider = null;
     });
   });
 

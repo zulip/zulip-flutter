@@ -5,10 +5,10 @@ import '../api/notifications.dart';
 import '../host/ios_notifications.g.dart';
 import '../model/binding.dart';
 import '../model/localizations.dart';
-import 'display.dart';
 
 import '../log.dart';
 import 'open.dart';
+import 'presentation.dart';
 import 'receive.dart';
 
 @pragma('vm:entry-point')
@@ -90,24 +90,25 @@ class _IosNotifFlutterApiImpl extends IosNotifFlutterApi {
 
   Future<ImprovedNotificationContent> _onNotifPayloadNewMessage(NotifPayloadNewMessage data) async {
     final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
-    final title =
-      NotificationDisplayManager.titleForNotifPayload(data, zulipLocalizations);
-    final subtitle =
-      NotificationDisplayManager.subtitleForNotifPayloadOnIos(data);
+    final title = titleForNotifPayload(data, zulipLocalizations);
+    final subtitle = subtitleForNotifPayloadOnIos(data);
+    // A notification on iOS shows a single message.
+    // See [NotificationOpenPayload.messageId].
     final notificationUrl =
-      // TODO(#1565): Open at specific message on iOS too.
-      NotificationDisplayManager.notificationUrlForNotifPayload(data, messageId: null);
+      NotificationOpenPayload.fromNotifPayload(data, messageId: data.messageId)
+        .buildNotificationUrl();
 
     return ImprovedNotificationContent(
       title: title,
       subtitle: subtitle,
       body: data.content,
+      threadIdentifier: conversationKeyForNotifPayload(data),
       sound: IosNotificationSound.systemDefault,
       userInfo: {
         // Pass the notification URL to this custom data map, so when a
         // notification is opened we can read this custom map to decide
         // which conversation to open.
-        // See NotificationOpenService (in lib/notifications/ios_service.dart).
+        // See NotificationOpenService (in lib/notifications/open.dart).
         NotificationOpenPayload.kIosNotificationUrlKey: notificationUrl.toString(),
       });
   }

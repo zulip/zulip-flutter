@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 // ignore: unused_import
@@ -27,20 +28,6 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
 
   @override
   String get aboutPageOpenSourceLicenses => 'Лицензии открытого исходного кода';
-
-  @override
-  String get upgradeWelcomeDialogTitle =>
-      'Добро пожаловать в новое приложение Zulip!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Вы найдете привычные возможности в более быстром и легком приложении.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => 'Ознакомьтесь с анонсом в блоге!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Приступим';
 
   @override
   String get chooseAccountPageTitle => 'Выберите учетную запись';
@@ -101,10 +88,6 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   @override
   String get permissionsDeniedCameraAccess =>
       'Для загрузки изображения, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Для загрузки файлов, пожалуйста, предоставьте Zulip дополнительные разрешения в настройках.';
 
   @override
   String get actionSheetOptionSubscribe => 'Подписаться';
@@ -252,6 +235,13 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   @override
   String get actionSheetOptionHideMutedMessage =>
       'Скрыть заглушенное сообщение';
+
+  @override
+  String get actionSheetOptionHideLinkPreviews => 'Скрыть предпросмотр ссылок';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews =>
+      'Показать предпросмотр ссылок';
 
   @override
   String get actionSheetOptionShare => 'Поделиться';
@@ -415,6 +405,10 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'Не удалось загрузить выбранные файлы.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
     return 'Не удалось прочитать файл: $filename';
   }
@@ -503,6 +497,14 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Не удалось снять отметку с сообщения';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle =>
+      'Не удалось скрыть предпросмотр ссылок';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle =>
+      'Не удалось показать предпросмотр ссылок';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Сбой редактирования';

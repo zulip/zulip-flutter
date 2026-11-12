@@ -24,6 +24,7 @@ import '../notifications/ios_service.dart';
 import 'actions.dart';
 import 'autocomplete.dart';
 import 'binding.dart';
+import 'connectivity.dart';
 import 'database.dart';
 import 'emoji.dart';
 import 'localizations.dart';
@@ -97,6 +98,11 @@ abstract class GlobalStoreBackend {
 /// settings. It also includes a small amount of data for each account: enough
 /// to authenticate as the active account, if there is one.
 ///
+/// Besides data, this object owns machinery that serves the stores
+/// app-wide, like [connectivityMonitor] --
+/// much as a [PerAccountStore] owns [PerAccountStore.connection]
+/// and [PerAccountStore.updateMachine].
+///
 /// For other data associated with a particular account, a [GlobalStore]
 /// provides a [PerAccountStore] for each account, which can be reached with
 /// [GlobalStore.perAccount] or [GlobalStore.perAccountSync].
@@ -128,6 +134,21 @@ abstract class GlobalStore extends ChangeNotifier {
   final GlobalSettingsStore settings;
 
   final GlobalPushKeyStore pushKeys;
+
+  /// A monitor of the device's network connectivity, shared app-wide.
+  ///
+  /// Lazy, so that constructing a [GlobalStore] doesn't require
+  /// [ZulipBinding] to be initialized.
+  /// The first access creates the monitor, which starts it watching.
+  ConnectivityMonitor get connectivityMonitor =>
+    _connectivityMonitor ??= ConnectivityMonitor();
+  ConnectivityMonitor? _connectivityMonitor;
+
+  @override
+  void dispose() {
+    _connectivityMonitor?.dispose();
+    super.dispose();
+  }
 
   /// Construct a new [ApiConnection], real or fake as appropriate.
   ///
@@ -1184,40 +1205,47 @@ class LiveGlobalStore extends GlobalStore {
     final stopwatch = Stopwatch()..start();
     final file = await _dbFile();
     final db = AppDatabase(NativeDatabase.createInBackground(file));
-    final t1 = stopwatch.elapsed;
-    final globalSettings = await db.getGlobalSettings();
-    final t2 = stopwatch.elapsed;
-    final boolGlobalSettings = await db.getBoolGlobalSettings();
-    final t3 = stopwatch.elapsed;
-    final intGlobalSettings = await db.getIntGlobalSettings();
-    final t4 = stopwatch.elapsed;
-    final accounts = await db.select(db.accounts).get();
-    final t5 = stopwatch.elapsed;
-    final pushKeys = await db.select(db.pushKeys).get();
-    final t6 = stopwatch.elapsed;
-    if (kProfileMode) {
-      String format(Duration d) =>
-        "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
-      profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
-        "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
-        "${format(t4 - t3)} int-settings, "
-        "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys");
+    try {
+      final t1 = stopwatch.elapsed;
+      final globalSettings = await db.getGlobalSettings();
+      final t2 = stopwatch.elapsed;
+      final boolGlobalSettings = await db.getBoolGlobalSettings();
+      final t3 = stopwatch.elapsed;
+      final intGlobalSettings = await db.getIntGlobalSettings();
+      final t4 = stopwatch.elapsed;
+      final accounts = await db.select(db.accounts).get();
+      final t5 = stopwatch.elapsed;
+      final pushKeys = await db.select(db.pushKeys).get();
+      final t6 = stopwatch.elapsed;
+      if (kProfileMode) {
+        String format(Duration d) =>
+          "${(d.inMicroseconds / 1000.0).toStringAsFixed(1)}ms";
+        profilePrint("db load time ${format(t5)} total: ${format(t1)} init, "
+          "${format(t2 - t1)} settings, ${format(t3 - t2)} bool-settings, "
+          "${format(t4 - t3)} int-settings, "
+          "${format(t5 - t4)} accounts, ${format(t6 - t5)} push keys");
+      }
+
+      // Disable OS backups for the database file, see:
+      //   https://github.com/zulip/zulip-flutter/issues/2158
+      // This comes after the queries above, because it must come after
+      // the database file has been created on disk.
+      unawaited(_maybeDisableOsBackup(file)); // TODO(log) on error
+
+      return LiveGlobalStore._(
+        backend: LiveGlobalStoreBackend._(db: db),
+        globalSettings: globalSettings,
+        boolGlobalSettings: boolGlobalSettings,
+        intGlobalSettings: intGlobalSettings,
+        accounts: accounts,
+        pushKeys: pushKeys,
+      );
+    } catch (_) {
+      // A later load may follow, so don't leak this connection and its isolate.
+      // Ignore any error from closing, so that the original error propagates.
+      await db.close().catchError((_) {}); // TODO(log) on error
+      rethrow;
     }
-
-    // Disable OS backups for the database file, see:
-    //   https://github.com/zulip/zulip-flutter/issues/2158
-    // This comes after the queries above, because it must come after
-    // the database file has been created on disk.
-    unawaited(_maybeDisableOsBackup(file)); // TODO(log) on error
-
-    return LiveGlobalStore._(
-      backend: LiveGlobalStoreBackend._(db: db),
-      globalSettings: globalSettings,
-      boolGlobalSettings: boolGlobalSettings,
-      intGlobalSettings: intGlobalSettings,
-      accounts: accounts,
-      pushKeys: pushKeys,
-    );
   }
 
   /// The file path to use for the app database.
@@ -1624,6 +1652,9 @@ class UpdateMachine {
 
   void poll() async {
     assert(!_disposed);
+    assert(_retrySignalSubscription == null);
+    _retrySignalSubscription = _connectivityMonitor.retrySignals
+      .listen(_handleConnectivityRetrySignal);
     assert(_appLifecycleSubscription == null);
     _appLifecycleSubscription = ZulipBinding.instance.appLifecycleStateChanges
       .listen(_handleAppLifecycleStateChange);
@@ -1635,6 +1666,12 @@ class UpdateMachine {
         }
 
         final GetEventsResult result;
+        assert(_pollAbortTrigger == null);
+        final abortTrigger = Completer<void>();
+        _pollAbortTrigger = abortTrigger;
+        // Record the monitor's count as of this request;
+        // see [_handleConnectivityRetrySignal].
+        _pollConnectivityCount = _connectivityMonitor.updateCount;
         try {
           result = await getEvents(store.connection,
             queueId: store.queueId,
@@ -1646,9 +1683,14 @@ class UpdateMachine {
             dontBlock: store.isRecoveringEventStream ? true : null,
             // If the request outlives this, assume the connection is dead
             // even if it still looks open; give up on it and retry.  See #514.
-            timeout: store.eventQueueLongpollTimeout);
+            timeout: store.eventQueueLongpollTimeout,
+            // On a network-connectivity change, we abort the request;
+            // see [_handleConnectivityRetrySignal].  (#2415)
+            abortTrigger: abortTrigger.future);
+          _pollAbortTrigger = null;
           if (_disposed) return;
         } catch (e, stackTrace) {
+          _pollAbortTrigger = null;
           if (_disposed) return;
           await _handlePollRequestError(e, stackTrace); // may rethrow
           if (_disposed) return;
@@ -1698,24 +1740,112 @@ class UpdateMachine {
 
   StreamSubscription<AppLifecycleState>? _appLifecycleSubscription;
 
-  /// Non-null just when the most recent poll failure suggests
-  /// the device was asleep or the app was in the background,
-  /// so that waking should discard the accumulated backoff state.
+  ConnectivityMonitor get _connectivityMonitor =>
+    store._globalStore.connectivityMonitor;
+
+  StreamSubscription<void>? _retrySignalSubscription;
+
+  /// The value of [ConnectivityMonitor.updateCount] as of the start
+  /// of the poll request now (or most recently) in flight.
+  ///
+  /// If the count has moved on, the network may have changed under
+  /// the request; see [_handleConnectivityRetrySignal].
+  int _pollConnectivityCount = 0;
+
+  /// Non-null while a poll request is in flight, until used to abort it.
+  ///
+  /// Completing it aborts the request, which then fails and is retried
+  /// just as if it had hit the request timeout.
+  /// Little is lost in the abort, even mid-response:
+  /// these responses aren't large, and the server retains events
+  /// until we ack them via `last_event_id`,
+  /// so the retry just fetches the same events again.
+  ///
+  /// See [_handleConnectivityRetrySignal].
+  Completer<void>? _pollAbortTrigger;
+
+  /// Non-null just when the most recent poll failure was a failed connection
+  /// ([NetworkExceptionKind.connectionFailed]).
+  ///
+  /// That's the failure we get when the network is unavailable,
+  /// as when the OS cuts off a sleeping or backgrounded app's network
+  /// (see #1884).
+  /// After it, the app resuming or a network-connectivity change
+  /// may mean there's a working network again,
+  /// so either one should discard the accumulated backoff state;
+  /// see [_handleAppLifecycleStateChange]
+  /// and [_handleConnectivityRetrySignal].
+  /// (The app resumes when its lifecycle state becomes
+  /// [AppLifecycleState.resumed],
+  /// as when the user returns to it or unlocks the device.)
+  ///
+  /// After other failures, like a TLS failure or a 5xx response,
+  /// the backoff wait runs its course.
   ///
   /// Completing it aborts the backoff wait in progress, if any.
-  /// See [_handleAppLifecycleStateChange].
   Completer<void>? _pollBackoffAbortTrigger;
+
+  /// Discard the accumulated backoff state,
+  /// so that after any further failure, backoff starts over small.
+  ///
+  /// Also cut short the backoff wait in progress, if any;
+  /// see [_pollBackoffAbortTrigger].
+  void _resetPollBackoff() {
+    final trigger = _pollBackoffAbortTrigger;
+    _pollBackoffMachine = null;
+    _pollBackoffAbortTrigger = null;
+    trigger?.complete();
+  }
+
+  /// Handle a [ConnectivityMonitor.retrySignals] event:
+  /// the network changed.
+  ///
+  /// A poll request from before the change
+  /// may be stuck on a dead connection,
+  /// and a backoff wait after such a request failed
+  /// only delays a retry on the new network.
+  /// Abort the request (see [_pollAbortTrigger])
+  /// or the backoff wait (see [_pollBackoffAbortTrigger]),
+  /// so that polling retries promptly.
+  void _handleConnectivityRetrySignal(void _) {
+    assert(!_disposed); // The subscription is canceled in [dispose].
+    if (_pollConnectivityCount == _connectivityMonitor.updateCount) {
+      // The current request started after the network change;
+      // the change is no evidence against it.
+      return;
+    }
+    if (_pollAbortTrigger case final trigger?) {
+      // A poll request is in progress; abort it.
+      // No backoff wait is in progress, so [_resetPollBackoff] just
+      // discards the stale backoff state, making the retry prompt.
+      assert(debugLog('Network connectivity changed; aborting stalled poll.'));
+      _pollAbortTrigger = null;
+      _resetPollBackoff();
+      trigger.complete();
+    } else if (_pollBackoffAbortTrigger != null) {
+      // A poll backoff is in progress, after a failed connection;
+      // abort that, and retry immediately on the new network.
+      assert(debugLog('Network connectivity changed; aborting poll backoff.'));
+      _resetPollBackoff();
+    }
+    // Otherwise there's nothing to cut short: there's no request or
+    // backoff at all (as while handling events, or reloading), or the
+    // backoff is after some other failure; see [_pollBackoffAbortTrigger].
+  }
 
   void _handleAppLifecycleStateChange(AppLifecycleState state) {
     assert(!_disposed); // The subscription is canceled in [dispose].
     if (state != .resumed) return;
-    if (_pollBackoffAbortTrigger case final trigger?) {
+    if (_pollBackoffAbortTrigger != null) {
       // Retry immediately, and if the network still isn't back
       // (it can take a moment after waking), let backoff start over small.
+      //
+      // Known harmless race: the monitor's resume recheck may record a
+      // background network change only after this retry has started,
+      // and so make this retry look suspect. Then it's aborted, after
+      // it has already connected (see #2476), and retried once more.
       assert(debugLog('App returned to foreground; aborting poll backoff.'));
-      _pollBackoffMachine = null;
-      _pollBackoffAbortTrigger = null;
-      trigger.complete();
+      _resetPollBackoff();
     }
   }
 
@@ -1744,8 +1874,7 @@ class UpdateMachine {
     // immediately instead of waiting through the long-poll period.
     // (See comments on that code for why this behavior is helpful.)
     // If server logs show pressure from too many requests, we can investigate.
-    _pollBackoffMachine = null;
-    _pollBackoffAbortTrigger = null;
+    _resetPollBackoff();
 
     store.isRecoveringEventStream = false;
     _accumulatedTransientFailureCount = 0;
@@ -1767,6 +1896,9 @@ class UpdateMachine {
   ///    and errors this method rethrows.
   Future<void> _handlePollRequestError(Object error, StackTrace stackTrace) async {
     store.isRecoveringEventStream = true;
+    // First, so that even a failure we don't retry
+    // clears any trigger left over from an earlier failure.
+    _pollBackoffAbortTrigger = null;
 
     if (error is! ApiRequestException) {
       // Some unexpected error, outside even making the HTTP request.
@@ -1775,14 +1907,14 @@ class UpdateMachine {
     }
 
     bool shouldReportToUser;
-    bool abortBackoffOnWake = false;
+    bool backoffAbortable = false;
     switch (error) {
       case NetworkException(kind: .connectionFailed):
         // A failed connection is common when the app returns from sleep.
         shouldReportToUser = false;
         // Probably the OS cut off network access while the app was in
         // the background; see #1884.
-        abortBackoffOnWake = true;
+        backoffAbortable = true;
 
       case NetworkException():
       case Server5xxException():
@@ -1810,7 +1942,7 @@ class UpdateMachine {
     if (shouldReportToUser) {
       _maybeReportToUserTransientError(error);
     }
-    _pollBackoffAbortTrigger = abortBackoffOnWake ? Completer() : null;
+    _pollBackoffAbortTrigger = backoffAbortable ? Completer() : null;
     await (_pollBackoffMachine ??= BackoffMachine())
       .wait(abortTrigger: _pollBackoffAbortTrigger?.future);
     if (_disposed) return;
@@ -1931,6 +2063,7 @@ class UpdateMachine {
   void dispose() {
     assert(!_disposed);
     _appLifecycleSubscription?.cancel();
+    _retrySignalSubscription?.cancel();
     _disposed = true;
   }
 

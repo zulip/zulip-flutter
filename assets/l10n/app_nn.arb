@@ -2,8 +2,14 @@
   "@aboutPageAppVersion": {
     "description": "Label for Zulip app version in About Zulip page"
   },
+  "@aboutPageAppVersionUnknown": {
+    "description": "Banner text in About Zulip page, shown in place of the app-version item when the version is unknown."
+  },
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageReleaseNotes": {
+    "description": "Item title in About Zulip page to open the current version's release notes on GitHub"
   },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
@@ -463,6 +469,9 @@
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
+  "@errorCouldNotLoadSelectedFiles": {
+    "description": "Error message when the user selected files, photos, or videos to attach, but none of them could be loaded."
+  },
   "@errorCouldNotOpenLink": {
     "description": "Error message when opening a link failed.",
     "placeholders": {
@@ -474,6 +483,15 @@
   },
   "@errorCouldNotOpenLinkTitle": {
     "description": "Error title when opening a link failed."
+  },
+  "@errorCouldNotReadFile": {
+    "description": "Error message when an attached file could not be read.",
+    "placeholders": {
+      "filename": {
+        "example": "foo.txt",
+        "type": "String"
+      }
+    }
   },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
@@ -813,6 +831,12 @@
   "@loginPasswordLabel": {
     "description": "Label for password input field."
   },
+  "@loginRealmUrlHelpButton": {
+    "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
+  },
+  "@loginRealmUrlHelperText": {
+    "description": "Helper text below the Zulip organization URL entry field on the login page."
+  },
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
   },
@@ -996,9 +1020,6 @@
   },
   "@permissionsDeniedCameraAccess": {
     "description": "Message for dialog asking the user to grant permissions for camera access."
-  },
-  "@permissionsDeniedReadExternalStorage": {
-    "description": "Message for dialog asking the user to grant permissions for external storage read access."
   },
   "@permissionsNeededOpenSettings": {
     "description": "Button label for permissions dialog button that opens the system settings screen."
@@ -1245,6 +1266,9 @@
   "@subscribeFailedTitle": {
     "description": "Error title when subscribing to a channel failed."
   },
+  "@successAppVersionCopied": {
+    "description": "Success message after the app version was copied to the user's system clipboard."
+  },
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
   },
@@ -1379,18 +1403,6 @@
   "@updateStatusErrorTitle": {
     "description": "Error title when updating user status failed."
   },
-  "@upgradeWelcomeDialogDismiss": {
-    "description": "Label for button dismissing dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogLinkText": {
-    "description": "Text of link in dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogMessage": {
-    "description": "Message text for dialog shown on first upgrade from the legacy Zulip app."
-  },
-  "@upgradeWelcomeDialogTitle": {
-    "description": "Title for dialog shown on first upgrade from the legacy Zulip app."
-  },
   "@userActiveDate": {
     "description": "Indicates the date when a user was last active on Zulip (who is currently offline).\n\nThe date might be day and month if recent, or day, month, and year if less recent.",
     "placeholders": {
@@ -1512,7 +1524,9 @@
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
   "aboutPageAppVersion": "Appversjon",
+  "aboutPageAppVersionUnknown": "Fann ikkje versjonsinfo for appen.",
   "aboutPageOpenSourceLicenses": "Lisensar for open kjeldekode",
+  "aboutPageReleaseNotes": "Versjonsinfo",
   "aboutPageTitle": "Om Zulip",
   "actionSheetOptionChannelFeed": "Kanalstraumen",
   "actionSheetOptionCopyChannelLink": "Kopier lenke til kanal",
@@ -1635,8 +1649,10 @@
   "errorCouldNotConnectTitle": "Kunne ikkje kopla til",
   "errorCouldNotEditMessageTitle": "Kunne ikkje redigera meldinga",
   "errorCouldNotFetchMessageSource": "Kunne ikkje henta meldingskjelda.",
+  "errorCouldNotLoadSelectedFiles": "Dei valde filene kunne ikkje bli lasta opp.",
   "errorCouldNotOpenLink": "Kunne ikkje opna lenka: {url}",
   "errorCouldNotOpenLinkTitle": "Kunne ikkje opna lenke",
+  "errorCouldNotReadFile": "Kunne ikkje lesa: {filename}",
   "errorCouldNotShowUserProfile": "Kunne ikkje visa brukarprofil.",
   "errorDeleteMessageFailedTitle": "Kunne ikkje sletta meldinga",
   "errorDialogContinue": "Greidt",
@@ -1715,6 +1731,8 @@
   "loginMethodDividerSemanticLabel": "Innloggingsalternativ",
   "loginPageTitle": "Logg inn",
   "loginPasswordLabel": "Passord",
+  "loginRealmUrlHelpButton": "Hjelp",
+  "loginRealmUrlHelperText": "Dette er adressa for å opna Zulip i ein nettleser.",
   "loginRealmUrlLabel": "URL-en til Zulip-organisasjonen din",
   "loginUsernameLabel": "Brukarnamn",
   "mainMenuMyProfile": "Profilen min",
@@ -1763,7 +1781,6 @@
   "openLinksWithInAppBrowser": "Opne lenkjer med den innebygde nettlesaren",
   "otherChannelsFolderName": "Andre kanalar",
   "permissionsDeniedCameraAccess": "Gje Zulip ekstra løyve i Innstillingane for å lasta opp eit bilete.",
-  "permissionsDeniedReadExternalStorage": "Gje Zulip ekstra løyve i Innstillingane for å lasta opp filer.",
   "permissionsNeededOpenSettings": "Opne innstillingane",
   "permissionsNeededTitle": "Treng løyve",
   "pinnedChannelsFolderName": "Festa kanalar",
@@ -1821,6 +1838,7 @@
   "statusSaveButtonLabel": "Lagre",
   "statusTextHint": "Statusen din",
   "subscribeFailedTitle": "Kunne ikkje abonnera",
+  "successAppVersionCopied": "Appversjon kopiert",
   "successChannelLinkCopied": "Kanallenke kopier",
   "successLinkCopied": "Kopierte lenka",
   "successMessageLinkCopied": "Meldingslenke kopiert",
@@ -1841,7 +1859,7 @@
   "themeSettingTitle": "TEMA",
   "today": "I dag",
   "topicListEmptyPlaceholderHeader": "Det finst ingen emne her enno.",
-  "topicValidationErrorMandatoryButEmpty": "Emne er påkravd i denne organisasjonen.",
+  "topicValidationErrorMandatoryButEmpty": "Emne er påkravd i denne kanalen.",
   "topicValidationErrorTooLong": "Lenexa på emneteksten kan ikkje vera meir enn {maxLength, plural, =1{1 teikn} other{{maxLength} teikn}}.",
   "topicsButtonTooltip": "Emne",
   "tryAnotherAccountButton": "Prøv ein annan konto",
@@ -1857,10 +1875,6 @@
   "unsubscribeConfirmationDialogTitle": "Slutt å abonnera på {channelName}?",
   "unsubscribeFailedTitle": "Kunne ikkje avslutta abonnementet",
   "updateStatusErrorTitle": "Kunne ikkje oppdatera brukarstatus. Prøv på nytt.",
-  "upgradeWelcomeDialogDismiss": "La oss starta",
-  "upgradeWelcomeDialogLinkText": "Sjekk kunngjeringsbloggposten!",
-  "upgradeWelcomeDialogMessage": "Du finn eit kjent miljø i ei raskare og meir straumlineforma pakke.",
-  "upgradeWelcomeDialogTitle": "Velkomen til den nye Zulip-appen!",
   "userActiveDate": "Aktiv {date}",
   "userActiveDaysAgo": "Aktiv for {days, plural, =1{1 dag} other{{days} dagar}} sidan",
   "userActiveHoursAgo": "Aktiv for {hours, plural, =1{1 time} other{{hours} timar}} sidan",

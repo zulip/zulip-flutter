@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 // ignore: unused_import
@@ -27,19 +28,6 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
 
   @override
   String get aboutPageOpenSourceLicenses => 'Odprtokodne licence';
-
-  @override
-  String get upgradeWelcomeDialogTitle => 'Dobrodošli v novi aplikaciji Zulip!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Čaka vas znana izkušnja v hitrejši in bolj elegantni obliki.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => 'Preberite objavo na blogu!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Začnimo';
 
   @override
   String get chooseAccountPageTitle => 'Izberite račun';
@@ -100,10 +88,6 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   @override
   String get permissionsDeniedCameraAccess =>
       'Za nalaganje slik v nastavitvah omogočite Zulipu dostop do kamere.';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Za nalaganje datotek v nastavitvah omogočite Zulipu dostop do shrambe datotek.';
 
   @override
   String get actionSheetOptionSubscribe => 'Naroči se';
@@ -249,6 +233,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   @override
   String get actionSheetOptionHideMutedMessage =>
       'Znova skrij utišano sporočilo';
+
+  @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
 
   @override
   String get actionSheetOptionShare => 'Deli';
@@ -424,6 +414,10 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'The selected files could not be loaded.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
     return 'Could not read file: $filename';
   }
@@ -512,6 +506,12 @@ class ZulipLocalizationsSl extends ZulipLocalizations {
   @override
   String get errorUnstarMessageFailedTitle =>
       'Sporočilu ni bilo mogoče odstraniti zvezdice';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Sporočila ni mogoče urediti';

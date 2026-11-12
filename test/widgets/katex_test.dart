@@ -13,6 +13,11 @@ void main() {
   TestZulipBinding.ensureInitialized();
 
   group('snapshot per-character rects', () {
+    // Load fonts once, outside any test. Fonts persist across tests anyway,
+    // and loading one inside a testWidgets body leaves a frame callback
+    // pending at the end of the test, which fails the test.
+    setUpAll(_loadKatexFonts);
+
     final testCases = <(KatexExample, List<(String, Offset, Size)>, {bool? skip})>[
       (KatexExample.sizing, skip: false, [
         ('1', Offset(0.00, 2.24), Size(25.59, 61.00)),
@@ -85,8 +90,6 @@ void main() {
 
     for (final testCase in testCases) {
       testWidgets(testCase.$1.description, (tester) async {
-        await _loadKatexFonts();
-
         await prepareContent(tester, plainContent(testCase.$1.html));
 
         final baseRect = tester.getRect(find.byType(KatexWidget));

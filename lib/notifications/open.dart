@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../api/model/model.dart';
+import '../api/notifications.dart';
 import '../api/route/messages.dart' show NumericAnchor;
 import '../generated/l10n/zulip_localizations.dart';
 import '../host/notifications.dart';
@@ -34,66 +35,20 @@ class NotificationOpenService {
     _instance = null;
   }
 
-  NotificationDataFromLaunch? _notifDataFromLaunch;
+  void start() {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+        _notifPigeonApi.notificationTapEventsStream()
+          .listen(_navigateForNotification);
 
-  /// A [Future] that completes to signal that the initialization of
-  /// [NotificationNavigationService] has completed
-  /// (with either success or failure).
-  ///
-  /// Null if [start] hasn't been called.
-  Future<void>? get initialized => _initializedSignal?.future;
-
-  Completer<void>? _initializedSignal;
-
-  Future<void> start() async {
-    assert(_initializedSignal == null);
-    _initializedSignal = Completer<void>();
-    try {
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.iOS:
-          // On iOS, the notification tap that causes a launch of the app is
-          // handled a bit differently than on Android where all types of
-          // notification tap events are served via the
-          // `notificationTapEventsStream`.
-          _notifDataFromLaunch = await _notifPigeonApi.getNotificationDataFromLaunch();
-
-          _notifPigeonApi.notificationTapEventsStream()
-            .listen(_navigateForNotification);
-
-        case TargetPlatform.android:
-          _notifPigeonApi.notificationTapEventsStream()
-            .listen(_navigateForNotification);
-
-        case TargetPlatform.fuchsia:
-        case TargetPlatform.linux:
-        case TargetPlatform.macOS:
-        case TargetPlatform.windows:
-          // Do nothing; we don't offer notifications on these platforms.
-          break;
-      }
-    } finally {
-      _initializedSignal!.complete();
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+        // Do nothing; we don't offer notifications on these platforms.
+        break;
     }
-  }
-
-  /// Provides the route to open if the app was launched through a tap on
-  /// a notification.
-  ///
-  /// Returns null if app launch wasn't triggered by a notification, or if
-  /// an error occurs while determining the route for the notification.
-  /// In the latter case an error dialog is also shown.
-  ///
-  /// The context argument should be a descendant of the app's main [Navigator].
-  AccountRoute<void>? routeForNotificationFromLaunch({required BuildContext context}) {
-    assert(defaultTargetPlatform == TargetPlatform.iOS);
-    final data = _notifDataFromLaunch;
-    if (data == null) return null;
-    assert(debugLog('opened notif: ${jsonEncode(data.payload)}'));
-
-    final notifNavData = _tryParseIosApnsPayload(context, data.payload);
-    if (notifNavData == null) return null; // TODO(log)
-
-    return routeForNotification(context: context, data: notifNavData);
   }
 
   /// Finds the account associated with the given notification.
@@ -119,25 +74,6 @@ class NotificationOpenService {
       return null;
     }
     return account;
-  }
-
-  /// Provides the route to open by parsing the notification payload.
-  ///
-  /// Returns null and shows an error dialog if the associated account is not
-  /// found in the global store.
-  ///
-  /// The context argument should be a descendant of the app's main [Navigator].
-  static AccountRoute<void>? routeForNotification({
-    required BuildContext context,
-    required NotificationOpenPayload data,
-  }) {
-    final account = _accountForNotification(context: context, data: data);
-    if (account == null) return null;
-
-    return MessageListPage.buildRoute(
-      accountId: account.id,
-      narrow: data.narrow,
-      initAnchorMessageId: data.messageId);
   }
 
   /// Navigate appropriately for opening the given notification.
@@ -328,9 +264,8 @@ class NotificationOpenPayload {
   /// this is the earliest of them,
   /// so that opening the notification shows the whole batch (#1565).
   ///
-  /// Null when the notification doesn't identify a message:
-  /// from iOS (TODO(#1565)),
-  /// or from a notification created before this field existed.
+  /// Null when the notification doesn't identify a message,
+  /// as with a notification created before this field existed.
   final int? messageId;
 
   NotificationOpenPayload({
@@ -339,6 +274,22 @@ class NotificationOpenPayload {
     required this.narrow,
     required this.messageId,
   });
+
+  /// The payload for a notification about the message described by [data].
+  factory NotificationOpenPayload.fromNotifPayload(NotifPayloadNewMessage data, {
+    required int? messageId,
+  }) {
+    return NotificationOpenPayload(
+      realmUrl: data.realmUrl,
+      userId: data.userId,
+      narrow: switch (data.recipient) {
+        NotifPayloadChannelRecipient(:var channelId, :var topic) =>
+          TopicNarrow(channelId, topic),
+        NotifPayloadDmRecipient(:var allRecipientIds) =>
+          DmNarrow(allRecipientIds: allRecipientIds, selfUserId: data.userId),
+      },
+      messageId: messageId);
+  }
 
   /// A key to set the notification URL (created via [buildNotificationUrl]) in
   /// [ImprovedNotificationContent.userInfo] map, on iOS.
@@ -419,11 +370,19 @@ class NotificationOpenPayload {
         _ => throw const FormatException(),
       };
 
+      // The server sends a single message ID, in a one-element list;
+      // see `get_message_payload_apns` in
+      // zulip/zulip:zerver/lib/push_notifications.py .
+      final messageId = switch (zulipData) {
+        {'message_ids': [final int messageId]} => messageId,
+        _ => throw const FormatException(),
+      };
+
       return NotificationOpenPayload(
         realmUrl: Uri.parse(realmUrl),
         userId: userId,
         narrow: narrow,
-        messageId: null);
+        messageId: messageId);
     } else {
       // TODO(dart): simplify after https://github.com/dart-lang/language/issues/2537
       throw const FormatException();

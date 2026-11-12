@@ -18,7 +18,7 @@ import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
 import 'package:zulip/model/push_key.dart';
 import 'package:zulip/model/store.dart';
-import 'package:zulip/notifications/display.dart';
+import 'package:zulip/notifications/android_display.dart';
 import 'package:zulip/notifications/open.dart';
 import 'package:zulip/notifications/receive.dart';
 import 'package:zulip/widgets/color.dart';
@@ -88,13 +88,13 @@ NotifPayloadNewMessage notifPayloadNewMessage(
   Account? account,
 }) {
   account ??= eg.selfAccount;
-  realmName ??= account.realmName;
+  realmName ??= account.realmName!;
   final narrow = SendableNarrow.ofMessage(zulipMessage, selfUserId: account.userId);
   return NotifPayload.fromJson({
     "type": "message",
 
     "realm_url": account.realmUrl.toString(),
-    "realm_name": ?realmName,
+    "realm_name": realmName,
     "user_id": account.userId,
 
     "message_id": zulipMessage.id,
@@ -127,7 +127,7 @@ MessageLegacyFcmMessage legacyMessageFcmMessage(
   Account? account,
 }) {
   account ??= eg.selfAccount;
-  realmName ??= account.realmName;
+  realmName ??= account.realmName!;
   final narrow = SendableNarrow.ofMessage(zulipMessage, selfUserId: account.userId);
   return LegacyFcmMessage.fromJson({
     "event": "message",
@@ -136,7 +136,7 @@ MessageLegacyFcmMessage legacyMessageFcmMessage(
     "realm_id": "4",
     "realm_uri": account.realmUrl.toString(),
     "user_id": account.userId.toString(),
-    "realm_name": ?realmName,
+    "realm_name": realmName,
 
     "zulip_message_id": zulipMessage.id.toString(),
     "time": zulipMessage.timestamp.toString(),
@@ -170,7 +170,7 @@ NotifPayloadRemove notifPayloadRemove(List<Message> zulipMessages, {Account? acc
     "type": "remove",
 
     "realm_url": account.realmUrl.toString(),
-    "realm_name": ?account.realmName,
+    "realm_name": account.realmName!,
     "user_id": account.userId,
 
     "message_ids": List<int>.unmodifiable(zulipMessages.map((e) => e.id)),
@@ -185,6 +185,7 @@ RemoveLegacyFcmMessage legacyRemoveFcmMessage(List<Message> zulipMessages, {Acco
     "server": "zulip.example.cloud",
     "realm_id": "4",
     "realm_uri": account.realmUrl.toString(),
+    "realm_name": account.realmName!,
     "user_id": account.userId.toString(),
 
     "zulip_message_ids": zulipMessages.map((e) => e.id).join(','),
@@ -234,18 +235,18 @@ void main() {
     await NotificationService.instance.start();
   }
 
-  group('NotificationChannelManager create channel', () {
+  group('AndroidNotificationChannelManager create channel', () {
     test('smoke', () async {
       await init();
       check(testBinding.androidNotificationHost.takeCreatedChannels()).single
-        ..id.equals(NotificationChannelManager.kChannelId)
+        ..id.equals(AndroidNotificationChannelManager.kChannelId)
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
         ..soundUrl.equals(testBinding.androidNotificationHost.fakeStoredNotificationSoundUrl(
-            NotificationChannelManager.kDefaultNotificationSound.resourceName))
+            AndroidNotificationChannelManager.kDefaultNotificationSound.resourceName))
         ..vibrationPattern.isNotNull().deepEquals(
-            NotificationChannelManager.kVibrationPattern)
+            AndroidNotificationChannelManager.kVibrationPattern)
       ;
     });
 
@@ -255,29 +256,29 @@ void main() {
       // Setup initial channel.
       await testBinding.androidNotificationHost.createNotificationChannel(
         NotificationChannel(
-          id: NotificationChannelManager.kChannelId,
+          id: AndroidNotificationChannelManager.kChannelId,
           name: 'Messages',
           importance: NotificationImportance.high,
           lightsEnabled: true,
-          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+          vibrationPattern: AndroidNotificationChannelManager.kVibrationPattern));
       // Clear the log.
       check(testBinding.androidNotificationHost.takeCreatedChannels())
         .length.equals(1);
 
       // Ensure that no calls were made to the deleteChannel or createChannel
       // functions.
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(testBinding.androidNotificationHost.takeDeletedChannels())
         .isEmpty();
       check(testBinding.androidNotificationHost.takeCreatedChannels())
         .isEmpty();
       check(testBinding.androidNotificationHost.activeChannels).single
-        ..id.equals(NotificationChannelManager.kChannelId)
+        ..id.equals(AndroidNotificationChannelManager.kChannelId)
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
         ..vibrationPattern.isNotNull().deepEquals(
-            NotificationChannelManager.kVibrationPattern);
+            AndroidNotificationChannelManager.kVibrationPattern);
     });
 
     test('obsolete channels are removed', () async {
@@ -290,44 +291,44 @@ void main() {
           name: 'Obsolete 1',
           importance: NotificationImportance.high,
           lightsEnabled: true,
-          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+          vibrationPattern: AndroidNotificationChannelManager.kVibrationPattern));
       await testBinding.androidNotificationHost.createNotificationChannel(
         NotificationChannel(
           id: 'obsolete-2',
           name: 'Obsolete 2',
           importance: NotificationImportance.high,
           lightsEnabled: true,
-          vibrationPattern: NotificationChannelManager.kVibrationPattern));
+          vibrationPattern: AndroidNotificationChannelManager.kVibrationPattern));
       // Clear the log.
       check(testBinding.androidNotificationHost.takeCreatedChannels())
         .length.equals(2);
 
       // Ensure that any channel whose channel-id differs from the desired
-      // channel-id (NotificationChannelManager.kChannelId) is deleted, and a
+      // channel-id (AndroidNotificationChannelManager.kChannelId) is deleted, and a
       // new one with the desired channel-id is created.
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(testBinding.androidNotificationHost.takeDeletedChannels())
         .deepEquals(['obsolete-1', 'obsolete-2']);
       check(testBinding.androidNotificationHost.takeCreatedChannels()).single
-        ..id.equals(NotificationChannelManager.kChannelId)
+        ..id.equals(AndroidNotificationChannelManager.kChannelId)
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
         ..vibrationPattern.isNotNull().deepEquals(
-            NotificationChannelManager.kVibrationPattern);
+            AndroidNotificationChannelManager.kVibrationPattern);
       check(testBinding.androidNotificationHost.activeChannels).single
-        ..id.equals(NotificationChannelManager.kChannelId)
+        ..id.equals(AndroidNotificationChannelManager.kChannelId)
         ..name.equals('Messages')
         ..importance.equals(NotificationImportance.high)
         ..lightsEnabled.equals(true)
         ..vibrationPattern.isNotNull().deepEquals(
-            NotificationChannelManager.kVibrationPattern);
+            AndroidNotificationChannelManager.kVibrationPattern);
     });
   });
 
-  group('NotificationChannelManager sounds', () {
+  group('AndroidNotificationChannelManager sounds', () {
     final defaultSoundResourceName =
-      NotificationChannelManager.kDefaultNotificationSound.resourceName;
+      AndroidNotificationChannelManager.kDefaultNotificationSound.resourceName;
     String fakeStoredUrl(String resourceName) =>
       testBinding.androidNotificationHost.fakeStoredNotificationSoundUrl(resourceName);
     String fakeResourceUrl({required String resourceName, String? packageName}) =>
@@ -342,7 +343,7 @@ void main() {
 
       // Ensure that on Android 10, notification sounds aren't being copied to
       // the media store, and resource file is used directly.
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
@@ -362,7 +363,7 @@ void main() {
       testBinding.deviceInfoResult =
         const AndroidDeviceInfo(sdkInt: 28, release: '9');
 
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
@@ -377,9 +378,9 @@ void main() {
       addTearDown(testBinding.reset);
       final androidNotificationHost = testBinding.androidNotificationHost;
 
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
-        .deepEquals(NotificationSound.values.map((e) => (
+        .deepEquals(AndroidNotificationSound.values.map((e) => (
           sourceResourceName: e.resourceName,
           targetFileDisplayName: e.fileDisplayName),
         ));
@@ -397,14 +398,14 @@ void main() {
 
       // Emulate that all notifications sounds are already in the media store.
       androidNotificationHost.setupStoredNotificationSounds(
-        NotificationSound.values.map((e) => StoredNotificationSound(
+        AndroidNotificationSound.values.map((e) => StoredNotificationSound(
           fileName: e.fileDisplayName,
           isOwned: true,
           contentUrl: fakeStoredUrl(e.resourceName)),
         ).toList(),
       );
 
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
@@ -419,15 +420,15 @@ void main() {
       // Emulate that except one sound, all other sounds are already in
       // media store.
       androidNotificationHost.setupStoredNotificationSounds(
-        NotificationSound.values.skip(1).map((e) => StoredNotificationSound(
+        AndroidNotificationSound.values.skip(1).map((e) => StoredNotificationSound(
           fileName: e.fileDisplayName,
           isOwned: true,
           contentUrl: fakeStoredUrl(e.resourceName)),
         ).toList()
       );
 
-      await NotificationChannelManager.ensureChannel();
-      final firstSound = NotificationSound.values.first;
+      await AndroidNotificationChannelManager.ensureChannel();
+      final firstSound = AndroidNotificationSound.values.first;
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .single
         ..sourceResourceName.equals(firstSound.resourceName)
@@ -442,7 +443,7 @@ void main() {
       final androidNotificationHost = testBinding.androidNotificationHost;
 
       androidNotificationHost.setupStoredNotificationSounds(
-        NotificationSound.values.map((e) => StoredNotificationSound(
+        AndroidNotificationSound.values.map((e) => StoredNotificationSound(
           fileName: e.fileDisplayName,
           isOwned: false,
           contentUrl: fakeStoredUrl(e.resourceName)),
@@ -453,7 +454,7 @@ void main() {
       // in the media store, but it wasn't copied by us, no recopying should
       // happen. Additionally, the default sound URL should point to the
       // resource file, not the version in the media store.
-      await NotificationChannelManager.ensureChannel();
+      await AndroidNotificationChannelManager.ensureChannel();
       check(androidNotificationHost.takeCopySoundResourceToMediaStoreCalls())
         .isEmpty();
       check(androidNotificationHost.takeCreatedChannels())
@@ -462,7 +463,7 @@ void main() {
     });
   });
 
-  group('NotificationDisplayManager show', () {
+  group('AndroidNotificationDisplayManager show', () {
     void checkNotification(
       NotifPayloadNewMessage data, {
       Account? account,
@@ -495,9 +496,7 @@ void main() {
         },
         // The notification opens at the earliest message of the conversation.
         messageId: messageStyleMessages.first.messageId).buildNotificationUrl();
-      expectedSummaryText ??= account.realmName
-        ?? data.realmName
-        ?? data.realmUrl.toString();
+      expectedSummaryText ??= account.realmName ?? data.realmName;
 
       final messageStyleMessagesChecks =
         messageStyleMessages.mapIndexed((i, messageData) {
@@ -508,7 +507,7 @@ void main() {
             ..text.equals(messageData.content)
             ..timestampMs.equals(messageData.time * 1000)
             ..extras.deepEquals({
-              NotificationDisplayManager.kExtraZulipMessageId:
+              AndroidNotificationDisplayManager.kExtraZulipMessageId:
                 messageData.messageId.toString(),
             })
             ..person.which((it) => it.isNotNull()
@@ -521,9 +520,9 @@ void main() {
       check(testBinding.androidNotificationHost.takeNotifyCalls())
         .deepEquals(<Condition<Object?>>[
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
-            ..id.equals(NotificationDisplayManager.kNotificationId)
+            ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedTag)
-            ..channelId.equals(NotificationChannelManager.kChannelId)
+            ..channelId.equals(AndroidNotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
             ..contentText.isNull()
             ..messagingStyle.which((it) => it.isNotNull()
@@ -539,7 +538,7 @@ void main() {
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.which((it) => it.isNotNull()
               ..deepEquals(<String, String>{
-                NotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
+                AndroidNotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
               }))
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.isNull()
@@ -553,9 +552,9 @@ void main() {
                 ..dataUrl.equals(expectedIntentDataUrl.toString())
                 ..flags.equals(expectedIntentFlags))),
           (it) => it.isA<AndroidNotificationHostApiNotifyCall>()
-            ..id.equals(NotificationDisplayManager.kNotificationId)
+            ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
             ..tag.equals(expectedGroupKey)
-            ..channelId.equals(NotificationChannelManager.kChannelId)
+            ..channelId.equals(AndroidNotificationChannelManager.kChannelId)
             ..contentTitle.isNull()
             ..contentText.isNull()
             ..color.equals(kZulipBrandColor.argbInt)
@@ -578,7 +577,7 @@ void main() {
       required String expectedTagComponent,
       required bool expectedIsGroupConversation,
     }) async {
-      // We could just call `NotificationDisplayManager.onNotifPayload`.
+      // We could just call `AndroidNotificationDisplayManager.onNotifPayload`.
       // But this way is cheap, and it provides our test coverage of
       // the logic in `NotificationService` that listens for these FCM messages.
 
@@ -614,18 +613,18 @@ void main() {
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedTag = '$expectedGroupKey|$tagComponent';
       return (it) => it.isA<StatusBarNotification>()
-        ..id.equals(NotificationDisplayManager.kNotificationId)
+        ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.deepEquals(<String, String>{
-            NotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
+            AndroidNotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
           }))
         ..tag.equals(expectedTag);
     }
 
     Condition<Object?> conditionSummaryActiveNotif(String expectedGroupKey) {
       return (it) => it.isA<StatusBarNotification>()
-        ..id.equals(NotificationDisplayManager.kNotificationId)
+        ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.isEmpty())
@@ -924,37 +923,6 @@ void main() {
         expectedTitle: '#${stream.name} > $topic',
         expectedTagComponent: 'stream:${stream.streamId}:$topic',
         expectedSummaryText: 'Notif realm name');
-    })));
-
-    test('stream message: realm name absent in account and notif data, falls back to realm URL', () => runWithHttpClient(() => awaitFakeAsync((async) async {
-      await init(addSelfAccount: false);
-
-      var account = eg.account(
-        id: 1001,
-        user: eg.user(),
-        realmUrl: Uri.parse('http://realm1.example'));
-      await addAccount(account);
-
-      // Override the default realmName from eg.account().
-      account = await testBinding.globalStore.updateAccount(account.id,
-        AccountsCompanion(realmName: const Value(null)));
-      check(account).realmName.isNull();
-
-      final stream = eg.stream();
-      final topic = 'test topic';
-      final data = notifPayloadNewMessage(
-        eg.streamMessage(stream: stream, topic: topic),
-        account: account, streamName: stream.name);
-      check(data).realmName.isNull();
-
-      await receiveNotification(async, data);
-      checkNotification(data,
-        account: account,
-        messageStyleMessages: [data],
-        expectedIsGroupConversation: true,
-        expectedTitle: '#${stream.name} > $topic',
-        expectedTagComponent: 'stream:${stream.streamId}:$topic',
-        expectedSummaryText: account.realmUrl.toString());
     })));
 
     test('group DM: 3 users', () => runWithHttpClient(() => awaitFakeAsync((async) async {
@@ -1325,7 +1293,7 @@ void main() {
       await receiveNotification(async, notifPayloadNewMessage(message));
       check(testBinding.androidNotificationHost.activeNotifications).isNotEmpty();
 
-      await NotificationDisplayManager.removeNotificationsForAccount(
+      await AndroidNotificationDisplayManager.removeNotificationsForAccount(
         eg.selfAccount.realmUrl, eg.selfAccount.userId);
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
@@ -1348,7 +1316,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications)
         .length.equals(4);
 
-      await NotificationDisplayManager.removeNotificationsForAccount(
+      await AndroidNotificationDisplayManager.removeNotificationsForAccount(
         realmUrl, account1.userId);
       check(testBinding.androidNotificationHost.activeNotifications)
         ..length.equals(2)
@@ -1375,7 +1343,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications)
         .length.equals(4);
 
-      await NotificationDisplayManager.removeNotificationsForAccount(account1.realmUrl, userId);
+      await AndroidNotificationDisplayManager.removeNotificationsForAccount(account1.realmUrl, userId);
       check(testBinding.androidNotificationHost.activeNotifications)
         ..length.equals(2)
         ..first.notification.group.equals('${account2.realmUrl}|$userId');
@@ -1385,7 +1353,7 @@ void main() {
       await init();
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
 
-      await NotificationDisplayManager.removeNotificationsForAccount(eg.selfAccount.realmUrl, eg.selfAccount.userId);
+      await AndroidNotificationDisplayManager.removeNotificationsForAccount(eg.selfAccount.realmUrl, eg.selfAccount.userId);
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
   });

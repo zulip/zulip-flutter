@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 // ignore: unused_import
@@ -20,28 +21,13 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+      'L\'information de version de l\'application n\'a pas été trouvée.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes => 'Notes de publication';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Licences de logiciel libre';
-
-  @override
-  String get upgradeWelcomeDialogTitle =>
-      'Bienvenue dans la nouvelle application Zulip !';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Vous retrouverez une expérience familière dans un logiciel plus rapide et plus élégant.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Allez voir l\'article de blog de l\'annonce !';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Allons-y';
 
   @override
   String get chooseAccountPageTitle => 'Choisir un compte';
@@ -102,10 +88,6 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   @override
   String get permissionsDeniedCameraAccess =>
       'Pour charger une image, merci d\'accorder des autorisations supplémentaires à Zulip, dans les Paramètres.';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Pour téléverser des fichiers, merci d\'accorder des autorisations supplémentaires à Zulip, dans les Paramètres.';
 
   @override
   String get actionSheetOptionSubscribe => 'S\'abonner';
@@ -248,6 +230,12 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   @override
   String get actionSheetOptionHideMutedMessage =>
       'Cacher à nouveau le message en sourdine';
+
+  @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
 
   @override
   String get actionSheetOptionShare => 'Partager';
@@ -422,6 +410,10 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'Les fichiers sélectionnés n\'ont pas pu être chargés.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
     return 'Échec de la lecture du fichier : $filename';
   }
@@ -515,11 +507,17 @@ class ZulipLocalizationsFr extends ZulipLocalizations {
       'Échec de la suppression du message des favoris';
 
   @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
+
+  @override
   String get errorCouldNotEditMessageTitle =>
       'Le message n\'a pas pu être modifié';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied => 'Version de l\'application copiée';
 
   @override
   String get successLinkCopied => 'Lien copié';

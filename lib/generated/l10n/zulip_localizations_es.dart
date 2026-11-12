@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 // ignore: unused_import
@@ -20,29 +21,13 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'Texto del banner de la página «Acerca de Zulip», que aparece en lugar del elemento de la versión de la aplicación cuando se desconoce la versión.';
+      'No se ha encontrado la información sobre la versión de la aplicación.';
 
   @override
-  String get aboutPageReleaseNotes =>
-      'Título del elemento en la página «Acerca de Zulip» para abrir las notas de la versión actual en GitHub';
+  String get aboutPageReleaseNotes => 'Notas de la versión';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Licencias de Código Abierto';
-
-  @override
-  String get upgradeWelcomeDialogTitle =>
-      '¡Te damos la bienvenida a la nueva app de Zulip!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'Encontrarás una experiencia familiar en un paquete más rápido y ligero.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText =>
-      '¡Echa un vistazo al post de anuncio en blog!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Vamos';
 
   @override
   String get chooseAccountPageTitle => 'Escoger cuenta';
@@ -105,10 +90,6 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'Para subir una imagen, concede a Zulip permisos adicionales en Ajustes.';
 
   @override
-  String get permissionsDeniedReadExternalStorage =>
-      'Para subir archivos, concede a Zulip permisos adicionales en Ajustes.';
-
-  @override
   String get actionSheetOptionSubscribe => 'Suscribirse';
 
   @override
@@ -146,7 +127,7 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get unsubscribeFailedTitle => 'Falló la cancelación de suscripción';
 
   @override
-  String get actionSheetOptionPinChannel => 'Fijar canal';
+  String get actionSheetOptionPinChannel => 'Fijar en la parte superior';
 
   @override
   String get actionSheetOptionUnpinChannel => 'Desfijar canal';
@@ -250,6 +231,14 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   @override
   String get actionSheetOptionHideMutedMessage =>
       'Ocultar mensaje silenciado de nuevo';
+
+  @override
+  String get actionSheetOptionHideLinkPreviews =>
+      'Ocultar las vistas previas de los enlaces';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews =>
+      'Mostrar vistas previas de los enlaces';
 
   @override
   String get actionSheetOptionShare => 'Compartir';
@@ -414,6 +403,10 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'No se han podido cargar los archivos seleccionados.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
     return 'No se ha podido leer el archivo: $filename';
   }
@@ -503,12 +496,19 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
       'Error al dejar de destacar el mensaje';
 
   @override
+  String get errorHideLinkPreviewsFailedTitle =>
+      'No se han podido ocultar las vistas previas de los enlaces';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle =>
+      'No se han podido mostrar las vistas previas de los enlaces';
+
+  @override
   String get errorCouldNotEditMessageTitle =>
       'No se ha podido editar el mensaje';
 
   @override
-  String get successAppVersionCopied =>
-      'Mensaje de éxito tras copiar la versión de la aplicación al portapapeles del sistema del usuario.';
+  String get successAppVersionCopied => 'Versión de la aplicación copiada';
 
   @override
   String get successLinkCopied => 'Enlace copiado';

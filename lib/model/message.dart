@@ -410,8 +410,7 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     if (!debugOutboxEnable) {
       return _apiSendMessage(connection,
         destination: destination,
-        content: content,
-        readBySender: true);
+        content: content);
     }
     return _outboxSendMessage(destination: destination, content: content);
   }
@@ -1227,7 +1226,6 @@ mixin _OutboxMessageStore on HasChannelStore {
       result = await _apiSendMessage(connection,
         destination: destination,
         content: content,
-        readBySender: true,
         queueId: queueId,
         localId: localMessageId.toString());
     } catch (e) {

@@ -1,8 +1,8 @@
 import 'package:checks/checks.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legacy_checks/legacy_checks.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zulip/api/model/initial_snapshot.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/widgets/color.dart';

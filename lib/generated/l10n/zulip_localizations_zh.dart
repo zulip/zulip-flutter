@@ -1,4 +1,5 @@
-// TODO(#2463) stop using the deprecated members
+// TODO(upstream) drop once gen-l10n stops using the deprecated members:
+//   https://github.com/flutter/flutter/issues/191072
 // ignore_for_file: deprecated_member_use
 
 // ignore: unused_import
@@ -27,20 +28,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get aboutPageOpenSourceLicenses => 'Open-source licenses';
-
-  @override
-  String get upgradeWelcomeDialogTitle => 'Welcome to the new Zulip app!';
-
-  @override
-  String get upgradeWelcomeDialogMessage =>
-      'You’ll find a familiar experience in a faster, sleeker package.';
-
-  @override
-  String get upgradeWelcomeDialogLinkText =>
-      'Check out the announcement blog post!';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => 'Let\'s go';
 
   @override
   String get chooseAccountPageTitle => 'Choose account';
@@ -100,10 +87,6 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   @override
   String get permissionsDeniedCameraAccess =>
       'To upload an image, please grant Zulip additional permissions in Settings.';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      'To upload files, please grant Zulip additional permissions in Settings.';
 
   @override
   String get actionSheetOptionSubscribe => 'Subscribe';
@@ -241,6 +224,12 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get actionSheetOptionHideMutedMessage => 'Hide muted message again';
+
+  @override
+  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+
+  @override
+  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
 
   @override
   String get actionSheetOptionShare => 'Share';
@@ -403,6 +392,10 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
   }
 
   @override
+  String get errorCouldNotLoadSelectedFiles =>
+      'The selected files could not be loaded.';
+
+  @override
   String errorCouldNotReadFile(String filename) {
     return 'Could not read file: $filename';
   }
@@ -489,6 +482,12 @@ class ZulipLocalizationsZh extends ZulipLocalizations {
 
   @override
   String get errorUnstarMessageFailedTitle => 'Failed to unstar message';
+
+  @override
+  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+
+  @override
+  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
 
   @override
   String get errorCouldNotEditMessageTitle => 'Could not edit message';
@@ -1451,18 +1450,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
   String get aboutPageOpenSourceLicenses => '开源许可';
 
   @override
-  String get upgradeWelcomeDialogTitle => '欢迎来到新的 Zulip 应用程序！';
-
-  @override
-  String get upgradeWelcomeDialogMessage => '您将在更快、更流畅的版本中享受熟悉的体验。';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => '来看看最新的公告博客吧！';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => '开始吧';
-
-  @override
   String get chooseAccountPageTitle => '选择账号';
 
   @override
@@ -1517,10 +1504,6 @@ class ZulipLocalizationsZhHansCn extends ZulipLocalizationsZh {
 
   @override
   String get permissionsDeniedCameraAccess => '上传图片前，请在设置中授予 Zulip 相应的权限。';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      '上传文件前，请在设置中授予 Zulip 相应的权限。';
 
   @override
   String get actionSheetOptionSubscribe => '订阅';
@@ -2581,18 +2564,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
   String get aboutPageOpenSourceLicenses => '開源授權條款';
 
   @override
-  String get upgradeWelcomeDialogTitle => '歡迎使用新的 Zulip 應用程式！';
-
-  @override
-  String get upgradeWelcomeDialogMessage => '您將在更快、更流暢的版本中享受熟悉的體驗。';
-
-  @override
-  String get upgradeWelcomeDialogLinkText => '查看公告部落格文章！';
-
-  @override
-  String get upgradeWelcomeDialogDismiss => '開始吧';
-
-  @override
   String get chooseAccountPageTitle => '選取帳號';
 
   @override
@@ -2648,10 +2619,6 @@ class ZulipLocalizationsZhHantTw extends ZulipLocalizationsZh {
 
   @override
   String get permissionsDeniedCameraAccess => '要上傳圖片，請在設定中授予 Zulip 額外權限。';
-
-  @override
-  String get permissionsDeniedReadExternalStorage =>
-      '要上傳檔案，請在設定中授予 Zulip 額外權限。';
 
   @override
   String get actionSheetOptionSubscribe => '訂閱';
