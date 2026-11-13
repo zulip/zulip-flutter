@@ -22,6 +22,9 @@ mixin UserGroupStore on PerAccountStoreBase {
   /// Whether the self-user is a (transitive) member of the given group,
   /// a group-setting value.
   bool selfInGroupSetting(GroupSettingValue value);
+
+  /// Whether the self-user is a (transitive) member of the given group.
+  bool selfInGroup(int groupId);
 }
 
 mixin ProxyUserGroupStore on UserGroupStore {
@@ -37,6 +40,8 @@ mixin ProxyUserGroupStore on UserGroupStore {
   @override
   bool selfInGroupSetting(GroupSettingValue value)
     => userGroupStore.selfInGroupSetting(value);
+  @override
+  bool selfInGroup(int groupId) => userGroupStore.selfInGroup(groupId);
 }
 
 abstract class HasUserGroupStore extends PerAccountStoreBase with UserGroupStore, ProxyUserGroupStore {
@@ -75,20 +80,21 @@ class UserGroupStoreImpl extends PerAccountStoreBase with UserGroupStore {
   bool selfInGroupSetting(GroupSettingValue value) {
     return switch (value) {
       GroupSettingValueNamed() =>
-        _selfInGroup(value.groupId),
+        selfInGroup(value.groupId),
       GroupSettingValueNameless() =>
         value.directMembers.contains(selfUserId)
-          || value.directSubgroups.any(_selfInGroup),
+          || value.directSubgroups.any(selfInGroup),
     };
   }
 
-  bool _selfInGroup(int groupId) {
+  @override
+  bool selfInGroup(int groupId) {
     final group = _groups[groupId];
     if (group == null) return false; // TODO(log); should know all groups
     // TODO(perf), TODO(#814): memoize which groups the self-user is in,
     //   to save doing this depth-first search on each permission check
     return group.members.contains(selfUserId)
-      || group.directSubgroupIds.any(_selfInGroup);
+      || group.directSubgroupIds.any(selfInGroup);
   }
 
   final Map<int, UserGroup> _groups;

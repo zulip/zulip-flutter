@@ -100,6 +100,7 @@ class ZulipContent extends ContentNode implements ZulipMessageContent {
     super.debugHtmlNode,
     required this.nodes,
     this.hasLinkPreviews = false,
+    this.mentionedUserIds = const {},
   });
 
   final List<BlockContentNode> nodes;
@@ -107,6 +108,13 @@ class ZulipContent extends ContentNode implements ZulipMessageContent {
   /// Whether [nodes] or their descendants include any of the link previews
   /// that [MessageFlag.hideLinkPreviews] hides.
   final bool hasLinkPreviews;
+
+  /// A set of user IDs of all non-silent user mentions in [nodes].
+  ///
+  /// This set carries no information that couldn't be computed from [nodes].
+  /// It exists as an optimization, to allow a widget interpreting this content
+  /// to obtain that set during build without having to walk the [nodes] tree.
+  final Set<int> mentionedUserIds;
 
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
@@ -1086,7 +1094,7 @@ sealed class MentionNode extends InlineContainerNode {
     required this.isSilent,
   });
 
-  final bool isSilent; // TODO(#647)
+  final bool isSilent;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -1334,6 +1342,9 @@ class _ZulipInlineContentParser {
       debugSoftFailReason: kDebugMode ? parsed.softFailReason : null);
   }
 
+  /// The user IDs of all non-silent user mentions found in the current message.
+  final Set<int> _mentionedUserIds = {};
+
   MentionNode? parseMention(dom.Element element) {
     assert(element.localName == 'span');
     final debugHtmlNode = kDebugMode ? element : null;
@@ -1405,6 +1416,9 @@ class _ZulipInlineContentParser {
           debugHtmlNode: debugHtmlNode);
       case ('user-mention', final userIdString):
         final userId = int.tryParse(userIdString ?? '', radix: 10);
+        if (userId != null && !isSilent) {
+          _mentionedUserIds.add(userId);
+        }
         return UserMentionNode(
           nodes: nodes,
           isSilent: isSilent,
@@ -2317,6 +2331,7 @@ class _ZulipContentParser {
     final fragment = HtmlParser(html, parseMeta: false).parseFragment();
     final nodes = parseBlockContentList(fragment.nodes);
     return ZulipContent(nodes: nodes, hasLinkPreviews: _hasLinkPreviews,
+      mentionedUserIds: inlineParser._mentionedUserIds,
       debugHtmlNode: kDebugMode ? fragment : null);
   }
 }
