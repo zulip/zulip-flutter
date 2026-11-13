@@ -549,13 +549,19 @@ class Spoiler extends StatefulWidget {
   State<Spoiler> createState() => _SpoilerState();
 }
 
-class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
+class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   bool expanded = false;
 
   late final AnimationController _controller = AnimationController(
     duration: const Duration(milliseconds: 400), vsync: this);
   late final Animation<double> _animation = CurvedAnimation(
     parent: _controller, curve: Curves.easeInOut);
+
+  // A lazy list like the message list may drop this spoiler's item and
+  // build it again, even mid-layout while the spoiler grows as it opens.
+  // Don't let that collapse it.
+  @override
+  bool get wantKeepAlive => expanded;
 
   @override
   void dispose() {
@@ -573,10 +579,12 @@ class _SpoilerState extends State<Spoiler> with TickerProviderStateMixin {
         expanded = false;
       }
     });
+    updateKeepAlive();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // for AutomaticKeepAliveClientMixin
     final zulipLocalizations = ZulipLocalizations.of(context);
     final header = widget.node.header;
     final effectiveHeader = header.isNotEmpty
