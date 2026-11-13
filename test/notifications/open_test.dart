@@ -4,10 +4,12 @@ import 'package:checks/checks.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_checks/flutter_checks.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:material_ui/material_ui.dart';
 import 'package:zulip/api/model/model.dart';
 import 'package:zulip/api/notifications.dart';
 import 'package:zulip/api/route/channels.dart';
+import 'package:zulip/api/route/messages.dart';
 import 'package:zulip/host/notifications.dart';
 import 'package:zulip/model/localizations.dart';
 import 'package:zulip/model/narrow.dart';
@@ -224,6 +226,30 @@ void main() {
       matchesNavigation(check(pushedRoutes).single, account, message);
       pushedRoutes.clear();
     }
+
+    test('iOS notification reply sends a message', () async {
+      addTearDown(testBinding.reset);
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+      final connection = store.connection as FakeApiConnection;
+      connection.prepare(json: SendMessageResult(id: 123).toJson());
+
+      final message = eg.streamMessage();
+      final payload = messageApnsPayload(eg.selfAccount, message)
+        ..[NotificationOpenService.kIosNotificationReplyTextKey] = 'A reply';
+      await NotificationOpenService.debugSendNotificationReply(
+        IosNotificationTapEvent(payload: payload));
+
+      check(connection.takeRequests()).single.isA<http.Request>()
+        ..method.equals('POST')
+        ..url.path.equals('/api/v1/messages')
+        ..bodyFields['content'].equals('A reply')
+        ..bodyFields['type'].equals('channel')
+        ..bodyFields['topic'].equals(message.topic.apiName);
+    });
 
     group('app running', () {
       testWidgets('stream message', (tester) async {

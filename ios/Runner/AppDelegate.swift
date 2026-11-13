@@ -1,5 +1,10 @@
 import Flutter
 import UIKit
+import UserNotifications
+
+private let messageNotificationCategory = "MESSAGE"
+private let replyNotificationAction = "REPLY"
+private let replyTextUserInfoKey = "reply_text"
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -11,6 +16,20 @@ import UIKit
       .LaunchOptionsKey: Any]?
   ) -> Bool {
     UNUserNotificationCenter.current().delegate = self
+    let replyAction = UNTextInputNotificationAction(
+      identifier: replyNotificationAction,
+      title: "Reply",
+      options: [],
+      textInputButtonTitle: "Send",
+      textInputPlaceholder: "Reply"
+    )
+    let messageCategory = UNNotificationCategory(
+      identifier: messageNotificationCategory,
+      actions: [replyAction],
+      intentIdentifiers: [],
+      options: []
+    )
+    UNUserNotificationCenter.current().setNotificationCategories([messageCategory])
 
     return super.application(
       application,
@@ -46,8 +65,13 @@ import UIKit
     _ center: UNUserNotificationCenter,
     didReceive response: UNNotificationResponse,
   ) async {
-    if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
-      let userInfo = response.notification.request.content.userInfo
+    var userInfo = response.notification.request.content.userInfo
+    if response.actionIdentifier == replyNotificationAction,
+      let textResponse = response as? UNTextInputNotificationResponse
+    {
+      userInfo[replyTextUserInfoKey] = textResponse.userText
+      notificationTapEventListener.onNotificationTapEvent(payload: userInfo)
+    } else if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
       notificationTapEventListener.onNotificationTapEvent(payload: userInfo)
     }
   }
