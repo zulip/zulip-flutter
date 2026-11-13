@@ -534,11 +534,13 @@ void main() {
               ..conversationTitle.equals(expectedTitle)
               ..messages.deepEquals(messageStyleMessagesChecks))
             ..number.equals(messageStyleMessages.length)
+            ..onlyAlertOnce.isNull()
             ..color.equals(kZulipBrandColor.argbInt)
             ..smallIconResourceName.equals('zulip_notification')
             ..extras.which((it) => it.isNotNull()
               ..deepEquals(<String, String>{
                 AndroidNotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
+                AndroidNotificationDisplayManager.kExtraIntentDataUrl: expectedIntentDataUrl.toString(),
               }))
             ..groupKey.equals(expectedGroupKey)
             ..isGroupSummary.isNull()
@@ -564,6 +566,7 @@ void main() {
             ..isGroupSummary.equals(true)
             ..inboxStyle.which((it) => it.isNotNull()
               ..summaryText.equals(expectedSummaryText!))
+            ..onlyAlertOnce.isNull()
             ..autoCancel.equals(true)
             ..contentIntent.isNull(),
         ]);
@@ -609,15 +612,20 @@ void main() {
       async.flushMicrotasks();
     }
 
-    Condition<Object?> conditionActiveNotif(NotifPayloadNewMessage data, String tagComponent) {
+    Condition<Object?> conditionActiveNotif(NotifPayloadNewMessage data, String tagComponent, {
+      int? firstMessageId,
+    }) {
       final expectedGroupKey = '${data.realmUrl}|${data.userId}';
       final expectedTag = '$expectedGroupKey|$tagComponent';
+      final expectedIntentDataUrl = NotificationOpenPayload.fromNotifPayload(data,
+        messageId: firstMessageId ?? data.messageId).buildNotificationUrl();
       return (it) => it.isA<StatusBarNotification>()
         ..id.equals(AndroidNotificationDisplayManager.kNotificationId)
         ..notification.which((it) => it
           ..group.equals(expectedGroupKey)
           ..extras.deepEquals(<String, String>{
             AndroidNotificationDisplayManager.kExtraLastMessageId: data.messageId.toString(),
+            AndroidNotificationDisplayManager.kExtraIntentDataUrl: expectedIntentDataUrl.toString(),
           }))
         ..tag.equals(expectedTag);
     }
@@ -1123,7 +1131,7 @@ void main() {
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
-    test('remove: clears conversation only if the removal event is for the last message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+    test('remove: some messages of a conversation', () => runWithHttpClient(() => awaitFakeAsync((async) async {
       await init();
       final stream = eg.stream();
       const topicA = 'Topic A';
@@ -1136,25 +1144,109 @@ void main() {
       final conversationKey = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
       final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
 
-      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
-
       await receiveNotification(async, data1);
       await receiveNotification(async, data2);
       await receiveNotification(async, data3);
+      testBinding.androidNotificationHost.takeNotifyCalls();
+
+      // A NotifPayloadRemove for the first message;
+      // re-post the notification with the rest, without alerting again.
+      await receiveNotification(async, notifPayloadRemove([message1]));
+      check(testBinding.androidNotificationHost.takeNotifyCalls()).single
+        ..tag.equals('$expectedGroupKey|$conversationKey')
+        ..onlyAlertOnce.equals(true)
+        ..number.equals(2)
+        ..messagingStyle.which((it) => it.isNotNull()
+          .messages.deepEquals(<Condition<Object?>>[
+            for (final message in [message2, message3])
+              (it) => it.isA<MessagingStyleMessage>().extras.deepEquals({
+                AndroidNotificationDisplayManager.kExtraZulipMessageId: message.id.toString(),
+              }),
+          ]))
+        ..contentIntent.which((it) => it.isNotNull()
+          .intent.dataUrl.equals(NotificationOpenPayload.fromNotifPayload(data3,
+            messageId: message2.id).buildNotificationUrl().toString()));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data3, conversationKey),
+        conditionActiveNotif(data3, conversationKey, firstMessageId: message2.id),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
-      // A NotifPayloadRemove for the first two messages; the notification stays.
-      await receiveNotification(async, notifPayloadRemove([message1, message2]));
+      // Then a NotifPayloadRemove for the rest; clear the notification.
+      await receiveNotification(async, notifPayloadRemove([message2, message3]));
+      check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
+    })));
+
+    test('remove: latest message of a conversation, earlier messages still unread', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topicA = 'Topic A';
+      final message1 = eg.streamMessage(stream: stream, topic: topicA);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
+      final message2 = eg.streamMessage(stream: stream, topic: topicA);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
+      final conversationKey = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
+      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
+
+      await receiveNotification(async, data1);
+      await receiveNotification(async, data2);
+
+      await receiveNotification(async, notifPayloadRemove([message2]));
       check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
-        conditionActiveNotif(data3, conversationKey),
+        conditionActiveNotif(data1, conversationKey),
+        conditionSummaryActiveNotif(expectedGroupKey),
+      ]);
+    })));
+
+    test('remove: no messages of the conversation', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topicA = 'Topic A';
+      final message1 = eg.streamMessage(stream: stream, topic: topicA);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
+      final otherMessage = eg.streamMessage(stream: stream, topic: topicA);
+      final conversationKey = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
+      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
+
+      await receiveNotification(async, data1);
+      testBinding.androidNotificationHost.takeNotifyCalls();
+
+      await receiveNotification(async, notifPayloadRemove([otherMessage]));
+      check(testBinding.androidNotificationHost.takeNotifyCalls()).isEmpty();
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data1, conversationKey),
+        conditionSummaryActiveNotif(expectedGroupKey),
+      ]);
+    })));
+
+    test('remove: notification without message IDs clears only on latest message', () => runWithHttpClient(() => awaitFakeAsync((async) async {
+      await init();
+      final stream = eg.stream();
+      const topicA = 'Topic A';
+      final message1 = eg.streamMessage(stream: stream, topic: topicA);
+      final data1 = notifPayloadNewMessage(message1, streamName: stream.name);
+      final message2 = eg.streamMessage(stream: stream, topic: topicA);
+      final data2 = notifPayloadNewMessage(message2, streamName: stream.name);
+      final conversationKey = 'stream:${stream.streamId}:${topicA.toLowerCase()}';
+      final expectedGroupKey = '${data1.realmUrl}|${data1.userId}';
+
+      await receiveNotification(async, data1);
+      await receiveNotification(async, data2);
+      testBinding.androidNotificationHost.takeNotifyCalls();
+
+      // Simulate a notification posted by a version of the app from before
+      // we recorded each message's Zulip message ID.
+      testBinding.androidNotificationHost.clearActiveNotificationMessageExtras();
+
+      // A NotifPayloadRemove for an earlier message; the notification stays.
+      await receiveNotification(async, notifPayloadRemove([message1]));
+      check(testBinding.androidNotificationHost.takeNotifyCalls()).isEmpty();
+      check(testBinding.androidNotificationHost.activeNotifications).deepEquals(<Condition<Object?>>[
+        conditionActiveNotif(data2, conversationKey, firstMessageId: message1.id),
         conditionSummaryActiveNotif(expectedGroupKey),
       ]);
 
-      // Then a NotifPayloadRemove for the last message; clear the notification.
-      await receiveNotification(async, notifPayloadRemove([message3]));
+      // Then a NotifPayloadRemove for the latest message; clear the notification.
+      await receiveNotification(async, notifPayloadRemove([message2]));
       check(testBinding.androidNotificationHost.activeNotifications).isEmpty();
     })));
 
@@ -1388,6 +1480,7 @@ extension on Subject<AndroidNotificationHostApiNotifyCall> {
   Subject<bool?> get isGroupSummary => has((x) => x.isGroupSummary, 'isGroupSummary');
   Subject<MessagingStyle?> get messagingStyle => has((x) => x.messagingStyle, 'messagingStyle');
   Subject<int?> get number => has((x) => x.number, 'number');
+  Subject<bool?> get onlyAlertOnce => has((x) => x.onlyAlertOnce, 'onlyAlertOnce');
   Subject<String?> get smallIconResourceName => has((x) => x.smallIconResourceName, 'smallIconResourceName');
 }
 

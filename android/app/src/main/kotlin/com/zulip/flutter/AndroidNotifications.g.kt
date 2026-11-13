@@ -929,7 +929,7 @@ interface AndroidNotificationHostApi {
    *   https://developer.android.com/reference/kotlin/android/app/NotificationManager.html#notify
    *   https://developer.android.com/reference/androidx/core/app/NotificationCompat.Builder
    */
-  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String, String>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, messagingStyle: MessagingStyle?, number: Long?, smallIconResourceName: String?)
+  fun notify(tag: String?, id: Long, autoCancel: Boolean?, channelId: String, color: Long?, contentIntent: PendingIntent?, contentText: String?, contentTitle: String?, extras: Map<String, String>?, groupKey: String?, inboxStyle: InboxStyle?, isGroupSummary: Boolean?, messagingStyle: MessagingStyle?, number: Long?, onlyAlertOnce: Boolean?, smallIconResourceName: String?)
   /**
    * Corresponds to `androidx.core.app.NotificationManagerCompat.getActiveNotifications`,
    * optionally combined with `androidx.core.app.NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification`
@@ -1070,9 +1070,10 @@ interface AndroidNotificationHostApi {
             val isGroupSummaryArg = args[11] as Boolean?
             val messagingStyleArg = args[12] as MessagingStyle?
             val numberArg = args[13] as Long?
-            val smallIconResourceNameArg = args[14] as String?
+            val onlyAlertOnceArg = args[14] as Boolean?
+            val smallIconResourceNameArg = args[15] as String?
             val wrapped: List<Any?> = try {
-              api.notify(tagArg, idArg, autoCancelArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, groupKeyArg, inboxStyleArg, isGroupSummaryArg, messagingStyleArg, numberArg, smallIconResourceNameArg)
+              api.notify(tagArg, idArg, autoCancelArg, channelIdArg, colorArg, contentIntentArg, contentTextArg, contentTitleArg, extrasArg, groupKeyArg, inboxStyleArg, isGroupSummaryArg, messagingStyleArg, numberArg, onlyAlertOnceArg, smallIconResourceNameArg)
               listOf(null)
             } catch (exception: Throwable) {
               AndroidNotificationsPigeonUtils.wrapError(exception)

@@ -283,6 +283,7 @@ abstract class AndroidNotificationHostApi {
     bool? isGroupSummary,
     MessagingStyle? messagingStyle,
     int? number,
+    bool? onlyAlertOnce,
     String? smallIconResourceName,
     // NotificationCompat.Builder has lots more methods; add as needed.
     // Keep them alphabetized, for easy comparison with that class's docs.
