@@ -2403,8 +2403,6 @@ void main() {
 
       await handleNewAvatarEventAndPump(tester, '/bar.jpg');
       checkResultForSender('/bar.jpg');
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('Bot user is distinguished by showing an icon', (tester) async {
@@ -2446,8 +2444,6 @@ void main() {
       checkUser(users[0], isBot: true);
       checkUser(users[1], isBot: false);
       checkUser(users[2], isBot: false);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     group('User status', () {
@@ -2489,8 +2485,6 @@ void main() {
 
         checkFindsStatusEmoji(tester, find.byType(Image));
         check(find.textContaining('Coding')).findsNothing();
-
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('longer user name -> emoji stays visible', (tester) async {
@@ -2558,7 +2552,6 @@ void main() {
         await setupMessageListPage(tester,
           users: [user], mutedUserIds: [user.userId], messages: [message]);
         checkMessage(message, expectIsMuted: true);
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('not-muted appearance', (tester) async {
@@ -2566,7 +2559,6 @@ void main() {
         await setupMessageListPage(tester,
           users: [user], mutedUserIds: [], messages: [message]);
         checkMessage(message, expectIsMuted: false);
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('"Reveal message" button', (tester) async {
@@ -2578,8 +2570,6 @@ void main() {
         await tester.tap(find.text('Reveal message'));
         await tester.pump();
         checkMessage(message, expectIsMuted: false);
-
-        debugNetworkImageHttpClientProvider = null;
       });
     });
 
@@ -2860,8 +2850,6 @@ void main() {
         MessageFlag.hideLinkPreviews, [message]));
       await tester.pump();
       check(find.byType(MessageEmbedVideo)).findsOne();
-
-      debugNetworkImageHttpClientProvider = null;
     });
   });
 

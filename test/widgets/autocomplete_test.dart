@@ -207,8 +207,6 @@ void main() {
       checkUserShown(user1, expected: false);
       checkUserShown(user2, expected: false);
       checkUserShown(user3, expected: false);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     group('User status', () {
@@ -238,8 +236,6 @@ void main() {
 
         checkFindsStatusEmoji(tester, find.text('\u{1f6e0}'));
         check(find.textContaining('Busy')).findsNothing();
-
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('emoji is not set, text is set -> text is not displayed', (tester) async {
@@ -255,8 +251,6 @@ void main() {
         await tester.pumpAndSettle(); // async computation; options appear
 
         check(find.textContaining('Busy')).findsNothing();
-
-        debugNetworkImageHttpClientProvider = null;
       });
     });
 
@@ -291,8 +285,6 @@ void main() {
       checkWildcardShown(WildcardMentionOption.all, expected: false);
       checkWildcardShown(WildcardMentionOption.everyone, expected: false);
       checkWildcardShown(WildcardMentionOption.stream, expected: false);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     group('sublabel', () {
@@ -317,8 +309,6 @@ void main() {
         check(find.text(user.email)).findsNothing();
         check(findLabelsForItem(
           itemFinder: find.text(user.fullName))).findsOne();
-
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('show sublabel when delivery email is available', (tester) async {
@@ -334,8 +324,6 @@ void main() {
         check(find.text(user.deliveryEmail!)).findsOne();
         check(findLabelsForItem(
           itemFinder: find.text(user.fullName))).findsExactly(2);
-
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('show sublabel for wildcard mention items', (tester) async {
@@ -351,8 +339,6 @@ void main() {
         check(find.text('Notify channel')).findsOne();
         check(findLabelsForItem(
           itemFinder: find.text('channel'))).findsExactly(2);
-
-        debugNetworkImageHttpClientProvider = null;
       });
     });
   });
@@ -406,8 +392,6 @@ void main() {
       checkChannelShown(channel1, expected: false);
       checkChannelShown(channel2, expected: false);
       checkChannelShown(channel3, expected: false);
-
-      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -478,8 +462,6 @@ void main() {
       checkEmojiShown(expected: false, zzzOption);
       checkEmojiShown(expected: false, buzzingOption);
       checkEmojiShown(expected: false, zulipOption);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('text emoji means just show text', (tester) async {
@@ -504,8 +486,6 @@ void main() {
           Image(image: NetworkImage()) => true,
           _ => false,
         }))).findsNothing();
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     final scrollTestCodesToNames = {
@@ -564,8 +544,6 @@ void main() {
 
       await requeryForAllResultsAndPump();
       checkScrollItemsVisible(first: true, last: false); // auto-scroll happened
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('scroll position is retained when text changes but query does not', (tester) async {
@@ -594,8 +572,6 @@ void main() {
       await tester.enterText(composeInputFinder, 'hey :sm');
       await tester.pump();
       checkScrollItemsVisible(first: false, last: true); // scroll was NOT reset
-
-      debugNetworkImageHttpClientProvider = null;
     });
   });
 

@@ -205,8 +205,6 @@ void main() {
           await chooseUnicodeEmojiFromPicker(tester, '1f642',
             navObserver: testNavObserver, currentRoute: () => currentRoute!);
           checkButtonsEnabled(tester, expectClear: true, expectSave: true);
-
-          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('text is added -> buttons are enabled', (tester) async {
@@ -276,8 +274,6 @@ void main() {
             emojiSelected: true,
             navObserver: testNavObserver, currentRoute: () => currentRoute!);
           checkButtonsEnabled(tester, expectClear: true, expectSave: true);
-
-          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('text is changed -> buttons are enabled', (tester) async {
@@ -354,8 +350,6 @@ void main() {
           await tester.enterText(findStatusTextField(), 'Happy');
           await tester.pump();
           checkButtonsEnabled(tester, expectClear: true, expectSave: false);
-
-          debugNetworkImageHttpClientProvider = null;
         });
 
         testWidgets('a new suggestion is selected, then reset -> buttons are enabled, then "Clear" is enabled, "Save" is not', (tester) async {

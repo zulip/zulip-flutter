@@ -52,14 +52,12 @@ void main() {
       const avatarUrl = 'https://example/avatar.png';
       check(await actualUrl(tester, avatarUrl)).isNotNull()
         .asString.equals(avatarUrl);
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke with relative URL', (tester) async {
       const avatarUrl = '/avatar.png';
       check(await actualUrl(tester, avatarUrl))
         .equals(store.tryResolveUrl(avatarUrl)!);
-      debugNetworkImageHttpClientProvider = null;
     });
 
    testWidgets('absolute URL, larger size', (tester) async {
@@ -69,7 +67,6 @@ void main() {
       const avatarUrl = 'https://example/avatar.png';
       check(await actualUrl(tester, avatarUrl, 50)).isNotNull()
         .asString.equals(avatarUrl.replaceAll('.png', '-medium.png'));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('relative URL, larger size', (tester) async {
@@ -79,13 +76,11 @@ void main() {
       const avatarUrl = '/avatar.png';
       check(await actualUrl(tester, avatarUrl, 50))
         .equals(store.tryResolveUrl('/avatar-medium.png')!);
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke with invalid URL', (tester) async {
       const avatarUrl = '::not a URL::';
       check(await actualUrl(tester, avatarUrl)).isNull();
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('shows placeholder when user is not found', (tester) async {
@@ -106,7 +101,6 @@ void main() {
     testWidgets('fallback URL when avatarUrl is missing', (tester) async {
       check(await actualUrl(tester, null))
         .equals(store.realmUrl.resolve('/avatar/${user.userId}'));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('fallback URL when avatarUrl is missing, larger size', (tester) async {
@@ -115,12 +109,12 @@ void main() {
 
       check(await actualUrl(tester, null, 50))
         .equals(store.realmUrl.resolve('/avatar/${user.userId}/medium'));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('shows placeholder when image fails to load', (tester) async {
       final httpClient = FakeImageHttpClient();
       debugNetworkImageHttpClientProvider = () => httpClient;
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
       httpClient.request.response
         ..statusCode = HttpStatus.notFound
         ..content = <int>[];
@@ -138,8 +132,6 @@ void main() {
       await tester.pump();
       await tester.pump();
       check(findPlaceholder).findsOne();
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
   });

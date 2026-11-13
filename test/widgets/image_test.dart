@@ -45,13 +45,11 @@ void main() {
           'Authorization': [authHeaders['Authorization']!],
           'User-Agent': [userAgentHeader()['User-Agent']!],
         });
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('excludes auth header if `src` off-realm', (tester) async {
       check(await actualHeaders(tester, Uri.parse('https://other.example/image.png')))
         .deepEquals({'User-Agent': [userAgentHeader()['User-Agent']!]});
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('throws if no `PerAccountStoreWidget` ancestor', (tester) async {

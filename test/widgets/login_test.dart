@@ -419,7 +419,6 @@ void main() {
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
         check(find.bySemanticsLabel(zulipLocalizations.loginMethodDividerSemanticLabel))
           .findsNothing();
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('shows divider when email auth enabled with external methods', (tester) async {
@@ -435,7 +434,6 @@ void main() {
         final zulipLocalizations = GlobalLocalizations.zulipLocalizations;
         check(find.bySemanticsLabel(zulipLocalizations.loginMethodDividerSemanticLabel))
           .findsOne();
-        debugNetworkImageHttpClientProvider = null;
       });
     });
 
@@ -480,8 +478,6 @@ void main() {
         check(pushedRoutes).single.isA<MaterialAccountWidgetRoute>()
           ..accountId.equals(account.id)
           ..page.isA<HomePage>();
-
-        debugNetworkImageHttpClientProvider = null;
       });
 
       // TODO failures, such as: invalid loginUrl; URL can't be launched;
