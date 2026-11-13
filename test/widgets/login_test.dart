@@ -422,6 +422,27 @@ void main() {
         debugNetworkImageHttpClientProvider = null;
       });
 
+      testWidgets('resolves a realm-relative displayIcon URL', (tester) async {
+        // Regression test for: https://github.com/zulip/zulip-flutter/issues/1969
+        prepareBoringImageHttpClient(); // icon on social-auth button
+        final relativeIconMethod = ExternalAuthenticationMethod(
+          name: googleAuthMethod.name,
+          displayName: googleAuthMethod.displayName,
+          displayIcon: '/static/images/authentication_backends/google-icon.png',
+          loginUrl: googleAuthMethod.loginUrl,
+          signupUrl: googleAuthMethod.signupUrl);
+        final serverSettings = eg.serverSettings(
+          emailAuthEnabled: false,
+          authenticationMethods: eg.authMethods(ldap: false),
+          externalAuthenticationMethods: [relativeIconMethod]);
+        await prepare(tester, serverSettings);
+        check(find.textContaining('Google')).findsOne();
+        final image = tester.widget<Image>(find.byType(Image));
+        check((image.image as NetworkImage).url).equals(
+          serverSettings.realmUrl.resolve(relativeIconMethod.displayIcon!).toString());
+        debugNetworkImageHttpClientProvider = null;
+      });
+
       testWidgets('shows divider when email auth enabled with external methods', (tester) async {
         prepareBoringImageHttpClient(); // icon on social-auth button
         final serverSettings = eg.serverSettings(

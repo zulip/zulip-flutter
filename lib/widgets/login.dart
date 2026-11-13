@@ -463,13 +463,19 @@ class _LoginPageState extends State<LoginPage> {
         if (showPasswordForm)
           _AlternativeAuthDivider(),
         ...externalAuthenticationMethods.map((method) {
-          final icon = method.displayIcon;
+          final displayIcon = method.displayIcon;
+          // The server may send an absolute or a realm-relative URL here;
+          // resolve it against the realm URL just as for [method.loginUrl]
+          // in [_beginWebAuth].
+          final iconUrl = displayIcon != null
+            ? widget.serverSettings.realmUrl.resolve(displayIcon)
+            : null;
           return OutlinedButton.icon(
             style: ButtonStyle(
               backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
               foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer)),
-            icon: icon != null
-              ? Image.network(icon, width: 24, height: 24)
+            icon: iconUrl != null
+              ? Image.network(iconUrl.toString(), width: 24, height: 24)
               : null,
             onPressed: !_inProgress
               ? () => _beginWebAuth(method)
