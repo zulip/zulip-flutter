@@ -2,8 +2,14 @@
   "@aboutPageAppVersion": {
     "description": "Label for Zulip app version in About Zulip page"
   },
+  "@aboutPageAppVersionUnknown": {
+    "description": "Banner text in About Zulip page, shown in place of the app-version item when the version is unknown."
+  },
   "@aboutPageOpenSourceLicenses": {
     "description": "Item title in About Zulip page to navigate to Licenses page"
+  },
+  "@aboutPageReleaseNotes": {
+    "description": "Item title in About Zulip page to open the current version's release notes on GitHub"
   },
   "@aboutPageTitle": {
     "description": "Title for About Zulip page."
@@ -31,6 +37,9 @@
   },
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
+  },
+  "@actionSheetOptionHideLinkPreviews": {
+    "description": "Label for the 'Hide link previews' button in the message action sheet."
   },
   "@actionSheetOptionHideMutedMessage": {
     "description": "Label for hide muted message again button on action sheet."
@@ -70,6 +79,9 @@
   },
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
+  },
+  "@actionSheetOptionShowLinkPreviews": {
+    "description": "Label for the 'Show link previews' button in the message action sheet."
   },
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
@@ -463,6 +475,9 @@
   "@errorCouldNotFetchMessageSource": {
     "description": "Error message when the source of a message could not be fetched."
   },
+  "@errorCouldNotLoadSelectedFiles": {
+    "description": "Error message when the user selected files, photos, or videos to attach, but none of them could be loaded."
+  },
   "@errorCouldNotOpenLink": {
     "description": "Error message when opening a link failed.",
     "placeholders": {
@@ -474,6 +489,15 @@
   },
   "@errorCouldNotOpenLinkTitle": {
     "description": "Error title when opening a link failed."
+  },
+  "@errorCouldNotReadFile": {
+    "description": "Error message when an attached file could not be read.",
+    "placeholders": {
+      "filename": {
+        "example": "foo.txt",
+        "type": "String"
+      }
+    }
   },
   "@errorCouldNotShowUserProfile": {
     "description": "Message that appears on the user profile page when the profile cannot be shown."
@@ -547,6 +571,9 @@
   },
   "@errorHandlingEventTitle": {
     "description": "Error title on failing to handle a Zulip server event."
+  },
+  "@errorHideLinkPreviewsFailedTitle": {
+    "description": "Error title when hiding the link previews on a message failed."
   },
   "@errorInvalidApiKeyMessage": {
     "description": "Error message in the dialog for invalid API key.",
@@ -686,6 +713,9 @@
   "@errorSharingTitle": {
     "description": "Error title when sharing content received from other apps fails"
   },
+  "@errorShowLinkPreviewsFailedTitle": {
+    "description": "Error title when showing the link previews on a message failed."
+  },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
   },
@@ -816,6 +846,9 @@
   "@loginRealmUrlHelpButton": {
     "description": "Tooltip for the 'help' icon button for the org-URL input in the login flow."
   },
+  "@loginRealmUrlHelperText": {
+    "description": "Helper text below the Zulip organization URL entry field on the login page."
+  },
   "@loginRealmUrlLabel": {
     "description": "Label in login page for Zulip realm/org URL entry."
   },
@@ -915,6 +948,9 @@
   "@messageNotSentLabel": {
     "description": "Text on a message in the message list saying that a send message request failed. (Use ALL CAPS for cased alphabets: Latin, Greek, Cyrillic, etc.)"
   },
+  "@messageReportTypeHarassment": {
+    "description": "Label for the 'Harassment' report type in the report message dialog."
+  },
   "@messageReportTypeInappropriate": {
     "description": "Label for the 'Inappropriate content' report type in the report message dialog."
   },
@@ -1003,6 +1039,9 @@
   "@permissionsNeededTitle": {
     "description": "Title for dialog asking the user to grant additional permissions."
   },
+  "@pinnedChannelsFolderName": {
+    "description": "Label for the channel folder for pinned channels."
+  },
   "@pinnedSubscriptionsLabel": {
     "description": "Label for the list of pinned subscribed channels."
   },
@@ -1075,6 +1114,9 @@
   },
   "@reportMessageDescriptionLabel": {
     "description": "Label text for the description field in the report message dialog."
+  },
+  "@reportMessageDescriptionRequired": {
+    "description": "Validation error shown in the report message dialog when the report type is \"Other\" and no description is provided."
   },
   "@reportMessageDialogTitle": {
     "description": "Title for the report message dialog."
@@ -1235,6 +1277,9 @@
   },
   "@subscribeFailedTitle": {
     "description": "Error title when subscribing to a channel failed."
+  },
+  "@successAppVersionCopied": {
+    "description": "Success message after the app version was copied to the user's system clipboard."
   },
   "@successChannelLinkCopied": {
     "description": "Message when link of a channel was copied to the user's system clipboard."
@@ -1485,7 +1530,9 @@
     "description": "The name of Zulip. This should be either 'Zulip' or a transliteration."
   },
   "aboutPageAppVersion": "Versione app",
+  "aboutPageAppVersionUnknown": "Le informazioni sulla versione dell'app non sono state trovate.",
   "aboutPageOpenSourceLicenses": "Licenze open-source",
+  "aboutPageReleaseNotes": "Note sulla versione",
   "aboutPageTitle": "Su Zulip",
   "actionSheetOptionChannelFeed": "Feed del canale",
   "actionSheetOptionCopyChannelLink": "Copia il collegamento al canale",
@@ -1495,6 +1542,7 @@
   "actionSheetOptionDeleteMessage": "Elimina messaggio",
   "actionSheetOptionEditMessage": "Modifica messaggio",
   "actionSheetOptionFollowTopic": "Segui argomento",
+  "actionSheetOptionHideLinkPreviews": "Nascondi le anteprime dei link",
   "actionSheetOptionHideMutedMessage": "Nascondi nuovamente il messaggio disattivato",
   "actionSheetOptionListOfTopics": "Elenco degli argomenti",
   "actionSheetOptionMarkAsUnread": "Segna come non letto da qui",
@@ -1508,6 +1556,7 @@
   "actionSheetOptionResolveTopic": "Segna come risolto",
   "actionSheetOptionSeeWhoReacted": "Guarda chi ha reagito",
   "actionSheetOptionShare": "Condividi",
+  "actionSheetOptionShowLinkPreviews": "Mostra le anteprime dei link",
   "actionSheetOptionStarMessage": "Messaggio speciale",
   "actionSheetOptionSubscribe": "Iscriviti",
   "actionSheetOptionUnfollowTopic": "Non seguire più l'argomento",
@@ -1608,8 +1657,10 @@
   "errorCouldNotConnectTitle": "Impossibile connettersi",
   "errorCouldNotEditMessageTitle": "Impossibile modificare il messaggio",
   "errorCouldNotFetchMessageSource": "Impossibile recuperare l'origine del messaggio.",
+  "errorCouldNotLoadSelectedFiles": "Non è stato possibile caricare i file selezionati.",
   "errorCouldNotOpenLink": "Impossibile aprire il collegamento: {url}",
   "errorCouldNotOpenLinkTitle": "Impossibile aprire il collegamento",
+  "errorCouldNotReadFile": "Impossibile leggere il file: {filename}",
   "errorCouldNotShowUserProfile": "Impossibile mostrare il profilo utente.",
   "errorDeleteMessageFailedTitle": "Non è stato possibile eliminare il messaggio",
   "errorDialogContinue": "Ok",
@@ -1621,6 +1672,7 @@
   "errorFollowTopicFailed": "Impossibile seguire l'argomento",
   "errorHandlingEventDetails": "Errore nella gestione di un evento Zulip da {serverUrl}; verrà effettuato un nuovo tentativo.\n\nErrore: {error}\n\nEvento: {event}",
   "errorHandlingEventTitle": "Errore nella gestione di un evento Zulip. Nuovo tentativo di connessione…",
+  "errorHideLinkPreviewsFailedTitle": "Non è stato possibile nascondere le anteprime dei link",
   "errorInvalidApiKeyMessage": "L'account su {url} non è stato autenticato. Riprovare ad accedere o provare a usare un altro account.",
   "errorInvalidResponse": "Il server ha inviato una risposta non valida.",
   "errorLoginCouldNotConnect": "Impossibile connettersi al server:\n{url}",
@@ -1649,6 +1701,7 @@
   "errorSharingAccountNotLoggedIn": "Non è stato effettuato l'accesso a nessun account. Accedi a un account e riprova.",
   "errorSharingFailed": "Condivisione fallita",
   "errorSharingTitle": "Condivisione dei contenuti non riuscita",
+  "errorShowLinkPreviewsFailedTitle": "Non è stato possibile mostrare le anteprime dei link",
   "errorStarMessageFailedTitle": "Impossibile contrassegnare il messaggio come speciale",
   "errorUnfollowTopicFailed": "Impossibile smettere di seguire l'argomento",
   "errorUnmuteTopicFailed": "Impossibile de-silenziare l'argomento",
@@ -1689,6 +1742,7 @@
   "loginPageTitle": "Accesso",
   "loginPasswordLabel": "Password",
   "loginRealmUrlHelpButton": "Aiuto",
+  "loginRealmUrlHelperText": "Questo è l'indirizzo che useresti per aprire Zulip in un browser.",
   "loginRealmUrlLabel": "URL della tua organizzazione Zulip",
   "loginUsernameLabel": "Nomeutente",
   "mainMenuMyProfile": "Il mio profilo",
@@ -1714,6 +1768,7 @@
   "messageListGroupYouAndOthers": "Tu e {others}",
   "messageListGroupYouWithYourself": "Messaggi con te stesso",
   "messageNotSentLabel": "MESSAGGIO NON INVIATO",
+  "messageReportTypeHarassment": "Molestie",
   "messageReportTypeInappropriate": "Contenuto inappropriato",
   "messageReportTypeNorms": "Viola le norme della comunità",
   "messageReportTypeOther": "Altro motivo",
@@ -1738,6 +1793,7 @@
   "permissionsDeniedCameraAccess": "Per caricare un'immagine, bisogna concedere a Zulip autorizzazioni aggiuntive nelle Impostazioni.",
   "permissionsNeededOpenSettings": "Apri le impostazioni",
   "permissionsNeededTitle": "Permessi necessari",
+  "pinnedChannelsFolderName": "Canali pinnati",
   "pinnedSubscriptionsLabel": "Bloccato",
   "pollVoterNames": "({voterNames})",
   "pollWidgetOptionsMissing": "Questo sondaggio non ha ancora opzioni.",
@@ -1755,6 +1811,7 @@
   "recentDmConversationsSectionHeader": "Messaggi diretti",
   "reportMessageDescription": "La tua segnalazione sarà inviata al canale privato delle richieste di moderazione di questa organizzazione.",
   "reportMessageDescriptionLabel": "Puoi fornire maggiori dettagli?",
+  "reportMessageDescriptionRequired": "Fornisci i dettagli.",
   "reportMessageDialogTitle": "Segnala il messaggio",
   "reportMessageReasonLabel": "Qual è il problema con questo messaggio?",
   "reportMessageSubmitButton": "Invia",
@@ -1791,6 +1848,7 @@
   "statusSaveButtonLabel": "Salva",
   "statusTextHint": "Il tuo stato",
   "subscribeFailedTitle": "Iscrizione non riuscita",
+  "successAppVersionCopied": "Versione dell'applicazione copiata",
   "successChannelLinkCopied": "Link al canale copiato",
   "successLinkCopied": "Collegamento copiato",
   "successMessageLinkCopied": "Collegamento messaggio copiato",
@@ -1811,7 +1869,7 @@
   "themeSettingTitle": "TEMA",
   "today": "Oggi",
   "topicListEmptyPlaceholderHeader": "Non ci sono ancora argomenti qui.",
-  "topicValidationErrorMandatoryButEmpty": "In questa organizzazione sono richiesti degli argomenti.",
+  "topicValidationErrorMandatoryButEmpty": "Gli argomenti sono obbligatori in questo canale.",
   "topicValidationErrorTooLong": "La lunghezza dell'argomento non deve superare {maxLength, plural, =1{1 carattere} other {i {maxLength} caratteri}}.",
   "topicsButtonTooltip": "Argomenti",
   "tryAnotherAccountButton": "Prova un altro account",

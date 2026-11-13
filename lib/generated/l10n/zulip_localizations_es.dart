@@ -33,10 +33,10 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get chooseAccountPageTitle => 'Escoger cuenta';
 
   @override
-  String get settingsPageTitle => 'Ajustes';
+  String get settingsPageTitle => 'Configuración';
 
   @override
-  String get switchAccountButtonTooltip => 'Cambiar cuenta';
+  String get switchAccountButtonTooltip => 'Cambiar de cuenta';
 
   @override
   String tryAnotherAccountMessage(Object url) {
@@ -70,7 +70,7 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
 
   @override
   String get allChannelsEmptyPlaceholderHeader =>
-      'No tienes acceso a ninguno de los canales de esta organización.';
+      'No hay canales que ver en esta organización.';
 
   @override
   String get profileButtonSendDirectMessage => 'Enviar mensaje directo';
@@ -83,11 +83,11 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get permissionsNeededTitle => 'Permisos necesarios';
 
   @override
-  String get permissionsNeededOpenSettings => 'Abrir ajustes';
+  String get permissionsNeededOpenSettings => 'Abrir configuración';
 
   @override
   String get permissionsDeniedCameraAccess =>
-      'Para subir una imagen, concede a Zulip permisos adicionales en Ajustes.';
+      'Para subir una imagen, concede a Zulip permisos adicionales en Configuración.';
 
   @override
   String get actionSheetOptionSubscribe => 'Suscribirse';
@@ -250,7 +250,7 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get actionSheetOptionStarMessage => 'Marcar mensaje';
 
   @override
-  String get actionSheetOptionUnstarMessage => 'Desmarcar mensaje';
+  String get actionSheetOptionUnstarMessage => 'Dejar de destacar mensaje';
 
   @override
   String get actionSheetOptionEditMessage => 'Editar mensaje';
