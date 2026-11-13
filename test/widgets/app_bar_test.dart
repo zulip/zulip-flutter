@@ -41,7 +41,6 @@ void main() {
   group("buildTitle's willCenterTitle agrees with Material AppBar", () {
     /// Build an [AppBar]; inspect and return whether it decided to center.
     Future<bool> material(WidgetTester tester, {
-      required bool? paramValue,
       required bool? themeValue,
       required List<Widget>? actions,
     }) async {
@@ -51,7 +50,6 @@ void main() {
       final widget = TestZulipApp(
         child: Theme(data: themeData,
           child: AppBar(
-            centerTitle: paramValue,
             actions: actions,
             title: const Text('a'))));
 
@@ -73,7 +71,6 @@ void main() {
 
     /// Build a [ZulipAppBar]; return willCenterTitle from the buildTitle call.
     Future<bool> ours(WidgetTester tester, {
-      required bool? paramValue,
       required bool? themeValue,
       required List<Widget>? actions,
     }) async {
@@ -88,7 +85,6 @@ void main() {
         child: Builder(builder: (context) => Theme(
           data: Theme.of(context).copyWith(appBarTheme: AppBarTheme(centerTitle: themeValue)),
           child: ZulipAppBar(
-            centerTitle: paramValue,
             actions: actions,
             buildTitle: (willCenterTitle) {
               result = willCenterTitle;
@@ -105,7 +101,6 @@ void main() {
     }
 
     void doTest(String description, bool expectedWillCenter, {
-      bool? paramValue,
       bool? themeValue,
       TargetPlatform? platform,
       List<Widget>? actions,
@@ -115,9 +110,9 @@ void main() {
         debugDefaultTargetPlatformOverride = platform;
 
         check(
-          await ours(tester, paramValue: paramValue, themeValue: themeValue, actions: actions)
+          await ours(tester, themeValue: themeValue, actions: actions)
         )..equals(
-          await material(tester, paramValue: paramValue, themeValue: themeValue, actions: actions)
+          await material(tester, themeValue: themeValue, actions: actions)
         )..equals(expectedWillCenter);
 
         // TODO(upstream) Do this in an addTearDown, once we can:
@@ -140,21 +135,11 @@ void main() {
     doTest('ios, theme false',    false, platform: iOS,     themeValue: false);
     doTest('android, theme true', true,  platform: android, themeValue: true);
 
-    doTest('ios, param false',    false, platform: iOS,     paramValue: false);
-    doTest('android, param true', true,  platform: android, paramValue: true);
-
-    doTest('ios, theme true, param false', false,     platform: iOS,     themeValue: true,  paramValue: false);
-    doTest('ios, theme false, param true', true,      platform: iOS,     themeValue: false, paramValue: true);
-
-    doTest('android, theme true, param false', false, platform: android, themeValue: true,  paramValue: false);
-    doTest('android, theme false, param true', true,  platform: android, themeValue: false, paramValue: true);
-
     doTest('ios, no actions',    true,  platform: iOS, actions: null);
     doTest('ios, one action',    true,  platform: iOS, actions: oneButton);
     doTest('ios, two actions' ,  false, platform: iOS, actions: twoButtons);
     doTest('ios, three actions', false, platform: iOS, actions: threeButtons);
 
-    doTest('ios, two actions but param true', true, platform: iOS, paramValue: true, actions: twoButtons);
     doTest('ios, two actions but theme true', true, platform: iOS, themeValue: true, actions: twoButtons);
   });
 }

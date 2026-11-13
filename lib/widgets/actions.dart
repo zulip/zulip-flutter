@@ -42,7 +42,7 @@ abstract final class ZulipAction {
       CombinedFeedNarrow()
         || MentionsNarrow()
         || StarredMessagesNarrow()
-        || KeywordSearchNarrow()
+        || SearchNarrow()
         || ChannelNarrow() => true,
       DmNarrow() || TopicNarrow() => false,
     };

@@ -18,3 +18,7 @@ extension TopicNarrowChecks on Subject<TopicNarrow> {
   Subject<TopicName> get topic => has((x) => x.topic, 'topic');
   Subject<int?> get with_ => has((x) => x.with_, 'with_');
 }
+
+extension SearchNarrowChecks on Subject<SearchNarrow> {
+  Subject<List<ApiNarrowElement>> get filters => has((x) => x.filters, 'filters');
+}
