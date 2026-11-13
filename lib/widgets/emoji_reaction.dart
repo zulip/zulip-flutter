@@ -361,6 +361,7 @@ class _TextEmoji extends StatelessWidget {
 /// Opens a browsable and searchable emoji picker bottom sheet.
 Future<EmojiCandidate?> showEmojiPickerSheet({
   required BuildContext pageContext,
+  Set<({ReactionType type, String code})> selectedEmojis = const {},
 }) async {
   final store = PerAccountStoreWidget.of(pageContext);
   return showModalBottomSheet<EmojiCandidate>(
@@ -383,15 +384,20 @@ Future<EmojiCandidate?> showEmojiPickerSheet({
         // For _EmojiPickerItem, and RealmContentNetworkImage used in ImageEmojiWidget.
         child: PerAccountStoreWidget(
           accountId: store.accountId,
-          child: EmojiPicker(pageContext: pageContext)));
+          child: EmojiPicker(pageContext: pageContext, selectedEmojis: selectedEmojis)));
     });
 }
 
 @visibleForTesting
 class EmojiPicker extends StatefulWidget {
-  const EmojiPicker({super.key, required this.pageContext});
+  const EmojiPicker({
+    super.key,
+    required this.pageContext,
+    this.selectedEmojis = const {},
+  });
 
   final BuildContext pageContext;
+  final Set<({ReactionType type, String code})> selectedEmojis;
 
   @override
   State<EmojiPicker> createState() => _EmojiPickerState();
@@ -478,9 +484,14 @@ class _EmojiPickerState extends State<EmojiPicker> with PerAccountStoreAwareStat
                 minimum: EdgeInsets.only(bottom: 8),
                 sliver: SliverList.builder(
                   itemCount: _resultsToDisplay.length,
-                  itemBuilder: (context, i) => EmojiPickerListEntry(
-                    pageContext: widget.pageContext,
-                    emoji: _resultsToDisplay[i].candidate)))),
+                  itemBuilder: (context, i) {
+                    final candidate = _resultsToDisplay[i].candidate;
+                    return EmojiPickerListEntry(
+                      pageContext: widget.pageContext,
+                      emoji: candidate,
+                      isSelected: widget.selectedEmojis.contains(
+                        (code: candidate.emojiCode, type: candidate.emojiType)));
+                  }))),
           ]))),
     ]);
   }
@@ -492,10 +503,12 @@ class EmojiPickerListEntry extends StatelessWidget {
     super.key,
     required this.pageContext,
     required this.emoji,
+    required this.isSelected,
   });
 
   final BuildContext pageContext;
   final EmojiCandidate emoji;
+  final bool isSelected;
 
   static const _emojiSize = 24.0;
 
@@ -529,24 +542,26 @@ class EmojiPickerListEntry extends StatelessWidget {
         states.any((e) => e == WidgetState.pressed)
           ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
           : Colors.transparent),
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: ConstrainedBox(
-          // Ensure the row meets the minimum touch target height.
-          constraints: const BoxConstraints(minHeight: 44),
-          child: Row(spacing: 4, children: [
-            if (glyph != null)
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: glyph),
-            Flexible(child: Text(label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 17,
-                height: 18 / 17,
-                color: designVariables.textMessage)))
-          ]))));
+        // Ensure the row meets the minimum touch target height.
+        constraints: const BoxConstraints(minHeight: 44),
+        color: isSelected
+          ? designVariables.contextMenuItemBg.withFadedAlpha(0.20)
+          : null,
+        child: Row(spacing: 4, children: [
+          if (glyph != null)
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: glyph),
+          Flexible(child: Text(label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 17,
+              height: 18 / 17,
+              color: designVariables.textMessage)))
+        ])));
   }
 }
 
