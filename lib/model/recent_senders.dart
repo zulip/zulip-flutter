@@ -87,7 +87,7 @@ class RecentSenders {
   }
 
   void handleDeleteMessageEvent(DeleteMessageEvent event, Map<int, Message> cachedMessages) {
-    if (event.messageType != MessageType.stream) return;
+    if (event.messageType != .channel) return;
 
     final messagesByUser = <int, List<int>>{};
     for (final id in event.messageIds) {
