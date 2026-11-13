@@ -31,6 +31,11 @@
   "@switchAccountButtonTooltip": {
     "description": "Tooltip message for main-menu button leading to the choose-account page."
   },
+  "switchAccountOrgIconTooltip": "Switch account ({orgName})",
+  "@switchAccountOrgIconTooltip": {
+    "description": "Tooltip message for the organization-icon button in the home page's app bar, leading to the choose-account page.",
+    "orgName": {"type": "String", "example": "Recurse Center"}
+  },
   "tryAnotherAccountMessage": "Your account at {url} is taking a while to load.",
   "@tryAnotherAccountMessage": {
     "description": "Message that appears on the loading screen after waiting for some time.",
