@@ -229,7 +229,12 @@ abstract class GlobalStore extends ChangeNotifier {
     assert(_accounts.containsKey(accountId));
     assert(_perAccountStores.containsKey(accountId));
     assert(!_perAccountStoresLoading.containsKey(accountId));
+    final oldStore = _perAccountStores[accountId]!;
     final store = await loadPerAccount(accountId);
+    // The old store's outbox messages in a terminal state are the only
+    // remaining copy of the text the user was trying to send. Carry them
+    // over, so they remain available to retry or discard.
+    store._messages.adoptOutboxMessagesFrom(oldStore._messages);
     _setPerAccount(accountId, store);
   }
 

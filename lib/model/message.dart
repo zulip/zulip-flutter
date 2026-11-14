@@ -301,6 +301,30 @@ class MessageStoreImpl extends HasChannelStore with MessageStore, _OutboxMessage
     assert(removed);
   }
 
+  /// Adopt the outbox messages from [other], which is being replaced by this store.
+  ///
+  /// Only messages that can no longer make progress are adopted:
+  /// [OutboxMessageState.failed] and [OutboxMessageState.waitPeriodExpired].
+  /// Messages in other states belong to a send request that cannot survive
+  /// the store replacement, so they should not be carried over.
+  void adoptOutboxMessagesFrom(MessageStoreImpl other) {
+    assert(!_disposed);
+    for (final outboxMessage in other._outboxMessages.values) {
+      if (outboxMessage.state != OutboxMessageState.failed
+          && outboxMessage.state != OutboxMessageState.waitPeriodExpired) {
+        continue;
+      }
+      assert(!_outboxMessages.containsKey(outboxMessage.localMessageId));
+      _outboxMessages[outboxMessage.localMessageId] = outboxMessage;
+      for (final view in _messageListViews) {
+        view.addOutboxMessage(outboxMessage);
+      }
+    }
+    if (other._nextLocalMessageId > _nextLocalMessageId) {
+      _nextLocalMessageId = other._nextLocalMessageId;
+    }
+  }
+
   void _notifyMessageListViewsForOneMessage(int messageId) {
     for (final view in _messageListViews) {
       view.notifyListenersIfMessagePresent(messageId);

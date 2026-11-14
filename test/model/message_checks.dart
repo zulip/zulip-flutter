@@ -7,4 +7,5 @@ extension OutboxMessageChecks<T extends Conversation> on Subject<OutboxMessage<T
   Subject<int?> get messageId => has((x) => x.messageId, 'messageId');
   Subject<OutboxMessageState> get state => has((x) => x.state, 'state');
   Subject<bool> get hidden => has((x) => x.hidden, 'hidden');
+  Subject<String> get contentMarkdown => has((x) => x.contentMarkdown, 'contentMarkdown');
 }
