@@ -57,11 +57,12 @@ Map<String, dynamic> _$GetServerSettingsResultToJson(
 
 AuthenticationMethods _$AuthenticationMethodsFromJson(
   Map<String, dynamic> json,
-) => AuthenticationMethods(ldap: json['ldap'] as bool);
+) =>
+    AuthenticationMethods(dev: json['dev'] as bool, ldap: json['ldap'] as bool);
 
 Map<String, dynamic> _$AuthenticationMethodsToJson(
   AuthenticationMethods instance,
-) => <String, dynamic>{'ldap': instance.ldap};
+) => <String, dynamic>{'dev': instance.dev, 'ldap': instance.ldap};
 
 ExternalAuthenticationMethod _$ExternalAuthenticationMethodFromJson(
   Map<String, dynamic> json,

@@ -78,7 +78,7 @@ class GetServerSettingsResult {
 @JsonSerializable(fieldRename: FieldRename.snake)
 class AuthenticationMethods {
   // final bool password; // deprecated; ignore
-  // final bool dev; // deprecated; ignore
+  final bool dev;
   // final bool email; // deprecated; ignore
   final bool ldap;
   // final bool remoteuser; // deprecated; ignore
@@ -93,6 +93,7 @@ class AuthenticationMethods {
   // final bool openidConnect; // deprecated; ignore
 
   AuthenticationMethods({
+    required this.dev,
     required this.ldap,
   });
 

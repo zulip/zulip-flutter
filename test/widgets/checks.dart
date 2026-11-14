@@ -1,6 +1,7 @@
 import 'package:checks/checks.dart';
 import 'package:flutter/widgets.dart';
 import 'package:zulip/api/model/model.dart';
+import 'package:zulip/api/route/account.dart';
 import 'package:zulip/api/route/realm.dart';
 
 import 'package:zulip/model/emoji.dart';
@@ -86,6 +87,11 @@ extension AccountRouteChecks<T> on Subject<AccountRoute<T>> {
 
 extension LoginPageChecks on Subject<LoginPage> {
   Subject<GetServerSettingsResult> get serverSettings => has((x) => x.serverSettings, 'serverSettings');
+}
+
+extension DevLoginPageChecks on Subject<DevLoginPage> {
+  Subject<GetServerSettingsResult> get serverSettings => has((x) => x.serverSettings, 'serverSettings');
+  Subject<DevListUsersResult> get users => has((x) => x.users, 'users');
 }
 
 extension ProfilePageChecks on Subject<ProfilePage> {

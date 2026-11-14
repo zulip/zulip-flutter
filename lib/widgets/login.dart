@@ -163,6 +163,7 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 
   void _onSubmitted(BuildContext context) async {
+    if (_inProgress) return;
     final zulipLocalizations = ZulipLocalizations.of(context);
     final url = _parseResult.url;
     final error = _parseResult.error;
@@ -212,12 +213,19 @@ class _AddAccountPageState extends State<AddAccountPage> {
       }
       if (!context.mounted) return;
 
-      unawaited(Navigator.push(context,
-        LoginPage.buildRoute(serverSettings: serverSettings)));
+      if (serverSettings.authenticationMethods.dev) {
+        await DevLoginPage.fetchUsersAndPush(context,
+          serverSettings: serverSettings);
+      } else {
+        unawaited(Navigator.push(context,
+          LoginPage.buildRoute(serverSettings: serverSettings)));
+      }
     } finally {
-      setState(() {
-        _inProgress = false;
-      });
+      if (mounted) {
+        setState(() {
+          _inProgress = false;
+        });
+      }
     }
   }
 
@@ -286,6 +294,66 @@ class _AddAccountPageState extends State<AddAccountPage> {
   }
 }
 
+/// Show an error dialog for a failed API request,
+/// with the server's message if it gave one.
+void _showApiErrorDialog(BuildContext context, ApiRequestException e, {
+  required String title,
+}) {
+  // TODO(#105) give more helpful feedback. The RN app is
+  //   unhelpful here; we should at least recognize invalid auth errors, and
+  //   errors for deactivated user or realm (see zulip-mobile#4571).
+  final zulipLocalizations = ZulipLocalizations.of(context);
+  final message = (e is ZulipApiException)
+    ? zulipLocalizations.errorServerMessage(e.message)
+    : e.message;
+  showErrorDialog(context: context, title: title, message: message);
+}
+
+/// Add the account to the global store and navigate to its home page,
+/// or show an error dialog if the account already exists.
+Future<void> _tryInsertAccountAndNavigate(BuildContext context, {
+  required GetServerSettingsResult serverSettings,
+  required String email,
+  required String apiKey,
+  required int userId,
+}) async {
+  final globalStore = GlobalStoreWidget.of(context);
+  final realmUrl = serverSettings.realmUrl;
+  final int accountId;
+  try {
+    accountId = await globalStore.insertAccount(AccountsCompanion.insert(
+      realmUrl: realmUrl,
+      realmName: Value(serverSettings.realmName),
+      realmIcon: Value(serverSettings.realmIcon),
+      email: email,
+      apiKey: apiKey,
+      userId: userId,
+      zulipFeatureLevel: serverSettings.zulipFeatureLevel,
+      zulipVersion: serverSettings.zulipVersion,
+      zulipMergeBase: Value(serverSettings.zulipMergeBase),
+      possibleLegacyPushToken: const Value(false),
+    ));
+    // TODO give feedback to user on other SQL exceptions
+  } on AccountAlreadyExistsException {
+    if (!context.mounted) {
+      return;
+    }
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    showErrorDialog(
+      context: context,
+      title: zulipLocalizations.errorAccountLoggedInTitle,
+      message: zulipLocalizations.errorAccountLoggedIn(
+        email, realmUrl.toString()));
+    return;
+  }
+
+  if (!context.mounted) {
+    return;
+  }
+
+  HomePage.navigate(context, accountId: accountId);
+}
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.serverSettings});
 
@@ -331,12 +399,14 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       await ZulipBinding.instance.closeInAppWebView();
+      if (!mounted) return;
 
       if (_otp == null) throw Error();
       final payload = WebAuthPayload.parse(url);
       if (payload.realm.origin != widget.serverSettings.realmUrl.origin) throw Error();
       final apiKey = payload.decodeApiKey(_otp!);
-      await _tryInsertAccountAndNavigate(
+      await _tryInsertAccountAndNavigate(context,
+        serverSettings: widget.serverSettings,
         userId: payload.userId,
         email: payload.email,
         apiKey: apiKey,
@@ -354,10 +424,12 @@ class _LoginPageState extends State<LoginPage> {
         title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
         message: message);
     } finally {
-      setState(() {
-        _inProgress = false;
-        __otp = null;
-      });
+      if (mounted) {
+        setState(() {
+          _inProgress = false;
+          __otp = null;
+        });
+      }
     }
   }
 
@@ -403,52 +475,9 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _tryInsertAccountAndNavigate({
-    required String email,
-    required String apiKey,
-    required int userId,
-  }) async {
-    final globalStore = GlobalStoreWidget.of(context);
-    final realmUrl = widget.serverSettings.realmUrl;
-    final int accountId;
-    try {
-      accountId = await globalStore.insertAccount(AccountsCompanion.insert(
-        realmUrl: realmUrl,
-        realmName: Value(widget.serverSettings.realmName),
-        realmIcon: Value(widget.serverSettings.realmIcon),
-        email: email,
-        apiKey: apiKey,
-        userId: userId,
-        zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel,
-        zulipVersion: widget.serverSettings.zulipVersion,
-        zulipMergeBase: Value(widget.serverSettings.zulipMergeBase),
-        possibleLegacyPushToken: const Value(false),
-      ));
-      // TODO give feedback to user on other SQL exceptions
-    } on AccountAlreadyExistsException {
-      if (!mounted) {
-        return;
-      }
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      showErrorDialog(
-        context: context,
-        title: zulipLocalizations.errorAccountLoggedInTitle,
-        message: zulipLocalizations.errorAccountLoggedIn(
-          email, realmUrl.toString()));
-      return;
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    HomePage.navigate(context, accountId: accountId);
-  }
-
   @override
   Widget build(BuildContext context) {
     assert(!PerAccountStoreWidget.debugExistsOf(context));
-    final colorScheme = Theme.of(context).colorScheme;
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     final externalAuthenticationMethods = widget.serverSettings.externalAuthenticationMethods;
@@ -461,28 +490,184 @@ class _LoginPageState extends State<LoginPage> {
         _UsernamePasswordForm(loginPageState: this),
       if (externalAuthenticationMethods.isNotEmpty) ...[
         if (showPasswordForm)
-          _AlternativeAuthDivider(),
+          _LabeledDivider(
+            label: zulipLocalizations.loginMethodDivider,
+            semanticsLabel: zulipLocalizations.loginMethodDividerSemanticLabel),
         ...externalAuthenticationMethods.map((method) {
           final icon = method.displayIcon;
-          return OutlinedButton.icon(
-            style: ButtonStyle(
-              backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
-              foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer)),
+          return _LoginMethodButton(
             icon: icon != null
               ? Image.network(icon, width: 24, height: 24)
               : null,
             onPressed: !_inProgress
               ? () => _beginWebAuth(method)
               : null,
-            label: Text(
-              zulipLocalizations.signInWithFoo(method.displayName)));
+            label: zulipLocalizations.signInWithFoo(method.displayName));
         }),
       ],
     ]);
 
+    return _LoginPageScaffold(
+      title: zulipLocalizations.loginPageTitle,
+      inProgress: _inProgress,
+      child: loginContent);
+  }
+}
+
+/// A page for logging in as any user without a password,
+/// as a Zulip development server allows.
+///
+/// Modeled on the dev server's own /devlogin/ page.
+class DevLoginPage extends StatefulWidget {
+  const DevLoginPage({
+    super.key,
+    required this.serverSettings,
+    required this.users,
+  });
+
+  static Route<void> buildRoute({
+    required GetServerSettingsResult serverSettings,
+    required DevListUsersResult users,
+  }) {
+    return _LoginSequenceRoute(
+      page: DevLoginPage(serverSettings: serverSettings, users: users));
+  }
+
+  /// Fetch the server's users, then push a page listing them,
+  /// or show an error dialog if that fails.
+  static Future<void> fetchUsersAndPush(BuildContext context, {
+    required GetServerSettingsResult serverSettings,
+  }) async {
+    final DevListUsersResult users;
+    try {
+      final globalStore = GlobalStoreWidget.of(context);
+      final connection = globalStore.apiConnection(
+        realmUrl: serverSettings.realmUrl,
+        zulipFeatureLevel: serverSettings.zulipFeatureLevel);
+      try {
+        users = await devListUsers(connection);
+      } finally {
+        connection.close();
+      }
+    } on ApiRequestException catch (e) {
+      if (!context.mounted) return;
+      _showApiErrorDialog(context, e,
+        title: ZulipLocalizations.of(context).errorDevLoginFetchUsersFailedTitle);
+      return;
+    }
+    if (!context.mounted) return;
+
+    unawaited(Navigator.push(context,
+      buildRoute(serverSettings: serverSettings, users: users)));
+  }
+
+  final GetServerSettingsResult serverSettings;
+
+  /// The server's users, from [devListUsers].
+  final DevListUsersResult users;
+
+  @override
+  State<DevLoginPage> createState() => _DevLoginPageState();
+}
+
+class _DevLoginPageState extends State<DevLoginPage> {
+  bool _inProgress = false;
+
+  Future<void> _logIn(String email) async {
+    final globalStore = GlobalStoreWidget.of(context);
+    final connection = globalStore.apiConnection(
+      realmUrl: widget.serverSettings.realmUrl,
+      zulipFeatureLevel: widget.serverSettings.zulipFeatureLevel);
+    setState(() {
+      _inProgress = true;
+    });
+    try {
+      final FetchApiKeyResult result;
+      try {
+        try {
+          result = await devFetchApiKey(connection, username: email);
+        } finally {
+          connection.close();
+        }
+      } on ApiRequestException catch (e) {
+        if (!mounted) return;
+        _showApiErrorDialog(context, e,
+          title: ZulipLocalizations.of(context).errorLoginFailedTitle);
+        return;
+      }
+      if (!mounted) return;
+      await _tryInsertAccountAndNavigate(context,
+        serverSettings: widget.serverSettings,
+        email: result.email,
+        apiKey: result.apiKey,
+        userId: result.userId);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _inProgress = false;
+        });
+      }
+    }
+  }
+
+  List<Widget> _buildSection(ZulipLocalizations zulipLocalizations,
+      String label, List<DevListUsersEntry> users) {
+    // The endpoint lists users from all the server's realms.
+    final emails = users
+      .where((user) => user.realmUrl == widget.serverSettings.realmUrl)
+      .map((user) => user.email)
+      .toList();
+    return [
+      _LabeledDivider(label: label),
+      if (emails.isEmpty)
+        Text(zulipLocalizations.devLoginNoUsers, textAlign: TextAlign.center),
+      for (final email in emails)
+        _LoginMethodButton(
+          label: email,
+          onPressed: !_inProgress ? () => _logIn(email) : null),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    assert(!PerAccountStoreWidget.debugExistsOf(context));
+    final zulipLocalizations = ZulipLocalizations.of(context);
+
+    return _LoginPageScaffold(
+      title: zulipLocalizations.devLoginPageTitle,
+      inProgress: _inProgress,
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        TextButton(
+          onPressed: !_inProgress
+            ? () => Navigator.push(context,
+                LoginPage.buildRoute(serverSettings: widget.serverSettings))
+            : null,
+          child: Text(zulipLocalizations.devLoginNormalLoginPageButton)),
+        ..._buildSection(zulipLocalizations,
+          zulipLocalizations.devLoginAdministratorsLabel, widget.users.directAdmins),
+        ..._buildSection(zulipLocalizations,
+          zulipLocalizations.devLoginNormalUsersLabel, widget.users.directUsers),
+      ]));
+  }
+}
+
+/// The page scaffold for [LoginPage] and similar pages.
+class _LoginPageScaffold extends StatelessWidget {
+  const _LoginPageScaffold({
+    required this.title,
+    required this.inProgress,
+    required this.child,
+  });
+
+  final String title;
+  final bool inProgress;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(zulipLocalizations.loginPageTitle),
-        bottom: _inProgress
+      appBar: AppBar(title: Text(title),
+        bottom: inProgress
           ? const PreferredSize(preferredSize: Size.fromHeight(4),
               child: LinearProgressIndicator(minHeight: 4)) // 4 restates default
           : null),
@@ -498,7 +683,7 @@ class _LoginPageState extends State<LoginPage> {
               //   left or the right of this box
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
-                child: loginContent))))));
+                child: child))))));
   }
 }
 
@@ -554,16 +739,8 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         }
       } on ApiRequestException catch (e) {
         if (!context.mounted) return;
-        // TODO(#105) give more helpful feedback. The RN app is
-        //   unhelpful here; we should at least recognize invalid auth errors, and
-        //   errors for deactivated user or realm (see zulip-mobile#4571).
-        final zulipLocalizations = ZulipLocalizations.of(context);
-        final message = (e is ZulipApiException)
-          ? zulipLocalizations.errorServerMessage(e.message)
-          : e.message;
-        showErrorDialog(context: context,
-          title: zulipLocalizations.errorLoginFailedTitle,
-          message: message);
+        _showApiErrorDialog(context, e,
+          title: ZulipLocalizations.of(context).errorLoginFailedTitle);
         return;
       }
 
@@ -571,15 +748,18 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
         return;
       }
 
-      await widget.loginPageState._tryInsertAccountAndNavigate(
+      await _tryInsertAccountAndNavigate(context,
+        serverSettings: serverSettings,
         email: result.email,
         apiKey: result.apiKey,
         userId: result.userId,
       );
     } finally {
-      widget.loginPageState.setState(() {
-        widget.loginPageState._inProgress = false;
-      });
+      if (widget.loginPageState.mounted) {
+        widget.loginPageState.setState(() {
+          widget.loginPageState._inProgress = false;
+        });
+      }
     }
   }
 
@@ -664,11 +844,44 @@ class _UsernamePasswordFormState extends State<_UsernamePasswordForm> {
   }
 }
 
-// Loosely based on the corresponding element in the web app.
-class _AlternativeAuthDivider extends StatelessWidget {
+/// A button offering a way to log in, like "Sign in with Google".
+class _LoginMethodButton extends StatelessWidget {
+  const _LoginMethodButton({
+    this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final Widget? icon;
+  final String label;
+  final VoidCallback? onPressed;
+
   @override
   Widget build(BuildContext context) {
-    final zulipLocalizations = ZulipLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    return OutlinedButton.icon(
+      style: ButtonStyle(
+        backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+        foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer)),
+      icon: icon,
+      onPressed: onPressed,
+      label: Text(label));
+  }
+}
+
+/// A horizontal divider with a label in the middle,
+/// like the "OR" between the login methods.
+// Loosely based on the corresponding element in the web app.
+class _LabeledDivider extends StatelessWidget {
+  const _LabeledDivider({required this.label, this.semanticsLabel});
+
+  final String label;
+
+  /// What to call this in the semantics tree, instead of [label].
+  final String? semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
     final divider = Expanded(
@@ -678,12 +891,12 @@ class _AlternativeAuthDivider extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Semantics(
         excludeSemantics: true,
-        label: zulipLocalizations.loginMethodDividerSemanticLabel,
+        label: semanticsLabel ?? label,
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           divider,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: Text(zulipLocalizations.loginMethodDivider,
+            child: Text(label,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: designVariables.loginOrDividerText,

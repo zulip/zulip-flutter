@@ -103,9 +103,11 @@ const int futureZulipFeatureLevel = 9999;
 const int ancientZulipFeatureLevel = kMinAllowedZulipFeatureLevel - 1;
 
 AuthenticationMethods authMethods({
+  bool dev = false,
   bool ldap = false,
 }) {
   return AuthenticationMethods(
+    dev: dev,
     ldap: ldap,
   );
 }
