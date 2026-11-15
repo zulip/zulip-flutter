@@ -39,6 +39,11 @@ class ZulipLocalizationsUk extends ZulipLocalizations {
   String get switchAccountButtonTooltip => 'Змінити обліковий запис';
 
   @override
+  String switchAccountOrgIconTooltip(Object orgName) {
+    return 'Switch account ($orgName)';
+  }
+
+  @override
   String tryAnotherAccountMessage(Object url) {
     return 'Ваш обліковий запис на $url завантажується деякий час.';
   }

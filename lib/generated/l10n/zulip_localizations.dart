@@ -214,6 +214,12 @@ abstract class ZulipLocalizations {
   /// **'Switch account'**
   String get switchAccountButtonTooltip;
 
+  /// Tooltip message for the organization-icon button in the home page's app bar, leading to the choose-account page.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch account ({orgName})'**
+  String switchAccountOrgIconTooltip(Object orgName);
+
   /// Message that appears on the loading screen after waiting for some time.
   ///
   /// In en, this message translates to:

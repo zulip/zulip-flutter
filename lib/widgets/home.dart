@@ -121,7 +121,8 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      appBar: ZulipAppBar(titleSpacing: 16,
+      appBar: ZulipAppBar(
+        leading: const _AppBarRealmIcon(),
         title: Semantics(
           identifier: HomePage.titleSemanticsIdentifier,
           namesRoute: true,
@@ -143,6 +144,27 @@ class _HomePageState extends State<HomePage> {
                 ]))),
         ]),
       bottomNavigationBar: _BottomNavBar(tabNotifier: _tab));
+  }
+}
+
+class _AppBarRealmIcon extends StatelessWidget {
+  const _AppBarRealmIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final zulipLocalizations = ZulipLocalizations.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    return Center(
+      child: TooltipTheme(
+        // Above the icon, the tooltip would overlap the status bar,
+        // where e.g. the iPhone's Dynamic Island can hide it.
+        // TODO(upstream) have tooltips avoid the status bar
+        data: TooltipTheme.of(context).copyWith(preferBelow: true),
+        child: IconButton(
+          tooltip: zulipLocalizations.switchAccountOrgIconTooltip(store.realmName),
+          onPressed: () => Navigator.push(context,
+            MaterialWidgetRoute(page: const ChooseAccountPage())),
+          icon: const _RealmIcon())));
   }
 }
 
@@ -491,13 +513,7 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
               Flexible(child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(spacing: 8, children: [
-                  AvatarShape(
-                    size: 28,
-                    borderRadius: 4,
-                    child: RealmContentNetworkImage(
-                      store.resolvedRealmIcon,
-                      filterQuality: FilterQuality.medium,
-                      fit: BoxFit.cover)),
+                  const _RealmIcon(),
                   Flexible(child: Text(store.realmName,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -510,6 +526,25 @@ class _MainMenuHeaderState extends State<_MainMenuHeader> {
                 color: designVariables.icon,
                 size: 24),
             ])))));
+  }
+}
+
+class _RealmIcon extends StatelessWidget {
+  const _RealmIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+    final store = PerAccountStoreWidget.of(context);
+    return AvatarShape(
+      size: 28,
+      borderRadius: 4,
+      child: RealmContentNetworkImage(
+        store.resolvedRealmIcon,
+        filterQuality: FilterQuality.medium,
+        fit: BoxFit.cover,
+        errorBuilder: (_, _, _) => DecoratedBox(
+          decoration: BoxDecoration(color: designVariables.avatarPlaceholderBg))));
   }
 }
 
