@@ -230,8 +230,10 @@ void main() {
     await transitionDurationObserver.pumpPastTransition(tester);
 
     check(find.descendant(
-      of: find.byType(MessageListPage),
-      matching: find.text('some-channel')),
+      of: find.descendant(
+        of: find.byType(MessageListPage),
+        matching: find.byType(ZulipAppBar)),
+      matching: find.textContaining('some-channel', findRichText: true)),
     ).findsOne();
   });
 
