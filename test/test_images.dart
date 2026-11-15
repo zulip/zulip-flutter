@@ -4,17 +4,14 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Set [debugNetworkImageHttpClientProvider] to return a constant image.
+/// Set [debugNetworkImageHttpClientProvider] to return a constant image,
+/// until the end of the test.
 ///
 /// Returns the [FakeImageHttpClient] that handles the requests.
-///
-/// The caller must set [debugNetworkImageHttpClientProvider] back to null
-/// before the end of the test.
-// TODO(upstream) simplify callers by using addTearDown: https://github.com/flutter/flutter/issues/123189
-//   See also: https://github.com/flutter/flutter/issues/121917
 FakeImageHttpClient prepareBoringImageHttpClient() {
   final httpClient = FakeImageHttpClient();
   debugNetworkImageHttpClientProvider = () => httpClient;
+  addTearDown(() => debugNetworkImageHttpClientProvider = null);
   httpClient.request.response
     ..statusCode = HttpStatus.ok
     ..content = kSolidBlueAvatar;

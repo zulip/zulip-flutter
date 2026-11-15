@@ -280,8 +280,6 @@ void main() {
         previousPosition = position;
       }
       check(maxStepDistance).isLessThan(0.03 * totalDistance);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('no hero animation occurs between different message list pages for same image', (tester) async {
@@ -319,8 +317,6 @@ void main() {
         check(getElementRect(firstElement)).equals(firstImagePosition);
         check(getElementRect(secondElement)).equals(secondImagePosition);
       }
-
-      debugNetworkImageHttpClientProvider = null;
     }, skip: true, // TODO get this no-hero test to work again with new page transitions;
       //   see https://github.com/flutter/flutter/pull/165832#issuecomment-3111641360 .
       //   Perhaps specify the old default, of ZoomPageTransitionsBuilder?
@@ -372,8 +368,6 @@ void main() {
       final image = tester.widget<RealmContentNetworkImage>(
         find.byType(RealmContentNetworkImage));
       check(image.src).equals(src);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('image can zoom up to 10x', (tester) async {
@@ -382,8 +376,6 @@ void main() {
 
       check(tester.widget<InteractiveViewer>(find.byType(InteractiveViewer)).maxScale)
         .equals(10);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     void checkAppBarNameAndDate(WidgetTester tester, String expectedName, String expectedDate) {
@@ -408,8 +400,6 @@ void main() {
         userId: sender.userId, fullName: 'New name'));
       await tester.pump();
       checkAppBarNameAndDate(tester, 'New name', 'Jul 23, 2024 11:12:24\u{202F}PM');
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('app bar shows sender name and date; unknown sender', (tester) async {
@@ -421,8 +411,6 @@ void main() {
       check(store.getUser(sender.userId)).isNull();
 
       checkAppBarNameAndDate(tester, 'Sender name', 'Jul 23, 2024 11:12:24\u{202F}PM');
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('app bar shows sender avatar', (tester) async {
@@ -432,8 +420,6 @@ void main() {
 
       final avatar = tester.widget<Avatar>(find.byType(Avatar));
       check(avatar.userId).equals(message.senderId);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('header and footer hidden and shown by tapping image', (tester) async {
@@ -453,8 +439,6 @@ void main() {
       await tester.pump();
       tester.widget(find.byType(AppBar));
       tester.widget(find.byType(BottomAppBar));
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     // TODO test _CopyLinkButton

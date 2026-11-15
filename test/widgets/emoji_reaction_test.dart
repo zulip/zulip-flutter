@@ -176,6 +176,7 @@ void main() {
                 //   cover iOS before a layout fix lands upstream:
                 //     <https://chat.zulip.org/#narrow/stream/243-mobile-team/topic/flutter.3A.20reactions.20ui.20testing/near/1691418>
                 debugDefaultTargetPlatformOverride = TargetPlatform.android;
+                addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
                 tester.platformDispatcher.textScaleFactorTestValue = textScaleFactor;
                 addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -205,6 +206,7 @@ void main() {
                 // shrug, at least for now.
                 final httpClient = FakeImageHttpClient();
                 debugNetworkImageHttpClientProvider = () => httpClient;
+                addTearDown(() => debugNetworkImageHttpClientProvider = null);
                 httpClient.request.response
                   ..statusCode = HttpStatus.ok
                   ..content = kSolidBlueAvatar;
@@ -215,11 +217,6 @@ void main() {
                 check(MediaQuery.of(reactionChipsList).textScaler).legacyMatcher(
                   isSystemTextScaler(withScaleFactor: textScaleFactor));
                 check(Directionality.of(reactionChipsList)).equals(textDirection);
-
-                // TODO(upstream) Do these in an addTearDown, once we can:
-                //   https://github.com/flutter/flutter/issues/123189
-                debugDefaultTargetPlatformOverride = null;
-                debugNetworkImageHttpClientProvider = null;
               },
               // The Android code for Unicode emojis can't be exercised faithfully
               // on a Mac, because Noto Color Emoji can't work there:
@@ -409,6 +406,7 @@ void main() {
 
       final httpClient = FakeImageHttpClient();
       debugNetworkImageHttpClientProvider = () => httpClient;
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
       httpClient.request.response
         ..statusCode = HttpStatus.ok
         ..content = kSolidBlueAvatar;
@@ -525,8 +523,6 @@ void main() {
           emojiCode: '1',
           emojiName: 'buzzing'),
       ]);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('adding success', (tester) async {
@@ -545,8 +541,6 @@ void main() {
             'emoji_code': '1f4a4',
             'emoji_name': 'zzz',
           });
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('request has an error', (tester) async {
@@ -565,8 +559,6 @@ void main() {
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: 'Adding reaction failed',
         expectedMessage: 'Invalid message(s)')));
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     group('handle view paddings', () {
@@ -626,8 +618,6 @@ void main() {
         check(scrollViewRect)
           ..top.isGreaterThan(listEntriesRect.top)
           ..bottom.equals(listEntriesRect.bottom + 8);
-
-        debugNetworkImageHttpClientProvider = null;
       });
 
       testWidgets('with bottom view padding', (tester) async {
@@ -650,8 +640,6 @@ void main() {
         check(scrollViewRect)
           ..top.isGreaterThan(listEntriesRect.top)
           ..bottom.equals(listEntriesRect.bottom + 10);
-
-        debugNetworkImageHttpClientProvider = null;
       });
     });
   });
@@ -666,6 +654,7 @@ void main() {
 
       final httpClient = FakeImageHttpClient();
       debugNetworkImageHttpClientProvider = () => httpClient;
+      addTearDown(() => debugNetworkImageHttpClientProvider = null);
       httpClient.request.response
         ..statusCode = HttpStatus.ok
         ..content = kSolidBlueAvatar;
@@ -757,10 +746,6 @@ void main() {
       tester.semantics.tap(findViewReactionsEmojiItem(nameOf(u3)));
       await tester.pump();
       checkUserList(tester, nameOf(u3), [eg.otherUser]);
-
-      // TODO(upstream) Do this in an addTearDown once we can:
-      //   https://github.com/flutter/flutter/issues/123189
-      debugNetworkImageHttpClientProvider = null;
     });
 
     // TODO test last-vote-removed on selected emoji

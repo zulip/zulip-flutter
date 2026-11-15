@@ -298,8 +298,6 @@ void main () {
       final channelsElement = tester.element(
         find.ancestor(of: inboxMenuIconFinder, matching: find.bySubtype<MenuButton>()));
       check((channelsElement.renderObject as RenderBox)).size.height.equals(44);
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('navigation states reflect on navigation bar menu buttons', (tester) async {
@@ -317,7 +315,6 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       checkIconNotSelected(tester, inboxMenuIconFinder);
       checkIconSelected(tester, channelsMenuIconFinder);
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('navigation bar menu buttons control navigation states', (tester) async {
@@ -337,7 +334,6 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       checkIconNotSelected(tester, inboxMenuIconFinder);
       checkIconSelected(tester, channelsMenuIconFinder);
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('navigation bar menu buttons dismiss the menu', (tester) async {
@@ -345,7 +341,6 @@ void main () {
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, channelsMenuIconFinder);
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('close button dismisses the menu', (tester) async {
@@ -353,7 +348,6 @@ void main () {
       await prepare(tester);
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.text('Close'));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('menu buttons dismiss the menu', (tester) async {
@@ -384,7 +378,6 @@ void main () {
       await tester.pump((topBeforePop as TransitionRoute).reverseTransitionDuration);
 
       check(find.byType(BottomSheet)).findsNothing();
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('_MainMenuHeader', (tester) async {
@@ -393,7 +386,6 @@ void main () {
       await tapOpenMenuAndAwait(tester);
       await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.arrow_left_right));
       check(find.byType(ChooseAccountPage)).findsOne();
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('_StarredMessagesButton', (tester) async {
@@ -420,7 +412,6 @@ void main () {
       await tapButtonAndAwaitTransition(tester, findButton);
       check(find.byType(MessageListPage)).findsOne();
       check(find.text('Starred messages')).findsOne();
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('_MyProfileButton', (tester) async {
@@ -430,7 +421,6 @@ void main () {
       await tapButtonAndAwaitTransition(tester, find.text('My profile'));
       check(find.byType(ProfilePage)).findsOne();
       check(find.text(eg.selfUser.fullName)).findsAny();
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('_AboutZulipButton', (tester) async {
@@ -440,7 +430,6 @@ void main () {
       await tester.ensureVisible(find.byIcon(ZulipIcons.info));
       await tapButtonAndAwaitTransition(tester, find.byIcon(ZulipIcons.info));
       check(find.byType(AboutZulipPage)).findsOne();
-      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -832,8 +821,6 @@ void main () {
       checkOnHomePage(tester, expectedAccount: accountA);
       // Dismissal persists after switching accounts.
       check(find.byType(ZulipBanner)).findsNothing();
-
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('learn more opens kServerSupportDocUrl', (tester) async {

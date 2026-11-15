@@ -144,8 +144,6 @@ Future<void> prepareContent(WidgetTester tester, Widget child, {
   if (wrapWithPerAccountStoreWidget) {
     await tester.pump();
   }
-
-  debugNetworkImageHttpClientProvider = null;
 }
 
 void main() {
@@ -422,8 +420,6 @@ void main() {
         check(imageInPreview?.src).equals(expectUrlInPreview);
         check(findLoadingIndicator).findsExactly(expectLoadingIndicator ? 1 : 0);
 
-        prepareBoringImageHttpClient();
-
         final lightboxHeroInPreview = tester.widgetList<LightboxHero>(
           find.descendant(of: findImagePreview, matching: find.byType(LightboxHero))
         ).singleOrNull;
@@ -441,8 +437,6 @@ void main() {
           .singleOrNull;
         check(lightboxPage?.thumbnailUrl).equals(expectThumbnailUrlInLightbox);
         check(lightboxPage?.src).equals(expectUrlInLightbox);
-
-        debugNetworkImageHttpClientProvider = null;
       }
 
       Uri url(String reference) => eg.realmUrl.resolve(reference);
@@ -1748,20 +1742,17 @@ void main() {
     testWidgets('smoke: custom emoji', (tester) async {
       await prepare(tester, ContentExample.emojiCustom.html);
       tester.widget(find.byType(MessageImageEmoji));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: custom emoji with invalid URL', (tester) async {
       await prepare(tester, ContentExample.emojiCustomInvalidUrl.html);
       final url = tester.widget<MessageImageEmoji>(find.byType(MessageImageEmoji)).node.src;
       check(() => Uri.parse(url)).throws<void>();
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: Zulip extra emoji', (tester) async {
       await prepare(tester, ContentExample.emojiZulipExtra.html);
       tester.widget(find.byType(MessageImageEmoji));
-      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -1782,11 +1773,9 @@ void main() {
       await prepare(tester, ContentExample.inlineImage.html);
       check(find.byType(InlineImage)).findsOne();
 
-      prepareBoringImageHttpClient();
       await tester.tap(find.byType(InlineImage));
       await transitionDurationObserver.pumpPastTransition(tester);
       check(find.byType(InteractiveViewer)).findsOne(); // recognize the lightbox
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: inline image, loading', (tester) async {
@@ -1804,11 +1793,9 @@ void main() {
       await prepare(tester, ContentExample.tableWithInlineImage.html);
       check(find.byType(InlineImage)).findsOne();
 
-      prepareBoringImageHttpClient();
       await tester.tap(find.byType(InlineImage));
       await transitionDurationObserver.pumpPastTransition(tester);
       check(find.byType(InteractiveViewer)).findsOne(); // recognize the lightbox
-      debugNetworkImageHttpClientProvider = null;
     });
   });
 
@@ -1835,7 +1822,6 @@ void main() {
       await tester.tap(find.byType(RealmContentNetworkImage));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: url, mode: LaunchMode.inAppBrowserView));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: without title', (tester) async {
@@ -1849,7 +1835,6 @@ void main() {
       await tester.tap(find.byType(RealmContentNetworkImage));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: url, mode: LaunchMode.inAppBrowserView));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: without description', (tester) async {
@@ -1863,7 +1848,6 @@ void main() {
       await tester.tap(find.byType(RealmContentNetworkImage));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: url, mode: LaunchMode.inAppBrowserView));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke: without title or description', (tester) async {
@@ -1873,7 +1857,6 @@ void main() {
       await tester.tap(find.byType(RealmContentNetworkImage));
       check(testBinding.takeLaunchUrlCalls())
         .single.equals((url: url, mode: LaunchMode.inAppBrowserView));
-      debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('hidden by hideLinkPreviews flag', (tester) async {
