@@ -9,6 +9,7 @@ import 'package:drift/remote.dart';
 import 'package:sqlite3/common.dart';
 
 import '../api/route/realm.dart';
+import '../basic.dart';
 import '../log.dart';
 import 'legacy_app_data.dart';
 import 'schema_versions.g.dart';
@@ -343,13 +344,33 @@ class AppDatabase extends _$AppDatabase {
     },
   );
 
+  /// Whether foreign-key enforcement is off, as migrations require.
+  ///
+  /// Takes the [Migrator]'s database,
+  /// which is where the migration's own statements run.
+  static Future<bool> _foreignKeysOff(DatabaseConnectionUser db) async {
+    final row = await db.customSelect('PRAGMA foreign_keys').getSingle();
+    return !row.read<bool>('foreign_keys');
+  }
+
   Future<void> _createLatestSchema(Migrator m) async {
     assert(debugLog('Creating DB schema from scratch.'));
-    await m.createAll();
-    // Corresponds to `from4to5` above.
-    await into(globalSettings).insert(GlobalSettingsCompanion());
-    // Corresponds to (but differs from) part of `from8To9` above.
-    await migrateLegacyAppData(this);
+    // In a transaction, so that if schema creation gets interrupted,
+    // the next open will find a clean slate to retry from,
+    // rather than a half-built database.
+    await transaction(() async {
+      await m.createAll();
+      // Corresponds to `from4to5` above.
+      await into(globalSettings).insert(GlobalSettingsCompanion());
+      // Corresponds to (but differs from) part of `from8To9` above.
+      await migrateLegacyAppData(this);
+      // Record the schema version inside the transaction, so it's done
+      // atomically with the creation work. (Drift would otherwise record it
+      // only outside the transaction, after beforeOpen. On the upgrade path --
+      // see onUpgrade -- runMigrationSteps already records each version inside
+      // the transaction.)
+      await customStatement('PRAGMA user_version = $latestSchemaVersion');
+    });
   }
 
   @override
@@ -374,11 +395,50 @@ class AppDatabase extends _$AppDatabase {
           return;
         }
         assert(1 <= from && from <= to && to <= latestSchemaVersion);
+        assert(await _foreignKeysOff(m.database),
+          'Foreign keys must be off while migrating. See beforeOpen below.');
 
         assert(debugLog('Upgrading DB schema from v$from to v$to.'));
-        await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
+        // In a transaction around the whole upgrade, so that an interruption
+        // partway through leaves the database at the version it started at.
+        // It may be tempting to wrap an individual step's statements instead,
+        // but that's no good because Drift would record the new user_version
+        // outside that transaction, meaning the step could still run after its
+        // work was already applied, and steps aren't designed to be idempotent.
+        //
+        // Don't try to change `PRAGMA foreign_keys` in any migration step;
+        // see the assert above, and [beforeOpen] below.
+        await transaction(() async {
+          await m.runMigrationSteps(from: from, to: to, steps: _migrationSteps);
+        });
       },
       beforeOpen: (details) async {
+        if (kDebugMode && (details.wasCreated || details.hadUpgrade)) {
+          // The migration ran with foreign-key enforcement off, and just
+          // turning it back on wouldn't catch a row that a step had orphaned:
+          // SQLite checks the statements it runs, not rows already on disk.
+          // So scan the database for violations, just in debug builds and
+          // just when a migration actually ran. Drift's docs recommend the
+          // same check, placed at the end of onUpgrade:
+          //   https://pub.dev/documentation/drift/latest/internal_versioned_schema/VersionedSchema/runMigrationSteps.html
+          final violations = await customSelect('PRAGMA foreign_key_check').get();
+          assert(violations.isEmpty,
+            'foreign-key violations after migrating: '
+            '${violations.map((r) => r.data).toList()}');
+        }
+
+        // This runs after any migration, and it needs to stay that way.
+        // If foreign_keys were on, a step that rewrites a table would likely
+        // want to turn it off again -- but it couldn't, because the migration
+        // runs in a transaction, and SQLite ignores `PRAGMA foreign_keys`
+        // inside a transaction:
+        //   https://www.sqlite.org/pragma.html#pragma_foreign_keys
+        // > This pragma is a no-op within a transaction; foreign key constraint
+        // > enforcement may only be enabled or disabled when there is no
+        // > pending BEGIN or SAVEPOINT.
+        // The rewrite would then drop the table with foreign keys enforced,
+        // cascading the delete to its child rows: e.g., rewriting Accounts
+        // would silently take PushKeys with it.
         await customStatement('PRAGMA foreign_keys = ON');
       },
     );
