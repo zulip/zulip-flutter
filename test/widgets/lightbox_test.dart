@@ -386,6 +386,21 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    for (final brightness in Brightness.values) {
+      testWidgets('neutral image background in ${brightness.name} mode', (tester) async {
+        tester.platformDispatcher.platformBrightnessTestValue = brightness;
+        addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+        prepareBoringImageHttpClient();
+        await setupPage(tester, thumbnailUrl: null);
+
+        final scaffold = tester.widget<Scaffold>(find.descendant(
+          of: find.byType(ImageLightboxPage), matching: find.byType(Scaffold)));
+        check(scaffold.backgroundColor).isNotNull().isSameColorAs(Colors.grey.shade600);
+
+        debugNetworkImageHttpClientProvider = null;
+      });
+    }
+
     void checkAppBarNameAndDate(WidgetTester tester, String expectedName, String expectedDate) {
       final labelTextWidget = tester.widget<RichText>(
         find.descendant(of: find.byType(AppBar).last,
@@ -575,6 +590,14 @@ void main() {
       check(platform.isPlaying).isTrue();
 
       await tester.ensureVisible(find.byType(VideoPlayer));
+    });
+
+    testWidgets('black video background', (tester) async {
+      await setupPage(tester, videoSrc: Uri.parse(kTestVideoUrl));
+
+      final scaffold = tester.widget<Scaffold>(find.descendant(
+        of: find.byType(VideoLightboxPage), matching: find.byType(Scaffold)));
+      check(scaffold.backgroundColor).isNotNull().isSameColorAs(Colors.black);
     });
 
     testWidgets('toggles between play and pause', (tester) async {
