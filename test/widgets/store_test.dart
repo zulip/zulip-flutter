@@ -84,6 +84,23 @@ void main() {
       .equals((accountId: eg.selfAccount.id, account: eg.selfAccount));
   });
 
+  testWidgets('GlobalStoreWidget shows an error when loading fails', (tester) async {
+    addTearDown(testBinding.reset);
+
+    final globalStoreCompleter = Completer<GlobalStore>();
+    await tester.pumpWidget(GlobalStoreWidget(
+      globalStoreFuture: globalStoreCompleter.future,
+      child: const Text('done')));
+    globalStoreCompleter.completeError(Exception('database failed'));
+    await tester.pump();
+    await tester.pump();
+
+    check(find.text('Could not load Zulip')).findsOne();
+    check(find.text('Zulip could not load data saved on this device. Please restart the app and try again.')).findsOne();
+    check(find.text('done')).findsNothing();
+    check(find.byType(CircularProgressIndicator)).findsNothing();
+  });
+
   testWidgets('GlobalStoreWidget awaits blockingFuture', (tester) async {
     addTearDown(testBinding.reset);
 
