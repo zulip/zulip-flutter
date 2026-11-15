@@ -21,10 +21,10 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get aboutPageAppVersionUnknown =>
-      'The app’s version information was not found.';
+      'Le informazioni sulla versione dell\'app non sono state trovate.';
 
   @override
-  String get aboutPageReleaseNotes => 'Release notes';
+  String get aboutPageReleaseNotes => 'Note sulla versione';
 
   @override
   String get aboutPageOpenSourceLicenses => 'Licenze open-source';
@@ -236,10 +236,12 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Nascondi nuovamente il messaggio disattivato';
 
   @override
-  String get actionSheetOptionHideLinkPreviews => 'Hide link previews';
+  String get actionSheetOptionHideLinkPreviews =>
+      'Nascondi le anteprime dei link';
 
   @override
-  String get actionSheetOptionShowLinkPreviews => 'Show link previews';
+  String get actionSheetOptionShowLinkPreviews =>
+      'Mostra le anteprime dei link';
 
   @override
   String get actionSheetOptionShare => 'Condividi';
@@ -287,7 +289,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get messageReportTypeSpam => 'Spam';
 
   @override
-  String get messageReportTypeHarassment => 'Harassment';
+  String get messageReportTypeHarassment => 'Molestie';
 
   @override
   String get messageReportTypeInappropriate => 'Contenuto inappropriato';
@@ -306,7 +308,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
   String get reportMessageDescriptionLabel => 'Puoi fornire maggiori dettagli?';
 
   @override
-  String get reportMessageDescriptionRequired => 'Please provide details.';
+  String get reportMessageDescriptionRequired => 'Fornisci i dettagli.';
 
   @override
   String get reportMessageSubmitButton => 'Invia';
@@ -407,11 +409,11 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get errorCouldNotLoadSelectedFiles =>
-      'The selected files could not be loaded.';
+      'Non è stato possibile caricare i file selezionati.';
 
   @override
   String errorCouldNotReadFile(String filename) {
-    return 'Could not read file: $filename';
+    return 'Impossibile leggere il file: $filename';
   }
 
   @override
@@ -501,17 +503,19 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Impossibile contrassegnare il messaggio come normale';
 
   @override
-  String get errorHideLinkPreviewsFailedTitle => 'Failed to hide link previews';
+  String get errorHideLinkPreviewsFailedTitle =>
+      'Non è stato possibile nascondere le anteprime dei link';
 
   @override
-  String get errorShowLinkPreviewsFailedTitle => 'Failed to show link previews';
+  String get errorShowLinkPreviewsFailedTitle =>
+      'Non è stato possibile mostrare le anteprime dei link';
 
   @override
   String get errorCouldNotEditMessageTitle =>
       'Impossibile modificare il messaggio';
 
   @override
-  String get successAppVersionCopied => 'App version copied';
+  String get successAppVersionCopied => 'Versione dell\'applicazione copiata';
 
   @override
   String get successLinkCopied => 'Collegamento copiato';
@@ -827,7 +831,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get loginRealmUrlHelperText =>
-      'This is the address you would use to open Zulip in a browser.';
+      'Questo è l\'indirizzo che useresti per aprire Zulip in un browser.';
 
   @override
   String get loginRealmUrlHelpButton => 'Aiuto';
@@ -866,7 +870,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
 
   @override
   String get topicValidationErrorMandatoryButEmpty =>
-      'In questa organizzazione sono richiesti degli argomenti.';
+      'Gli argomenti sono obbligatori in questo canale.';
 
   @override
   String get errorContentNotInsertedTitle => 'Contenuto non inserito';
@@ -1170,7 +1174,7 @@ class ZulipLocalizationsIt extends ZulipLocalizations {
       'Usa i pulsanti qui sotto per visualzzare il feed combinato o la lista dei canali.';
 
   @override
-  String get pinnedChannelsFolderName => 'Pinned channels';
+  String get pinnedChannelsFolderName => 'Canali pinnati';
 
   @override
   String get otherChannelsFolderName => 'Altri canali';

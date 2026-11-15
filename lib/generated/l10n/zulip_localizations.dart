@@ -17,6 +17,7 @@ import 'zulip_localizations_es.dart';
 import 'zulip_localizations_et.dart';
 import 'zulip_localizations_fr.dart';
 import 'zulip_localizations_he.dart';
+import 'zulip_localizations_hr.dart';
 import 'zulip_localizations_hu.dart';
 import 'zulip_localizations_hy.dart';
 import 'zulip_localizations_it.dart';
@@ -133,6 +134,7 @@ abstract class ZulipLocalizations {
     Locale('et'),
     Locale('fr'),
     Locale('he'),
+    Locale('hr'),
     Locale('hu'),
     Locale('hy'),
     Locale('it'),
@@ -2530,6 +2532,7 @@ class _ZulipLocalizationsDelegate
     'et',
     'fr',
     'he',
+    'hr',
     'hu',
     'hy',
     'it',
@@ -2603,6 +2606,8 @@ ZulipLocalizations lookupZulipLocalizations(Locale locale) {
       return ZulipLocalizationsFr();
     case 'he':
       return ZulipLocalizationsHe();
+    case 'hr':
+      return ZulipLocalizationsHr();
     case 'hu':
       return ZulipLocalizationsHu();
     case 'hy':

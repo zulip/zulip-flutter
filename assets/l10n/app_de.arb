@@ -38,6 +38,9 @@
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
   },
+  "@actionSheetOptionHideLinkPreviews": {
+    "description": "Label for the 'Hide link previews' button in the message action sheet."
+  },
   "@actionSheetOptionHideMutedMessage": {
     "description": "Label for hide muted message again button on action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
+  },
+  "@actionSheetOptionShowLinkPreviews": {
+    "description": "Label for the 'Show link previews' button in the message action sheet."
   },
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
@@ -566,6 +572,9 @@
   "@errorHandlingEventTitle": {
     "description": "Error title on failing to handle a Zulip server event."
   },
+  "@errorHideLinkPreviewsFailedTitle": {
+    "description": "Error title when hiding the link previews on a message failed."
+  },
   "@errorInvalidApiKeyMessage": {
     "description": "Error message in the dialog for invalid API key.",
     "placeholders": {
@@ -703,6 +712,9 @@
   },
   "@errorSharingTitle": {
     "description": "Error title when sharing content received from other apps fails"
+  },
+  "@errorShowLinkPreviewsFailedTitle": {
+    "description": "Error title when showing the link previews on a message failed."
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -1530,6 +1542,7 @@
   "actionSheetOptionDeleteMessage": "Nachricht löschen",
   "actionSheetOptionEditMessage": "Nachricht bearbeiten",
   "actionSheetOptionFollowTopic": "Thema folgen",
+  "actionSheetOptionHideLinkPreviews": "Link-Vorschauen ausblenden",
   "actionSheetOptionHideMutedMessage": "Stummgeschaltete Nachricht wieder ausblenden",
   "actionSheetOptionListOfTopics": "Themenliste",
   "actionSheetOptionMarkAsUnread": "Ab hier als ungelesen markieren",
@@ -1543,6 +1556,7 @@
   "actionSheetOptionResolveTopic": "Als gelöst markieren",
   "actionSheetOptionSeeWhoReacted": "Wer hat reagiert",
   "actionSheetOptionShare": "Teilen",
+  "actionSheetOptionShowLinkPreviews": "Link-Vorschauen anzeigen",
   "actionSheetOptionStarMessage": "Nachricht markieren",
   "actionSheetOptionSubscribe": "Abonnieren",
   "actionSheetOptionUnfollowTopic": "Thema entfolgen",
@@ -1658,6 +1672,7 @@
   "errorFollowTopicFailed": "Konnte Thema nicht folgen",
   "errorHandlingEventDetails": "Fehler beim Verarbeiten eines Zulip-Ereignisses von {serverUrl}; Wird wiederholt.\n\nFehler: {error}\n\nEreignis: {event}",
   "errorHandlingEventTitle": "Fehler beim Verarbeiten eines Zulip-Ereignisses. Wiederhole Verbindung…",
+  "errorHideLinkPreviewsFailedTitle": "Link-Vorschauen konnten nicht ausgeblendet werden",
   "errorInvalidApiKeyMessage": "Dein Account bei {url} konnte nicht authentifiziert werden. Bitte wiederhole die Anmeldung oder verwende einen anderen Account.",
   "errorInvalidResponse": "Der Server hat eine ungültige Antwort gesendet.",
   "errorLoginCouldNotConnect": "Verbindung zu Server fehlgeschlagen:\n{url}",
@@ -1686,6 +1701,7 @@
   "errorSharingAccountNotLoggedIn": "Es ist kein Konto angemeldet. Bitte logge dich in ein Konto ein und versuche es erneut.",
   "errorSharingFailed": "Teilen fehlgeschlagen",
   "errorSharingTitle": "Teilen des Inhalts fehlgeschlagen",
+  "errorShowLinkPreviewsFailedTitle": "Link-Vorschauen konnten nicht angezeigt werden",
   "errorStarMessageFailedTitle": "Konnte Nachricht nicht markieren",
   "errorUnfollowTopicFailed": "Konnte Thema nicht entfolgen",
   "errorUnmuteTopicFailed": "Konnte Thema nicht lautschalten",

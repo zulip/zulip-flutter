@@ -38,6 +38,9 @@
   "@actionSheetOptionFollowTopic": {
     "description": "Label for following a topic on action sheet."
   },
+  "@actionSheetOptionHideLinkPreviews": {
+    "description": "Label for the 'Hide link previews' button in the message action sheet."
+  },
   "@actionSheetOptionHideMutedMessage": {
     "description": "Label for hide muted message again button on action sheet."
   },
@@ -76,6 +79,9 @@
   },
   "@actionSheetOptionShare": {
     "description": "Label for share button on action sheet."
+  },
+  "@actionSheetOptionShowLinkPreviews": {
+    "description": "Label for the 'Show link previews' button in the message action sheet."
   },
   "@actionSheetOptionStarMessage": {
     "description": "Label for star button on action sheet."
@@ -566,6 +572,9 @@
   "@errorHandlingEventTitle": {
     "description": "Error title on failing to handle a Zulip server event."
   },
+  "@errorHideLinkPreviewsFailedTitle": {
+    "description": "Error title when hiding the link previews on a message failed."
+  },
   "@errorInvalidApiKeyMessage": {
     "description": "Error message in the dialog for invalid API key.",
     "placeholders": {
@@ -703,6 +712,9 @@
   },
   "@errorSharingTitle": {
     "description": "Error title when sharing content received from other apps fails"
+  },
+  "@errorShowLinkPreviewsFailedTitle": {
+    "description": "Error title when showing the link previews on a message failed."
   },
   "@errorStarMessageFailedTitle": {
     "description": "Error title when starring a message failed."
@@ -1536,6 +1548,7 @@
   "actionSheetOptionDeleteMessage": "Supprimer le message",
   "actionSheetOptionEditMessage": "Modifier le message",
   "actionSheetOptionFollowTopic": "Suivre la conversation",
+  "actionSheetOptionHideLinkPreviews": "Cacher les prévisualisations de liens",
   "actionSheetOptionHideMutedMessage": "Cacher à nouveau le message en sourdine",
   "actionSheetOptionListOfTopics": "Liste des conversations",
   "actionSheetOptionMarkAsUnread": "Marquer non lu à partir d'ici",
@@ -1549,6 +1562,7 @@
   "actionSheetOptionResolveTopic": "Marquer comme résolue",
   "actionSheetOptionSeeWhoReacted": "Voir qui a réagi",
   "actionSheetOptionShare": "Partager",
+  "actionSheetOptionShowLinkPreviews": "Afficher les prévisualisations de liens",
   "actionSheetOptionStarMessage": "Mettre le message en favori",
   "actionSheetOptionSubscribe": "S'abonner",
   "actionSheetOptionUnfollowTopic": "Ne plus suivre la conversation",
@@ -1664,6 +1678,7 @@
   "errorFollowTopicFailed": "Échec de l'activation du suivi de la conversation",
   "errorHandlingEventDetails": "Une erreur s'est produite en traitant un événement Zulip de {serverUrl} ; nouvel essai à venir.\n\nErreur : {error}\n\nÉvénement : {event}",
   "errorHandlingEventTitle": "Erreur lors du traitement d'un événement Zulip. Nouvel essai…",
+  "errorHideLinkPreviewsFailedTitle": "Échec à cacher les prévisualisations de liens",
   "errorInvalidApiKeyMessage": "Votre compte à l'adresse {url} n'a pas pu être authentifié. Merci d'essayer de vous reconnecter ou utilisez un autre compte.",
   "errorInvalidResponse": "Le serveur a renvoyé une réponse non valide.",
   "errorLoginCouldNotConnect": "La connexion au serveur a échoué :\n{url}",
@@ -1692,6 +1707,7 @@
   "errorSharingAccountNotLoggedIn": "Il n'y a pas de compte connecté. Merci de vous connecter à un compte et d'essayer à nouveau.",
   "errorSharingFailed": "Échec du partage",
   "errorSharingTitle": "Échec du partage du contenu",
+  "errorShowLinkPreviewsFailedTitle": "Échec à afficher les prévisualisations de liens",
   "errorStarMessageFailedTitle": "Échec de la mise en favori du message",
   "errorUnfollowTopicFailed": "Échec de la désactivation du suivi de la conversation",
   "errorUnmuteTopicFailed": "Échec de la désactivation de la sourdine sur la conversation",
