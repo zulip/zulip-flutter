@@ -1229,6 +1229,13 @@ class ZulipLocalizationsDe extends ZulipLocalizations {
   String get topicsButtonTooltip => 'Themen';
 
   @override
+  String get filterTopicsHintText => 'Filter topics';
+
+  @override
+  String get filteredTopicsEmptyPlaceholderHeader =>
+      'No topics match your filters.';
+
+  @override
   String get channelFeedButtonTooltip => 'Kanal-Feed';
 
   @override
