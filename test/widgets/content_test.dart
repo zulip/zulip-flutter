@@ -1426,6 +1426,16 @@ void main() {
         .single.equals((url: Uri.parse('file:///etc/bad'), mode: LaunchMode.platformDefault));
       checkErrorDialog(tester, expectedTitle: 'Unable to open link');
     });
+
+    testWidgets('link is underlined', (tester) async {
+      await prepare(tester, '<p><a href="https://example/">hello</a></p>');
+
+      final richText = tester.widget<RichText>(find.text('hello', findRichText: true));
+      final style = mergeSpanStylesOuterToInner(richText.text,
+        (span) => span is TextSpan && span.text == 'hello');
+
+      check(style!.decoration).equals(TextDecoration.underline);
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.iOS}));
   });
 
   group('LinkNode on internal links', () {
