@@ -2550,7 +2550,7 @@ class OutboxMessageWithPossibleSender extends StatelessWidget {
     final localMessageId = message.localMessageId;
 
     // This is adapted from [MessageContent].
-    // TODO(#576): Offer InheritedMessage ancestor once we are ready
+    // TODO(#576): Offer ZulipContentBackgroundDataProvider ancestor once we are ready
     //   to support local echoing images and lightbox.
     Widget content = DefaultTextStyle(
       style: ContentTheme.of(context).textStylePlainParagraph,
