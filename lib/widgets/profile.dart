@@ -57,6 +57,7 @@ class ProfilePage extends StatelessWidget {
 
     final nameStyle = _TextStyles.primaryFieldText
       .merge(weightVariableTextStyle(context, wght: 700));
+    final textScaler = MediaQuery.textScalerOf(context);
 
     final userStatus = store.getUserStatus(userId);
 
@@ -72,22 +73,30 @@ class ProfilePage extends StatelessWidget {
           // we'll show it by the user's name instead.
           showPresence: false,
           replaceIfMuted: false,
+          // Like presence above, the deactivated indicator goes next to the
+          // name below (where it reads better at this size), not on the avatar.
+          markIfDeactivated: false,
         )),
       const SizedBox(height: 16),
       Text.rich(
         TextSpan(children: [
-          PresenceCircle.asWidgetSpan(
-            userId: userId,
-            fontSize: nameStyle.fontSize!,
-            textScaler: MediaQuery.textScalerOf(context),
-          ),
+          if (!user.isActive)
+            DeactivatedUserIcon.asWidgetSpan(
+              fontSize: nameStyle.fontSize!,
+              textScaler: textScaler)
+          else
+            PresenceCircle.asWidgetSpan(
+              userId: userId,
+              fontSize: nameStyle.fontSize!,
+              textScaler: textScaler,
+            ),
           // TODO write a test where the user is muted; check this and avatar
           TextSpan(text: store.userDisplayName(userId, replaceIfMuted: false)),
           if (userId != store.selfUserId)
             UserStatusEmoji.asWidgetSpan(
               userId: userId,
               fontSize: nameStyle.fontSize!,
-              textScaler: MediaQuery.textScalerOf(context),
+              textScaler: textScaler,
               animationMode: ImageAnimationMode.animateConditionally,
             ),
         ]),
