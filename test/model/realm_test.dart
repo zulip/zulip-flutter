@@ -41,6 +41,15 @@ void main() {
     doCheck(eg.t('(no topic)'),          eg.t(''),                    370);
   });
 
+  test('isStopWord', () {
+    final store = eg.store(initialSnapshot: eg.initialSnapshot(
+      stopWords: ['The', 'a']));
+    check(store.isStopWord('the')).isTrue();
+    check(store.isStopWord('THE')).isTrue();
+    check(store.isStopWord('A')).isTrue();
+    check(store.isStopWord('example')).isFalse();
+  });
+
   test('realmDateCreated', () {
     const timestamp = 1579089600;
     final store = eg.store(initialSnapshot: eg.initialSnapshot(
