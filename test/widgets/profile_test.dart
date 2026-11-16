@@ -120,6 +120,29 @@ void main() {
     check(find.text(longString).evaluate()).isNotEmpty();
   });
 
+  group('deactivated user', () {
+    final findDeactivatedIcon = find.byType(DeactivatedUserIcon);
+
+    testWidgets('active user: no deactivated icon, presence circle present', (tester) async {
+      final user = eg.user(isActive: true);
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+      check(findDeactivatedIcon).findsNothing();
+      check(find.byType(PresenceCircle)).findsAtLeast(1);
+    });
+
+    testWidgets('deactivated user: icon in name row, not on avatar, no presence circle', (tester) async {
+      final user = eg.user(isActive: false);
+      await setupPage(tester, users: [user], pageUserId: user.userId);
+      check(find.descendant(
+        of: find.textContaining(user.fullName, findRichText: true),
+        matching: findDeactivatedIcon)).findsOne();
+      check(find.descendant(
+        of: find.byType(Avatar),
+        matching: findDeactivatedIcon)).findsNothing();
+      check(find.byType(PresenceCircle)).findsNothing();
+    });
+  });
+
   group('_LastActiveTime', () {
     Future<void> update(WidgetTester tester, User user, {
       required int activeSeconds,
