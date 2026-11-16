@@ -265,7 +265,7 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
   final String? header;
   final String? headerWithLinkMarkup;
   final VoidCallback? onTapHeaderLink;
-  final String? message;
+  final InlineSpan? message;
   final String? messageWithLinkMarkup;
   final VoidCallback? onTapMessageLink;
 
@@ -305,7 +305,7 @@ class PageBodyEmptyContentPlaceholder extends StatelessWidget {
 
   Widget? _buildMessage(BuildContext context) {
     if (message != null) {
-      return Text(
+      return Text.rich(
         textAlign: TextAlign.center,
         style: _messageStyle(context),
         message!);

@@ -65,6 +65,8 @@ class InitialSnapshot {
 
   final List<ZulipStream> streams;
 
+  final List<String> stopWords;
+
   // In register-queue, the name of this field is the singular "user_status",
   // even though it actually contains user status information for all the users
   // that the self-user has access to. Therefore, we prefer to use the plural form.
@@ -198,6 +200,7 @@ class InitialSnapshot {
     required this.unreadMsgs,
     required this.starredMessages,
     required this.streams,
+    required this.stopWords,
     required this.userStatuses,
     required this.userSettings,
     required this.userTopics,

@@ -1355,6 +1355,39 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
 
   final Narrow narrow;
 
+  /// Matches a run of whitespace, or (as `word`) a run of non-whitespace.
+  ///
+  /// Every character lands in exactly one match, so concatenating
+  /// the matches reproduces the string.
+  static final _spaceOrWord = RegExp(r'\s+|(?<word>\S+)');
+
+  /// A message showing [keyword] with its stop words struck through,
+  /// or null if it contains none.
+  ///
+  /// The keyword is reproduced verbatim rather than re-joined with ' ',
+  /// so that localized space characters survive; see:
+  ///   https://github.com/zulip/zulip-flutter/issues/1805
+  // TODO(web) in 2026-08, web doesn't preserve localized space characters
+  static TextSpan? _stopWordsFeedback(PerAccountStore store,
+      ZulipLocalizations zulipLocalizations, String keyword) {
+    const strikethrough = TextStyle(decoration: TextDecoration.lineThrough);
+    bool sawStopWord = false;
+    final spans = <TextSpan>[];
+    for (final match in _spaceOrWord.allMatches(keyword)) {
+      final word = match.namedGroup('word');
+      final isStopWord = word != null && store.isStopWord(word);
+      sawStopWord |= isStopWord;
+      spans.add(TextSpan(text: match[0],
+        style: isStopWord ? strikethrough : null));
+    }
+    if (!sawStopWord) return null;
+    return TextSpan(children: [
+      TextSpan(text: zulipLocalizations.emptyMessageListSearchStopwords),
+      const TextSpan(text: '\n'),
+      ...spans,
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
@@ -1383,7 +1416,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
       case DmNarrow(:final otherRecipientIds) when otherRecipientIds.isEmpty:
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListSelfDmHeader,
-          message: zulipLocalizations.emptyMessageListSelfDmMessage);
+          message: TextSpan(text: zulipLocalizations.emptyMessageListSelfDmMessage));
 
       case DmNarrow(:final otherRecipientIds) when otherRecipientIds.length == 1:
         final user = store.getUser(otherRecipientIds.single);
@@ -1401,7 +1434,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
               header: zulipLocalizations.emptyMessageListDm(displayName),
               message: store.isUserMuted(user.userId)
                 ? null
-                : zulipLocalizations.emptyMessageListDmStartConversation);
+                : TextSpan(text: zulipLocalizations.emptyMessageListDmStartConversation));
         }
 
       case DmNarrow(:final otherRecipientIds)
@@ -1415,14 +1448,14 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
       case DmNarrow():
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListGroupDm,
-          message: zulipLocalizations.emptyMessageListDmStartConversation);
+          message: TextSpan(text: zulipLocalizations.emptyMessageListDmStartConversation));
 
       case MentionsNarrow():
         return PageBodyEmptyContentPlaceholder(
           headerWithLinkMarkup: zulipLocalizations.emptyMessageListMentionsHeader,
           onTapHeaderLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/mention-a-user-or-group')!),
-          message: zulipLocalizations.emptyMessageListMentionsMessage);
+          message: TextSpan(text: zulipLocalizations.emptyMessageListMentionsMessage));
 
       case StarredMessagesNarrow():
         return PageBodyEmptyContentPlaceholder(
@@ -1432,9 +1465,10 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
           onTapMessageLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/star-a-message')!));
 
-      case KeywordSearchNarrow():
+      case KeywordSearchNarrow(:final keyword):
         return PageBodyEmptyContentPlaceholder(
-          header: zulipLocalizations.emptyMessageListSearch);
+          header: zulipLocalizations.emptyMessageListSearch,
+          message: _stopWordsFeedback(store, zulipLocalizations, keyword));
     }
   }
 }

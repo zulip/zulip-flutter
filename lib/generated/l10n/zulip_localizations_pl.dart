@@ -749,6 +749,10 @@ class ZulipLocalizationsPl extends ZulipLocalizations {
   String get emptyMessageListSearch => 'Brak wyników wyszukiwania.';
 
   @override
+  String get emptyMessageListSearchStopwords =>
+      'Common words were excluded from your search:';
+
+  @override
   String get messageListGroupYouWithYourself => 'Zapiski na własne konto';
 
   @override

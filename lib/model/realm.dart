@@ -97,6 +97,11 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
   int get maxChannelNameLength;
   int get maxTopicLength;
 
+  /// The stopwords used by the server's full-text search, in lowercase.
+  ///
+  /// Search for "stop_words" in https://zulip.com/api/register-queue.
+  Set<String> get stopWords;
+
   //|//////////////////////////////
   // Realm data that never changes.
 
@@ -157,6 +162,14 @@ mixin RealmStore on PerAccountStoreBase, UserGroupStore {
     }
     return topic;
   }
+
+  /// Whether the given word is one of the [stopWords]
+  /// that the server's full-text search ignores.
+  ///
+  /// The comparison is case-insensitive,
+  /// matching how the server's search treats stopwords;
+  /// see https://zulip.com/help/search-for-messages .
+  bool isStopWord(String word) => stopWords.contains(word.toLowerCase());
 
   /// Whether the self-user has passed the realm's waiting period
   /// to be a full member.
@@ -239,6 +252,8 @@ mixin ProxyRealmStore on RealmStore {
   @override
   int get maxTopicLength => realmStore.maxTopicLength;
   @override
+  Set<String> get stopWords => realmStore.stopWords;
+  @override
   int get realmDateCreatedTimestamp => realmStore.realmDateCreatedTimestamp;
   @override
   List<CustomProfileField> get customProfileFields => realmStore.customProfileFields;
@@ -300,6 +315,8 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
     realmDefaultExternalAccounts = initialSnapshot.realmDefaultExternalAccounts,
     maxChannelNameLength = initialSnapshot.maxChannelNameLength,
     maxTopicLength = initialSnapshot.maxTopicLength,
+    stopWords = initialSnapshot.stopWords
+      .map((word) => word.toLowerCase()).toSet(),
     realmDateCreatedTimestamp = initialSnapshot.realmDateCreated,
     customProfileFields = _sortCustomProfileFields(initialSnapshot.customProfileFields);
 
@@ -491,6 +508,9 @@ class RealmStoreImpl extends HasUserGroupStore with RealmStore {
   final int maxChannelNameLength;
   @override
   final int maxTopicLength;
+
+  @override
+  final Set<String> stopWords;
 
   @override
   final int realmDateCreatedTimestamp;
