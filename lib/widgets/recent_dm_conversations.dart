@@ -334,13 +334,13 @@ class DmConversationAvatar extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
 
     final Widget avatar;
-    int? userIdForPresence;
+    int? userId;
     switch (narrow.otherRecipientIds) {
       case []:
         avatar = AvatarImage(userId: store.selfUserId, size: _avatarSize);
       case [var otherUserId]:
         avatar = AvatarImage(userId: otherUserId, size: _avatarSize);
-        userIdForPresence = otherUserId;
+        userId = otherUserId;
       default:
         final allRecipientsCount = narrow.allRecipientIds.length;
         if (allRecipientsCount < 10) {
@@ -377,8 +377,8 @@ class DmConversationAvatar extends StatelessWidget {
     return AvatarShape(
       size: _avatarSize,
       borderRadius: 3,
-      backgroundColor: userIdForPresence != null ? backgroundColor : null,
-      userIdForPresence: userIdForPresence,
+      backgroundColor: userId != null ? backgroundColor : null,
+      userId: userId,
       child: avatar);
   }
 }
