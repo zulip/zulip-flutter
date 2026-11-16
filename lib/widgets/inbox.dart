@@ -196,7 +196,7 @@ class _InboxPageState extends State<InboxPageBody> with PerAccountStoreAwareStat
       return PageBodyEmptyContentPlaceholder(
         // TODO(#315) add e.g. "You might be interested in recent conversations."
         header: zulipLocalizations.inboxEmptyPlaceholderHeader,
-        message: zulipLocalizations.inboxEmptyPlaceholderMessage);
+        message: TextSpan(text: zulipLocalizations.inboxEmptyPlaceholderMessage));
     }
 
     return SafeArea( // horizontal insets

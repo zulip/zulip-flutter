@@ -1383,7 +1383,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
       case DmNarrow(:final otherRecipientIds) when otherRecipientIds.isEmpty:
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListSelfDmHeader,
-          message: zulipLocalizations.emptyMessageListSelfDmMessage);
+          message: TextSpan(text: zulipLocalizations.emptyMessageListSelfDmMessage));
 
       case DmNarrow(:final otherRecipientIds) when otherRecipientIds.length == 1:
         final user = store.getUser(otherRecipientIds.single);
@@ -1401,7 +1401,7 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
               header: zulipLocalizations.emptyMessageListDm(displayName),
               message: store.isUserMuted(user.userId)
                 ? null
-                : zulipLocalizations.emptyMessageListDmStartConversation);
+                : TextSpan(text: zulipLocalizations.emptyMessageListDmStartConversation));
         }
 
       case DmNarrow(:final otherRecipientIds)
@@ -1415,14 +1415,14 @@ class _EmptyMessageListPlaceholder extends StatelessWidget {
       case DmNarrow():
         return PageBodyEmptyContentPlaceholder(
           header: zulipLocalizations.emptyMessageListGroupDm,
-          message: zulipLocalizations.emptyMessageListDmStartConversation);
+          message: TextSpan(text: zulipLocalizations.emptyMessageListDmStartConversation));
 
       case MentionsNarrow():
         return PageBodyEmptyContentPlaceholder(
           headerWithLinkMarkup: zulipLocalizations.emptyMessageListMentionsHeader,
           onTapHeaderLink: () => PlatformActions.launchUrl(context,
             store.tryResolveUrl('/help/mention-a-user-or-group')!),
-          message: zulipLocalizations.emptyMessageListMentionsMessage);
+          message: TextSpan(text: zulipLocalizations.emptyMessageListMentionsMessage));
 
       case StarredMessagesNarrow():
         return PageBodyEmptyContentPlaceholder(

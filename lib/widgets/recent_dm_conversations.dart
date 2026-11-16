@@ -109,7 +109,7 @@ class _RecentDmConversationsPageBodyState extends State<RecentDmConversationsPag
         if (sorted.isEmpty)
           PageBodyEmptyContentPlaceholder(
             header: zulipLocalizations.recentDmConversationsEmptyPlaceholderHeader,
-            message: zulipLocalizations.recentDmConversationsEmptyPlaceholderMessage)
+            message: TextSpan(text: zulipLocalizations.recentDmConversationsEmptyPlaceholderMessage))
         else
           SafeArea(
             // Don't pad the bottom here; we want the list content to do that.
