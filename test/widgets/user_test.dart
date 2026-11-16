@@ -31,18 +31,24 @@ void main() {
       matching: find.byIcon(ZulipIcons.person),
     );
 
-    Future<Uri?> actualUrl(WidgetTester tester, String? avatarUrl, [double? size]) async {
+    Future<void> pumpImage(WidgetTester tester, User user, {
+      double size = 30,
+    }) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-      user = eg.user(avatarUrl: avatarUrl);
       await store.addUser(user);
 
-      prepareBoringImageHttpClient();
       await tester.pumpWidget(
         TestZulipApp(accountId: eg.selfAccount.id,
-          child: AvatarImage(userId: user.userId, size: size ?? 30)));
+          child: AvatarImage(userId: user.userId, size: size)));
       await tester.pump();
+    }
+
+    Future<Uri?> actualUrl(WidgetTester tester, String? avatarUrl, [double? size]) async {
+      user = eg.user(avatarUrl: avatarUrl);
+      prepareBoringImageHttpClient();
+      await pumpImage(tester, user, size: size ?? 30);
       await tester.pump();
       tester.widget(find.byType(AvatarImage));
       final widgets = tester.widgetList<RealmContentNetworkImage>(
@@ -127,17 +133,8 @@ void main() {
         ..statusCode = HttpStatus.notFound
         ..content = <int>[];
 
-      addTearDown(testBinding.reset);
-      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
-      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-
-      final badUser = eg.user(avatarUrl: 'https://zulip.com/avatarinvalid.png');
-      await store.addUser(badUser);
-
-      await tester.pumpWidget(
-        TestZulipApp(accountId: eg.selfAccount.id,
-          child: AvatarImage(userId: badUser.userId, size: 30)));
-      await tester.pump();
+      await pumpImage(tester,
+        eg.user(avatarUrl: 'https://zulip.com/avatarinvalid.png'));
       await tester.pump();
       check(findPlaceholder).findsOne();
 
