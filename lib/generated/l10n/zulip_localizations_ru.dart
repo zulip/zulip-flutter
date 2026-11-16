@@ -1463,6 +1463,9 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get mutedUser => 'Заглушенный пользователь';
 
   @override
+  String get deletedUser => 'Deleted user';
+
+  @override
   String get scrollToBottomTooltip => 'Прокрутить вниз';
 
   @override

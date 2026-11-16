@@ -1434,6 +1434,9 @@ class ZulipLocalizationsNn extends ZulipLocalizations {
   String get mutedUser => 'Dempa brukar';
 
   @override
+  String get deletedUser => 'Deleted user';
+
+  @override
   String get scrollToBottomTooltip => 'Rull til botna';
 
   @override
