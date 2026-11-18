@@ -570,6 +570,12 @@ const _$UserSettingNameEnumMap = {
   UserSettingName.displayEmojiReactionUsers: 'display_emoji_reaction_users',
   UserSettingName.emojiset: 'emojiset',
   UserSettingName.webInboxShowChannelFolders: 'web_inbox_show_channel_folders',
+  UserSettingName.enableChannelPushNotifications:
+      'enable_stream_push_notifications',
+  UserSettingName.enableOfflinePushNotifications:
+      'enable_offline_push_notifications',
+  UserSettingName.enableOnlinePushNotifications:
+      'enable_online_push_notifications',
   UserSettingName.presenceEnabled: 'presence_enabled',
 };
 

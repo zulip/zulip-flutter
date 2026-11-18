@@ -269,6 +269,9 @@ class UserSettingsUpdateEvent extends Event {
       case UserSettingName.emojiset:
         return Emojiset.fromRawString(value as String);
       case UserSettingName.webInboxShowChannelFolders:
+      case UserSettingName.enableChannelPushNotifications:
+      case UserSettingName.enableOfflinePushNotifications:
+      case UserSettingName.enableOnlinePushNotifications:
       case UserSettingName.presenceEnabled:
         return value as bool;
       case null:
