@@ -365,17 +365,19 @@ UserTopicItem _$UserTopicItemFromJson(Map<String, dynamic> json) =>
       streamId: (json['stream_id'] as num).toInt(),
       topicName: TopicName.fromJson(json['topic_name'] as String),
       lastUpdated: (json['last_updated'] as num).toInt(),
-      visibilityPolicy: $enumDecode(
-        _$UserTopicVisibilityPolicyEnumMap,
-        json['visibility_policy'],
-        unknownValue: UserTopicVisibilityPolicy.unknown,
-      ),
+      visibilityPolicy:
+          $enumDecodeNullable(
+            _$UserTopicVisibilityPolicyEnumMap,
+            json['visibility_policy'],
+            unknownValue: UserTopicVisibilityPolicy.unknown,
+          ) ??
+          UserTopicVisibilityPolicy.unknown,
     );
 
 Map<String, dynamic> _$UserTopicItemToJson(UserTopicItem instance) =>
     <String, dynamic>{
       'stream_id': instance.streamId,
-      'topic_name': instance.topicName,
+      'topic_name': instance.topicName.toJson(),
       'last_updated': instance.lastUpdated,
       'visibility_policy': instance.visibilityPolicy,
     };
@@ -445,7 +447,7 @@ UnreadChannelSnapshot _$UnreadChannelSnapshotFromJson(
 Map<String, dynamic> _$UnreadChannelSnapshotToJson(
   UnreadChannelSnapshot instance,
 ) => <String, dynamic>{
-  'topic': instance.topic,
+  'topic': instance.topic.toJson(),
   'stream_id': instance.streamId,
   'unread_message_ids': instance.unreadMessageIds,
 };

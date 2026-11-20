@@ -813,10 +813,12 @@ UserTopicEvent _$UserTopicEventFromJson(Map<String, dynamic> json) =>
       streamId: (json['stream_id'] as num).toInt(),
       topicName: TopicName.fromJson(json['topic_name'] as String),
       lastUpdated: (json['last_updated'] as num).toInt(),
-      visibilityPolicy: $enumDecode(
-        _$UserTopicVisibilityPolicyEnumMap,
-        json['visibility_policy'],
-      ),
+      visibilityPolicy:
+          $enumDecodeNullable(
+            _$UserTopicVisibilityPolicyEnumMap,
+            json['visibility_policy'],
+          ) ??
+          UserTopicVisibilityPolicy.unknown,
     );
 
 Map<String, dynamic> _$UserTopicEventToJson(UserTopicEvent instance) =>
@@ -824,7 +826,7 @@ Map<String, dynamic> _$UserTopicEventToJson(UserTopicEvent instance) =>
       'id': instance.id,
       'type': instance.type,
       'stream_id': instance.streamId,
-      'topic_name': instance.topicName,
+      'topic_name': instance.topicName.toJson(),
       'last_updated': instance.lastUpdated,
       'visibility_policy': instance.visibilityPolicy,
     };
@@ -880,10 +882,12 @@ UpdateMessageEvent _$UpdateMessageEventFromJson(Map<String, dynamic> json) =>
           .map((e) => $enumDecode(_$MessageFlagEnumMap, e))
           .toList(),
       editTimestamp: (json['edit_timestamp'] as num).toInt(),
-      moveData: UpdateMessageMoveData.tryParseFromJson(
-        UpdateMessageEvent._readMoveData(json, 'move_data')
-            as Map<String, Object?>,
-      ),
+      moveData: UpdateMessageEvent._readMoveData(json, 'move_data') == null
+          ? null
+          : UpdateMessageMoveData.tryParseFromJson(
+              UpdateMessageEvent._readMoveData(json, 'move_data')
+                  as Map<String, Object?>,
+            ),
       origContent: json['orig_content'] as String?,
       origRenderedContent: json['orig_rendered_content'] as String?,
       content: json['content'] as String?,
@@ -943,7 +947,7 @@ Map<String, dynamic> _$DeleteMessageEventToJson(DeleteMessageEvent instance) =>
       'message_ids': instance.messageIds,
       'message_type': const MessageTypeConverter().toJson(instance.messageType),
       'stream_id': instance.streamId,
-      'topic': instance.topic,
+      'topic': instance.topic?.toJson(),
     };
 
 UpdateMessageFlagsAddEvent _$UpdateMessageFlagsAddEventFromJson(
@@ -1026,7 +1030,7 @@ Map<String, dynamic> _$UpdateMessageFlagsMessageDetailToJson(
   'mentioned': instance.mentioned,
   'user_ids': instance.userIds,
   'stream_id': instance.streamId,
-  'topic': instance.topic,
+  'topic': instance.topic?.toJson(),
 };
 
 SubmessageEvent _$SubmessageEventFromJson(Map<String, dynamic> json) =>
@@ -1082,7 +1086,7 @@ Map<String, dynamic> _$TypingEventToJson(TypingEvent instance) =>
       'sender_id': instance.senderId,
       'recipients': instance.recipientIds,
       'stream_id': instance.streamId,
-      'topic': instance.topic,
+      'topic': instance.topic?.toJson(),
     };
 
 const _$TypingOpEnumMap = {TypingOp.start: 'start', TypingOp.stop: 'stop'};
