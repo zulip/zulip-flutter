@@ -87,6 +87,9 @@ class NotificationService {
 
         // Get the FCM registration token, now and upon changes.  See FCM API docs:
         //   https://firebase.google.com/docs/cloud-messaging/android/client#sample-register
+        // TODO(server): Switch to the replacement register() and onRegistered,
+        //   once the server can send to the Firebase Installation ID they give.
+        // ignore: deprecated_member_use
         ZulipBinding.instance.firebaseMessaging.onTokenRefresh
           .listen(_onTokenRefresh);
         await _getFcmToken();
@@ -121,6 +124,7 @@ class NotificationService {
     assert(debugLog('notif authorization: ${settings.authorizationStatus}'));
     switch (settings.authorizationStatus) {
       case AuthorizationStatus.denied:
+      case AuthorizationStatus.deniedPermanently:
         return false;
       case AuthorizationStatus.authorized:
       case AuthorizationStatus.provisional:
@@ -130,6 +134,8 @@ class NotificationService {
   }
 
   Future<void> _getFcmToken() async {
+    // TODO(server): Switch to register() and onRegistered; see [start].
+    // ignore: deprecated_member_use
     final value = await ZulipBinding.instance.firebaseMessaging.getToken();
     // TODO(#323) warn user if getToken returns null, or doesn't timely return
     assert(debugLog("notif FCM token: $value"));
