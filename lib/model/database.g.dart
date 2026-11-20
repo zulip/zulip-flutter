@@ -3115,14 +3115,19 @@ class $$AccountsTableTableManager
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (pushKeysRefs)
-                    await $_getPrefetchedData<Account, $AccountsTable, PushKey>(
+                    await $_getPrefetchedDataByColumns<
+                      Account,
+                      $AccountsTable,
+                      PushKey,
+                      $PushKeysTable
+                    >(
                       currentTable: table,
                       referencedTable: $$AccountsTableReferences
                           ._pushKeysRefsTable(db),
                       managerFromTypedResult: (p0) =>
                           $$AccountsTableReferences(db, table, p0).pushKeysRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.accountId == item.id),
+                      currentColumn: 'id',
+                      referencedColumn: 'account_id',
                       typedResults: items,
                     ),
                 ];
