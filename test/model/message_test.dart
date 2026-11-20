@@ -2343,7 +2343,7 @@ void main() {
             content: PollVoteEventSubmessage(
               key: PollEventSubmessage.optionKey(senderId: null, idx: 0),
               op: PollVoteOp.unknown)));
-          checkPollNotNotified();
+          checkPollNotifiedOnce();
           checkPoll(message).options.deepEquals([conditionPollOption('foo')]);
         });
       });

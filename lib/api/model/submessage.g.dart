@@ -101,12 +101,14 @@ Map<String, dynamic> _$PollQuestionEventSubmessageToJson(
 PollVoteEventSubmessage _$PollVoteEventSubmessageFromJson(
   Map<String, dynamic> json,
 ) => PollVoteEventSubmessage(
-  key: json['key'] as String,
-  op: $enumDecode(
-    _$PollVoteOpEnumMap,
-    json['vote'],
-    unknownValue: PollVoteOp.unknown,
-  ),
+  key: json['key'] as PollOptionKey,
+  op:
+      $enumDecodeNullable(
+        _$PollVoteOpEnumMap,
+        json['vote'],
+        unknownValue: PollVoteOp.unknown,
+      ) ??
+      PollVoteOp.unknown,
 );
 
 Map<String, dynamic> _$PollVoteEventSubmessageToJson(

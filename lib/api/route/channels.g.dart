@@ -29,4 +29,7 @@ GetChannelTopicsEntry _$GetChannelTopicsEntryFromJson(
 
 Map<String, dynamic> _$GetChannelTopicsEntryToJson(
   GetChannelTopicsEntry instance,
-) => <String, dynamic>{'max_id': instance.maxId, 'name': instance.name};
+) => <String, dynamic>{
+  'max_id': instance.maxId,
+  'name': instance.name.toJson(),
+};
