@@ -63,7 +63,7 @@ dependencies:
   image_picker: ^1.0.0
   image_picker_android: ^0.8.13+14
   image_picker_platform_interface: ^2.11.1
-  json_annotation: ^4.9.0
+  json_annotation: ^4.12.0
   material_ui: ^1.5.0
   meta: ^1.18.3
   mime: ^2.0.0
@@ -117,7 +117,7 @@ dev_dependencies:
   flutter_checks: ^0.1.2
   flutter_lints: ^6.0.0
   ini: ^2.1.0
-  json_serializable: ^6.5.4
+  json_serializable: ^6.15.2
   legacy_checks: ^0.1.0
   patrol: ^4.1.1
   pigeon: ^30.0.4

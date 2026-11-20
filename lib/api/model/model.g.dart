@@ -29,11 +29,13 @@ Map<String, dynamic> _$GroupSettingValueNamelessToJson(
 CustomProfileField _$CustomProfileFieldFromJson(Map<String, dynamic> json) =>
     CustomProfileField(
       id: (json['id'] as num).toInt(),
-      type: $enumDecode(
-        _$CustomProfileFieldTypeEnumMap,
-        json['type'],
-        unknownValue: CustomProfileFieldType.unknown,
-      ),
+      type:
+          $enumDecodeNullable(
+            _$CustomProfileFieldTypeEnumMap,
+            json['type'],
+            unknownValue: CustomProfileFieldType.unknown,
+          ) ??
+          CustomProfileFieldType.unknown,
       order: (json['order'] as num).toInt(),
       name: json['name'] as String,
       hint: json['hint'] as String,
@@ -165,11 +167,13 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   isBot: json['is_bot'] as bool,
   botType: (json['bot_type'] as num?)?.toInt(),
   botOwnerId: (json['bot_owner_id'] as num?)?.toInt(),
-  role: $enumDecode(
-    _$UserRoleEnumMap,
-    json['role'],
-    unknownValue: UserRole.unknown,
-  ),
+  role:
+      $enumDecodeNullable(
+        _$UserRoleEnumMap,
+        json['role'],
+        unknownValue: UserRole.unknown,
+      ) ??
+      UserRole.unknown,
   timezone: json['timezone'] as String,
   avatarUrl: json['avatar_url'] as String?,
   avatarVersion: (json['avatar_version'] as num).toInt(),
@@ -506,7 +510,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
       'match_subject': instance.matchTopic,
       'type': instance.type,
       'stream_id': instance.streamId,
-      'subject': instance.topic,
+      'subject': instance.topic.toJson(),
       'display_recipient': instance.displayRecipient,
     };
 
