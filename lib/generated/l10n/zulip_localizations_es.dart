@@ -1294,9 +1294,6 @@ class ZulipLocalizationsEs extends ZulipLocalizations {
   String get wildcardMentionChannelDescription => 'Notificar canal';
 
   @override
-  String get wildcardMentionStreamDescription => 'Notificar canal';
-
-  @override
   String get wildcardMentionAllDmDescription => 'Notificar destinatarios';
 
   @override
