@@ -181,6 +181,38 @@ chat threads
 and [here](https://chat.zulip.org/#narrow/stream/516-mobile-dev-help/topic/generated.20plugin.20files.20changed/near/1944826).
 
 
+<div id="windows-temp-file" />
+
+### "Unable to make temporary file" on Windows
+
+When building the app on Windows for x86_64 Android, such as the
+emulator, you may see the build fail in the `sodium` package with
+errors like this:
+```
+[sodium] WARNING: clang: error: unable to make temporary file: No such file or directory
+[sodium] WARNING: make[3]: *** [Makefile:2758: crypto_stream/salsa20/xmm6/libsodium_la-salsa20_xmm6-asm.lo] Error 1
+…
+Exception: C:\Program Files\Git\usr\bin\bash.exe failed with exit code 2.
+```
+
+This happens when Git for Windows provides `bash` and MSYS2 provides
+`make`.  Between the two, the variables that tell the compiler where
+to put temporary files get lost, so the compiler falls back to the
+folder `C:\Temp`.  Windows doesn't create that folder by default.
+
+To fix the issue, create the folder, then build again:
+```
+$ mkdir "C:/Temp"
+```
+
+With the quotes and the forward slash, this command works the same
+in Git Bash, PowerShell, and Command Prompt.
+
+For background, and for the proposed fix in the `sodium` package, see
+[libsodium_dart_bindings#248](https://github.com/Skycoder42/libsodium_dart_bindings/issues/248)
+and [#250](https://github.com/Skycoder42/libsodium_dart_bindings/pull/250).
+
+
 <div id="libdrm" />
 
 ### Lack of libdrm on Linux target
