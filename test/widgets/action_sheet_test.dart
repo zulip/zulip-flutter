@@ -151,8 +151,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   // the long-press might land where no child hit-tests as true,
   // like if it's in padding around a Paragraph.
   await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
-  // sheet appears onscreen; default duration of bottom-sheet enter animation
-  await tester.pump(const Duration(milliseconds: 250));
+  await transitionDurationObserver.pumpPastTransition(tester);
   // Check the action sheet did in fact open, so we don't defeat any tests that
   // use simple `find.byIcon`-style checks to test presence/absence of a button.
   check(find.byType(BottomSheet)).findsOne();
@@ -2568,9 +2567,12 @@ void main() {
           delay: const Duration(milliseconds: 500));
         await tapCopyMessageTextButton(tester);
         // … and pump a frame to finish the NavigationState.pop animation…
-        await tester.pump(const Duration(milliseconds: 250));
-        // … before the request finishes.  This is the repro condition for #732.
-        await tester.pump(const Duration(milliseconds: 250));
+        await transitionDurationObserver.pumpPastTransition(tester);
+        // … before the request finishes and the snackbar shows.
+        // This is the repro condition for #732.
+        await tester.pump(Duration(milliseconds: 500));
+        // (Default duration of the snackbar entrance animation)
+        await tester.pump(Duration(milliseconds: 250));
 
         final snackbar = tester.widget<SnackBar>(find.byType(SnackBar));
         check(snackbar.behavior).equals(SnackBarBehavior.floating);
@@ -2771,11 +2773,7 @@ void main() {
             connection.prepare(json: GetMessageResult(
               message: eg.streamMessage(content: 'foo')).toJson());
             await tapEdit(tester);
-            await tester.pump();
-            // Default duration of bottom-sheet exit animation,
-            // plus 1ms fudge factor (why needed?)
-            // TODO(#1668) get this dynamically instead of hard-coding
-            await tester.pump(Duration(milliseconds: 200 + 1));
+            await transitionDurationObserver.pumpPastTransition(tester);
             await tester.enterText(find.byWidgetPredicate(
                 (widget) => widget is TextField && widget.controller?.text == 'foo'),
               'bar');
@@ -2801,8 +2799,7 @@ void main() {
 
             // See comment in setupToMessageActionSheet about warnIfMissed: false
             await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
-            // sheet appears onscreen; default duration of bottom-sheet enter animation
-            await tester.pump(const Duration(milliseconds: 250));
+            await transitionDurationObserver.pumpPastTransition(tester);
             check(find.byType(BottomSheet)).findsOne();
             checkButtonIsPresent(expected);
 
