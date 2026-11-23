@@ -214,11 +214,13 @@ void main() {
       check(find.byType(InboxPageBody)).findsOne();
 
       await tester.longPress(find.text(someChannel.name).hitTestable());
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromSubscriptionList(WidgetTester tester) async {
+      transitionDurationObserver = TransitionDurationObserver();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const HomePage()));
       await tester.pump();
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
@@ -226,7 +228,7 @@ void main() {
       check(find.byType(SubscriptionListPageBody)).findsOne();
 
       await tester.longPress(find.text(someChannel.name).hitTestable());
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromMsglistAppBar(WidgetTester tester, {
@@ -235,6 +237,7 @@ void main() {
     }) async {
       channel ??= someChannel;
 
+      transitionDurationObserver = TransitionDurationObserver();
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true,
         messages: narrow is ChannelNarrow
@@ -251,6 +254,7 @@ void main() {
       ).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: MessageListPage(
           initNarrow: narrow)));
       await tester.pumpAndSettle();
@@ -258,7 +262,7 @@ void main() {
       await tester.longPress(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text(channel.name)));
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromRecipientHeader(WidgetTester tester, {
@@ -266,16 +270,18 @@ void main() {
     }) async {
       message ??= someMessage;
 
+      transitionDurationObserver = TransitionDurationObserver();
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
       await tester.pumpAndSettle();
 
       await tester.longPress(find.descendant(
         of: find.byType(RecipientHeader),
         matching: find.text(message.displayRecipient ?? '')));
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromTopicListAppBar(WidgetTester tester, {int? channelId}) async {
