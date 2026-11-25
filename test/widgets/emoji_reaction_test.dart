@@ -426,7 +426,9 @@ void main() {
       connection = store.connection as FakeApiConnection;
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [message]).toJson());
+      transitionDurationObserver = TransitionDurationObserver();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: MessageListPage(initNarrow: narrow)));
 
       store.setServerEmojiData(eg.serverEmojiDataPopularPlus(
@@ -438,8 +440,7 @@ void main() {
       await tester.pumpAndSettle();
       // request the message action sheet
       await tester.longPress(find.byType(MessageContent));
-      // sheet appears onscreen; default duration of bottom-sheet enter animation
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
 
       await store.handleEvent(RealmEmojiUpdateEvent(id: 1, realmEmoji: {
         '1': eg.realmEmojiItem(emojiCode: '1', emojiName: 'buzzing'),
@@ -553,14 +554,15 @@ void main() {
       final message = eg.streamMessage();
       await setupEmojiPicker(tester, message: message, narrow: TopicNarrow.ofMessage(message));
 
+      const delay = Duration(seconds: 2);
       connection.prepare(
-        delay: const Duration(seconds: 2),
+        delay: delay,
         apiException: eg.apiBadRequest(message: 'Invalid message(s)'));
 
       await tester.tap(findInPicker(find.text('\u{1f4a4}'))); // 'zzz' emoji
       await tester.pump(); // register tap
-      await tester.pump(const Duration(seconds: 1)); // emoji picker animates away
-      await tester.pump(const Duration(seconds: 1)); // error arrives; error dialog shows
+      await transitionDurationObserver.pumpPastTransition(tester); // emoji picker animates away
+      await tester.pump(delay); // error arrives; error dialog shows
 
       await tester.tap(find.byWidget(checkErrorDialog(tester,
         expectedTitle: 'Adding reaction failed',
