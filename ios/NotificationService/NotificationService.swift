@@ -106,20 +106,14 @@ enum DartNotificationService {
     let iosNotifFlutterApi = IosNotifFlutterApi(
       binaryMessenger: headlessEngine.binaryMessenger
     )
-    let result = await withCheckedContinuation { continuation in
-      iosNotifFlutterApi.didReceivePushNotification(content: content) { result in
-        continuation.resume(returning: result)
-      }
-    }
-
-    switch result {
-    case .success(let improvedNotificationContent):
-      return improvedNotificationContent
-
-    case .failure(let error):  // TODO(log)
+    do {
+      return try await iosNotifFlutterApi.didReceivePushNotification(content: content)
+    } catch let error as PigeonError {  // TODO(log)
       logger.debug(
         "IosNotifFlutterApi.didReceivePushNotification failed: \(error.localizedDescription)")
       return nil
+    } catch {
+      return nil  // TODO(log)
     }
   }
 }

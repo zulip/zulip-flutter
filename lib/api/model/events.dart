@@ -1317,7 +1317,7 @@ class UpdateMessageEvent extends Event {
     required this.isMeMessage,
   });
 
-  static Map<String, dynamic> _readMoveData(Map<dynamic, dynamic> json, String key) {
+  static Object? _readMoveData(Map<dynamic, dynamic> json, String key) {
     // Parsing [UpdateMessageMoveData] requires `json`, not the default `json[key]`.
     assert(json is Map<String, dynamic>); // value came through `fromJson` with this type
     return json as Map<String, dynamic>;
