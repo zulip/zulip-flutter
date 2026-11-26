@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+
 /// The size threshold above which is "medium" size for an avatar.
 ///
 /// This is in physical pixels, i.e. image pixels:
@@ -14,12 +18,15 @@ abstract class AvatarUrl {
   /// [resolvedUrl] is the user's `avatar_url` resolved against the realm URL,
   /// or null if the server omitted the field; see `user_avatar_url_field_optional`
   /// at https://zulip.com/api/register-queue#parameter-client_capabilities .
+  ///
+  /// For a user whose `avatar_url` is null,
+  /// meaning a Gravatar to be computed by the client,
+  /// use [GravatarUrl.fromEmail] instead.
   factory AvatarUrl.fromUserData({
     required Uri? resolvedUrl,
     required int userId,
     required Uri realmUrl,
   }) {
-    // TODO(#255): handle computing gravatars
     if (resolvedUrl == null) {
       return FallbackAvatarUrl(realmUrl: realmUrl, userId: userId);
     } else if (resolvedUrl.toString().startsWith(GravatarUrl.origin)) {
@@ -34,6 +41,19 @@ abstract class AvatarUrl {
 
 class GravatarUrl implements AvatarUrl {
   GravatarUrl({required Uri resolvedUrl}) : standardUrl = resolvedUrl;
+
+  /// The Gravatar URL for the given email address.
+  ///
+  /// This is for a user whose `avatar_url` the server sent as null,
+  /// as it does when we pass true for `client_gravatar`:
+  ///   https://zulip.com/api/register-queue#parameter-client_gravatar
+  ///
+  /// See `GravatarURL.fromEmail` in zulip-mobile's src/utils/avatar.js.
+  factory GravatarUrl.fromEmail(String email) {
+    final hash = md5.convert(utf8.encode(email.toLowerCase()));
+    return GravatarUrl(
+      resolvedUrl: Uri.parse('$origin/avatar/$hash?d=identicon'));
+  }
 
   static String origin = 'https://secure.gravatar.com';
 

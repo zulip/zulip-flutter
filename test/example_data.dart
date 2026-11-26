@@ -294,7 +294,7 @@ User user({
   bool? isBot,
   int? botOwnerId,
   UserRole? role,
-  String? avatarUrl,
+  JsonNullable<String>? avatarUrl,
   Map<int, ProfileFieldUserData>? profileData,
 }) {
   _checkPositive(userId, 'user ID');

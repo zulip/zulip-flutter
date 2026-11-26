@@ -29,11 +29,14 @@ void main() {
       matching: find.byIcon(ZulipIcons.person),
     );
 
-    Future<Uri?> actualUrl(WidgetTester tester, String? avatarUrl, [double? size]) async {
+    Future<Uri?> actualUrl(WidgetTester tester, JsonNullable<String>? avatarUrl, [
+      double? size,
+      String? email,
+    ]) async {
       addTearDown(testBinding.reset);
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
-      user = eg.user(avatarUrl: avatarUrl);
+      user = eg.user(email: email, avatarUrl: avatarUrl);
       await store.addUser(user);
 
       prepareBoringImageHttpClient();
@@ -50,14 +53,14 @@ void main() {
 
     testWidgets('smoke with absolute URL', (tester) async {
       const avatarUrl = 'https://example/avatar.png';
-      check(await actualUrl(tester, avatarUrl)).isNotNull()
+      check(await actualUrl(tester, JsonNullable(avatarUrl))).isNotNull()
         .asString.equals(avatarUrl);
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke with relative URL', (tester) async {
       const avatarUrl = '/avatar.png';
-      check(await actualUrl(tester, avatarUrl))
+      check(await actualUrl(tester, JsonNullable(avatarUrl)))
         .equals(store.tryResolveUrl(avatarUrl)!);
       debugNetworkImageHttpClientProvider = null;
     });
@@ -67,7 +70,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       const avatarUrl = 'https://example/avatar.png';
-      check(await actualUrl(tester, avatarUrl, 50)).isNotNull()
+      check(await actualUrl(tester, JsonNullable(avatarUrl), 50)).isNotNull()
         .asString.equals(avatarUrl.replaceAll('.png', '-medium.png'));
       debugNetworkImageHttpClientProvider = null;
     });
@@ -77,14 +80,14 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
 
       const avatarUrl = '/avatar.png';
-      check(await actualUrl(tester, avatarUrl, 50))
+      check(await actualUrl(tester, JsonNullable(avatarUrl), 50))
         .equals(store.tryResolveUrl('/avatar-medium.png')!);
       debugNetworkImageHttpClientProvider = null;
     });
 
     testWidgets('smoke with invalid URL', (tester) async {
       const avatarUrl = '::not a URL::';
-      check(await actualUrl(tester, avatarUrl)).isNull();
+      check(await actualUrl(tester, JsonNullable(avatarUrl))).isNull();
       debugNetworkImageHttpClientProvider = null;
     });
 
@@ -118,6 +121,18 @@ void main() {
       debugNetworkImageHttpClientProvider = null;
     });
 
+    testWidgets('computed Gravatar URL when avatarUrl is null', (tester) async {
+      tester.view.devicePixelRatio = 2.5;
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      check(await actualUrl(tester, const JsonNullable(null), 50,
+          'MyEmailAddress@example.com'))
+        .isNotNull().asString.equals(
+          'https://secure.gravatar.com/avatar/0bc83cb571cd1c50ba6f3e8a78ef1346'
+          '?d=identicon&s=125');
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     testWidgets('shows placeholder when image fails to load', (tester) async {
       final httpClient = FakeImageHttpClient();
       debugNetworkImageHttpClientProvider = () => httpClient;
@@ -129,7 +144,8 @@ void main() {
       await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 
-      final badUser = eg.user(avatarUrl: 'https://zulip.com/avatarinvalid.png');
+      final badUser = eg.user(
+        avatarUrl: JsonNullable('https://zulip.com/avatarinvalid.png'));
       await store.addUser(badUser);
 
       await tester.pumpWidget(

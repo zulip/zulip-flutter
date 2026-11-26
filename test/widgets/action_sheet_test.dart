@@ -2351,7 +2351,7 @@ void main() {
     });
 
     group('UnrevealMutedMessageButton', () {
-      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: '/foo.png');
+      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: JsonNullable('/foo.png'));
       final message = eg.streamMessage(sender: user,
         content: '<p>A message</p>', reactions: [eg.unicodeEmojiReaction]);
 

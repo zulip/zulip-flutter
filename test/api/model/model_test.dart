@@ -118,6 +118,27 @@ void main() {
         .equals('name@email.com');
     });
 
+    test('avatar_url', () {
+      check(mkUser({})).avatarUrl.isNull();
+      check(mkUser({'avatar_url': null})).avatarUrl
+        .equals(const JsonNullable(null));
+      check(mkUser({'avatar_url': '/user_avatars/2/foo.png'})).avatarUrl
+        .equals(const JsonNullable('/user_avatars/2/foo.png'));
+    });
+
+    test('avatar_url round-trips through JSON', () {
+      void checkRoundTrip(Map<String, dynamic> specialJson) {
+        final json = jsonDecode(jsonEncode(mkUser(specialJson)))
+          as Map<String, dynamic>;
+        check(json.containsKey('avatar_url'))
+          .equals(specialJson.containsKey('avatar_url'));
+        check(json['avatar_url']).equals(specialJson['avatar_url']);
+      }
+      checkRoundTrip({});
+      checkRoundTrip({'avatar_url': null});
+      checkRoundTrip({'avatar_url': '/user_avatars/2/foo.png'});
+    });
+
     test('profile_data', () {
       check(mkUser({'profile_data': <String, dynamic>{}}).profileData).isNull();
       check(mkUser({'profile_data': null}).profileData).isNull();
