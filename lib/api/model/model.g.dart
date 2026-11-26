@@ -171,7 +171,11 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
     unknownValue: UserRole.unknown,
   ),
   timezone: json['timezone'] as String,
-  avatarUrl: json['avatar_url'] as String?,
+  avatarUrl:
+      _$JsonConverterFromJson<JsonNullable<String>, JsonNullable<String>>(
+        JsonNullable.readStringFromJson(json, 'avatar_url'),
+        const NullableStringJsonConverter().fromJson,
+      ),
   avatarVersion: (json['avatar_version'] as num).toInt(),
   profileData:
       (User._readProfileData(json, 'profile_data') as Map<String, dynamic>?)
@@ -196,13 +200,17 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'bot_owner_id': instance.botOwnerId,
   'role': instance.role,
   'timezone': instance.timezone,
-  'avatar_url': instance.avatarUrl,
   'avatar_version': instance.avatarVersion,
   'profile_data': instance.profileData?.map(
     (k, e) => MapEntry(k.toString(), e),
   ),
   'is_system_bot': instance.isSystemBot,
 };
+
+Value? _$JsonConverterFromJson<Json, Value>(
+  Object? json,
+  Value? Function(Json json) fromJson,
+) => json == null ? null : fromJson(json as Json);
 
 const _$UserRoleEnumMap = {
   UserRole.owner: 100,

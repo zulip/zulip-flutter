@@ -167,9 +167,9 @@ void main() {
     }
 
     testWidgets('user options appear, disappear, and change correctly', (tester) async {
-      final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: 'user1.png');
-      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: 'user2.png');
-      final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: 'user3.png');
+      final user1 = eg.user(userId: 1, fullName: 'User One', avatarUrl: JsonNullable('user1.png'));
+      final user2 = eg.user(userId: 2, fullName: 'User Two', avatarUrl: JsonNullable('user2.png'));
+      final user3 = eg.user(userId: 3, fullName: 'User Three', avatarUrl: JsonNullable('user3.png'));
       final composeInputFinder = await setupToComposeInput(tester, users: [user1, user2, user3]);
       final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
 

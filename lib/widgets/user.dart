@@ -73,16 +73,21 @@ class AvatarImage extends StatelessWidget {
       return _AvatarPlaceholder(size: size);
     }
 
-    Uri? resolvedUrl;
-    if (user.avatarUrl != null) {
-      resolvedUrl = store.tryResolveUrl(user.avatarUrl!);
-      if (resolvedUrl == null) { // TODO(log)
-        return _AvatarPlaceholder(size: size);
-      }
+    final AvatarUrl avatarUrl;
+    switch (user.avatarUrl) {
+      case JsonNullable(value: null):
+        avatarUrl = GravatarUrl.fromEmail(user.email);
+      case JsonNullable(value: final url?):
+        final resolvedUrl = store.tryResolveUrl(url);
+        if (resolvedUrl == null) { // TODO(log)
+          return _AvatarPlaceholder(size: size);
+        }
+        avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl,
+          userId: userId, realmUrl: store.realmUrl);
+      case null:
+        avatarUrl = AvatarUrl.fromUserData(resolvedUrl: null,
+          userId: userId, realmUrl: store.realmUrl);
     }
-
-    final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl,
-      userId: userId, realmUrl: store.realmUrl);
     final physicalSize = (MediaQuery.devicePixelRatioOf(context) * size).ceil();
 
     return RealmContentNetworkImage(

@@ -4,6 +4,7 @@ import '../../basic.dart';
 import '../../model/algorithms.dart';
 import 'events.dart';
 import 'initial_snapshot.dart';
+import 'json.dart';
 import 'reaction.dart';
 import 'submessage.dart';
 
@@ -498,7 +499,17 @@ class User {
   @JsonKey(unknownEnumValue: UserRole.unknown)
   UserRole role;
   String timezone;
-  String? avatarUrl; // TODO(#255) distinguish null from missing, as a `JsonNullable<String>?`
+  /// The user's `avatar_url`, distinguishing an omitted field from null.
+  ///
+  /// This is null if the server omitted the field
+  /// (see `user_avatar_url_field_optional`
+  /// at https://zulip.com/api/register-queue#parameter-client_capabilities ),
+  /// and `JsonNullable(null)` if the server sent null,
+  /// meaning a Gravatar URL to be computed from [email]
+  /// (see https://zulip.com/api/register-queue#parameter-client_gravatar ).
+  @JsonKey(readValue: JsonNullable.readStringFromJson, includeToJson: false)
+  @NullableStringJsonConverter()
+  JsonNullable<String>? avatarUrl;
   int avatarVersion;
 
   // null for bots, which don't have custom profile fields.
@@ -541,7 +552,10 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
-  Map<String, dynamic> toJson() => _$UserToJson(this);
+  Map<String, dynamic> toJson() => {
+    ..._$UserToJson(this),
+    if (avatarUrl != null) 'avatar_url': avatarUrl!.value,
+  };
 }
 
 /// As in [User.profileData].

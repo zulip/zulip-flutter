@@ -19,6 +19,18 @@ void main() {
 
       check(avatarUrl.get(defaultSize).toString()).equals('$url?s=30');
     });
+
+    test('computed from email', () {
+      final avatarUrl = GravatarUrl.fromEmail('MyEmailAddress@example.com');
+      check(avatarUrl.get(defaultSize).toString()).equals(
+        '${GravatarUrl.origin}/avatar/0bc83cb571cd1c50ba6f3e8a78ef1346'
+        '?d=identicon&s=30');
+    });
+
+    test('computed from email, case-insensitive', () {
+      check(GravatarUrl.fromEmail('Name@Example.COM').get(defaultSize))
+        .equals(GravatarUrl.fromEmail('name@example.com').get(defaultSize));
+    });
   });
 
   group('FallbackAvatarUrl', () {

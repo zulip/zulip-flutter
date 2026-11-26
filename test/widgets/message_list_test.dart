@@ -2388,7 +2388,8 @@ void main() {
       }
 
       Future<void> handleNewAvatarEventAndPump(WidgetTester tester, String avatarUrl) async {
-        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId, avatarUrl: avatarUrl));
+        await store.handleEvent(RealmUserUpdateEvent(id: 1, userId: user.userId,
+          avatarUrl: JsonNullable(avatarUrl)));
         await tester.pump();
       }
 
@@ -2396,7 +2397,7 @@ void main() {
 
       await setupMessageListPage(tester, users: [user],
         messages: [eg.streamMessage(sender: user)]);
-      checkResultForSender(user.avatarUrl);
+      checkResultForSender(null);
 
       await handleNewAvatarEventAndPump(tester, '/foo.png');
       checkResultForSender('/foo.png');
@@ -2549,7 +2550,7 @@ void main() {
         check(contentFinder.evaluate().length).equals(expectIsMuted ? 0 : 1);
       }
 
-      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: '/foo.png');
+      final user = eg.user(userId: 1, fullName: 'User', avatarUrl: JsonNullable('/foo.png'));
       final message = eg.streamMessage(sender: user,
         content: '<p>A message</p>', reactions: [eg.unicodeEmojiReaction]);
 

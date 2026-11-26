@@ -39,7 +39,7 @@ extension UserChecks on Subject<User> {
   Subject<int?> get botOwnerId => has((x) => x.botOwnerId, 'botOwnerId');
   Subject<UserRole> get role => has((x) => x.role, 'role');
   Subject<String> get timezone => has((x) => x.timezone, 'timezone');
-  Subject<String?> get avatarUrl => has((x) => x.avatarUrl, 'avatarUrl');
+  Subject<JsonNullable<String>?> get avatarUrl => has((x) => x.avatarUrl, 'avatarUrl');
   Subject<int> get avatarVersion => has((x) => x.avatarVersion, 'avatarVersion');
   Subject<Map<int, ProfileFieldUserData>?> get profileData => has((x) => x.profileData, 'profileData');
   Subject<bool> get isSystemBot => has((x) => x.isSystemBot, 'isSystemBot');

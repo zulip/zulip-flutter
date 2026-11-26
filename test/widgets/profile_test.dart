@@ -374,8 +374,8 @@ void main() {
         eg.user(userId: 1, profileData: {
           0: ProfileFieldUserData(value: '[2,3]'),
         }),
-        eg.user(userId: 2, fullName: 'test user2', avatarUrl: '/foo.png'),
-        eg.user(userId: 3, fullName: 'test user3', avatarUrl: '/bar.png'),
+        eg.user(userId: 2, fullName: 'test user2', avatarUrl: JsonNullable('/foo.png')),
+        eg.user(userId: 3, fullName: 'test user3', avatarUrl: JsonNullable('/bar.png')),
       ];
 
       await setupPage(tester,
