@@ -151,8 +151,7 @@ Future<void> setupToMessageActionSheet(WidgetTester tester, {
   // the long-press might land where no child hit-tests as true,
   // like if it's in padding around a Paragraph.
   await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
-  // sheet appears onscreen; default duration of bottom-sheet enter animation
-  await tester.pump(const Duration(milliseconds: 250));
+  await transitionDurationObserver.pumpPastTransition(tester);
   // Check the action sheet did in fact open, so we don't defeat any tests that
   // use simple `find.byIcon`-style checks to test presence/absence of a button.
   check(find.byType(BottomSheet)).findsOne();
@@ -214,11 +213,13 @@ void main() {
       check(find.byType(InboxPageBody)).findsOne();
 
       await tester.longPress(find.text(someChannel.name).hitTestable());
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromSubscriptionList(WidgetTester tester) async {
+      transitionDurationObserver = TransitionDurationObserver();
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const HomePage()));
       await tester.pump();
       await tester.tap(find.byIcon(ZulipIcons.hash_italic));
@@ -226,7 +227,7 @@ void main() {
       check(find.byType(SubscriptionListPageBody)).findsOne();
 
       await tester.longPress(find.text(someChannel.name).hitTestable());
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromMsglistAppBar(WidgetTester tester, {
@@ -235,6 +236,7 @@ void main() {
     }) async {
       channel ??= someChannel;
 
+      transitionDurationObserver = TransitionDurationObserver();
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true,
         messages: narrow is ChannelNarrow
@@ -251,6 +253,7 @@ void main() {
       ).toJson());
       await tester.pumpWidget(TestZulipApp(
         accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: MessageListPage(
           initNarrow: narrow)));
       await tester.pumpAndSettle();
@@ -258,7 +261,7 @@ void main() {
       await tester.longPress(find.descendant(
         of: find.byType(ZulipAppBar),
         matching: find.text(channel.name)));
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromRecipientHeader(WidgetTester tester, {
@@ -266,16 +269,18 @@ void main() {
     }) async {
       message ??= someMessage;
 
+      transitionDurationObserver = TransitionDurationObserver();
       connection.prepare(json: eg.newestGetMessagesResult(
         foundOldest: true, messages: [message]).toJson());
       await tester.pumpWidget(TestZulipApp(accountId: eg.selfAccount.id,
+        navigatorObservers: [transitionDurationObserver],
         child: const MessageListPage(initNarrow: CombinedFeedNarrow())));
       await tester.pumpAndSettle();
 
       await tester.longPress(find.descendant(
         of: find.byType(RecipientHeader),
         matching: find.text(message.displayRecipient ?? '')));
-      await tester.pump(const Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> showFromTopicListAppBar(WidgetTester tester, {int? channelId}) async {
@@ -2562,9 +2567,12 @@ void main() {
           delay: const Duration(milliseconds: 500));
         await tapCopyMessageTextButton(tester);
         // … and pump a frame to finish the NavigationState.pop animation…
-        await tester.pump(const Duration(milliseconds: 250));
-        // … before the request finishes.  This is the repro condition for #732.
-        await tester.pump(const Duration(milliseconds: 250));
+        await transitionDurationObserver.pumpPastTransition(tester);
+        // … before the request finishes and the snackbar shows.
+        // This is the repro condition for #732.
+        await tester.pump(Duration(milliseconds: 500));
+        // (Default duration of the snackbar entrance animation)
+        await tester.pump(Duration(milliseconds: 250));
 
         final snackbar = tester.widget<SnackBar>(find.byType(SnackBar));
         check(snackbar.behavior).equals(SnackBarBehavior.floating);
@@ -2765,11 +2773,7 @@ void main() {
             connection.prepare(json: GetMessageResult(
               message: eg.streamMessage(content: 'foo')).toJson());
             await tapEdit(tester);
-            await tester.pump();
-            // Default duration of bottom-sheet exit animation,
-            // plus 1ms fudge factor (why needed?)
-            // TODO(#1668) get this dynamically instead of hard-coding
-            await tester.pump(Duration(milliseconds: 200 + 1));
+            await transitionDurationObserver.pumpPastTransition(tester);
             await tester.enterText(find.byWidgetPredicate(
                 (widget) => widget is TextField && widget.controller?.text == 'foo'),
               'bar');
@@ -2795,8 +2799,7 @@ void main() {
 
             // See comment in setupToMessageActionSheet about warnIfMissed: false
             await tester.longPress(find.byType(MessageContent), warnIfMissed: false);
-            // sheet appears onscreen; default duration of bottom-sheet enter animation
-            await tester.pump(const Duration(milliseconds: 250));
+            await transitionDurationObserver.pumpPastTransition(tester);
             check(find.byType(BottomSheet)).findsOne();
             checkButtonIsPresent(expected);
 
