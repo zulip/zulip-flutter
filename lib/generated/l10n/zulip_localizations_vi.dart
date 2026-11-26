@@ -1,7 +1,3 @@
-// TODO(upstream) drop once gen-l10n stops using the deprecated members:
-//   https://github.com/flutter/flutter/issues/191072
-// ignore_for_file: deprecated_member_use
-
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
 
