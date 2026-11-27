@@ -2169,7 +2169,11 @@ class SenderRow extends StatelessWidget {
                     borderRadius: 3,
                     showPresence: false,
                     replaceIfMuted: showAsMuted,
-                    userId: message.senderId),
+                    userId: message.senderId,
+                    fallbackAvatarUrl: switch (message) {
+                      Message(:final avatarUrl) => avatarUrl,
+                      _ => null,
+                    }),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(message is Message

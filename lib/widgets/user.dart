@@ -20,6 +20,7 @@ class Avatar extends StatelessWidget {
     this.backgroundColor,
     this.showPresence = true,
     this.replaceIfMuted = true,
+    this.fallbackAvatarUrl,
   });
 
   final int userId;
@@ -28,6 +29,11 @@ class Avatar extends StatelessWidget {
   final Color? backgroundColor;
   final bool showPresence;
   final bool replaceIfMuted;
+
+  /// Avatar URL from a [Message] for when [userId] is unknown to the store.
+  ///
+  /// See #1556.
+  final String? fallbackAvatarUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +45,15 @@ class Avatar extends StatelessWidget {
       borderRadius: borderRadius,
       backgroundColor: backgroundColor,
       userIdForPresence: showPresence ? userId : null,
-      child: AvatarImage(userId: userId, size: size, replaceIfMuted: replaceIfMuted));
+      child: AvatarImage(userId: userId, size: size, replaceIfMuted: replaceIfMuted,
+        fallbackAvatarUrl: fallbackAvatarUrl));
   }
 }
 
 /// The appropriate avatar image for a user ID.
 ///
-/// If the user isn't found, gives a [SizedBox.shrink].
+/// If the user isn't found and no [fallbackAvatarUrl] is provided,
+/// shows a placeholder.
 ///
 /// Wrap this with [AvatarShape].
 class AvatarImage extends StatelessWidget {
@@ -54,33 +62,46 @@ class AvatarImage extends StatelessWidget {
     required this.userId,
     required this.size,
     this.replaceIfMuted = true,
+    this.fallbackAvatarUrl,
   });
 
   final int userId;
   final double size;
   final bool replaceIfMuted;
 
+  /// Avatar URL from a [Message] for when [userId] is unknown to the store.
+  ///
+  /// See #1556.
+  final String? fallbackAvatarUrl;
+
   @override
   Widget build(BuildContext context) {
     final store = PerAccountStoreWidget.of(context);
     final user = store.getUser(userId);
 
-    if (user == null) { // TODO(log)
-      return _AvatarPlaceholder(size: size);
-    }
-
     if (replaceIfMuted && store.isUserMuted(userId)) {
       return _AvatarPlaceholder(size: size);
     }
 
+    final String? rawAvatarUrl;
+    if (user != null) {
+      rawAvatarUrl = user.avatarUrl;
+    } else if (fallbackAvatarUrl != null) {
+      rawAvatarUrl = fallbackAvatarUrl;
+    } else { // TODO(log)
+      return _AvatarPlaceholder(size: size);
+    }
+
     Uri? resolvedUrl;
-    if (user.avatarUrl != null) {
-      resolvedUrl = store.tryResolveUrl(user.avatarUrl!);
+    if (rawAvatarUrl != null) {
+      resolvedUrl = store.tryResolveUrl(rawAvatarUrl);
       if (resolvedUrl == null) { // TODO(log)
         return _AvatarPlaceholder(size: size);
       }
     }
 
+    // When the user is unknown, FallbackAvatarUrl's /avatar/{id} endpoint
+    // may 404 for guests; prefer the message's avatar_url via [resolvedUrl].
     final avatarUrl = AvatarUrl.fromUserData(resolvedUrl: resolvedUrl,
       userId: userId, realmUrl: store.realmUrl);
     final physicalSize = (MediaQuery.devicePixelRatioOf(context) * size).ceil();

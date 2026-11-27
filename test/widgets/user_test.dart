@@ -103,6 +103,30 @@ void main() {
       check(findPlaceholder).findsOne();
     });
 
+    testWidgets('uses fallbackAvatarUrl when user is not found', (tester) async {
+      addTearDown(testBinding.reset);
+      await testBinding.globalStore.add(eg.selfAccount, eg.initialSnapshot());
+      final store = await testBinding.globalStore.perAccount(eg.selfAccount.id);
+
+      const nonExistentUserId = 9999999;
+      check(store.getUser(nonExistentUserId)).isNull();
+      const fallbackAvatarUrl = 'https://example/unknown-sender.png';
+
+      prepareBoringImageHttpClient();
+      await tester.pumpWidget(
+        TestZulipApp(accountId: eg.selfAccount.id,
+          child: AvatarImage(userId: nonExistentUserId, size: 30,
+            fallbackAvatarUrl: fallbackAvatarUrl)));
+      await tester.pump();
+      await tester.pump();
+      check(findPlaceholder).findsNothing();
+      final widgets = tester.widgetList<RealmContentNetworkImage>(
+        find.byType(RealmContentNetworkImage));
+      check(widgets.firstOrNull?.src).isNotNull()
+        .asString.equals(fallbackAvatarUrl);
+      debugNetworkImageHttpClientProvider = null;
+    });
+
     testWidgets('fallback URL when avatarUrl is missing', (tester) async {
       check(await actualUrl(tester, null))
         .equals(store.realmUrl.resolve('/avatar/${user.userId}'));
