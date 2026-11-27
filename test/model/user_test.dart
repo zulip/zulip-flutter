@@ -231,4 +231,50 @@ void main() {
       doTest('mixed (all replaced)', [1], [2], MutedUsersVisibilityEffect.mixed);
     });
   });
+
+  group('primaryPronounsFor', () {
+    test('returns pronoun value when present', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'he/him'),
+      });
+      check(store.primaryPronounsFor(user)).equals('he/him');
+    });
+
+    test('returns null when no pronoun field exists', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.shortText),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'some text'),
+      });
+      check(store.primaryPronounsFor(user)).isNull();
+    });
+
+    test('returns null when user has no profile data for field', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns),
+        ]));
+      final user = eg.user();
+      check(store.primaryPronounsFor(user)).isNull();
+    });
+
+    test('uses first pronoun field in list among multiple', () {
+      final store = eg.store(initialSnapshot: eg.initialSnapshot(
+        customProfileFields: [
+          eg.customProfileField(0, CustomProfileFieldType.pronouns, order: 2),
+          eg.customProfileField(1, CustomProfileFieldType.pronouns, order: 1),
+        ]));
+      final user = eg.user(profileData: {
+        0: ProfileFieldUserData(value: 'he/him'),
+        1: ProfileFieldUserData(value: 'they/them'),
+      });
+      check(store.primaryPronounsFor(user)).equals('he/him');
+    });
+  });
 }
