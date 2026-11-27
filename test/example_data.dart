@@ -711,6 +711,7 @@ final _messagePropertiesBase = {
 
 Map<String, dynamic> _messagePropertiesFromSender(User? sender) {
   return {
+    'avatar_url': sender?.avatarUrl,
     'client': 'ExampleClient',
     'sender_email': sender?.email ?? 'a-person@example',
     'sender_full_name': sender?.fullName ?? 'A Person',

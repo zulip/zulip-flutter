@@ -461,6 +461,7 @@ StreamConversation _$StreamConversationFromJson(Map<String, dynamic> json) {
 
 StreamMessage _$StreamMessageFromJson(Map<String, dynamic> json) =>
     StreamMessage(
+      avatarUrl: json['avatar_url'] as String?,
       client: json['client'] as String,
       content: json['content'] as String,
       contentType: json['content_type'] as String,
@@ -489,6 +490,7 @@ Map<String, dynamic> _$StreamMessageToJson(StreamMessage instance) =>
     <String, dynamic>{
       'sender_id': instance.senderId,
       'timestamp': instance.timestamp,
+      'avatar_url': instance.avatarUrl,
       'client': instance.client,
       'content': instance.content,
       'content_type': instance.contentType,
@@ -517,6 +519,7 @@ const _$MessageEditStateEnumMap = {
 };
 
 DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
+  avatarUrl: json['avatar_url'] as String?,
   client: json['client'] as String,
   content: json['content'] as String,
   contentType: json['content_type'] as String,
@@ -543,6 +546,7 @@ DmMessage _$DmMessageFromJson(Map<String, dynamic> json) => DmMessage(
 Map<String, dynamic> _$DmMessageToJson(DmMessage instance) => <String, dynamic>{
   'sender_id': instance.senderId,
   'timestamp': instance.timestamp,
+  'avatar_url': instance.avatarUrl,
   'client': instance.client,
   'content': instance.content,
   'content_type': instance.contentType,

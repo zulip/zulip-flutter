@@ -1189,7 +1189,12 @@ abstract class MessageBase<T extends Conversation> {
 ///
 /// https://zulip.com/api/get-messages#response
 sealed class Message<T extends Conversation> extends MessageBase<T> {
-  // final String? avatarUrl; // Use [User.avatarUrl] instead; will live-update
+  /// The sender's avatar URL as of this message, from the get-messages API.
+  ///
+  /// Prefer [User.avatarUrl] from [UserStore.getUser] when the sender is known,
+  /// so the avatar live-updates. Use this when the sender is unknown
+  /// (see #1556 / #716).
+  final String? avatarUrl;
   final String client;
   String content;
   final String contentType;
@@ -1258,6 +1263,7 @@ sealed class Message<T extends Conversation> extends MessageBase<T> {
   }
 
   Message({
+    required this.avatarUrl,
     required this.client,
     required this.content,
     required this.contentType,
@@ -1362,6 +1368,7 @@ class StreamMessage extends Message<StreamConversation> {
   }
 
   StreamMessage({
+    required super.avatarUrl,
     required super.client,
     required super.content,
     required super.contentType,
@@ -1423,6 +1430,7 @@ class DmMessage extends Message<DmConversation> {
   }
 
   DmMessage({
+    required super.avatarUrl,
     required super.client,
     required super.content,
     required super.contentType,
