@@ -2666,6 +2666,8 @@ void main() {
   });
 
   group('OutboxMessageWithPossibleSender', () {
+    late TransitionDurationObserver transitionDurationObserver;
+
     final stream = eg.stream();
     final topic = 'topic';
     final topicNarrow = eg.topicNarrow(stream.streamId, topic);
@@ -2702,7 +2704,7 @@ void main() {
     Future<void> dismissErrorDialog(WidgetTester tester) async {
       await tester.tap(find.byWidget(
         checkErrorDialog(tester, expectedTitle: 'Message not sent')));
-      await tester.pump(Duration(milliseconds: 250));
+      await transitionDurationObserver.pumpPastTransition(tester);
     }
 
     Future<void> checkTapRestoreMessage(WidgetTester tester) async {
@@ -2752,8 +2754,10 @@ void main() {
     });
 
     testWidgets('hidden -> failed, tap to restore message', (tester) async {
+      transitionDurationObserver = TransitionDurationObserver();
       await setupMessageListPage(tester,
         narrow: topicNarrow, subscriptions: [eg.subscription(stream)],
+        navObservers: [transitionDurationObserver],
         messages: []);
       // Send a message and fail.  Dismiss the error dialog as it pops up.
       await sendMessageAndFail(tester);
@@ -2764,7 +2768,7 @@ void main() {
     });
 
     testWidgets('hidden -> failed, tapping does nothing if compose box is not offered', (tester) async {
-      final transitionDurationObserver = TransitionDurationObserver();
+      transitionDurationObserver = TransitionDurationObserver();
 
       final messages = [eg.streamMessage(
         stream: stream, topic: topic, content: content)];
